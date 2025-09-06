@@ -390,7 +390,7 @@ describe('Future Form Development Standards', () => {
           'All error messages must be longer than 15 characters',
           'Required fields must include format examples where helpful',
           'Error messages must use polite, encouraging language',
-          'Avoid technical terms like "invalid" without explanation',
+          'All fields must avoid technical terms like "invalid" without explanation',
           'Include specific guidance on how to fix the error'
         ],
         
@@ -529,6 +529,11 @@ describe('Form Validation Standards Integration', () => {
  */
 describe('Validation Rule Enforcement Utilities', () => {
   test('should provide utility functions to check form validation compliance', () => {
+    // Helper function to determine if field type needs an example
+    const needsExample = (fieldType: string) => {
+      return ['email', 'phone', 'postal', 'amount', 'time', 'name', 'password'].includes(fieldType.toLowerCase());
+    };
+
     // Utility to check if an error message follows our standards
     const checkErrorMessageCompliance = (message: string, fieldType: string) => {
       const checks = {
@@ -565,30 +570,34 @@ describe('Validation Rule Enforcement Utilities', () => {
   });
 
   test('should validate form schema compliance checker', () => {
+    // Helper function to determine if field type needs an example (reuse from above)
+    const needsExampleForType = (fieldType: string) => {
+      return ['email', 'phone', 'postal', 'amount', 'time', 'name', 'password'].includes(fieldType.toLowerCase());
+    };
+
+    // Utility to check if an error message follows our standards (simplified version)
+    const checkMessageCompliance = (message: string, fieldType: string) => {
+      return {
+        isCompliant: 
+          message.length >= 15 &&
+          /please|must be|required/i.test(message) &&
+          (!needsExampleForType(fieldType) || message.includes('example:')),
+        message
+      };
+    };
+
     // Utility to check if a Zod schema follows our standards
     const checkSchemaCompliance = (schema: z.ZodType, fieldType: string) => {
       try {
         const result = schema.safeParse(''); // Test with empty string
         if (!result.success) {
           const errorMessage = result.error.issues[0].message;
-          return checkErrorMessageCompliance(errorMessage, fieldType);
+          return checkMessageCompliance(errorMessage, fieldType);
         }
         return { isCompliant: true, message: 'No validation errors to check' };
       } catch (error) {
         return { isCompliant: false, message: 'Schema validation failed' };
       }
-    };
-
-    const checkErrorMessageCompliance = (message: string, fieldType: string) => {
-      const needsExample = ['email', 'phone', 'postal', 'amount', 'time', 'name', 'password'].includes(fieldType.toLowerCase());
-      
-      return {
-        isCompliant: 
-          message.length >= 15 &&
-          /please|must be|required/i.test(message) &&
-          (!needsExample || message.includes('example:')),
-        message
-      };
     };
 
     // Test the schema compliance checker

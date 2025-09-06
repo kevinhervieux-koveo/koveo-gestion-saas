@@ -1,0 +1,136 @@
+// Simplified Jest setup file - minimal mocking to prevent hanging
+import '@testing-library/jest-dom';
+
+// Set test environment variables
+process.env.TEST_TYPE = 'unit';
+process.env.USE_MOCK_DB = 'true';
+process.env.NODE_ENV = 'test';
+
+// Mock fetch for tests
+global.fetch = jest.fn().mockImplementation(() => 
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    json: async () => ({ success: true, data: [] }),
+    text: async () => '{"success": true, "data": []}'
+  })
+);
+
+// Mock basic browser APIs
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
+global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
+// Mock storage
+const createMockStorage = () => ({
+  getItem: jest.fn(() => null),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+  length: 0,
+  key: jest.fn(() => null),
+});
+
+Object.defineProperty(window, 'sessionStorage', {
+  value: createMockStorage(),
+});
+
+Object.defineProperty(window, 'localStorage', {
+  value: createMockStorage(),
+});
+
+// Mock basic hooks
+jest.mock('@/hooks/use-language', () => ({
+  useLanguage: () => ({
+    t: (key: string) => key,
+    language: 'en',
+    setLanguage: jest.fn(),
+  }),
+}));
+
+jest.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: jest.fn(),
+  }),
+}));
+
+jest.mock('@/hooks/use-auth', () => ({
+  useAuth: () => ({
+    user: { id: '1', username: 'test', role: 'admin' },
+    isAuthenticated: true,
+    login: jest.fn(),
+    logout: jest.fn(),
+  }),
+}));
+
+// Mock database operations simply
+jest.mock('drizzle-orm', () => ({
+  eq: jest.fn(),
+  and: jest.fn(),
+  or: jest.fn(),
+  sql: jest.fn(),
+  desc: jest.fn(),
+  asc: jest.fn(),
+}));
+
+// Mock database connection
+const mockDb = {
+  query: jest.fn().mockResolvedValue([]),
+  insert: jest.fn(() => ({
+    values: jest.fn(() => ({
+      returning: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
+    }))
+  })),
+  select: jest.fn(() => ({
+    from: jest.fn(() => Promise.resolve([]))
+  })),
+  update: jest.fn(() => ({
+    set: jest.fn(() => ({
+      where: jest.fn(() => Promise.resolve({ affectedRows: 1 }))
+    }))
+  })),
+  delete: jest.fn(() => ({
+    where: jest.fn(() => Promise.resolve({ affectedRows: 1 }))
+  })),
+};
+
+jest.mock('./server/db', () => ({
+  db: mockDb,
+  default: mockDb
+}));
+
+// Mock bcrypt
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn().mockResolvedValue('mock-hashed-password'),
+  compare: jest.fn().mockResolvedValue(true),
+}));
+
+// Mock query client
+jest.mock('@/lib/queryClient', () => ({
+  apiRequest: jest.fn().mockResolvedValue({ success: true, data: [] }),
+  queryClient: {
+    invalidateQueries: jest.fn(),
+  },
+}));
