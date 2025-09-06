@@ -538,12 +538,12 @@ export default function DemandDetailsPopup({
                         File Attachment
                       </Label>
                       <div className='mt-2 space-y-2'>
-                        {demand.fileName && (
-                          const filename = attachment.split('/').pop() || `attachment-${index + 1}`;
-                          const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(attachment);
+                        {demand.fileName && (() => {
+                          const filename = demand.fileName;
+                          const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
                           
                           return (
-                            <div key={index} className='flex items-center gap-2 p-2 bg-gray-50 rounded-md'>
+                            <div className='flex items-center gap-2 p-2 bg-gray-50 rounded-md'>
                               {isImage ? (
                                 <Image className='h-4 w-4 text-blue-500' />
                               ) : (
@@ -553,15 +553,15 @@ export default function DemandDetailsPopup({
                               <Button
                                 variant='outline'
                                 size='sm'
-                                onClick={() => window.open(attachment, '_blank')}
-                                data-testid={`button-view-attachment-${index}`}
+                                onClick={() => window.open(demand.filePath, '_blank')}
+                                data-testid='button-view-attachment-0'
                               >
                                 {isImage ? 'View' : 'Download'}
                                 <Download className='h-3 w-3 ml-1' />
                               </Button>
                             </div>
                           );
-                        })}
+                        })()}
                       </div>
                     </div>
                   )}
