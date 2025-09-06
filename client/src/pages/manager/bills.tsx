@@ -797,50 +797,19 @@ function BillDetail({
   const { data: freshBill, error: freshBillError, isLoading: freshBillLoading } = useQuery({
     queryKey: ['/api/bills', bill.id],
     queryFn: async () => {
-      console.log('[FRONTEND] Making API request for bill:', bill.id);
       const response = await fetch(`/api/bills/${bill.id}`, {
         credentials: 'include',
       });
-      console.log('[FRONTEND] API response status:', response.status);
       if (!response.ok) {
         throw new Error('Failed to fetch bill details');
       }
-      const data = await response.json();
-      console.log('[FRONTEND] API response data:', data);
-      console.log('[FRONTEND] Document fields in response:', {
-        documentPath: data.documentPath,
-        documentName: data.documentName,
-        isAiAnalyzed: data.isAiAnalyzed
-      });
-      return data;
+      return response.json();
     },
   });
 
   // Use fresh bill data if available, fallback to props bill data
   const currentBill = freshBill || bill;
   
-  // Debug logging
-  console.log('[BILL DETAIL] Component opened for bill:', {
-    billId: bill.id,
-    billTitle: bill.title,
-    originalBillData: {
-      documentPath: bill.documentPath,
-      documentName: bill.documentName,
-      isAiAnalyzed: bill.isAiAnalyzed
-    },
-    freshBillLoaded: !!freshBill,
-    freshBillData: freshBill ? {
-      documentPath: freshBill.documentPath,
-      documentName: freshBill.documentName,
-      isAiAnalyzed: freshBill.isAiAnalyzed
-    } : null,
-    currentBillData: {
-      documentPath: currentBill.documentPath,
-      documentName: currentBill.documentName,
-      isAiAnalyzed: currentBill.isAiAnalyzed
-    },
-    showDocumentSection: !!currentBill.documentPath
-  });
   const [endDate, setEndDate] = useState(currentBill.endDate || '');
 
   const updateBillMutation = useMutation({

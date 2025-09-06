@@ -311,14 +311,6 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
-      console.log('[BILL API] Returning bill data:', {
-        id: bill[0].id,
-        title: bill[0].title,
-        documentPath: bill[0].documentPath,
-        documentName: bill[0].documentName,
-        isAiAnalyzed: bill[0].isAiAnalyzed,
-        fullBillObject: JSON.stringify(bill[0], null, 2)
-      });
 
       res.json(bill[0]);
     } catch (_error: any) {
@@ -686,10 +678,30 @@ export function registerBillRoutes(app: Express) {
       const organizations = await storage.getUserOrganizations(req.user.id);
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
 
-      // Document download functionality removed (no external storage)
-      res.status(404).json({
-        message: 'Document download functionality has been disabled',
+      // Serve the file directly from local storage
+      const path = require('path');
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      const filePath = path.join(uploadsDir, billData.documentPath);
+
+      console.log('📂 [SERVER DEBUG] Attempting to serve file:', {
+        uploadsDir,
+        documentPath: billData.documentPath,
+        fullFilePath: filePath
       });
+
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        console.error('❌ [SERVER DEBUG] File not found on disk:', filePath);
+        return res.status(404).json({ message: 'Document file not found on server' });
+      }
+
+      // Set appropriate headers for file download
+      res.setHeader('Content-Disposition', `attachment; filename="${billData.documentName}"`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      
+      // Stream the file
+      console.log('✅ [SERVER DEBUG] Streaming file to client:', billData.documentName);
+      res.sendFile(filePath);
     } catch (_error: any) {
       console.error('❌ Error downloading document:', _error);
       res.status(500).json({
