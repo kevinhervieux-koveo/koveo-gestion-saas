@@ -1427,23 +1427,21 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Handle file uploads (existing logic)
-      // Determine document type based on buildingId/residenceId if not explicitly provided
-      let finalDocumentRecordType = documentType;
-      if (!finalDocumentRecordType) {
-        if (buildingId && !residenceId) {
-          finalDocumentRecordType = 'building';
-        } else if (residenceId && !buildingId) {
-          finalDocumentRecordType = 'resident';
-        } else if (buildingId && residenceId) {
-          return res.status(400).json({
-            message: 'Please specify documentType when providing both buildingId and residenceId',
-          });
-        } else {
-          return res.status(400).json({
-            message:
-              'Must provide either buildingId (for building documents) or residenceId (for resident documents)',
-          });
-        }
+      // Determine document record type based on buildingId/residenceId (not from documentType field)
+      let finalDocumentRecordType;
+      if (buildingId && !residenceId) {
+        finalDocumentRecordType = 'building';
+      } else if (residenceId && !buildingId) {
+        finalDocumentRecordType = 'resident';
+      } else if (buildingId && residenceId) {
+        return res.status(400).json({
+          message: 'Cannot provide both buildingId and residenceId',
+        });
+      } else {
+        return res.status(400).json({
+          message:
+            'Must provide either buildingId (for building documents) or residenceId (for resident documents)',
+        });
       }
 
       if (finalDocumentRecordType === 'building') {
