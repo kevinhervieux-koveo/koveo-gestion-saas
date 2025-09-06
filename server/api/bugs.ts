@@ -150,8 +150,10 @@ export function registerBugRoutes(app: Express): void {
 
       // Handle single file attachment if present
       if (req.file) {
+        // Fix filename encoding issues
+        const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
         console.log(`📎 Processing attachment for new bug:`, {
-          originalname: req.file.originalname,
+          originalname: originalname,
           filename: req.file.filename,
           size: req.file.size,
           mimetype: req.file.mimetype
@@ -159,7 +161,7 @@ export function registerBugRoutes(app: Express): void {
         bugData = {
           ...bugData,
           filePath: `general/${req.file.filename}`,
-          fileName: req.file.originalname,
+          fileName: originalname,
           fileSize: req.file.size,
         };
         console.log(`✅ File attachment added to bugData`);
@@ -179,8 +181,8 @@ export function registerBugRoutes(app: Express): void {
       const bug = await storage.createBug(bugData);
 
       console.log(`✅ Created new bug ${bug.id} by user ${currentUser.id}`);
-      if (bug.file_path) {
-        console.log(`📎 CONFIRMED: Bug ${bug.id} has attached file: ${bug.file_name} at ${bug.file_path}`);
+      if (bug.filePath) {
+        console.log(`📎 CONFIRMED: Bug ${bug.id} has attached file: ${bug.fileName} at ${bug.filePath}`);
       } else {
         console.log(`⚠️ WARNING: Bug ${bug.id} was created WITHOUT file attachment`);
       }
@@ -305,14 +307,14 @@ export function registerBugRoutes(app: Express): void {
         currentUser.organizationId
       );
 
-      if (!bug || !bug.file_path) {
+      if (!bug || !bug.filePath) {
         return res.status(404).json({
           error: 'Not found',
           message: 'Bug file not found or no file attached',
         });
       }
 
-      const filePath = path.join(process.cwd(), 'uploads', bug.file_path);
+      const filePath = path.join(process.cwd(), 'uploads', bug.filePath);
       
       // Check if file exists
       if (!fs.existsSync(filePath)) {
@@ -324,9 +326,9 @@ export function registerBugRoutes(app: Express): void {
 
       // Set appropriate headers
       if (download === 'true') {
-        res.setHeader('Content-Disposition', `attachment; filename="${bug.file_name || 'attachment'}"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${bug.fileName || 'attachment'}"`);
       } else {
-        res.setHeader('Content-Disposition', `inline; filename="${bug.file_name || 'attachment'}"`);
+        res.setHeader('Content-Disposition', `inline; filename="${bug.fileName || 'attachment'}"`);
       }
 
       // Send file
