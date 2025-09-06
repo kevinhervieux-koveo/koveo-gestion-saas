@@ -8,22 +8,22 @@ import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/re
 import { Router } from 'wouter';
 import React from 'react';
 
-// Import pages to test
-import HomePage from '../../client/src/pages/home';
-import PricingPage from '../../client/src/pages/pricing';
-import FeaturesPage from '../../client/src/pages/features';
-import SecurityPage from '../../client/src/pages/security';
-import StoryPage from '../../client/src/pages/story';
-import PrivacyPolicyPage from '../../client/src/pages/privacy-policy';
-import TermsOfServicePage from '../../client/src/pages/terms-of-service';
-import LoginPage from '../../client/src/pages/auth/login';
+// Import pages to test - use @ aliases
+import HomePage from '@/pages/home';
+import PricingPage from '@/pages/pricing';
+import FeaturesPage from '@/pages/features';
+import SecurityPage from '@/pages/security';
+import StoryPage from '@/pages/story';
+import PrivacyPolicyPage from '@/pages/privacy-policy';
+import TermsOfServicePage from '@/pages/terms-of-service';
+import LoginPage from '@/pages/auth/login';
 
-// Import providers and hooks
-import { LanguageProvider } from '../../client/src/contexts/language-context';
-import { AuthProvider } from '../../client/src/contexts/auth-context';
+// Import providers and hooks - use @ aliases  
+import { LanguageProvider } from '@/contexts/language-context';
+import { AuthProvider } from '@/contexts/auth-context';
 
 // Mock the auth hooks to test both authenticated and unauthenticated states
-jest.mock('../../client/src/hooks/use-auth', () => ({
+jest.mock('@/hooks/use-auth', () => ({
   useAuth: jest.fn(() => ({
     isAuthenticated: false,
     user: null,
@@ -34,7 +34,7 @@ jest.mock('../../client/src/hooks/use-auth', () => ({
 }));
 
 // Mock queryClient to prevent network calls
-jest.mock('../../client/src/lib/queryClient', () => ({
+jest.mock('@/lib/queryClient', () => ({
   queryClient: {
     invalidateQueries: jest.fn(),
   },

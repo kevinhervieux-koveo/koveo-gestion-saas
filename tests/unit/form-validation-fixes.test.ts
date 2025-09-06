@@ -7,8 +7,8 @@
 
 import { describe, it, expect } from '@jest/globals';
 import { z } from 'zod';
-import { insertDemandSchema } from '../../../shared/schema';
-import { schemas } from '../../client/src/lib/validations';
+import { insertDemandSchema } from '@shared/schema';
+import { schemas } from '@/lib/validations';
 
 describe('Form Validation Fixes', () => {
   describe('Demand Schema Validation', () => {
