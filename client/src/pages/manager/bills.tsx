@@ -807,6 +807,11 @@ function BillDetail({
       }
       const data = await response.json();
       console.log('[FRONTEND] API response data:', data);
+      console.log('[FRONTEND] Document fields in response:', {
+        documentPath: data.documentPath,
+        documentName: data.documentName,
+        isAiAnalyzed: data.isAiAnalyzed
+      });
       return data;
     },
   });
