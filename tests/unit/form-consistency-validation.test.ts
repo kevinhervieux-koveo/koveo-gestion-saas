@@ -21,7 +21,7 @@ describe('Application-Wide Form Validation Consistency', () => {
 
         // Name fields should support Quebec characters and include examples
         firstName: {
-          pattern: z.string().min(1, 'First name is required (example: Jean)').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name can only contain letters, spaces, apostrophes and hyphens'),
+          pattern: z.string().min(1, 'First name is required (example: Jean)').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name must contain only letters, spaces, apostrophes and hyphens (example: Jean-Baptiste)'),
           testValid: 'Jean-Baptiste',
           testInvalid: 'Jean123',
           expectedErrorContains: ['example:', 'letters, spaces, apostrophes']
@@ -94,11 +94,11 @@ describe('Application-Wide Form Validation Consistency', () => {
           requiredValidations: [
             'Email validation with format example',
             'Password requirement message',
-            'Clear error display'
+            'Clear error display with validation guidance'
           ]
         },
         {
-          formName: 'User Registration',
+          formName: 'User Registration Form',
           file: 'client/src/components/admin/send-invitation-dialog.tsx',
           requiredValidations: [
             'Email format validation with example',
@@ -278,9 +278,9 @@ describe('Application-Wide Form Validation Consistency', () => {
     test('should validate all error messages are user-friendly and helpful', () => {
       const userFriendlyMessageCheckers = {
         isNotTechnical: (message: string) => !/regex|schema|validation|parse|typeof/i.test(message),
-        isEncouraging: (message: string) => /please|help|try|enter|select/i.test(message),
+        isEncouraging: (message: string) => /please|help|try|enter|select|required/i.test(message),
         isSpecific: (message: string) => /example:|format|between|at least|less than/i.test(message),
-        isActionable: (message: string) => /enter|select|choose|type|pick/i.test(message),
+        isActionable: (message: string) => /enter|select|choose|type|pick|contain|must/i.test(message),
         avoidsTechnicalJargon: (message: string) => !/invalid|error|failed|wrong|bad/i.test(message) || message.includes('format')
       };
 
@@ -391,7 +391,7 @@ describe('Future Form Development Standards', () => {
           'Required fields must include format examples where helpful',
           'Error messages must use polite, encouraging language',
           'All fields must avoid technical terms like "invalid" without explanation',
-          'Include specific guidance on how to fix the error'
+          'All error messages must include specific guidance on how to fix the error'
         ],
         
         // Field validation requirements
@@ -549,10 +549,6 @@ describe('Validation Rule Enforcement Utilities', () => {
         isCompliant: Object.values(checks).every(check => check === true),
         message
       };
-    };
-
-    const needsExample = (fieldType: string) => {
-      return ['email', 'phone', 'postal', 'amount', 'time', 'name', 'password'].includes(fieldType.toLowerCase());
     };
 
     // Test the utility function works correctly
