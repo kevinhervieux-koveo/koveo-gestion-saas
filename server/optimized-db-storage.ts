@@ -2209,10 +2209,15 @@ export class OptimizedDatabaseStorage implements IStorage {
   ): Promise<Bug | undefined> {
     const key = `bug:${id}:user:${userId}:${userRole}`;
 
+    console.log(`🔍 getBug called with key: ${key}`);
+
     return queryCache.get(key, async () => {
+      console.log(`📊 Cache miss for ${key}, querying database...`);
       const result = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
 
       const bug = result[0];
+      console.log(`📋 Database query result:`, bug ? { id: bug.id, title: bug.title, filePath: bug.filePath, file_path: (bug as any).file_path } : 'undefined');
+
       if (!bug) {
         return undefined;
       }
@@ -2252,7 +2257,8 @@ export class OptimizedDatabaseStorage implements IStorage {
 
     // Invalidate cache for this user and specific bug queries  
     queryCache.invalidate('bugs');
-    queryCache.invalidate(`bug:${result[0].id}`);
+    // Clear entire cache to ensure getBug works immediately (safer approach)
+    queryCache.clear();
 
     return result[0];
   }
