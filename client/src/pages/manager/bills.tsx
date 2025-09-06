@@ -977,14 +977,34 @@ function BillDetail({
         <div className='mt-2 space-y-3'>
           {/* Current document info */}
           {bill.documentPath && (
-            <div className='flex items-center gap-2 p-3 bg-gray-50 rounded-lg'>
-              <FileText className='w-4 h-4 text-blue-600' />
-              <span className='text-sm'>{bill.documentName}</span>
-              {bill.isAiAnalyzed && (
-                <Badge variant='outline' className='text-xs'>
-                  AI Analyzed
-                </Badge>
-              )}
+            <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+              <div className='flex items-center gap-2'>
+                <FileText className='w-4 h-4 text-blue-600' />
+                <span className='text-sm'>{bill.documentName}</span>
+                {bill.isAiAnalyzed && (
+                  <Badge variant='outline' className='text-xs'>
+                    AI Analyzed
+                  </Badge>
+                )}
+              </div>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => {
+                  // Download the document
+                  const link = document.createElement('a');
+                  link.href = `/api/bills/${bill.id}/download-document`;
+                  link.download = bill.documentName || 'bill-document';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                className='flex items-center gap-1'
+                data-testid={`button-download-document-${bill.id}`}
+              >
+                <FileText className='w-3 h-3' />
+                Download
+              </Button>
             </div>
           )}
 

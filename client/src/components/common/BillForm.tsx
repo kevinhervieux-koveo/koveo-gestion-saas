@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FileText, Upload, Sparkles, Paperclip, Plus, X } from 'lucide-react';
+import { FileText, Upload, Sparkles, Paperclip, Plus, X, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { Bill } from '@shared/schema';
 import { FileUpload } from '@/components/ui/file-upload';
@@ -400,6 +400,28 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
 
       if (!response.ok) {
         throw new Error(`Failed to ${mode} bill`);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+      onSuccess();
+    },
+  });
+
+  // Delete mutation (only for edit mode)
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!bill?.id) throw new Error('No bill ID provided');
+      
+      const response = await fetch(`/api/bills/${bill.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete bill');
       }
 
       return response.json();
@@ -1203,15 +1225,50 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
               )}
 
               {/* Form Actions */}
-              <div className='flex justify-end gap-2 pt-4 border-t'>
-                <Button
-                  type='submit'
-                  disabled={submitMutation.isPending}
-                  className='min-w-[120px]'
-                  data-testid='button-create'
-                >
-                  {submitMutation.isPending ? 'Creating...' : 'Create Bill'}
-                </Button>
+              <div className='flex justify-between gap-2 pt-4 border-t'>
+                {/* Delete button for edit mode */}
+                {mode === 'edit' && (
+                  <Button
+                    type='button'
+                    variant='destructive'
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
+                        deleteMutation.mutate();
+                      }
+                    }}
+                    disabled={deleteMutation.isPending}
+                    className='flex items-center gap-2'
+                    data-testid='button-delete-bill'
+                  >
+                    <Trash2 className='w-4 h-4' />
+                    {deleteMutation.isPending ? 'Deleting...' : 'Delete Bill'}
+                  </Button>
+                )}
+                
+                <div className='flex gap-2'>
+                  {onCancel && (
+                    <Button
+                      type='button'
+                      variant='outline'
+                      onClick={onCancel}
+                      disabled={submitMutation.isPending || deleteMutation.isPending}
+                      data-testid='button-cancel'
+                    >
+                      Cancel
+                    </Button>
+                  )}
+                  <Button
+                    type='submit'
+                    disabled={submitMutation.isPending || deleteMutation.isPending}
+                    className='min-w-[120px]'
+                    data-testid={mode === 'create' ? 'button-create' : 'button-update'}
+                  >
+                    {submitMutation.isPending 
+                      ? (mode === 'create' ? 'Creating...' : 'Updating...') 
+                      : (mode === 'create' ? 'Create Bill' : 'Update Bill')
+                    }
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>
