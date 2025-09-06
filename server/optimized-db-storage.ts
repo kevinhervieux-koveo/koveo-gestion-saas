@@ -44,6 +44,8 @@ import type {
   InsertPasswordResetToken,
   Bug,
   InsertBug,
+  Invoice,
+  InsertInvoice,
 } from '@shared/schema';
 import type { IStorage } from './storage';
 import type { Pillar } from '@shared/schema';
@@ -2714,6 +2716,103 @@ export class OptimizedDatabaseStorage implements IStorage {
         success: false,
         message: 'Failed to remove upvote',
       };
+    }
+  }
+
+  // Invoice operations
+  async getInvoices(filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Invoice[]> {
+    try {
+      let query = db.select().from(schema.invoices);
+      const conditions = [];
+
+      if (filters) {
+        if (filters.buildingId) {
+          conditions.push(eq(schema.invoices.buildingId, filters.buildingId));
+        }
+        if (filters.residenceId) {
+          conditions.push(eq(schema.invoices.residenceId, filters.residenceId));
+        }
+        if (filters.userId && filters.userRole) {
+          // Apply role-based filtering
+          if (filters.userRole === 'tenant' || filters.userRole === 'resident') {
+            conditions.push(eq(schema.invoices.createdBy, filters.userId));
+          }
+          // Admin and manager can see all invoices (already filtered by building/residence above)
+        }
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      const invoices = await query.orderBy(desc(schema.invoices.createdAt));
+      return invoices;
+    } catch (error: any) {
+      console.error('❌ Error fetching invoices:', error);
+      return [];
+    }
+  }
+
+  async getInvoice(id: string): Promise<Invoice | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(schema.invoices)
+        .where(eq(schema.invoices.id, id))
+        .limit(1);
+      
+      return result[0];
+    } catch (error: any) {
+      console.error('❌ Error fetching invoice:', error);
+      return undefined;
+    }
+  }
+
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    try {
+      const result = await db
+        .insert(schema.invoices)
+        .values(invoice)
+        .returning();
+      
+      return result[0];
+    } catch (error: any) {
+      console.error('❌ Error creating invoice:', error);
+      throw error;
+    }
+  }
+
+  async updateInvoice(id: string, updates: Partial<Invoice>): Promise<Invoice | undefined> {
+    try {
+      const result = await db
+        .update(schema.invoices)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(schema.invoices.id, id))
+        .returning();
+      
+      return result[0];
+    } catch (error: any) {
+      console.error('❌ Error updating invoice:', error);
+      return undefined;
+    }
+  }
+
+  async deleteInvoice(id: string): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(schema.invoices)
+        .where(eq(schema.invoices.id, id))
+        .returning();
+      
+      return result.length > 0;
+    } catch (error: any) {
+      console.error('❌ Error deleting invoice:', error);
+      return false;
     }
   }
 }
