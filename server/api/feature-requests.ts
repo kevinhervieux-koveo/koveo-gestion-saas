@@ -405,8 +405,10 @@ export function registerFeatureRequestRoutes(app: Express): void {
       const filePath = featureRequest.filePath;
       const fileName = featureRequest.fileName;
       
-      // Build full file path
-      const fullFilePath = path.join(process.cwd(), 'uploads', filePath);
+      // Handle different path formats (absolute vs relative)
+      const fullFilePath = path.isAbsolute(filePath) 
+        ? filePath 
+        : path.join(process.cwd(), 'uploads', filePath);
 
       // Check if file exists on disk
       if (!fs.existsSync(fullFilePath)) {

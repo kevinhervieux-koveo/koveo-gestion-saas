@@ -306,7 +306,10 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      const filePath = path.join(process.cwd(), 'uploads', bug.filePath);
+      // Handle different path formats (absolute vs relative)
+      const filePath = path.isAbsolute(bug.filePath) 
+        ? bug.filePath 
+        : path.join(process.cwd(), 'uploads', bug.filePath);
       
       // Check if file exists
       if (!fs.existsSync(filePath)) {
