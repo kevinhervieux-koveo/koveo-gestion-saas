@@ -21,6 +21,7 @@ import { registerCommonSpacesRoutes } from './api/common-spaces';
 import { registerPermissionsRoutes } from './api/permissions';
 import { registerDemoManagementRoutes } from './api/demo-management';
 import { registerTrialRequestRoutes } from './api/trial-request';
+import { registerInvoiceRoutes } from './api/invoices';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -90,6 +91,7 @@ export async function registerRoutes(app: Express) {
   registerPermissionsRoutes(app);
   registerDemoManagementRoutes(app);
   registerTrialRequestRoutes(app);
+  registerInvoiceRoutes(app);
   console.log('✅ All API routes registered');
   
   // Basic API routes

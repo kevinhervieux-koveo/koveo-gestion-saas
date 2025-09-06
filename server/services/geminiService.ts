@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import { AiExtractionResponse } from '@shared/schema';
 
 /**
@@ -6,8 +6,7 @@ import { AiExtractionResponse } from '@shared/schema';
  * Handles secure file processing and structured data extraction from invoice documents.
  */
 export class GeminiService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+  private genAI: GoogleGenAI;
 
   constructor() {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -15,8 +14,7 @@ export class GeminiService {
       throw new Error('GEMINI_API_KEY environment variable is required');
     }
     
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+    this.genAI = new GoogleGenAI({ apiKey });
   }
 
   /**
@@ -73,11 +71,19 @@ Follow these steps in order:
 Your final output must be only the JSON object.
 Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ-123","totalAmount":450.75,"dueDate":"2025-10-15","paymentType":"recurring","frequency":"custom","startDate":null,"customPaymentDates":["2025-10-15", "2025-11-15", "2026-01-15"]}`;
 
-      // Generate content with image and prompt
-      const result = await this.model.generateContent([prompt, imagePart]);
+      // Generate content with image and prompt using the models API
+      const result = await this.genAI.models.generateContent('gemini-1.5-pro', {
+        contents: [{
+          role: 'user',
+          parts: [
+            { text: prompt },
+            imagePart
+          ]
+        }]
+      });
       
       // Get the response text
-      const responseText = result.response.text();
+      const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
       // Log raw response for debugging
       console.log('[GEMINI] Raw response:', responseText);
@@ -176,8 +182,12 @@ Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ
   async validateApiKey(): Promise<boolean> {
     try {
       // Make a simple test call to validate the API key
-      const testModel = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-      await testModel.generateContent('Test');
+      await this.genAI.models.generateContent('gemini-1.5-pro', {
+        contents: [{
+          role: 'user',
+          parts: [{ text: 'Test connection' }]
+        }]
+      });
       return true;
     } catch (error) {
       console.error('[GEMINI] API key validation failed:', error);
