@@ -749,9 +749,6 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
       {/* Bill Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto'>
-          <DialogHeader>
-            <DialogTitle>Edit Bill</DialogTitle>
-          </DialogHeader>
           <BillEditForm
             bill={bill}
             onSuccess={() => {
