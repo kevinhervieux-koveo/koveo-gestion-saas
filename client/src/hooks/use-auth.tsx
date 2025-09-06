@@ -90,14 +90,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticating(false);
       }
     },
-    retry: false,
-    retryOnMount: false, // Prevent retry loops
-    staleTime: 5 * 60 * 1000, // 5 minutes - longer cache time
-    gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
-    refetchOnWindowFocus: false, // Disable focus refetches
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 (not authenticated) - it's expected
+      if (error?.message?.includes('401') || error?.status === 401) {
+        return false;
+      }
+      // Retry network errors up to 2 times
+      return failureCount < 2;
+    },
+    retryOnMount: true, // Allow retry on mount for better resilience
+    staleTime: 10 * 60 * 1000, // 10 minutes - longer cache time for better UX
+    gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+    refetchOnWindowFocus: true, // Re-enable focus refetches for session validation
     refetchOnMount: true, // Always check on mount
     refetchInterval: false, // No automatic intervals
-    networkMode: 'offlineFirst', // Better offline resilience
+    networkMode: 'online', // More reliable than offlineFirst
   });
 
   useEffect(() => {
@@ -115,12 +122,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       !isFetching && 
       !isAuthenticating && 
       !isError &&
-      Date.now() - lastAuthCheck > 1000 // Minimum 1 second delay
+      Date.now() - lastAuthCheck > 2000 // Increased to 2 second delay for stability
     ) {
-      // Add slight delay to prevent flash redirects
+      // Add longer delay to prevent flash redirects and allow for network issues
       const redirectTimer = setTimeout(() => {
+        console.log('🔄 Redirecting to login due to authentication failure');
         setLocation('/login');
-      }, 500);
+      }, 1000); // Increased delay
       
       return () => clearTimeout(redirectTimer);
     }

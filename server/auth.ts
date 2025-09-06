@@ -117,11 +117,21 @@ function createSessionStore(requestDomain?: string) {
     // connect-pg-simple needs a real PostgreSQL pool, not the Neon HTTP client
     const sessionPool = new Pool({ 
       connectionString: getDatabaseUrl(requestDomain),
-      max: 2, // Small pool for sessions
+      max: 5, // Increased pool size for better production performance
       min: 1,
-      maxUses: 7500, // Maximum number of times a connection can be reused
-      idleTimeoutMillis: 30000, // 30 seconds idle timeout
-      allowExitOnIdle: true, // Allow pool to close when idle
+      maxUses: 10000, // Increased reuse limit
+      idleTimeoutMillis: 60000, // Increased to 60 seconds for production stability
+      allowExitOnIdle: false, // Keep connections alive in production
+      connectionTimeoutMillis: 30000, // 30 second connection timeout
+    });
+    
+    // Add connection error handling
+    sessionPool.on('error', (err) => {
+      console.error('❌ Session pool error:', err);
+    });
+    
+    sessionPool.on('connect', () => {
+      console.log('✅ Session pool connection established');
     });
     
     // Use PostgreSQL session store for persistent sessions
@@ -132,19 +142,33 @@ function createSessionStore(requestDomain?: string) {
       errorLog: process.env.NODE_ENV === 'test' ? () => {} : console.error, // Suppress error logging in tests
       
       // Add explicit configuration for session retrieval
-      pruneSessionInterval: process.env.NODE_ENV === 'test' ? false : 60 * 1000, // Disable pruning in tests
+      pruneSessionInterval: process.env.NODE_ENV === 'test' ? false : 5 * 60 * 1000, // Every 5 minutes in production
       schemaName: 'public', // Explicitly set schema
+      
+      // Additional production optimizations
+      ttl: 7 * 24 * 60 * 60, // 7 days in seconds to match cookie maxAge
+      disableTouch: false, // Enable touch to extend session lifetime
     });
     
     console.log('✅ Session store: PostgreSQL session store created with proper pool');
     
     // Test the store connection (skip in test environment)
     if (process.env.NODE_ENV !== 'test') {
-      store.get('test-session-id', (err, session) => {
+      // More robust connection test
+      const testSessionId = `test-${Date.now()}`;
+      store.set(testSessionId, { test: true }, (err) => {
         if (err) {
-          console.error('❌ Session store connection test failed:', err);
+          console.error('❌ Session store write test failed:', err);
         } else {
-          console.log('✅ Session store connection test passed');
+          store.get(testSessionId, (getErr, session) => {
+            if (getErr) {
+              console.error('❌ Session store read test failed:', getErr);
+            } else {
+              console.log('✅ Session store read/write test passed');
+              // Clean up test session
+              store.destroy(testSessionId, () => {});
+            }
+          });
         }
       });
     }
@@ -174,14 +198,17 @@ export const sessionConfig = session({
   saveUninitialized: false,
   rolling: true, // Reset expiry on each request
   cookie: {
-    secure: false, // Keep false for development to ensure cookies work
+    secure: config.server.isProduction, // Use HTTPS in production
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days - longer session duration
-    sameSite: 'lax',
+    sameSite: config.server.isProduction ? 'strict' : 'lax', // Stricter in production
     path: '/', // Explicitly set path
+    domain: config.server.isProduction && config.server.domain.includes('koveo-gestion.com') 
+      ? '.koveo-gestion.com' // Allow subdomain sharing in production
+      : undefined,
   },
   name: 'koveo.sid',
-  proxy: false,
+  proxy: config.server.isProduction, // Enable proxy trust in production
 });
 
 /**
@@ -270,14 +297,14 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 
   try {
-    // Optimized session touch - only touch when session is close to expiring
+    // More aggressive session touch for better UX - extend session on each authenticated request
     if (req.session && req.session.touch && req.session.cookie) {
       const now = Date.now();
       const sessionAge = now - (req.session.cookie.originalMaxAge || 0) + (req.session.cookie.maxAge || 0);
       const sessionLifetime = req.session.cookie.originalMaxAge || (7 * 24 * 60 * 60 * 1000);
       
-      // Only touch session if more than 25% of its lifetime has passed
-      if (sessionAge > sessionLifetime * 0.25) {
+      // Touch session if more than 10% of its lifetime has passed (more responsive)
+      if (sessionAge > sessionLifetime * 0.1) {
         req.session.touch();
       }
     }
@@ -645,14 +672,14 @@ export function setupAuthRoutes(app: any) {
           });
         }
 
-        // Optimized session touch - only when needed
+        // Touch session more frequently for better UX
         if (req.session && req.session.touch && req.session.cookie) {
           const now = Date.now();
           const sessionAge = now - (req.session.cookie.originalMaxAge || 0) + (req.session.cookie.maxAge || 0);
           const sessionLifetime = req.session.cookie.originalMaxAge || (7 * 24 * 60 * 60 * 1000);
           
-          // Only touch session if more than 25% of its lifetime has passed
-          if (sessionAge > sessionLifetime * 0.25) {
+          // Touch session if more than 10% of its lifetime has passed
+          if (sessionAge > sessionLifetime * 0.1) {
             req.session.touch();
           }
         }
