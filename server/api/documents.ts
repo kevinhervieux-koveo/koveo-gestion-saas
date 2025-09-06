@@ -1452,11 +1452,15 @@ export function registerDocumentRoutes(app: Express): void {
           return res.status(400).json({ message: 'buildingId is required for building documents' });
         }
 
+        // Prepare the file path
+        const filePath = req.file ? req.file.path : `temp-path-${Date.now()}`;
+        
         const validatedData = createBuildingDocumentSchema.parse({
           ...otherData,
           buildingId,
           uploadedById: userId,
-          filePath: req.file ? req.file.path : undefined,
+          filePath,
+          documentType: documentType,
           // fileName is handled via name field
         });
 
