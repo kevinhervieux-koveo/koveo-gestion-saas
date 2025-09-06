@@ -320,7 +320,7 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
     const file = event.target.files?.[0];
     if (file && mode === 'create') {
       setUploadedFile(file);
-      uploadAndAnalyzeMutation.mutate(file);
+      // Don't auto-analyze, wait for user to click the analyze button
     }
   };
 
@@ -697,9 +697,19 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
               accept='image/*,.pdf'
               onChange={handleFileUpload}
               disabled={isAnalyzing}
-              className='max-w-sm mx-auto'
+              className='max-w-sm mx-auto mb-4'
               data-testid='input-file-upload'
             />
+
+            {uploadedFile && !isAnalyzing && !aiAnalysisData && (
+              <Button
+                onClick={() => uploadAndAnalyzeMutation.mutate(uploadedFile)}
+                className='mt-4'
+                data-testid='button-analyze-document'
+              >
+                Analyze Document
+              </Button>
+            )}
 
             {isAnalyzing && (
               <div
