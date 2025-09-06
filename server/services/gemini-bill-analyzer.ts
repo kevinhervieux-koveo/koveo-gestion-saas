@@ -70,58 +70,33 @@ export class GeminiBillAnalyzer {
       - If information is unclear, use best guess but lower confidence
       `;
 
-      console.log('🤖 [GEMINI DEBUG] AI instance methods:', Object.getOwnPropertyNames(ai));
-      console.log('🤖 [GEMINI DEBUG] AI instance prototype methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(ai)));
+      console.log('📤 [GEMINI DEBUG] Sending request with proper SDK format...');
       
-      // Try different ways to access the model
-      let model;
-      try {
-        if (typeof ai.getGenerativeModel === 'function') {
-          console.log('✅ [GEMINI DEBUG] Using getGenerativeModel');
-          model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        } else if (ai.models && typeof ai.models.generateContent === 'function') {
-          console.log('✅ [GEMINI DEBUG] Using models.generateContent directly');
-          model = ai.models;
-        } else {
-          console.log('❌ [GEMINI DEBUG] No suitable method found, trying direct access');
-          throw new Error('Cannot find suitable model access method');
-        }
-      } catch (modelError) {
-        console.error('❌ [GEMINI DEBUG] Model initialization failed:', modelError);
-        throw modelError;
-      }
-      
-      console.log('🎯 [GEMINI DEBUG] Model initialized:', typeof model);
-      console.log('🎯 [GEMINI DEBUG] Model methods:', Object.getOwnPropertyNames(model));
-      
-      const requestData = [
-        {
-          text: systemPrompt
-        },
-        {
-          inlineData: {
-            data: fileBytes.toString('base64'),
-            mimeType: detectedMimeType,
+      const response = await ai.models.generateContent({
+        model: 'gemini-1.5-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: systemPrompt },
+              {
+                inlineData: {
+                  mimeType: detectedMimeType,
+                  data: fileBytes.toString('base64')
+                }
+              }
+            ]
           }
-        }
-      ];
-      
-      console.log('📤 [GEMINI DEBUG] Sending request with:', {
-        modelType: typeof model,
-        promptLength: systemPrompt.length,
-        imageSize: fileBytes.length,
-        mimeType: detectedMimeType
+        ]
       });
       
-      const response = await model.generateContent(requestData);
       console.log('📥 [GEMINI DEBUG] Response received:', {
         type: typeof response,
-        keys: Object.keys(response || {}),
-        hasText: !!response?.response?.text,
-        hasTextMethod: typeof response?.response?.text === 'function'
+        hasText: !!response?.text,
+        textLength: response?.text?.length
       });
 
-      const rawJson = response.response.text();
+      const rawJson = response.text;
       console.log('📝 [GEMINI DEBUG] Raw response text:', rawJson?.substring(0, 200));
 
       if (rawJson) {
