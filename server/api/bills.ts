@@ -311,6 +311,14 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
+      console.log('[BILL API] Returning bill data:', {
+        id: bill[0].id,
+        title: bill[0].title,
+        documentPath: bill[0].documentPath,
+        documentName: bill[0].documentName,
+        isAiAnalyzed: bill[0].isAiAnalyzed
+      });
+
       res.json(bill[0]);
     } catch (_error: any) {
       console.error('❌ Error fetching bill:', _error);

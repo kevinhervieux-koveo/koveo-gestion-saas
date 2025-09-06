@@ -809,6 +809,29 @@ function BillDetail({
 
   // Use fresh bill data if available, fallback to props bill data
   const currentBill = freshBill || bill;
+  
+  // Debug logging
+  console.log('[BILL DETAIL] Component opened for bill:', {
+    billId: bill.id,
+    billTitle: bill.title,
+    originalBillData: {
+      documentPath: bill.documentPath,
+      documentName: bill.documentName,
+      isAiAnalyzed: bill.isAiAnalyzed
+    },
+    freshBillLoaded: !!freshBill,
+    freshBillData: freshBill ? {
+      documentPath: freshBill.documentPath,
+      documentName: freshBill.documentName,
+      isAiAnalyzed: freshBill.isAiAnalyzed
+    } : null,
+    currentBillData: {
+      documentPath: currentBill.documentPath,
+      documentName: currentBill.documentName,
+      isAiAnalyzed: currentBill.isAiAnalyzed
+    },
+    showDocumentSection: !!currentBill.documentPath
+  });
   const [endDate, setEndDate] = useState(currentBill.endDate || '');
 
   const updateBillMutation = useMutation({
