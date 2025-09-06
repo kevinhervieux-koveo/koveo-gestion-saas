@@ -93,16 +93,21 @@ export default function ModularDocumentPageWrapper({
   });
 
   // Fetch documents for this entity
-  const { data: documentResponse, isLoading } = useQuery({
+  const { data: documentResponse, isLoading, error } = useQuery({
     queryKey: ['/api/documents', type, entityId],
     queryFn: () => {
       const param = type === 'building' ? 'buildingId' : 'residenceId';
       return apiRequest('GET', `/api/documents?${param}=${entityId}`);
     },
     enabled: !!entityId,
+    staleTime: 0, // Always refetch
+    cacheTime: 0, // Don't cache
   });
 
   // Extract documents array from API response
+  console.log('🔍 [API Response Debug] Full response:', documentResponse);
+  console.log('🔍 [API Response Debug] Error:', error);
+  console.log('🔍 [API Response Debug] Is Loading:', isLoading);
   const documents = Array.isArray(documentResponse?.documents) ? documentResponse.documents : [];
 
   // Determine permissions based on user role and type
