@@ -608,7 +608,7 @@ export default function IdeaBox() {
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">💡 Idea Box</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Idea Box</h2>
             <p className="text-muted-foreground">
               Share your ideas to improve our platform
             </p>
@@ -655,7 +655,7 @@ export default function IdeaBox() {
               <SelectItem value="all">All Categories</SelectItem>
               {Object.entries(categoryLabels).map(([key, label]) => (
                 <SelectItem key={key} value={key}>
-                  {categoryIcons[key as keyof typeof categoryIcons]} {label}
+                  {label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -691,7 +691,7 @@ export default function IdeaBox() {
                     <ChevronRight className="h-4 w-4" />
                   )}
                   <span className="text-lg font-semibold">
-                    {categoryIcons[categoryKey as keyof typeof categoryIcons]} {categoryLabel}
+                    {categoryLabel}
                   </span>
                   <Badge variant="secondary" className="ml-2">
                     {categoryIdeas.length}
@@ -720,7 +720,6 @@ export default function IdeaBox() {
         
         {filteredIdeas.length === 0 && (
           <div className="text-center py-12">
-            <Lightbulb className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No ideas found</h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
@@ -789,7 +788,7 @@ export default function IdeaBox() {
                   <SelectContent>
                     {Object.entries(categoryLabels).map(([key, label]) => (
                       <SelectItem key={key} value={key}>
-                        {categoryIcons[key as keyof typeof categoryIcons]} {label}
+                        {label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -944,7 +943,7 @@ export default function IdeaBox() {
                   <SelectContent>
                     {Object.entries(categoryLabels).map(([key, label]) => (
                       <SelectItem key={key} value={key}>
-                        {categoryIcons[key as keyof typeof categoryIcons]} {label}
+                        {label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -1116,7 +1115,7 @@ export default function IdeaBox() {
                         {viewingFeatureRequest.status.replace('_', ' ')}
                       </Badge>
                       <span className="text-sm text-gray-500">
-                        {categoryIcons[viewingFeatureRequest.category as keyof typeof categoryIcons]} {categoryLabels[viewingFeatureRequest.category as keyof typeof categoryLabels]}
+                        {categoryLabels[viewingFeatureRequest.category as keyof typeof categoryLabels]}
                       </span>
                       <span className="text-sm text-gray-500">•</span>
                       <span className="text-sm text-gray-500">{viewingFeatureRequest.page}</span>
