@@ -7,14 +7,166 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { apiRequest } from '@/lib/queryClient';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import {
   SharedUploader,
   DocumentCard
 } from '@/components/document-management';
 import { DocumentCreateForm } from '@/components/document-management/DocumentCreateForm';
+import { FileText, Download } from 'lucide-react';
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
+
+// Document View Dialog Component
+interface DocumentViewDialogProps {
+  documentId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onEdit: () => void;
+  canEdit: boolean;
+}
+
+function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: DocumentViewDialogProps) {
+  const { data: document, isLoading } = useQuery({
+    queryKey: ['/api/documents', documentId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/documents/${documentId}`);
+      return response.json();
+    },
+    enabled: isOpen && !!documentId,
+  });
+
+  const handleDownload = () => {
+    console.log('[DOWNLOAD] Starting download for document:', documentId);
+    const link = document.createElement('a');
+    link.href = `/api/documents/${documentId}/file?download=true`;
+    link.download = document?.name || 'document';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    console.log('[DOWNLOAD] Download link clicked');
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Document Details</DialogTitle>
+        </DialogHeader>
+        
+        {isLoading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-500">Loading document...</p>
+          </div>
+        ) : document ? (
+          <div className="space-y-6">
+            {/* Document Information */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium">Document Name</Label>
+                <p className="text-sm text-gray-600">{document.name}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Category</Label>
+                <p className="text-sm text-gray-600 capitalize">{document.category || document.documentType || 'Other'}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Upload Date</Label>
+                <p className="text-sm text-gray-600">{new Date(document.createdAt).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Visible to Tenants</Label>
+                <p className="text-sm text-gray-600">{document.isVisibleToTenants ? 'Yes' : 'No'}</p>
+              </div>
+            </div>
+
+            {/* Description */}
+            {document.description && (
+              <div>
+                <Label className="text-sm font-medium">Description</Label>
+                <p className="text-sm text-gray-600">{document.description}</p>
+              </div>
+            )}
+
+            {/* Document Actions */}
+            {document.filePath && (
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium">{document.fileName || document.name}</p>
+                      <p className="text-xs text-gray-500">Document attachment</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownload}
+                    className="flex items-center gap-1"
+                  >
+                    <Download className="w-3 h-3" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 justify-end pt-4 border-t">
+              {canEdit && (
+                <Button variant="outline" onClick={onEdit}>
+                  Edit Document
+                </Button>
+              )}
+              <Button variant="default" onClick={onClose}>
+                Close
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-8 text-center">
+            <p className="text-gray-500">Document not found</p>
+            <Button variant="outline" onClick={onClose} className="mt-4">
+              Close
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Document Edit Dialog Component  
+interface DocumentEditDialogProps {
+  documentId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function DocumentEditDialog({ documentId, isOpen, onClose, onSuccess }: DocumentEditDialogProps) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit Document</DialogTitle>
+        </DialogHeader>
+        <div className="p-6">
+          <p className="text-gray-500 mb-4">Document editing functionality will be implemented soon.</p>
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // Document categories for filtering
 const DOCUMENT_CATEGORIES = [
@@ -106,9 +258,6 @@ export default function ModularDocumentPageWrapper({
   });
 
   // Extract documents array from API response
-  console.log('🔍 [API Response Debug] Full response:', documentResponse);
-  console.log('🔍 [API Response Debug] Error:', documentsError);
-  console.log('🔍 [API Response Debug] Is Loading:', isLoading);
   const documents = Array.isArray(documentResponse?.documents) ? documentResponse.documents : [];
 
   // Determine permissions based on user role and type
@@ -141,15 +290,33 @@ export default function ModularDocumentPageWrapper({
     return matchesSearch && matchesCategory;
   }) : [];
 
-  // Debug logging to understand document structure
-  console.log('📄 [ModularDocumentPageWrapper] Debug:', {
-    responseReceived: !!documentResponse,
-    documentsInResponse: Array.isArray(documentResponse?.documents) ? documentResponse.documents.length : 'none',
-    documentsExtracted: documents.length,
-    filteredLength: filteredDocuments.length,
-    searchTerm,
-    selectedCategory
-  });
+  // Group documents by category
+  const groupedDocuments = filteredDocuments.reduce((groups, doc) => {
+    const category = doc.category || doc.documentType || 'other';
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push(doc);
+    return groups;
+  }, {} as Record<string, typeof filteredDocuments>);
+
+  // Get category display name
+  const getCategoryDisplayName = (category: string) => {
+    const categoryLabels: Record<string, string> = {
+      bylaw: 'Bylaws',
+      financial: 'Financial Documents',
+      maintenance: 'Maintenance Records',
+      legal: 'Legal Documents',
+      meeting_minutes: 'Meeting Minutes',
+      insurance: 'Insurance Documents',
+      contracts: 'Contracts',
+      permits: 'Permits',
+      inspection: 'Inspection Reports',
+      other: 'Other Documents',
+    };
+    return categoryLabels[category] || category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
 
   // Generate entity name based on type
   const entityName = type === 'residence' 
@@ -158,15 +325,20 @@ export default function ModularDocumentPageWrapper({
 
   const defaultBackLabel = backLabel || (type === 'building' ? 'Back to Buildings' : t('backToResidences'));
 
-  // Handle document interactions (simplified without modals)
+  // State for document view and edit dialogs
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  // Handle document interactions
   const handleDocumentView = (documentId: string) => {
-    // Simple solution: open document in new tab for viewing
-    window.open(`/api/documents/${documentId}/download`, '_blank');
+    setSelectedDocumentId(documentId);
+    setIsViewDialogOpen(true);
   };
 
   const handleDocumentEdit = (documentId: string) => {
-    // Navigate to a dedicated edit page or show alert for now
-    alert('Document editing functionality to be implemented');
+    setSelectedDocumentId(documentId);
+    setIsEditDialogOpen(true);
   };
 
   const handleCreateDocument = () => {
@@ -416,28 +588,37 @@ export default function ModularDocumentPageWrapper({
               </CardContent>
             </Card>
           ) : (
-            <Card>
-              <CardContent className="p-6">
-                <div className={`grid gap-4 ${
-                  viewMode === 'grid' 
-                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                    : 'grid-cols-1'
-                }`}>
-                  {filteredDocuments.map((document) => (
-                    <DocumentCard
-                      key={document.id}
-                      documentId={document.id}
-                      title={document.name}
-                      documentType={document.category || document.documentType}
-                      createdAt={document.createdAt}
-                      onViewClick={handleDocumentView}
-                      onEditClick={userPermissions.canEdit ? handleDocumentEdit : undefined}
-                      compact={viewMode === 'list'}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              {Object.entries(groupedDocuments).map(([category, categoryDocuments]) => (
+                <Card key={category}>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      {getCategoryDisplayName(category)}
+                      <Badge variant="secondary">{categoryDocuments.length}</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`grid gap-4 ${
+                      viewMode === 'grid' 
+                        ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+                        : 'grid-cols-1'
+                    }`}>
+                      {categoryDocuments.map((document) => (
+                        <DocumentCard
+                          key={document.id}
+                          documentId={document.id}
+                          title={document.name}
+                          documentType={document.category || document.documentType}
+                          createdAt={document.createdAt}
+                          onViewClick={handleDocumentView}
+                          compact={viewMode === 'list'}
+                        />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
 
           {/* Document Creation Dialog */}
@@ -449,6 +630,43 @@ export default function ModularDocumentPageWrapper({
             entityId={entityId}
             entityName={entityName}
           />
+
+          {/* Document View Dialog */}
+          {selectedDocumentId && (
+            <DocumentViewDialog
+              documentId={selectedDocumentId}
+              isOpen={isViewDialogOpen}
+              onClose={() => {
+                setIsViewDialogOpen(false);
+                setSelectedDocumentId(null);
+              }}
+              onEdit={() => {
+                setIsViewDialogOpen(false);
+                setIsEditDialogOpen(true);
+              }}
+              canEdit={userPermissions.canEdit}
+            />
+          )}
+
+          {/* Document Edit Dialog */}
+          {selectedDocumentId && (
+            <DocumentEditDialog
+              documentId={selectedDocumentId}
+              isOpen={isEditDialogOpen}
+              onClose={() => {
+                setIsEditDialogOpen(false);
+                setSelectedDocumentId(null);
+              }}
+              onSuccess={() => {
+                setIsEditDialogOpen(false);
+                setSelectedDocumentId(null);
+                // Refresh documents list
+                queryClient.invalidateQueries({
+                  queryKey: ['/api/documents', type, entityId],
+                });
+              }}
+            />
+          )}
         </div>
       </div>
     </div>
