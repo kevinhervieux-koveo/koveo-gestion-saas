@@ -158,9 +158,9 @@ export function registerBugRoutes(app: Express): void {
         });
         bugData = {
           ...bugData,
-          file_path: `general/${req.file.filename}`,
-          file_name: req.file.originalname,
-          file_size: req.file.size,
+          filePath: `general/${req.file.filename}`,
+          fileName: req.file.originalname,
+          fileSize: req.file.size,
         };
         console.log(`✅ File attachment added to bugData`);
       } else {
@@ -170,10 +170,10 @@ export function registerBugRoutes(app: Express): void {
       // Log the final bugData before saving
       console.log(`🐛 Creating bug with data:`, {
         title: bugData.title,
-        hasFile: !!bugData.file_path,
-        filePath: bugData.file_path,
-        fileName: bugData.file_name,
-        fileSize: bugData.file_size
+        hasFile: !!bugData.filePath,
+        filePath: bugData.filePath,
+        fileName: bugData.fileName,
+        fileSize: bugData.fileSize
       });
 
       const bug = await storage.createBug(bugData);

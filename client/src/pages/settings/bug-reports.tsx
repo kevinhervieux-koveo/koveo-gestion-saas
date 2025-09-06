@@ -86,10 +86,9 @@ interface Bug {
   resolvedAt: string | null;
   resolvedBy: string | null;
   // Single file attachment fields (like documents) - matching database schema
-  file_path?: string;
-  file_name?: string;
-  file_mime_type?: string;
-  file_size?: number;
+  filePath?: string;
+  fileName?: string;
+  fileSize?: number;
   file_content?: string;
   attachments?: Array<{
     id: string;
@@ -1032,7 +1031,7 @@ export default function BugReports() {
                                   {bug.status.replace(/_/g, ' ')}
                                 </Badge>
                               </div>
-                              {bug.file_path && (
+                              {bug.filePath && (
                                 <Badge variant="secondary" className="text-xs">
                                   📎 File attached
                                 </Badge>
@@ -1220,9 +1219,9 @@ export default function BugReports() {
               <AttachedFileSection
                 entityType="bug"
                 entityId={selectedBug.id}
-                filePath={selectedBug.file_path}
-                fileName={selectedBug.file_name}
-                fileSize={selectedBug.file_size}
+                filePath={selectedBug.filePath}
+                fileName={selectedBug.fileName}
+                fileSize={selectedBug.fileSize}
                 fallbackName={selectedBug.title}
               />
 
