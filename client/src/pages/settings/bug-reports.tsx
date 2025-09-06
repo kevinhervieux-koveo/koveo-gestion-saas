@@ -1210,12 +1210,6 @@ export default function BugReports() {
               </div>
 
               {/* File Section - Using Shared Component */}
-              {console.log('🔍 Bug file debug:', {
-                id: selectedBug.id,
-                file_path: selectedBug.file_path,
-                file_name: selectedBug.file_name,
-                file_size: selectedBug.file_size
-              })}
               <AttachedFileSection
                 entityType="bug"
                 entityId={selectedBug.id}
@@ -1224,6 +1218,15 @@ export default function BugReports() {
                 fileSize={selectedBug.file_size}
                 fallbackName={selectedBug.title}
               />
+              
+              {/* Debug info for testing */}
+              {!selectedBug.file_path && (
+                <div className="border-t pt-4">
+                  <p className="text-sm text-gray-500 italic">
+                    No file attached to this bug report.
+                  </p>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex justify-between items-center pt-4 border-t">
