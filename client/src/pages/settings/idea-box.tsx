@@ -474,6 +474,27 @@ export default function IdeaBox() {
     },
   });
 
+  // Delete mutation (admin only)
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => apiRequest('DELETE', `/api/feature-requests/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
+      setIsEditDialogOpen(false);
+      setEditingFeatureRequest(null);
+      toast({
+        title: 'Idea deleted!',
+        description: 'The feature idea has been deleted successfully.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete idea',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const handleSubmit = (data: FeatureRequestFormData) => {
     if (attachmentMode === 'file') {
       const fileInput = document.querySelector('#file-upload') as HTMLInputElement;
@@ -546,6 +567,12 @@ export default function IdeaBox() {
 
   const handleUpvoteIdea = (idea: FeatureRequest) => {
     upvoteMutation.mutate(idea.id);
+  };
+
+  const handleDeleteIdea = (idea: FeatureRequest) => {
+    if (window.confirm(`Are you sure you want to delete "${idea.title}"? This action cannot be undone.`)) {
+      deleteMutation.mutate(idea.id);
+    }
   };
 
   const toggleCategory = (category: string) => {
@@ -1048,13 +1075,28 @@ export default function IdeaBox() {
               )}
             </div>
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={updateMutation.isPending} data-testid="button-update">
-                {updateMutation.isPending ? 'Updating...' : 'Update Idea'}
-              </Button>
+            <div className="flex justify-between items-center pt-4">
+              <div>
+                {user?.role === 'admin' && editingFeatureRequest && (
+                  <Button 
+                    type="button" 
+                    variant="destructive" 
+                    onClick={() => handleDeleteIdea(editingFeatureRequest)}
+                    disabled={deleteMutation.isPending}
+                    data-testid="button-delete-idea"
+                  >
+                    {deleteMutation.isPending ? 'Deleting...' : 'Delete Idea'}
+                  </Button>
+                )}
+              </div>
+              <div className="flex space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateMutation.isPending} data-testid="button-update">
+                  {updateMutation.isPending ? 'Updating...' : 'Update Idea'}
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>
