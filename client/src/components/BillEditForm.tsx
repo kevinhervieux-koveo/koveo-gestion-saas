@@ -1,4 +1,4 @@
-import { BillForm } from '@/components/common/BillForm';
+import { ModularBillForm } from '@/components/bill-management/ModularBillForm';
 import type { Bill } from '@shared/schema';
 
 export function BillEditForm({
@@ -11,7 +11,7 @@ export function BillEditForm({
   onCancel: () => void;
 }) {
   return (
-    <BillForm
+    <ModularBillForm
       mode="edit"
       bill={bill}
       onSuccess={onSuccess}

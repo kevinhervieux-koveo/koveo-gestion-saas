@@ -1,4 +1,4 @@
-import { BillForm } from '@/components/common/BillForm';
+import { ModularBillForm } from '@/components/bill-management/ModularBillForm';
 
 interface BillCreateFormProps {
   onClose: () => void;
@@ -16,7 +16,7 @@ export function BillCreateForm({ onClose, selectedBuilding, buildingId, onSucces
   };
 
   return (
-    <BillForm
+    <ModularBillForm
       mode="create"
       onSuccess={handleSuccess}
       onCancel={onClose}
