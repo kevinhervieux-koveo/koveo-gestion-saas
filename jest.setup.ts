@@ -51,59 +51,120 @@ jest.mock('./server/config/index', () => ({
       apiKey: 'test-key',
       fromEmail: 'test@example.com',
     },
+    quebec: {
+      defaultLanguage: 'fr',
+      supportedLanguages: ['en', 'fr'],
+      requireBilingual: true,
+      law25Compliance: true,
+    },
+  },
+  default: {
+    server: {
+      port: 5000,
+      isProduction: false,
+      nodeEnv: 'test',
+    },
+    database: {
+      url: 'mock://test-database',
+      getRuntimeDatabaseUrl: jest.fn(() => 'mock://test-database'),
+    },
+    session: {
+      secret: 'test-secret',
+    },
+    email: {
+      apiKey: 'test-key',
+      fromEmail: 'test@example.com',
+    },
+    quebec: {
+      defaultLanguage: 'fr',
+      supportedLanguages: ['en', 'fr'],
+      requireBilingual: true,
+      law25Compliance: true,
+    },
   },
 }));
 
 // Comprehensive database mocking to prevent real connections
 jest.mock('./server/db', () => {
-  // Create a more robust chain that properly handles all drizzle operations
-  const createDrizzleChain = (finalValue: any = []) => {
-    const mockChain = {
-      // Query building methods that return the chain
-      from: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      leftJoin: jest.fn().mockReturnThis(),
-      innerJoin: jest.fn().mockReturnThis(),
-      rightJoin: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      set: jest.fn().mockReturnThis(),
-      values: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      offset: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      having: jest.fn().mockReturnThis(),
+  // Mock data for consistent test results
+  const mockData = {
+    users: [
+      { id: 'mock-user-1', email: 'test@example.com', username: 'testuser' },
+    ],
+    organizations: [
+      { id: 'mock-org-1', name: 'Test Organization', type: 'syndicate' },
+    ],
+    invitations: [
+      { id: 'mock-invite-1', email: 'test@example.com', role: 'manager' },
+    ],
+  };
+
+  // Create a proper Drizzle-like chain that handles all operations
+  const createMockQueryBuilder = (tableName?: string, defaultResult: any = []) => {
+    const mockBuilder = {
+      // Query builder methods - all return 'this' for chaining
+      from: jest.fn().mockImplementation(() => mockBuilder),
+      where: jest.fn().mockImplementation(() => mockBuilder),
+      leftJoin: jest.fn().mockImplementation(() => mockBuilder),
+      innerJoin: jest.fn().mockImplementation(() => mockBuilder),
+      rightJoin: jest.fn().mockImplementation(() => mockBuilder),
+      select: jest.fn().mockImplementation(() => mockBuilder),
+      set: jest.fn().mockImplementation(() => mockBuilder),
+      values: jest.fn().mockImplementation(() => mockBuilder),
+      returning: jest.fn().mockImplementation(() => mockBuilder),
+      orderBy: jest.fn().mockImplementation(() => mockBuilder),
+      limit: jest.fn().mockImplementation(() => mockBuilder),
+      offset: jest.fn().mockImplementation(() => mockBuilder),
+      groupBy: jest.fn().mockImplementation(() => mockBuilder),
+      having: jest.fn().mockImplementation(() => mockBuilder),
       
-      // Make it awaitable and thenable
-      then: jest.fn().mockImplementation(function(onResolve: any) {
-        return Promise.resolve(finalValue).then(onResolve);
+      // Promise interface - resolves to mock data
+      then: jest.fn().mockImplementation((onResolve) => {
+        const result = Array.isArray(defaultResult) && defaultResult.length === 0 
+          ? (tableName && mockData[tableName] ? mockData[tableName] : defaultResult)
+          : defaultResult;
+        return Promise.resolve(result).then(onResolve);
       }),
-      catch: jest.fn().mockImplementation(function(onReject: any) {
-        return Promise.resolve(finalValue).catch(onReject);
+      catch: jest.fn().mockImplementation((onReject) => {
+        const result = Array.isArray(defaultResult) && defaultResult.length === 0 
+          ? (tableName && mockData[tableName] ? mockData[tableName] : defaultResult)
+          : defaultResult;
+        return Promise.resolve(result).catch(onReject);
       }),
-      finally: jest.fn().mockImplementation(function(onFinally: any) {
-        return Promise.resolve(finalValue).finally(onFinally);
+      finally: jest.fn().mockImplementation((onFinally) => {
+        const result = Array.isArray(defaultResult) && defaultResult.length === 0 
+          ? (tableName && mockData[tableName] ? mockData[tableName] : defaultResult)
+          : defaultResult;
+        return Promise.resolve(result).finally(onFinally);
       }),
     };
 
-    // Ensure 'this' references work properly
-    Object.keys(mockChain).forEach(key => {
-      if (typeof mockChain[key] === 'function' && key !== 'then' && key !== 'catch' && key !== 'finally') {
-        mockChain[key].mockReturnValue(mockChain);
-      }
-    });
-
-    return mockChain;
+    return mockBuilder;
   };
 
   const mockDb = {
+    // Mock database operations with table recognition
     query: jest.fn().mockResolvedValue([]),
-    insert: jest.fn().mockImplementation(() => createDrizzleChain([{ id: 'mock-id-' + Date.now() }])),
-    select: jest.fn().mockImplementation(() => createDrizzleChain([])),
-    update: jest.fn().mockImplementation(() => createDrizzleChain({ affectedRows: 1 })),
-    delete: jest.fn().mockImplementation(() => createDrizzleChain({ affectedRows: 1 })),
-    $with: jest.fn().mockImplementation(() => createDrizzleChain([])),
+    insert: jest.fn().mockImplementation((table) => {
+      console.log('Mock DB insert called with table:', table);
+      return createMockQueryBuilder(undefined, [{ 
+        id: `mock-record-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        createdAt: new Date(),
+      }]);
+    }),
+    select: jest.fn().mockImplementation((fields) => {
+      console.log('Mock DB select called with fields:', fields);
+      return createMockQueryBuilder(undefined, []);
+    }),
+    update: jest.fn().mockImplementation((table) => {
+      console.log('Mock DB update called with table:', table);
+      return createMockQueryBuilder(undefined, { affectedRows: 1 });
+    }),
+    delete: jest.fn().mockImplementation((table) => {
+      console.log('Mock DB delete called with table:', table);
+      return createMockQueryBuilder(undefined, { affectedRows: 1 });
+    }),
+    $with: jest.fn().mockImplementation(() => createMockQueryBuilder()),
   };
   
   const mockSql = jest.fn().mockResolvedValue([]);
