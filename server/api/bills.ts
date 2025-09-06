@@ -845,7 +845,7 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
-      const analysis = await geminiAnalyzer.analyzeDocument(req.file.path);
+      const analysis = await geminiBillAnalyzer.analyzeDocument(req.file.path);
       
       res.json(analysis);
     } catch (_error: any) {
