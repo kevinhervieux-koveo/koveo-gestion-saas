@@ -8,7 +8,7 @@ import { GoogleGenAI } from '@google/genai';
 
 // This API key is from Gemini Developer API Key, not vertex AI API Key
 console.log('🔑 [GEMINI DEBUG] Initializing GoogleGenAI with API key:', process.env.GEMINI_API_KEY ? 'PRESENT' : 'MISSING');
-const ai = new GoogleGenAI(process.env.GEMINI_API_KEY || '');
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 console.log('🤖 [GEMINI DEBUG] GoogleGenAI instance created:', typeof ai, Object.keys(ai));
 
 /**
@@ -68,7 +68,8 @@ export class GeminiBillAnalyzer {
       - Extract exact amounts without currency symbols
       - Confidence should reflect how clear the document is (0.0-1.0)
       - If information is unclear, use best guess but lower confidence
-      `;
+      
+      **IMPORTANT: Your response MUST be a raw JSON object only, without any Markdown formatting, backticks, or explanatory text. Do not wrap the JSON in triple backticks or any other non-JSON characters.**`;
 
       console.log('📤 [GEMINI DEBUG] Sending request with proper SDK format...');
       
@@ -97,18 +98,24 @@ export class GeminiBillAnalyzer {
       });
 
       const rawJson = response.text;
-      console.log('📝 [GEMINI DEBUG] Raw response text:', rawJson?.substring(0, 200));
+      console.log('📝 [GEMINI DEBUG] Raw response text (before sanitization):', rawJson?.substring(0, 300));
 
       if (rawJson) {
-        console.log('🔍 [GEMINI DEBUG] Parsing JSON response...');
+        console.log('🔍 [GEMINI DEBUG] Sanitizing and parsing JSON response...');
+        
+        // Sanitize the response by removing markdown code blocks
+        const sanitizedJson = this.sanitizeJsonResponse(rawJson);
+        console.log('🧹 [GEMINI DEBUG] Sanitized JSON:', sanitizedJson?.substring(0, 200));
+        
         let analysis: BillAnalysisResult;
         
         try {
-          analysis = JSON.parse(rawJson);
+          analysis = JSON.parse(sanitizedJson);
           console.log('✅ [GEMINI DEBUG] JSON parsing successful:', analysis);
         } catch (parseError) {
           console.error('❌ [GEMINI DEBUG] JSON parsing failed:', parseError);
-          console.log('📝 [GEMINI DEBUG] Raw text that failed to parse:', rawJson);
+          console.log('📝 [GEMINI DEBUG] Original raw text:', rawJson);
+          console.log('📝 [GEMINI DEBUG] Sanitized text that failed to parse:', sanitizedJson);
           throw new Error('Failed to parse AI response as JSON');
         }
 
@@ -136,6 +143,26 @@ export class GeminiBillAnalyzer {
       });
       throw new Error(`Failed to analyze bill document: ${error}`);
     }
+  }
+
+  /**
+   * Sanitize JSON response by removing markdown code blocks and whitespace.
+   * @param rawResponse The raw response from the AI
+   * @returns Clean JSON string
+   */
+  private sanitizeJsonResponse(rawResponse: string): string {
+    if (!rawResponse) {
+      return rawResponse;
+    }
+
+    // Remove markdown code blocks (```json and ```)
+    let cleaned = rawResponse
+      .replace(/```json\s*/gi, '') // Remove opening ```json with optional whitespace
+      .replace(/```\s*$/g, '') // Remove closing ``` at end with optional whitespace
+      .replace(/^```\s*/g, '') // Remove opening ``` at start with optional whitespace
+      .trim(); // Remove leading/trailing whitespace
+
+    return cleaned;
   }
 
   /**
