@@ -791,8 +791,25 @@ function BillDetail({
   onEditBill: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [endDate, setEndDate] = useState(bill.endDate || '');
   const queryClient = useQueryClient();
+
+  // Fetch fresh bill data to ensure we have updated document information
+  const { data: freshBill } = useQuery({
+    queryKey: ['/api/bills', bill.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/bills/${bill.id}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch bill details');
+      }
+      return response.json();
+    },
+  });
+
+  // Use fresh bill data if available, fallback to props bill data
+  const currentBill = freshBill || bill;
+  const [endDate, setEndDate] = useState(currentBill.endDate || '');
 
   const updateBillMutation = useMutation({
     mutationFn: async (updates: Partial<Bill>) => {
@@ -838,59 +855,59 @@ function BillDetail({
       <div className='grid grid-cols-2 gap-4'>
         <div>
           <Label className='text-sm font-medium'>Bill Number</Label>
-          <p className='text-sm text-gray-600'>{bill.billNumber}</p>
+          <p className='text-sm text-gray-600'>{currentBill.billNumber}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Status</Label>
-          <p className='text-sm text-gray-600 capitalize'>{bill.status}</p>
+          <p className='text-sm text-gray-600 capitalize'>{currentBill.status}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Category</Label>
-          <p className='text-sm text-gray-600 capitalize'>{bill.category}</p>
+          <p className='text-sm text-gray-600 capitalize'>{currentBill.category}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Payment Type</Label>
-          <p className='text-sm text-gray-600 capitalize'>{bill.paymentType}</p>
+          <p className='text-sm text-gray-600 capitalize'>{currentBill.paymentType}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Total Amount</Label>
-          <p className='text-sm text-gray-600'>${Number(bill.totalAmount).toLocaleString()}</p>
+          <p className='text-sm text-gray-600'>${Number(currentBill.totalAmount).toLocaleString()}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Start Date</Label>
-          <p className='text-sm text-gray-600'>{bill.startDate}</p>
+          <p className='text-sm text-gray-600'>{currentBill.startDate}</p>
         </div>
       </div>
 
       {/* Title and Description */}
       <div>
         <Label className='text-sm font-medium'>Title</Label>
-        <p className='text-sm text-gray-600'>{bill.title}</p>
+        <p className='text-sm text-gray-600'>{currentBill.title}</p>
       </div>
 
-      {bill.description && (
+      {currentBill.description && (
         <div>
           <Label className='text-sm font-medium'>Description</Label>
-          <p className='text-sm text-gray-600'>{bill.description}</p>
+          <p className='text-sm text-gray-600'>{currentBill.description}</p>
         </div>
       )}
 
-      {bill.vendor && (
+      {currentBill.vendor && (
         <div>
           <Label className='text-sm font-medium'>Vendor</Label>
-          <p className='text-sm text-gray-600'>{bill.vendor}</p>
+          <p className='text-sm text-gray-600'>{currentBill.vendor}</p>
         </div>
       )}
 
-      {bill.notes && (
+      {currentBill.notes && (
         <div>
           <Label className='text-sm font-medium'>Notes</Label>
-          <p className='text-sm text-gray-600'>{bill.notes}</p>
+          <p className='text-sm text-gray-600'>{currentBill.notes}</p>
         </div>
       )}
 
       {/* End Date Management for Recurrent Bills */}
-      {bill.paymentType === 'recurrent' && (
+      {currentBill.paymentType === 'recurrent' && (
         <div className='border-t pt-4'>
           <Label className='text-sm font-medium'>Recurrence End Date</Label>
           <div className='flex items-center gap-2 mt-2'>
@@ -911,11 +928,11 @@ function BillDetail({
       )}
 
       {/* Costs Breakdown */}
-      {bill.costs && bill.costs.length > 1 && (
+      {currentBill.costs && currentBill.costs.length > 1 && (
         <div>
           <Label className='text-sm font-medium'>Payment Breakdown</Label>
           <div className='space-y-1 mt-1'>
-            {bill.costs.map((cost, index) => (
+            {currentBill.costs.map((cost, index) => (
               <div key={index} className='flex justify-between text-sm'>
                 <span>Payment {index + 1}:</span>
                 <span>${Number(cost).toLocaleString()}</span>
@@ -926,15 +943,15 @@ function BillDetail({
       )}
 
       {/* Document Section - Only show if document exists */}
-      {bill.documentPath && (
+      {currentBill.documentPath && (
         <div className='border-t pt-4'>
           <Label className='text-sm font-medium'>Uploaded Document</Label>
           <div className='mt-2'>
             <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
               <div className='flex items-center gap-2'>
                 <FileText className='w-4 h-4 text-blue-600' />
-                <span className='text-sm'>{bill.documentName}</span>
-                {bill.isAiAnalyzed && (
+                <span className='text-sm'>{currentBill.documentName}</span>
+                {currentBill.isAiAnalyzed && (
                   <Badge variant='outline' className='text-xs'>
                     AI Analyzed
                   </Badge>
@@ -946,14 +963,14 @@ function BillDetail({
                 onClick={() => {
                   // Download the document
                   const link = document.createElement('a');
-                  link.href = `/api/bills/${bill.id}/download-document`;
-                  link.download = bill.documentName || 'bill-document';
+                  link.href = `/api/bills/${currentBill.id}/download-document`;
+                  link.download = currentBill.documentName || 'bill-document';
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
                 }}
                 className='flex items-center gap-1'
-                data-testid={`button-download-document-${bill.id}`}
+                data-testid={`button-download-document-${currentBill.id}`}
               >
                 <FileText className='w-3 h-3' />
                 Download
