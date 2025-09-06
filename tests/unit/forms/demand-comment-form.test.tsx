@@ -108,7 +108,7 @@ const TestCommentForm = ({ demandId, onCommentAdded }: { demandId: string; onCom
           commentType: commentType || undefined,
           isInternal,
         }),
-      });
+      } as any);
 
       if (!response.ok) {
         throw new Error('Failed to create comment');
@@ -372,7 +372,7 @@ describe('Demand Comment Form Tests', () => {
             email: 'test@example.com',
           },
         }),
-      });
+      } as any);
 
       const onCommentAdded = jest.fn();
       render(
@@ -397,7 +397,7 @@ describe('Demand Comment Form Tests', () => {
           commentType: undefined,
           isInternal: false,
         }),
-      });
+      } as any);
 
       await waitFor(() => {
         expect(onCommentAdded).toHaveBeenCalled();
@@ -416,7 +416,7 @@ describe('Demand Comment Form Tests', () => {
           isInternal: true,
           createdAt: '2023-01-01T12:00:00Z',
         }),
-      });
+      } as any);
 
       render(
         <TestWrapper>
@@ -444,7 +444,7 @@ describe('Demand Comment Form Tests', () => {
           commentType: 'status_change',
           isInternal: true,
         }),
-      });
+      } as any);
     });
 
     it('should show loading state during submission', async () => {
@@ -487,7 +487,7 @@ describe('Demand Comment Form Tests', () => {
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
         }),
-      });
+      } as any);
 
       render(
         <TestWrapper>
@@ -542,7 +542,7 @@ describe('Demand Comment Form Tests', () => {
         ok: false,
         status: 400,
         json: async () => ({ message: 'Comment text too long' }),
-      });
+      } as any);
 
       render(
         <TestWrapper>
@@ -576,7 +576,7 @@ describe('Demand Comment Form Tests', () => {
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
         }),
-      });
+      } as any);
 
       render(
         <TestWrapper>
@@ -600,7 +600,7 @@ describe('Demand Comment Form Tests', () => {
           commentType: undefined,
           isInternal: false,
         }),
-      });
+      } as any);
     });
 
     it('should handle emojis and special symbols', async () => {
@@ -614,7 +614,7 @@ describe('Demand Comment Form Tests', () => {
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
         }),
-      });
+      } as any);
 
       render(
         <TestWrapper>
@@ -638,7 +638,7 @@ describe('Demand Comment Form Tests', () => {
           commentType: undefined,
           isInternal: false,
         }),
-      });
+      } as any);
     });
 
     it('should handle multiline comments', async () => {
@@ -658,7 +658,7 @@ End of comment.`;
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
         }),
-      });
+      } as any);
 
       render(
         <TestWrapper>
@@ -682,7 +682,7 @@ End of comment.`;
           commentType: undefined,
           isInternal: false,
         }),
-      });
+      } as any);
     });
   });
 
@@ -698,7 +698,7 @@ End of comment.`;
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
         }),
-      });
+      } as any);
 
       render(
         <TestWrapper>
@@ -722,7 +722,7 @@ End of comment.`;
           commentType: undefined,
           isInternal: false,
         }),
-      });
+      } as any);
     });
 
     it('should handle all comment types correctly', async () => {
@@ -740,7 +740,7 @@ End of comment.`;
             isInternal: false,
             createdAt: '2023-01-01T12:00:00Z',
           }),
-        });
+        } as any);
 
         render(
           <TestWrapper>
@@ -766,7 +766,7 @@ End of comment.`;
             commentType: type,
             isInternal: false,
           }),
-        });
+        } as any);
 
         mockFetch.mockClear();
       }
