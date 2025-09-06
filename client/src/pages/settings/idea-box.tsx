@@ -68,6 +68,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { SharedUploader } from '@/components/document-management';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
+import type { UploadContext } from '@shared/config/upload-config';
 
 // Feature request form schema
 const featureRequestFormSchema = z.object({
@@ -295,6 +296,15 @@ export default function IdeaBox() {
   const [attachmentText, setAttachmentText] = useState('');
   const [editAttachmentMode, setEditAttachmentMode] = useState<'file' | 'text'>('file');
   const [editAttachmentText, setEditAttachmentText] = useState('');
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  
+  // Upload context for secure storage
+  const uploadContext: UploadContext = {
+    type: 'ideas',
+    organizationId: 'default',
+    userRole: user?.role || 'resident',
+    userId: user?.id
+  };
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -812,66 +822,23 @@ export default function IdeaBox() {
 
             {/* Choose Document Type Section */}
             <div className="space-y-4 border-t pt-4">
-              <Label className="text-sm font-medium">Choose Document Type</Label>
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setAttachmentMode('file')}
-                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                    attachmentMode === 'file'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
-                  }`}
-                  data-testid="button-file-mode"
-                >
-                  📁 Upload File
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAttachmentMode('text')}
-                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                    attachmentMode === 'text'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
-                  }`}
-                  data-testid="button-text-mode"
-                >
-                  📝 Text Document
-                </button>
-              </div>
-
-              {/* Dynamic Content Based on Selection */}
-              {attachmentMode === 'file' ? (
-                <div>
-                  <Label htmlFor="file-upload">Select File to Upload</Label>
-                  <Input
-                    id="file-upload"
-                    type="file"
-                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
-                    data-testid="input-file"
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Attach a screenshot, mockup, or document to help explain your idea
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <Label htmlFor="text-content">Document Content</Label>
-                  <Textarea
-                    id="text-content"
-                    value={attachmentText}
-                    onChange={(e) => setAttachmentText(e.target.value)}
-                    rows={5}
-                    className="w-full mt-1"
-                    placeholder="Add detailed notes, specifications, or any additional information about your idea..."
-                    data-testid="textarea-text-content"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This will show as additional notes with your idea
-                  </p>
-                </div>
-              )}
+              <Label className="text-sm font-medium">Attach Documents (Optional)</Label>
+              <SharedUploader
+                onDocumentChange={(file, text) => {
+                  if (file) {
+                    setUploadedFiles([file]);
+                  }
+                  if (text) {
+                    setAttachmentText(text);
+                  }
+                }}
+                formType="ideas"
+                uploadContext={uploadContext}
+                aiAnalysisEnabled={false} // AI disabled for ideas by default
+                showAiToggle={true} // Allow user to enable AI if desired
+                allowedFileTypes={['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png', '.gif']}
+                maxFileSize={15}
+              />
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">
