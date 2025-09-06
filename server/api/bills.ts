@@ -585,10 +585,24 @@ export function registerBillRoutes(app: Express) {
         const organizationId =
           organizations.length > 0 ? organizations[0].organizationId : 'default';
 
-        // Note: File upload to external storage removed
-
         // Create document path in the expected format
         const documentPath = `prod_org_${organizationId}/${req.file.originalname}`;
+        
+        // Create uploads directory structure if it doesn't exist
+        const path = await import('path');
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        const orgDir = path.join(uploadsDir, `prod_org_${organizationId}`);
+        
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        if (!fs.existsSync(orgDir)) {
+          fs.mkdirSync(orgDir, { recursive: true });
+        }
+
+        // Save file to permanent storage
+        const permanentFilePath = path.join(uploadsDir, documentPath);
+        fs.copyFileSync(req.file.path, permanentFilePath);
 
         // Analyze document with Gemini AI (images and PDFs)
         let analysisResult = null;
