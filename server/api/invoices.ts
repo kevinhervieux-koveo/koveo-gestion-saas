@@ -3,8 +3,8 @@ import { requireAuth } from '../auth/index';
 import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
 import { geminiService } from '../services/geminiService';
 import { aiExtractionResponseSchema, insertInvoiceSchema } from '@shared/schema';
-import { storage } from '../db/index';
-import rateLimit from 'express-rate-limit';
+import { storage } from '../storage';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 /**
  * Invoice management API routes.
@@ -23,8 +23,8 @@ const extractionRateLimit = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   keyGenerator: (req: any) => {
-    // Rate limit per authenticated user ID (preferred) or use IP as fallback
-    return req.user?.id || `ip-${req.ip}`;
+    // Rate limit per authenticated user ID (preferred) or use IP as fallback with IPv6 support
+    return req.user?.id || ipKeyGenerator(req);
   },
   skip: (req: any) => {
     // Skip rate limiting if user is not authenticated (handled by requireAuth)

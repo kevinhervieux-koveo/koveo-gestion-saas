@@ -11,10 +11,15 @@
  * - Law 25 compliance for Quebec property management
  */
 
+// Core Document Management Components
 export { SharedUploader } from './SharedUploader';
 export { DocumentCard } from './DocumentCard';
 export { DocumentViewModal } from './DocumentViewModal';
 export { DocumentEditModal } from './DocumentEditModal';
+
+// Invoice Management Components
+export { default as InvoiceForm } from '../invoices/InvoiceForm';
+export { default as GeminiInvoiceExtractor } from '../invoices/GeminiInvoiceExtractor';
 
 // Re-export useful types that consumers might need
 export type {
