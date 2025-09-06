@@ -493,7 +493,7 @@ export function registerBillRoutes(app: Express) {
         if (req.file.mimetype.startsWith('image/') || req.file.mimetype === 'application/pdf') {
           console.log('🤖 [SERVER DEBUG] Starting AI analysis for file type:', req.file.mimetype);
           try {
-            analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
+            analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path, req.file.mimetype);
             console.log('✅ [SERVER DEBUG] AI analysis completed successfully:', analysisResult);
           } catch (aiError) {
             console.error('❌ [SERVER DEBUG] AI analysis failed:', aiError);

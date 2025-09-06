@@ -30,11 +30,16 @@ export interface BillAnalysisResult {
 export class GeminiBillAnalyzer {
   /**
    * Analyze a bill document using Gemini 2.5 Pro.
-   * @param imagePath
+   * @param filePath
+   * @param mimeType 
    */
-  async analyzeBillDocument(imagePath: string): Promise<BillAnalysisResult> {
+  async analyzeBillDocument(filePath: string, mimeType?: string): Promise<BillAnalysisResult> {
     try {
-      const imageBytes = fs.readFileSync(imagePath);
+      const fileBytes = fs.readFileSync(filePath);
+      
+      // Detect MIME type if not provided
+      const detectedMimeType = mimeType || this.detectMimeType(filePath);
+      console.log('📄 [GEMINI DEBUG] Processing file with MIME type:', detectedMimeType);
 
       const systemPrompt = `You are an expert bill analysis AI. Analyze this bill/invoice document and extract key information.
       
@@ -62,8 +67,8 @@ export class GeminiBillAnalyzer {
       const contents = [
         {
           inlineData: {
-            _data: imageBytes.toString('base64'),
-            mimeType: 'image/jpeg',
+            _data: fileBytes.toString('base64'),
+            mimeType: detectedMimeType,
           },
         },
         `Analyze this bill/invoice document and extract the key information as specified.`,
@@ -128,6 +133,31 @@ export class GeminiBillAnalyzer {
     } catch (error: any) {
       console.error('❌ Error analyzing bill document:', error);
       throw new Error(`Failed to analyze bill document: ${error}`);
+    }
+  }
+
+  /**
+   * Detect MIME type from file path.
+   * @param filePath
+   */
+  private detectMimeType(filePath: string): string {
+    const extension = filePath.toLowerCase().split('.').pop();
+    
+    switch (extension) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      default:
+        // Default to PDF since that's what we're trying to support
+        return 'application/pdf';
     }
   }
 
