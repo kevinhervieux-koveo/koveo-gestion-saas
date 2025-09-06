@@ -51,6 +51,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { SharedUploader } from '@/components/document-management';
+import { AttachedFileSection } from '@/components/common/AttachedFileSection';
 import type { UploadContext } from '@shared/config/upload-config';
 
 // Bug creation form schema (no status - new bugs are always created with "new" status)
