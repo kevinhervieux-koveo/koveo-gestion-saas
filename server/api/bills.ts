@@ -235,7 +235,7 @@ export function registerBillRoutes(app: Express) {
           costs: billData.costs.map((cost) => parseFloat(cost)),
           totalAmount: parseFloat(billData.totalAmount),
           startDate: billData.startDate,
-          endDate: billData.endDate,
+          endDate: billData.endDate || null,
           status: billData.status,
           notes: billData.notes,
           createdBy: req.user.id,

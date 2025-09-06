@@ -7,9 +7,7 @@ import { GoogleGenAI } from '@google/genai';
 //   - do not change this unless explicitly requested by the user
 
 // This API key is from Gemini Developer API Key, not vertex AI API Key
-console.log('🔑 [GEMINI DEBUG] Initializing GoogleGenAI with API key:', process.env.GEMINI_API_KEY ? 'PRESENT' : 'MISSING');
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
-console.log('🤖 [GEMINI DEBUG] GoogleGenAI instance created:', typeof ai, Object.keys(ai));
 
 /**
  *
@@ -37,15 +35,10 @@ export class GeminiBillAnalyzer {
    */
   async analyzeBillDocument(filePath: string, mimeType?: string): Promise<BillAnalysisResult> {
     try {
-      console.log('📄 [GEMINI DEBUG] Starting analysis for file:', filePath);
-      console.log('🔍 [GEMINI DEBUG] File exists:', fs.existsSync(filePath));
-      
       const fileBytes = fs.readFileSync(filePath);
-      console.log('📊 [GEMINI DEBUG] File size:', fileBytes.length, 'bytes');
       
       // Detect MIME type if not provided  
       const detectedMimeType = mimeType || this.detectMimeType(filePath);
-      console.log('🎭 [GEMINI DEBUG] MIME type:', detectedMimeType);
 
       const systemPrompt = `You are an expert bill analysis AI. Analyze this bill/invoice document and extract key information.
       
@@ -71,8 +64,6 @@ export class GeminiBillAnalyzer {
       
       **IMPORTANT: Your response MUST be a raw JSON object only, without any Markdown formatting, backticks, or explanatory text. Do not wrap the JSON in triple backticks or any other non-JSON characters.**`;
 
-      console.log('📤 [GEMINI DEBUG] Sending request with proper SDK format...');
-      
       const response = await ai.models.generateContent({
         model: 'gemini-1.5-flash',
         contents: [
@@ -90,44 +81,24 @@ export class GeminiBillAnalyzer {
           }
         ]
       });
-      
-      console.log('📥 [GEMINI DEBUG] Response received:', {
-        type: typeof response,
-        hasText: !!response?.text,
-        textLength: response?.text?.length
-      });
 
       const rawJson = response.text;
-      console.log('📝 [GEMINI DEBUG] Raw response text (before sanitization):', rawJson?.substring(0, 300));
 
       if (rawJson) {
-        console.log('🔍 [GEMINI DEBUG] Sanitizing and parsing JSON response...');
-        
         // Sanitize the response by removing markdown code blocks
         const sanitizedJson = this.sanitizeJsonResponse(rawJson);
-        console.log('🧹 [GEMINI DEBUG] Sanitized JSON:', sanitizedJson?.substring(0, 200));
         
         let analysis: BillAnalysisResult;
         
         try {
           analysis = JSON.parse(sanitizedJson);
-          console.log('✅ [GEMINI DEBUG] JSON parsing successful:', analysis);
         } catch (parseError) {
-          console.error('❌ [GEMINI DEBUG] JSON parsing failed:', parseError);
-          console.log('📝 [GEMINI DEBUG] Original raw text:', rawJson);
-          console.log('📝 [GEMINI DEBUG] Sanitized text that failed to parse:', sanitizedJson);
+          console.error('JSON parsing failed for AI response:', parseError);
           throw new Error('Failed to parse AI response as JSON');
         }
 
         // Validate and sanitize the results
         analysis.confidence = Math.max(0, Math.min(1, analysis.confidence));
-        console.log('✅ [GEMINI DEBUG] Analysis completed successfully:', {
-          title: analysis.title,
-          vendor: analysis.vendor,
-          totalAmount: analysis.totalAmount,
-          category: analysis.category,
-          confidence: analysis.confidence
-        });
         analysis.totalAmount = this.sanitizeAmount(analysis.totalAmount);
 
         return analysis;
@@ -135,12 +106,7 @@ export class GeminiBillAnalyzer {
         throw new Error('Empty response from Gemini');
       }
     } catch (error: any) {
-      console.error('❌ [GEMINI DEBUG] Error analyzing bill document:', error);
-      console.error('❌ [GEMINI DEBUG] Error details:', {
-        message: error?.message,
-        stack: error?.stack,
-        name: error?.name
-      });
+      console.error('Error analyzing bill document:', error);
       throw new Error(`Failed to analyze bill document: ${error}`);
     }
   }
