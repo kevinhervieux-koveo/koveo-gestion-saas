@@ -410,6 +410,7 @@ export default function IdeaBox() {
       form.reset();
       setAttachmentText('');
       setAttachmentMode('file');
+      setUploadedFiles([]); // Clear uploaded files
       toast({
         title: 'Idea submitted!',
         description: 'Your feature idea has been submitted successfully.',
@@ -505,23 +506,25 @@ export default function IdeaBox() {
   });
 
   const handleSubmit = (data: FeatureRequestFormData) => {
-    if (attachmentMode === 'file') {
-      const fileInput = document.querySelector('#file-upload') as HTMLInputElement;
-      const file = fileInput?.files?.[0];
-      
+    // Use the uploaded file from SharedUploader component
+    const file = uploadedFiles[0];
+    
+    if (file) {
       createMutation.mutate({
         ...data,
         file,
       });
-    } else {
-      // For text mode, we could store the text as a text file or in a dedicated field
-      // Store text content separately in file_content field
+    } else if (attachmentText) {
+      // For text mode, store text content separately in file_content field
       const enhancedData = {
         ...data,
-        file_content: attachmentText || null, // Store text content separately
+        file_content: attachmentText || null,
       };
       
       createMutation.mutate(enhancedData);
+    } else {
+      // No file or text attachment
+      createMutation.mutate(data);
     }
   };
 
