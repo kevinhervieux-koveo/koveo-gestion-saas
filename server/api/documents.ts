@@ -1340,6 +1340,17 @@ export function registerDocumentRoutes(app: Express): void {
       const userRole = user.role;
       const userId = user.id;
       const { documentType, buildingId, residenceId, textContent, ...otherData } = req.body;
+      
+      // Debug logging to understand what data is being sent
+      console.log('🔍 Document creation debug:', {
+        documentType,
+        buildingId, 
+        residenceId,
+        hasFile: !!req.file,
+        hasTextContent: !!textContent,
+        otherDataKeys: Object.keys(otherData),
+        fullBody: req.body
+      });
 
       // Enhanced rate limiting check
       const rateLimitCheck = checkUploadRateLimit(userId);
@@ -1557,10 +1568,19 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: documentType || 'other', // Default to 'other' if not provided
         };
         
+        console.log('🔍 Residence document validation debug:', {
+          dataToValidate,
+          documentType,
+          otherDataKeys: Object.keys(otherData),
+          hasFile: !!req.file
+        });
+        
         let validatedData;
         try {
           validatedData = insertDocumentSchema.parse(dataToValidate);
+          console.log('✅ Residence document validation SUCCESS');
         } catch (validationError) {
+          console.log('❌ Residence document validation ERROR:', validationError);
           return res.status(400).json({ 
             message: 'Validation failed', 
             error: validationError.message || 'Invalid data',
