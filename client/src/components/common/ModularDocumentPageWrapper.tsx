@@ -11,9 +11,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import {
   SharedUploader,
-  DocumentCard,
-  DocumentViewModal,
-  DocumentEditModal
+  DocumentCard
 } from '@/components/document-management';
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
 
@@ -51,11 +49,7 @@ export default function ModularDocumentPageWrapper({
   const params = useParams();
   const { t } = useLanguage();
 
-  // State for modals and interactions
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  // State for document interactions (simplified without modals)
   
   // State for filtering and search
   const [searchTerm, setSearchTerm] = useState('');
@@ -143,30 +137,25 @@ export default function ModularDocumentPageWrapper({
 
   const defaultBackLabel = backLabel || (type === 'building' ? 'Back to Buildings' : t('backToResidences'));
 
-  // Handle document interactions
+  // Handle document interactions (simplified without modals)
   const handleDocumentView = (documentId: string) => {
-    setSelectedDocumentId(documentId);
-    setIsViewModalOpen(true);
+    // Simple solution: open document in new tab for viewing
+    window.open(`/api/documents/${documentId}/download`, '_blank');
   };
 
   const handleDocumentEdit = (documentId: string) => {
-    setSelectedDocumentId(documentId);
-    setIsEditModalOpen(true);
-    setIsViewModalOpen(false);
+    // Navigate to a dedicated edit page or show alert for now
+    alert('Document editing functionality to be implemented');
   };
 
   const handleCreateDocument = () => {
-    setSelectedDocumentId(null);
-    setIsCreating(true);
-    setIsEditModalOpen(true);
+    // Navigate to a dedicated create page or show alert for now
+    alert('Document creation functionality to be implemented');
   };
 
   const handleDocumentSuccess = (documentId: string, action: 'created' | 'updated' | 'deleted') => {
     console.log(`Document ${action}:`, documentId);
-    setIsEditModalOpen(false);
-    setIsViewModalOpen(false);
-    setIsCreating(false);
-    setSelectedDocumentId(null);
+    // Simplified success handling without modal state
   };
 
   const clearFilters = () => {
@@ -431,24 +420,7 @@ export default function ModularDocumentPageWrapper({
             </Card>
           )}
 
-          {/* Document View Modal */}
-          <DocumentViewModal
-            documentId={selectedDocumentId}
-            userPermissions={userPermissions}
-            onEditClick={handleDocumentEdit}
-            isOpen={isViewModalOpen}
-            onOpenChange={setIsViewModalOpen}
-          />
-
-          {/* Document Edit/Create Modal */}
-          <DocumentEditModal
-            documentId={isCreating ? undefined : selectedDocumentId}
-            entityType={type}
-            entityId={entityId}
-            isOpen={isEditModalOpen}
-            onOpenChange={setIsEditModalOpen}
-            onSuccess={handleDocumentSuccess}
-          />
+          {/* Document viewing/editing handled by navigation or simple actions */}
         </div>
       </div>
     </div>
