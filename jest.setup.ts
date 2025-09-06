@@ -16,32 +16,37 @@ jest.mock('@google/genai', () => ({
 
 // Comprehensive database mocking to prevent real connections
 jest.mock('./server/db', () => {
+  const createMockChain = (finalValue: any = []) => {
+    const chain: any = {};
+    
+    chain.from = jest.fn().mockReturnValue(chain);
+    chain.where = jest.fn().mockReturnValue(chain);
+    chain.leftJoin = jest.fn().mockReturnValue(chain);
+    chain.innerJoin = jest.fn().mockReturnValue(chain);
+    chain.rightJoin = jest.fn().mockReturnValue(chain);
+    chain.select = jest.fn().mockReturnValue(chain);
+    chain.set = jest.fn().mockReturnValue(chain);
+    chain.values = jest.fn().mockReturnValue(chain);
+    chain.returning = jest.fn().mockReturnValue(chain);
+    chain.orderBy = jest.fn().mockReturnValue(chain);
+    chain.limit = jest.fn().mockReturnValue(chain);
+    chain.offset = jest.fn().mockReturnValue(chain);
+    chain.groupBy = jest.fn().mockReturnValue(chain);
+    chain.having = jest.fn().mockReturnValue(chain);
+    
+    // Make it thenable so it works with await
+    chain.then = jest.fn().mockImplementation((onResolve: any) => Promise.resolve(finalValue).then(onResolve));
+    chain.catch = jest.fn().mockImplementation((onReject: any) => Promise.resolve(finalValue).catch(onReject));
+    
+    return chain;
+  };
+
   const mockDb = {
     query: jest.fn().mockResolvedValue([]),
-    insert: jest.fn().mockImplementation(() => ({
-      values: jest.fn().mockImplementation(() => ({
-        returning: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
-      }))
-    })),
-    select: jest.fn().mockImplementation(() => ({
-      from: jest.fn().mockImplementation(() => ({
-        where: jest.fn().mockResolvedValue([]),
-        leftJoin: jest.fn().mockImplementation(() => ({
-          where: jest.fn().mockResolvedValue([])
-        })),
-        innerJoin: jest.fn().mockImplementation(() => ({
-          where: jest.fn().mockResolvedValue([])
-        }))
-      }))
-    })),
-    update: jest.fn().mockImplementation(() => ({
-      set: jest.fn().mockImplementation(() => ({
-        where: jest.fn().mockResolvedValue({ affectedRows: 0 })
-      }))
-    })),
-    delete: jest.fn().mockImplementation(() => ({
-      where: jest.fn().mockResolvedValue({ affectedRows: 0 })
-    }))
+    insert: jest.fn().mockImplementation(() => createMockChain([{ id: 'mock-id' }])),
+    select: jest.fn().mockImplementation(() => createMockChain([])),
+    update: jest.fn().mockImplementation(() => createMockChain({ affectedRows: 0 })),
+    delete: jest.fn().mockImplementation(() => createMockChain({ affectedRows: 0 })),
   };
   
   const mockSql = jest.fn().mockResolvedValue([]);
@@ -111,17 +116,7 @@ jest.mock('./server/services/email-service', () => ({
   }))
 }));
 
-// Mock React Router hooks for component tests
-jest.mock('wouter', () => ({
-  useLocation: () => ['/', jest.fn()],
-  useParams: () => ({}),
-  useRoute: () => [false, {}],
-  Link: ({ children }: any) => children,
-  Route: ({ children }: any) => children,
-  Switch: ({ children }: any) => children,
-  Router: ({ children }: any) => children,
-  Redirect: () => null,
-}));
+// Note: wouter mocking is handled in test-utils.tsx Router provider
 
 // Mock language hook and provider with proper React setup
 jest.mock('@/hooks/use-language', () => {
