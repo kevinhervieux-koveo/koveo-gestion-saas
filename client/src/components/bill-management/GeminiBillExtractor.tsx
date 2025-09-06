@@ -12,6 +12,7 @@ interface GeminiBillExtractorProps {
     confidence?: number;
     error?: string;
     rawData?: any;
+    isLoading?: boolean;
   }) => void;
 }
 
@@ -37,16 +38,14 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
     mutationFn: async (billFile: File) => {
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append('billFile', billFile);
+      formData.append('invoiceFile', billFile);
       
       // Make API request to bill extraction endpoint
-      const response = await apiRequest('/api/bills/extract-data', {
-        method: 'POST',
-        body: formData,
-        // Note: Don't set Content-Type header - let browser set it for FormData
-      });
+      const response = await apiRequest('POST', '/api/bills/extract-data', formData);
       
-      return response;
+      // Parse JSON response
+      const jsonResponse = await response.json();
+      return jsonResponse;
     },
     onSuccess: (data) => {
       console.log('[GEMINI BILL EXTRACTOR] Extraction successful:', data);
@@ -68,7 +67,10 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
       // Handle different error types
       let errorMessage = 'Failed to extract bill data';
       
-      if (error.message?.includes('RATE_LIMIT_EXCEEDED')) {
+      // Check if it's a network or fetch error
+      if (error.message?.includes('Failed to execute \'fetch\'') || error.name === 'TypeError') {
+        errorMessage = 'Network error occurred. Please check your connection and try again.';
+      } else if (error.message?.includes('RATE_LIMIT_EXCEEDED')) {
         errorMessage = 'Too many extraction requests. Please wait before trying again.';
       } else if (error.message?.includes('UNSUPPORTED_FILE_TYPE')) {
         errorMessage = 'Unsupported file type. Please upload a PDF or image file.';
@@ -76,8 +78,17 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
         errorMessage = 'File is too large. Please upload a file smaller than 25MB.';
       } else if (error.message?.includes('GEMINI_API_ERROR')) {
         errorMessage = 'AI service temporarily unavailable. Please try again later.';
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+      } else if (error.message?.includes('400:') || error.message?.includes('500:')) {
+        // Extract server error message from status codes
+        const match = error.message.match(/\d+:\s*(.+)/);
+        if (match) {
+          try {
+            const errorData = JSON.parse(match[1]);
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          } catch {
+            errorMessage = match[1] || errorMessage;
+          }
+        }
       }
       
       // Call the error callback
@@ -92,6 +103,13 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
   useEffect(() => {
     if (file) {
       console.log('[GEMINI BILL EXTRACTOR] Starting extraction for file:', file.name);
+      
+      // Notify parent that extraction is starting
+      onExtractionComplete({
+        success: false,
+        isLoading: true
+      });
+      
       extractionMutation.mutate(file);
     }
   }, [file]);

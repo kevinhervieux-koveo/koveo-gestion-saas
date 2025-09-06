@@ -124,6 +124,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   const [aiFile, setAiFile] = useState<File | null>(null);
   const [isAiMode, setIsAiMode] = useState(false);
   const [aiExtractionData, setAiExtractionData] = useState<any>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
   const [customPayments, setCustomPayments] = useState<CustomPayment[]>([]);
 
   // Form setup
@@ -150,6 +151,19 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
 
   // Handle AI extraction results
   const handleAiExtractionComplete = (data: any) => {
+    // Handle loading state
+    if (data.isLoading) {
+      setIsExtracting(true);
+      toast({
+        title: 'AI Extraction Started',
+        description: 'Processing your document... This may take a few seconds.',
+      });
+      return;
+    }
+    
+    // Clear loading state
+    setIsExtracting(false);
+    
     if (data.success && data.formData) {
       setAiExtractionData(data.formData);
       
@@ -165,7 +179,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
 
       toast({
         title: 'AI Extraction Complete',
-        description: `Successfully extracted bill data with ${Math.round(data.confidence * 100)}% confidence`,
+        description: `Successfully extracted bill data with ${Math.round((data.confidence || 0.9) * 100)}% confidence`,
       });
     } else {
       toast({
@@ -282,6 +296,20 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                   placeholder="Upload a bill or receipt for AI extraction"
                 />
                 
+                {isExtracting && (
+                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span className="text-blue-700 dark:text-blue-300 font-medium">
+                        Extracting data from your document...
+                      </span>
+                    </div>
+                    <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                      This may take a few seconds depending on document complexity.
+                    </p>
+                  </div>
+                )}
+                
                 {aiFile && (
                   <GeminiBillExtractor
                     file={aiFile}
@@ -293,7 +321,30 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
           </TabsContent>
 
           <TabsContent value="manual" className="space-y-4">
-            {/* Manual form will be rendered below */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Upload Document (Optional)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SharedUploader
+                  onDocumentChange={(file) => {
+                    console.log('[MANUAL ENTRY] Document uploaded:', file.name);
+                    toast({
+                      title: 'Document Uploaded',
+                      description: `${file.name} attached to this bill entry`,
+                    });
+                  }}
+                  allowedFileTypes={['image/*', 'application/pdf']}
+                  maxFileSize={25}
+                  showCamera={true}
+                  compact={false}
+                  placeholder="Upload bill receipt or invoice (optional)"
+                />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       )}
