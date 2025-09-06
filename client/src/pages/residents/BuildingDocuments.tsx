@@ -1,8 +1,8 @@
-import DocumentPageWrapper from '@/components/common/DocumentPageWrapper';
+import ModularDocumentPageWrapper from '@/components/common/ModularDocumentPageWrapper';
 
 export default function BuildingDocuments() {
   return (
-    <DocumentPageWrapper
+    <ModularDocumentPageWrapper
       type="building"
       userRole="resident"
       backPath="/residents/buildings"
