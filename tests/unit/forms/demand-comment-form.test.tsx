@@ -207,8 +207,18 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 describe('Demand Comment Form Tests', () => {
+  // Mock console.error to avoid test output pollution
+  const originalConsoleError = console.error;
+  
   beforeEach(() => {
     mockFetch.mockClear();
+    // Suppress console.error during tests
+    console.error = jest.fn();
+  });
+  
+  afterAll(() => {
+    // Restore console.error after tests
+    console.error = originalConsoleError;
   });
 
   describe('Comment Display', () => {

@@ -400,7 +400,7 @@ describe('Validation Standards Enforcement', () => {
         expect(regex.test(example)).toBe(true);
 
         // Test that error messages follow the expected pattern
-        const mockErrorMessage = `Please enter a valid ${fieldType} (example: ${example})`;
+        const mockErrorMessage = `Please enter a valid ${fieldType} format (example: ${example})`;
         expect(errorPattern.test(mockErrorMessage)).toBe(true);
       });
     });
