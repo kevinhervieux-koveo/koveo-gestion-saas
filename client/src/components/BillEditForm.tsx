@@ -1,4 +1,4 @@
-import { ModularBillForm } from '@/components/bill-management/ModularBillForm';
+import ModularBillForm from '@/components/bill-management/ModularBillForm';
 import type { Bill } from '@shared/schema';
 
 export function BillEditForm({
