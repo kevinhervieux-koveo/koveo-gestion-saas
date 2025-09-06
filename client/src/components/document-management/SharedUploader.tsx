@@ -303,35 +303,13 @@ export function SharedUploader({
 
   return (
     <div className={cn("w-full", className)}>
-      {/* AI Toggle Section */}
-      {showAiToggle && config.aiAnalysisEnabled !== undefined && (
-        <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg mb-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-500" />
-            <Label htmlFor="ai-toggle" className="text-sm font-medium">
-              AI Analysis
-            </Label>
-            {aiEnabled && (
-              <Badge variant="secondary" className="text-xs">
-                Enabled
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              id="ai-toggle"
-              checked={aiEnabled}
-              onCheckedChange={handleAiToggle}
-              disabled={disabled}
-              data-testid="switch-ai-analysis"
-            />
-            {isAnalyzing && (
-              <div className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400">
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
-                Analyzing...
-              </div>
-            )}
-          </div>
+      {/* AI Analysis Status (only show when analyzing, no toggle) */}
+      {isAnalyzing && (
+        <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg mb-4">
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+          <span className="text-sm text-blue-600 dark:text-blue-400">
+            AI analyzing document...
+          </span>
         </div>
       )}
 

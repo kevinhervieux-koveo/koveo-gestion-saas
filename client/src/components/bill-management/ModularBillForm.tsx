@@ -29,6 +29,7 @@ import { FileText, Sparkles, Plus, X, Calendar } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { cn } from '@/lib/utils';
 import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from './GeminiBillExtractor';
 import type { Bill } from '@shared/schema';
@@ -410,61 +411,65 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
 
       {!bill && (
         <Tabs defaultValue="manual" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className={cn("grid w-full", aiEnabled ? "grid-cols-2" : "grid-cols-1")}>
             <TabsTrigger value="manual" data-testid="tab-manual">
               <FileText className="w-4 h-4 mr-2" />
               Manual Entry
             </TabsTrigger>
-            <TabsTrigger value="ai" data-testid="tab-ai">
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI Extraction
-            </TabsTrigger>
+            {aiEnabled && (
+              <TabsTrigger value="ai" data-testid="tab-ai">
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI Extraction
+              </TabsTrigger>
+            )}
           </TabsList>
 
-          <TabsContent value="ai" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                  Upload Bill Document
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <SharedUploader
-                  onDocumentChange={handleFileUpload}
-                  formType="bills"
-                  uploadContext={uploadContext}
-                  aiAnalysisEnabled={aiEnabled}
-                  onAiToggle={handleAiToggle}
-                  onAiAnalysisComplete={handleAiAnalysisComplete}
-                  showAiToggle={true}
-                  allowedFileTypes={['image/*', 'application/pdf']}
-                  maxFileSize={25}
-                />
-                
-                {isExtracting && (
-                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      <span className="text-blue-700 dark:text-blue-300 font-medium">
-                        Extracting data from your document...
-                      </span>
-                    </div>
-                    <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                      This may take a few seconds depending on document complexity.
-                    </p>
-                  </div>
-                )}
-                
-                {aiFile && (
-                  <GeminiBillExtractor
-                    file={aiFile}
-                    onExtractionComplete={handleAiExtractionComplete}
+          {aiEnabled && (
+            <TabsContent value="ai" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    Upload Bill Document
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <SharedUploader
+                    onDocumentChange={handleFileUpload}
+                    formType="bills"
+                    uploadContext={uploadContext}
+                    aiAnalysisEnabled={aiEnabled}
+                    onAiToggle={handleAiToggle}
+                    onAiAnalysisComplete={handleAiAnalysisComplete}
+                    showAiToggle={false}
+                    allowedFileTypes={['image/*', 'application/pdf']}
+                    maxFileSize={25}
                   />
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  
+                  {isExtracting && (
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                        <span className="text-blue-700 dark:text-blue-300 font-medium">
+                          Extracting data from your document...
+                        </span>
+                      </div>
+                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                        This may take a few seconds depending on document complexity.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {aiFile && (
+                    <GeminiBillExtractor
+                      file={aiFile}
+                      onExtractionComplete={handleAiExtractionComplete}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           <TabsContent value="manual" className="space-y-4">
             <Card>

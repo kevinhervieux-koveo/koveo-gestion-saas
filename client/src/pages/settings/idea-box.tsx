@@ -832,10 +832,9 @@ export default function IdeaBox() {
                     setAttachmentText(text);
                   }
                 }}
-                formType="ideas"
+                formType="features"
                 uploadContext={uploadContext}
-                aiAnalysisEnabled={false} // AI disabled for ideas by default
-                showAiToggle={true} // Allow user to enable AI if desired
+                showAiToggle={false} // No toggle, use config-based AI enablement
                 allowedFileTypes={['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png', '.gif']}
                 maxFileSize={15}
               />

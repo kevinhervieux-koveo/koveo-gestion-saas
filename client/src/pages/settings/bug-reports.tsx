@@ -588,8 +588,7 @@ export default function BugReports() {
                       }}
                       formType="bugs"
                       uploadContext={uploadContext}
-                      aiAnalysisEnabled={false} // AI disabled for bugs by default
-                      showAiToggle={true} // Allow user to enable AI if desired
+                      showAiToggle={false} // No toggle, use config-based AI enablement
                       allowedFileTypes={['image/*', '.pdf', '.txt', '.log', '.json', '.csv']}
                       maxFileSize={15}
                     />

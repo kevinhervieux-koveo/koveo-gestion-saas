@@ -493,8 +493,7 @@ ResidentDemandsPage() {
                         }}
                         formType="demands"
                         uploadContext={uploadContext}
-                        aiAnalysisEnabled={false} // AI disabled for demands by default
-                        showAiToggle={true} // Allow user to enable AI if desired
+                        showAiToggle={false} // No toggle, use config-based AI enablement
                         allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}
                         maxFileSize={10}
                       />
