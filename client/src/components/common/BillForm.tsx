@@ -313,7 +313,7 @@ export const STATUS_OPTIONS = [
  */
 export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFormProps) {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('manual');
+  const [activeTab, setActiveTab] = useState(mode === 'edit' ? 'manual' : 'manual');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [aiAnalysisData, setAiAnalysisData] = useState<AiAnalysisResult | null>(null);
   const [aiDocumentFile, setAiDocumentFile] = useState<File | null>(null); // Store the AI analyzed document
@@ -1016,20 +1016,45 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           )}
 
           {/* Form Actions */}
-          <div className='flex justify-end gap-2 pt-4 border-t'>
-            {onCancel && (
-              <Button
-                type='button'
-                variant='outline'
-                onClick={onCancel}
-                data-testid='button-cancel'
-              >
-                Cancel
-              </Button>
-            )}
-            <Button type='submit' disabled={submitMutation.isPending} data-testid='button-update'>
-              {submitMutation.isPending ? 'Updating...' : 'Update Bill'}
+          <div className='flex justify-between gap-2 pt-4 border-t'>
+            {/* Delete button for edit mode */}
+            <Button
+              type='button'
+              variant='destructive'
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
+                  deleteMutation.mutate();
+                }
+              }}
+              disabled={deleteMutation.isPending}
+              className='flex items-center gap-2'
+              data-testid='button-delete-bill'
+            >
+              <Trash2 className='w-4 h-4' />
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete Bill'}
             </Button>
+            
+            <div className='flex gap-2'>
+              {onCancel && (
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={onCancel}
+                  disabled={submitMutation.isPending || deleteMutation.isPending}
+                  data-testid='button-cancel'
+                >
+                  Cancel
+                </Button>
+              )}
+              <Button
+                type='submit'
+                disabled={submitMutation.isPending || deleteMutation.isPending}
+                className='min-w-[120px]'
+                data-testid='button-update'
+              >
+                {submitMutation.isPending ? 'Updating...' : 'Update Bill'}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>
