@@ -11,6 +11,10 @@
 export { GeminiInvoiceExtractor } from './GeminiInvoiceExtractor';
 export type { GeminiInvoiceExtractorProps } from './GeminiInvoiceExtractor';
 
+// Invoice form components
+export { InvoiceForm } from './InvoiceForm';
+export type { InvoiceFormProps } from './InvoiceForm';
+
 // Export types for easy import
 export type {
   Invoice,
