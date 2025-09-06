@@ -63,9 +63,6 @@ const ManagerUserManagement = createOptimizedLoader(
 // Optimized lazy-loaded Manager pages
 const ManagerBuildings = optimizedPageLoaders.ManagerBuildings;
 const ManagerResidences = optimizedPageLoaders.ManagerResidences;
-const ModularDocuments = createOptimizedLoader(() => import('@/pages/ModularDocuments'), 'modular-documents-page', {
-  enableMemoryCleanup: true,
-});
 const BuildingDocuments = createOptimizedLoader(
   () => import('@/pages/manager/BuildingDocuments'),
   'building-documents-page',
@@ -357,8 +354,6 @@ function Router() {
             <Route path='/manager/user-management' component={ManagerUserManagement} />
             <Route path='/manager/common-spaces-stats' component={ManagerCommonSpacesStats} />
 
-            {/* Documents route */}
-            <Route path='/documents' component={ModularDocuments} />
 
             {/* Residents routes */}
             <Route path='/residents/residence' component={ResidentsResidence} />
