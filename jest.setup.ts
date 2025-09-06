@@ -32,42 +32,78 @@ jest.mock('drizzle-orm', () => ({
   notExists: jest.fn(() => 'mock-not-exists'),
 }));
 
+// Mock server config to prevent runtime errors
+jest.mock('./server/config/index', () => ({
+  config: {
+    server: {
+      port: 5000,
+      isProduction: false,
+      nodeEnv: 'test',
+    },
+    database: {
+      url: 'mock://test-database',
+      getRuntimeDatabaseUrl: jest.fn(() => 'mock://test-database'),
+    },
+    session: {
+      secret: 'test-secret',
+    },
+    email: {
+      apiKey: 'test-key',
+      fromEmail: 'test@example.com',
+    },
+  },
+}));
+
 // Comprehensive database mocking to prevent real connections
 jest.mock('./server/db', () => {
-  const createMockChain = (finalValue: any = []) => {
-    const chain: any = {};
-    
-    chain.from = jest.fn().mockReturnValue(chain);
-    chain.where = jest.fn().mockReturnValue(Promise.resolve(finalValue));
-    chain.leftJoin = jest.fn().mockReturnValue(chain);
-    chain.innerJoin = jest.fn().mockReturnValue(chain);
-    chain.rightJoin = jest.fn().mockReturnValue(chain);
-    chain.select = jest.fn().mockReturnValue(chain);
-    chain.set = jest.fn().mockReturnValue(chain);
-    chain.values = jest.fn().mockReturnValue(chain);
-    chain.returning = jest.fn().mockReturnValue(Promise.resolve(finalValue));
-    chain.orderBy = jest.fn().mockReturnValue(chain);
-    chain.limit = jest.fn().mockReturnValue(chain);
-    chain.offset = jest.fn().mockReturnValue(chain);
-    chain.groupBy = jest.fn().mockReturnValue(chain);
-    chain.having = jest.fn().mockReturnValue(chain);
-    
-    // Make it thenable so it works with await
-    chain.then = jest.fn().mockImplementation((onResolve: any) => Promise.resolve(finalValue).then(onResolve));
-    chain.catch = jest.fn().mockImplementation((onReject: any) => Promise.resolve(finalValue).catch(onReject));
-    
-    return chain;
+  // Create a more robust chain that properly handles all drizzle operations
+  const createDrizzleChain = (finalValue: any = []) => {
+    const mockChain = {
+      // Query building methods that return the chain
+      from: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      innerJoin: jest.fn().mockReturnThis(),
+      rightJoin: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      values: jest.fn().mockReturnThis(),
+      returning: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      having: jest.fn().mockReturnThis(),
+      
+      // Make it awaitable and thenable
+      then: jest.fn().mockImplementation(function(onResolve: any) {
+        return Promise.resolve(finalValue).then(onResolve);
+      }),
+      catch: jest.fn().mockImplementation(function(onReject: any) {
+        return Promise.resolve(finalValue).catch(onReject);
+      }),
+      finally: jest.fn().mockImplementation(function(onFinally: any) {
+        return Promise.resolve(finalValue).finally(onFinally);
+      }),
+    };
+
+    // Ensure 'this' references work properly
+    Object.keys(mockChain).forEach(key => {
+      if (typeof mockChain[key] === 'function' && key !== 'then' && key !== 'catch' && key !== 'finally') {
+        mockChain[key].mockReturnValue(mockChain);
+      }
+    });
+
+    return mockChain;
   };
 
   const mockDb = {
     query: jest.fn().mockResolvedValue([]),
-    insert: jest.fn().mockImplementation((table: any) => createMockChain([{ id: 'mock-id' }])),
-    select: jest.fn().mockImplementation((fields?: any) => createMockChain([])),
-    update: jest.fn().mockImplementation((table: any) => createMockChain({ affectedRows: 0 })),
-    delete: jest.fn().mockImplementation((table: any) => {
-      const chain = createMockChain({ affectedRows: 0 });
-      return chain;
-    }),
+    insert: jest.fn().mockImplementation(() => createDrizzleChain([{ id: 'mock-id-' + Date.now() }])),
+    select: jest.fn().mockImplementation(() => createDrizzleChain([])),
+    update: jest.fn().mockImplementation(() => createDrizzleChain({ affectedRows: 1 })),
+    delete: jest.fn().mockImplementation(() => createDrizzleChain({ affectedRows: 1 })),
+    $with: jest.fn().mockImplementation(() => createDrizzleChain([])),
   };
   
   const mockSql = jest.fn().mockResolvedValue([]);
