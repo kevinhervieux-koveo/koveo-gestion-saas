@@ -292,6 +292,12 @@ export default function IdeaBox() {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['dashboard']));
   
+  // Attachment states
+  const [attachmentMode, setAttachmentMode] = useState<'file' | 'text'>('file');
+  const [attachmentText, setAttachmentText] = useState('');
+  const [editAttachmentMode, setEditAttachmentMode] = useState<'file' | 'text'>('file');
+  const [editAttachmentText, setEditAttachmentText] = useState('');
+  
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -393,6 +399,8 @@ export default function IdeaBox() {
       queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
       setIsCreateDialogOpen(false);
       form.reset();
+      setAttachmentText('');
+      setAttachmentMode('file');
       toast({
         title: 'Idea submitted!',
         description: 'Your feature idea has been submitted successfully.',
@@ -431,6 +439,8 @@ export default function IdeaBox() {
       setIsEditDialogOpen(false);
       setEditingFeatureRequest(null);
       editForm.reset();
+      setEditAttachmentText('');
+      setEditAttachmentMode('file');
       toast({
         title: 'Idea updated!',
         description: 'Feature idea has been updated successfully.',
@@ -465,28 +475,52 @@ export default function IdeaBox() {
   });
 
   const handleSubmit = (data: FeatureRequestFormData) => {
-    const fileInput = document.querySelector('#file-upload') as HTMLInputElement;
-    const file = fileInput?.files?.[0];
-    
-    createMutation.mutate({
-      ...data,
-      file,
-    });
+    if (attachmentMode === 'file') {
+      const fileInput = document.querySelector('#file-upload') as HTMLInputElement;
+      const file = fileInput?.files?.[0];
+      
+      createMutation.mutate({
+        ...data,
+        file,
+      });
+    } else {
+      // For text mode, we could store the text as a text file or in a dedicated field
+      // For now, let's append it to the description
+      const enhancedData = {
+        ...data,
+        description: attachmentText ? `${data.description}\n\n**Additional Notes:**\n${attachmentText}` : data.description,
+      };
+      
+      createMutation.mutate(enhancedData);
+    }
   };
 
   const handleEditSubmit = (data: EditFormData) => {
     if (!editingFeatureRequest) return;
     
-    const fileInput = document.querySelector('#edit-file-upload') as HTMLInputElement;
-    const file = fileInput?.files?.[0];
-    
-    updateMutation.mutate({
-      id: editingFeatureRequest.id,
-      data: {
+    if (editAttachmentMode === 'file') {
+      const fileInput = document.querySelector('#edit-file-upload') as HTMLInputElement;
+      const file = fileInput?.files?.[0];
+      
+      updateMutation.mutate({
+        id: editingFeatureRequest.id,
+        data: {
+          ...data,
+          file,
+        },
+      });
+    } else {
+      // For text mode, append to description
+      const enhancedData = {
         ...data,
-        file,
-      },
-    });
+        description: editAttachmentText ? `${data.description}\n\n**Additional Notes:**\n${editAttachmentText}` : data.description,
+      };
+      
+      updateMutation.mutate({
+        id: editingFeatureRequest.id,
+        data: enhancedData,
+      });
+    }
   };
 
   const handleViewIdea = (idea: FeatureRequest) => {
@@ -505,6 +539,8 @@ export default function IdeaBox() {
       status: idea.status as any,
       adminNotes: idea.adminNotes || '',
     });
+    setEditAttachmentMode('file');
+    setEditAttachmentText('');
     setIsEditDialogOpen(true);
   };
 
@@ -750,17 +786,68 @@ export default function IdeaBox() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="file-upload">Attachment (optional)</Label>
-              <Input
-                id="file-upload"
-                type="file"
-                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
-                data-testid="input-file"
-              />
-              <p className="text-xs text-gray-500">
-                Attach a screenshot, mockup, or document to help explain your idea
-              </p>
+            {/* Choose Document Type Section */}
+            <div className="space-y-4 border-t pt-4">
+              <Label className="text-sm font-medium">Choose Document Type</Label>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setAttachmentMode('file')}
+                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                    attachmentMode === 'file'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+                  }`}
+                  data-testid="button-file-mode"
+                >
+                  📁 Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAttachmentMode('text')}
+                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                    attachmentMode === 'text'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+                  }`}
+                  data-testid="button-text-mode"
+                >
+                  📝 Text Document
+                </button>
+              </div>
+
+              {/* Dynamic Content Based on Selection */}
+              {attachmentMode === 'file' ? (
+                <div>
+                  <Label htmlFor="file-upload">Select File to Upload</Label>
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+                    data-testid="input-file"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Attach a screenshot, mockup, or document to help explain your idea
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <Label htmlFor="text-content">Document Content</Label>
+                  <Textarea
+                    id="text-content"
+                    value={attachmentText}
+                    onChange={(e) => setAttachmentText(e.target.value)}
+                    rows={5}
+                    className="w-full mt-1"
+                    placeholder="Add detailed notes, specifications, or any additional information about your idea..."
+                    data-testid="textarea-text-content"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This will show as additional notes with your idea
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">
@@ -885,33 +972,80 @@ export default function IdeaBox() {
               </>
             )}
 
-            {/* File attachment section */}
-            {editingFeatureRequest?.filePath && (
-              <div className="space-y-2">
-                <Label>Current Attachment</Label>
-                <AttachedFileSection
-                  entityType="feature-request"
-                  entityId={editingFeatureRequest.id}
-                  filePath={editingFeatureRequest.filePath}
-                  fileName={editingFeatureRequest.fileName}
-                  fileSize={editingFeatureRequest.fileSize}
-                />
+            {/* Choose Document Type Section for Edit */}
+            <div className="space-y-4 border-t pt-4">
+              <Label className="text-sm font-medium">Choose Document Type</Label>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setEditAttachmentMode('file')}
+                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                    editAttachmentMode === 'file'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+                  }`}
+                  data-testid="button-edit-file-mode"
+                >
+                  📁 Upload File
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditAttachmentMode('text')}
+                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+                    editAttachmentMode === 'text'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+                  }`}
+                  data-testid="button-edit-text-mode"
+                >
+                  📝 Text Document
+                </button>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-file-upload">
-                {editingFeatureRequest?.filePath ? 'Replace Attachment' : 'Add Attachment'} (optional)
-              </Label>
-              <Input
-                id="edit-file-upload"
-                type="file"
-                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
-                data-testid="input-edit-file"
-              />
-              <p className="text-xs text-gray-500">
-                {editingFeatureRequest?.filePath ? 'Upload a new file to replace the current attachment' : 'Attach a screenshot, mockup, or document'}
-              </p>
+              {/* Dynamic Content Based on Selection */}
+              {editAttachmentMode === 'file' ? (
+                <div>
+                  {editingFeatureRequest?.filePath && (
+                    <div className="space-y-2 mb-4">
+                      <Label>Current Attachment</Label>
+                      <AttachedFileSection
+                        entityType="feature-request"
+                        entityId={editingFeatureRequest.id}
+                        filePath={editingFeatureRequest.filePath}
+                        fileName={editingFeatureRequest.fileName}
+                        fileSize={editingFeatureRequest.fileSize}
+                      />
+                    </div>
+                  )}
+                  <Label htmlFor="edit-file-upload">Select File to Upload</Label>
+                  <Input
+                    id="edit-file-upload"
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+                    data-testid="input-edit-file"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {editingFeatureRequest?.filePath ? 'Upload a new file to replace the current attachment' : 'Attach a screenshot, mockup, or document'}
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <Label htmlFor="edit-text-content">Document Content</Label>
+                  <Textarea
+                    id="edit-text-content"
+                    value={editAttachmentText}
+                    onChange={(e) => setEditAttachmentText(e.target.value)}
+                    rows={5}
+                    className="w-full mt-1"
+                    placeholder="Add detailed notes, specifications, or any additional information..."
+                    data-testid="textarea-edit-text-content"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This will show as additional notes with your idea
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">
