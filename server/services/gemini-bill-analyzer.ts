@@ -63,60 +63,21 @@ export class GeminiBillAnalyzer {
       - If information is unclear, use best guess but lower confidence
       `;
 
-      const contents = [
+      const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      
+      const response = await model.generateContent([
+        {
+          text: systemPrompt
+        },
         {
           inlineData: {
-            _data: fileBytes.toString('base64'),
+            data: fileBytes.toString('base64'),
             mimeType: detectedMimeType,
-          },
-        },
-        `Analyze this bill/invoice document and extract the key information as specified.`,
-      ];
+          }
+        }
+      ]);
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-pro',
-        config: {
-          systemInstruction: systemPrompt,
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: 'object',
-            properties: {
-              title: { type: 'string' },
-              vendor: { type: 'string' },
-              totalAmount: { type: 'string' },
-              category: {
-                type: 'string',
-                enum: [
-                  'insurance',
-                  'maintenance',
-                  'salary',
-                  'utilities',
-                  'cleaning',
-                  'security',
-                  'landscaping',
-                  'professional_services',
-                  'administration',
-                  'repairs',
-                  'supplies',
-                  'taxes',
-                  'technology',
-                  'reserves',
-                  'other',
-                ],
-              },
-              description: { type: 'string' },
-              dueDate: { type: 'string' },
-              issueDate: { type: 'string' },
-              billNumber: { type: 'string' },
-              confidence: { type: 'number' },
-            },
-            required: ['title', 'vendor', 'totalAmount', 'category', 'confidence'],
-          },
-        },
-        contents: contents,
-      });
-
-      const rawJson = response.text;
+      const rawJson = response.response.text();
 
       if (rawJson) {
         const analysis: BillAnalysisResult = JSON.parse(rawJson);
