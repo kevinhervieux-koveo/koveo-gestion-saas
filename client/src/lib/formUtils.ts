@@ -194,6 +194,8 @@ export const submissionHelpers = {
     try {
       await submitFn(data);
       onSuccess?.();
+    } catch (error) {
+      onError?.(error);
       throw error;
     }
   },
