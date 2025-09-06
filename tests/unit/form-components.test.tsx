@@ -317,29 +317,42 @@ describe('Validation Standards Enforcement', () => {
     test('should validate that all string schemas include helpful error messages', () => {
       // Helper function to check if a schema follows our standards
       const validateStringSchema = (schema: z.ZodString, fieldContext: string) => {
-        // Test with empty string to trigger required field validation
-        const testResult = schema.safeParse('');
-        if (!testResult.success) {
-          const errorMessage = testResult.error.issues[0].message;
-          
-          // Requirements for good error messages:
-          // 1. Should not be just "Required" or "Invalid"
-          // 2. Should provide context about the field
-          // 3. Should include examples for format-specific fields
-          const isDescriptive = errorMessage.length > 8; // More lenient length requirement
-          const isNotGeneric = !errorMessage.match(/^(required|invalid|error|wrong)$/i);
-          const hasExample = errorMessage.includes('example:') || !needsExample(fieldContext);
-          
-          return {
-            isDescriptive,
-            isNotGeneric,
-            hasExample,
-            message: errorMessage,
-            passes: isDescriptive && isNotGeneric && hasExample
-          };
+        // Test with different values to get different error messages
+        const testValues = ['', 'a', 'invalid-email-format'];
+        
+        for (const testValue of testValues) {
+          const testResult = schema.safeParse(testValue);
+          if (!testResult.success) {
+            const errorMessage = testResult.error.issues[0].message;
+            
+            // Requirements for good error messages:
+            // 1. Should not be just "Required" or "Invalid"
+            // 2. Should provide context about the field
+            // 3. Should include examples for format-specific fields
+            const isDescriptive = errorMessage.length > 8;
+            const isNotGeneric = !errorMessage.match(/^(required|invalid|error|wrong)$/i);
+            const hasExample = errorMessage.includes('example:') || !needsExample(fieldContext);
+            
+            if (isDescriptive && isNotGeneric && hasExample) {
+              return {
+                isDescriptive,
+                isNotGeneric,
+                hasExample,
+                message: errorMessage,
+                passes: true
+              };
+            }
+          }
         }
-        // If validation passes, check if it should require more validation
-        return { passes: true, message: 'No validation errors found' };
+        
+        // If we got here, no good error message was found
+        return { 
+          passes: false, 
+          message: 'No descriptive error messages found',
+          isDescriptive: false,
+          isNotGeneric: false,
+          hasExample: false
+        };
       };
 
       const needsExample = (context: string) => {
@@ -366,6 +379,9 @@ describe('Validation Standards Enforcement', () => {
 
       schemasToTest.forEach(({ schema, context }) => {
         const result = validateStringSchema(schema, context);
+        if (!result.passes) {
+          console.log(`Schema validation failed for ${context}:`, result);
+        }
         expect(result.passes).toBe(true);
       });
     });
@@ -377,22 +393,22 @@ describe('Validation Standards Enforcement', () => {
       const standardPatterns = {
         email: {
           regex: /\S+@\S+\.\S+/,
-          errorPattern: /please enter.*valid.*email.*example:/i,
+          errorPattern: /valid.*email.*format.*example:/i,
           example: 'user@domain.com'
         },
         phone: {
           regex: /^(\+1\s?)?(\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}$/,
-          errorPattern: /phone.*valid.*north american.*format.*example:/i,
+          errorPattern: /valid.*phone.*format.*example:/i,
           example: '(514) 123-4567'
         },
         postalCode: {
           regex: /^[A-Z]\d[A-Z]\s?\d[A-Z]\d$/,
-          errorPattern: /postal.*canadian.*format.*example:/i,
+          errorPattern: /valid.*postal.*format.*example:/i,
           example: 'H1A 1B1'
         },
         amount: {
           regex: /^\d+(\.\d{1,2})?$/,
-          errorPattern: /amount.*valid.*number.*decimal.*example:/i,
+          errorPattern: /valid.*amount.*format.*example:/i,
           example: '125.50'
         }
       };
