@@ -50,8 +50,7 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { CompactFileUpload } from '@/components/ui/file-upload';
-import { AttachedFileSection } from '@/components/common/AttachedFileSection';
+import { SharedUploader } from '@/components/document-management';
 
 // Bug creation form schema (no status - new bugs are always created with "new" status)
 const bugFormSchema = z.object({

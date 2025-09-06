@@ -21,6 +21,10 @@ export { DocumentEditModal } from './DocumentEditModal';
 export { default as InvoiceForm } from '../invoices/InvoiceForm';
 export { default as GeminiInvoiceExtractor } from '../invoices/GeminiInvoiceExtractor';
 
+// Bill Management Components
+export { default as ModularBillForm } from '../bill-management/ModularBillForm';
+export { GeminiBillExtractor } from '../bill-management/GeminiBillExtractor';
+
 // Re-export useful types that consumers might need
 export type {
   // Types that might be useful for consumers

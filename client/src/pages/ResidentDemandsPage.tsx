@@ -43,7 +43,7 @@ import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { DemandCard } from '@/components/common/DemandCard';
 import { DemandFilters } from '@/components/common/DemandFilters';
-import { FileUpload } from '@/components/ui/file-upload';
+import { SharedUploader } from '@/components/document-management';
 import { useLanguage } from '@/hooks/use-language';
 import { schemas, enumFields } from '@/lib/validations';
 
@@ -476,24 +476,20 @@ ResidentDemandsPage() {
                     />
                     <div className='space-y-2'>
                       <label className='text-sm font-medium'>Attachments (Optional)</label>
-                      <FileUpload
-                        onFilesSelect={(files) => {
-                          setSelectedFiles(files);
+                      <SharedUploader
+                        onDocumentChange={(file, extractedText) => {
+                          if (file) {
+                            setSelectedFiles([file]);
+                          }
                         }}
-                        maxFiles={5}
-                        maxSize={10}
-                        acceptedTypes={[
-                          'image/*',
-                          '.pdf',
-                          '.doc',
-                          '.docx',
-                          '.txt'
-                        ]}
-                        allowPaste={true}
-                        className='border-dashed border-2 border-gray-300 rounded-lg p-4'
+                        allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}
+                        maxFileSize={10}
+                        showCamera={true}
+                        compact={true}
+                        placeholder="Upload screenshots, photos, or documents to support your request"
                       />
                       <p className='text-xs text-muted-foreground'>
-                        You can upload up to 5 files (10MB each). Images, PDFs, and documents are supported. You can also paste screenshots directly (Ctrl+V).
+                        Upload photos, documents, or screenshots. Camera supported for mobile. Max 10MB per file.
                       </p>
                     </div>
                     <DialogFooter>
