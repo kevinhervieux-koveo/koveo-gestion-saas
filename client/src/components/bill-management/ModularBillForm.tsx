@@ -218,15 +218,37 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       const fileToUpload = aiFile || manualFile;
       if (!bill && fileToUpload) {
         try {
+          console.log('[BILL FORM] Uploading document:', fileToUpload.name, 'for bill:', billResponse.id);
           const formData = new FormData();
           formData.append('document', fileToUpload);
           
-          const uploadResponse = await apiRequest('POST', `/api/bills/${billResponse.id}/upload-document`, formData);
+          const uploadResponse = await fetch(`/api/bills/${billResponse.id}/upload-document`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
+          });
+          
+          if (!uploadResponse.ok) {
+            const errorText = await uploadResponse.text();
+            console.error('[BILL FORM] Upload failed with status:', uploadResponse.status, errorText);
+            throw new Error(`Upload failed: ${uploadResponse.status} ${errorText}`);
+          }
+          
           const uploadResult = await uploadResponse.json();
-          console.log('[BILL FORM] Document upload response:', uploadResult);
-          console.log('[BILL FORM] Document uploaded for bill:', fileToUpload.name);
+          console.log('[BILL FORM] Document upload successful:', uploadResult);
+          
+          // Show success toast for document upload
+          toast({
+            title: 'Document Uploaded',
+            description: `${fileToUpload.name} has been attached to the bill`,
+          });
         } catch (uploadError) {
-          console.warn('[BILL FORM] Failed to upload document:', uploadError);
+          console.error('[BILL FORM] Failed to upload document:', uploadError);
+          toast({
+            title: 'Document Upload Failed',
+            description: `Failed to upload ${fileToUpload.name}. The bill was created but without the document.`,
+            variant: 'destructive',
+          });
           // Don't fail the bill creation if document upload fails
         }
       }
