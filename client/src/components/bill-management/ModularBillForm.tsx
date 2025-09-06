@@ -208,7 +208,24 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
         costs: [data.totalAmount], // Convert single amount to costs array
       };
 
-      return apiRequest(method, endpoint, billData);
+      const response = await apiRequest(method, endpoint, billData);
+      const billResponse = await response.json();
+      
+      // If this is a new bill created with AI extraction, upload the document
+      if (!bill && aiFile && aiExtractionData) {
+        try {
+          const formData = new FormData();
+          formData.append('document', aiFile);
+          
+          await apiRequest('POST', `/api/bills/${billResponse.id}/upload-document`, formData);
+          console.log('[BILL FORM] Document uploaded for AI-extracted bill');
+        } catch (uploadError) {
+          console.warn('[BILL FORM] Failed to upload document:', uploadError);
+          // Don't fail the bill creation if document upload fails
+        }
+      }
+      
+      return billResponse;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });

@@ -995,12 +995,14 @@ function BillDetail({
         </div>
       )}
 
-      {/* Document Upload Section */}
+      {/* Document Section */}
       <div className='border-t pt-4'>
-        <Label className='text-sm font-medium'>Document Upload & AI Analysis</Label>
+        <Label className='text-sm font-medium'>
+          {bill.documentPath ? 'Uploaded Document' : 'Document Upload & AI Analysis'}
+        </Label>
         <div className='mt-2 space-y-3'>
           {/* Current document info */}
-          {bill.documentPath && (
+          {bill.documentPath ? (
             <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
               <div className='flex items-center gap-2'>
                 <FileText className='w-4 h-4 text-blue-600' />
@@ -1030,21 +1032,21 @@ function BillDetail({
                 Download
               </Button>
             </div>
+          ) : (
+            /* File upload only when no document exists */
+            <div className='flex items-center gap-2'>
+              <Input
+                type='file'
+                accept='image/*,.pdf'
+                onChange={handleFileUpload}
+                disabled={uploadDocumentMutation.isPending}
+                className='flex-1'
+              />
+              {uploadDocumentMutation.isPending && (
+                <div className='text-sm text-gray-500'>Uploading & analyzing...</div>
+              )}
+            </div>
           )}
-
-          {/* File upload */}
-          <div className='flex items-center gap-2'>
-            <Input
-              type='file'
-              accept='image/*,.pdf'
-              onChange={handleFileUpload}
-              disabled={uploadDocumentMutation.isPending}
-              className='flex-1'
-            />
-            {uploadDocumentMutation.isPending && (
-              <div className='text-sm text-gray-500'>Uploading & analyzing...</div>
-            )}
-          </div>
 
           {/* AI Analysis Actions */}
           {bill.isAiAnalyzed && bill.aiAnalysisData && (
