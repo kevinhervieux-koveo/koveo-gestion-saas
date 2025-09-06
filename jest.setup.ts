@@ -115,53 +115,9 @@ jest.mock('@neondatabase/serverless', () => ({
   })),
 }));
 
-// Create mock query builder function first
-const createMockQueryBuilder = (defaultResult: any = []) => {
-  const mockBuilder: any = {};
-  
-  // Define all chainable methods
-  const chainableMethods = [
-    'from', 'where', 'leftJoin', 'innerJoin', 'rightJoin', 'select',
-    'set', 'values', 'returning', 'orderBy', 'limit', 'offset', 
-    'groupBy', 'having'
-  ];
-  
-  // Set up each method to return the builder itself
-  chainableMethods.forEach(method => {
-    mockBuilder[method] = jest.fn().mockImplementation(() => mockBuilder);
-  });
-  
-  // Make it thenable (promise-like) with immediate resolution
-  mockBuilder.then = jest.fn((resolve) => {
-    const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
-    return Promise.resolve(result).then(resolve);
-  });
-  
-  mockBuilder.catch = jest.fn((reject) => {
-    const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
-    return Promise.resolve(result).catch(reject);
-  });
-  
-  mockBuilder.finally = jest.fn((finallyFn) => {
-    const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
-    return Promise.resolve(result).finally(finallyFn);
-  });
+// Query builder creation is now handled by unified mock
 
-  return mockBuilder;
-};
-
-// Create the mock database
-const mockDb = {
-  query: jest.fn().mockResolvedValue([]),
-  insert: jest.fn(() => createMockQueryBuilder([{ 
-    id: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-    createdAt: new Date(),
-  }])),
-  select: jest.fn(() => createMockQueryBuilder([])),
-  update: jest.fn(() => createMockQueryBuilder({ affectedRows: 1 })),
-  delete: jest.fn(() => createMockQueryBuilder({ affectedRows: 1 })),
-  $with: jest.fn(() => createMockQueryBuilder([])),
-};
+// Query builder creation is now handled by unified mock
 
 // Now mock drizzle with the proper mockDb
 jest.mock('drizzle-orm/neon-serverless', () => ({
@@ -170,55 +126,13 @@ jest.mock('drizzle-orm/neon-serverless', () => ({
 
 // Mock the database module completely
 jest.mock('./server/db', () => {
-  // Create a fresh mock for each test
-  const createFreshMockQueryBuilder = (defaultResult: any = []) => {
-    const builder: any = {};
-    
-    const chainableMethods = [
-      'from', 'where', 'leftJoin', 'innerJoin', 'rightJoin', 'select',
-      'set', 'values', 'returning', 'orderBy', 'limit', 'offset', 
-      'groupBy', 'having'
-    ];
-    
-    chainableMethods.forEach(method => {
-      builder[method] = jest.fn().mockImplementation(() => builder);
-    });
-    
-    builder.then = jest.fn((resolve) => {
-      const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
-      return Promise.resolve(result).then(resolve);
-    });
-    
-    builder.catch = jest.fn((reject) => {
-      const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
-      return Promise.resolve(result).catch(reject);
-    });
-    
-    builder.finally = jest.fn((finallyFn) => {
-      const result = Array.isArray(defaultResult) ? defaultResult : [defaultResult];
-      return Promise.resolve(result).finally(finallyFn);
-    });
-
-    return builder;
-  };
-
-  const freshMockDb = {
-    query: jest.fn().mockResolvedValue([]),
-    insert: jest.fn(() => createFreshMockQueryBuilder([{ 
-      id: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-      createdAt: new Date(),
-    }])),
-    select: jest.fn(() => createFreshMockQueryBuilder([])),
-    update: jest.fn(() => createFreshMockQueryBuilder({ affectedRows: 1 })),
-    delete: jest.fn(() => createFreshMockQueryBuilder({ affectedRows: 1 })),
-    $with: jest.fn(() => createFreshMockQueryBuilder([])),
-  };
-
+  const { mockDb } = require('./tests/mocks/unified-database-mock');
+  
   return {
-    db: freshMockDb,
+    db: mockDb,
     sql: jest.fn().mockResolvedValue([]),
-    pool: freshMockDb,
-    default: freshMockDb
+    pool: mockDb,
+    default: mockDb
   };
 });
 

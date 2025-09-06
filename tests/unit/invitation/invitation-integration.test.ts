@@ -1,45 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-// Using mock database for unit tests - real database testing moved to integration tests
-// import { mockDb } from '../../../server/mockDb';
 import * as schema from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-
-// Mock database for unit testing - robust implementation
-const mockDb = {
-  delete: jest.fn(() => Promise.resolve([])),
-  insert: jest.fn(() => {
-    const insertChain = {
-      values: jest.fn((data) => {
-        const valuesChain = {
-          returning: jest.fn(() => Promise.resolve([{
-            id: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-            ...data,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }]))
-        };
-        return valuesChain;
-      })
-    };
-    return insertChain;
-  }),
-  select: jest.fn(() => ({
-    from: jest.fn(() => ({
-      where: jest.fn(() => Promise.resolve([])),
-      leftJoin: jest.fn(() => ({
-        where: jest.fn(() => Promise.resolve([]))
-      }))
-    }))
-  })),
-  update: jest.fn(() => ({
-    set: jest.fn(() => ({
-      where: jest.fn(() => ({
-        returning: jest.fn(() => Promise.resolve([{ id: 'mock-id' }]))
-      }))
-    }))
-  }))
-};
+import { mockDb, testUtils } from '../../mocks/unified-database-mock';
 
 describe('Invitation Table Integration Tests', () => {
   let adminUser: any;
@@ -48,11 +11,8 @@ describe('Invitation Table Integration Tests', () => {
   let organization2: any;
 
   beforeEach(async () => {
-    // Clean up tables (mocked for unit tests)
-    await mockDb.delete(schema.invitations);
-    await mockDb.delete(schema.userOrganizations);
-    await mockDb.delete(schema.users);
-    await mockDb.delete(schema.organizations);
+    // Reset mock data and clear all mocks
+    testUtils.resetMocks();
 
     // Create test organizations
     const [org1] = await mockDb.insert(schema.organizations).values({
