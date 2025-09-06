@@ -358,11 +358,16 @@ export function configureSecurityMiddleware(app: Express): void {
     res.setHeader('X-XSS-Protection', '1; mode=block');
 
     // Ensure blob: support for image previews in document uploads
-    if (isDevelopment && req.path.includes('documents')) {
+    if (isDevelopment) {
       const existingCSP = res.getHeader('Content-Security-Policy') as string;
       if (existingCSP && !existingCSP.includes('blob:')) {
         console.log(`🛡️ CSP Debug: Adding blob: support to existing CSP for ${req.path}`);
-        const updatedCSP = existingCSP.replace("img-src 'self' data: https:", "img-src 'self' data: blob: https:");
+        const updatedCSP = existingCSP.replace(/img-src ([^;]+)/g, (match, sources) => {
+          if (!sources.includes('blob:')) {
+            return `img-src ${sources} blob:`;
+          }
+          return match;
+        });
         res.setHeader('Content-Security-Policy', updatedCSP);
         console.log(`🛡️ CSP Updated: ${updatedCSP}`);
       }

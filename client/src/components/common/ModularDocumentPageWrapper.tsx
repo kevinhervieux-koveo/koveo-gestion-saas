@@ -127,10 +127,21 @@ export default function ModularDocumentPageWrapper({
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory || doc.documentType === selectedCategory;
 
     return matchesSearch && matchesCategory;
   }) : [];
+
+  // Debug logging to understand document structure
+  console.log('📄 [ModularDocumentPageWrapper] Debug:', {
+    documentsIsArray: Array.isArray(documents),
+    documentsLength: Array.isArray(documents) ? documents.length : 'not array',
+    filteredLength: filteredDocuments.length,
+    searchTerm,
+    selectedCategory,
+    documents: documents,
+    firstDocument: Array.isArray(documents) && documents.length > 0 ? documents[0] : 'none'
+  });
 
   // Generate entity name based on type
   const entityName = type === 'residence' 
@@ -409,7 +420,7 @@ export default function ModularDocumentPageWrapper({
                       key={document.id}
                       documentId={document.id}
                       title={document.name}
-                      documentType={document.category}
+                      documentType={document.category || document.documentType}
                       createdAt={document.createdAt}
                       onViewClick={handleDocumentView}
                       onEditClick={userPermissions.canEdit ? handleDocumentEdit : undefined}
