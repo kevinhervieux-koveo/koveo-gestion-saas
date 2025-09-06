@@ -7,15 +7,23 @@ import bcrypt from 'bcryptjs';
 
 // Mock database for unit testing
 const mockDb = {
-  delete: jest.fn().mockResolvedValue([]),
-  insert: jest.fn().mockImplementation(() => ({
-    values: jest.fn().mockImplementation(() => ({
-      returning: jest.fn().mockResolvedValue([{ id: 'mock-id', name: 'Mock Data' }])
+  delete: jest.fn().mockImplementation((table) => Promise.resolve([])),
+  insert: jest.fn().mockImplementation((table) => ({
+    values: jest.fn().mockImplementation((data) => ({
+      returning: jest.fn().mockImplementation(() => Promise.resolve([{
+        id: `mock-${table._.name || 'unknown'}-${Math.random().toString(36).substr(2, 9)}`,
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }]))
     }))
   })),
   select: jest.fn().mockImplementation(() => ({
     from: jest.fn().mockImplementation(() => ({
-      where: jest.fn().mockResolvedValue([])
+      where: jest.fn().mockImplementation(() => Promise.resolve([])),
+      leftJoin: jest.fn().mockImplementation(() => ({
+        where: jest.fn().mockImplementation(() => Promise.resolve([]))
+      }))
     }))
   })),
   update: jest.fn().mockImplementation(() => ({
