@@ -316,6 +316,7 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
   const [activeTab, setActiveTab] = useState('manual');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [aiAnalysisData, setAiAnalysisData] = useState<AiAnalysisResult | null>(null);
+  const [aiDocumentFile, setAiDocumentFile] = useState<File | null>(null); // Store the AI analyzed document
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [attachmentMode, setAttachmentMode] = useState<DocumentMode>('file');
@@ -402,7 +403,25 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
         throw new Error(`Failed to ${mode} bill`);
       }
 
-      return response.json();
+      const billResult = await response.json();
+
+      // If we have an AI document file and we're creating a bill, upload it
+      if (mode === 'create' && aiDocumentFile && billResult.id) {
+        const formData = new FormData();
+        formData.append('document', aiDocumentFile);
+
+        const uploadResponse = await fetch(`/api/bills/${billResult.id}/upload-document`, {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          console.warn('Failed to upload AI document to created bill');
+        }
+      }
+
+      return billResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
@@ -436,51 +455,28 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
   const uploadAndAnalyzeMutation = useMutation({
     mutationFn: async (file: File) => {
       setIsAnalyzing(true);
-      // First create a draft bill
-      const createResponse = await fetch('/api/bills', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          buildingId,
-          title: 'AI Analysis Draft',
-          category: 'other',
-          paymentType: 'unique',
-          totalAmount: '0',
-          costs: ['0'],
-          startDate: new Date().toISOString().split('T')[0],
-          status: 'draft',
-          notes: 'Draft bill created for AI analysis',
-        }),
-      });
-
-      if (!createResponse.ok) {
-        throw new Error('Failed to create draft bill');
-      }
-
-      const draftBill = await createResponse.json();
-      // Upload and analyze the document
+      
+      // Direct API call to analyze document without creating a bill
       const formData = new FormData();
       formData.append('document', file);
 
-      const uploadResponse = await fetch(`/api/bills/${draftBill.id}/upload-document`, {
+      const response = await fetch('/api/bills/analyze-document', {
         method: 'POST',
         credentials: 'include',
         body: formData,
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload and analyze document');
+      if (!response.ok) {
+        throw new Error('Failed to analyze document');
       }
 
-      const result = await uploadResponse.json();
-      return { ...result, billId: draftBill.id };
+      const result = await response.json();
+      return { analysisResult: result, file };
     },
     onSuccess: (data) => {
       setIsAnalyzing(false);
       setAiAnalysisData(data.analysisResult);
+      setAiDocumentFile(data.file); // Store the analyzed file for later upload
       
       // Auto-switch to manual tab and smartly fill form
       setActiveTab('manual');

@@ -832,4 +832,28 @@ export function registerBillRoutes(app: Express) {
       });
     }
   });
+
+  /**
+   * Analyze document without creating a bill
+   * POST /api/bills/analyze-document
+   */
+  app.post('/api/bills/analyze-document', requireAuth, upload.single('document'), async (req: any, res: any) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          message: 'No document file provided',
+        });
+      }
+
+      const analysis = await geminiAnalyzer.analyzeDocument(req.file.path);
+      
+      res.json(analysis);
+    } catch (_error: any) {
+      console.error('Error analyzing document:', _error);
+      res.status(500).json({
+        message: 'Failed to analyze document',
+        _error: _error instanceof Error ? _error.message : 'Unknown error',
+      });
+    }
+  });
 }
