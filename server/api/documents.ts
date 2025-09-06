@@ -1470,12 +1470,12 @@ export function registerDocumentRoutes(app: Express): void {
           buildingId,
           uploadedById: userId,
           filePath,
-          documentType: documentType,
+          documentType: documentType || 'other', // Default to 'other' if not provided
         };
         
         let validatedData;
         try {
-          validatedData = createBuildingDocumentSchema.parse(dataToValidate);
+          validatedData = insertDocumentSchema.parse(dataToValidate);
         } catch (validationError) {
           return res.status(400).json({ 
             message: 'Validation failed', 
@@ -1515,9 +1515,9 @@ export function registerDocumentRoutes(app: Express): void {
 
         // Create unified document instead of separate building document
         const unifiedDocument: InsertDocument = {
-          name: validatedData.name || validatedData.title || 'Untitled',
+          name: validatedData.name || 'Untitled',
           description: validatedData.description,
-          documentType: validatedData.type,
+          documentType: validatedData.documentType,
           filePath: validatedData.filePath || `temp-path-${Date.now()}`,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
           residenceId: undefined,
@@ -1549,13 +1549,24 @@ export function registerDocumentRoutes(app: Express): void {
             .json({ message: 'residenceId is required for resident documents' });
         }
 
-        const validatedData = createResidentDocumentSchema.parse({
+        const dataToValidate = {
           ...otherData,
           residenceId,
           uploadedById: userId,
-          filePath: req.file ? req.file.path : undefined,
-          // fileName is handled via name field
-        });
+          filePath: req.file ? req.file.path : `temp-path-${Date.now()}`,
+          documentType: documentType || 'other', // Default to 'other' if not provided
+        };
+        
+        let validatedData;
+        try {
+          validatedData = insertDocumentSchema.parse(dataToValidate);
+        } catch (validationError) {
+          return res.status(400).json({ 
+            message: 'Validation failed', 
+            error: validationError.message || 'Invalid data',
+            details: validationError.issues || validationError
+          });
+        }
 
         // Permission checks for resident documents
         if (userRole === 'manager') {
@@ -1588,11 +1599,11 @@ export function registerDocumentRoutes(app: Express): void {
 
         // Convert to unified document format
         const unifiedDocument: InsertDocument = {
-          name: validatedData.name,
-          description: undefined,
-          documentType: validatedData.type,
+          name: validatedData.name || 'Untitled',
+          description: validatedData.description,
+          documentType: validatedData.documentType,
           filePath: validatedData.filePath || `temp-path-${Date.now()}`,
-          isVisibleToTenants: validatedData.isVisibleToTenants,
+          isVisibleToTenants: validatedData.isVisibleToTenants || false,
           residenceId: validatedData.residenceId,
           buildingId: undefined,
           uploadedById: validatedData.uploadedById,
