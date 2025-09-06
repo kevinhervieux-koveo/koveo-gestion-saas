@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -199,13 +199,13 @@ ResidentDemandsPage() {
         })
       : { id: '', role: 'tenant', email: '' };
 
-  // Upload context for secure storage (defined after defaultUser)
-  const uploadContext: UploadContext = {
+  // Upload context for secure storage (using useMemo to ensure it updates with defaultUser)
+  const uploadContext: UploadContext = useMemo(() => ({
     type: 'demands',
     organizationId: 'default',
     userRole: defaultUser?.role || 'resident',
     userId: defaultUser?.id
-  };
+  }), [defaultUser?.role, defaultUser?.id]);
 
   // File upload helper function
   const uploadFiles = async (files: File[]): Promise<string[]> => {
