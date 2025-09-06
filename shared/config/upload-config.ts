@@ -77,7 +77,7 @@ export const UPLOAD_FORM_CONFIGS: Record<string, UploadFormConfig> = {
   features: {
     aiAnalysisEnabled: false, // Disabled by default
     maxFileSize: 20,
-    allowedFileTypes: ['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+    allowedFileTypes: ['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/plain', 'application/json', 'text/csv'],
     showCamera: true,
     contextFields: {
       category: 'string',

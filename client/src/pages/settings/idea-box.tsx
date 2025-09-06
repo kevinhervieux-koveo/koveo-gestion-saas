@@ -835,8 +835,6 @@ export default function IdeaBox() {
                 formType="features"
                 uploadContext={uploadContext}
                 showAiToggle={false} // No toggle, use config-based AI enablement
-                allowedFileTypes={['.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png', '.gif']}
-                maxFileSize={15}
               />
             </div>
 
