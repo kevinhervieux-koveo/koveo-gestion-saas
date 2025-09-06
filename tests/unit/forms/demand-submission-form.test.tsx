@@ -581,7 +581,12 @@ describe('Demand Submission Form Tests', () => {
       expect(mockFetch).toHaveBeenCalledWith(
         '/api/demands',
         expect.objectContaining({
-          body: expect.stringContaining('"buildingId":undefined'),
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          // buildingId: undefined gets omitted from JSON, so we check that it's not included or is null
+          body: expect.not.stringContaining('"buildingId":"'),
         })
       );
     });
