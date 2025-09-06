@@ -217,7 +217,8 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
           const formData = new FormData();
           formData.append('document', aiFile);
           
-          await apiRequest('POST', `/api/bills/${billResponse.id}/upload-document`, formData);
+          const uploadResponse = await apiRequest('POST', `/api/bills/${billResponse.id}/upload-document`, formData);
+          console.log('[BILL FORM] Document upload response:', await uploadResponse.json());
           console.log('[BILL FORM] Document uploaded for AI-extracted bill');
         } catch (uploadError) {
           console.warn('[BILL FORM] Failed to upload document:', uploadError);
@@ -244,8 +245,39 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     }
   });
 
+  // Delete bill mutation
+  const deleteBillMutation = useMutation({
+    mutationFn: async () => {
+      if (!bill?.id) throw new Error('No bill ID provided for deletion');
+      return apiRequest('DELETE', `/api/bills/${bill.id}`, null);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+      toast({
+        title: 'Success',
+        description: 'Bill deleted successfully',
+      });
+      onSuccess?.(bill!.id, 'updated'); // Trigger parent refresh
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete bill',
+        variant: 'destructive',
+      });
+    }
+  });
+
   const onSubmit = (data: BillFormData) => {
     billMutation.mutate(data);
+  };
+
+  const handleDelete = () => {
+    if (!bill) return;
+    
+    if (confirm(`Are you sure you want to delete bill "${bill.title}"? This action cannot be undone.`)) {
+      deleteBillMutation.mutate();
+    }
   };
 
   // Custom Payment Management
@@ -605,15 +637,32 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
           />
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-2">
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
+          <div className="flex justify-between items-center">
+            {/* Delete button on the left (only for existing bills) */}
+            <div>
+              {bill && (
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={handleDelete} 
+                  disabled={deleteBillMutation.isPending}
+                >
+                  {deleteBillMutation.isPending ? 'Deleting...' : 'Delete Bill'}
+                </Button>
+              )}
+            </div>
+            
+            {/* Cancel and Save/Update buttons on the right */}
+            <div className="flex gap-2">
+              {onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel}>
+                  Cancel
+                </Button>
+              )}
+              <Button type="submit" disabled={billMutation.isPending}>
+                {billMutation.isPending ? 'Processing...' : (bill ? 'Update Bill' : 'Create Bill')}
               </Button>
-            )}
-            <Button type="submit" disabled={billMutation.isPending}>
-              {billMutation.isPending ? 'Processing...' : (bill ? 'Update Bill' : 'Create Bill')}
-            </Button>
+            </div>
           </div>
         </form>
       </Form>

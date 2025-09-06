@@ -1074,7 +1074,7 @@ function BillDetail({
       {/* Edit Mode Toggle */}
       <div className='border-t pt-4'>
         <div className='flex items-center justify-between'>
-          <Label className='text-sm font-medium'>Edit Bill Information</Label>
+          <Label className='text-sm font-medium'>Actions</Label>
           <Button onClick={onEditBill} variant='outline' size='sm'>
             Edit Bill
           </Button>
