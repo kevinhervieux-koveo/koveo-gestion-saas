@@ -4,7 +4,7 @@ import { FileText, Download } from 'lucide-react';
 
 interface AttachedFileSectionProps {
   // Entity information
-  entityType: 'document' | 'bug' | 'feature-request';
+  entityType: 'document' | 'bug' | 'feature-request' | 'bill';
   entityId: string;
   
   // File information
@@ -49,6 +49,8 @@ export function AttachedFileSection({
         return `/api/bugs/${entityId}/file${downloadParam}`;
       case 'feature-request':
         return `/api/feature-requests/${entityId}/file${downloadParam}`;
+      case 'bill':
+        return `/api/bills/${entityId}/file${downloadParam}`;
       default:
         return '';
     }

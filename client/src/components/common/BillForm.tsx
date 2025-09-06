@@ -27,6 +27,7 @@ import { FileText, Upload, Sparkles, Paperclip } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { Bill } from '@shared/schema';
 import { FileUpload } from '@/components/ui/file-upload';
+import { AttachedFileSection } from './AttachedFileSection';
 
 // Unified form schema
 const billFormSchema = z.object({
@@ -83,8 +84,20 @@ interface AiAnalysisResult {
   totalAmount: string;
   description?: string;
   issueDate?: string;
+  dueDate?: string;
   billNumber?: string;
+  vendorContact?: string;
+  paymentType?: 'unique' | 'recurrent';
+  isRecurrent?: boolean;
   confidence: number;
+  fieldConfidences: {
+    title: number;
+    vendor: number;
+    category: number;
+    totalAmount: number;
+    paymentType: number;
+    dates: number;
+  };
 }
 
 // Component props interface
@@ -158,6 +171,8 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
   const [aiAnalysisData, setAiAnalysisData] = useState<AiAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [attachmentMode, setAttachmentMode] = useState<'file' | 'text'>('file');
+  const [attachmentText, setAttachmentText] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -319,8 +334,27 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
         form.setValue('startDate', aiAnalysisData.issueDate);
       }
 
-      const notes = `AI-analyzed document. Original bill number: ${aiAnalysisData.billNumber || 'N/A'}. Confidence: ${(aiAnalysisData.confidence * 100).toFixed(1)}%.`;
-      form.setValue('notes', notes);
+      // Apply payment type if detected
+      if (aiAnalysisData.paymentType) {
+        form.setValue('paymentType', aiAnalysisData.paymentType);
+      }
+
+      // Apply notes with additional AI extracted information
+      let notes = form.getValues('notes') || '';
+      if (aiAnalysisData.billNumber) {
+        notes += `\nBill Number: ${aiAnalysisData.billNumber}`;
+      }
+      if (aiAnalysisData.vendorContact) {
+        notes += `\nVendor Contact: ${aiAnalysisData.vendorContact}`;
+      }
+      if (aiAnalysisData.dueDate) {
+        notes += `\nDue Date: ${aiAnalysisData.dueDate}`;
+      }
+      notes += `\nAI Analysis Confidence: ${(aiAnalysisData.confidence * 100).toFixed(1)}%`;
+      
+      if (notes.trim()) {
+        form.setValue('notes', notes.trim());
+      }
     }
   };
 
@@ -575,37 +609,79 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
         )}
       />
 
-      {/* File Attachments */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Paperclip className="w-4 h-4 text-gray-500" />
-          <label className="text-sm font-medium text-gray-700">
-            Attachments
-          </label>
-          <span className="text-xs text-gray-500">
-            (Optional - Screenshots, receipts, supporting documents)
-          </span>
+      {/* Choose Document Type - Unified Component */}
+      <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
+        <h3 className="text-sm font-medium text-gray-900">Choose Document Type</h3>
+        
+        {/* Document Type Selection */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setAttachmentMode('file')}
+            className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+              attachmentMode === 'file'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+            data-testid="button-file-mode"
+          >
+            Upload File
+          </button>
+          <button
+            type="button"
+            onClick={() => setAttachmentMode('text')}
+            className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
+              attachmentMode === 'text'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+            data-testid="button-text-mode"
+          >
+            Text Document
+          </button>
         </div>
-        <FileUpload
-          onFilesSelect={handleFilesSelect}
-          onFilesRemove={handleFileRemove}
-          maxFiles={5}
-          maxSize={10}
-          acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt']}
-          allowPaste={true}
-          className="border border-gray-200 rounded-lg p-4"
-          data-testid="bill-file-upload"
-        >
-          <div className="text-center py-6">
-            <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
-            <p className="text-sm text-gray-600">
-              Drop files here, click to browse, or paste screenshots
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              Attach receipts, screenshots, or supporting documents
+
+        {/* Dynamic Content Based on Selection */}
+        {attachmentMode === 'file' ? (
+          <div>
+            <label className="text-sm font-medium text-gray-700">Select File to Upload</label>
+            <FileUpload
+              onFilesSelect={handleFilesSelect}
+              onFilesRemove={handleFileRemove}
+              maxFiles={5}
+              maxSize={10}
+              acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt']}
+              allowPaste={true}
+              className="border border-gray-200 rounded-lg p-4 mt-1"
+              data-testid="bill-file-upload"
+            >
+              <div className="text-center py-6">
+                <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600">
+                  Drop files here, click to browse, or paste screenshots
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Attach receipts, screenshots, or supporting documents
+                </p>
+              </div>
+            </FileUpload>
+          </div>
+        ) : (
+          <div>
+            <label className="text-sm font-medium text-gray-700">Document Content</label>
+            <textarea
+              value={attachmentText}
+              onChange={(e) => setAttachmentText(e.target.value)}
+              rows={4}
+              className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter text notes or details about this bill..."
+              data-testid="textarea-text-content"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              Add text notes or details that will be saved with the bill.
             </p>
           </div>
-        </FileUpload>
+        )}
       </div>
     </>
   );
@@ -616,6 +692,22 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 pt-4 border-t'>
           {renderFormFields()}
+
+          {/* Show existing attached file if present */}
+          {bill?.documentPath && (
+            <div className='space-y-3'>
+              <Label className='text-sm font-medium text-gray-900'>Attached Document</Label>
+              <AttachedFileSection
+                entityType='bill'
+                entityId={bill.id}
+                filePath={bill.documentPath}
+                fileName={bill.documentName}
+                canView={true}
+                canDownload={true}
+                className='bg-gray-50 rounded-lg'
+              />
+            </div>
+          )}
 
           {/* Form Actions */}
           <div className='flex justify-end gap-2 pt-4 border-t'>
@@ -643,19 +735,16 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
     <div className='space-y-6'>
       <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
         <TabsList className='grid w-full grid-cols-2'>
-          <TabsTrigger value='manual' className='flex items-center gap-2' data-testid='tab-manual'>
-            <FileText className='w-4 h-4' />
+          <TabsTrigger value='manual' data-testid='tab-manual'>
             Create Manually
           </TabsTrigger>
-          <TabsTrigger value='upload' className='flex items-center gap-2' data-testid='tab-upload'>
-            <Upload className='w-4 h-4' />
+          <TabsTrigger value='upload' data-testid='tab-upload'>
             Upload & Analyze
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value='upload' className='space-y-4'>
           <div className='p-6 text-center border-2 border-dashed border-gray-200 rounded-lg'>
-            <Upload className='w-12 h-12 mx-auto text-gray-400 mb-4' />
             <h3 className='text-lg font-semibold mb-2'>Upload Bill Document</h3>
             <p className='text-gray-600 mb-4'>
               Upload an image or PDF of your bill for AI analysis
@@ -682,34 +771,93 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
 
             {aiAnalysisData && (
               <div className='mt-4 p-4 bg-blue-50 rounded-lg' data-testid='ai-analysis-result'>
-                <div className='flex items-center gap-2 mb-2'>
-                  <Sparkles className='w-5 h-5 text-blue-600' />
+                <div className='flex items-center gap-2 mb-3'>
                   <span className='font-medium text-blue-800'>AI Analysis Complete</span>
                   <Badge variant='outline' className='text-xs'>
-                    {(aiAnalysisData.confidence * 100).toFixed(1)}% confidence
+                    {(aiAnalysisData.confidence * 100).toFixed(1)}% overall confidence
                   </Badge>
                 </div>
-                <div className='text-sm text-blue-700 space-y-1'>
-                  <p>
-                    <strong>Title:</strong> {aiAnalysisData.title}
-                  </p>
-                  <p>
-                    <strong>Vendor:</strong> {aiAnalysisData.vendor}
-                  </p>
-                  <p>
-                    <strong>Amount:</strong> ${aiAnalysisData.totalAmount}
-                  </p>
-                  <p>
-                    <strong>Category:</strong> {aiAnalysisData.category}
-                  </p>
+                
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-3 text-sm'>
+                  <div className='space-y-2'>
+                    <div className='flex justify-between'>
+                      <span className='text-blue-700'><strong>Title:</strong> {aiAnalysisData.title}</span>
+                      {aiAnalysisData.fieldConfidences && (
+                        <Badge variant='outline' className='text-xs'>
+                          {(aiAnalysisData.fieldConfidences.title * 100).toFixed(0)}%
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {aiAnalysisData.vendor && (
+                      <div className='flex justify-between'>
+                        <span className='text-blue-700'><strong>Vendor:</strong> {aiAnalysisData.vendor}</span>
+                        {aiAnalysisData.fieldConfidences && (
+                          <Badge variant='outline' className='text-xs'>
+                            {(aiAnalysisData.fieldConfidences.vendor * 100).toFixed(0)}%
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className='flex justify-between'>
+                      <span className='text-blue-700'><strong>Amount:</strong> ${aiAnalysisData.totalAmount}</span>
+                      {aiAnalysisData.fieldConfidences && (
+                        <Badge variant='outline' className='text-xs'>
+                          {(aiAnalysisData.fieldConfidences.totalAmount * 100).toFixed(0)}%
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className='space-y-2'>
+                    <div className='flex justify-between'>
+                      <span className='text-blue-700'><strong>Category:</strong> {aiAnalysisData.category}</span>
+                      {aiAnalysisData.fieldConfidences && (
+                        <Badge variant='outline' className='text-xs'>
+                          {(aiAnalysisData.fieldConfidences.category * 100).toFixed(0)}%
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {aiAnalysisData.paymentType && (
+                      <div className='flex justify-between'>
+                        <span className='text-blue-700'><strong>Type:</strong> {aiAnalysisData.paymentType === 'recurrent' ? 'Recurring' : 'One-time'}</span>
+                        {aiAnalysisData.fieldConfidences && (
+                          <Badge variant='outline' className='text-xs'>
+                            {(aiAnalysisData.fieldConfidences.paymentType * 100).toFixed(0)}%
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    
+                    {(aiAnalysisData.issueDate || aiAnalysisData.dueDate) && (
+                      <div className='flex justify-between'>
+                        <span className='text-blue-700'><strong>Dates:</strong> {aiAnalysisData.issueDate || aiAnalysisData.dueDate}</span>
+                        {aiAnalysisData.fieldConfidences && (
+                          <Badge variant='outline' className='text-xs'>
+                            {(aiAnalysisData.fieldConfidences.dates * 100).toFixed(0)}%
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
+                
+                {(aiAnalysisData.billNumber || aiAnalysisData.vendorContact) && (
+                  <div className='mt-3 pt-3 border-t border-blue-200 text-xs text-blue-600'>
+                    {aiAnalysisData.billNumber && <p><strong>Bill Number:</strong> {aiAnalysisData.billNumber}</p>}
+                    {aiAnalysisData.vendorContact && <p><strong>Vendor Contact:</strong> {aiAnalysisData.vendorContact}</p>}
+                  </div>
+                )}
+                
                 <Button
                   onClick={applyAiAnalysis}
                   className='mt-3 w-full'
                   size='sm'
                   data-testid='button-apply-ai'
                 >
-                  Apply to Form
+                  Apply All Fields to Form
                 </Button>
               </div>
             )}
@@ -728,7 +876,6 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
                   data-testid='ai-info-badge'
                 >
                   <div className='flex items-center gap-2 mb-2'>
-                    <Sparkles className='w-4 h-4 text-blue-600' />
                     <span className='text-sm font-medium text-blue-800'>
                       Form populated from AI analysis
                     </span>

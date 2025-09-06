@@ -532,7 +532,6 @@ Bills() {
                   <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                     <DialogTrigger asChild>
                       <Button className='w-full' disabled={!filters.buildingId}>
-                        <Plus className='w-4 h-4 mr-2' />
                         Create Bill
                       </Button>
                     </DialogTrigger>
@@ -571,13 +570,11 @@ Bills() {
           ) : Object.keys(billsByCategory).length === 0 ? (
             <Card>
               <CardContent className='p-8 text-center'>
-                <FileText className='w-16 h-16 mx-auto text-gray-400 mb-4' />
                 <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Bills Found</h3>
                 <p className='text-gray-500 mb-4'>
                   No bills found for the selected filters. Create your first bill to get started.
                 </p>
                 <Button onClick={() => setShowCreateDialog(true)}>
-                  <Plus className='w-4 h-4 mr-2' />
                   Create First Bill
                 </Button>
               </CardContent>
