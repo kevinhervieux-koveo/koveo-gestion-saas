@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Router } from 'wouter';
 
 // Mock providers that match the real application structure
 const TestLanguageProvider = ({ children }: { children: React.ReactNode }) => {
@@ -65,15 +66,17 @@ const AllTheProviders = ({ children }: AllTheProvidersProps) => {
   });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TestLanguageProvider>
-        <TestAuthProvider>
-          <TestMobileMenuProvider>
-            {children}
-          </TestMobileMenuProvider>
-        </TestAuthProvider>
-      </TestLanguageProvider>
-    </QueryClientProvider>
+    <Router>
+      <QueryClientProvider client={queryClient}>
+        <TestLanguageProvider>
+          <TestAuthProvider>
+            <TestMobileMenuProvider>
+              {children}
+            </TestMobileMenuProvider>
+          </TestAuthProvider>
+        </TestLanguageProvider>
+      </QueryClientProvider>
+    </Router>
   );
 };
 
