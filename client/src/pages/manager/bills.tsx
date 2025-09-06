@@ -792,8 +792,6 @@ function BillDetail({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [endDate, setEndDate] = useState(bill.endDate || '');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const queryClient = useQueryClient();
 
   const updateBillMutation = useMutation({
@@ -833,71 +831,6 @@ function BillDetail({
     }
   };
 
-  const uploadDocumentMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('document', file);
-
-      const response = await fetch(`/api/bills/${bill.id}/upload-document`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload document');
-      }
-
-      return response.json();
-    },
-    onSuccess: (_data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
-      setUploadedFile(null);
-      onSuccess();
-    },
-  });
-
-  const applyAiAnalysisMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/bills/${bill.id}/apply-ai-analysis`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to apply AI analysis');
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
-      onSuccess();
-    },
-  });
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]; /**
-     * If function.
-     * @param file - File parameter.
-     */ /**
-     * If function.
-     * @param file - File parameter.
-     */
-
-    if (file) {
-      setUploadedFile(file);
-      setIsAnalyzing(true);
-      uploadDocumentMutation.mutate(file);
-    }
-  };
-
-  const handleApplyAiAnalysis = () => {
-    applyAiAnalysisMutation.mutate();
-  };
 
   return (
     <div className='space-y-6'>
@@ -992,14 +925,11 @@ function BillDetail({
         </div>
       )}
 
-      {/* Document Section */}
-      <div className='border-t pt-4'>
-        <Label className='text-sm font-medium'>
-          {bill.documentPath ? 'Uploaded Document' : 'Document Upload & AI Analysis'}
-        </Label>
-        <div className='mt-2 space-y-3'>
-          {/* Current document info */}
-          {bill.documentPath ? (
+      {/* Document Section - Only show if document exists */}
+      {bill.documentPath && (
+        <div className='border-t pt-4'>
+          <Label className='text-sm font-medium'>Uploaded Document</Label>
+          <div className='mt-2'>
             <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
               <div className='flex items-center gap-2'>
                 <FileText className='w-4 h-4 text-blue-600' />
@@ -1029,44 +959,9 @@ function BillDetail({
                 Download
               </Button>
             </div>
-          ) : (
-            /* File upload only when no document exists */
-            <div className='flex items-center gap-2'>
-              <Input
-                type='file'
-                accept='image/*,.pdf'
-                onChange={handleFileUpload}
-                disabled={uploadDocumentMutation.isPending}
-                className='flex-1'
-              />
-              {uploadDocumentMutation.isPending && (
-                <div className='text-sm text-gray-500'>Uploading & analyzing...</div>
-              )}
-            </div>
-          )}
-
-          {/* AI Analysis Actions */}
-          {bill.isAiAnalyzed && bill.aiAnalysisData && (
-            <div className='space-y-2'>
-              <div className='p-3 bg-blue-50 rounded-lg'>
-                <div className='text-sm font-medium text-blue-800'>AI Analysis Available</div>
-                <div className='text-xs text-blue-600 mt-1'>
-                  Confidence: {((bill.aiAnalysisData as any).confidence * 100).toFixed(1)}%
-                </div>
-              </div>
-              <Button
-                onClick={handleApplyAiAnalysis}
-                disabled={applyAiAnalysisMutation.isPending}
-                variant='outline'
-                size='sm'
-                className='w-full'
-              >
-                {applyAiAnalysisMutation.isPending ? 'Applying...' : 'Apply AI Analysis to Form'}
-              </Button>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Edit Mode Toggle */}
       <div className='border-t pt-4'>
