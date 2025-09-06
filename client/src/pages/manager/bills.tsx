@@ -926,7 +926,6 @@ function BillDetail({
       )}
 
       {/* Document Section - Only show if document exists */}
-      {console.log('[BILL DETAILS] Bill data:', { id: bill.id, documentPath: bill.documentPath, documentName: bill.documentName, isAiAnalyzed: bill.isAiAnalyzed })}
       {bill.documentPath && (
         <div className='border-t pt-4'>
           <Label className='text-sm font-medium'>Uploaded Document</Label>
