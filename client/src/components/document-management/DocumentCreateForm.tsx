@@ -116,6 +116,11 @@ export function DocumentCreateForm({
   // Create document mutation
   const createDocumentMutation = useMutation({
     mutationFn: async (data: DocumentCreateData) => {
+      console.log('🐛 [DocumentCreateForm] Starting document creation with data:', data);
+      console.log('🐛 [DocumentCreateForm] Entity type:', entityType, 'Entity ID:', entityId);
+      console.log('🐛 [DocumentCreateForm] Selected file:', selectedFile ? `${selectedFile.name} (${selectedFile.size} bytes)` : 'None');
+      console.log('🐛 [DocumentCreateForm] Text content:', textContent ? `${textContent.length} characters` : 'None');
+      
       const formData = new FormData();
       
       // Add document metadata
@@ -139,19 +144,43 @@ export function DocumentCreateForm({
         formData.append('textContent', textContent);
       }
 
+      // Debug FormData contents
+      console.log('🐛 [DocumentCreateForm] FormData contents:');
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+        } else {
+          console.log(`  ${key}: ${value}`);
+        }
+      }
+
       // Make the API request
+      console.log('🐛 [DocumentCreateForm] Making API request to /api/documents');
       const response = await fetch('/api/documents', {
         method: 'POST',
         credentials: 'include',
         body: formData,
       });
 
+      console.log('🐛 [DocumentCreateForm] Response status:', response.status);
+      
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to create document: ${response.status}`);
+        const errorText = await response.text();
+        console.error('🐛 [DocumentCreateForm] Error response text:', errorText);
+        
+        let errorData = {};
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {
+          console.error('🐛 [DocumentCreateForm] Failed to parse error response as JSON');
+        }
+        
+        throw new Error(errorData.error || errorData.message || `Failed to create document: ${response.status}`);
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log('🐛 [DocumentCreateForm] Success response:', result);
+      return result;
     },
     onSuccess: (data) => {
       // Invalidate documents cache to refresh the list

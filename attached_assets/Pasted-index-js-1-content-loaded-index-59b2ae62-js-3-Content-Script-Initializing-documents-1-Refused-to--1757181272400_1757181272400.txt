@@ -1,0 +1,130 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+documents:1 Refused to load the image 'blob:https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/68c8a98e-3618-4be9-8b84-8d1c19d1974b' because it violates the following Content Security Policy directive: "img-src 'self' data: https:".
+
+ModularBillForm-BwCeJQC1.js:1  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/documents 400 (Bad Request)
+mutationFn @ ModularBillForm-BwCeJQC1.js:1
+fn @ vendor-query-CVwOpz66.js:1
+y @ vendor-query-CVwOpz66.js:1
+start @ vendor-query-CVwOpz66.js:1
+execute @ vendor-query-CVwOpz66.js:1
+await in execute
+mutate @ vendor-query-CVwOpz66.js:1
+(anonymous) @ vendor-query-CVwOpz66.js:1
+Q @ ModularBillForm-BwCeJQC1.js:1
+(anonymous) @ vendor-forms-D2cFurk0.js:1
+await in (anonymous)
+is @ index-qtO_-2C8.js:185
+B @ index-qtO_-2C8.js:45
+yy @ index-qtO_-2C8.js:185
+(anonymous) @ index-qtO_-2C8.js:185
+Gm @ index-qtO_-2C8.js:83
+sd @ index-qtO_-2C8.js:185
+Ed @ index-qtO_-2C8.js:194
+_1 @ index-qtO_-2C8.js:194
+<form>
+dr.jsxDEV @ index-qtO_-2C8.js:15
+ia @ ModularBillForm-BwCeJQC1.js:1
+react_stack_bottom_frame @ index-qtO_-2C8.js:229
+lc @ index-qtO_-2C8.js:120
+kc @ index-qtO_-2C8.js:141
+Yc @ index-qtO_-2C8.js:150
+B @ index-qtO_-2C8.js:45
+Kh @ index-qtO_-2C8.js:163
+Jh @ index-qtO_-2C8.js:163
+Wc @ index-qtO_-2C8.js:163
+Xh @ index-qtO_-2C8.js:163
+fy @ index-qtO_-2C8.js:185
+fi @ index-qtO_-2C8.js:185
+ad @ index-qtO_-2C8.js:185
+(anonymous) @ index-qtO_-2C8.js:185
+<ia>
+dr.jsxDEV @ index-qtO_-2C8.js:15
+Be @ ModularDocumentPageWrapper-C42rkgao.js:11
+react_stack_bottom_frame @ index-qtO_-2C8.js:229
+lc @ index-qtO_-2C8.js:120
+kc @ index-qtO_-2C8.js:141
+Yc @ index-qtO_-2C8.js:150
+B @ index-qtO_-2C8.js:45
+Kh @ index-qtO_-2C8.js:163
+JS @ index-qtO_-2C8.js:163
+IS @ index-qtO_-2C8.js:163
+Xh @ index-qtO_-2C8.js:163
+dy @ index-qtO_-2C8.js:185
+d @ index-qtO_-2C8.js:23
+<Be>
+dr.jsxDEV @ index-qtO_-2C8.js:15
+A @ BuildingDocuments-VFOKAFa_.js:1
+react_stack_bottom_frame @ index-qtO_-2C8.js:229
+lc @ index-qtO_-2C8.js:120
+kc @ index-qtO_-2C8.js:141
+Yc @ index-qtO_-2C8.js:150
+B @ index-qtO_-2C8.js:45
+Kh @ index-qtO_-2C8.js:163
+JS @ index-qtO_-2C8.js:163
+IS @ index-qtO_-2C8.js:163
+Xh @ index-qtO_-2C8.js:163
+dy @ index-qtO_-2C8.js:185
+d @ index-qtO_-2C8.js:23
+<...>
+dr.jsxDEV @ index-qtO_-2C8.js:15
+component @ index-qtO_-2C8.js:364
+react_stack_bottom_frame @ index-qtO_-2C8.js:229
+lc @ index-qtO_-2C8.js:120
+kc @ index-qtO_-2C8.js:141
+Yc @ index-qtO_-2C8.js:150
+B @ index-qtO_-2C8.js:45
+Kh @ index-qtO_-2C8.js:163
+JS @ index-qtO_-2C8.js:163
+IS @ index-qtO_-2C8.js:163
+Xh @ index-qtO_-2C8.js:163
+dy @ index-qtO_-2C8.js:185
+d @ index-qtO_-2C8.js:23
+<component>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-qtO_-2C8.js:240
+q @ index-qtO_-2C8.js:240
+react_stack_bottom_frame @ index-qtO_-2C8.js:229
+lc @ index-qtO_-2C8.js:120
+kc @ index-qtO_-2C8.js:141
+Yc @ index-qtO_-2C8.js:150
+B @ index-qtO_-2C8.js:45
+Kh @ index-qtO_-2C8.js:163
+JS @ index-qtO_-2C8.js:163
+IS @ index-qtO_-2C8.js:163
+Xh @ index-qtO_-2C8.js:163
+dy @ index-qtO_-2C8.js:185
+d @ index-qtO_-2C8.js:23
+<q>
+dr.jsxDEV @ index-qtO_-2C8.js:15
+jD @ index-qtO_-2C8.js:364
+react_stack_bottom_frame @ index-qtO_-2C8.js:229
+lc @ index-qtO_-2C8.js:120
+kc @ index-qtO_-2C8.js:141
+Yc @ index-qtO_-2C8.js:150
+B @ index-qtO_-2C8.js:45
+Kh @ index-qtO_-2C8.js:163
+Jh @ index-qtO_-2C8.js:163
+Wc @ index-qtO_-2C8.js:163
+Xh @ index-qtO_-2C8.js:163
+fy @ index-qtO_-2C8.js:185
+fi @ index-qtO_-2C8.js:185
+ad @ index-qtO_-2C8.js:185
+(anonymous) @ index-qtO_-2C8.js:185
+<jD>
+dr.jsxDEV @ index-qtO_-2C8.js:15
+BD @ index-qtO_-2C8.js:364
+react_stack_bottom_frame @ index-qtO_-2C8.js:229
+lc @ index-qtO_-2C8.js:120
+kc @ index-qtO_-2C8.js:141
+Yc @ index-qtO_-2C8.js:150
+B @ index-qtO_-2C8.js:45
+Kh @ index-qtO_-2C8.js:163
+Jh @ index-qtO_-2C8.js:163
+Wc @ index-qtO_-2C8.js:163
+Xh @ index-qtO_-2C8.js:163
+dy @ index-qtO_-2C8.js:185
+d @ index-qtO_-2C8.js:23
+<BD>
+dr.jsxDEV @ index-qtO_-2C8.js:15
+(anonymous) @ index-qtO_-2C8.js:364
