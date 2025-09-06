@@ -232,7 +232,7 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
 
       const payload = {
         ...billData,
-        costs: [parseFloat(billData.totalAmount)],
+        costs: [billData.totalAmount],
         ...(mode === 'create' && { buildingId }),
       };
 
@@ -274,8 +274,8 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
           title: 'AI Analysis Draft',
           category: 'other',
           paymentType: 'unique',
-          totalAmount: 0,
-          costs: [0],
+          totalAmount: '0',
+          costs: ['0'],
           startDate: new Date().toISOString().split('T')[0],
           status: 'draft',
           notes: 'Draft bill created for AI analysis',
