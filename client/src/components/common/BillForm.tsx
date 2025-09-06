@@ -375,10 +375,8 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
   // Main mutation for create/update
   const submitMutation = useMutation({
     mutationFn: async (billData: BillFormData) => {
-      console.log('📩 [DEBUG] Submitting bill data:', billData);
       const url = mode === 'create' ? '/api/bills' : `/api/bills/${bill?.id}`;
       const method = mode === 'create' ? 'POST' : 'PATCH';
-      console.log('🎯 [DEBUG] Making request to:', method, url);
 
       // Handle custom payments vs regular payment
       const costs = billData.schedulePayment === 'custom' && billData.customPayments?.length
@@ -390,7 +388,6 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
         costs,
         ...(mode === 'create' && { buildingId }),
       };
-      console.log('📦 [DEBUG] Final payload:', payload);
 
       const response = await fetch(url, {
         method,
@@ -402,32 +399,21 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`❌ [DEBUG] Failed to ${mode} bill:`, response.status, response.statusText, errorText);
         throw new Error(`Failed to ${mode} bill`);
       }
 
-      const result = await response.json();
-      console.log(`✅ [DEBUG] Bill ${mode} successful:`, result);
-      return result;
+      return response.json();
     },
-    onSuccess: (result) => {
-      console.log('🎆 [DEBUG] Bill submission completed successfully:', result);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
       onSuccess();
-    },
-    onError: (error) => {
-      console.error('❌ [DEBUG] Bill submission failed:', error);
     },
   });
 
   // AI analysis mutation (only for create mode)
   const uploadAndAnalyzeMutation = useMutation({
     mutationFn: async (file: File) => {
-      console.log('🚀 [DEBUG] Starting AI analysis flow for file:', file.name, file.type);
       setIsAnalyzing(true);
-
-      console.log('📄 [DEBUG] Step 1: Creating draft bill for AI analysis...');
       // First create a draft bill
       const createResponse = await fetch('/api/bills', {
         method: 'POST',
@@ -449,16 +435,10 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
       });
 
       if (!createResponse.ok) {
-        console.error('❌ [DEBUG] Failed to create draft bill:', createResponse.status, createResponse.statusText);
-        const errorText = await createResponse.text();
-        console.error('❌ [DEBUG] Error details:', errorText);
         throw new Error('Failed to create draft bill');
       }
 
       const draftBill = await createResponse.json();
-      console.log('✅ [DEBUG] Draft bill created successfully:', draftBill);
-
-      console.log('📤 [DEBUG] Step 2: Uploading document for AI analysis...');
       // Upload and analyze the document
       const formData = new FormData();
       formData.append('document', file);
@@ -469,37 +449,24 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
         body: formData,
       });
 
-      console.log('📊 [DEBUG] Upload response status:', uploadResponse.status, uploadResponse.statusText);
-
       if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        console.error('❌ [DEBUG] Failed to upload and analyze document:', uploadResponse.status, errorText);
         throw new Error('Failed to upload and analyze document');
       }
 
       const result = await uploadResponse.json();
-      console.log('✅ [DEBUG] Document uploaded and analyzed successfully:', result);
-      console.log('🤖 [DEBUG] AI Analysis Result:', result.analysisResult);
       return { ...result, billId: draftBill.id };
     },
     onSuccess: (data) => {
-      console.log('🎉 [DEBUG] AI analysis completed successfully!');
-      console.log('📋 [DEBUG] Analysis data received:', data.analysisResult);
-      
       setIsAnalyzing(false);
       setAiAnalysisData(data.analysisResult);
       
-      console.log('🔄 [DEBUG] Switching to manual tab...');
       // Auto-switch to manual tab and smartly fill form
       setActiveTab('manual');
       
-      console.log('⏱️ [DEBUG] Starting form filling process...');
       // Apply AI analysis while respecting user input
       setTimeout(() => {
         if (data.analysisResult) {
-          console.log('📝 [DEBUG] Filling form with AI analysis data...');
           const currentValues = form.getValues();
-          console.log('📊 [DEBUG] Current form values:', currentValues);
           
           // Only fill empty or default fields
           if (!currentValues.title || currentValues.title === '' || currentValues.title === 'AI Analysis Draft') {
@@ -723,7 +690,6 @@ export function BillForm({ mode, buildingId, bill, onSuccess, onCancel }: BillFo
   };
 
   const onSubmit = (values: BillFormData) => {
-    console.log('📨 [DEBUG] Starting bill submission with values:', values);
     submitMutation.mutate(values);
     // TODO: Handle attached files upload after bill creation
   };

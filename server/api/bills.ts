@@ -210,11 +210,9 @@ export function registerBillRoutes(app: Express) {
    */
   app.post('/api/bills', requireAuth, async (req: any, res: any) => {
     try {
-      console.log('💰 [SERVER DEBUG] Creating new bill with data:', req.body);
       const validation = createBillSchema.safeParse(req.body);
 
       if (!validation.success) {
-        console.error('❌ [SERVER DEBUG] Bill validation failed:', validation.error.issues);
         return res.status(400).json({
           message: 'Invalid bill data',
           errors: validation.error.issues,
@@ -222,9 +220,6 @@ export function registerBillRoutes(app: Express) {
       }
 
       const billData = validation.data;
-      console.log('✅ [SERVER DEBUG] Bill validation successful:', billData);
-
-      console.log('📝 [SERVER DEBUG] Inserting bill into database...');
       const newBill = await db
         .insert(bills)
         .values({
@@ -246,8 +241,6 @@ export function registerBillRoutes(app: Express) {
           createdBy: req.user.id,
         })
         .returning();
-      
-      console.log('🎉 [SERVER DEBUG] Bill created successfully:', newBill[0]);
 
       // Schedule delayed money flow and budget update for the new bill
       try {
@@ -463,18 +456,9 @@ export function registerBillRoutes(app: Express) {
     upload.single('document'),
     async (req: any, res: any) => {
       try {
-        console.log('📤 [SERVER DEBUG] Document upload started for bill ID:', req.params.id);
-        console.log('📋 [SERVER DEBUG] File info:', req.file ? {
-          originalname: req.file.originalname,
-          mimetype: req.file.mimetype,
-          size: req.file.size,
-          path: req.file.path
-        } : 'No file');
-        
         const { id } = req.params;
 
         if (!req.file) {
-          console.error('❌ [SERVER DEBUG] No file uploaded');
           return res.status(400).json({ message: 'No file uploaded' });
         }
 
@@ -491,22 +475,15 @@ export function registerBillRoutes(app: Express) {
         // Analyze document with Gemini AI (images and PDFs)
         let analysisResult = null;
         if (req.file.mimetype.startsWith('image/') || req.file.mimetype === 'application/pdf') {
-          console.log('🤖 [SERVER DEBUG] Starting AI analysis for file type:', req.file.mimetype);
           try {
             analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path, req.file.mimetype);
-            console.log('✅ [SERVER DEBUG] AI analysis completed successfully:', analysisResult);
           } catch (aiError) {
-            console.error('❌ [SERVER DEBUG] AI analysis failed:', aiError);
-            console.warn('⚠️ AI analysis failed, continuing without analysis:', aiError);
+            console.warn('AI analysis failed, continuing without analysis:', aiError);
             // Continue without AI analysis
           }
-        } else {
-          console.log('📄 [SERVER DEBUG] File type not supported for AI analysis. MIME type:', req.file.mimetype);
-          console.log('💡 [SERVER DEBUG] Supported types: images (image/*) and PDFs (application/pdf)');
         }
 
         // Update bill with document info and AI analysis
-        console.log('📏 [SERVER DEBUG] Updating bill with document info and AI analysis...');
         const updateData: unknown = {
           documentPath,
           documentName: req.file.originalname,
@@ -514,27 +491,21 @@ export function registerBillRoutes(app: Express) {
           aiAnalysisData: analysisResult,
           updatedAt: new Date(),
         };
-        console.log('📊 [SERVER DEBUG] Update data:', updateData);
 
         const updatedBill = await db
           .update(bills)
           .set(updateData)
           .where(eq(bills.id, id))
           .returning();
-        
-        console.log('✅ [SERVER DEBUG] Bill updated successfully:', updatedBill[0]);
 
         // Clean up temporary file
-        console.log('🗑️ [SERVER DEBUG] Cleaning up temporary file:', req.file.path);
         fs.unlinkSync(req.file.path);
 
-        const response = {
+        res.json({
           message: 'Document uploaded and analyzed successfully',
           bill: updatedBill[0],
           analysisResult,
-        };
-        console.log('🎉 [SERVER DEBUG] Sending successful response:', response);
-        res.json(response);
+        });
       } catch (_error: any) {
         console.error('❌ Error uploading document:', _error);
         

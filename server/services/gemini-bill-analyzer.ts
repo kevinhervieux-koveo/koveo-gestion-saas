@@ -37,9 +37,8 @@ export class GeminiBillAnalyzer {
     try {
       const fileBytes = fs.readFileSync(filePath);
       
-      // Detect MIME type if not provided
+      // Detect MIME type if not provided  
       const detectedMimeType = mimeType || this.detectMimeType(filePath);
-      console.log('📄 [GEMINI DEBUG] Processing file with MIME type:', detectedMimeType);
 
       const systemPrompt = `You are an expert bill analysis AI. Analyze this bill/invoice document and extract key information.
       
