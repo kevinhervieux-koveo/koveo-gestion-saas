@@ -664,6 +664,7 @@ function BillCategorySection({
  */
 function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const statusColors = {
     draft: 'bg-gray-100 text-gray-800',
@@ -737,6 +738,27 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
               onUpdate();
             }}
             onCancel={() => setShowDetailDialog(false)}
+            onEditBill={() => {
+              setShowDetailDialog(false);
+              setShowEditDialog(true);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Bill Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle>Edit Bill</DialogTitle>
+          </DialogHeader>
+          <BillEditForm
+            bill={bill}
+            onSuccess={() => {
+              setShowEditDialog(false);
+              onUpdate();
+            }}
+            onCancel={() => setShowEditDialog(false)}
           />
         </DialogContent>
       </Dialog>
@@ -764,10 +786,12 @@ function BillDetail({
   bill,
   onSuccess,
   onCancel,
+  onEditBill,
 }: {
   bill: Bill;
   onSuccess: () => void;
   onCancel: () => void;
+  onEditBill: () => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [endDate, setEndDate] = useState(bill.endDate || '');
@@ -1049,23 +1073,11 @@ function BillDetail({
       <div className='border-t pt-4'>
         <div className='flex items-center justify-between'>
           <Label className='text-sm font-medium'>Edit Bill Information</Label>
-          <Button onClick={() => setIsEditing(!isEditing)} variant='outline' size='sm'>
-            {isEditing ? 'Cancel Edit' : 'Edit Bill'}
+          <Button onClick={onEditBill} variant='outline' size='sm'>
+            Edit Bill
           </Button>
         </div>
       </div>
-
-      {/* Full Edit Form */}
-      {isEditing && (
-        <BillEditForm
-          bill={bill}
-          onSuccess={() => {
-            setIsEditing(false);
-            onSuccess();
-          }}
-          onCancel={() => setIsEditing(false)}
-        />
-      )}
 
       {/* Actions */}
       <div className='flex justify-end gap-2 pt-4 border-t'>
