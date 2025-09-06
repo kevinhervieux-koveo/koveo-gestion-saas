@@ -19,6 +19,7 @@ export * from './schemas/property';
 export * from './schemas/financial';
 export * from './schemas/operations';
 export * from './schemas/documents';
+export * from './schemas/invoices';
 export * from './schemas/development';
 export * from './schemas/monitoring';
 export * from './schemas/infrastructure';
@@ -88,6 +89,13 @@ export type {
   Document,
   InsertDocument,
 } from './schemas/documents';
+
+export type {
+  Invoice,
+  InsertInvoice,
+  InvoiceFormData,
+  AiExtractionResponse,
+} from './schemas/invoices';
 
 export type {
   Feature,
