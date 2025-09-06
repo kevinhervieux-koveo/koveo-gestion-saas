@@ -299,14 +299,23 @@ export function registerBugRoutes(app: Express): void {
         currentUser.organizationId
       );
 
+      console.log('🐛 getBug result:', bug ? { id: bug.id, filePath: bug.filePath, fileName: bug.fileName } : 'undefined');
+
+      if (!bug) {
+        return res.status(404).json({
+          error: 'Not found',
+          message: 'Bug not found',
+        });
+      }
+
       // Check both camelCase and snake_case field names for compatibility
       const filePath = bug.filePath || (bug as any).file_path;
       const fileName = bug.fileName || (bug as any).file_name;
       
-      if (!bug || !filePath) {
+      if (!filePath) {
         return res.status(404).json({
           error: 'Not found',
-          message: 'Bug file not found or no file attached',
+          message: 'No file attached to this bug',
         });
       }
 
