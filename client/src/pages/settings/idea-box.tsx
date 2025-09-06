@@ -298,17 +298,17 @@ export default function IdeaBox() {
   const [editAttachmentText, setEditAttachmentText] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  
   // Upload context for secure storage
   const uploadContext: UploadContext = {
-    type: 'ideas',
+    type: 'features',
     organizationId: 'default',
     userRole: user?.role || 'resident',
     userId: user?.id
   };
-  
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   const form = useForm<FeatureRequestFormData>({
     resolver: zodResolver(featureRequestFormSchema),
