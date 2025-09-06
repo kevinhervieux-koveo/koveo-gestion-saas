@@ -11,10 +11,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { Header } from '@/components/layout/header';
 import {
   SharedUploader,
-  DocumentCard,
-  DocumentViewModal,
-  DocumentEditModal
+  DocumentCard
 } from '@/components/document-management';
+// Note: DocumentViewModal and DocumentEditModal imports removed - may need restoration
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
 
 // Document categories for filtering

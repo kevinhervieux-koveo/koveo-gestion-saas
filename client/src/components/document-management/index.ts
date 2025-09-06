@@ -14,8 +14,7 @@
 // Core Document Management Components
 export { SharedUploader } from './SharedUploader';
 export { DocumentCard } from './DocumentCard';
-export { DocumentViewModal } from './DocumentViewModal';
-export { DocumentEditModal } from './DocumentEditModal';
+// Note: DocumentViewModal and DocumentEditModal were temporarily removed but may be needed
 
 // Invoice Management Components
 export { default as InvoiceForm } from '../invoices/InvoiceForm';
@@ -48,21 +47,14 @@ export type {
 //   createdAt="2024-01-15"
 // />
 //
-// View modal:
-// <DocumentViewModal
-//   documentId="doc-123"
-//   userPermissions={{ canDownload: true, canEdit: false }}
-//   onEditClick={(id) => handleEdit(id)}
-//   isOpen={isModalOpen}
-//   onOpenChange={setIsModalOpen}
-// />
-//
-// Edit/Create modal:
-// <DocumentEditModal
-//   documentId={editingId} // undefined for create mode
-//   entityType="building"
-//   entityId="building-123"
-//   isOpen={isEditModalOpen}
-//   onOpenChange={setIsEditModalOpen}
-//   onSuccess={(id, action) => console.log(`Document ${action}:`, id)}
+// AI-enhanced upload with form-specific context:
+// <SharedUploader 
+//   formType="bills"
+//   uploadContext={{ type: 'bills', organizationId: 'org-123' }}
+//   aiAnalysisEnabled={true}
+//   showAiToggle={true}
+//   onDocumentChange={(file, text) => console.log(file, text)}
+//   onAiAnalysisComplete={(data) => console.log('AI extracted:', data)}
+//   allowedFileTypes={['application/pdf', 'image/*']}
+//   maxFileSize={25}
 // />
