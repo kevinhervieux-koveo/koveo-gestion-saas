@@ -638,6 +638,10 @@ export interface Translations {
   noData: string;
   noDataAvailable: string;
   noDataFound: string;
+  noBookingsFound: string;
+  noBookingsFoundMessage: string;
+  selectCommonSpace: string;
+  selectCommonSpaceMessage: string;
   deleteAccountAction: string;
   profileUpdated: string;
   profileUpdatedDescription: string;
@@ -1614,6 +1618,10 @@ export const translations: Record<Language, Translations> = {
     noData: 'No Data',
     noDataAvailable: 'No Data Available',
     noDataFound: 'No Data Found',
+    noBookingsFound: 'No bookings found for this space in the last 12 months.',
+    noBookingsFoundMessage: 'No bookings found for this space in the last 12 months.',
+    selectCommonSpace: 'Select a Common Space',
+    selectCommonSpaceMessage: 'Choose a building and common space to view usage statistics.',
     deleteAccountAction: 'Delete Account',
     profileUpdated: 'Profile updated',
     profileUpdatedDescription: 'Your profile has been updated successfully.',
@@ -2514,6 +2522,10 @@ export const translations: Record<Language, Translations> = {
     noData: 'Aucune donnée',
     noDataAvailable: 'Aucune donnée disponible',
     noDataFound: 'Aucune donnée trouvée',
+    noBookingsFound: 'Aucune réservation trouvée pour cet espace au cours des 12 derniers mois.',
+    noBookingsFoundMessage: 'Aucune réservation trouvée pour cet espace au cours des 12 derniers mois.',
+    selectCommonSpace: 'Sélectionnez un espace commun',
+    selectCommonSpaceMessage: "Choisissez un bâtiment et un espace commun pour voir les statistiques d'utilisation.",
     deleteAccountAction: 'Supprimer le compte',
     profileUpdated: 'Profil mis à jour',
     profileUpdatedDescription: 'Votre profil a été mis à jour avec succès.',
