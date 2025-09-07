@@ -23,6 +23,7 @@ import { registerDemoManagementRoutes } from './api/demo-management';
 import { registerTrialRequestRoutes } from './api/trial-request';
 import { registerInvoiceRoutes } from './api/invoices';
 import { registerAiAnalysisRoutes } from './api/ai-document-analysis';
+import { registerDocumentationRoutes } from './api/documentation';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -94,6 +95,7 @@ export async function registerRoutes(app: Express) {
   registerTrialRequestRoutes(app);
   registerInvoiceRoutes(app);
   registerAiAnalysisRoutes(app);
+  registerDocumentationRoutes(app);
   console.log('✅ All API routes registered');
   
   // Basic API routes
