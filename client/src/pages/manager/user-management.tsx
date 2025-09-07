@@ -96,6 +96,7 @@ export default function UserManagement() {
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [organizationFilter, setOrganizationFilter] = useState('');
+  const [orphanFilter, setOrphanFilter] = useState('');
 
   // Fetch users with server-side pagination
   const {
@@ -570,8 +571,20 @@ export default function UserManagement() {
       );
     }
 
+    // Apply orphan filter (users with no organization, building, or residence assignments)
+    if (orphanFilter) {
+      const isOrphanFilter = orphanFilter === 'true';
+      result = result.filter((user) => {
+        const hasOrganizations = user.organizations && user.organizations.length > 0;
+        const hasBuildings = user.buildings && user.buildings.length > 0;
+        const hasResidences = user.residences && user.residences.length > 0;
+        const isOrphan = !hasOrganizations && !hasBuildings && !hasResidences;
+        return isOrphanFilter ? isOrphan : !isOrphan;
+      });
+    }
+
     return result;
-  }, [users, search, roleFilter, statusFilter, organizationFilter]);
+  }, [users, search, roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
   // Filter handlers - temporarily disabled
   // const handleAddFilter = (filter: FilterValue) => {
