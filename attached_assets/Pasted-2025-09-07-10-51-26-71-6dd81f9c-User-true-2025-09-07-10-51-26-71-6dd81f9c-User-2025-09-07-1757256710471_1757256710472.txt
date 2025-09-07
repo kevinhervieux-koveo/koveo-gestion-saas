@@ -1,0 +1,120 @@
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+true
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+],
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+cause: NeonDbError: duplicate key value violates unique constraint "users_username_unique"
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+at dr.execute (file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1298:10)
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+at async file:///home/runner/workspace/node_modules/drizzle-orm/neon-http/session.js:46:14
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+at async NeonHttpPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:39:16)
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+at async NeonHttpPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-http/session.js:45:20)
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+at async file:///home/runner/workspace/dist/index.js:3632:30
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+at async OptimizedDatabaseStorage.createUser (file:///home/runner/workspace/dist/index.js:3602:24)
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+at async file:///home/runner/workspace/dist/index.js:9602:23 {
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+severity: 'ERROR',
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+code: '23505',
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+detail: 'Key (username)=(francoispierrelandry) already exists.',
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+hint: undefined,
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+position: undefined,
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+internalPosition: undefined,
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+internalQuery: undefined,
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+where: undefined,
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+schema: 'public',
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+table: 'users',
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+column: undefined,
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+dataType: undefined,
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+constraint: 'users_username_unique',
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+file: 'nbtinsert.c',
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+line: '666',
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+routine: '_bt_check_unique',
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+sourceError: undefined
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+}
+2025-09-07 10:51:26.71
+6dd81f9c
+User
+}

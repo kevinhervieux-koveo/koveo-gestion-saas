@@ -500,9 +500,53 @@ export class OptimizedDatabaseStorage implements IStorage {
         console.log('🎭 Setting demo password for user with role:', insertUser.role);
       }
 
+      // Ensure username uniqueness with random numbers if collision occurs
+      let uniqueUsername = insertUser.username;
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      // Check for username collision
+      let existingUser = await db
+        .select({ username: schema.users.username })
+        .from(schema.users)
+        .where(eq(schema.users.username, uniqueUsername))
+        .limit(1);
+
+      console.log('🔍 [CREATE_USER] Username collision check:', {
+        originalUsername: insertUser.username,
+        collisionDetected: existingUser.length > 0
+      });
+
+      while (existingUser.length > 0 && attempts < maxAttempts) {
+        // Generate random 4-digit suffix
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        uniqueUsername = `${insertUser.username}${randomSuffix}`;
+        attempts++;
+        
+        console.log('🔄 [CREATE_USER] Username collision attempt:', {
+          attempt: attempts,
+          newUsername: uniqueUsername
+        });
+        
+        existingUser = await db
+          .select({ username: schema.users.username })
+          .from(schema.users)
+          .where(eq(schema.users.username, uniqueUsername))
+          .limit(1);
+      }
+
+      if (attempts >= maxAttempts && existingUser.length > 0) {
+        throw new Error('Unable to generate unique username after maximum attempts');
+      }
+
+      console.log('✅ [CREATE_USER] Final username selected:', {
+        finalUsername: uniqueUsername,
+        attemptsUsed: attempts
+      });
+
       // Filter only the fields that exist in the database schema
       const userData = {
-        username: insertUser.username,
+        username: uniqueUsername,
         email: insertUser.email,
         password,
         firstName: insertUser.firstName,
