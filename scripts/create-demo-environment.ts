@@ -9,6 +9,7 @@
  * Usage:
  *   npx tsx scripts/create-demo-environment.ts --type demo --name "Demo Organization"
  *   npx tsx scripts/create-demo-environment.ts --type production --name "Test Company"
+ *   npx tsx scripts/create-demo-environment.ts --type demo --name "Demo Organization" --database prod
  * 
  * Features:
  * - Idempotent upsert logic (updates existing organizations)
@@ -19,27 +20,55 @@
  * - Realistic bookings, demands, and financial data
  */
 
-import { Pool } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
 import { eq, and, gte } from 'drizzle-orm';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcryptjs';
 import * as schema from '../shared/schema';
 
-// Database connection
-const DATABASE_URL = process.env.DATABASE_URL;
-if (!DATABASE_URL) {
-  console.error('❌ DATABASE_URL environment variable is required');
-  process.exit(1);
-}
+// Database connection variables
+let db: any;
+let closeConnection: () => Promise<void>;
 
-const pool = new Pool({ connectionString: DATABASE_URL });
-const db = drizzle({ client: pool, schema });
+async function initializeDatabase(targetDatabase: 'dev' | 'prod') {
+  if (targetDatabase === 'prod') {
+    console.log('⚠️ WARNING: Targeting PRODUCTION database (DATABASE_URL_KOVEO)');
+    console.log('⚠️ This will create demo data in the production environment!');
+    console.log('');
+    
+    // Use production database
+    const DATABASE_URL_KOVEO = process.env.DATABASE_URL_KOVEO;
+    if (!DATABASE_URL_KOVEO) {
+      console.error('❌ DATABASE_URL_KOVEO environment variable is required for production database');
+      process.exit(1);
+    }
+    
+    const { Pool } = await import('@neondatabase/serverless');
+    const { drizzle } = await import('drizzle-orm/neon-serverless');
+    
+    const pool = new Pool({ connectionString: DATABASE_URL_KOVEO });
+    db = drizzle({ client: pool, schema });
+    closeConnection = async () => {
+      await pool.end();
+    };
+    
+    console.log('🔗 Connected to PRODUCTION database (DATABASE_URL_KOVEO)');
+  } else {
+    // Use development database (default)
+    const { db: sharedDb } = await import('../server/db');
+    db = sharedDb;
+    closeConnection = async () => {
+      // Connection will be managed by the shared pool
+    };
+    
+    console.log('🔗 Connected to DEVELOPMENT database (DATABASE_URL)');
+  }
+}
 
 // Types
 interface CliArgs {
   type: 'demo' | 'production';
   name: string;
+  database: 'dev' | 'prod';
 }
 
 interface CreatedBuilding {
@@ -114,6 +143,7 @@ function parseArguments(): CliArgs {
   
   let type: 'demo' | 'production' | undefined;
   let name: string | undefined;
+  let database: 'dev' | 'prod' = 'dev'; // Default to development database
   
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--type' && i + 1 < args.length) {
@@ -128,22 +158,31 @@ function parseArguments(): CliArgs {
     } else if (args[i] === '--name' && i + 1 < args.length) {
       name = args[i + 1];
       i++; // Skip next argument as it's the value
+    } else if (args[i] === '--database' && i + 1 < args.length) {
+      const databaseValue = args[i + 1];
+      if (databaseValue === 'dev' || databaseValue === 'prod') {
+        database = databaseValue;
+      } else {
+        console.error('❌ --database must be either "dev" or "prod"');
+        process.exit(1);
+      }
+      i++; // Skip next argument as it's the value
     }
   }
   
   if (!type) {
     console.error('❌ --type argument is required (demo or production)');
-    console.error('Usage: npx tsx scripts/create-demo-environment.ts --type demo --name "Demo Organization"');
+    console.error('Usage: npx tsx scripts/create-demo-environment.ts --type demo --name "Demo Organization" [--database dev|prod]');
     process.exit(1);
   }
   
   if (!name) {
     console.error('❌ --name argument is required');
-    console.error('Usage: npx tsx scripts/create-demo-environment.ts --type demo --name "Demo Organization"');
+    console.error('Usage: npx tsx scripts/create-demo-environment.ts --type demo --name "Demo Organization" [--database dev|prod]');
     process.exit(1);
   }
   
-  return { type, name };
+  return { type, name, database };
 }
 
 /**
@@ -731,9 +770,14 @@ async function main() {
     
     // Parse CLI arguments
     const args = parseArguments();
+    
+    // Initialize database connection
+    await initializeDatabase(args.database);
+    
     console.log(`📋 Configuration:`);
     console.log(`   Organization Type: ${args.type}`);
     console.log(`   Organization Name: "${args.name}"`);
+    console.log(`   Target Database: ${args.database === 'prod' ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)'}`);
     console.log('');
     
     // Step 1: Upsert Organization
@@ -795,7 +839,7 @@ async function main() {
     process.exit(1);
   } finally {
     // Close database connection
-    await pool.end();
+    await closeConnection();
   }
 }
 
