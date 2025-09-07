@@ -631,6 +631,91 @@ export interface Translations {
   // Form validation messages
   descriptionMinLength: string;
   buildingRequired: string;
+  // Manager User Management page translations
+  userManagement: string;
+  manageAllUsers: string;
+  totalUsers: string;
+  activeUsers: string;
+  admin: string;
+  role: string;
+  total: string;
+  active: string;
+  users: string;
+  invitations: string;
+  inviteUser: string;
+  sendInvitation: string;
+  searchUsers: string;
+  selectedUsers: string;
+  clearFilters: string;
+  clearSelection: string;
+  activateSelected: string;
+  deactivateSelected: string;
+  deleteSelected: string;
+  rowsPerPage: string;
+  // User table columns
+  name: string;
+  email: string;
+  organizations: string;
+  lastLogin: string;
+  actions: string;
+  // User roles
+  manager: string;
+  tenant: string;
+  resident: string;
+  demoManager: string;
+  demoTenant: string;
+  demoResident: string;
+  // User status
+  statusActive: string;
+  statusInactive: string;
+  // User actions
+  editUser: string;
+  editOrganizations: string;
+  editBuildings: string;
+  editResidences: string;
+  deleteUser: string;
+  // Edit user form
+  editUserTitle: string;
+  editUserDescription: string;
+  firstName: string;
+  lastName: string;
+  selectRole: string;
+  accountStatus: string;
+  saveChanges: string;
+  cancel: string;
+  // Delete user form
+  deleteUserTitle: string;
+deleteUserDescription: string;
+  confirmEmailLabel: string;
+  reasonOptional: string;
+  confirmDeletion: string;
+  // Success/Error messages
+  userUpdatedSuccess: string;
+  organizationAssignmentsUpdated: string;
+  buildingAssignmentsUpdated: string;
+  residenceAssignmentsUpdated: string;
+  accountDeleted: string;
+  accountDeletedDescription: string;
+  deletionFailed: string;
+  deletionFailedDescription: string;
+  anErrorOccurred: string;
+  // Form validation messages for user management
+  firstNameRequired: string;
+  firstNameMaxLength: string;
+  firstNameInvalidChars: string;
+  lastNameRequired: string;
+  lastNameMaxLength: string;
+  lastNameInvalidChars: string;
+  emailRequired: string;
+  emailInvalid: string;
+  roleRequired: string;
+  emailConfirmationRequired: string;
+  emailConfirmationInvalid: string;
+  reasonMaxLength: string;
+  // Filter labels
+  allRoles: string;
+  allStatuses: string;
+  allOrganizations: string;
   // Month names
   january: string;
   february: string;
@@ -1444,6 +1529,91 @@ const translations: Record<Language, Translations> = {
     // Form validation messages
     descriptionMinLength: 'Description must be at least 10 characters',
     buildingRequired: 'Building is required',
+    // Manager User Management page translations
+    userManagement: 'User Management',
+    manageAllUsers: 'Manage All Users',
+    totalUsers: 'Total Users',
+    activeUsers: 'Active Users',
+    admin: 'Admin',
+    role: 'Role',
+    total: 'Total',
+    active: 'Active',
+    users: 'Users',
+    invitations: 'Invitations',
+    inviteUser: 'Invite User',
+    sendInvitation: 'Send Invitation',
+    searchUsers: 'Search users...',
+    selectedUsers: 'selected users',
+    clearFilters: 'Clear Filters',
+    clearSelection: 'Clear Selection',
+    activateSelected: 'Activate Selected',
+    deactivateSelected: 'Deactivate Selected',
+    deleteSelected: 'Delete Selected',
+    rowsPerPage: 'rows per page',
+    // User table columns
+    name: 'Name',
+    email: 'Email',
+    organizations: 'Organizations',
+    lastLogin: 'Last Login',
+    actions: 'Actions',
+    // User roles
+    manager: 'Manager',
+    tenant: 'Tenant',
+    resident: 'Resident',
+    demoManager: 'Demo Manager',
+    demoTenant: 'Demo Tenant',
+    demoResident: 'Demo Resident',
+    // User status
+    statusActive: 'Active',
+    statusInactive: 'Inactive',
+    // User actions
+    editUser: 'Edit User',
+    editOrganizations: 'Edit Organizations',
+    editBuildings: 'Edit Buildings',
+    editResidences: 'Edit Residences',
+    deleteUser: 'Delete User',
+    // Edit user form
+    editUserTitle: 'Edit User',
+    editUserDescription: 'Update user information and permissions',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    selectRole: 'Select role',
+    accountStatus: 'Account Status',
+    saveChanges: 'Save Changes',
+    cancel: 'Cancel',
+    // Delete user form
+    deleteUserTitle: 'Delete User Account',
+    deleteUserDescription: 'This will permanently delete and all associated data. This action cannot be undone.',
+    confirmEmailLabel: 'Confirm by typing the user\'s email address',
+    reasonOptional: 'Reason for deletion (optional)',
+    confirmDeletion: 'Delete Account',
+    // Success/Error messages
+    userUpdatedSuccess: 'User updated successfully',
+    organizationAssignmentsUpdated: 'Organization assignments updated successfully',
+    buildingAssignmentsUpdated: 'Building assignments updated successfully',
+    residenceAssignmentsUpdated: 'Residence assignments updated successfully',
+    accountDeleted: 'Account deleted',
+    accountDeletedDescription: 'User account and all associated data have been permanently deleted.',
+    deletionFailed: 'Deletion failed',
+    deletionFailedDescription: 'Failed to delete account',
+    anErrorOccurred: 'An error occurred',
+    // Form validation messages for user management
+    firstNameRequired: 'First name is required (example: Jean)',
+    firstNameMaxLength: 'First name must be less than 50 characters',
+    firstNameInvalidChars: 'First name can only contain letters, spaces, apostrophes and hyphens',
+    lastNameRequired: 'Last name is required (example: Dupont)',
+    lastNameMaxLength: 'Last name must be less than 50 characters',
+    lastNameInvalidChars: 'Last name can only contain letters, spaces, apostrophes and hyphens',
+    emailRequired: 'Email address is required',
+    emailInvalid: 'Please enter a valid email address (example: jean.dupont@email.com)',
+    roleRequired: 'Please select a user role',
+    emailConfirmationRequired: 'Email confirmation is required to delete user',
+    emailConfirmationInvalid: 'Please enter a valid email address that matches the user account',
+    reasonMaxLength: 'Reason must be less than 500 characters',
+    // Filter labels
+    allRoles: 'All Roles',
+    allStatuses: 'All Statuses',
+    allOrganizations: 'All Organizations',
     // Month names
     january: 'January',
     february: 'February',
@@ -2254,6 +2424,91 @@ const translations: Record<Language, Translations> = {
     // Messages de validation de formulaire
     descriptionMinLength: 'La description doit contenir au moins 10 caractères',
     buildingRequired: 'Le bâtiment est requis',
+    // Traductions de la page de gestion des utilisateurs
+    userManagement: 'Gestion des utilisateurs',
+    manageAllUsers: 'Gérer tous les utilisateurs',
+    totalUsers: 'Total utilisateurs',
+    activeUsers: 'Utilisateurs actifs',
+    admin: 'Administrateur',
+    role: 'Rôle',
+    total: 'Total',
+    active: 'Actif',
+    users: 'Utilisateurs',
+    invitations: 'Invitations',
+    inviteUser: 'Inviter un utilisateur',
+    sendInvitation: 'Envoyer une invitation',
+    searchUsers: 'Rechercher des utilisateurs...',
+    selectedUsers: 'utilisateurs sélectionnés',
+    clearFilters: 'Effacer les filtres',
+    clearSelection: 'Effacer la sélection',
+    activateSelected: 'Activer la sélection',
+    deactivateSelected: 'Désactiver la sélection',
+    deleteSelected: 'Supprimer la sélection',
+    rowsPerPage: 'lignes par page',
+    // Colonnes du tableau des utilisateurs
+    name: 'Nom',
+    email: 'Courriel',
+    organizations: 'Organisations',
+    lastLogin: 'Dernière connexion',
+    actions: 'Actions',
+    // Rôles des utilisateurs
+    manager: 'Gestionnaire',
+    tenant: 'Locataire',
+    resident: 'Résident',
+    demoManager: 'Gestionnaire démo',
+    demoTenant: 'Locataire démo',
+    demoResident: 'Résident démo',
+    // Statut des utilisateurs
+    statusActive: 'Actif',
+    statusInactive: 'Inactif',
+    // Actions utilisateur
+    editUser: 'Modifier l\'utilisateur',
+    editOrganizations: 'Modifier les organisations',
+    editBuildings: 'Modifier les bâtiments',
+    editResidences: 'Modifier les résidences',
+    deleteUser: 'Supprimer l\'utilisateur',
+    // Formulaire de modification d'utilisateur
+    editUserTitle: 'Modifier l\'utilisateur',
+    editUserDescription: 'Mettre à jour les informations et permissions de l\'utilisateur',
+    firstName: 'Prénom',
+    lastName: 'Nom de famille',
+    selectRole: 'Sélectionner un rôle',
+    accountStatus: 'Statut du compte',
+    saveChanges: 'Enregistrer les modifications',
+    cancel: 'Annuler',
+    // Formulaire de suppression d'utilisateur
+    deleteUserTitle: 'Supprimer le compte utilisateur',
+    deleteUserDescription: 'Ceci supprimera définitivement et toutes les données associées. Cette action ne peut pas être annulée.',
+    confirmEmailLabel: 'Confirmez en tapant l\'adresse courriel de l\'utilisateur',
+    reasonOptional: 'Raison de la suppression (optionnel)',
+    confirmDeletion: 'Supprimer le compte',
+    // Messages de succès/erreur
+    userUpdatedSuccess: 'Utilisateur mis à jour avec succès',
+    organizationAssignmentsUpdated: 'Affectations d\'organisations mises à jour avec succès',
+    buildingAssignmentsUpdated: 'Affectations de bâtiments mises à jour avec succès',
+    residenceAssignmentsUpdated: 'Affectations de résidences mises à jour avec succès',
+    accountDeleted: 'Compte supprimé',
+    accountDeletedDescription: 'Le compte utilisateur et toutes les données associées ont été supprimés définitivement.',
+    deletionFailed: 'Échec de la suppression',
+    deletionFailedDescription: 'Échec de la suppression du compte',
+    anErrorOccurred: 'Une erreur s\'est produite',
+    // Messages de validation de formulaire pour la gestion des utilisateurs
+    firstNameRequired: 'Le prénom est requis (exemple: Jean)',
+    firstNameMaxLength: 'Le prénom doit contenir moins de 50 caractères',
+    firstNameInvalidChars: 'Le prénom ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    lastNameRequired: 'Le nom de famille est requis (exemple: Dupont)',
+    lastNameMaxLength: 'Le nom de famille doit contenir moins de 50 caractères',
+    lastNameInvalidChars: 'Le nom de famille ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    emailRequired: 'L\'adresse courriel est requise',
+    emailInvalid: 'Veuillez entrer une adresse courriel valide (exemple: jean.dupont@email.com)',
+    roleRequired: 'Veuillez sélectionner un rôle d\'utilisateur',
+    emailConfirmationRequired: 'La confirmation du courriel est requise pour supprimer l\'utilisateur',
+    emailConfirmationInvalid: 'Veuillez entrer une adresse courriel valide qui correspond au compte utilisateur',
+    reasonMaxLength: 'La raison doit contenir moins de 500 caractères',
+    // Étiquettes de filtre
+    allRoles: 'Tous les rôles',
+    allStatuses: 'Tous les statuts',
+    allOrganizations: 'Toutes les organisations',
     // Noms des mois
     january: 'Janvier',
     february: 'Février',
