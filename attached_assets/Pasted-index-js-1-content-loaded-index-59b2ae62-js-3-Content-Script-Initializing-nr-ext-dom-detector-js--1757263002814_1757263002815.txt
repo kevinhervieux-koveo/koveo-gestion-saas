@@ -1,0 +1,101 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-DZsXTwNG.js:136 ReferenceError: CATEGORY_LABELS is not defined
+    at bills-CjzjEEVT.js:6:7763
+    at Array.map (<anonymous>)
+    at ls (bills-CjzjEEVT.js:6:7727)
+    at Object.react_stack_bottom_frame (index-DZsXTwNG.js:229:12448)
+    at oc (index-DZsXTwNG.js:120:804)
+    at kc (index-DZsXTwNG.js:141:5839)
+    at Yc (index-DZsXTwNG.js:150:10147)
+    at j (index-DZsXTwNG.js:45:108)
+    at Jh (index-DZsXTwNG.js:163:29810)
+    at Fh (index-DZsXTwNG.js:163:28479)
+
+The above error occurred in the <ls> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, oR.
+
+overrideMethod @ hook.js:608
+ah @ index-DZsXTwNG.js:136
+ih @ index-DZsXTwNG.js:141
+j @ index-DZsXTwNG.js:45
+Uc.l.componentDidCatch.e.callback @ index-DZsXTwNG.js:141
+Ap @ index-DZsXTwNG.js:107
+Ep @ index-DZsXTwNG.js:107
+j @ index-DZsXTwNG.js:45
+Ah @ index-DZsXTwNG.js:163
+wh @ index-DZsXTwNG.js:163
+Qn @ index-DZsXTwNG.js:163
+wh @ index-DZsXTwNG.js:163
+Qn @ index-DZsXTwNG.js:163
+wh @ index-DZsXTwNG.js:163
+Qn @ index-DZsXTwNG.js:163
+wh @ index-DZsXTwNG.js:163
+Qn @ index-DZsXTwNG.js:163
+wh @ index-DZsXTwNG.js:163
+Qn @ index-DZsXTwNG.js:163
+wh @ index-DZsXTwNG.js:163
+Qn @ index-DZsXTwNG.js:163
+wh @ index-DZsXTwNG.js:163
+tg @ index-DZsXTwNG.js:163
+ed @ index-DZsXTwNG.js:163
+Xh @ index-DZsXTwNG.js:163
+Qh @ index-DZsXTwNG.js:163
+fg @ index-DZsXTwNG.js:185
+fl @ index-DZsXTwNG.js:185
+ad @ index-DZsXTwNG.js:185
+(anonymous) @ index-DZsXTwNG.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-DZsXTwNG.js:240
+q @ index-DZsXTwNG.js:240
+react_stack_bottom_frame @ index-DZsXTwNG.js:229
+oc @ index-DZsXTwNG.js:120
+kc @ index-DZsXTwNG.js:141
+Yc @ index-DZsXTwNG.js:150
+j @ index-DZsXTwNG.js:45
+Jh @ index-DZsXTwNG.js:163
+FS @ index-DZsXTwNG.js:163
+$S @ index-DZsXTwNG.js:163
+Qh @ index-DZsXTwNG.js:163
+dg @ index-DZsXTwNG.js:185
+d @ index-DZsXTwNG.js:23
+<q>
+du.jsxDEV @ index-DZsXTwNG.js:15
+HR @ index-DZsXTwNG.js:364
+react_stack_bottom_frame @ index-DZsXTwNG.js:229
+oc @ index-DZsXTwNG.js:120
+kc @ index-DZsXTwNG.js:141
+Yc @ index-DZsXTwNG.js:150
+j @ index-DZsXTwNG.js:45
+Jh @ index-DZsXTwNG.js:163
+Fh @ index-DZsXTwNG.js:163
+Wc @ index-DZsXTwNG.js:163
+Qh @ index-DZsXTwNG.js:163
+fg @ index-DZsXTwNG.js:185
+fl @ index-DZsXTwNG.js:185
+ad @ index-DZsXTwNG.js:185
+(anonymous) @ index-DZsXTwNG.js:185
+<HR>
+du.jsxDEV @ index-DZsXTwNG.js:15
+jR @ index-DZsXTwNG.js:364
+react_stack_bottom_frame @ index-DZsXTwNG.js:229
+oc @ index-DZsXTwNG.js:120
+kc @ index-DZsXTwNG.js:141
+Yc @ index-DZsXTwNG.js:150
+j @ index-DZsXTwNG.js:45
+Jh @ index-DZsXTwNG.js:163
+Fh @ index-DZsXTwNG.js:163
+Wc @ index-DZsXTwNG.js:163
+Qh @ index-DZsXTwNG.js:163
+dg @ index-DZsXTwNG.js:185
+d @ index-DZsXTwNG.js:23
+<jR>
+du.jsxDEV @ index-DZsXTwNG.js:15
+(anonymous) @ index-DZsXTwNG.js:364

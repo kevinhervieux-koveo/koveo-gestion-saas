@@ -17,6 +17,9 @@ import {
   RefreshCw,
   Clock,
   Terminal,
+  Eye,
+  ExternalLink,
+  Folder,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -31,6 +34,7 @@ interface DocumentationData {
     description: string;
     version: string;
     architecture: string;
+    lastUpdated: string;
   };
   components: Array<{
     name: string;
@@ -44,7 +48,7 @@ interface DocumentationData {
     method: string;
     description: string;
     parameters: string[];
-    _response: string;
+    response: string;
   }>;
   database: {
     tables: Array<{
@@ -62,6 +66,13 @@ interface DocumentationData {
     version: string;
     type: 'production' | 'development';
     description: string;
+  }>;
+  documentationFiles: Array<{
+    name: string;
+    path: string;
+    size: number;
+    lastModified: string;
+    category: string;
   }>;
 }
 
@@ -87,7 +98,7 @@ export default function OwnerDocumentation() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch comprehensive documentation data
+  // Fetch comprehensive documentation data from the real API
   const {
     data: docData,
     isLoading,
@@ -97,124 +108,26 @@ export default function OwnerDocumentation() {
     queryKey: ['/api/documentation/comprehensive'],
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
-    queryFn: () => {
-      // Generate comprehensive documentation data with current timestamp
-      const currentTimestamp = new Date().toISOString();
-      setLastRefresh(new Date());
-
-      return Promise.resolve({
-        projectOverview: {
-          name: 'Koveo Gestion',
-          description:
-            'AI-powered property management SaaS platform for Quebec residential communities',
-          version: '1.0.0',
-          architecture:
-            'React/TypeScript frontend with Node.js/Express backend, PostgreSQL database',
-          lastUpdated: currentTimestamp,
-        },
-        components: [
-          {
-            name: 'FilterSort System',
-            type: 'React Component Library',
-            dependencies: ['React', 'Radix UI', 'Tailwind CSS'],
-            exports: ['FilterSort', 'useFilterSort', 'FilterSortConfig'],
-            complexity: 8.2,
-          },
-          {
-            name: 'Authentication System',
-            type: 'Backend Service',
-            dependencies: ['Express', 'Passport', 'bcrypt'],
-            exports: ['authRoutes', 'requireAuth', 'userStorage'],
-            complexity: 6.8,
-          },
-          {
-            name: 'Dashboard Components',
-            type: 'React Components',
-            dependencies: ['TanStack Query', 'Lucide React'],
-            exports: ['OwnerDashboard', 'ResidentsDashboard', 'ManagerDashboard'],
-            complexity: 7.5,
-          },
-        ],
-        apis: [
-          {
-            endpoint: '/api/organizations',
-            method: 'GET',
-            description: 'Retrieve all organizations',
-            parameters: ['limit', 'offset'],
-            _response: 'Organization[]',
-          },
-          {
-            endpoint: '/api/users',
-            method: 'GET',
-            description: 'Retrieve user list',
-            parameters: ['role', 'active'],
-            _response: 'User[]',
-          },
-          {
-            endpoint: '/api/pillars/suggestions',
-            method: 'GET',
-            description: 'Get improvement suggestions',
-            parameters: [],
-            _response: 'ImprovementSuggestion[]',
-          },
-        ],
-        database: {
-          tables: [
-            {
-              name: 'users',
-              columns: [
-                { name: 'id', type: 'serial', nullable: false, primary: true },
-                { name: 'username', type: 'text', nullable: false, primary: false },
-                { name: 'email', type: 'text', nullable: false, primary: false },
-                { name: 'firstName', type: 'text', nullable: false, primary: false },
-                { name: 'lastName', type: 'text', nullable: false, primary: false },
-                { name: 'role', type: 'text', nullable: false, primary: false },
-              ],
-            },
-            {
-              name: 'organizations',
-              columns: [
-                { name: 'id', type: 'serial', nullable: false, primary: true },
-                { name: 'name', type: 'text', nullable: false, primary: false },
-                { name: 'type', type: 'text', nullable: false, primary: false },
-                { name: 'isActive', type: 'boolean', nullable: false, primary: false },
-              ],
-            },
-          ],
-        },
-        dependencies: [
-          {
-            name: 'React',
-            version: '18.x',
-            type: 'production',
-            description: 'Frontend UI library',
-          },
-          {
-            name: 'TypeScript',
-            version: '5.x',
-            type: 'development',
-            description: 'Type-safe JavaScript',
-          },
-          {
-            name: 'Express',
-            version: '4.x',
-            type: 'production',
-            description: 'Web application framework',
-          },
-          {
-            name: 'PostgreSQL',
-            version: '16.x',
-            type: 'production',
-            description: 'Relational database',
-          },
-          {
-            name: 'Drizzle ORM',
-            version: '0.x',
-            type: 'production',
-            description: 'TypeScript ORM',
-          },
-        ],
+    queryFn: async () => {
+      console.log('📚 Fetching real documentation data...');
+      const response = await fetch('/api/documentation/comprehensive', {
+        credentials: 'include',
       });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch documentation: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setLastRefresh(new Date());
+      console.log('✅ Documentation data fetched successfully:', {
+        components: data.components?.length || 0,
+        apis: data.apis?.length || 0,
+        tables: data.database?.tables?.length || 0,
+        files: data.documentationFiles?.length || 0,
+      });
+      
+      return data;
     },
   });
 
@@ -1412,6 +1325,79 @@ ACCESSIBILITY_COMPLIANCE: WCAG 2.1 AA Certified`;
               </CardContent>
             </Card>
           </div>
+
+          {/* Documentation Files Browser */}
+          {docData?.documentationFiles && (
+            <Card>
+              <CardHeader>
+                <CardTitle className='flex items-center gap-2'>
+                  <Folder className='h-5 w-5' />
+                  Documentation Files ({docData.documentationFiles.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <p className='text-sm text-gray-600'>
+                  Browse existing documentation files in the project. Click on any file to view its content.
+                </p>
+
+                {/* Group files by category */}
+                {Object.entries(
+                  docData.documentationFiles.reduce((groups, file) => {
+                    const category = file.category || 'general';
+                    if (!groups[category]) groups[category] = [];
+                    groups[category].push(file);
+                    return groups;
+                  }, {} as Record<string, typeof docData.documentationFiles>)
+                ).map(([category, files]) => (
+                  <div key={category} className='space-y-2'>
+                    <h4 className='font-medium text-sm text-gray-700 capitalize flex items-center gap-1'>
+                      <BookOpen className='h-4 w-4' />
+                      {category} ({files.length})
+                    </h4>
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2'>
+                      {files.map((file) => (
+                        <div
+                          key={file.path}
+                          className='flex items-center justify-between p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors'
+                        >
+                          <div className='flex items-center gap-2 min-w-0 flex-1'>
+                            <FileText className='h-4 w-4 text-blue-600 flex-shrink-0' />
+                            <div className='min-w-0 flex-1'>
+                              <p className='text-sm font-medium text-gray-900 truncate'>
+                                {file.name}
+                              </p>
+                              <p className='text-xs text-gray-500'>
+                                {(file.size / 1024).toFixed(1)} KB • {' '}
+                                {new Date(file.lastModified).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            className='h-8 w-8 p-0 flex-shrink-0'
+                            onClick={() => {
+                              // Open file content in new window/modal
+                              window.open(`/api/documentation/file/${file.path}`, '_blank');
+                            }}
+                          >
+                            <ExternalLink className='h-4 w-4' />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {docData.documentationFiles.length === 0 && (
+                  <div className='text-center py-8 text-gray-500'>
+                    <BookOpen className='h-8 w-8 mx-auto mb-2 text-gray-400' />
+                    <p>No documentation files found in the docs directory.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {isLoading && (
             <Card>
