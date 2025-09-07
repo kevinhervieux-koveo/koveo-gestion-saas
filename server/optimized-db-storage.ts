@@ -275,7 +275,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         .select()
         .from(schema.users)
         .where(eq(schema.users.isActive, true))
-        .limit(100)
         .orderBy(desc(schema.users.createdAt));
 
       // For each user, fetch their assignments with limited concurrency to prevent connection issues
