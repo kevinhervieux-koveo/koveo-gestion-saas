@@ -32,36 +32,36 @@ export interface FilterHandlers {
   onBuildingChange?: (value: string) => void;
 }
 
-// Filter options for different user roles
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All Status' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'submitted', label: 'Submitted' },
-  { value: 'under_review', label: 'Under Review' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'cancelled', label: 'Cancelled' },
-] as const;
+// Filter options for different user roles - now using translation keys
+const getStatusOptions = (t: (key: string) => string) => [
+  { value: 'all', label: t('allStatusFilter') },
+  { value: 'draft', label: t('draftFilter') },
+  { value: 'submitted', label: t('submittedFilter') },
+  { value: 'under_review', label: t('underReviewFilter') },
+  { value: 'approved', label: t('approvedFilter') },
+  { value: 'in_progress', label: t('inProgressFilter') },
+  { value: 'completed', label: t('completedFilter') },
+  { value: 'rejected', label: t('rejectedFilter') },
+  { value: 'cancelled', label: t('cancelledFilter') },
+];
 
-const MANAGER_STATUS_OPTIONS = [
-  { value: 'all', label: 'All Status' },
-  { value: 'submitted', label: 'Submitted' },
-  { value: 'under_review', label: 'Under Review' },
-  { value: 'approved', label: 'Approved' },
-  { value: 'in_progress', label: 'In Progress' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'rejected', label: 'Rejected' },
-] as const;
+const getManagerStatusOptions = (t: (key: string) => string) => [
+  { value: 'all', label: t('allStatusFilter') },
+  { value: 'submitted', label: t('submittedFilter') },
+  { value: 'under_review', label: t('underReviewFilter') },
+  { value: 'approved', label: t('approvedFilter') },
+  { value: 'in_progress', label: t('inProgressFilter') },
+  { value: 'completed', label: t('completedFilter') },
+  { value: 'rejected', label: t('rejectedFilter') },
+];
 
-const TYPE_OPTIONS = [
-  { value: 'all', label: 'All Types' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'complaint', label: 'Complaint' },
-  { value: 'information', label: 'Information' },
-  { value: 'other', label: 'Other' },
-] as const;
+const getTypeOptions = (t: (key: string) => string) => [
+  { value: 'all', label: t('allTypesFilter') },
+  { value: 'maintenance', label: t('maintenanceFilter') },
+  { value: 'complaint', label: t('complaintFilter') },
+  { value: 'information', label: t('informationFilter') },
+  { value: 'other', label: t('otherFilter') },
+];
 
 /**
  *
@@ -95,7 +95,8 @@ export function DemandFilters({
   className = '',
 }: DemandFiltersProps) {
   const { t } = useLanguage();
-  const statusOptions = userRole === 'manager' ? MANAGER_STATUS_OPTIONS : STATUS_OPTIONS;
+  const statusOptions = userRole === 'manager' ? getManagerStatusOptions(t) : getStatusOptions(t);
+  const typeOptions = getTypeOptions(t);
   const showBuildingFilter = userRole === 'manager' && handlers.onBuildingChange;
   const placeholder = searchPlaceholder || t('searchDemands');
 
@@ -133,7 +134,7 @@ export function DemandFilters({
           <SelectValue placeholder={t('formType')} />
         </SelectTrigger>
         <SelectContent>
-          {TYPE_OPTIONS.map((option) => (
+          {typeOptions.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
             </SelectItem>

@@ -543,7 +543,7 @@ ResidentDemandsPage() {
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft className='h-4 w-4' />
-                  Previous
+                  {t('previous')}
                 </Button>
 
                 <div className='flex gap-1'>
@@ -578,7 +578,7 @@ ResidentDemandsPage() {
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
                 >
-                  Next
+                  {t('next')}
                   <ChevronRight className='h-4 w-4' />
                 </Button>
               </div>
@@ -587,8 +587,11 @@ ResidentDemandsPage() {
             {/* Page info */}
             {filteredDemands.length > 0 && (
               <div className='text-center text-sm text-muted-foreground'>
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of{' '}
-                {filteredDemands.length} demands
+                {t('showingResults', {
+                  start: startIndex + 1,
+                  end: Math.min(endIndex, filteredDemands.length),
+                  total: filteredDemands.length
+                })}
               </div>
             )}
 

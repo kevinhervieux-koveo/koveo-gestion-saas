@@ -67,7 +67,7 @@ export default function HomePage() {
               }}
               data-testid='button-try-demo-top'
             >
-              Try Demo
+              {t('tryDemo')}
               <Users className='ml-2 h-5 w-5' />
             </Button>
           </div>
@@ -223,7 +223,7 @@ export default function HomePage() {
               }}
               data-testid='button-try-demo-bottom'
             >
-              Try Demo
+              {t('tryDemo')}
               <Users className='ml-2 h-5 w-5' />
             </Button>
           </div>
