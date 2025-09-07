@@ -51,6 +51,7 @@ import {
   Key,
 } from 'lucide-react';
 import { z } from 'zod';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Form schemas
 const profileSchema = z.object({
@@ -103,6 +104,7 @@ type DeleteAccountFormData = z.infer<typeof deleteAccountSchema>;
 export default function Settings() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -296,7 +298,7 @@ export default function Settings() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden' data-testid='settings-page'>
-      <Header title='Settings' subtitle='Manage your account and application settings' />
+      <Header title={t('settings')} subtitle={t('manageAccountSettings')} />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-4xl mx-auto space-y-6'>
@@ -305,7 +307,7 @@ export default function Settings() {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <User className='w-5 h-5' />
-                General Settings
+                {t('generalSettings')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -317,7 +319,7 @@ export default function Settings() {
                       name='firstName'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>First Name</FormLabel>
+                          <FormLabel>{t('firstName')}</FormLabel>
                           <FormControl>
                             <Input data-testid='input-first-name' {...field} />
                           </FormControl>
@@ -330,7 +332,7 @@ export default function Settings() {
                       name='lastName'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Last Name</FormLabel>
+                          <FormLabel>{t('lastName')}</FormLabel>
                           <FormControl>
                             <Input data-testid='input-last-name' {...field} />
                           </FormControl>
@@ -345,7 +347,7 @@ export default function Settings() {
                     name='email'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>{t('email')}</FormLabel>
                         <FormControl>
                           <Input type='email' data-testid='input-email' {...field} />
                         </FormControl>
@@ -359,7 +361,7 @@ export default function Settings() {
                     name='username'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel>{t('username')}</FormLabel>
                         <FormControl>
                           <Input data-testid='input-username' {...field} />
                         </FormControl>
@@ -373,7 +375,7 @@ export default function Settings() {
                     name='phone'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone</FormLabel>
+                        <FormLabel>{t('phone')}</FormLabel>
                         <FormControl>
                           <Input type='tel' data-testid='input-phone' {...field} />
                         </FormControl>
@@ -387,7 +389,7 @@ export default function Settings() {
                     name='language'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Language</FormLabel>
+                        <FormLabel>{t('language')}</FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={field.value}
@@ -395,7 +397,7 @@ export default function Settings() {
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select language' />
+                              <SelectValue placeholder={t('selectLanguage')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -415,7 +417,7 @@ export default function Settings() {
                     className='flex items-center gap-2'
                   >
                     <Save className='w-4 h-4' />
-                    {profileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                    {profileMutation.isPending ? t('saving') : t('saveChanges')}
                   </Button>
                 </form>
               </Form>
@@ -427,7 +429,7 @@ export default function Settings() {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <Key className='w-5 h-5' />
-                Security Settings
+                {t('securitySettings')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -438,7 +440,7 @@ export default function Settings() {
                     name='currentPassword'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Current Password</FormLabel>
+                        <FormLabel>{t('currentPassword')}</FormLabel>
                         <FormControl>
                           <div className='relative'>
                             <Input
@@ -472,7 +474,7 @@ export default function Settings() {
                     name='newPassword'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>New Password</FormLabel>
+                        <FormLabel>{t('newPassword')}</FormLabel>
                         <FormControl>
                           <div className='relative'>
                             <Input
@@ -506,7 +508,7 @@ export default function Settings() {
                     name='confirmPassword'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirm New Password</FormLabel>
+                        <FormLabel>{t('confirmNewPassword')}</FormLabel>
                         <FormControl>
                           <div className='relative'>
                             <Input
@@ -542,7 +544,7 @@ export default function Settings() {
                     className='flex items-center gap-2'
                   >
                     <Shield className='w-4 h-4' />
-                    {passwordMutation.isPending ? 'Changing...' : 'Change Password'}
+                    {passwordMutation.isPending ? t('changing') : t('changePassword')}
                   </Button>
                 </form>
               </Form>
@@ -554,9 +556,9 @@ export default function Settings() {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <SettingsIcon className='w-5 h-5' />
-                Additional Settings
+                {t('additionalSettings')}
                 <Badge variant='secondary' className='text-xs ml-2'>
-                  Future
+                  {t('future')}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -569,9 +571,9 @@ export default function Settings() {
                   data-testid='button-notifications'
                 >
                   <Bell className='w-6 h-6' />
-                  <span>Notifications</span>
+                  <span>{t('notifications')}</span>
                   <Badge variant='secondary' className='text-xs'>
-                    Future
+                    {t('future')}
                   </Badge>
                 </Button>
                 <Button
@@ -581,9 +583,9 @@ export default function Settings() {
                   data-testid='button-theme'
                 >
                   <Palette className='w-6 h-6' />
-                  <span>Theme</span>
+                  <span>{t('theme')}</span>
                   <Badge variant='secondary' className='text-xs'>
-                    Future
+                    {t('future')}
                   </Badge>
                 </Button>
                 <Button
@@ -593,9 +595,9 @@ export default function Settings() {
                   data-testid='button-advanced'
                 >
                   <Globe className='w-6 h-6' />
-                  <span>Advanced</span>
+                  <span>{t('advanced')}</span>
                   <Badge variant='secondary' className='text-xs'>
-                    Future
+                    {t('future')}
                   </Badge>
                 </Button>
               </div>
@@ -607,17 +609,16 @@ export default function Settings() {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <Shield className='w-5 h-5' />
-                Privacy & Data (Law 25 Compliance)
+                {t('privacyDataCompliance')}
               </CardTitle>
             </CardHeader>
             <CardContent className='space-y-4'>
               <div className='bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800'>
                 <h4 className='font-semibold text-blue-900 dark:text-blue-100 mb-2'>
-                  Your Data Rights
+                  {t('yourDataRights')}
                 </h4>
                 <p className='text-blue-700 dark:text-blue-300 text-sm mb-3'>
-                  Under Quebec's Law 25, you have the right to access, export, and delete your
-                  personal data.
+                  {t('dataRightsDescription')}
                 </p>
               </div>
 
@@ -637,7 +638,7 @@ export default function Settings() {
                     data-testid='button-export-data'
                   >
                     <Download className='w-4 h-4' />
-                    {exportMutation.isPending ? 'Exporting...' : 'Download'}
+                    {exportMutation.isPending ? t('exporting') : t('exportData')}
                   </Button>
                 </div>
 

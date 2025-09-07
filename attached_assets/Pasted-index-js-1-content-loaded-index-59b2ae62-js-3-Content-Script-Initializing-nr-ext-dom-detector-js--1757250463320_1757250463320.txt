@@ -1,0 +1,118 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-DUjI68vb.js:136 ReferenceError: t is not defined
+    at ye (buildings-BDIxfbuH.js:1:4268)
+    at Object.react_stack_bottom_frame (index-DUjI68vb.js:229:12448)
+    at lc (index-DUjI68vb.js:120:804)
+    at kc (index-DUjI68vb.js:141:5839)
+    at Yc (index-DUjI68vb.js:150:10147)
+    at j (index-DUjI68vb.js:45:108)
+    at Kh (index-DUjI68vb.js:163:29810)
+    at Jh (index-DUjI68vb.js:163:28479)
+    at Wc (index-DUjI68vb.js:163:28312)
+    at Xh (index-DUjI68vb.js:163:24807)
+
+The above error occurred in the <ye> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, lD.
+
+overrideMethod @ hook.js:608
+ah @ index-DUjI68vb.js:136
+oh @ index-DUjI68vb.js:141
+j @ index-DUjI68vb.js:45
+Uc.i.componentDidCatch.e.callback @ index-DUjI68vb.js:141
+Ep @ index-DUjI68vb.js:107
+Ap @ index-DUjI68vb.js:107
+j @ index-DUjI68vb.js:45
+Eh @ index-DUjI68vb.js:163
+Ch @ index-DUjI68vb.js:163
+Xn @ index-DUjI68vb.js:163
+Ch @ index-DUjI68vb.js:163
+Xn @ index-DUjI68vb.js:163
+Ch @ index-DUjI68vb.js:163
+Xn @ index-DUjI68vb.js:163
+Ch @ index-DUjI68vb.js:163
+Xn @ index-DUjI68vb.js:163
+Ch @ index-DUjI68vb.js:163
+Xn @ index-DUjI68vb.js:163
+Ch @ index-DUjI68vb.js:163
+Xn @ index-DUjI68vb.js:163
+Ch @ index-DUjI68vb.js:163
+ty @ index-DUjI68vb.js:163
+ed @ index-DUjI68vb.js:163
+Ph @ index-DUjI68vb.js:163
+Xh @ index-DUjI68vb.js:163
+fy @ index-DUjI68vb.js:185
+fi @ index-DUjI68vb.js:185
+ad @ index-DUjI68vb.js:185
+(anonymous) @ index-DUjI68vb.js:185
+<ye>
+dr.jsxDEV @ index-DUjI68vb.js:15
+(anonymous) @ buildings-BDIxfbuH.js:1
+Xe @ buildings-BDIxfbuH.js:1
+react_stack_bottom_frame @ index-DUjI68vb.js:229
+lc @ index-DUjI68vb.js:120
+kc @ index-DUjI68vb.js:141
+Yc @ index-DUjI68vb.js:150
+j @ index-DUjI68vb.js:45
+Kh @ index-DUjI68vb.js:163
+Jh @ index-DUjI68vb.js:163
+Wc @ index-DUjI68vb.js:163
+Xh @ index-DUjI68vb.js:163
+fy @ index-DUjI68vb.js:185
+fi @ index-DUjI68vb.js:185
+ad @ index-DUjI68vb.js:185
+(anonymous) @ index-DUjI68vb.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-DUjI68vb.js:240
+q @ index-DUjI68vb.js:240
+react_stack_bottom_frame @ index-DUjI68vb.js:229
+lc @ index-DUjI68vb.js:120
+kc @ index-DUjI68vb.js:141
+Yc @ index-DUjI68vb.js:150
+j @ index-DUjI68vb.js:45
+Kh @ index-DUjI68vb.js:163
+JS @ index-DUjI68vb.js:163
+IS @ index-DUjI68vb.js:163
+Xh @ index-DUjI68vb.js:163
+dy @ index-DUjI68vb.js:185
+d @ index-DUjI68vb.js:23
+<q>
+dr.jsxDEV @ index-DUjI68vb.js:15
+BD @ index-DUjI68vb.js:364
+react_stack_bottom_frame @ index-DUjI68vb.js:229
+lc @ index-DUjI68vb.js:120
+kc @ index-DUjI68vb.js:141
+Yc @ index-DUjI68vb.js:150
+j @ index-DUjI68vb.js:45
+Kh @ index-DUjI68vb.js:163
+Jh @ index-DUjI68vb.js:163
+Wc @ index-DUjI68vb.js:163
+Xh @ index-DUjI68vb.js:163
+fy @ index-DUjI68vb.js:185
+fi @ index-DUjI68vb.js:185
+ad @ index-DUjI68vb.js:185
+(anonymous) @ index-DUjI68vb.js:185
+<BD>
+dr.jsxDEV @ index-DUjI68vb.js:15
+jD @ index-DUjI68vb.js:364
+react_stack_bottom_frame @ index-DUjI68vb.js:229
+lc @ index-DUjI68vb.js:120
+kc @ index-DUjI68vb.js:141
+Yc @ index-DUjI68vb.js:150
+j @ index-DUjI68vb.js:45
+Kh @ index-DUjI68vb.js:163
+Jh @ index-DUjI68vb.js:163
+Wc @ index-DUjI68vb.js:163
+Xh @ index-DUjI68vb.js:163
+dy @ index-DUjI68vb.js:185
+d @ index-DUjI68vb.js:23
+<jD>
+dr.jsxDEV @ index-DUjI68vb.js:15
+(anonymous) @ index-DUjI68vb.js:364
