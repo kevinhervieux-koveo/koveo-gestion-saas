@@ -1,15 +1,15 @@
 // Mock for server authentication module
-export const storage = {
+const storage = {
   getUser: () => Promise.resolve(null),
   createUser: () => Promise.resolve({ id: 'test-user' }),
   updateUser: () => Promise.resolve(true),
   deleteUser: () => Promise.resolve(true),
 };
 
-export const sql = {};
-export const db = {};
-export const pool = {};
-export const config = {
+const sql = {};
+const db = {};
+const pool = {};
+const config = {
   database: {
     url: 'mock://database'
   },
@@ -18,7 +18,7 @@ export const config = {
   }
 };
 
-export default {
+module.exports = {
   storage,
   sql,
   db,
