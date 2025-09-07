@@ -1000,8 +1000,8 @@ This payment has been processed successfully.
 Building Management Office`;
       }
 
-      const filePath = `demo-documents/bills/${docType}-${bill.billNumber.toLowerCase()}.txt`;
-      const { fileSize } = writeDocumentFile(filePath, documentContent);
+      const filePath = `bills/${docType}-${bill.billNumber.toLowerCase()}.txt`;
+      const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
       
       await db
         .insert(schema.documents)
@@ -1102,8 +1102,8 @@ Estimated Cost: $${faker.number.int({ min: 50, max: 500 })}
 Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
         }
         
-        const filePath = `demo-documents/residences/${docType.type}-${residence.unitNumber.toLowerCase()}.txt`;
-        const { fileSize } = writeDocumentFile(filePath, documentContent);
+        const filePath = `residences/${docType.type}-${residence.unitNumber.toLowerCase()}.txt`;
+        const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
         
         await db
           .insert(schema.documents)
@@ -1234,8 +1234,8 @@ Terms and Conditions:
 - ${faker.lorem.sentence()}`;
         }
         
-        const filePath = `demo-documents/buildings/${docType.type}-${building.id.slice(0, 8)}.txt`;
-        const { fileSize } = writeDocumentFile(filePath, documentContent);
+        const filePath = `buildings/${docType.type}-${building.id.slice(0, 8)}.txt`;
+        const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
         
         await db
           .insert(schema.documents)
