@@ -423,6 +423,25 @@ export interface Translations {
   residenceDocumentsButton: string;
   viewDocumentsButton: string;
   startFreeTrial: string;
+  tryDemo: string;
+  previous: string;
+  next: string;
+  // Status filter labels
+  allStatusFilter: string;
+  submittedFilter: string;
+  underReviewFilter: string;
+  approvedFilter: string;
+  inProgressFilter: string;
+  completedFilter: string;
+  rejectedFilter: string;
+  cancelledFilter: string;
+  draftFilter: string;
+  // Type filter labels
+  allTypesFilter: string;
+  maintenanceFilter: string;
+  complaintFilter: string;
+  informationFilter: string;
+  otherFilter: string;
   // Privacy Policy page
   privacyPolicyTitle: string;
   lastUpdated: string;
@@ -1010,6 +1029,25 @@ const translations: Record<Language, Translations> = {
     residenceDocumentsButton: 'Residence Documents',
     viewDocumentsButton: 'View Documents',
     startFreeTrial: 'Start your free trial',
+    tryDemo: 'Try Demo',
+    previous: 'Previous',
+    next: 'Next',
+    // Status filter labels
+    allStatusFilter: 'All Status',
+    submittedFilter: 'Submitted',
+    underReviewFilter: 'Under Review',
+    approvedFilter: 'Approved',
+    inProgressFilter: 'In Progress',
+    completedFilter: 'Completed',
+    rejectedFilter: 'Rejected',
+    cancelledFilter: 'Cancelled',
+    draftFilter: 'Draft',
+    // Type filter labels
+    allTypesFilter: 'All Types',
+    maintenanceFilter: 'Maintenance',
+    complaintFilter: 'Complaint',
+    informationFilter: 'Information',
+    otherFilter: 'Other',
     // Privacy Policy page
     privacyPolicyTitle: 'Privacy Policy',
     lastUpdated: 'Last updated:',
@@ -1594,6 +1632,25 @@ const translations: Record<Language, Translations> = {
     residenceDocumentsButton: 'Documents de la résidence',
     viewDocumentsButton: 'Voir les documents',
     startFreeTrial: 'Commencez votre essai gratuit',
+    tryDemo: 'Essayer la démo',
+    previous: 'Précédent',
+    next: 'Suivant',
+    // Étiquettes de filtre de statut
+    allStatusFilter: 'Tous les statuts',
+    submittedFilter: 'Soumise',
+    underReviewFilter: 'En révision',
+    approvedFilter: 'Approuvée',
+    inProgressFilter: 'En cours',
+    completedFilter: 'Complétée',
+    rejectedFilter: 'Rejetée',
+    cancelledFilter: 'Annulée',
+    draftFilter: 'Brouillon',
+    // Étiquettes de filtre de type
+    allTypesFilter: 'Tous les types',
+    maintenanceFilter: 'Maintenance',
+    complaintFilter: 'Plainte',
+    informationFilter: 'Information',
+    otherFilter: 'Autre',
     // Page Politique de confidentialité
     privacyPolicyTitle: 'Politique de confidentialité',
     lastUpdated: 'Dernière mise à jour :',
