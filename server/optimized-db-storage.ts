@@ -3502,7 +3502,19 @@ export class OptimizedDatabaseStorage implements IStorage {
           )
       `;
       
-      const result = await db.execute(sql.raw(updateQuery, [excludeUserId]));
+      const result = await db.execute(sql`UPDATE users 
+        SET is_active = false,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE is_active = true
+          AND id != ${excludeUserId}
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = id AND ur.is_active = true
+          )`);
       
       // For PostgreSQL, we need to get the row count differently
       const countQuery = `
@@ -3521,7 +3533,19 @@ export class OptimizedDatabaseStorage implements IStorage {
           )
       `;
       
-      const countResult = await db.execute(sql.raw(countQuery, [excludeUserId]));
+      const countResult = await db.execute(sql`SELECT COUNT(*) as deleted_count
+        FROM users u
+        WHERE u.is_active = false
+          AND u.id != ${excludeUserId}
+          AND u.updated_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute'
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = u.id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = u.id AND ur.is_active = true
+          )`);
       return parseInt(countResult.rows[0]?.deleted_count || '0');
     } catch (error: any) {
       console.error('❌ Error deleting orphan users:', error);
