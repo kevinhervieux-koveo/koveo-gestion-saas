@@ -42,11 +42,21 @@ koveo-gestion/
 ├── shared/                     # Shared code between client/server
 │   └── schema.ts              # Database schema & types
 ├── config/                     # Configuration files
+├── jest.config.simple.cjs      # Jest testing configuration
 ├── docs/                       # Documentation
 │   ├── guides/                # Implementation guides
 │   ├── references/            # Reference documentation
 │   └── reports/               # Generated reports
 ├── tests/                      # Test files
+│   ├── unit/                   # Unit tests
+│   ├── integration/            # Integration tests
+│   ├── e2e/                    # End-to-end tests
+│   ├── mocks/                  # Testing infrastructure
+│   │   ├── unified-database-mock.ts    # Database testing framework
+│   │   ├── serverApiMock.js            # Server route mocking
+│   │   ├── schemaMock.js               # Schema validation mocking
+│   │   └── serverDbMock.js             # Database operation mocking
+│   └── utils/                  # Test utilities
 ├── tools/                      # Development tools
 └── scripts/                    # Build and deployment scripts
 ```
