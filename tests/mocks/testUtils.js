@@ -127,6 +127,17 @@ const createPgCoreMock = () => {
     references: function(column) { return { ...this, references: column }; },
   });
 
+  const jsonb = (name, config = {}) => ({ 
+    name, 
+    dataType: 'jsonb', 
+    ...config,
+    primaryKey: function() { return { ...this, isPrimaryKey: true }; },
+    notNull: function() { return { ...this, isNotNull: true }; },
+    unique: function() { return { ...this, isUnique: true }; },
+    default: function(value) { return { ...this, defaultValue: value }; },
+    references: function(column) { return { ...this, references: column }; },
+  });
+
   return {
     pgEnum,
     pgTable,
@@ -138,6 +149,7 @@ const createPgCoreMock = () => {
     integer,
     date,
     json,
+    jsonb,
   };
 };
 
