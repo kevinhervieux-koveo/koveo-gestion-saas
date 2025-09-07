@@ -179,7 +179,10 @@ export default function BugReports() {
   // Fetch bugs
   const { data: bugs = [], isLoading } = useQuery({
     queryKey: ['/api/bugs'],
-    queryFn: () => apiRequest('GET', '/api/bugs'),
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/bugs');
+      return response.json();
+    },
     enabled: !!user,
   });
 
