@@ -533,7 +533,29 @@ ResidentDemandsPage() {
 
           {/* Demands List */}
           <div className='space-y-6'>
-            {/* Pagination */}
+            {/* Page info */}
+            {filteredDemands.length > 0 && (
+              <div className='text-center text-sm text-muted-foreground'>
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of {filteredDemands.length} demands
+              </div>
+            )}
+
+            {/* Current page demands */}
+            {currentDemands.length === 0 ? (
+              <Card>
+                <CardContent className='p-6 text-center'>
+                  <p className='text-muted-foreground'>{t('noDemandsFound')}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                {currentDemands.map((demand: Demand) => (
+                  <DemandCard key={demand.id} demand={demand} />
+                ))}
+              </div>
+            )}
+
+            {/* Pagination - Moved to bottom */}
             {totalPages > 1 && (
               <div className='flex items-center justify-center gap-2'>
                 <Button
@@ -541,6 +563,7 @@ ResidentDemandsPage() {
                   size='sm'
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1}
+                  data-testid='button-previous-page'
                 >
                   <ChevronLeft className='h-4 w-4' />
                   {t('previous')}
@@ -565,6 +588,7 @@ ResidentDemandsPage() {
                         variant={currentPage === pageNum ? 'default' : 'outline'}
                         size='sm'
                         onClick={() => handlePageClick(pageNum)}
+                        data-testid={`button-page-${pageNum}`}
                       >
                         {pageNum}
                       </Button>
@@ -577,36 +601,11 @@ ResidentDemandsPage() {
                   size='sm'
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
+                  data-testid='button-next-page'
                 >
                   {t('next')}
                   <ChevronRight className='h-4 w-4' />
                 </Button>
-              </div>
-            )}
-
-            {/* Page info */}
-            {filteredDemands.length > 0 && (
-              <div className='text-center text-sm text-muted-foreground'>
-                {t('showingResults', {
-                  start: startIndex + 1,
-                  end: Math.min(endIndex, filteredDemands.length),
-                  total: filteredDemands.length
-                })}
-              </div>
-            )}
-
-            {/* Current page demands */}
-            {currentDemands.length === 0 ? (
-              <Card>
-                <CardContent className='p-6 text-center'>
-                  <p className='text-muted-foreground'>{t('noDemandsFound')}</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                {currentDemands.map((demand: Demand) => (
-                  <DemandCard key={demand.id} demand={demand} />
-                ))}
               </div>
             )}
           </div>
