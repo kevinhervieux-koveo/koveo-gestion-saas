@@ -44,20 +44,24 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      // Parse pagination parameters
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
 
-      // Get users with their full assignment data
-      const usersWithAssignments = await storage.getUsersWithAssignments();
+      // Get users with their full assignment data and pagination
+      const result = await storage.getUsersWithAssignmentsPaginated(offset, limit);
 
       
 
-      // Filter users based on current user's role and permissions
+      // Apply role-based filtering to the paginated result
       let filteredUsers;
       if (currentUser.role === 'admin') {
         // Admin can see all users
-        filteredUsers = usersWithAssignments;
+        filteredUsers = result.users;
       } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
         // Demo users can only see other demo users
-        filteredUsers = usersWithAssignments.filter(user => 
+        filteredUsers = result.users.filter(user => 
           ['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)
         );
       } else {
@@ -66,7 +70,7 @@ export function registerUserRoutes(app: Express): void {
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
         
         // Filter users to only include non-demo users from accessible organizations
-        filteredUsers = usersWithAssignments.filter(user => {
+        filteredUsers = result.users.filter(user => {
           // Exclude demo users from regular manager view
           if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)) {
             return false;
@@ -77,8 +81,18 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-
-      res.json(filteredUsers);
+      // Return paginated response with metadata
+      res.json({
+        users: filteredUsers,
+        pagination: {
+          page,
+          limit,
+          total: result.total,
+          totalPages: Math.ceil(result.total / limit),
+          hasNext: page * limit < result.total,
+          hasPrev: page > 1
+        }
+      });
     } catch (error: any) {
       console.error('❌ Error fetching users:', error);
       res.status(500).json({
