@@ -3459,6 +3459,9 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   // Admin-only method to count orphan users
   async countOrphanUsers(): Promise<number> {
+    console.log('📊 [STORAGE - COUNT] ===== COUNT ORPHAN USERS STARTED =====');
+    console.log('⏰ [STORAGE - COUNT] Timestamp:', new Date().toISOString());
+    
     try {
       const countQuery = `
         SELECT COUNT(*) as total 
@@ -3474,19 +3477,62 @@ export class OptimizedDatabaseStorage implements IStorage {
           )
       `;
       
+      console.log('🔍 [STORAGE - COUNT] Executing SQL query:', countQuery.trim());
+      console.log('⏱️ [STORAGE - COUNT] Starting database execution...');
+      
+      const startTime = Date.now();
       const result = await db.execute(sql.raw(countQuery));
-      return parseInt(result.rows[0]?.total || '0');
+      const endTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - COUNT] Database query completed in:', (endTime - startTime), 'ms');
+      console.log('📈 [STORAGE - COUNT] Raw database result:', result.rows);
+      
+      const count = parseInt(result.rows[0]?.total || '0');
+      console.log('🔢 [STORAGE - COUNT] Parsed orphan count:', count);
+      console.log('📊 [STORAGE - COUNT] ===== COUNT ORPHAN USERS COMPLETED =====');
+      
+      return count;
     } catch (error: any) {
-      console.error('❌ Error counting orphan users:', error);
+      console.error('💥 [STORAGE - COUNT] ===== CRITICAL ERROR =====');
+      console.error('❌ [STORAGE - COUNT] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
+        timestamp: new Date().toISOString()
+      });
+      console.error('💥 [STORAGE - COUNT] ===== END CRITICAL ERROR =====');
       return 0;
     }
   }
 
   // Admin-only method to delete orphan users (excluding specified admin user)
   async deleteOrphanUsers(excludeUserId: string): Promise<number> {
+    console.log('🗑️ [STORAGE - DELETE] ===== DELETE ORPHAN USERS STARTED =====');
+    console.log('⏰ [STORAGE - DELETE] Timestamp:', new Date().toISOString());
+    console.log('🔒 [STORAGE - DELETE] Excluding admin user ID:', excludeUserId);
+    
     try {
+      // First, let's get the list of users that will be affected for debugging
+      const previewQuery = sql`SELECT u.id, u.email, u.first_name, u.last_name, u.role
+        FROM users u
+        WHERE u.is_active = true
+          AND u.id != ${excludeUserId}
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = u.id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = u.id AND ur.is_active = true
+          )`;
+      
+      console.log('🔍 [STORAGE - DELETE] Getting preview of users to be deleted...');
+      const previewResult = await db.execute(previewQuery);
+      console.log('👥 [STORAGE - DELETE] Users to be deleted:', previewResult.rows);
+      
       // Mark orphan users as inactive to avoid foreign key issues
-      const result = await db.execute(sql`UPDATE users 
+      const updateQuery = sql`UPDATE users 
         SET is_active = false,
             updated_at = CURRENT_TIMESTAMP
         WHERE is_active = true
@@ -3498,10 +3544,20 @@ export class OptimizedDatabaseStorage implements IStorage {
           AND NOT EXISTS (
             SELECT 1 FROM user_residences ur 
             WHERE ur.user_id = id AND ur.is_active = true
-          )`);
+          )`;
+      
+      console.log('🔧 [STORAGE - DELETE] Executing UPDATE query to mark users as inactive...');
+      console.log('⏱️ [STORAGE - DELETE] Starting update operation...');
+      
+      const startTime = Date.now();
+      const result = await db.execute(updateQuery);
+      const updateTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - DELETE] Update operation completed in:', (updateTime - startTime), 'ms');
+      console.log('📊 [STORAGE - DELETE] Update result:', result);
       
       // Count the affected rows
-      const countResult = await db.execute(sql`SELECT COUNT(*) as deleted_count
+      const countQuery = sql`SELECT COUNT(*) as deleted_count
         FROM users u
         WHERE u.is_active = false
           AND u.id != ${excludeUserId}
@@ -3513,10 +3569,33 @@ export class OptimizedDatabaseStorage implements IStorage {
           AND NOT EXISTS (
             SELECT 1 FROM user_residences ur 
             WHERE ur.user_id = u.id AND ur.is_active = true
-          )`);
-      return parseInt(countResult.rows[0]?.deleted_count || '0');
+          )`;
+      
+      console.log('🔍 [STORAGE - DELETE] Executing count query to verify deletion...');
+      const countStartTime = Date.now();
+      const countResult = await db.execute(countQuery);
+      const countEndTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - DELETE] Count query completed in:', (countEndTime - countStartTime), 'ms');
+      console.log('📈 [STORAGE - DELETE] Raw count result:', countResult.rows);
+      
+      const deletedCount = parseInt(countResult.rows[0]?.deleted_count || '0');
+      console.log('🔢 [STORAGE - DELETE] Final deleted count:', deletedCount);
+      console.log('⏱️ [STORAGE - DELETE] Total operation time:', (countEndTime - startTime), 'ms');
+      console.log('🗑️ [STORAGE - DELETE] ===== DELETE ORPHAN USERS COMPLETED =====');
+      
+      return deletedCount;
     } catch (error: any) {
-      console.error('❌ Error deleting orphan users:', error);
+      console.error('💥 [STORAGE - DELETE] ===== CRITICAL ERROR =====');
+      console.error('❌ [STORAGE - DELETE] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
+        excludeUserId: excludeUserId,
+        timestamp: new Date().toISOString()
+      });
+      console.error('💥 [STORAGE - DELETE] ===== END CRITICAL ERROR =====');
       throw error;
     }
   }
