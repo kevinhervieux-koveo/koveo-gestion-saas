@@ -382,13 +382,9 @@ export default function BugReports() {
     return user?.role === 'admin' || bug.createdBy === user?.id;
   };
 
-  // Filter bugs with role-based access control - ensure bugs is always an array
+  // Filter bugs - server already handles role-based access control
   const bugsArray = Array.isArray(bugs) ? bugs : [];
   const filteredBugs = bugsArray.filter((bug: Bug) => {
-    // Role-based filtering: users see only their bugs, admins see all
-    const hasAccess = user?.role === 'admin' || bug.createdBy === user?.id;
-    if (!hasAccess) return false;
-
     // Search filter
     const matchesSearch = searchTerm === '' || 
       bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
