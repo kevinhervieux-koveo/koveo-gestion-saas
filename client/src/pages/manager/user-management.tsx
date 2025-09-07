@@ -619,28 +619,39 @@ export default function UserManagement() {
   // Delete orphan users mutation (admin only)
   const deleteOrphanUsersMutation = useMutation({
     mutationFn: async () => {
+      console.log('🗑️ [FRONTEND] Delete orphans mutation started');
+      console.log('🔍 [FRONTEND] Current user:', currentUser?.email, 'role:', currentUser?.role);
+      
       const response = await fetch('/api/users/orphans', {
         method: 'DELETE',
       });
       
+      console.log('📡 [FRONTEND] API response status:', response.status, response.statusText);
+      
       if (!response.ok) {
         const error = await response.json();
+        console.error('❌ [FRONTEND] API Error response:', error);
         throw new Error(error.error || 'Failed to delete orphan users');
       }
       
-      return response.json();
+      const result = await response.json();
+      console.log('✅ [FRONTEND] API Success response:', result);
+      return result;
     },
     onSuccess: (data) => {
+      console.log('🎉 [FRONTEND] Delete orphans mutation succeeded:', data);
       toast({
         title: 'Success',
         description: data.message || `Deleted ${data.deletedCount} orphan users`,
       });
       
+      console.log('🔄 [FRONTEND] Refreshing users list...');
       // Refresh the users list
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       setShowDeleteOrphansDialog(false);
     },
     onError: (error) => {
+      console.error('💥 [FRONTEND] Delete orphans mutation failed:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to delete orphan users',
@@ -651,6 +662,8 @@ export default function UserManagement() {
 
   // Handle delete orphan users
   const handleDeleteOrphanUsers = () => {
+    console.log('🖱️ [FRONTEND] Delete orphans button clicked');
+    console.log('👤 [FRONTEND] Triggering delete for user:', currentUser?.email);
     deleteOrphanUsersMutation.mutate();
   };
 
