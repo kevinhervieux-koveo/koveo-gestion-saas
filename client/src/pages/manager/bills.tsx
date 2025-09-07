@@ -803,6 +803,20 @@ function BillDetail({
     },
   });
 
+  // Fetch documents attached to this bill
+  const { data: billDocuments = [], isLoading: documentsLoading } = useQuery({
+    queryKey: ['/api/documents', 'bill', bill.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/documents?attachedToType=bill&attachedToId=${bill.id}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch bill documents');
+      }
+      return response.json();
+    },
+  });
+
   // Use fresh bill data if available, fallback to props bill data
   const currentBill = freshBill || bill;
   
@@ -931,46 +945,86 @@ function BillDetail({
         </div>
       )}
 
-      {/* Document Section - Only show if document exists */}
-      {currentBill.filePath && (
+      {/* Document Section - Show both direct uploads and attached documents */}
+      {(currentBill.filePath || billDocuments.length > 0) && (
         <div className='border-t pt-4'>
-          <Label className='text-sm font-medium'>Uploaded Document</Label>
-          <div className='mt-2'>
-            <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
-              <div className='flex items-center gap-2'>
-                <FileText className='w-4 h-4 text-blue-600' />
-                <span className='text-sm'>{currentBill.fileName}</span>
-                {currentBill.isAiAnalyzed && (
-                  <Badge variant='outline' className='text-xs'>
-                    AI Analyzed
-                  </Badge>
-                )}
+          <Label className='text-sm font-medium'>Documents</Label>
+          <div className='mt-2 space-y-2'>
+            {/* Direct bill upload */}
+            {currentBill.filePath && (
+              <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                <div className='flex items-center gap-2'>
+                  <FileText className='w-4 h-4 text-blue-600' />
+                  <span className='text-sm'>{currentBill.fileName}</span>
+                  {currentBill.isAiAnalyzed && (
+                    <Badge variant='outline' className='text-xs'>
+                      AI Analyzed
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    console.log('[DOWNLOAD] Starting download for bill:', currentBill.id);
+                    console.log('[DOWNLOAD] Document name:', currentBill.fileName);
+                    console.log('[DOWNLOAD] Document path:', currentBill.filePath);
+                    
+                    // Download the document
+                    const link = document.createElement('a');
+                    link.href = `/api/bills/${currentBill.id}/download-document`;
+                    link.download = currentBill.fileName || 'bill-document';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    console.log('[DOWNLOAD] Download link clicked');
+                  }}
+                  className='flex items-center gap-1'
+                  data-testid={`button-download-document-${currentBill.id}`}
+                >
+                  <FileText className='w-3 h-3' />
+                  Download
+                </Button>
               </div>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => {
-                  console.log('[DOWNLOAD] Starting download for bill:', currentBill.id);
-                  console.log('[DOWNLOAD] Document name:', currentBill.fileName);
-                  console.log('[DOWNLOAD] Document path:', currentBill.filePath);
-                  
-                  // Download the document
-                  const link = document.createElement('a');
-                  link.href = `/api/bills/${currentBill.id}/download-document`;
-                  link.download = currentBill.fileName || 'bill-document';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  
-                  console.log('[DOWNLOAD] Download link clicked');
-                }}
-                className='flex items-center gap-1'
-                data-testid={`button-download-document-${currentBill.id}`}
-              >
-                <FileText className='w-3 h-3' />
-                Download
-              </Button>
-            </div>
+            )}
+            
+            {/* Attached documents from documents table */}
+            {billDocuments.map((doc: any) => (
+              <div key={doc.id} className='flex items-center justify-between p-3 bg-blue-50 rounded-lg'>
+                <div className='flex items-center gap-2'>
+                  <FileText className='w-4 h-4 text-blue-600' />
+                  <span className='text-sm'>{doc.name}</span>
+                  <Badge variant='outline' className='text-xs'>
+                    {doc.documentType || 'Document'}
+                  </Badge>
+                </div>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={() => {
+                    console.log('[DOWNLOAD] Starting download for document:', doc.id);
+                    console.log('[DOWNLOAD] Document name:', doc.name);
+                    console.log('[DOWNLOAD] Document path:', doc.filePath);
+                    
+                    // Download the document
+                    const link = document.createElement('a');
+                    link.href = `/api/documents/${doc.id}/download`;
+                    link.download = doc.fileName || doc.name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    console.log('[DOWNLOAD] Download link clicked');
+                  }}
+                  className='flex items-center gap-1'
+                  data-testid={`button-download-document-${doc.id}`}
+                >
+                  <FileText className='w-3 h-3' />
+                  Download
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       )}
