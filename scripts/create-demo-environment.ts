@@ -509,10 +509,11 @@ async function seedCommonSpaces(buildings: CreatedBuilding[]): Promise<CreatedCo
 }
 
 /**
- * Create users with role-based logic
+ * Create users with role-based logic and proper organization/building/residence relationships
  */
 async function seedUsers(
   organizationType: 'demo' | 'production',
+  organizationId: string,
   buildings: CreatedBuilding[],
   residences: CreatedResidence[]
 ): Promise<CreatedUser[]> {
@@ -547,6 +548,17 @@ async function seedUsers(
           })
           .returning();
         
+        // Create user-organization relationship
+        await db
+          .insert(schema.userOrganizations)
+          .values({
+            userId: user.id,
+            organizationId: organizationId,
+            organizationRole: role as any,
+            isActive: true,
+            canAccessAllOrganizations: false
+          });
+        
         users.push({
           id: user.id,
           username: user.username,
@@ -557,7 +569,7 @@ async function seedUsers(
       }
     }
     
-    // Create residents for each residence
+    // Create residents for each residence with varying relationship types
     console.log('   Creating residents for residences...');
     for (const residence of residences) {
       const firstName = faker.person.firstName();
@@ -579,13 +591,27 @@ async function seedUsers(
         })
         .returning();
       
-      // Create user-residence relationship
+      // Create user-organization relationship
+      await db
+        .insert(schema.userOrganizations)
+        .values({
+          userId: user.id,
+          organizationId: organizationId,
+          organizationRole: role as any,
+          isActive: true,
+          canAccessAllOrganizations: false
+        });
+      
+      // Create user-residence relationship with varying types
+      const relationshipTypes = ['owner', 'tenant', 'occupant'];
+      const relationshipType = faker.helpers.arrayElement(relationshipTypes);
+      
       await db
         .insert(schema.userResidences)
         .values({
           userId: user.id,
           residenceId: residence.id,
-          relationshipType: 'owner',
+          relationshipType: relationshipType,
           startDate: new Date(Date.now() - faker.number.int({ min: 30, max: 365 * 3 }) * 24 * 60 * 60 * 1000),
           isActive: true
         });
@@ -600,7 +626,31 @@ async function seedUsers(
       });
     }
     
+    // Create some users with multiple residence relationships (10% chance)
+    console.log('   Creating additional multi-residence relationships...');
+    const multiResidenceCount = Math.floor(users.filter(u => u.role.includes('resident')).length * 0.1);
+    
+    for (let i = 0; i < multiResidenceCount; i++) {
+      const existingUser = faker.helpers.arrayElement(users.filter(u => u.role.includes('resident')));
+      const additionalResidence = faker.helpers.arrayElement(residences.filter(r => r.id !== existingUser.residenceId));
+      
+      // Create additional user-residence relationship with different type
+      const secondaryRelationshipTypes = ['tenant', 'occupant'];
+      const secondaryType = faker.helpers.arrayElement(secondaryRelationshipTypes);
+      
+      await db
+        .insert(schema.userResidences)
+        .values({
+          userId: existingUser.id,
+          residenceId: additionalResidence.id,
+          relationshipType: secondaryType,
+          startDate: new Date(Date.now() - faker.number.int({ min: 30, max: 365 }) * 24 * 60 * 60 * 1000),
+          isActive: true
+        });
+    }
+    
     console.log(`📊 Created ${users.length} users (${users.filter(u => u.role.includes('manager')).length} managers, ${users.filter(u => u.role.includes('resident')).length} residents)`);
+    console.log(`📊 Added ${multiResidenceCount} additional residence relationships`);
     return users;
   } catch (error) {
     console.error('❌ Failed to create users:', error);
@@ -806,7 +856,7 @@ async function main() {
     
     // Step 5: Create Users
     console.log('👥 Step 5: Create Users');
-    const users = await seedUsers(args.type, buildings, residences);
+    const users = await seedUsers(args.type, organization.id, buildings, residences);
     console.log('');
     
     // Step 6: Create Bookings
