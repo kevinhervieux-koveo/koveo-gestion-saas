@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+SERVICE CONTRACT
+
+Building: 87144 Bahringer Wall Building 2
+Organization: 7f54d956-aef0-4473-bfcc-8c17295d993f
+Document Date: 9/7/2025
+
+SERVICE CONTRACT
+
+Contract Number: CON-LKO4PG5D
+Service Provider: Kutch, Boyer and Buckridge
+Service Type: Landscaping
+Contract Period: 12/7/2024 to 2/18/2026
+Monthly Cost: $526
+
+Service Details:
+Ducimus benigne admoveo. Titulus uredo titulus accusantium. Calcar nihil sperno.
+
+Contact Information:
+Manager: Stacy Crona
+Phone: (514) 581-9597
+Emergency Contact: (819) 242-1989
+
+Terms and Conditions:
+- Adhaero creator ustulo fugit.
+- Cuppedia stillicidium suggero stabilis.
