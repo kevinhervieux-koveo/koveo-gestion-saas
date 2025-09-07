@@ -574,6 +574,63 @@ export interface Translations {
   current: string;
   showMoreYears: string;
   showFewerYears: string;
+  // Manager Demands page translations
+  demandsManagement: string;
+  demandsSubtitle: string;
+  allDemands: string;
+  reviewManageDemands: string;
+  newDemand: string;
+  createNewDemand: string;
+  createDemandBehalf: string;
+  loadingDemands: string;
+  searchDemands: string;
+  status: string;
+  type: string;
+  allStatus: string;
+  allTypes: string;
+  selectType: string;
+  selectBuilding: string;
+  description: string;
+  describeDemandDetail: string;
+  creating: string;
+  create: string;
+  // Demand types
+  maintenanceType: string;
+  complaintType: string;
+  informationType: string;
+  otherType: string;
+  // Demand statuses  
+  draft: string;
+  submitted: string;
+  underReview: string;
+  approved: string;
+  rejected: string;
+  inProgress: string;
+  completed: string;
+  cancelled: string;
+  // Demand tabs and sections
+  pendingReview: string;
+  activeTab: string;
+  completedTab: string;
+  all: string;
+  noDemandsPending: string;
+  noActiveDemands: string;
+  noCompletedDemands: string;
+  noDemandsFound: string;
+  totalDemandsLoaded: string;
+  // Demand card labels
+  submittedBy: string;
+  residence: string;
+  created: string;
+  unknown: string;
+  // Success/Error messages
+  demandCreatedSuccess: string;
+  failedCreateDemand: string;
+  success: string;
+  error: string;
+  // Form validation messages
+  descriptionMinLength: string;
+  buildingRequired: string;
   // Month names
   january: string;
   february: string;
@@ -1330,6 +1387,63 @@ const translations: Record<Language, Translations> = {
     current: 'Current',
     showMoreYears: 'Show more years',
     showFewerYears: 'Show fewer years',
+    // Manager Demands page translations
+    demandsManagement: 'Demands Management',
+    demandsSubtitle: 'Manage maintenance requests and demands',
+    allDemands: 'All Demands',
+    reviewManageDemands: 'Review and manage resident demands',
+    newDemand: 'New Demand',
+    createNewDemand: 'Create New Demand',
+    createDemandBehalf: 'Create a demand on behalf of a resident',
+    loadingDemands: 'Loading demands...',
+    searchDemands: 'Search demands...',
+    status: 'Status',
+    type: 'Type',
+    allStatus: 'All Status',
+    allTypes: 'All Types',
+    selectType: 'Select type',
+    selectBuilding: 'Select building',
+    description: 'Description',
+    describeDemandDetail: 'Describe the demand in detail...',
+    creating: 'Creating...',
+    create: 'Create',
+    // Demand types
+    maintenanceType: 'Maintenance',
+    complaintType: 'Complaint',
+    informationType: 'Information',
+    otherType: 'Other',
+    // Demand statuses
+    draft: 'Draft',
+    submitted: 'Submitted',
+    underReview: 'Under Review',
+    approved: 'Approved',
+    rejected: 'Rejected',
+    inProgress: 'In Progress',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    // Demand tabs and sections
+    pendingReview: 'Pending Review',
+    activeTab: 'Active',
+    completedTab: 'Completed',
+    all: 'All',
+    noDemandsPending: 'No demands pending review',
+    noActiveDemands: 'No active demands',
+    noCompletedDemands: 'No completed demands',
+    noDemandsFound: 'No demands found',
+    totalDemandsLoaded: 'total demands loaded, but filtered out',
+    // Demand card labels
+    submittedBy: 'Submitted by',
+    residence: 'Residence',
+    created: 'Created',
+    unknown: 'Unknown',
+    // Success/Error messages
+    demandCreatedSuccess: 'Demand created successfully',
+    failedCreateDemand: 'Failed to create demand',
+    success: 'Success',
+    error: 'Error',
+    // Form validation messages
+    descriptionMinLength: 'Description must be at least 10 characters',
+    buildingRequired: 'Building is required',
     // Month names
     january: 'January',
     february: 'February',
@@ -2083,6 +2197,63 @@ const translations: Record<Language, Translations> = {
     current: 'Actuel',
     showMoreYears: 'Afficher plus d\'années',
     showFewerYears: 'Afficher moins d\'années',
+    // Traductions de la page de gestion des demandes
+    demandsManagement: 'Gestion des demandes',
+    demandsSubtitle: 'Gérer les demandes de maintenance et réclamations',
+    allDemands: 'Toutes les demandes',
+    reviewManageDemands: 'Examiner et gérer les demandes des résidents',
+    newDemand: 'Nouvelle demande',
+    createNewDemand: 'Créer une nouvelle demande',
+    createDemandBehalf: 'Créer une demande au nom d\'un résident',
+    loadingDemands: 'Chargement des demandes...',
+    searchDemands: 'Rechercher des demandes...',
+    status: 'Statut',
+    type: 'Type',
+    allStatus: 'Tous les statuts',
+    allTypes: 'Tous les types',
+    selectType: 'Sélectionner le type',
+    selectBuilding: 'Sélectionner un bâtiment',
+    description: 'Description',
+    describeDemandDetail: 'Décrivez la demande en détail...',
+    creating: 'Création en cours...',
+    create: 'Créer',
+    // Types de demandes
+    maintenanceType: 'Entretien',
+    complaintType: 'Plainte',
+    informationType: 'Information',
+    otherType: 'Autre',
+    // Statuts des demandes
+    draft: 'Brouillon',
+    submitted: 'Soumis',
+    underReview: 'En révision',
+    approved: 'Approuvé',
+    rejected: 'Rejeté',
+    inProgress: 'En cours',
+    completed: 'Terminé',
+    cancelled: 'Annulé',
+    // Onglets et sections des demandes
+    pendingReview: 'En attente de révision',
+    activeTab: 'Actif',
+    completedTab: 'Terminé',
+    all: 'Tout',
+    noDemandsPending: 'Aucune demande en attente de révision',
+    noActiveDemands: 'Aucune demande active',
+    noCompletedDemands: 'Aucune demande terminée',
+    noDemandsFound: 'Aucune demande trouvée',
+    totalDemandsLoaded: 'demandes totales chargées, mais filtrées',
+    // Étiquettes des cartes de demandes
+    submittedBy: 'Soumis par',
+    residence: 'Résidence',
+    created: 'Créé',
+    unknown: 'Inconnu',
+    // Messages de succès/erreur
+    demandCreatedSuccess: 'Demande créée avec succès',
+    failedCreateDemand: 'Échec de la création de la demande',
+    success: 'Succès',
+    error: 'Erreur',
+    // Messages de validation de formulaire
+    descriptionMinLength: 'La description doit contenir au moins 10 caractères',
+    buildingRequired: 'Le bâtiment est requis',
     // Noms des mois
     january: 'Janvier',
     february: 'Février',

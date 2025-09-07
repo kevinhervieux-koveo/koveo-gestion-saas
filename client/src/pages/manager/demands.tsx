@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/form';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { Header } from '@/components/layout/header';
 import type { Demand as DemandType } from '@/../../shared/schema';
@@ -105,18 +106,14 @@ const statusColors = {
   cancelled: 'bg-gray-100 text-gray-800',
 };
 
-const typeLabels = {
-  maintenance: 'Maintenance',
-  complaint: 'Complaint',
-  information: 'Information',
-  other: 'Other',
-};
+// Type labels will use translation function instead of static object
 
 /**
  *
  */
 export default function ManagerDemandsPage() {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -304,10 +301,10 @@ export default function ManagerDemandsPage() {
   if (isLoading) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='Demands Management' subtitle='Manage maintenance requests and demands' />
+        <Header title={t('demandsManagement')} subtitle={t('demandsSubtitle')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='flex items-center justify-center h-64'>
-            <div className='text-center'>Loading demands...</div>
+            <div className='text-center'>{t('loadingDemands')}</div>
           </div>
         </div>
       </div>
@@ -316,27 +313,27 @@ export default function ManagerDemandsPage() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='Demands Management' subtitle='Manage maintenance requests and demands' />
+      <Header title={t('demandsManagement')} subtitle={t('demandsSubtitle')} />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
           {/* Header Actions */}
           <div className='flex items-center justify-between'>
             <div>
-              <h2 className='text-2xl font-bold'>All Demands</h2>
-              <p className='text-muted-foreground'>Review and manage resident demands</p>
+              <h2 className='text-2xl font-bold'>{t('allDemands')}</h2>
+              <p className='text-muted-foreground'>{t('reviewManageDemands')}</p>
             </div>
             <Dialog open={isNewDemandOpen} onOpenChange={setIsNewDemandOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className='h-4 w-4 mr-2' />
-                  New Demand
+                  {t('newDemand')}
                 </Button>
               </DialogTrigger>
               <DialogContent className='max-w-md'>
                 <DialogHeader>
-                  <DialogTitle>Create New Demand</DialogTitle>
-                  <DialogDescription>Create a demand on behalf of a resident</DialogDescription>
+                  <DialogTitle>{t('createNewDemand')}</DialogTitle>
+                  <DialogDescription>{t('createDemandBehalf')}</DialogDescription>
                 </DialogHeader>
                 <Form {...newDemandForm}>
                   <form
@@ -348,18 +345,18 @@ export default function ManagerDemandsPage() {
                       name='type'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Type</FormLabel>
+                          <FormLabel>{t('type')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='Select type' />
+                                <SelectValue placeholder={t('selectType')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value='maintenance'>Maintenance</SelectItem>
-                              <SelectItem value='complaint'>Complaint</SelectItem>
-                              <SelectItem value='information'>Information</SelectItem>
-                              <SelectItem value='other'>Other</SelectItem>
+                              <SelectItem value='maintenance'>{t('maintenanceType')}</SelectItem>
+                              <SelectItem value='complaint'>{t('complaintType')}</SelectItem>
+                              <SelectItem value='information'>{t('informationType')}</SelectItem>
+                              <SelectItem value='other'>{t('otherType')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -371,11 +368,11 @@ export default function ManagerDemandsPage() {
                       name='buildingId'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Building</FormLabel>
+                          <FormLabel>{t('building')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder='Select building' />
+                                <SelectValue placeholder={t('selectBuilding')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -395,10 +392,10 @@ export default function ManagerDemandsPage() {
                       name='description'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>{t('description')}</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder='Describe the demand in detail...'
+                              placeholder={t('describeDemandDetail')}
                               className='min-h-[100px]'
                               {...field}
                             />
@@ -409,7 +406,7 @@ export default function ManagerDemandsPage() {
                     />
                     <DialogFooter>
                       <Button type='submit' disabled={createDemandMutation.isPending}>
-                        {createDemandMutation.isPending ? 'Creating...' : 'Create'}
+                        {createDemandMutation.isPending ? t('creating') : t('create')}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -423,7 +420,7 @@ export default function ManagerDemandsPage() {
             <div className='relative flex-1 max-w-sm'>
               <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
               <Input
-                placeholder='Search demands...'
+                placeholder={t('searchDemands')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className='pl-10'
@@ -431,30 +428,30 @@ export default function ManagerDemandsPage() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className='w-40'>
-                <SelectValue placeholder='Status' />
+                <SelectValue placeholder={t('status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='all'>All Status</SelectItem>
-                <SelectItem value='draft'>Draft</SelectItem>
-                <SelectItem value='submitted'>Submitted</SelectItem>
-                <SelectItem value='under_review'>Under Review</SelectItem>
-                <SelectItem value='approved'>Approved</SelectItem>
-                <SelectItem value='in_progress'>In Progress</SelectItem>
-                <SelectItem value='completed'>Completed</SelectItem>
-                <SelectItem value='rejected'>Rejected</SelectItem>
-                <SelectItem value='cancelled'>Cancelled</SelectItem>
+                <SelectItem value='all'>{t('allStatus')}</SelectItem>
+                <SelectItem value='draft'>{t('draft')}</SelectItem>
+                <SelectItem value='submitted'>{t('submitted')}</SelectItem>
+                <SelectItem value='under_review'>{t('underReview')}</SelectItem>
+                <SelectItem value='approved'>{t('approved')}</SelectItem>
+                <SelectItem value='in_progress'>{t('inProgress')}</SelectItem>
+                <SelectItem value='completed'>{t('completed')}</SelectItem>
+                <SelectItem value='rejected'>{t('rejected')}</SelectItem>
+                <SelectItem value='cancelled'>{t('cancelled')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className='w-40'>
-                <SelectValue placeholder='Type' />
+                <SelectValue placeholder={t('type')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='all'>All Types</SelectItem>
-                <SelectItem value='maintenance'>Maintenance</SelectItem>
-                <SelectItem value='complaint'>Complaint</SelectItem>
-                <SelectItem value='information'>Information</SelectItem>
-                <SelectItem value='other'>Other</SelectItem>
+                <SelectItem value='all'>{t('allTypes')}</SelectItem>
+                <SelectItem value='maintenance'>{t('maintenanceType')}</SelectItem>
+                <SelectItem value='complaint'>{t('complaintType')}</SelectItem>
+                <SelectItem value='information'>{t('informationType')}</SelectItem>
+                <SelectItem value='other'>{t('otherType')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -462,9 +459,9 @@ export default function ManagerDemandsPage() {
           {/* Demands List */}
           <Tabs defaultValue='pending' className='w-full'>
             <TabsList>
-              <TabsTrigger value='pending'>Pending Review ({pendingDemands.length})</TabsTrigger>
-              <TabsTrigger value='active'>Active ({activeDemands.length})</TabsTrigger>
-              <TabsTrigger value='completed'>Completed ({completedDemands.length})</TabsTrigger>
+              <TabsTrigger value='pending'>{t('pendingReview')} ({pendingDemands.length})</TabsTrigger>
+              <TabsTrigger value='active'>{t('activeTab')} ({activeDemands.length})</TabsTrigger>
+              <TabsTrigger value='completed'>{t('completedTab')} ({completedDemands.length})</TabsTrigger>
               <TabsTrigger value='all'>All ({allDemands.length})</TabsTrigger>
             </TabsList>
 
