@@ -646,6 +646,22 @@ export interface Translations {
   noComplianceDataMessage: string;
   noCertificateFound: string;
   noCertificateFoundMessage: string;
+  // Invitation management
+  pendingInvitations: string;
+  managePendingInvitations: string;
+  loadingInvitations: string;
+  noInvitationsFound: string;
+  expires: string;
+  status: string;
+  actions: string;
+  unit: string;
+  expired: string;
+  pending: string;
+  deleteInvitation: string;
+  deleteInvitationConfirm: string;
+  cancel: string;
+  invitationDeletedSuccess: string;
+  invitationDeletedError: string;
   deleteAccountAction: string;
   profileUpdated: string;
   profileUpdatedDescription: string;
@@ -1630,6 +1646,22 @@ export const translations: Record<Language, Translations> = {
     noComplianceDataMessage: 'Run the compliance scan to view Law 25 compliance status.',
     noCertificateFound: 'No Certificate Found',
     noCertificateFoundMessage: 'No SSL certificate found for this domain.',
+    // Invitation management
+    pendingInvitations: 'Pending Invitations',
+    managePendingInvitations: 'Manage pending user invitations. Only pending invitations are shown.',
+    loadingInvitations: 'Loading invitations...',
+    noInvitationsFound: 'No pending invitations found',
+    expires: 'Expires',
+    status: 'Status',
+    actions: 'Actions',
+    unit: 'Unit',
+    expired: 'Expired',
+    pending: 'Pending',
+    deleteInvitation: 'Delete Invitation',
+    deleteInvitationConfirm: 'Are you sure you want to delete the invitation for {email}? This action cannot be undone.',
+    cancel: 'Cancel',
+    invitationDeletedSuccess: 'Invitation deleted successfully',
+    invitationDeletedError: 'Failed to delete invitation',
     deleteAccountAction: 'Delete Account',
     profileUpdated: 'Profile updated',
     profileUpdatedDescription: 'Your profile has been updated successfully.',
@@ -2538,6 +2570,22 @@ export const translations: Record<Language, Translations> = {
     noComplianceDataMessage: 'Exécutez l\'analyse de conformité pour voir le statut de conformité à la Loi 25.',
     noCertificateFound: 'Aucun certificat trouvé',
     noCertificateFoundMessage: 'Aucun certificat SSL trouvé pour ce domaine.',
+    // Invitation management
+    pendingInvitations: 'Invitations en attente',
+    managePendingInvitations: 'Gérer les invitations d\'utilisateurs en attente. Seules les invitations en attente sont affichées.',
+    loadingInvitations: 'Chargement des invitations...',
+    noInvitationsFound: 'Aucune invitation en attente trouvée',
+    expires: 'Expire',
+    status: 'Statut',
+    actions: 'Actions',
+    unit: 'Unité',
+    expired: 'Expiré',
+    pending: 'En attente',
+    deleteInvitation: 'Supprimer l\'invitation',
+    deleteInvitationConfirm: 'Êtes-vous sûr de vouloir supprimer l\'invitation pour {email} ? Cette action ne peut pas être annulée.',
+    cancel: 'Annuler',
+    invitationDeletedSuccess: 'Invitation supprimée avec succès',
+    invitationDeletedError: 'Échec de la suppression de l\'invitation',
     deleteAccountAction: 'Supprimer le compte',
     profileUpdated: 'Profil mis à jour',
     profileUpdatedDescription: 'Votre profil a été mis à jour avec succès.',
