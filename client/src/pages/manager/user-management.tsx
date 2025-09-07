@@ -123,7 +123,18 @@ export default function UserManagement() {
       orphanFilter
     }],
     queryFn: async () => {
-      const response = await fetch(`/api/users?page=${currentPage}&limit=${usersPerPage}`);
+      // Build query parameters including filters
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: usersPerPage.toString(),
+      });
+      
+      if (roleFilter) params.append('role', roleFilter);
+      if (statusFilter) params.append('status', statusFilter);
+      if (organizationFilter) params.append('organization', organizationFilter);
+      if (orphanFilter) params.append('orphan', orphanFilter);
+      
+      const response = await fetch(`/api/users?${params.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch users');
       }

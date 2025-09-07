@@ -268,27 +268,46 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Retrieves paginated active users with their assignments (organizations, buildings, residences).
    * OPTIMIZED: Uses single query with JOINs, aggregation, and LIMIT/OFFSET for pagination.
    */
-  async getUsersWithAssignmentsPaginated(offset: number = 0, limit: number = 10): Promise<{
+  async getUsersWithAssignmentsPaginated(
+    offset: number = 0, 
+    limit: number = 10, 
+    filters: { role?: string; status?: string; organization?: string; orphan?: string } = {}
+  ): Promise<{
     users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
     total: number;
   }> {
     return this.withOptimizations(
       'getUsersWithAssignmentsPaginated',
-      `paginated_users_${offset}_${limit}_v1`,
+      `paginated_users_${offset}_${limit}_${JSON.stringify(filters)}_v2`,
       'users',
       async () => {
         try {
-          // First get total count for pagination metadata
-          const countResult = await db.execute(sql`
+          // Build WHERE conditions for filtering
+          let whereConditions = ['u.is_active = true'];
+          let countWhereConditions = ['is_active = true'];
+          
+          if (filters.role) {
+            whereConditions.push(`u.role = '${filters.role}'`);
+            countWhereConditions.push(`role = '${filters.role}'`);
+          }
+          
+          if (filters.status) {
+            const isActive = filters.status === 'true';
+            whereConditions.push(`u.is_active = ${isActive}`);
+            countWhereConditions.push(`is_active = ${isActive}`);
+          }
+
+          // First get total count for pagination metadata with filters
+          const countQuery = `
             SELECT COUNT(*) as total 
             FROM users 
-            WHERE is_active = true
-          `);
-          
+            WHERE ${countWhereConditions.join(' AND ')}
+          `;
+          const countResult = await db.execute(sql.raw(countQuery));
           const total = parseInt(countResult.rows[0]?.total || '0');
 
-          // Single optimized query using CTEs and aggregation with pagination
-          const result = await db.execute(sql`
+          // Single optimized query using CTEs and aggregation with pagination and filters
+          const mainQuery = `
             WITH user_orgs AS (
               SELECT 
                 uo.user_id,
@@ -353,10 +372,15 @@ export class OptimizedDatabaseStorage implements IStorage {
             LEFT JOIN user_orgs uo ON u.id = uo.user_id
             LEFT JOIN user_buildings ub ON u.id = ub.user_id
             LEFT JOIN user_residences ur ON u.id = ur.user_id
-            WHERE u.is_active = true
+            WHERE ${whereConditions.join(' AND ')}
+            ${filters.organization ? `AND uo.organizations @> '[{"id":"${filters.organization}"}]'` : ''}
+            ${filters.orphan === 'true' ? `AND uo.organizations = '[]'::json AND ub.buildings = '[]'::json AND ur.residences = '[]'::json` : ''}
+            ${filters.orphan === 'false' ? `AND (uo.organizations != '[]'::json OR ub.buildings != '[]'::json OR ur.residences != '[]'::json)` : ''}
             ORDER BY u.created_at DESC
             LIMIT ${limit} OFFSET ${offset}
-          `);
+          `;
+          
+          const result = await db.execute(sql.raw(mainQuery));
 
           // Transform the raw SQL result to match the expected TypeScript types
           const users = result.rows.map((row: any) => ({
@@ -391,7 +415,7 @@ export class OptimizedDatabaseStorage implements IStorage {
           
           // Fallback to paginated version of the original implementation if optimized query fails
           console.log('🔄 Falling back to paginated original implementation...');
-          return this.getUsersWithAssignmentsPaginatedFallback(offset, limit);
+          return this.getUsersWithAssignmentsPaginatedFallback(offset, limit, filters);
         }
       }
     );
@@ -505,24 +529,40 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Paginated fallback implementation for getUsersWithAssignmentsPaginated if optimized version fails.
    * This is the original N+1 query implementation with pagination support.
    */
-  private async getUsersWithAssignmentsPaginatedFallback(offset: number = 0, limit: number = 10): Promise<{
+  private async getUsersWithAssignmentsPaginatedFallback(
+    offset: number = 0, 
+    limit: number = 10, 
+    filters: { role?: string; status?: string; organization?: string; orphan?: string } = {}
+  ): Promise<{
     users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
     total: number;
   }> {
     try {
-      // First get total count
+      // Build WHERE conditions for filtering
+      let whereConditions = [eq(schema.users.isActive, true)];
+      
+      if (filters.role) {
+        whereConditions.push(eq(schema.users.role, filters.role as any));
+      }
+      
+      if (filters.status) {
+        const isActive = filters.status === 'true';
+        whereConditions.push(eq(schema.users.isActive, isActive));
+      }
+
+      // First get total count with filters
       const totalResult = await db
         .select({ count: sql<number>`count(*)` })
         .from(schema.users)
-        .where(eq(schema.users.isActive, true));
+        .where(and(...whereConditions));
       
       const total = Number(totalResult[0]?.count || 0);
 
-      // Get paginated users
+      // Get paginated users with filters
       const users = await db
         .select()
         .from(schema.users)
-        .where(eq(schema.users.isActive, true))
+        .where(and(...whereConditions))
         .orderBy(desc(schema.users.createdAt))
         .limit(limit)
         .offset(offset);

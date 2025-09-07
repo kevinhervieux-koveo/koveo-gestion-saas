@@ -49,8 +49,16 @@ export function registerUserRoutes(app: Express): void {
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = (page - 1) * limit;
 
+      // Parse filter parameters
+      const filters = {
+        role: req.query.role as string,
+        status: req.query.status as string,
+        organization: req.query.organization as string,
+        orphan: req.query.orphan as string,
+      };
+
       // Get users with their full assignment data and pagination
-      const result = await storage.getUsersWithAssignmentsPaginated(offset, limit);
+      const result = await storage.getUsersWithAssignmentsPaginated(offset, limit, filters);
 
       
 
