@@ -116,15 +116,20 @@ const mockDb = {
   connect: jest.fn().mockResolvedValue(undefined)
 };
 
+// Mock neon function specifically for ES module imports
+const mockNeon = jest.fn().mockReturnValue(mockSql);
+
 // Export for different import patterns
 module.exports = {
   sql: mockSql,
   db: mockDb,
   pool: new MockPool({ connectionString: 'test://test' }),
   Pool: MockPool,
-  neon: jest.fn().mockReturnValue(mockSql),
+  neon: mockNeon,
   drizzle: jest.fn().mockReturnValue(mockDb),
   // For ES modules
   __esModule: true,
-  default: mockDb
+  default: mockNeon, // Default export should be neon for @neondatabase/serverless
+  // Named exports
+  neon: mockNeon
 };

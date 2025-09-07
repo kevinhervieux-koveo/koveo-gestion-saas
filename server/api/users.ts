@@ -44,41 +44,94 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      // Parse pagination parameters
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
 
-      // Get users with their full assignment data
-      const usersWithAssignments = await storage.getUsersWithAssignments();
+      // Parse filter parameters
+      const filters = {
+        role: req.query.role as string,
+        status: req.query.status as string,
+        organization: req.query.organization as string,
+        orphan: req.query.orphan as string,
+        search: req.query.search as string,
+      };
+      
+      console.log('🎯 [API] Raw query parameters:', {
+        role: req.query.role,
+        status: req.query.status,
+        organization: req.query.organization,
+        orphan: req.query.orphan,
+        search: req.query.search
+      });
+      
+      // Special debug for orphan filter
+      if (req.query.orphan) {
+        console.log('👻 [API DEBUG] Orphan filter detected:', req.query.orphan, typeof req.query.orphan);
+      }
+
+      // Apply role-based prefiltering at database level
+      let roleBasedFilters = { ...filters };
+      
+      console.log(`🔐 [USER FILTER] Current user role: ${currentUser.role}, applying role-based filters...`);
+      
+      if (currentUser.role === 'admin') {
+        // Admin can see all users - no additional filtering
+        console.log('🔓 [ADMIN] No role-based filtering applied - admin can see all users');
+      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // Demo users can only see other demo users
+        if (!roleBasedFilters.role) {
+          // If no role filter is applied, restrict to demo roles only
+          roleBasedFilters.demoOnly = 'true';
+        }
+      } else {
+        // Regular managers can only see users from their organizations
+        console.log('👔 [MANAGER] Restricting to users from manager\'s organizations');
+        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
+        console.log(`   → Manager organizations: [${userOrgIds.join(', ')}]`);
+        if (userOrgIds.length > 0) {
+          roleBasedFilters.managerOrganizations = userOrgIds.join(',');
+          console.log('   → Added managerOrganizations filter');
+        } else {
+          // Manager has no organizations, return empty result
+          return res.json({
+            users: [],
+            pagination: {
+              page,
+              limit,
+              total: 0,
+              totalPages: 0,
+              hasNext: false,
+              hasPrev: false
+            }
+          });
+        }
+      }
+
+      // Get users with their full assignment data and pagination (now with role-based prefiltering)
+      console.log('📊 [QUERY] Applying filters:', JSON.stringify(roleBasedFilters, null, 2));
+      const result = await storage.getUsersWithAssignmentsPaginated(offset, limit, roleBasedFilters);
+      console.log(`📈 [RESULT] Found ${result.users.length} users out of ${result.total} total (page ${page})`);
 
       
 
-      // Filter users based on current user's role and permissions
-      let filteredUsers;
-      if (currentUser.role === 'admin') {
-        // Admin can see all users
-        filteredUsers = usersWithAssignments;
-      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see other demo users
-        filteredUsers = usersWithAssignments.filter(user => 
-          ['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)
-        );
-      } else {
-        // Regular managers and other users can only see non-demo users from their organizations
-        // Get the organization IDs that the current user has access to
-        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
-        
-        // Filter users to only include non-demo users from accessible organizations
-        filteredUsers = usersWithAssignments.filter(user => {
-          // Exclude demo users from regular manager view
-          if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)) {
-            return false;
-          }
-          
-          const hasAccess = user.organizations?.some(org => userOrgIds.includes(org.id)) || false;
-          return hasAccess;
-        });
-      }
+      // Role-based filtering is now handled at database level in roleBasedFilters
+      // No additional application-level filtering needed
+      const filteredUsers = result.users;
 
-
-      res.json(filteredUsers);
+      // Return paginated response with metadata
+      res.json({
+        users: filteredUsers,
+        pagination: {
+          page,
+          limit,
+          total: result.total,
+          totalPages: Math.ceil(result.total / limit),
+          hasNext: page * limit < result.total,
+          hasPrev: page > 1
+        }
+      });
     } catch (error: any) {
       console.error('❌ Error fetching users:', error);
       res.status(500).json({
@@ -88,6 +141,117 @@ export function registerUserRoutes(app: Express): void {
     }
   });
 
+  /**
+   * GET /api/users/filter-options - Get distinct values for filter dropdowns
+   */
+  app.get('/api/users/filter-options', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Get distinct roles (including null values)
+      const rolesResult = await db
+        .selectDistinct({ role: schema.users.role })
+        .from(schema.users)
+        .orderBy(schema.users.role);
+
+      // Get distinct status values (including null values)
+      const statusResult = await db
+        .selectDistinct({ isActive: schema.users.isActive })
+        .from(schema.users)
+        .orderBy(schema.users.isActive);
+
+      // Role-based organization filtering for filter options
+      let organizations = [];
+      if (currentUser.role === 'admin') {
+        // Admin can see all organizations
+        const orgsResult = await db
+          .select({ id: schema.organizations.id, name: schema.organizations.name })
+          .from(schema.organizations)
+          .where(eq(schema.organizations.isActive, true))
+          .orderBy(schema.organizations.name);
+        organizations = orgsResult;
+      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // Demo users can only see demo organizations
+        const orgsResult = await db
+          .select({ id: schema.organizations.id, name: schema.organizations.name })
+          .from(schema.organizations)
+          .where(
+            and(
+              eq(schema.organizations.isActive, true),
+              eq(schema.organizations.type, 'demo')
+            )
+          )
+          .orderBy(schema.organizations.name);
+        organizations = orgsResult;
+      } else {
+        // Regular managers see only their organizations
+        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
+        if (userOrgIds.length > 0) {
+          const orgsResult = await db
+            .select({ id: schema.organizations.id, name: schema.organizations.name })
+            .from(schema.organizations)
+            .where(
+              and(
+                eq(schema.organizations.isActive, true),
+                inArray(schema.organizations.id, userOrgIds)
+              )
+            )
+            .orderBy(schema.organizations.name);
+          organizations = orgsResult;
+        }
+      }
+
+      // Prepare filter options with All and null handling
+      const roleOptions = [
+        { value: '', label: 'All Roles' },
+        ...rolesResult.map(r => ({
+          value: r.role || 'null',
+          label: r.role ? r.role.charAt(0).toUpperCase() + r.role.slice(1).replace('_', ' ') : 'No Role'
+        }))
+      ];
+
+      const statusOptions = [
+        { value: '', label: 'All Statuses' },
+        ...statusResult.map(s => ({
+          value: s.isActive === null ? 'null' : s.isActive.toString(),
+          label: s.isActive === null ? 'No Status' : (s.isActive ? 'Active' : 'Inactive')
+        }))
+      ];
+
+      const organizationOptions = [
+        { value: '', label: 'All Organizations' },
+        ...organizations.map(org => ({
+          value: org.id,
+          label: org.name
+        }))
+      ];
+
+      const orphanOptions = currentUser.role === 'admin' ? [
+        { value: '', label: 'All Users' },
+        { value: 'true', label: 'Orphan Users' },
+        { value: 'false', label: 'Assigned Users' }
+      ] : [];
+
+      res.json({
+        roles: roleOptions,
+        statuses: statusOptions,
+        organizations: organizationOptions,
+        orphanOptions
+      });
+    } catch (error: any) {
+      console.error('❌ Error fetching filter options:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch filter options',
+      });
+    }
+  });
 
   /**
    * GET /api/users/:id - Retrieves a specific user by ID.
@@ -425,6 +589,96 @@ export function registerUserRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update user',
+      });
+    }
+  });
+
+  // Admin-only endpoint to delete orphan users
+  app.delete('/api/users/orphans', requireAuth, async (req: any, res) => {
+    console.log('🔥 [DELETE ORPHANS API] ===== DELETE ORPHAN USERS REQUEST STARTED =====');
+    console.log('⏰ [DELETE ORPHANS API] Request timestamp:', new Date().toISOString());
+    console.log('🛡️ [DELETE ORPHANS API] Request authentication info:', {
+      userId: req.user?.id,
+      userEmail: req.user?.email,
+      userRole: req.user?.role,
+      sessionExists: !!req.session,
+      sessionId: req.session?.id
+    });
+
+    try {
+      console.log('🗑️ [DELETE ORPHANS API] Processing request from user:', req.user?.id, 'role:', req.user?.role);
+      
+      // Check if user is admin
+      if (req.user?.role !== 'admin') {
+        console.log('❌ [DELETE ORPHANS API] Access denied - user role is:', req.user?.role, '(expected: admin)');
+        return res.status(403).json({ 
+          error: 'Access denied. Admin role required.',
+          userRole: req.user?.role 
+        });
+      }
+
+      console.log('✅ [DELETE ORPHANS API] Admin authorization confirmed');
+      console.log('🔍 [DELETE ORPHANS API] Calling storage.countOrphanUsers()...');
+
+      // Get count of orphan users before deletion
+      const orphanCount = await storage.countOrphanUsers();
+      console.log('📊 [DELETE ORPHANS API] Storage returned orphan count:', orphanCount);
+
+      if (orphanCount === 0) {
+        console.log('ℹ️ [DELETE ORPHANS API] No orphan users found, returning success with 0 count');
+        return res.json({ 
+          success: true, 
+          message: 'No orphan users found to delete',
+          deletedCount: 0 
+        });
+      }
+
+      console.log('🚀 [DELETE ORPHANS API] Proceeding with deletion of', orphanCount, 'orphan users');
+      console.log('🔒 [DELETE ORPHANS API] Excluding current admin user:', req.user.id);
+      console.log('🔍 [DELETE ORPHANS API] Calling storage.deleteOrphanUsers()...');
+
+      // Delete orphan users (excluding current admin)
+      const startTime = Date.now();
+      const deletedCount = await storage.deleteOrphanUsers(req.user.id);
+      const endTime = Date.now();
+      
+      console.log('⏱️ [DELETE ORPHANS API] Storage operation completed in:', (endTime - startTime), 'ms');
+      console.log('📈 [DELETE ORPHANS API] Storage returned deleted count:', deletedCount);
+
+      if (deletedCount !== orphanCount) {
+        console.log('⚠️ [DELETE ORPHANS API] Warning: Deleted count differs from initial count:', {
+          initialCount: orphanCount,
+          deletedCount: deletedCount,
+          difference: orphanCount - deletedCount
+        });
+      }
+
+      const responseData = { 
+        success: true, 
+        message: `Successfully deleted ${deletedCount} orphan users`,
+        deletedCount,
+        initialCount: orphanCount
+      };
+
+      console.log('✅ [DELETE ORPHANS API] Operation completed successfully:', responseData);
+      console.log('🔥 [DELETE ORPHANS API] ===== DELETE ORPHAN USERS REQUEST COMPLETED =====');
+      
+      res.json(responseData);
+
+    } catch (error) {
+      console.error('💥 [DELETE ORPHANS API] ===== CRITICAL ERROR =====');
+      console.error('❌ [DELETE ORPHANS API] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined,
+        timestamp: new Date().toISOString()
+      });
+      console.error('💥 [DELETE ORPHANS API] ===== END CRITICAL ERROR =====');
+      
+      res.status(500).json({ 
+        error: 'Failed to delete orphan users',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       });
     }
   });

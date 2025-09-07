@@ -1,0 +1,50 @@
+# Goal
+Update and enhance the TypeScript script named `create-demo-environment.ts` located in the `scripts/` directory. This script populates our PostgreSQL database with a rich, realistic, and comprehensive dataset for product demonstrations. The script's logic must be idempotent, following an "upsert" pattern: if an organization with the given name already exists, it should be updated with the new data; otherwise, it should be created.
+
+# Context
+[cite_start]Our application is Koveo Gestion, a multi-tenant property management SaaS platform built with a Next.js frontend and a Node.js/Express backend using Drizzle ORM for our Neon PostgreSQL database[cite: 4, 6, 7]. This script is a critical asset for sales and QA, enabling the instant creation of compelling demo environments. [cite_start]All generated data must be realistic but entirely fictional to comply with Quebec's Law 25[cite: 2, 13].
+
+# Core Functionality & Logic
+The script should accept command-line arguments:
+- `--type <type>`: Required. Specifies the organization type, either `'production'` or `'demo'`.
+- `--name "<name>"`: Required. The name of the organization to create or update.
+
+### 1. Organization Seeding (Upsert Logic)
+- Find an organization with the name provided via the `--name` argument.
+- If it exists, use that organization for all subsequent operations.
+- If it does not exist, create a new organization with the given name and type.
+
+### 2. Building and Common Space Seeding
+- [cite_start]Create 5 distinct buildings within the organization[cite: 11].
+- For each building:
+  - [cite_start]Create 5-10 residences (units)[cite: 11].
+  - [cite_start]Create 3-4 common spaces with varied types (e.g., "Gym", "Rooftop Terrace", "Pool", "Conference Room")[cite: 11].
+  - For each common space, add a boolean property `isBookable`. Set it to `true` for spaces like the Conference Room and `false` for the Gym/Lobby.
+
+### 3. User and Role Seeding
+- **CRITICAL CONSTRAINT: The script must NOT create any users with the 'admin' role.**
+- Populate users for **every single residence** created.
+- For each building, create 1-2 users with a `manager` role.
+- **Role logic based on Organization Type**:
+  - If organization `type` is `'demo'`, create users with roles like `demo_resident` and `demo_manager`.
+  - If organization `type` is `'production'`, create users with standard roles like `resident` and `manager`.
+- Create at least one user with multiple roles (e.g., a `manager` in one building and a `resident` in another) to showcase flexibility.
+
+### 4. Content Seeding
+- **Bookings:** For each `isBookable` common space, create 5-10 fictional bookings spread throughout the current calendar year for various residents.
+- **Demands:** For each resident, create 2-3 **demands**.
+  - [cite_start]The demands should have their category set to 'Maintenance Request'[cite: 12].
+  - [cite_start]The demands should cover different topics like 'Plumbing', 'Electrical', 'HVAC' and have different priorities[cite: 12]. Do not create sub-categories.
+- **Bills:** For each building, generate 5-7 bills for **each month of the entire previous calendar year**.
+  - [cite_start]These bills must cover a wide variety of field combinations to test all use cases[cite: 11, 12].
+  - [cite_start]Vary the following fields: `amount`, `currency` ('CAD' and 'USD'), `status` ('paid', 'unpaid', 'overdue'), and `category` (e.g., "Hydro", "Insurance", "Landscaping")[cite: 11, 12].
+
+# Implementation Details & Constraints
+- [cite_start]The script must be written in **TypeScript** using our existing **Drizzle ORM schemas**[cite: 6].
+- Use `@faker-js/faker` for all fictional data generation.
+- The code must be modular with clear functions (e.g., `upsertOrganization`, `seedBookings`).
+- Implement clear logging for progress and robust `try...catch` error handling.
+
+# Testing & Maintenance
+- The plan must include updating the corresponding test file: `scripts/create-demo-environment.test.ts`.
+- The Jest test will verify the script's structure and importability to prevent regressions during CI/CD checks.

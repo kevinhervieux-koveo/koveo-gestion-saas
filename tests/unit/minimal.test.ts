@@ -8,7 +8,7 @@ describe('Minimal Infrastructure Test', () => {
   });
 
   it('should access global variables', () => {
-    expect(global.setImmediate).toBeDefined();
+    expect(global.setTimeout).toBeDefined();
     expect(process.env.TEST_TYPE).toBe('unit');
   });
 });

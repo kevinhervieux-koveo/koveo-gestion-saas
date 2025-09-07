@@ -62,13 +62,12 @@ async function findOrphanResidences() {
  * Clean up all orphaned records.
  */
 export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
-  console.log('🧹 Starting orphan cleanup process...');
+  // Starting orphan cleanup process
 
   const orphanBuildings = await findOrphanBuildings();
   const orphanResidences = await findOrphanResidences();
 
-  console.log(`Found ${orphanBuildings.length} orphan buildings`);
-  console.log(`Found ${orphanResidences.length} orphan residences`);
+  // Found orphan records to clean up
 
   let cleanedUp = false;
 
@@ -77,7 +76,7 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
     // Clean up orphan buildings
     if (orphanBuildings.length > 0) {
       const buildingIds = orphanBuildings.map((b) => b.id);
-      console.log(`🗑️ Removing ${buildingIds.length} orphan buildings:`, buildingIds);
+      // Removing orphan buildings
 
       // Clean up each building individually
       for (const buildingId of buildingIds) {
@@ -91,7 +90,7 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
     // Clean up orphan residences
     if (orphanResidences.length > 0) {
       const residenceIds = orphanResidences.map((r) => r.id);
-      console.log(`🗑️ Removing ${residenceIds.length} orphan residences:`, residenceIds);
+      // Removing orphan residences
 
       // Clean up each residence individually
       for (const residenceId of residenceIds) {
@@ -103,7 +102,7 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
     }
 
     cleanedUp = true;
-    console.log('✅ Orphan cleanup completed successfully');
+    // Orphan cleanup completed successfully
   }
 
   return {
@@ -119,7 +118,7 @@ export async function cleanupOrphans(): Promise<OrphanCleanupReport> {
  * Generate a report of orphaned records without cleaning them up.
  */
 export async function generateOrphanReport(): Promise<OrphanCleanupReport> {
-  console.log('📊 Generating orphan report...');
+  // Generating orphan report
 
   const orphanBuildings = await findOrphanBuildings();
   const orphanResidences = await findOrphanResidences();

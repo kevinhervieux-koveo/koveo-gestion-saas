@@ -1,0 +1,90 @@
+3c45e3f6aaafe16016bee6bdfb582e08
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.useIsomorphicLayoutEffect = exports.useInsertionEffect = exports.useEvent = exports.useSyncExternalStore = exports.useState = exports.useRef = exports.useMemo = exports.useContext = exports.isValidElement = exports.forwardRef = exports.createElement = exports.createContext = exports.cloneElement = exports.Fragment = void 0;
+const React = __importStar(require("react"));
+var react_1 = require("react");
+Object.defineProperty(exports, "Fragment", { enumerable: true, get: function () { return react_1.Fragment; } });
+Object.defineProperty(exports, "cloneElement", { enumerable: true, get: function () { return react_1.cloneElement; } });
+Object.defineProperty(exports, "createContext", { enumerable: true, get: function () { return react_1.createContext; } });
+Object.defineProperty(exports, "createElement", { enumerable: true, get: function () { return react_1.createElement; } });
+Object.defineProperty(exports, "forwardRef", { enumerable: true, get: function () { return react_1.forwardRef; } });
+Object.defineProperty(exports, "isValidElement", { enumerable: true, get: function () { return react_1.isValidElement; } });
+Object.defineProperty(exports, "useContext", { enumerable: true, get: function () { return react_1.useContext; } });
+Object.defineProperty(exports, "useMemo", { enumerable: true, get: function () { return react_1.useMemo; } });
+Object.defineProperty(exports, "useRef", { enumerable: true, get: function () { return react_1.useRef; } });
+Object.defineProperty(exports, "useState", { enumerable: true, get: function () { return react_1.useState; } });
+var index_js_1 = require("use-sync-external-store/shim/index.js");
+Object.defineProperty(exports, "useSyncExternalStore", { enumerable: true, get: function () { return index_js_1.useSyncExternalStore; } });
+// React.useInsertionEffect is not available in React <18
+// This hack fixes a transpilation issue on some apps
+const useBuiltinInsertionEffect = React["useInsertion" + "Effect"];
+// Copied from:
+// https://github.com/facebook/react/blob/main/packages/shared/ExecutionEnvironment.js
+const canUseDOM = !!(typeof window !== "undefined" &&
+    typeof window.document !== "undefined" &&
+    typeof window.document.createElement !== "undefined");
+// Copied from:
+// https://github.com/reduxjs/react-redux/blob/master/src/utils/useIsomorphicLayoutEffect.ts
+// "React currently throws a warning when using useLayoutEffect on the server.
+// To get around it, we can conditionally useEffect on the server (no-op) and
+// useLayoutEffect in the browser."
+const useIsomorphicLayoutEffect = canUseDOM
+    ? React.useLayoutEffect
+    : React.useEffect;
+exports.useIsomorphicLayoutEffect = useIsomorphicLayoutEffect;
+// useInsertionEffect is already a noop on the server.
+// See: https://github.com/facebook/react/blob/main/packages/react-server/src/ReactFizzHooks.js
+const useInsertionEffect = useBuiltinInsertionEffect || useIsomorphicLayoutEffect;
+exports.useInsertionEffect = useInsertionEffect;
+// Userland polyfill while we wait for the forthcoming
+// https://github.com/reactjs/rfcs/blob/useevent/text/0000-useevent.md
+// Note: "A high-fidelity polyfill for useEvent is not possible because
+// there is no lifecycle or Hook in React that we can use to switch
+// .current at the right timing."
+// So we will have to make do with this "close enough" approach for now.
+const useEvent = (fn) => {
+    const ref = React.useRef([fn, (...args) => ref[0](...args)]).current;
+    // Per Dan Abramov: useInsertionEffect executes marginally closer to the
+    // correct timing for ref synchronization than useLayoutEffect on React 18.
+    // See: https://github.com/facebook/react/pull/25881#issuecomment-1356244360
+    useInsertionEffect(() => {
+        ref[0] = fn;
+    });
+    return ref[1];
+};
+exports.useEvent = useEvent;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9ub2RlX21vZHVsZXMvd291dGVyL2VzbS9yZWFjdC1kZXBzLmpzIiwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUFBLDZDQUErQjtBQUMvQiwrQkFBZ0o7QUFBdkksaUdBQUEsUUFBUSxPQUFBO0FBQUUscUdBQUEsWUFBWSxPQUFBO0FBQUUsc0dBQUEsYUFBYSxPQUFBO0FBQUUsc0dBQUEsYUFBYSxPQUFBO0FBQUUsbUdBQUEsVUFBVSxPQUFBO0FBQUUsdUdBQUEsY0FBYyxPQUFBO0FBQUUsbUdBQUEsVUFBVSxPQUFBO0FBQUUsZ0dBQUEsT0FBTyxPQUFBO0FBQUUsK0ZBQUEsTUFBTSxPQUFBO0FBQUUsaUdBQUEsUUFBUSxPQUFBO0FBQ2hJLGtFQUE2RTtBQUFwRSxnSEFBQSxvQkFBb0IsT0FBQTtBQUU3Qix5REFBeUQ7QUFDekQscURBQXFEO0FBQ3JELE1BQU0seUJBQXlCLEdBQUcsS0FBSyxDQUFDLGNBQWMsR0FBRyxRQUFRLENBQUMsQ0FBQztBQUVuRSxlQUFlO0FBQ2Ysc0ZBQXNGO0FBQ3RGLE1BQU0sU0FBUyxHQUFHLENBQUMsQ0FBQyxDQUNsQixPQUFPLE1BQU0sS0FBSyxXQUFXO0lBQzdCLE9BQU8sTUFBTSxDQUFDLFFBQVEsS0FBSyxXQUFXO0lBQ3RDLE9BQU8sTUFBTSxDQUFDLFFBQVEsQ0FBQyxhQUFhLEtBQUssV0FBVyxDQUNyRCxDQUFDO0FBRUYsZUFBZTtBQUNmLDRGQUE0RjtBQUM1Riw4RUFBOEU7QUFDOUUsNkVBQTZFO0FBQzdFLG1DQUFtQztBQUNuQyxNQUFNLHlCQUF5QixHQUFHLFNBQVM7SUFDekMsQ0FBQyxDQUFDLEtBQUssQ0FBQyxlQUFlO0lBQ3ZCLENBQUMsQ0FBQyxLQUFLLENBQUMsU0FBUyxDQUFDO0FBd0JtQiw4REFBeUI7QUF0QmhFLHNEQUFzRDtBQUN0RCwrRkFBK0Y7QUFDL0YsTUFBTSxrQkFBa0IsR0FDdEIseUJBQXlCLElBQUkseUJBQXlCLENBQUM7QUFtQnRDLGdEQUFrQjtBQWpCckMsc0RBQXNEO0FBQ3RELHNFQUFzRTtBQUN0RSx1RUFBdUU7QUFDdkUsbUVBQW1FO0FBQ25FLGlDQUFpQztBQUNqQyx3RUFBd0U7QUFDeEUsTUFBTSxRQUFRLEdBQUcsQ0FBQyxFQUFFLEVBQUUsRUFBRTtJQUN0QixNQUFNLEdBQUcsR0FBRyxLQUFLLENBQUMsTUFBTSxDQUFDLENBQUMsRUFBRSxFQUFFLENBQUMsR0FBRyxJQUFJLEVBQUUsRUFBRSxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsQ0FBQyxHQUFHLElBQUksQ0FBQyxDQUFDLENBQUMsQ0FBQyxPQUFPLENBQUM7SUFDckUsd0VBQXdFO0lBQ3hFLDJFQUEyRTtJQUMzRSw0RUFBNEU7SUFDNUUsa0JBQWtCLENBQUMsR0FBRyxFQUFFO1FBQ3RCLEdBQUcsQ0FBQyxDQUFDLENBQUMsR0FBRyxFQUFFLENBQUM7SUFDZCxDQUFDLENBQUMsQ0FBQztJQUNILE9BQU8sR0FBRyxDQUFDLENBQUMsQ0FBQyxDQUFDO0FBQ2hCLENBQUMsQ0FBQztBQUVPLDRCQUFRIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9ob21lL3J1bm5lci93b3Jrc3BhY2Uvbm9kZV9tb2R1bGVzL3dvdXRlci9lc20vcmVhY3QtZGVwcy5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgKiBhcyBSZWFjdCBmcm9tICdyZWFjdCc7XG5leHBvcnQgeyBGcmFnbWVudCwgY2xvbmVFbGVtZW50LCBjcmVhdGVDb250ZXh0LCBjcmVhdGVFbGVtZW50LCBmb3J3YXJkUmVmLCBpc1ZhbGlkRWxlbWVudCwgdXNlQ29udGV4dCwgdXNlTWVtbywgdXNlUmVmLCB1c2VTdGF0ZSB9IGZyb20gJ3JlYWN0JztcbmV4cG9ydCB7IHVzZVN5bmNFeHRlcm5hbFN0b3JlIH0gZnJvbSAndXNlLXN5bmMtZXh0ZXJuYWwtc3RvcmUvc2hpbS9pbmRleC5qcyc7XG5cbi8vIFJlYWN0LnVzZUluc2VydGlvbkVmZmVjdCBpcyBub3QgYXZhaWxhYmxlIGluIFJlYWN0IDwxOFxuLy8gVGhpcyBoYWNrIGZpeGVzIGEgdHJhbnNwaWxhdGlvbiBpc3N1ZSBvbiBzb21lIGFwcHNcbmNvbnN0IHVzZUJ1aWx0aW5JbnNlcnRpb25FZmZlY3QgPSBSZWFjdFtcInVzZUluc2VydGlvblwiICsgXCJFZmZlY3RcIl07XG5cbi8vIENvcGllZCBmcm9tOlxuLy8gaHR0cHM6Ly9naXRodWIuY29tL2ZhY2Vib29rL3JlYWN0L2Jsb2IvbWFpbi9wYWNrYWdlcy9zaGFyZWQvRXhlY3V0aW9uRW52aXJvbm1lbnQuanNcbmNvbnN0IGNhblVzZURPTSA9ICEhKFxuICB0eXBlb2Ygd2luZG93ICE9PSBcInVuZGVmaW5lZFwiICYmXG4gIHR5cGVvZiB3aW5kb3cuZG9jdW1lbnQgIT09IFwidW5kZWZpbmVkXCIgJiZcbiAgdHlwZW9mIHdpbmRvdy5kb2N1bWVudC5jcmVhdGVFbGVtZW50ICE9PSBcInVuZGVmaW5lZFwiXG4pO1xuXG4vLyBDb3BpZWQgZnJvbTpcbi8vIGh0dHBzOi8vZ2l0aHViLmNvbS9yZWR1eGpzL3JlYWN0LXJlZHV4L2Jsb2IvbWFzdGVyL3NyYy91dGlscy91c2VJc29tb3JwaGljTGF5b3V0RWZmZWN0LnRzXG4vLyBcIlJlYWN0IGN1cnJlbnRseSB0aHJvd3MgYSB3YXJuaW5nIHdoZW4gdXNpbmcgdXNlTGF5b3V0RWZmZWN0IG9uIHRoZSBzZXJ2ZXIuXG4vLyBUbyBnZXQgYXJvdW5kIGl0LCB3ZSBjYW4gY29uZGl0aW9uYWxseSB1c2VFZmZlY3Qgb24gdGhlIHNlcnZlciAobm8tb3ApIGFuZFxuLy8gdXNlTGF5b3V0RWZmZWN0IGluIHRoZSBicm93c2VyLlwiXG5jb25zdCB1c2VJc29tb3JwaGljTGF5b3V0RWZmZWN0ID0gY2FuVXNlRE9NXG4gID8gUmVhY3QudXNlTGF5b3V0RWZmZWN0XG4gIDogUmVhY3QudXNlRWZmZWN0O1xuXG4vLyB1c2VJbnNlcnRpb25FZmZlY3QgaXMgYWxyZWFkeSBhIG5vb3Agb24gdGhlIHNlcnZlci5cbi8vIFNlZTogaHR0cHM6Ly9naXRodWIuY29tL2ZhY2Vib29rL3JlYWN0L2Jsb2IvbWFpbi9wYWNrYWdlcy9yZWFjdC1zZXJ2ZXIvc3JjL1JlYWN0Rml6ekhvb2tzLmpzXG5jb25zdCB1c2VJbnNlcnRpb25FZmZlY3QgPVxuICB1c2VCdWlsdGluSW5zZXJ0aW9uRWZmZWN0IHx8IHVzZUlzb21vcnBoaWNMYXlvdXRFZmZlY3Q7XG5cbi8vIFVzZXJsYW5kIHBvbHlmaWxsIHdoaWxlIHdlIHdhaXQgZm9yIHRoZSBmb3J0aGNvbWluZ1xuLy8gaHR0cHM6Ly9naXRodWIuY29tL3JlYWN0anMvcmZjcy9ibG9iL3VzZWV2ZW50L3RleHQvMDAwMC11c2VldmVudC5tZFxuLy8gTm90ZTogXCJBIGhpZ2gtZmlkZWxpdHkgcG9seWZpbGwgZm9yIHVzZUV2ZW50IGlzIG5vdCBwb3NzaWJsZSBiZWNhdXNlXG4vLyB0aGVyZSBpcyBubyBsaWZlY3ljbGUgb3IgSG9vayBpbiBSZWFjdCB0aGF0IHdlIGNhbiB1c2UgdG8gc3dpdGNoXG4vLyAuY3VycmVudCBhdCB0aGUgcmlnaHQgdGltaW5nLlwiXG4vLyBTbyB3ZSB3aWxsIGhhdmUgdG8gbWFrZSBkbyB3aXRoIHRoaXMgXCJjbG9zZSBlbm91Z2hcIiBhcHByb2FjaCBmb3Igbm93LlxuY29uc3QgdXNlRXZlbnQgPSAoZm4pID0+IHtcbiAgY29uc3QgcmVmID0gUmVhY3QudXNlUmVmKFtmbiwgKC4uLmFyZ3MpID0+IHJlZlswXSguLi5hcmdzKV0pLmN1cnJlbnQ7XG4gIC8vIFBlciBEYW4gQWJyYW1vdjogdXNlSW5zZXJ0aW9uRWZmZWN0IGV4ZWN1dGVzIG1hcmdpbmFsbHkgY2xvc2VyIHRvIHRoZVxuICAvLyBjb3JyZWN0IHRpbWluZyBmb3IgcmVmIHN5bmNocm9uaXphdGlvbiB0aGFuIHVzZUxheW91dEVmZmVjdCBvbiBSZWFjdCAxOC5cbiAgLy8gU2VlOiBodHRwczovL2dpdGh1Yi5jb20vZmFjZWJvb2svcmVhY3QvcHVsbC8yNTg4MSNpc3N1ZWNvbW1lbnQtMTM1NjI0NDM2MFxuICB1c2VJbnNlcnRpb25FZmZlY3QoKCkgPT4ge1xuICAgIHJlZlswXSA9IGZuO1xuICB9KTtcbiAgcmV0dXJuIHJlZlsxXTtcbn07XG5cbmV4cG9ydCB7IHVzZUV2ZW50LCB1c2VJbnNlcnRpb25FZmZlY3QsIHVzZUlzb21vcnBoaWNMYXlvdXRFZmZlY3QgfTtcbiJdLCJ2ZXJzaW9uIjozfQ==

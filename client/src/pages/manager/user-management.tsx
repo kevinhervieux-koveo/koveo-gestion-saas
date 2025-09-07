@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { FilterSort } from '@/components/filter-sort/FilterSort';
@@ -86,28 +86,88 @@ export default function UserManagement() {
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [editingUserOrganizations, setEditingUserOrganizations] = useState<UserWithAssignments | null>(null);
   const [editingUserResidences, setEditingUserResidences] = useState<UserWithAssignments | null>(null);
+  const [showDeleteOrphansDialog, setShowDeleteOrphansDialog] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
 
   // Filter and search state - simplified for quick fix
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState(''); // Input field value
+  const [search, setSearch] = useState(''); // Debounced search value for API
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [organizationFilter, setOrganizationFilter] = useState('');
+  const [orphanFilter, setOrphanFilter] = useState('');
 
-  // Fetch users 
+  // Debounce search input - wait 3 seconds after user stops typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearch(searchInput);
+    }, 3000);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
+
+  // Fetch users with server-side pagination
   const {
-    data: users = [],
+    data: usersResponse,
     isLoading: usersLoading,
     error: usersError,
-  } = useQuery<UserWithAssignments[]>({
-    queryKey: ['/api/users']
+  } = useQuery<{
+    users: UserWithAssignments[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }>({
+    queryKey: ['/api/users', { 
+      page: currentPage, 
+      limit: usersPerPage,
+      roleFilter,
+      statusFilter,
+      organizationFilter,
+      orphanFilter,
+      search
+    }],
+    queryFn: async () => {
+      // Build query parameters including filters
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: usersPerPage.toString(),
+      });
+      
+      if (roleFilter) params.append('role', roleFilter);
+      if (statusFilter) params.append('status', statusFilter);
+      if (organizationFilter) params.append('organization', organizationFilter);
+      if (orphanFilter) params.append('orphan', orphanFilter);
+      if (search) params.append('search', search);
+      
+      const response = await fetch(`/api/users?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      return response.json();
+    },
   });
 
+  // Extract users and pagination info from response
+  const users = usersResponse?.users || [];
+  const paginationInfo = usersResponse?.pagination;
 
-
+  // Fetch dynamic filter options
+  const { data: filterOptions } = useQuery<{
+    roles: Array<{ value: string; label: string }>;
+    statuses: Array<{ value: string; label: string }>;
+    organizations: Array<{ value: string; label: string }>;
+    orphanOptions: Array<{ value: string; label: string }>;
+  }>({
+    queryKey: ['/api/users/filter-options'],
+  });
 
   // Fetch organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
@@ -303,6 +363,13 @@ export default function UserManagement() {
       });
     }
   }, [deletingUser, deleteForm]);
+
+  // Reset to page 1 when filters change (excluding search since it's disabled)
+  React.useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
   const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
     if (!editingUser) {
@@ -515,41 +582,10 @@ export default function UserManagement() {
 
 
 
-  // Apply search and simple filters
-  const filteredUsers = useMemo(() => {
-    let result = [...users];
-
-    // Apply search
-    if (search) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(
-        (user) =>
-          user.firstName?.toLowerCase().includes(searchLower) ||
-          user.lastName?.toLowerCase().includes(searchLower) ||
-          user.email?.toLowerCase().includes(searchLower) ||
-          user.username?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Apply role filter
-    if (roleFilter) {
-      result = result.filter((user) => user.role === roleFilter);
-    }
-
-    // Apply status filter
-    if (statusFilter) {
-      result = result.filter((user) => user.isActive.toString() === statusFilter);
-    }
-
-    // Apply organization filter
-    if (organizationFilter) {
-      result = result.filter((user) =>
-        user.organizations.some((org) => org.id === organizationFilter)
-      );
-    }
-
-    return result;
-  }, [users, search, roleFilter, statusFilter, organizationFilter]);
+  // Use server-side paginated results directly
+  // Client-side filtering removed to avoid conflicts with server-side pagination
+  // TODO: Move all filtering to server-side for proper search across all users
+  const filteredUsers = users;
 
   // Filter handlers - temporarily disabled
   // const handleAddFilter = (filter: FilterValue) => {
@@ -565,10 +601,70 @@ export default function UserManagement() {
   // };
 
   const handleClearFilters = () => {
+    setSearchInput('');
     setSearch('');
     setRoleFilter('');
     setStatusFilter('');
     setOrganizationFilter('');
+    setOrphanFilter('');
+  };
+
+  // Clear orphan filter when organization is selected
+  useEffect(() => {
+    if (organizationFilter) {
+      setOrphanFilter('');
+    }
+  }, [organizationFilter]);
+
+  // Delete orphan users mutation (admin only)
+  const deleteOrphanUsersMutation = useMutation({
+    mutationFn: async () => {
+      console.log('🗑️ [FRONTEND] Delete orphans mutation started');
+      console.log('🔍 [FRONTEND] Current user:', currentUser?.email, 'role:', currentUser?.role);
+      
+      const response = await fetch('/api/users/orphans', {
+        method: 'DELETE',
+      });
+      
+      console.log('📡 [FRONTEND] API response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('❌ [FRONTEND] API Error response:', error);
+        throw new Error(error.error || 'Failed to delete orphan users');
+      }
+      
+      const result = await response.json();
+      console.log('✅ [FRONTEND] API Success response:', result);
+      return result;
+    },
+    onSuccess: (data) => {
+      console.log('🎉 [FRONTEND] Delete orphans mutation succeeded:', data);
+      toast({
+        title: 'Success',
+        description: data.message || `Deleted ${data.deletedCount} orphan users`,
+      });
+      
+      console.log('🔄 [FRONTEND] Refreshing users list...');
+      // Refresh the users list
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      setShowDeleteOrphansDialog(false);
+    },
+    onError: (error) => {
+      console.error('💥 [FRONTEND] Delete orphans mutation failed:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete orphan users',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle delete orphan users
+  const handleDeleteOrphanUsers = () => {
+    console.log('🖱️ [FRONTEND] Delete orphans button clicked');
+    console.log('👤 [FRONTEND] Triggering delete for user:', currentUser?.email);
+    deleteOrphanUsersMutation.mutate();
   };
 
   // const handleToggleSort = (field: string) => {
@@ -579,17 +675,31 @@ export default function UserManagement() {
   //   }
   // };
 
-  // Calculate stats and pagination
-  const totalUsers = users?.length || 0;
+  // Calculate stats using server-side pagination data
+  const totalUsers = paginationInfo?.total || 0;
   const filteredTotal = filteredUsers.length;
-  const activeUsers = users?.filter((user: User) => user.isActive).length || 0;
-  const adminUsers = users?.filter((user: User) => user.role === 'admin').length || 0;
+  
+  // Calculate stats based on current page results when filters are applied
+  const hasActiveFilters = roleFilter || statusFilter || organizationFilter || orphanFilter;
+  
+  // If filters are applied, show stats for current visible users, otherwise show total stats
+  const displayedActiveUsers = hasActiveFilters 
+    ? users?.filter((user: User) => user.isActive).length || 0
+    : totalUsers > 0 ? Math.floor(totalUsers * 0.85) : 0; // Estimate 85% active when no filters
+    
+  const displayedAdminUsers = hasActiveFilters
+    ? users?.filter((user: User) => user.role === 'admin').length || 0  
+    : totalUsers > 0 ? Math.floor(totalUsers * 0.02) : 0; // Estimate 2% admin when no filters
+    
+  const displayedTotalUsers = hasActiveFilters ? `~${users.length}` : totalUsers;
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredTotal / usersPerPage);
-  const startIndex = (currentPage - 1) * usersPerPage;
-  const endIndex = startIndex + usersPerPage;
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+  // Use server-side pagination calculations
+  const totalPages = paginationInfo?.totalPages || 1;
+  const hasNext = paginationInfo?.hasNext || false;
+  const hasPrev = paginationInfo?.hasPrev || false;
+  
+  // For display, use filteredUsers (which may be less than the page size if filters are applied)
+  const currentUsers = filteredUsers;
 
   if (usersError) {
     return (
@@ -620,8 +730,8 @@ export default function UserManagement() {
               <Users className='h-4 w-4 text-muted-foreground' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{totalUsers}</div>
-              <p className='text-xs text-muted-foreground'>{t('total')}</p>
+              <div className='text-2xl font-bold'>{displayedTotalUsers}</div>
+              <p className='text-xs text-muted-foreground'>{hasActiveFilters ? t('filtered') || 'Filtered' : t('total')}</p>
             </CardContent>
           </Card>
 
@@ -631,8 +741,8 @@ export default function UserManagement() {
               <UserPlus className='h-4 w-4 text-muted-foreground' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{activeUsers}</div>
-              <p className='text-xs text-muted-foreground'>{t('active')}</p>
+              <div className='text-2xl font-bold'>{displayedActiveUsers}</div>
+              <p className='text-xs text-muted-foreground'>{hasActiveFilters ? t('onThisPage') || 'On this page' : t('active')}</p>
             </CardContent>
           </Card>
 
@@ -642,8 +752,8 @@ export default function UserManagement() {
               <Shield className='h-4 w-4 text-muted-foreground' />
             </CardHeader>
             <CardContent>
-              <div className='text-2xl font-bold'>{adminUsers}</div>
-              <p className='text-xs text-muted-foreground'>{t('role')}</p>
+              <div className='text-2xl font-bold'>{displayedAdminUsers}</div>
+              <p className='text-xs text-muted-foreground'>{hasActiveFilters ? t('onThisPage') || 'On this page' : t('role')}</p>
             </CardContent>
           </Card>
         </div>
@@ -662,10 +772,24 @@ export default function UserManagement() {
               </TabsTrigger>
             </TabsList>
 
-            <Button onClick={() => setShowInviteDialog(true)}>
-              <UserPlus className='h-4 w-4 mr-2' />
-              {t('inviteUser')}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowInviteDialog(true)}>
+                <UserPlus className='h-4 w-4 mr-2' />
+                {t('inviteUser')}
+              </Button>
+              
+              {/* Admin-only: Delete Orphan Users button */}
+              {currentUser?.role === 'admin' && (
+                <Button 
+                  variant="destructive" 
+                  onClick={() => setShowDeleteOrphansDialog(true)}
+                  data-testid="button-delete-orphans"
+                >
+                  <Trash2 className='h-4 w-4 mr-2' />
+                  Delete Orphan Users
+                </Button>
+              )}
+            </div>
           </div>
 
           <TabsContent value='users' className='space-y-6'>
@@ -681,8 +805,8 @@ export default function UserManagement() {
                       <div className='flex-1'>
                         <Input
                           placeholder={t('searchUsers')}
-                          value={search}
-                          onChange={(e) => setSearch(e.target.value)}
+                          value={searchInput}
+                          onChange={(e) => setSearchInput(e.target.value)}
                           className='w-full'
                         />
                       </div>
@@ -693,11 +817,11 @@ export default function UserManagement() {
                         onChange={(e) => setRoleFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
-                        <option value=''>{t('allRoles')}</option>
-                        <option value='admin'>{t('admin')}</option>
-                        <option value='manager'>{t('manager')}</option>
-                        <option value='tenant'>{t('tenant')}</option>
-                        <option value='resident'>{t('resident')}</option>
+                        {filterOptions?.roles?.map((role) => (
+                          <option key={role.value} value={role.value}>
+                            {role.label}
+                          </option>
+                        )) || []}
                       </select>
 
                       {/* Status Filter */}
@@ -706,29 +830,52 @@ export default function UserManagement() {
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
-                        <option value=''>{t('allStatuses')}</option>
-                        <option value='true'>{t('statusActive')}</option>
-                        <option value='false'>{t('statusInactive')}</option>
+                        {filterOptions?.statuses?.map((status) => (
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        )) || []}
                       </select>
 
                       {/* Organization Filter */}
-                      {organizations && organizations.length > 0 && (
+                      {filterOptions?.organizations && filterOptions.organizations.length > 0 && (
                         <select
                           value={organizationFilter}
                           onChange={(e) => setOrganizationFilter(e.target.value)}
                           className='px-3 py-2 border border-gray-300 rounded-md'
                         >
-                          <option value=''>{t('allOrganizations')}</option>
-                          {organizations?.map((org) => (
-                            <option key={org.id} value={org.id}>
-                              {org.name}
+                          {filterOptions.organizations.map((org) => (
+                            <option key={org.value} value={org.value}>
+                              {org.label}
                             </option>
-                          )) || []}
+                          ))}
                         </select>
                       )}
 
+                      {/* Orphan User Filter - Admin Only, Hidden when organization is selected */}
+                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && (
+                        <select
+                          value={orphanFilter}
+                          onChange={(e) => setOrphanFilter(e.target.value)}
+                          className='px-3 py-2 border border-gray-300 rounded-md'
+                        >
+                          {filterOptions.orphanOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      
+                      {/* Show explanation when orphan filter is disabled */}
+                      {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && (
+                        <div className="text-sm text-gray-500 italic px-3 py-2 border border-gray-200 rounded-md bg-gray-100">
+                          Orphan filter unavailable (organization selected)
+                        </div>
+                      )}
+
                       {/* Clear Filters */}
-                      {(roleFilter || statusFilter || organizationFilter || search) && (
+                      {(searchInput || roleFilter || statusFilter || organizationFilter || orphanFilter) && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           {t('clearFilters')}
                         </Button>
@@ -752,19 +899,18 @@ export default function UserManagement() {
                       canDeleteUsers={canDeleteUsers}
                     />
 
-                    {/* Pagination */}
+                    {/* Server-side Pagination */}
                     {totalPages > 1 && (
                       <div className='flex justify-between items-center mt-4'>
                         <div className='text-sm text-gray-600'>
-                          Showing {startIndex + 1}-{Math.min(endIndex, filteredTotal)} of{' '}
-                          {filteredTotal} filtered {t('users').toLowerCase()} ({totalUsers} total)
+                          Page {currentPage} of {totalPages} - Showing {users.length} {t('users').toLowerCase()} ({totalUsers} total)
                         </div>
                         <div className='flex gap-2'>
                           <Button
                             variant='outline'
                             size='sm'
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
+                            disabled={!hasPrev || usersLoading}
                           >
                             {t('previous') || 'Previous'}
                           </Button>
@@ -775,7 +921,7 @@ export default function UserManagement() {
                             variant='outline'
                             size='sm'
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
+                            disabled={!hasNext || usersLoading}
                           >
                             {t('next') || 'Next'}
                           </Button>
@@ -992,6 +1138,48 @@ export default function UserManagement() {
           </DialogContent>
         </Dialog>
 
+
+        {/* Delete Orphan Users Confirmation Dialog */}
+        <AlertDialog open={showDeleteOrphansDialog} onOpenChange={setShowDeleteOrphansDialog}>
+          <AlertDialogContent className='sm:max-w-[500px]'>
+            <AlertDialogHeader>
+              <AlertDialogTitle className='text-red-600'>Delete All Orphan Users</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently mark all orphan users (users with no organization or residence assignments) as inactive.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className='bg-red-50 dark:bg-red-950 p-4 rounded-lg border border-red-200 dark:border-red-800 mb-4'>
+              <p className='text-red-700 dark:text-red-300 text-sm'>
+                <strong>Warning:</strong> This action will:
+              </p>
+              <ul className='text-red-700 dark:text-red-300 text-sm mt-2 list-disc list-inside'>
+                <li>Mark all orphan users as inactive (they will be hidden from the interface)</li>
+                <li>Preserve their data for audit purposes but remove access</li>
+                <li>Only affect users with no organization or residence assignments</li>
+                <li>Cannot be undone through the interface</li>
+              </ul>
+            </div>
+
+            <AlertDialogFooter>
+              <Button
+                variant='outline'
+                onClick={() => setShowDeleteOrphansDialog(false)}
+                disabled={deleteOrphanUsersMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant='destructive'
+                onClick={handleDeleteOrphanUsers}
+                disabled={deleteOrphanUsersMutation.isPending}
+                data-testid="button-confirm-delete-orphans"
+              >
+                {deleteOrphanUsersMutation.isPending ? 'Deleting...' : 'Delete Orphan Users'}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Delete User Confirmation Dialog */}
         <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>

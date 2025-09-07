@@ -1,0 +1,33 @@
+55ec995643d24397d8b0c61675375c5f
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.useSelection = useSelection;
+const useMulti_js_1 = require("./selection/useMulti.js");
+const useRange_js_1 = require("./selection/useRange.js");
+const useSingle_js_1 = require("./selection/useSingle.js");
+/**
+ * Determines the appropriate selection hook to use based on the selection mode
+ * and returns the corresponding selection object.
+ *
+ * @template T - The type of DayPicker props.
+ * @param props - The DayPicker props.
+ * @param dateLib - The date utility library instance.
+ * @returns The selection object for the specified mode, or `undefined` if no
+ *   mode is set.
+ */
+function useSelection(props, dateLib) {
+    const single = (0, useSingle_js_1.useSingle)(props, dateLib);
+    const multi = (0, useMulti_js_1.useMulti)(props, dateLib);
+    const range = (0, useRange_js_1.useRange)(props, dateLib);
+    switch (props.mode) {
+        case "single":
+            return single;
+        case "multiple":
+            return multi;
+        case "range":
+            return range;
+        default:
+            return undefined;
+    }
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9ub2RlX21vZHVsZXMvcmVhY3QtZGF5LXBpY2tlci9kaXN0L2Nqcy91c2VTZWxlY3Rpb24uanMiLCJtYXBwaW5ncyI6IkFBQUEsWUFBWSxDQUFDO0FBQ2IsTUFBTSxDQUFDLGNBQWMsQ0FBQyxPQUFPLEVBQUUsWUFBWSxFQUFFLEVBQUUsS0FBSyxFQUFFLElBQUksRUFBRSxDQUFDLENBQUM7QUFDOUQsT0FBTyxDQUFDLFlBQVksR0FBRyxZQUFZLENBQUM7QUFDcEMsTUFBTSxhQUFhLEdBQUcsT0FBTyxDQUFDLHlCQUF5QixDQUFDLENBQUM7QUFDekQsTUFBTSxhQUFhLEdBQUcsT0FBTyxDQUFDLHlCQUF5QixDQUFDLENBQUM7QUFDekQsTUFBTSxjQUFjLEdBQUcsT0FBTyxDQUFDLDBCQUEwQixDQUFDLENBQUM7QUFDM0Q7Ozs7Ozs7OztHQVNHO0FBQ0gsU0FBUyxZQUFZLENBQUMsS0FBSyxFQUFFLE9BQU87SUFDaEMsTUFBTSxNQUFNLEdBQUcsQ0FBQyxDQUFDLEVBQUUsY0FBYyxDQUFDLFNBQVMsQ0FBQyxDQUFDLEtBQUssRUFBRSxPQUFPLENBQUMsQ0FBQztJQUM3RCxNQUFNLEtBQUssR0FBRyxDQUFDLENBQUMsRUFBRSxhQUFhLENBQUMsUUFBUSxDQUFDLENBQUMsS0FBSyxFQUFFLE9BQU8sQ0FBQyxDQUFDO0lBQzFELE1BQU0sS0FBSyxHQUFHLENBQUMsQ0FBQyxFQUFFLGFBQWEsQ0FBQyxRQUFRLENBQUMsQ0FBQyxLQUFLLEVBQUUsT0FBTyxDQUFDLENBQUM7SUFDMUQsUUFBUSxLQUFLLENBQUMsSUFBSSxFQUFFLENBQUM7UUFDakIsS0FBSyxRQUFRO1lBQ1QsT0FBTyxNQUFNLENBQUM7UUFDbEIsS0FBSyxVQUFVO1lBQ1gsT0FBTyxLQUFLLENBQUM7UUFDakIsS0FBSyxPQUFPO1lBQ1IsT0FBTyxLQUFLLENBQUM7UUFDakI7WUFDSSxPQUFPLFNBQVMsQ0FBQztJQUN6QixDQUFDO0FBQ0wsQ0FBQyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL25vZGVfbW9kdWxlcy9yZWFjdC1kYXktcGlja2VyL2Rpc3QvY2pzL3VzZVNlbGVjdGlvbi5qcyJdLCJzb3VyY2VzQ29udGVudCI6WyJcInVzZSBzdHJpY3RcIjtcbk9iamVjdC5kZWZpbmVQcm9wZXJ0eShleHBvcnRzLCBcIl9fZXNNb2R1bGVcIiwgeyB2YWx1ZTogdHJ1ZSB9KTtcbmV4cG9ydHMudXNlU2VsZWN0aW9uID0gdXNlU2VsZWN0aW9uO1xuY29uc3QgdXNlTXVsdGlfanNfMSA9IHJlcXVpcmUoXCIuL3NlbGVjdGlvbi91c2VNdWx0aS5qc1wiKTtcbmNvbnN0IHVzZVJhbmdlX2pzXzEgPSByZXF1aXJlKFwiLi9zZWxlY3Rpb24vdXNlUmFuZ2UuanNcIik7XG5jb25zdCB1c2VTaW5nbGVfanNfMSA9IHJlcXVpcmUoXCIuL3NlbGVjdGlvbi91c2VTaW5nbGUuanNcIik7XG4vKipcbiAqIERldGVybWluZXMgdGhlIGFwcHJvcHJpYXRlIHNlbGVjdGlvbiBob29rIHRvIHVzZSBiYXNlZCBvbiB0aGUgc2VsZWN0aW9uIG1vZGVcbiAqIGFuZCByZXR1cm5zIHRoZSBjb3JyZXNwb25kaW5nIHNlbGVjdGlvbiBvYmplY3QuXG4gKlxuICogQHRlbXBsYXRlIFQgLSBUaGUgdHlwZSBvZiBEYXlQaWNrZXIgcHJvcHMuXG4gKiBAcGFyYW0gcHJvcHMgLSBUaGUgRGF5UGlja2VyIHByb3BzLlxuICogQHBhcmFtIGRhdGVMaWIgLSBUaGUgZGF0ZSB1dGlsaXR5IGxpYnJhcnkgaW5zdGFuY2UuXG4gKiBAcmV0dXJucyBUaGUgc2VsZWN0aW9uIG9iamVjdCBmb3IgdGhlIHNwZWNpZmllZCBtb2RlLCBvciBgdW5kZWZpbmVkYCBpZiBub1xuICogICBtb2RlIGlzIHNldC5cbiAqL1xuZnVuY3Rpb24gdXNlU2VsZWN0aW9uKHByb3BzLCBkYXRlTGliKSB7XG4gICAgY29uc3Qgc2luZ2xlID0gKDAsIHVzZVNpbmdsZV9qc18xLnVzZVNpbmdsZSkocHJvcHMsIGRhdGVMaWIpO1xuICAgIGNvbnN0IG11bHRpID0gKDAsIHVzZU11bHRpX2pzXzEudXNlTXVsdGkpKHByb3BzLCBkYXRlTGliKTtcbiAgICBjb25zdCByYW5nZSA9ICgwLCB1c2VSYW5nZV9qc18xLnVzZVJhbmdlKShwcm9wcywgZGF0ZUxpYik7XG4gICAgc3dpdGNoIChwcm9wcy5tb2RlKSB7XG4gICAgICAgIGNhc2UgXCJzaW5nbGVcIjpcbiAgICAgICAgICAgIHJldHVybiBzaW5nbGU7XG4gICAgICAgIGNhc2UgXCJtdWx0aXBsZVwiOlxuICAgICAgICAgICAgcmV0dXJuIG11bHRpO1xuICAgICAgICBjYXNlIFwicmFuZ2VcIjpcbiAgICAgICAgICAgIHJldHVybiByYW5nZTtcbiAgICAgICAgZGVmYXVsdDpcbiAgICAgICAgICAgIHJldHVybiB1bmRlZmluZWQ7XG4gICAgfVxufVxuIl0sInZlcnNpb24iOjN9

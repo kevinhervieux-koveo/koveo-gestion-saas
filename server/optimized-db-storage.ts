@@ -3,7 +3,7 @@
  * Replaces decorators with direct implementation for better compatibility.
  */
 
-import { eq, desc, and, or, gte, lte, count, like, inArray } from 'drizzle-orm';
+import { eq, desc, and, or, gte, lte, count, like, inArray, isNull, sql, notInArray } from 'drizzle-orm';
 // Use shared database connection to avoid multiple pools in production
 import { db } from './db';
 import crypto from 'crypto';
@@ -181,16 +181,21 @@ export class OptimizedDatabaseStorage implements IStorage {
                 uo.user_id,
                 COALESCE(
                   json_agg(
-                    DISTINCT json_build_object(
-                      'id', b.id,
-                      'name', b.name
+                    json_build_object(
+                      'id', buildings_distinct.id,
+                      'name', buildings_distinct.name
                     )
-                  ) FILTER (WHERE b.id IS NOT NULL),
+                  ),
                   '[]'::json
                 ) as buildings
               FROM user_organizations uo
-              INNER JOIN buildings b ON uo.organization_id = b.organization_id
-              WHERE uo.is_active = true AND b.is_active = true
+              INNER JOIN (
+                SELECT DISTINCT uo2.user_id, b.id, b.name
+                FROM user_organizations uo2
+                INNER JOIN buildings b ON uo2.organization_id = b.organization_id
+                WHERE uo2.is_active = true AND b.is_active = true
+              ) buildings_distinct ON uo.user_id = buildings_distinct.user_id
+              WHERE uo.is_active = true
               GROUP BY uo.user_id
             ),
             user_residences AS (
@@ -265,6 +270,289 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   /**
+   * Retrieves paginated active users with their assignments (organizations, buildings, residences).
+   * OPTIMIZED: Uses single query with JOINs, aggregation, and LIMIT/OFFSET for pagination.
+   */
+  async getUsersWithAssignmentsPaginated(
+    offset: number = 0, 
+    limit: number = 10, 
+    filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string } = {}
+  ): Promise<{
+    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    total: number;
+  }> {
+    return this.withOptimizations(
+      'getUsersWithAssignmentsPaginated',
+      `paginated_users_${offset}_${limit}_${JSON.stringify(filters)}_v4`,
+      'users',
+      async () => {
+        try {
+          console.log('🔍 [DB FILTER] Input filters:', JSON.stringify(filters, null, 2));
+          
+          // Build WHERE conditions for filtering
+          let whereConditions = [];
+          let countWhereConditions = [];
+          
+          if (filters.role) {
+            if (filters.role === 'null') {
+              whereConditions.push('u.role IS NULL');
+              countWhereConditions.push('role IS NULL');
+            } else {
+              whereConditions.push(`u.role = '${filters.role}'`);
+              countWhereConditions.push(`role = '${filters.role}'`);
+            }
+          }
+          
+          if (filters.status) {
+            if (filters.status === 'null') {
+              whereConditions.push('u.is_active IS NULL');
+              countWhereConditions.push('is_active IS NULL');
+            } else {
+              const isActive = filters.status === 'true';
+              whereConditions.push(`u.is_active = ${isActive}`);
+              countWhereConditions.push(`is_active = ${isActive}`);
+            }
+          } else {
+            // Default: only show active users if no status filter is applied
+            whereConditions.push('u.is_active = true');
+            countWhereConditions.push('is_active = true');
+          }
+
+          // Demo-only filter for demo users
+          if (filters.demoOnly === 'true') {
+            whereConditions.push("(u.role LIKE 'demo_%')");
+            countWhereConditions.push("(role LIKE 'demo_%')");
+          }
+
+          // Search filter for name/email
+          if (filters.search && filters.search.trim()) {
+            const searchTerm = filters.search.trim().toLowerCase();
+            whereConditions.push(`(
+              LOWER(u.first_name || ' ' || u.last_name) LIKE '%${searchTerm}%' OR 
+              LOWER(u.email) LIKE '%${searchTerm}%' OR 
+              LOWER(u.username) LIKE '%${searchTerm}%'
+            )`);
+            countWhereConditions.push(`(
+              LOWER(first_name || ' ' || last_name) LIKE '%${searchTerm}%' OR 
+              LOWER(email) LIKE '%${searchTerm}%' OR 
+              LOWER(username) LIKE '%${searchTerm}%'
+            )`);
+            console.log('🔍 [SEARCH FILTER] Applied search for:', searchTerm);
+          }
+
+          // Manager organizations filter - only show users from specific organizations
+          if (filters.managerOrganizations && filters.managerOrganizations.trim()) {
+            const orgIds = filters.managerOrganizations.split(',').map(id => `'${id.trim()}'`).join(',');
+            whereConditions.push(`EXISTS (
+              SELECT 1 FROM user_organizations uo_mgr 
+              WHERE uo_mgr.user_id = u.id 
+              AND uo_mgr.organization_id IN (${orgIds})
+              AND uo_mgr.is_active = true
+            )`);
+            countWhereConditions.push(`EXISTS (
+              SELECT 1 FROM user_organizations uo_mgr 
+              WHERE uo_mgr.user_id = users.id 
+              AND uo_mgr.organization_id IN (${orgIds})
+              AND uo_mgr.is_active = true
+            )`);
+            console.log('👔 [MANAGER FILTER] Applied organization filter for:', orgIds);
+          }
+
+          // First get total count for pagination metadata with filters
+          const countQuery = `
+            SELECT COUNT(*) as total 
+            FROM users 
+            WHERE ${countWhereConditions.length > 0 ? countWhereConditions.join(' AND ') : '1=1'}
+            ${filters.organization && filters.organization.trim() ? `AND EXISTS (
+              SELECT 1 FROM user_organizations uo_filter 
+              WHERE uo_filter.user_id = users.id 
+              AND uo_filter.organization_id = '${filters.organization.trim()}'
+              AND uo_filter.is_active = true
+            )` : ''}
+            ${!filters.organization && filters.orphan === 'true' ? `AND NOT EXISTS (
+              SELECT 1 FROM user_organizations uo_count_orphan 
+              WHERE uo_count_orphan.user_id = users.id AND uo_count_orphan.is_active = true
+            ) AND NOT EXISTS (
+              SELECT 1 FROM user_residences ur_count_orphan 
+              WHERE ur_count_orphan.user_id = users.id AND ur_count_orphan.is_active = true
+            )` : ''}
+            ${!filters.organization && filters.orphan === 'false' ? `AND (EXISTS (
+              SELECT 1 FROM user_organizations uo_count_assigned 
+              WHERE uo_count_assigned.user_id = users.id AND uo_count_assigned.is_active = true
+            ) OR EXISTS (
+              SELECT 1 FROM user_residences ur_count_assigned 
+              WHERE ur_count_assigned.user_id = users.id AND ur_count_assigned.is_active = true
+            ))` : ''}
+            ${filters.search && filters.search.trim() ? `AND (
+              LOWER(first_name || ' ' || last_name) LIKE '%${filters.search.trim().toLowerCase()}%' OR 
+              LOWER(email) LIKE '%${filters.search.trim().toLowerCase()}%' OR 
+              LOWER(username) LIKE '%${filters.search.trim().toLowerCase()}%'
+            )` : ''}
+          `;
+          console.log('📊 [COUNT SQL]:', countQuery);
+          const countResult = await db.execute(sql.raw(countQuery));
+          const total = parseInt(countResult.rows[0]?.total || '0');
+          console.log('📊 [COUNT RESULT]:', total);
+
+          // Single optimized query using CTEs and aggregation with pagination and filters
+          const mainQuery = `
+            WITH user_orgs AS (
+              SELECT 
+                uo.user_id,
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', o.id,
+                      'name', o.name,
+                      'type', o.type
+                    )
+                  ) FILTER (WHERE o.id IS NOT NULL),
+                  '[]'::json
+                ) as organizations
+              FROM user_organizations uo
+              INNER JOIN organizations o ON uo.organization_id = o.id
+              WHERE uo.is_active = true AND o.is_active = true
+              GROUP BY uo.user_id
+            ),
+            user_buildings AS (
+              SELECT 
+                uo.user_id,
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', buildings_distinct.id,
+                      'name', buildings_distinct.name
+                    )
+                  ),
+                  '[]'::json
+                ) as buildings
+              FROM user_organizations uo
+              INNER JOIN (
+                SELECT DISTINCT uo2.user_id, b.id, b.name
+                FROM user_organizations uo2
+                INNER JOIN buildings b ON uo2.organization_id = b.organization_id
+                WHERE uo2.is_active = true AND b.is_active = true
+              ) buildings_distinct ON uo.user_id = buildings_distinct.user_id
+              WHERE uo.is_active = true
+              GROUP BY uo.user_id
+            ),
+            user_residences AS (
+              SELECT 
+                ur.user_id,
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', r.id,
+                      'unitNumber', r.unit_number,
+                      'buildingId', r.building_id,
+                      'buildingName', b.name
+                    )
+                  ) FILTER (WHERE r.id IS NOT NULL),
+                  '[]'::json
+                ) as residences
+              FROM user_residences ur
+              INNER JOIN residences r ON ur.residence_id = r.id
+              INNER JOIN buildings b ON r.building_id = b.id
+              WHERE ur.is_active = true AND r.is_active = true
+              GROUP BY ur.user_id
+            )
+            SELECT 
+              u.*,
+              COALESCE(uo.organizations, '[]'::json) as organizations,
+              COALESCE(ub.buildings, '[]'::json) as buildings,
+              COALESCE(ur.residences, '[]'::json) as residences
+            FROM users u
+            LEFT JOIN user_orgs uo ON u.id = uo.user_id
+            LEFT JOIN user_buildings ub ON u.id = ub.user_id
+            LEFT JOIN user_residences ur ON u.id = ur.user_id
+            WHERE ${whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1'}
+            ${filters.organization && filters.organization.trim() ? (() => {
+              console.log('🏢 [ORG FILTER] Applying organization filter:', filters.organization.trim());
+              return `AND EXISTS (
+                SELECT 1 FROM user_organizations uo_filter 
+                WHERE uo_filter.user_id = u.id 
+                AND uo_filter.organization_id = '${filters.organization.trim()}'
+                AND uo_filter.is_active = true
+              )`;
+            })() : (() => {
+              console.log('🏢 [ORG FILTER] No organization filter applied (empty or undefined)');
+              return '';
+            })()
+            }
+            ${!filters.organization && filters.orphan === 'true' ? (() => {
+              console.log('👻 [ORPHAN FILTER] Applying orphan filter: true (users with no assignments)');
+              return `AND NOT EXISTS (
+                SELECT 1 FROM user_organizations uo_filter_orphan 
+                WHERE uo_filter_orphan.user_id = u.id AND uo_filter_orphan.is_active = true
+              ) AND NOT EXISTS (
+                SELECT 1 FROM user_residences ur_filter_orphan 
+                WHERE ur_filter_orphan.user_id = u.id AND ur_filter_orphan.is_active = true
+              )`;
+            })() : !filters.organization && filters.orphan === 'false' ? (() => {
+              console.log('👻 [ORPHAN FILTER] Applying orphan filter: false (users with assignments)');
+              return `AND (EXISTS (
+                SELECT 1 FROM user_organizations uo_filter_assigned 
+                WHERE uo_filter_assigned.user_id = u.id AND uo_filter_assigned.is_active = true
+              ) OR EXISTS (
+                SELECT 1 FROM user_residences ur_filter_assigned 
+                WHERE ur_filter_assigned.user_id = u.id AND ur_filter_assigned.is_active = true
+              ))`;
+            })() : filters.organization && filters.orphan ? (() => {
+              console.log('👻 [ORPHAN FILTER] Ignoring orphan filter - conflicts with organization filter');
+              return '';
+            })() : (() => {
+              console.log('👻 [ORPHAN FILTER] No orphan filter applied (empty or undefined)');
+              return '';
+            })()
+            }
+            ORDER BY u.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `;
+          
+          console.log('📊 [MAIN SQL]:', mainQuery);
+          const result = await db.execute(sql.raw(mainQuery));
+          console.log('📊 [MAIN RESULT]:', result.rows.length, 'users found');
+
+          // Transform the raw SQL result to match the expected TypeScript types
+          const users = result.rows.map((row: any) => ({
+            id: row.id,
+            username: row.username,
+            password: row.password,
+            email: row.email,
+            firstName: row.first_name,
+            lastName: row.last_name,
+            phone: row.phone,
+            profileImage: row.profile_image,
+            language: row.language,
+            role: row.role,
+            isActive: row.is_active,
+            lastLoginAt: row.last_login_at,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            organizations: typeof row.organizations === 'string' 
+              ? JSON.parse(row.organizations) 
+              : row.organizations || [],
+            buildings: typeof row.buildings === 'string' 
+              ? JSON.parse(row.buildings) 
+              : row.buildings || [],
+            residences: typeof row.residences === 'string' 
+              ? JSON.parse(row.residences) 
+              : row.residences || []
+          }));
+
+          return { users, total };
+        } catch (error: any) {
+          console.error('❌ Error in optimized getUsersWithAssignmentsPaginated:', error);
+          
+          // Fallback to paginated version of the original implementation if optimized query fails
+          console.log('🔄 Falling back to paginated original implementation...');
+          return this.getUsersWithAssignmentsPaginatedFallback(offset, limit, filters);
+        }
+      }
+    );
+  }
+
+  /**
    * Fallback implementation for getUsersWithAssignments if optimized version fails.
    * This is the original N+1 query implementation kept for reliability.
    */
@@ -275,7 +563,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         .select()
         .from(schema.users)
         .where(eq(schema.users.isActive, true))
-        .limit(100)
         .orderBy(desc(schema.users.createdAt));
 
       // For each user, fetch their assignments with limited concurrency to prevent connection issues
@@ -366,6 +653,228 @@ export class OptimizedDatabaseStorage implements IStorage {
       console.error('❌ Critical error getting users with assignments:', error);
       // Return empty array on critical error
       return [];
+    }
+  }
+
+  /**
+   * Paginated fallback implementation for getUsersWithAssignmentsPaginated if optimized version fails.
+   * This is the original N+1 query implementation with pagination support.
+   */
+  private async getUsersWithAssignmentsPaginatedFallback(
+    offset: number = 0, 
+    limit: number = 10, 
+    filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string } = {}
+  ): Promise<{
+    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    total: number;
+  }> {
+    try {
+      // Build WHERE conditions for filtering
+      let whereConditions = [];
+      
+      if (filters.role) {
+        if (filters.role === 'null') {
+          whereConditions.push(isNull(schema.users.role));
+        } else {
+          whereConditions.push(eq(schema.users.role, filters.role as any));
+        }
+      }
+      
+      if (filters.status) {
+        if (filters.status === 'null') {
+          whereConditions.push(isNull(schema.users.isActive));
+        } else {
+          const isActive = filters.status === 'true';
+          whereConditions.push(eq(schema.users.isActive, isActive));
+        }
+      } else {
+        // Default: only show active users if no status filter is applied
+        whereConditions.push(eq(schema.users.isActive, true));
+      }
+
+      // Demo-only filter for demo users
+      if (filters.demoOnly === 'true') {
+        whereConditions.push(sql`${schema.users.role} LIKE 'demo_%'`);
+      }
+
+      // Search filter for name/email
+      if (filters.search && filters.search.trim()) {
+        const searchTerm = `%${filters.search.trim().toLowerCase()}%`;
+        whereConditions.push(
+          or(
+            sql`LOWER(${schema.users.firstName} || ' ' || ${schema.users.lastName}) LIKE ${searchTerm}`,
+            sql`LOWER(${schema.users.email}) LIKE ${searchTerm}`,
+            sql`LOWER(${schema.users.username}) LIKE ${searchTerm}`
+          )
+        );
+        console.log('🔍 [SEARCH FILTER FALLBACK] Applied search for:', filters.search.trim());
+      }
+
+      // Manager organizations filter
+      if (filters.managerOrganizations) {
+        const orgIds = filters.managerOrganizations.split(',');
+        const orgFilterQuery = db
+          .select({ userId: schema.userOrganizations.userId })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              inArray(schema.userOrganizations.organizationId, orgIds),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          );
+        whereConditions.push(inArray(schema.users.id, orgFilterQuery));
+      }
+
+      // Orphan filter implementation for fallback
+      if (filters.orphan === 'true') {
+        // Users with no organization AND no residence assignments
+        console.log('👻 [FALLBACK] Applying orphan filter: true (users with no assignments)');
+        
+        const usersWithOrgs = db
+          .selectDistinct({ userId: schema.userOrganizations.userId })
+          .from(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.isActive, true));
+        
+        const usersWithResidences = db
+          .selectDistinct({ userId: schema.userResidences.userId })
+          .from(schema.userResidences)
+          .where(eq(schema.userResidences.isActive, true));
+        
+        // Users who are NOT in either of these subqueries
+        whereConditions.push(
+          and(
+            notInArray(schema.users.id, usersWithOrgs),
+            notInArray(schema.users.id, usersWithResidences)
+          )
+        );
+      } else if (filters.orphan === 'false') {
+        // Users with at least one organization OR residence assignment
+        console.log('👻 [FALLBACK] Applying orphan filter: false (users with assignments)');
+        
+        const usersWithOrgs = db
+          .selectDistinct({ userId: schema.userOrganizations.userId })
+          .from(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.isActive, true));
+        
+        const usersWithResidences = db
+          .selectDistinct({ userId: schema.userResidences.userId })
+          .from(schema.userResidences)
+          .where(eq(schema.userResidences.isActive, true));
+        
+        // Users who are in at least one of these subqueries
+        whereConditions.push(
+          or(
+            inArray(schema.users.id, usersWithOrgs),
+            inArray(schema.users.id, usersWithResidences)
+          )
+        );
+      }
+
+      // First get total count with filters
+      const totalResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.users)
+        .where(and(...whereConditions));
+      
+      const total = Number(totalResult[0]?.count || 0);
+
+      // Get paginated users with filters
+      const users = await db
+        .select()
+        .from(schema.users)
+        .where(and(...whereConditions))
+        .orderBy(desc(schema.users.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      // For each user, fetch their assignments with limited concurrency to prevent connection issues
+      const batchSize = 5; // Process 5 users at a time to avoid connection pool exhaustion
+      const usersWithAssignments = [];
+      
+      for (let i = 0; i < users.length; i += batchSize) {
+        const batch = users.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map(async (user) => {
+          try {
+            // Get user organizations
+            const userOrgs = await db
+              .select({
+                id: schema.organizations.id,
+                name: schema.organizations.name,
+                type: schema.organizations.type,
+              })
+              .from(schema.userOrganizations)
+              .innerJoin(schema.organizations, eq(schema.userOrganizations.organizationId, schema.organizations.id))
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, user.id),
+                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.organizations.isActive, true)
+                )
+              );
+
+            // Get user buildings (through organization relationships)
+            const userBuildings = await db
+              .select({
+                id: schema.buildings.id,
+                name: schema.buildings.name,
+              })
+              .from(schema.userOrganizations)
+              .innerJoin(schema.buildings, eq(schema.userOrganizations.organizationId, schema.buildings.organizationId))
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, user.id),
+                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.buildings.isActive, true)
+                )
+              );
+
+            // Get user residences
+            const userResidences = await db
+              .select({
+                id: schema.residences.id,
+                unitNumber: schema.residences.unitNumber,
+                buildingId: schema.residences.buildingId,
+                buildingName: schema.buildings.name,
+              })
+              .from(schema.userResidences)
+              .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+              .where(
+                and(
+                  eq(schema.userResidences.userId, user.id),
+                  eq(schema.userResidences.isActive, true),
+                  eq(schema.residences.isActive, true)
+                )
+              );
+
+            return {
+              ...user,
+              organizations: userOrgs || [],
+              buildings: userBuildings || [],
+              residences: userResidences || [],
+            };
+          } catch (error: any) {
+            console.error('❌ Error getting user assignments:', error);
+            // Return user with empty assignments if there's an error
+            return {
+              ...user,
+              organizations: [],
+              buildings: [],
+              residences: [],
+            };
+          }
+        })
+      );
+      
+      usersWithAssignments.push(...batchResults);
+      }
+
+      return { users: usersWithAssignments, total };
+    } catch (error: any) {
+      console.error('❌ Critical error getting paginated users with assignments:', error);
+      // Return empty result on critical error
+      return { users: [], total: 0 };
     }
   }
 
@@ -572,15 +1081,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
       
-      if (result.length > 0) {
-        console.log(`🔍 Storage.getUser: Found user:`, {
-          id: result[0].id,
-          email: result[0].email,
-          role: result[0].role,
-        });
-      } else {
-        
-      }
+      // User lookup completed
       return result[0];
     });
   }
@@ -2945,6 +3446,262 @@ export class OptimizedDatabaseStorage implements IStorage {
     } catch (error: any) {
       console.error('❌ Error deleting invoice:', error);
       return false;
+    }
+  }
+
+  // Admin-only method to count orphan users
+  async countOrphanUsers(): Promise<number> {
+    console.log('📊 [STORAGE - COUNT] ===== COUNT ORPHAN USERS STARTED =====');
+    console.log('⏰ [STORAGE - COUNT] Timestamp:', new Date().toISOString());
+    
+    try {
+      const countQuery = `
+        SELECT COUNT(*) as total 
+        FROM users u
+        WHERE u.is_active = true
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = u.id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = u.id AND ur.is_active = true
+          )
+      `;
+      
+      console.log('🔍 [STORAGE - COUNT] Executing SQL query:', countQuery.trim());
+      console.log('⏱️ [STORAGE - COUNT] Starting database execution...');
+      
+      const startTime = Date.now();
+      const result = await db.execute(sql.raw(countQuery));
+      const endTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - COUNT] Database query completed in:', (endTime - startTime), 'ms');
+      console.log('📈 [STORAGE - COUNT] Raw database result:', result.rows);
+      
+      const count = parseInt(result.rows[0]?.total || '0');
+      console.log('🔢 [STORAGE - COUNT] Parsed orphan count:', count);
+      console.log('📊 [STORAGE - COUNT] ===== COUNT ORPHAN USERS COMPLETED =====');
+      
+      return count;
+    } catch (error: any) {
+      console.error('💥 [STORAGE - COUNT] ===== CRITICAL ERROR =====');
+      console.error('❌ [STORAGE - COUNT] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
+        timestamp: new Date().toISOString()
+      });
+      console.error('💥 [STORAGE - COUNT] ===== END CRITICAL ERROR =====');
+      return 0;
+    }
+  }
+
+  // Admin-only method to count all users except specified admin
+  async countAllUsersExcept(excludeUserId: string): Promise<number> {
+    console.log('📊 [STORAGE - COUNT ALL] ===== COUNT ALL USERS EXCEPT ADMIN STARTED =====');
+    console.log('⏰ [STORAGE - COUNT ALL] Timestamp:', new Date().toISOString());
+    console.log('🔒 [STORAGE - COUNT ALL] Excluding admin user ID:', excludeUserId);
+    
+    try {
+      const countQuery = `
+        SELECT COUNT(*) as total 
+        FROM users u
+        WHERE u.is_active = true
+        AND u.id != '${excludeUserId}'
+      `;
+      
+      console.log('🔍 [STORAGE - COUNT ALL] Executing SQL query:', countQuery.trim());
+      console.log('⏱️ [STORAGE - COUNT ALL] Starting database execution...');
+      
+      const startTime = Date.now();
+      const result = await db.execute(sql.raw(countQuery));
+      const endTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - COUNT ALL] Database query completed in:', (endTime - startTime), 'ms');
+      console.log('📈 [STORAGE - COUNT ALL] Raw database result:', result.rows);
+      
+      const count = parseInt(result.rows[0]?.total || '0');
+      console.log('🔢 [STORAGE - COUNT ALL] Parsed user count:', count);
+      console.log('📊 [STORAGE - COUNT ALL] ===== COUNT ALL USERS EXCEPT ADMIN COMPLETED =====');
+      
+      return count;
+    } catch (error: any) {
+      console.error('💥 [STORAGE - COUNT ALL] ===== CRITICAL ERROR =====');
+      console.error('❌ [STORAGE - COUNT ALL] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
+        timestamp: new Date().toISOString()
+      });
+      console.error('💥 [STORAGE - COUNT ALL] ===== END CRITICAL ERROR =====');
+      return 0;
+    }
+  }
+
+  // Admin-only method to delete all users except specified admin
+  async deleteAllUsersExcept(excludeUserId: string): Promise<number> {
+    console.log('🗑️ [STORAGE - DELETE ALL] ===== DELETE ALL USERS EXCEPT ADMIN STARTED =====');
+    console.log('⏰ [STORAGE - DELETE ALL] Timestamp:', new Date().toISOString());
+    console.log('🔒 [STORAGE - DELETE ALL] Excluding admin user ID:', excludeUserId);
+    
+    try {
+      // First, let's get the list of users that will be affected for debugging
+      const previewQuery = sql`SELECT u.id, u.email, u.first_name, u.last_name, u.role
+        FROM users u
+        WHERE u.is_active = true
+          AND u.id != ${excludeUserId}`;
+      
+      console.log('🔍 [STORAGE - DELETE ALL] Getting preview of users to be deleted...');
+      const previewResult = await db.execute(previewQuery);
+      console.log('👥 [STORAGE - DELETE ALL] Users to be deleted:', previewResult.rows);
+      
+      // Mark all other users as inactive
+      const updateQuery = sql`UPDATE users 
+        SET is_active = false,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE is_active = true
+          AND id != ${excludeUserId}`;
+      
+      console.log('🔧 [STORAGE - DELETE ALL] Executing UPDATE query to mark users as inactive...');
+      console.log('⏱️ [STORAGE - DELETE ALL] Starting update operation...');
+      
+      const startTime = Date.now();
+      const result = await db.execute(updateQuery);
+      const updateTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - DELETE ALL] Update operation completed in:', (updateTime - startTime), 'ms');
+      console.log('📊 [STORAGE - DELETE ALL] Update result:', result);
+      
+      // Count the affected rows
+      const countQuery = sql`SELECT COUNT(*) as deleted_count
+        FROM users u
+        WHERE u.is_active = false
+          AND u.id != ${excludeUserId}
+          AND u.updated_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute'`;
+      
+      console.log('🔍 [STORAGE - DELETE ALL] Executing count query to verify deletion...');
+      const countStartTime = Date.now();
+      const countResult = await db.execute(countQuery);
+      const countEndTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - DELETE ALL] Count query completed in:', (countEndTime - countStartTime), 'ms');
+      console.log('📈 [STORAGE - DELETE ALL] Raw count result:', countResult.rows);
+      
+      const deletedCount = parseInt(countResult.rows[0]?.deleted_count || '0');
+      console.log('🔢 [STORAGE - DELETE ALL] Final deleted count:', deletedCount);
+      console.log('⏱️ [STORAGE - DELETE ALL] Total operation time:', (countEndTime - startTime), 'ms');
+      console.log('🗑️ [STORAGE - DELETE ALL] ===== DELETE ALL USERS EXCEPT ADMIN COMPLETED =====');
+      
+      return deletedCount;
+    } catch (error: any) {
+      console.error('💥 [STORAGE - DELETE ALL] ===== CRITICAL ERROR =====');
+      console.error('❌ [STORAGE - DELETE ALL] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
+        excludeUserId: excludeUserId,
+        timestamp: new Date().toISOString()
+      });
+      console.error('💥 [STORAGE - DELETE ALL] ===== END CRITICAL ERROR =====');
+      throw error;
+    }
+  }
+
+  // Admin-only method to delete orphan users (excluding specified admin user)
+  async deleteOrphanUsers(excludeUserId: string): Promise<number> {
+    console.log('🗑️ [STORAGE - DELETE] ===== DELETE ORPHAN USERS STARTED =====');
+    console.log('⏰ [STORAGE - DELETE] Timestamp:', new Date().toISOString());
+    console.log('🔒 [STORAGE - DELETE] Excluding admin user ID:', excludeUserId);
+    
+    try {
+      // First, let's get the list of users that will be affected for debugging
+      const previewQuery = sql`SELECT u.id, u.email, u.first_name, u.last_name, u.role
+        FROM users u
+        WHERE u.is_active = true
+          AND u.id != ${excludeUserId}
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = u.id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = u.id AND ur.is_active = true
+          )`;
+      
+      console.log('🔍 [STORAGE - DELETE] Getting preview of users to be deleted...');
+      const previewResult = await db.execute(previewQuery);
+      console.log('👥 [STORAGE - DELETE] Users to be deleted:', previewResult.rows);
+      
+      // Mark orphan users as inactive to avoid foreign key issues
+      const updateQuery = sql`UPDATE users 
+        SET is_active = false,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE is_active = true
+          AND id != ${excludeUserId}
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = id AND ur.is_active = true
+          )`;
+      
+      console.log('🔧 [STORAGE - DELETE] Executing UPDATE query to mark users as inactive...');
+      console.log('⏱️ [STORAGE - DELETE] Starting update operation...');
+      
+      const startTime = Date.now();
+      const result = await db.execute(updateQuery);
+      const updateTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - DELETE] Update operation completed in:', (updateTime - startTime), 'ms');
+      console.log('📊 [STORAGE - DELETE] Update result:', result);
+      
+      // Count the affected rows
+      const countQuery = sql`SELECT COUNT(*) as deleted_count
+        FROM users u
+        WHERE u.is_active = false
+          AND u.id != ${excludeUserId}
+          AND u.updated_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute'
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = u.id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = u.id AND ur.is_active = true
+          )`;
+      
+      console.log('🔍 [STORAGE - DELETE] Executing count query to verify deletion...');
+      const countStartTime = Date.now();
+      const countResult = await db.execute(countQuery);
+      const countEndTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - DELETE] Count query completed in:', (countEndTime - countStartTime), 'ms');
+      console.log('📈 [STORAGE - DELETE] Raw count result:', countResult.rows);
+      
+      const deletedCount = parseInt(countResult.rows[0]?.deleted_count || '0');
+      console.log('🔢 [STORAGE - DELETE] Final deleted count:', deletedCount);
+      console.log('⏱️ [STORAGE - DELETE] Total operation time:', (countEndTime - startTime), 'ms');
+      console.log('🗑️ [STORAGE - DELETE] ===== DELETE ORPHAN USERS COMPLETED =====');
+      
+      return deletedCount;
+    } catch (error: any) {
+      console.error('💥 [STORAGE - DELETE] ===== CRITICAL ERROR =====');
+      console.error('❌ [STORAGE - DELETE] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
+        excludeUserId: excludeUserId,
+        timestamp: new Date().toISOString()
+      });
+      console.error('💥 [STORAGE - DELETE] ===== END CRITICAL ERROR =====');
+      throw error;
     }
   }
 }

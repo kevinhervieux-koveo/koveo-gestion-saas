@@ -655,9 +655,6 @@ export function setupAuthRoutes(app: any) {
   app.get('/api/auth/user', async (req: Request, res: Response) => {
     try {
       // Check user session
-      console.log('🔍 Auth check - Session exists:', !!req.session);
-      console.log('🔍 Auth check - Session ID:', req.session?.id?.substring(0, 8) + '...');
-      console.log('🔍 Auth check - User ID in session:', req.session?.userId);
 
       // Check if we have a valid session with user ID
       if (!req.session?.userId) {

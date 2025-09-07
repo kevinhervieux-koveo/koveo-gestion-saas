@@ -266,9 +266,7 @@ export const rateLimitConfig = {
 export function configureSecurityMiddleware(app: Express): void {
   const isDevelopment = process.env.NODE_ENV === 'development';
 
-  console.log(
-    `🛡️  Configuring security middleware (${isDevelopment ? 'development' : 'production'} mode)`
-  );
+  // Configuring security middleware
 
   // CORS Configuration
   app.use(cors(getCorsConfig(isDevelopment)));
@@ -413,7 +411,7 @@ export function configureSecurityMiddleware(app: Express): void {
     res.status(204).end();
   });
 
-  console.log('✅ Security middleware configured successfully');
+  // Security middleware configured successfully
 }
 
 /**
