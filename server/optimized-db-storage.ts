@@ -1081,15 +1081,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       
       const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
       
-      if (result.length > 0) {
-        console.log(`🔍 Storage.getUser: Found user:`, {
-          id: result[0].id,
-          email: result[0].email,
-          role: result[0].role,
-        });
-      } else {
-        
-      }
+      // User lookup completed
       return result[0];
     });
   }
