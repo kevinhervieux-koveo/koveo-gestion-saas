@@ -86,6 +86,7 @@ interface BuildingCardProps {
   userRole?: string;
   onEdit: (building: BuildingData) => void;
   onDelete: (building: BuildingData) => void;
+  t: (key: string) => string;
 }
 
 /**
@@ -96,7 +97,7 @@ interface BuildingCardProps {
  * @param root0.onEdit
  * @param root0.onDelete
  */
-function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProps) {
+function BuildingCard({ building, userRole, onEdit, onDelete, t }: BuildingCardProps) {
   const isAdmin = userRole === 'admin';
   const canEdit = ['admin', 'manager'].includes(userRole || '');
 
@@ -172,6 +173,7 @@ interface BuildingFormProps {
   isSubmitting: boolean;
   title: string;
   submitLabel: string;
+  t: (key: string) => string;
 }
 
 /**
@@ -195,6 +197,7 @@ function BuildingForm({
   isSubmitting,
   title,
   submitLabel,
+  t,
 }: BuildingFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -650,6 +653,7 @@ export default function Buildings() {
                   userRole={user?.role}
                   onEdit={handleEditBuilding}
                   onDelete={handleDeleteBuilding}
+                  t={t}
                 />
               ))}
             </div>
@@ -678,6 +682,7 @@ export default function Buildings() {
             isSubmitting={createBuildingMutation.isPending}
             title={t('addBuilding')}
             submitLabel={t('createBuilding')}
+            t={t}
           />
 
           {/* Edit Building Dialog */}
@@ -690,6 +695,7 @@ export default function Buildings() {
             isSubmitting={updateBuildingMutation.isPending}
             title={t('editBuilding')}
             submitLabel={t('save')}
+            t={t}
           />
 
           {/* Delete Confirmation Dialog */}
