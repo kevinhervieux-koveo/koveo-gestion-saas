@@ -3506,6 +3506,119 @@ export class OptimizedDatabaseStorage implements IStorage {
     }
   }
 
+  // Admin-only method to count all users except specified admin
+  async countAllUsersExcept(excludeUserId: string): Promise<number> {
+    console.log('📊 [STORAGE - COUNT ALL] ===== COUNT ALL USERS EXCEPT ADMIN STARTED =====');
+    console.log('⏰ [STORAGE - COUNT ALL] Timestamp:', new Date().toISOString());
+    console.log('🔒 [STORAGE - COUNT ALL] Excluding admin user ID:', excludeUserId);
+    
+    try {
+      const countQuery = `
+        SELECT COUNT(*) as total 
+        FROM users u
+        WHERE u.is_active = true
+        AND u.id != '${excludeUserId}'
+      `;
+      
+      console.log('🔍 [STORAGE - COUNT ALL] Executing SQL query:', countQuery.trim());
+      console.log('⏱️ [STORAGE - COUNT ALL] Starting database execution...');
+      
+      const startTime = Date.now();
+      const result = await db.execute(sql.raw(countQuery));
+      const endTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - COUNT ALL] Database query completed in:', (endTime - startTime), 'ms');
+      console.log('📈 [STORAGE - COUNT ALL] Raw database result:', result.rows);
+      
+      const count = parseInt(result.rows[0]?.total || '0');
+      console.log('🔢 [STORAGE - COUNT ALL] Parsed user count:', count);
+      console.log('📊 [STORAGE - COUNT ALL] ===== COUNT ALL USERS EXCEPT ADMIN COMPLETED =====');
+      
+      return count;
+    } catch (error: any) {
+      console.error('💥 [STORAGE - COUNT ALL] ===== CRITICAL ERROR =====');
+      console.error('❌ [STORAGE - COUNT ALL] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
+        timestamp: new Date().toISOString()
+      });
+      console.error('💥 [STORAGE - COUNT ALL] ===== END CRITICAL ERROR =====');
+      return 0;
+    }
+  }
+
+  // Admin-only method to delete all users except specified admin
+  async deleteAllUsersExcept(excludeUserId: string): Promise<number> {
+    console.log('🗑️ [STORAGE - DELETE ALL] ===== DELETE ALL USERS EXCEPT ADMIN STARTED =====');
+    console.log('⏰ [STORAGE - DELETE ALL] Timestamp:', new Date().toISOString());
+    console.log('🔒 [STORAGE - DELETE ALL] Excluding admin user ID:', excludeUserId);
+    
+    try {
+      // First, let's get the list of users that will be affected for debugging
+      const previewQuery = sql`SELECT u.id, u.email, u.first_name, u.last_name, u.role
+        FROM users u
+        WHERE u.is_active = true
+          AND u.id != ${excludeUserId}`;
+      
+      console.log('🔍 [STORAGE - DELETE ALL] Getting preview of users to be deleted...');
+      const previewResult = await db.execute(previewQuery);
+      console.log('👥 [STORAGE - DELETE ALL] Users to be deleted:', previewResult.rows);
+      
+      // Mark all other users as inactive
+      const updateQuery = sql`UPDATE users 
+        SET is_active = false,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE is_active = true
+          AND id != ${excludeUserId}`;
+      
+      console.log('🔧 [STORAGE - DELETE ALL] Executing UPDATE query to mark users as inactive...');
+      console.log('⏱️ [STORAGE - DELETE ALL] Starting update operation...');
+      
+      const startTime = Date.now();
+      const result = await db.execute(updateQuery);
+      const updateTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - DELETE ALL] Update operation completed in:', (updateTime - startTime), 'ms');
+      console.log('📊 [STORAGE - DELETE ALL] Update result:', result);
+      
+      // Count the affected rows
+      const countQuery = sql`SELECT COUNT(*) as deleted_count
+        FROM users u
+        WHERE u.is_active = false
+          AND u.id != ${excludeUserId}
+          AND u.updated_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute'`;
+      
+      console.log('🔍 [STORAGE - DELETE ALL] Executing count query to verify deletion...');
+      const countStartTime = Date.now();
+      const countResult = await db.execute(countQuery);
+      const countEndTime = Date.now();
+      
+      console.log('⏱️ [STORAGE - DELETE ALL] Count query completed in:', (countEndTime - countStartTime), 'ms');
+      console.log('📈 [STORAGE - DELETE ALL] Raw count result:', countResult.rows);
+      
+      const deletedCount = parseInt(countResult.rows[0]?.deleted_count || '0');
+      console.log('🔢 [STORAGE - DELETE ALL] Final deleted count:', deletedCount);
+      console.log('⏱️ [STORAGE - DELETE ALL] Total operation time:', (countEndTime - startTime), 'ms');
+      console.log('🗑️ [STORAGE - DELETE ALL] ===== DELETE ALL USERS EXCEPT ADMIN COMPLETED =====');
+      
+      return deletedCount;
+    } catch (error: any) {
+      console.error('💥 [STORAGE - DELETE ALL] ===== CRITICAL ERROR =====');
+      console.error('❌ [STORAGE - DELETE ALL] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        code: error.code,
+        excludeUserId: excludeUserId,
+        timestamp: new Date().toISOString()
+      });
+      console.error('💥 [STORAGE - DELETE ALL] ===== END CRITICAL ERROR =====');
+      throw error;
+    }
+  }
+
   // Admin-only method to delete orphan users (excluding specified admin user)
   async deleteOrphanUsers(excludeUserId: string): Promise<number> {
     console.log('🗑️ [STORAGE - DELETE] ===== DELETE ORPHAN USERS STARTED =====');
