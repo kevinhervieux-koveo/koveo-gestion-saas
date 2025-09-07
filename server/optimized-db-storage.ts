@@ -712,8 +712,50 @@ export class OptimizedDatabaseStorage implements IStorage {
         whereConditions.push(inArray(schema.users.id, orgFilterQuery));
       }
 
-      // Note: Organization and orphan filters are complex and might not work well in fallback method.
-      // These will be handled by the optimized query method primarily.
+      // Orphan filter implementation for fallback
+      if (filters.orphan === 'true') {
+        // Users with no organization AND no residence assignments
+        console.log('👻 [FALLBACK] Applying orphan filter: true (users with no assignments)');
+        
+        const usersWithOrgs = db
+          .selectDistinct({ userId: schema.userOrganizations.userId })
+          .from(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.isActive, true));
+        
+        const usersWithResidences = db
+          .selectDistinct({ userId: schema.userResidences.userId })
+          .from(schema.userResidences)
+          .where(eq(schema.userResidences.isActive, true));
+        
+        // Users who are NOT in either of these subqueries
+        whereConditions.push(
+          and(
+            notInArray(schema.users.id, usersWithOrgs),
+            notInArray(schema.users.id, usersWithResidences)
+          )
+        );
+      } else if (filters.orphan === 'false') {
+        // Users with at least one organization OR residence assignment
+        console.log('👻 [FALLBACK] Applying orphan filter: false (users with assignments)');
+        
+        const usersWithOrgs = db
+          .selectDistinct({ userId: schema.userOrganizations.userId })
+          .from(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.isActive, true));
+        
+        const usersWithResidences = db
+          .selectDistinct({ userId: schema.userResidences.userId })
+          .from(schema.userResidences)
+          .where(eq(schema.userResidences.isActive, true));
+        
+        // Users who are in at least one of these subqueries
+        whereConditions.push(
+          or(
+            inArray(schema.users.id, usersWithOrgs),
+            inArray(schema.users.id, usersWithResidences)
+          )
+        );
+      }
 
       // First get total count with filters
       const totalResult = await db

@@ -65,6 +65,11 @@ export function registerUserRoutes(app: Express): void {
         orphan: req.query.orphan,
         search: req.query.search
       });
+      
+      // Special debug for orphan filter
+      if (req.query.orphan) {
+        console.log('👻 [API DEBUG] Orphan filter detected:', req.query.orphan, typeof req.query.orphan);
+      }
 
       // Apply role-based prefiltering at database level
       let roleBasedFilters = { ...filters };
