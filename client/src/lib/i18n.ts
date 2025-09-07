@@ -502,10 +502,22 @@ export interface Translations {
   unitNumber: string;
   floor: string;
   bedrooms: string;
-  bathrooms: string;
+  noResidencesFound: string;
+  adjustSearchCriteria: string;
+  active: string;
+  inactive: string;
+  bed: string;
+  bath: string;
   parking: string;
   storage: string;
+  residents: string;
+  noResidentsAssigned: string;
+  moreResidents: string;
+  bathrooms: string;
   squareFootage: string;
+  sqFt: string;
+  monthShort: string;
+  manageResidenceDocuments: string;
   monthlyFees: string;
   ownershipPercentage: string;
   editResidence: string;
@@ -1181,10 +1193,22 @@ const translations: Record<Language, Translations> = {
     unitNumber: 'Unit Number',
     floor: 'Floor',
     bedrooms: 'Bedrooms',
-    bathrooms: 'Bathrooms',
+    noResidencesFound: 'No residences found',
+    adjustSearchCriteria: 'Try adjusting your search criteria',
+    active: 'Active',
+    inactive: 'Inactive',
+    bed: 'bed',
+    bath: 'bath',
     parking: 'Parking',
     storage: 'Storage',
+    residents: 'Residents',
+    noResidentsAssigned: 'No residents assigned',
+    moreResidents: 'more',
+    bathrooms: 'Bathrooms',
     squareFootage: 'Square Footage',
+    sqFt: 'sq ft',
+    monthShort: 'month',
+    manageResidenceDocuments: 'Manage residence documents',
     monthlyFees: 'Monthly Fees',
     ownershipPercentage: 'Ownership %',
     editResidence: 'Edit Residence',
@@ -1857,10 +1881,22 @@ const translations: Record<Language, Translations> = {
     unitNumber: 'Numéro d\'unité',
     floor: 'Étage',
     bedrooms: 'Chambres',
-    bathrooms: 'Salles de bain',
+    noResidencesFound: 'Aucune résidence trouvée',
+    adjustSearchCriteria: 'Essayez d\'ajuster vos critères de recherche',
+    active: 'Actif',
+    inactive: 'Inactif',
+    bed: 'chambre',
+    bath: 'salle de bain',
     parking: 'Stationnement',
     storage: 'Entreposage',
-    squareFootage: 'Superficie (pi²)',
+    residents: 'Résidents',
+    noResidentsAssigned: 'Aucun résident assigné',
+    moreResidents: 'de plus',
+    bathrooms: 'Salles de bain',
+    squareFootage: 'Superficie',
+    sqFt: 'pi²',
+    monthShort: 'mois',
+    manageResidenceDocuments: 'Gérer les documents de résidence',
     monthlyFees: 'Frais mensuels',
     ownershipPercentage: 'Propriété %',
     editResidence: 'Modifier la résidence',

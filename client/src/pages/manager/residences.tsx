@@ -290,7 +290,7 @@ Residences() {
                       <SelectItem value='all'>{t('allFloors')}</SelectItem>
                       {availableFloors.map((floor) => (
                         <SelectItem key={floor} value={floor.toString()}>
-                          Floor {floor}
+                          {t('floor')} {floor}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -321,8 +321,8 @@ Residences() {
               <Card className='col-span-full'>
                 <CardContent className='p-8 text-center'>
                   <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                  <h3 className='text-lg font-semibold text-gray-600 mb-2'>No residences found</h3>
-                  <p className='text-gray-500'>Try adjusting your search criteria</p>
+                  <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noResidencesFound')}</h3>
+                  <p className='text-gray-500'>{t('adjustSearchCriteria')}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -333,7 +333,7 @@ Residences() {
                       <div>
                         <h3 className='font-semibold text-lg flex items-center gap-2'>
                           <Home className='w-4 h-4' />
-                          Unit {residence.unitNumber}
+                          {t('unitNumber')} {residence.unitNumber}
                         </h3>
                         <p className='text-sm text-gray-600 flex items-center gap-1'>
                           <Building className='w-3 h-3' />
@@ -341,11 +341,11 @@ Residences() {
                         </p>
                         <p className='text-xs text-gray-500 flex items-center gap-1'>
                           <MapPin className='w-3 h-3' />
-                          Floor {residence.floor || 'N/A'}
+                          {t('floor')} {residence.floor || 'N/A'}
                         </p>
                       </div>
                       <Badge variant={residence.isActive ? 'default' : 'secondary'}>
-                        {residence.isActive ? 'Active' : 'Inactive'}
+                        {residence.isActive ? t('active') : t('inactive')}
                       </Badge>
                     </div>
 
@@ -354,35 +354,35 @@ Residences() {
                       <div className='flex items-center gap-4 text-sm'>
                         <span className='flex items-center gap-1'>
                           <Bed className='w-3 h-3' />
-                          {residence.bedrooms || 0} bed
+                          {residence.bedrooms || 0} {t('bed')}
                         </span>
                         <span className='flex items-center gap-1'>
                           <Bath className='w-3 h-3' />
-                          {residence.bathrooms || 0} bath
+                          {residence.bathrooms || 0} {t('bath')}
                         </span>
                       </div>
 
                       {residence.squareFootage && (
-                        <p className='text-sm text-gray-600'>{residence.squareFootage} sq ft</p>
+                        <p className='text-sm text-gray-600'>{residence.squareFootage} {t('sqFt')}</p>
                       )}
 
                       {residence.parkingSpaceNumbers?.length > 0 && (
                         <p className='text-sm text-gray-600 flex items-center gap-1'>
                           <Car className='w-3 h-3' />
-                          Parking: {residence.parkingSpaceNumbers.join(', ')}
+                          {t('parking')}: {residence.parkingSpaceNumbers.join(', ')}
                         </p>
                       )}
 
                       {residence.storageSpaceNumbers?.length > 0 && (
                         <p className='text-sm text-gray-600 flex items-center gap-1'>
                           <Package className='w-3 h-3' />
-                          Storage: {residence.storageSpaceNumbers.join(', ')}
+                          {t('storage')}: {residence.storageSpaceNumbers.join(', ')}
                         </p>
                       )}
 
                       {residence.monthlyFees && (
                         <p className='text-sm font-medium text-green-600'>
-                          ${residence.monthlyFees}/month
+                          ${residence.monthlyFees}/{t('monthShort')}
                         </p>
                       )}
                     </div>
@@ -391,10 +391,10 @@ Residences() {
                     <div className='mb-4'>
                       <h4 className='text-sm font-medium mb-2 flex items-center gap-1'>
                         <Users className='w-3 h-3' />
-                        Residents ({residence.tenants.length})
+                        {t('residents')} ({residence.tenants.length})
                       </h4>
                       {residence.tenants.length === 0 ? (
-                        <p className='text-xs text-gray-500'>No residents assigned</p>
+                        <p className='text-xs text-gray-500'>{t('noResidentsAssigned')}</p>
                       ) : (
                         <div className='space-y-1'>
                           {residence.tenants.slice(0, 2).map((tenant) => (
@@ -404,7 +404,7 @@ Residences() {
                           ))}
                           {residence.tenants.length > 2 && (
                             <p className='text-xs text-gray-500'>
-                              +{residence.tenants.length - 2} more
+                              +{residence.tenants.length - 2} {t('moreResidents')}
                             </p>
                           )}
                         </div>
@@ -420,7 +420,7 @@ Residences() {
                         onClick={() =>
                           navigate(`/manager/residences/documents?residenceId=${residence.id}`)
                         }
-                        title='Manage residence documents'
+                        title={t('manageResidenceDocuments')}
                       >
                         <FileText className='w-3 h-3 mr-1' />
                         {t('residenceDocumentsButton')}
