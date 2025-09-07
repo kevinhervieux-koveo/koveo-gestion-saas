@@ -900,6 +900,371 @@ async function seedBills(buildings: CreatedBuilding[], users: CreatedUser[]): Pr
 }
 
 /**
+ * Create demo disclosure notice for all documents
+ */
+function createDemoDisclosure(): string {
+  return `⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+`;
+}
+
+/**
+ * Create documents for bills, residences, and buildings
+ */
+async function seedDocuments(
+  bills: CreatedBill[],
+  buildings: CreatedBuilding[],
+  residences: CreatedResidence[],
+  users: CreatedUser[]
+): Promise<void> {
+  try {
+    console.log('📄 Creating demo documents...');
+    
+    let totalDocuments = 0;
+    const demoDisclosure = createDemoDisclosure();
+    
+    // Create Bill Documents (attached to bills)
+    console.log('   Creating bill documents...');
+    for (const bill of bills) {
+      const billCreator = users.find(user => user.buildingId === bill.buildingId && user.role.includes('manager'));
+      if (!billCreator) continue;
+      
+      // Create invoice document
+      const invoiceContent = `${demoDisclosure}INVOICE DOCUMENT
+
+Bill Number: ${bill.billNumber}
+Title: ${bill.title}
+Vendor: ${bill.vendor}
+Category: ${bill.category.charAt(0).toUpperCase() + bill.category.slice(1)}
+Total Amount: $${bill.totalAmount}
+Description: ${bill.description}
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: ${faker.date.recent().toLocaleDateString()}
+Due Date: ${faker.date.future().toLocaleDateString()}
+
+Service Details:
+- ${faker.lorem.sentence()}
+- ${faker.lorem.sentence()}
+- ${faker.lorem.sentence()}
+
+Thank you for your business!
+${bill.vendor}`;
+
+      const invoiceFilePath = `demo-documents/bills/invoice-${bill.billNumber.toLowerCase()}.txt`;
+      
+      await db
+        .insert(schema.documents)
+        .values({
+          name: `Invoice - ${bill.billNumber}`,
+          description: `Invoice document for ${bill.title}`,
+          documentType: 'financial',
+          filePath: invoiceFilePath,
+          fileName: `invoice-${bill.billNumber}.txt`,
+          fileSize: invoiceContent.length,
+          mimeType: 'text/plain',
+          isVisibleToTenants: false,
+          buildingId: bill.buildingId,
+          uploadedById: billCreator.id,
+          attachedToType: 'bill',
+          attachedToId: bill.id
+        });
+      
+      // Create receipt document
+      const receiptContent = `${demoDisclosure}PAYMENT RECEIPT
+
+Receipt for Bill: ${bill.billNumber}
+Payment Amount: $${bill.totalAmount}
+Payment Date: ${faker.date.recent().toLocaleDateString()}
+Payment Method: ${faker.helpers.arrayElement(['Electronic Transfer', 'Check', 'ACH Transfer'])}
+Reference Number: PAY-${faker.string.alphanumeric(8).toUpperCase()}
+
+Bill Details:
+- Title: ${bill.title}
+- Vendor: ${bill.vendor}
+- Category: ${bill.category}
+
+This payment has been processed successfully.
+Building Management Office`;
+
+      const receiptFilePath = `demo-documents/bills/receipt-${bill.billNumber.toLowerCase()}.txt`;
+      
+      await db
+        .insert(schema.documents)
+        .values({
+          name: `Receipt - ${bill.billNumber}`,
+          description: `Payment receipt for ${bill.title}`,
+          documentType: 'financial',
+          filePath: receiptFilePath,
+          fileName: `receipt-${bill.billNumber}.txt`,
+          fileSize: receiptContent.length,
+          mimeType: 'text/plain',
+          isVisibleToTenants: true,
+          buildingId: bill.buildingId,
+          uploadedById: billCreator.id,
+          attachedToType: 'bill',
+          attachedToId: bill.id
+        });
+      
+      totalDocuments += 2;
+    }
+    
+    // Create Residence Documents
+    console.log('   Creating residence documents...');
+    const residenceDocumentTypes = [
+      { type: 'lease', name: 'Lease Agreement', description: 'Rental lease agreement' },
+      { type: 'inspection', name: 'Inspection Report', description: 'Unit inspection report' },
+      { type: 'maintenance', name: 'Maintenance Log', description: 'Maintenance history log' }
+    ];
+    
+    for (const residence of residences.slice(0, Math.min(residences.length, 20))) { // Limit to 20 residences for demo
+      const building = buildings.find(b => b.id === residence.buildingId);
+      const manager = users.find(user => user.buildingId === residence.buildingId && user.role.includes('manager'));
+      if (!building || !manager) continue;
+      
+      // Create one document per residence
+      const docType = residenceDocumentTypes[Math.floor(Math.random() * residenceDocumentTypes.length)];
+      
+      let documentContent = `${demoDisclosure}${docType.name.toUpperCase()}
+
+Unit: ${residence.unitNumber}
+Building: ${building.name}
+Address: ${faker.location.streetAddress()}
+
+`;
+      
+      if (docType.type === 'lease') {
+        documentContent += `LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: ${residence.unitNumber}
+- Lease Start Date: ${faker.date.past().toLocaleDateString()}
+- Lease End Date: ${faker.date.future().toLocaleDateString()}
+- Monthly Rent: $${faker.number.int({ min: 800, max: 2500 })}
+- Security Deposit: $${faker.number.int({ min: 800, max: 2500 })}
+
+Terms and Conditions:
+- ${faker.lorem.sentence()}
+- ${faker.lorem.sentence()}
+- ${faker.lorem.sentence()}
+
+Landlord: ${building.name} Management
+Tenant Signature: ____________________
+Date: ${faker.date.recent().toLocaleDateString()}`;
+      } else if (docType.type === 'inspection') {
+        documentContent += `INSPECTION REPORT
+
+Inspection Date: ${faker.date.recent().toLocaleDateString()}
+Inspector: ${faker.person.fullName()}
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: ${faker.helpers.arrayElement(['Excellent', 'Good', 'Fair'])}
+
+Notes:
+${faker.lorem.paragraph()}
+
+Inspector Signature: ____________________`;
+      } else {
+        documentContent += `MAINTENANCE LOG
+
+Maintenance History for Unit ${residence.unitNumber}:
+
+${faker.date.past().toLocaleDateString()} - ${faker.helpers.arrayElement(['Plumbing repair', 'Electrical work', 'HVAC maintenance'])}
+Status: Completed
+Cost: $${faker.number.int({ min: 50, max: 500 })}
+
+${faker.date.past().toLocaleDateString()} - ${faker.helpers.arrayElement(['Paint touch-up', 'Carpet cleaning', 'Appliance repair'])}
+Status: Completed  
+Cost: $${faker.number.int({ min: 50, max: 500 })}
+
+${faker.date.recent().toLocaleDateString()} - ${faker.helpers.arrayElement(['Annual inspection', 'Filter replacement', 'Light fixture repair'])}
+Status: In Progress
+Estimated Cost: $${faker.number.int({ min: 50, max: 500 })}
+
+Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
+      }
+      
+      const docFilePath = `demo-documents/residences/${docType.type}-${residence.unitNumber.toLowerCase()}.txt`;
+      
+      await db
+        .insert(schema.documents)
+        .values({
+          name: `${docType.name} - Unit ${residence.unitNumber}`,
+          description: `${docType.description} for unit ${residence.unitNumber}`,
+          documentType: docType.type,
+          filePath: docFilePath,
+          fileName: `${docType.type}-${residence.unitNumber}.txt`,
+          fileSize: documentContent.length,
+          mimeType: 'text/plain',
+          isVisibleToTenants: docType.type === 'lease',
+          residenceId: residence.id,
+          buildingId: residence.buildingId,
+          uploadedById: manager.id
+        });
+      
+      totalDocuments++;
+    }
+    
+    // Create Building Documents  
+    console.log('   Creating building documents...');
+    const buildingDocumentTypes = [
+      { type: 'insurance', name: 'Insurance Certificate', description: 'Building insurance certificate' },
+      { type: 'permits', name: 'Building Permit', description: 'Construction/renovation permit' },
+      { type: 'meeting_minutes', name: 'Board Meeting Minutes', description: 'Monthly board meeting minutes' },
+      { type: 'contracts', name: 'Service Contract', description: 'Maintenance service contract' }
+    ];
+    
+    for (const building of buildings) {
+      const manager = users.find(user => user.buildingId === building.id && user.role.includes('manager'));
+      if (!manager) continue;
+      
+      // Create 2-3 documents per building
+      const docsToCreate = faker.number.int({ min: 2, max: 3 });
+      const selectedTypes = faker.helpers.arrayElements(buildingDocumentTypes, docsToCreate);
+      
+      for (const docType of selectedTypes) {
+        let documentContent = `${demoDisclosure}${docType.name.toUpperCase()}
+
+Building: ${building.name}
+Organization: ${building.organizationId}
+Document Date: ${faker.date.recent().toLocaleDateString()}
+
+`;
+        
+        if (docType.type === 'insurance') {
+          documentContent += `INSURANCE CERTIFICATE
+
+Policy Number: INS-${faker.string.alphanumeric(10).toUpperCase()}
+Insurance Company: ${faker.company.name()} Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $${faker.number.int({ min: 1000000, max: 5000000 }).toLocaleString()}
+Policy Period: ${faker.date.past().toLocaleDateString()} to ${faker.date.future().toLocaleDateString()}
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: ${faker.person.fullName()}
+Phone: ${generateQuebecPhone()}
+Email: ${faker.internet.email()}`;
+        } else if (docType.type === 'permits') {
+          documentContent += `BUILDING PERMIT
+
+Permit Number: PER-${faker.string.alphanumeric(8).toUpperCase()}
+Permit Type: ${faker.helpers.arrayElement(['Renovation', 'Electrical Work', 'Plumbing', 'HVAC Installation'])}
+Issue Date: ${faker.date.past().toLocaleDateString()}
+Expiry Date: ${faker.date.future().toLocaleDateString()}
+Contractor: ${faker.company.name()}
+
+Work Description:
+${faker.lorem.paragraph()}
+
+Inspection Schedule:
+- Initial Inspection: ${faker.date.recent().toLocaleDateString()}
+- Progress Inspection: ${faker.date.soon().toLocaleDateString()}
+- Final Inspection: ${faker.date.future().toLocaleDateString()}
+
+Approved by: City Planning Department
+Permit Fee: $${faker.number.int({ min: 100, max: 1000 })}`;
+        } else if (docType.type === 'meeting_minutes') {
+          documentContent += `BOARD MEETING MINUTES
+
+Meeting Date: ${faker.date.recent().toLocaleDateString()}
+Meeting Time: ${faker.number.int({ min: 18, max: 20 })}:00
+Location: ${building.name} Community Room
+
+Attendees:
+- ${faker.person.fullName()} (Board President)
+- ${faker.person.fullName()} (Treasurer)  
+- ${faker.person.fullName()} (Secretary)
+- ${faker.person.fullName()} (Property Manager)
+
+Agenda Items:
+1. Budget Review - ${faker.lorem.sentence()}
+2. Maintenance Updates - ${faker.lorem.sentence()}
+3. New Policies - ${faker.lorem.sentence()}
+
+Action Items:
+- ${faker.lorem.sentence()}
+- ${faker.lorem.sentence()}
+
+Next Meeting: ${faker.date.future().toLocaleDateString()}`;
+        } else {
+          documentContent += `SERVICE CONTRACT
+
+Contract Number: CON-${faker.string.alphanumeric(8).toUpperCase()}
+Service Provider: ${faker.company.name()}
+Service Type: ${faker.helpers.arrayElement(['Cleaning Services', 'Landscaping', 'Security', 'Maintenance'])}
+Contract Period: ${faker.date.past().toLocaleDateString()} to ${faker.date.future().toLocaleDateString()}
+Monthly Cost: $${faker.number.int({ min: 500, max: 3000 })}
+
+Service Details:
+${faker.lorem.paragraph()}
+
+Contact Information:
+Manager: ${faker.person.fullName()}
+Phone: ${generateQuebecPhone()}
+Emergency Contact: ${generateQuebecPhone()}
+
+Terms and Conditions:
+- ${faker.lorem.sentence()}
+- ${faker.lorem.sentence()}`;
+        }
+        
+        const docFilePath = `demo-documents/buildings/${docType.type}-${building.id.slice(0, 8)}.txt`;
+        
+        await db
+          .insert(schema.documents)
+          .values({
+            name: `${docType.name} - ${building.name}`,
+            description: `${docType.description} for ${building.name}`,
+            documentType: docType.type,
+            filePath: docFilePath,
+            fileName: `${docType.type}-${building.name.replace(/\s+/g, '-').toLowerCase()}.txt`,
+            fileSize: documentContent.length,
+            mimeType: 'text/plain',
+            isVisibleToTenants: docType.type === 'meeting_minutes',
+            buildingId: building.id,
+            uploadedById: manager.id
+          });
+        
+        totalDocuments++;
+      }
+    }
+    
+    console.log(`📊 Created ${totalDocuments} demo documents:`);
+    console.log(`   - Bill documents: ${bills.length * 2} (invoices + receipts)`);
+    console.log(`   - Residence documents: ${Math.min(residences.length, 20)}`);
+    console.log(`   - Building documents: ${buildings.length * 2}-${buildings.length * 3}`);
+    
+  } catch (error) {
+    console.error('❌ Failed to create documents:', error);
+    throw error;
+  }
+}
+
+/**
  * Main execution function
  */
 async function main() {
