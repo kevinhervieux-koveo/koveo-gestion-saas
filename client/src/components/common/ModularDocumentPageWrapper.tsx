@@ -90,6 +90,13 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
     }
   };
 
+  const handleView = () => {
+    if (document?.filePath) {
+      // Open document in new tab for viewing
+      window.open(`/api/documents/${documentId}/file`, '_blank');
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
@@ -143,15 +150,28 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
                       <p className="text-xs text-gray-500">Document attachment</p>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownload}
-                    className="flex items-center gap-1"
-                  >
-                    <Download className="w-3 h-3" />
-                    Download
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleView}
+                      className="flex items-center gap-1"
+                      data-testid="button-view-document-file"
+                    >
+                      <Eye className="w-3 h-3" />
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownload}
+                      className="flex items-center gap-1"
+                      data-testid="button-download-document-file"
+                    >
+                      <Download className="w-3 h-3" />
+                      Download
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -204,6 +224,11 @@ function DocumentEditDialog({ documentId, isOpen, onClose, onSuccess }: Document
     onClose();
   };
 
+  const handleDelete = () => {
+    onSuccess(); // Refresh the document list
+    onClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
@@ -222,6 +247,7 @@ function DocumentEditDialog({ documentId, isOpen, onClose, onSuccess }: Document
               document={document}
               onSuccess={handleSuccess}
               onCancel={onClose}
+              onDelete={handleDelete}
             />
           </div>
         ) : (

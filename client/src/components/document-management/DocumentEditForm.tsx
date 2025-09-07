@@ -25,7 +25,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Upload, Save, X, Download, Eye } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { FileText, Upload, Save, X, Download, Eye, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { SharedUploader } from './SharedUploader';
@@ -71,12 +82,14 @@ interface DocumentEditFormProps {
   document: Document;
   onSuccess: () => void;
   onCancel: () => void;
+  onDelete?: () => void;
 }
 
 export function DocumentEditForm({
   document,
   onSuccess,
   onCancel,
+  onDelete,
 }: DocumentEditFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -104,6 +117,43 @@ export function DocumentEditForm({
       category: (document.documentType as any) || document.category || 'other',
       isVisibleToTenants: document.isVisibleToTenants || false,
     }
+  });
+
+  // Delete document mutation
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('DELETE', `/api/documents/${document.id}`);
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(error.message || 'Failed to delete document');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Document deleted',
+        description: 'The document has been successfully deleted.',
+      });
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents', document.id] });
+      
+      if (onDelete) {
+        onDelete();
+      } else {
+        onSuccess();
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Delete failed',
+        description: error.message || 'Failed to delete document. Please try again.',
+        variant: 'destructive',
+      });
+    },
   });
 
   // Update document mutation
@@ -171,6 +221,10 @@ export function DocumentEditForm({
 
   const onSubmit = (data: DocumentEditData) => {
     updateDocumentMutation.mutate(data);
+  };
+
+  const handleDelete = () => {
+    deleteDocumentMutation.mutate();
   };
 
   const handleFileUpload = (file: File | null, textContent: string | null) => {
@@ -411,33 +465,83 @@ export function DocumentEditForm({
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={updateDocumentMutation.isPending}
-              data-testid="button-cancel"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={updateDocumentMutation.isPending}
-              data-testid="button-save-document"
-            >
-              {updateDocumentMutation.isPending ? (
-                <>
-                  <Upload className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
+          <div className="flex justify-between pt-4">
+            <div>
+              {/* Delete Button with Confirmation */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={updateDocumentMutation.isPending || deleteDocumentMutation.isPending}
+                    data-testid="button-delete-document"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Document
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{document.name}"? This action cannot be undone and will permanently remove the document and its file.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel data-testid="button-cancel-delete">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={deleteDocumentMutation.isPending}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      data-testid="button-confirm-delete"
+                    >
+                      {deleteDocumentMutation.isPending ? (
+                        <>
+                          <Upload className="w-4 h-4 mr-2 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </>
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={updateDocumentMutation.isPending || deleteDocumentMutation.isPending}
+                data-testid="button-cancel"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={updateDocumentMutation.isPending || deleteDocumentMutation.isPending}
+                data-testid="button-save-document"
+              >
+                {updateDocumentMutation.isPending ? (
+                  <>
+                    <Upload className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </Form>
