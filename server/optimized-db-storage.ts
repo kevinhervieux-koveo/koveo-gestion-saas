@@ -265,6 +265,139 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   /**
+   * Retrieves paginated active users with their assignments (organizations, buildings, residences).
+   * OPTIMIZED: Uses single query with JOINs, aggregation, and LIMIT/OFFSET for pagination.
+   */
+  async getUsersWithAssignmentsPaginated(offset: number = 0, limit: number = 10): Promise<{
+    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    total: number;
+  }> {
+    return this.withOptimizations(
+      'getUsersWithAssignmentsPaginated',
+      `paginated_users_${offset}_${limit}_v1`,
+      'users',
+      async () => {
+        try {
+          // First get total count for pagination metadata
+          const countResult = await db.execute(sql`
+            SELECT COUNT(*) as total 
+            FROM users 
+            WHERE is_active = true
+          `);
+          
+          const total = parseInt(countResult.rows[0]?.total || '0');
+
+          // Single optimized query using CTEs and aggregation with pagination
+          const result = await db.execute(sql`
+            WITH user_orgs AS (
+              SELECT 
+                uo.user_id,
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', o.id,
+                      'name', o.name,
+                      'type', o.type
+                    )
+                  ) FILTER (WHERE o.id IS NOT NULL),
+                  '[]'::json
+                ) as organizations
+              FROM user_organizations uo
+              INNER JOIN organizations o ON uo.organization_id = o.id
+              WHERE uo.is_active = true AND o.is_active = true
+              GROUP BY uo.user_id
+            ),
+            user_buildings AS (
+              SELECT 
+                uo.user_id,
+                COALESCE(
+                  json_agg(
+                    DISTINCT json_build_object(
+                      'id', b.id,
+                      'name', b.name
+                    )
+                  ) FILTER (WHERE b.id IS NOT NULL),
+                  '[]'::json
+                ) as buildings
+              FROM user_organizations uo
+              INNER JOIN buildings b ON uo.organization_id = b.organization_id
+              WHERE uo.is_active = true AND b.is_active = true
+              GROUP BY uo.user_id
+            ),
+            user_residences AS (
+              SELECT 
+                ur.user_id,
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', r.id,
+                      'unitNumber', r.unit_number,
+                      'buildingId', r.building_id,
+                      'buildingName', b.name
+                    )
+                  ) FILTER (WHERE r.id IS NOT NULL),
+                  '[]'::json
+                ) as residences
+              FROM user_residences ur
+              INNER JOIN residences r ON ur.residence_id = r.id
+              INNER JOIN buildings b ON r.building_id = b.id
+              WHERE ur.is_active = true AND r.is_active = true
+              GROUP BY ur.user_id
+            )
+            SELECT 
+              u.*,
+              COALESCE(uo.organizations, '[]'::json) as organizations,
+              COALESCE(ub.buildings, '[]'::json) as buildings,
+              COALESCE(ur.residences, '[]'::json) as residences
+            FROM users u
+            LEFT JOIN user_orgs uo ON u.id = uo.user_id
+            LEFT JOIN user_buildings ub ON u.id = ub.user_id
+            LEFT JOIN user_residences ur ON u.id = ur.user_id
+            WHERE u.is_active = true
+            ORDER BY u.created_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `);
+
+          // Transform the raw SQL result to match the expected TypeScript types
+          const users = result.rows.map((row: any) => ({
+            id: row.id,
+            username: row.username,
+            password: row.password,
+            email: row.email,
+            firstName: row.first_name,
+            lastName: row.last_name,
+            phone: row.phone,
+            profileImage: row.profile_image,
+            language: row.language,
+            role: row.role,
+            isActive: row.is_active,
+            lastLoginAt: row.last_login_at,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            organizations: typeof row.organizations === 'string' 
+              ? JSON.parse(row.organizations) 
+              : row.organizations || [],
+            buildings: typeof row.buildings === 'string' 
+              ? JSON.parse(row.buildings) 
+              : row.buildings || [],
+            residences: typeof row.residences === 'string' 
+              ? JSON.parse(row.residences) 
+              : row.residences || []
+          }));
+
+          return { users, total };
+        } catch (error: any) {
+          console.error('❌ Error in optimized getUsersWithAssignmentsPaginated:', error);
+          
+          // Fallback to paginated version of the original implementation if optimized query fails
+          console.log('🔄 Falling back to paginated original implementation...');
+          return this.getUsersWithAssignmentsPaginatedFallback(offset, limit);
+        }
+      }
+    );
+  }
+
+  /**
    * Fallback implementation for getUsersWithAssignments if optimized version fails.
    * This is the original N+1 query implementation kept for reliability.
    */
@@ -365,6 +498,123 @@ export class OptimizedDatabaseStorage implements IStorage {
       console.error('❌ Critical error getting users with assignments:', error);
       // Return empty array on critical error
       return [];
+    }
+  }
+
+  /**
+   * Paginated fallback implementation for getUsersWithAssignmentsPaginated if optimized version fails.
+   * This is the original N+1 query implementation with pagination support.
+   */
+  private async getUsersWithAssignmentsPaginatedFallback(offset: number = 0, limit: number = 10): Promise<{
+    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    total: number;
+  }> {
+    try {
+      // First get total count
+      const totalResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(schema.users)
+        .where(eq(schema.users.isActive, true));
+      
+      const total = Number(totalResult[0]?.count || 0);
+
+      // Get paginated users
+      const users = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.isActive, true))
+        .orderBy(desc(schema.users.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      // For each user, fetch their assignments with limited concurrency to prevent connection issues
+      const batchSize = 5; // Process 5 users at a time to avoid connection pool exhaustion
+      const usersWithAssignments = [];
+      
+      for (let i = 0; i < users.length; i += batchSize) {
+        const batch = users.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map(async (user) => {
+          try {
+            // Get user organizations
+            const userOrgs = await db
+              .select({
+                id: schema.organizations.id,
+                name: schema.organizations.name,
+                type: schema.organizations.type,
+              })
+              .from(schema.userOrganizations)
+              .innerJoin(schema.organizations, eq(schema.userOrganizations.organizationId, schema.organizations.id))
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, user.id),
+                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.organizations.isActive, true)
+                )
+              );
+
+            // Get user buildings (through organization relationships)
+            const userBuildings = await db
+              .select({
+                id: schema.buildings.id,
+                name: schema.buildings.name,
+              })
+              .from(schema.userOrganizations)
+              .innerJoin(schema.buildings, eq(schema.userOrganizations.organizationId, schema.buildings.organizationId))
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, user.id),
+                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.buildings.isActive, true)
+                )
+              );
+
+            // Get user residences
+            const userResidences = await db
+              .select({
+                id: schema.residences.id,
+                unitNumber: schema.residences.unitNumber,
+                buildingId: schema.residences.buildingId,
+                buildingName: schema.buildings.name,
+              })
+              .from(schema.userResidences)
+              .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+              .where(
+                and(
+                  eq(schema.userResidences.userId, user.id),
+                  eq(schema.userResidences.isActive, true),
+                  eq(schema.residences.isActive, true)
+                )
+              );
+
+            return {
+              ...user,
+              organizations: userOrgs || [],
+              buildings: userBuildings || [],
+              residences: userResidences || [],
+            };
+          } catch (error: any) {
+            console.error('❌ Error getting user assignments:', error);
+            // Return user with empty assignments if there's an error
+            return {
+              ...user,
+              organizations: [],
+              buildings: [],
+              residences: [],
+            };
+          }
+        })
+      );
+      
+      usersWithAssignments.push(...batchResults);
+      }
+
+      return { users: usersWithAssignments, total };
+    } catch (error: any) {
+      console.error('❌ Critical error getting paginated users with assignments:', error);
+      // Return empty result on critical error
+      return { users: [], total: 0 };
     }
   }
 
