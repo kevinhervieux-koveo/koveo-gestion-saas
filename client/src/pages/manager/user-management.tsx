@@ -717,7 +717,7 @@ export default function UserManagement() {
                       {/* Search - Temporarily disabled until server-side search is implemented */}
                       <div className='flex-1'>
                         <Input
-                          placeholder={t('searchUsers') + ' (Coming soon - server-side search)'}
+                          placeholder={t('searchUsers')}
                           value={search}
                           onChange={(e) => setSearch(e.target.value)}
                           className='w-full'
