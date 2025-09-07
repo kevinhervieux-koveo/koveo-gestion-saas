@@ -2,6 +2,7 @@
 const config = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.simple.ts'],
+  setupFiles: ['<rootDir>/tests/mocks/globalMocks.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
@@ -14,8 +15,18 @@ const config = {
     // Mock all server imports comprehensively
     '^../../server/(.*)$': '<rootDir>/tests/mocks/serverUniversalMock.js',
     '^../server/(.*)$': '<rootDir>/tests/mocks/serverUniversalMock.js', 
-    '^../../shared/schema$': '<rootDir>/tests/mocks/schemaMock.js',
+    '^../../shared/schema$': '<rootDir>/tests/mocks/sharedSchemaMock.js',
     '^@/server/(.*)$': '<rootDir>/tests/mocks/serverUniversalMock.js',
+    // Mock PostgreSQL specific modules first (more specific patterns)
+    '^drizzle-orm/pg-core$': '<rootDir>/tests/mocks/pgCoreMock.js',
+    // Mock Drizzle ORM (more general patterns)  
+    '^drizzle-orm$': '<rootDir>/tests/mocks/drizzleMock.js',
+    '^drizzle-orm/(.*)$': '<rootDir>/tests/mocks/pgCoreMock.js',
+    // Mock shared schema more comprehensively to catch pgEnum imports  
+    '^../../shared/schemas/core$': '<rootDir>/tests/mocks/sharedSchemaMock.js',
+    '^../shared/schemas/core$': '<rootDir>/tests/mocks/sharedSchemaMock.js',
+    '^../../shared/(.*)$': '<rootDir>/tests/mocks/sharedSchemaMock.js',
+    '^../shared/(.*)$': '<rootDir>/tests/mocks/sharedSchemaMock.js',
   },
   testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
   testPathIgnorePatterns: ['/node_modules/'],

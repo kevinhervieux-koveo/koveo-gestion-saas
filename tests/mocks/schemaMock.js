@@ -1,4 +1,15 @@
 // Mock for shared schema
+
+// Mock pgEnum function
+const pgEnum = (name, values) => ({
+  enumName: name,
+  enumValues: values,
+  _: {
+    brand: 'PgEnum',
+    baseType: 'string',
+  },
+});
+
 module.exports = {
   organizations: {},
   users: {},
@@ -7,6 +18,7 @@ module.exports = {
   demands: {},
   residences: {},
   bills: {},
+  pgEnum,
   insertOrganizationSchema: {
     parse: jest.fn(),
     safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
