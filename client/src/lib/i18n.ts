@@ -632,6 +632,10 @@ export interface Translations {
   confirmEmailDelete: string;
   reasonForDeletion: string;
   enterReasonForDeletion: string;
+  // Common no data messages
+  noData: string;
+  noDataAvailable: string;
+  noDataFound: string;
   deleteAccountAction: string;
   profileUpdated: string;
   profileUpdatedDescription: string;
@@ -1602,6 +1606,10 @@ export const translations: Record<Language, Translations> = {
     confirmEmailDelete: 'Confirm by typing your email address',
     reasonForDeletion: 'Reason for deletion (optional)',
     enterReasonForDeletion: 'Enter reason for deletion...',
+    // Common no data messages
+    noData: 'No Data',
+    noDataAvailable: 'No Data Available',
+    noDataFound: 'No Data Found',
     deleteAccountAction: 'Delete Account',
     profileUpdated: 'Profile updated',
     profileUpdatedDescription: 'Your profile has been updated successfully.',
@@ -2496,6 +2504,10 @@ export const translations: Record<Language, Translations> = {
     confirmEmailDelete: 'Confirmez en tapant votre adresse courriel',
     reasonForDeletion: 'Raison de la suppression (optionnel)',
     enterReasonForDeletion: 'Entrer la raison de la suppression...',
+    // Common no data messages
+    noData: 'Aucune donnée',
+    noDataAvailable: 'Aucune donnée disponible',
+    noDataFound: 'Aucune donnée trouvée',
     deleteAccountAction: 'Supprimer le compte',
     profileUpdated: 'Profil mis à jour',
     profileUpdatedDescription: 'Votre profil a été mis à jour avec succès.',
