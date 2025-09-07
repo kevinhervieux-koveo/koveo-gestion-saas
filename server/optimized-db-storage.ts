@@ -3485,23 +3485,7 @@ export class OptimizedDatabaseStorage implements IStorage {
   // Admin-only method to delete orphan users (excluding specified admin user)
   async deleteOrphanUsers(excludeUserId: string): Promise<number> {
     try {
-      // First mark orphan users as inactive to avoid foreign key issues
-      const updateQuery = `
-        UPDATE users 
-        SET is_active = false,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE is_active = true
-          AND id != $1
-          AND NOT EXISTS (
-            SELECT 1 FROM user_organizations uo 
-            WHERE uo.user_id = id AND uo.is_active = true
-          )
-          AND NOT EXISTS (
-            SELECT 1 FROM user_residences ur 
-            WHERE ur.user_id = id AND ur.is_active = true
-          )
-      `;
-      
+      // Mark orphan users as inactive to avoid foreign key issues
       const result = await db.execute(sql`UPDATE users 
         SET is_active = false,
             updated_at = CURRENT_TIMESTAMP
@@ -3516,23 +3500,7 @@ export class OptimizedDatabaseStorage implements IStorage {
             WHERE ur.user_id = id AND ur.is_active = true
           )`);
       
-      // For PostgreSQL, we need to get the row count differently
-      const countQuery = `
-        SELECT COUNT(*) as deleted_count
-        FROM users u
-        WHERE u.is_active = false
-          AND u.id != $1
-          AND u.updated_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute'
-          AND NOT EXISTS (
-            SELECT 1 FROM user_organizations uo 
-            WHERE uo.user_id = u.id AND uo.is_active = true
-          )
-          AND NOT EXISTS (
-            SELECT 1 FROM user_residences ur 
-            WHERE ur.user_id = u.id AND ur.is_active = true
-          )
-      `;
-      
+      // Count the affected rows
       const countResult = await db.execute(sql`SELECT COUNT(*) as deleted_count
         FROM users u
         WHERE u.is_active = false
