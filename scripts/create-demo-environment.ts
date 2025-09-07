@@ -254,6 +254,474 @@ async function upsertOrganization(name: string, type: 'demo' | 'production'): Pr
 }
 
 /**
+ * Create buildings for an organization
+ */
+async function seedBuildings(organizationId: string): Promise<CreatedBuilding[]> {
+  try {
+    console.log(`🏢 Creating ${BUILDINGS_PER_ORG} buildings...`);
+    
+    const buildings: CreatedBuilding[] = [];
+    
+    for (let i = 1; i <= BUILDINGS_PER_ORG; i++) {
+      const buildingName = `${faker.location.streetAddress()} Building ${i}`;
+      
+      const [building] = await db
+        .insert(schema.buildings)
+        .values({
+          organizationId,
+          name: buildingName,
+          address: generateQuebecAddress(),
+          city: QUEBEC_CITIES[Math.floor(Math.random() * QUEBEC_CITIES.length)],
+          province: 'QC',
+          postalCode: generateQuebecPostalCode(),
+          buildingType: Math.random() > 0.5 ? 'condo' : 'appartement',
+          yearBuilt: faker.number.int({ min: 1950, max: 2023 }),
+          totalUnits: faker.number.int({ min: 20, max: 300 }),
+          totalFloors: faker.number.int({ min: 3, max: 25 }),
+          parkingSpaces: faker.number.int({ min: 10, max: 150 }),
+          storageSpaces: faker.number.int({ min: 5, max: 75 }),
+          amenities: JSON.stringify([
+            'Elevator', 'Parking', 'Storage', 'Gym', 'Pool', 'Concierge'
+          ].filter(() => Math.random() > 0.3)),
+          managementCompany: faker.company.name(),
+          bankAccountNumber: faker.finance.accountNumber(12),
+          isActive: true
+        })
+        .returning();
+      
+      buildings.push({
+        id: building.id,
+        name: building.name,
+        organizationId: building.organizationId
+      });
+      
+      console.log(`   ✅ Created building: ${building.name}`);
+    }
+    
+    console.log(`📊 Created ${buildings.length} buildings`);
+    return buildings;
+  } catch (error) {
+    console.error('❌ Failed to create buildings:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create residences for buildings
+ */
+async function seedResidences(buildings: CreatedBuilding[]): Promise<CreatedResidence[]> {
+  try {
+    console.log('🏠 Creating residences...');
+    
+    const residences: CreatedResidence[] = [];
+    
+    for (const building of buildings) {
+      const residenceCount = faker.number.int({ 
+        min: MIN_RESIDENCES_PER_BUILDING, 
+        max: MAX_RESIDENCES_PER_BUILDING 
+      });
+      
+      console.log(`   Creating ${residenceCount} residences for ${building.name}`);
+      
+      for (let i = 1; i <= residenceCount; i++) {
+        const unitNumber = `${faker.number.int({ min: 100, max: 999 })}`;
+        
+        const [residence] = await db
+          .insert(schema.residences)
+          .values({
+            buildingId: building.id,
+            unitNumber,
+            floor: faker.number.int({ min: 1, max: 15 }),
+            squareFootage: faker.number.float({ min: 500, max: 2500, fractionDigits: 0 }).toString(),
+            bedrooms: faker.number.int({ min: 1, max: 4 }),
+            bathrooms: faker.number.float({ min: 1, max: 3.5, fractionDigits: 1 }).toString(),
+            balcony: Math.random() > 0.4,
+            parkingSpaceNumbers: Math.random() > 0.3 ? [
+              `P${faker.number.int({ min: 1, max: 200 })}`
+            ] : [],
+            storageSpaceNumbers: Math.random() > 0.5 ? [
+              `S${faker.number.int({ min: 1, max: 100 })}`
+            ] : [],
+            ownershipPercentage: faker.number.float({ min: 0.1, max: 5.0, fractionDigits: 2 }).toString(),
+            monthlyFees: faker.number.float({ min: 200, max: 800, fractionDigits: 2 }).toString(),
+            isActive: true
+          })
+          .returning();
+        
+        residences.push({
+          id: residence.id,
+          unitNumber: residence.unitNumber,
+          buildingId: residence.buildingId,
+          buildingName: building.name
+        });
+      }
+    }
+    
+    console.log(`📊 Created ${residences.length} residences across all buildings`);
+    return residences;
+  } catch (error) {
+    console.error('❌ Failed to create residences:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create common spaces for buildings
+ */
+async function seedCommonSpaces(buildings: CreatedBuilding[]): Promise<CreatedCommonSpace[]> {
+  try {
+    console.log('🏛️ Creating common spaces...');
+    
+    const commonSpaces: CreatedCommonSpace[] = [];
+    
+    for (const building of buildings) {
+      console.log(`   Creating ${COMMON_SPACES_PER_BUILDING} common spaces for ${building.name}`);
+      
+      // Shuffle and take first N common space types
+      const shuffledTypes = [...COMMON_SPACE_TYPES].sort(() => 0.5 - Math.random());
+      const selectedTypes = shuffledTypes.slice(0, COMMON_SPACES_PER_BUILDING);
+      
+      for (const spaceType of selectedTypes) {
+        const [commonSpace] = await db
+          .insert(schema.commonSpaces)
+          .values({
+            name: spaceType.name,
+            description: `${spaceType.name} facility available to residents`,
+            buildingId: building.id,
+            isReservable: spaceType.isBookable,
+            capacity: spaceType.isBookable ? faker.number.int({ min: 5, max: 50 }) : null,
+            openingHours: spaceType.isBookable ? JSON.stringify([
+              {
+                day: 'monday',
+                open: '08:00',
+                close: '22:00',
+                isOpen: true,
+                breaks: []
+              },
+              {
+                day: 'tuesday',
+                open: '08:00',
+                close: '22:00',
+                isOpen: true,
+                breaks: []
+              },
+              {
+                day: 'wednesday',
+                open: '08:00',
+                close: '22:00',
+                isOpen: true,
+                breaks: []
+              },
+              {
+                day: 'thursday',
+                open: '08:00',
+                close: '22:00',
+                isOpen: true,
+                breaks: []
+              },
+              {
+                day: 'friday',
+                open: '08:00',
+                close: '22:00',
+                isOpen: true,
+                breaks: []
+              },
+              {
+                day: 'saturday',
+                open: '09:00',
+                close: '21:00',
+                isOpen: true,
+                breaks: []
+              },
+              {
+                day: 'sunday',
+                open: '09:00',
+                close: '21:00',
+                isOpen: true,
+                breaks: []
+              }
+            ]) : null,
+            availableDays: spaceType.isBookable ? JSON.stringify([
+              'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'
+            ]) : null,
+            bookingRules: spaceType.isBookable ? 'Maximum 4 hours per booking. Must be booked at least 24 hours in advance.' : null
+          })
+          .returning();
+        
+        commonSpaces.push({
+          id: commonSpace.id,
+          name: commonSpace.name,
+          buildingId: commonSpace.buildingId,
+          isReservable: commonSpace.isReservable
+        });
+      }
+    }
+    
+    console.log(`📊 Created ${commonSpaces.length} common spaces`);
+    return commonSpaces;
+  } catch (error) {
+    console.error('❌ Failed to create common spaces:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create users with role-based logic
+ */
+async function seedUsers(
+  organizationType: 'demo' | 'production',
+  buildings: CreatedBuilding[],
+  residences: CreatedResidence[]
+): Promise<CreatedUser[]> {
+  try {
+    console.log('👥 Creating users...');
+    
+    const users: CreatedUser[] = [];
+    const hashedPassword = await bcrypt.hash('Password123!', 10);
+    
+    // Create 1-2 managers per building
+    for (const building of buildings) {
+      const managerCount = faker.number.int({ min: 1, max: 2 });
+      console.log(`   Creating ${managerCount} managers for ${building.name}`);
+      
+      for (let i = 0; i < managerCount; i++) {
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const role = organizationType === 'demo' ? 'demo_manager' : 'manager';
+        
+        const [user] = await db
+          .insert(schema.users)
+          .values({
+            username: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${faker.number.int({ min: 10, max: 99 })}`,
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            password: hashedPassword,
+            firstName,
+            lastName,
+            phone: generateQuebecPhone(),
+            language: Math.random() > 0.3 ? 'fr' : 'en', // 70% French, 30% English for Quebec
+            role: role as any,
+            isActive: true
+          })
+          .returning();
+        
+        users.push({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          buildingId: building.id
+        });
+      }
+    }
+    
+    // Create residents for each residence
+    console.log('   Creating residents for residences...');
+    for (const residence of residences) {
+      const firstName = faker.person.firstName();
+      const lastName = faker.person.lastName();
+      const role = organizationType === 'demo' ? 'demo_resident' : 'resident';
+      
+      const [user] = await db
+        .insert(schema.users)
+        .values({
+          username: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${faker.number.int({ min: 10, max: 99 })}`,
+          email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+          password: hashedPassword,
+          firstName,
+          lastName,
+          phone: generateQuebecPhone(),
+          language: Math.random() > 0.3 ? 'fr' : 'en', // 70% French, 30% English for Quebec
+          role: role as any,
+          isActive: true
+        })
+        .returning();
+      
+      // Create user-residence relationship
+      await db
+        .insert(schema.userResidences)
+        .values({
+          userId: user.id,
+          residenceId: residence.id,
+          relationshipType: 'owner',
+          startDate: new Date(Date.now() - faker.number.int({ min: 30, max: 365 * 3 }) * 24 * 60 * 60 * 1000),
+          isActive: true
+        });
+      
+      users.push({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        buildingId: residence.buildingId,
+        residenceId: residence.id
+      });
+    }
+    
+    console.log(`📊 Created ${users.length} users (${users.filter(u => u.role.includes('manager')).length} managers, ${users.filter(u => u.role.includes('resident')).length} residents)`);
+    return users;
+  } catch (error) {
+    console.error('❌ Failed to create users:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create bookings for reservable common spaces
+ */
+async function seedBookings(
+  commonSpaces: CreatedCommonSpace[],
+  users: CreatedUser[]
+): Promise<void> {
+  try {
+    console.log('📅 Creating bookings...');
+    
+    const reservableSpaces = commonSpaces.filter(space => space.isReservable);
+    let totalBookings = 0;
+    
+    for (const space of reservableSpaces) {
+      const spaceUsers = users.filter(user => user.buildingId === space.buildingId);
+      
+      if (spaceUsers.length === 0) continue;
+      
+      console.log(`   Creating ${BOOKINGS_PER_RESERVABLE_SPACE} bookings for ${space.name}`);
+      
+      for (let i = 0; i < BOOKINGS_PER_RESERVABLE_SPACE; i++) {
+        const user = spaceUsers[Math.floor(Math.random() * spaceUsers.length)];
+        const startDate = faker.date.between({
+          from: new Date(new Date().getFullYear(), 0, 1),
+          to: new Date(new Date().getFullYear(), 11, 31)
+        });
+        
+        const startTime = new Date(startDate);
+        startTime.setHours(faker.number.int({ min: 8, max: 20 }), 0, 0, 0);
+        
+        const endTime = new Date(startTime);
+        endTime.setHours(startTime.getHours() + faker.number.int({ min: 1, max: 4 }));
+        
+        await db
+          .insert(schema.bookings)
+          .values({
+            commonSpaceId: space.id,
+            userId: user.id,
+            startTime,
+            endTime,
+            status: Math.random() > 0.1 ? 'confirmed' : 'cancelled'
+          });
+        
+        totalBookings++;
+      }
+    }
+    
+    console.log(`📊 Created ${totalBookings} bookings across ${reservableSpaces.length} reservable spaces`);
+  } catch (error) {
+    console.error('❌ Failed to create bookings:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create maintenance demands (referred to as "demands" in schema)
+ */
+async function seedMaintenanceRequests(users: CreatedUser[]): Promise<void> {
+  try {
+    console.log('🔧 Creating maintenance demands...');
+    
+    const residents = users.filter(user => user.role.includes('resident') && user.residenceId);
+    let totalDemands = 0;
+    
+    for (const resident of residents) {
+      for (let i = 0; i < DEMANDS_PER_RESIDENT; i++) {
+        const category = MAINTENANCE_CATEGORIES[Math.floor(Math.random() * MAINTENANCE_CATEGORIES.length)];
+        const priority = ['low', 'medium', 'high'][Math.floor(Math.random() * 3)];
+        
+        await db
+          .insert(schema.demands)
+          .values({
+            submitterId: resident.id,
+            type: 'maintenance',
+            description: `${category} issue: ${faker.lorem.sentence()}. ${faker.lorem.sentences(2)}`,
+            buildingId: resident.buildingId!,
+            residenceId: resident.residenceId,
+            status: ['submitted', 'under_review', 'in_progress', 'completed'][Math.floor(Math.random() * 4)] as any
+          });
+        
+        totalDemands++;
+      }
+    }
+    
+    console.log(`📊 Created ${totalDemands} maintenance demands for ${residents.length} residents`);
+  } catch (error) {
+    console.error('❌ Failed to create maintenance demands:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create bills for buildings (previous year data)
+ */
+async function seedBills(buildings: CreatedBuilding[], users: CreatedUser[]): Promise<void> {
+  try {
+    console.log('💰 Creating bills for previous year...');
+    
+    const currentYear = new Date().getFullYear();
+    const previousYear = currentYear - 1;
+    let totalBills = 0;
+    
+    // Get managers to assign as bill creators
+    const managers = users.filter(user => user.role.includes('manager'));
+    
+    for (const building of buildings) {
+      const buildingManagers = managers.filter(manager => manager.buildingId === building.id);
+      const billCreator = buildingManagers.length > 0 
+        ? buildingManagers[0] 
+        : managers[0]; // Fallback to any manager
+      
+      if (!billCreator) {
+        console.warn(`   ⚠️ No manager found for building ${building.name}, skipping bills`);
+        continue;
+      }
+      
+      console.log(`   Creating bills for ${building.name} (${previousYear})`);
+      
+      // Create bills for each month of previous year
+      for (let month = 1; month <= 12; month++) {
+        for (let billIndex = 0; billIndex < BILLS_PER_BUILDING_PER_MONTH; billIndex++) {
+          const category = BILL_CATEGORIES[Math.floor(Math.random() * BILL_CATEGORIES.length)];
+          const amount = faker.number.float({ min: 100, max: 5000, fractionDigits: 2 });
+          const startDate = new Date(previousYear, month - 1, faker.number.int({ min: 1, max: 28 }));
+          
+          await db
+            .insert(schema.bills)
+            .values({
+              buildingId: building.id,
+              billNumber: `${building.id.slice(0, 4).toUpperCase()}-${previousYear}-${month.toString().padStart(2, '0')}-${(billIndex + 1).toString().padStart(3, '0')}`,
+              title: `${category.charAt(0).toUpperCase() + category.slice(1)} - ${faker.company.name()}`,
+              description: `Monthly ${category} service for ${faker.date.month()} ${previousYear}`,
+              category,
+              vendor: faker.company.name(),
+              paymentType: Math.random() > 0.7 ? 'recurrent' : 'unique',
+              schedulePayment: Math.random() > 0.7 ? 'monthly' : null,
+              costs: [amount.toString()],
+              totalAmount: amount.toString(),
+              startDate,
+              status: ['paid', 'overdue', 'sent'][Math.floor(Math.random() * 3)] as any,
+              createdBy: billCreator.id,
+              autoGenerated: false
+            });
+          
+          totalBills++;
+        }
+      }
+    }
+    
+    console.log(`📊 Created ${totalBills} bills across ${buildings.length} buildings for ${previousYear}`);
+  } catch (error) {
+    console.error('❌ Failed to create bills:', error);
+    throw error;
+  }
+}
+
+/**
  * Main execution function
  */
 async function main() {
@@ -273,9 +741,54 @@ async function main() {
     const organization = await upsertOrganization(args.name, args.type);
     console.log('');
     
-    // TODO: Continue with remaining steps
-    console.log('🎉 Demo environment script completed successfully!');
-    console.log(`✅ Organization "${organization.name}" is ready for use`);
+    // Step 2: Create Buildings
+    console.log('🏢 Step 2: Create Buildings');
+    const buildings = await seedBuildings(organization.id);
+    console.log('');
+    
+    // Step 3: Create Residences
+    console.log('🏠 Step 3: Create Residences');
+    const residences = await seedResidences(buildings);
+    console.log('');
+    
+    // Step 4: Create Common Spaces
+    console.log('🏛️ Step 4: Create Common Spaces');
+    const commonSpaces = await seedCommonSpaces(buildings);
+    console.log('');
+    
+    // Step 5: Create Users
+    console.log('👥 Step 5: Create Users');
+    const users = await seedUsers(args.type, buildings, residences);
+    console.log('');
+    
+    // Step 6: Create Bookings
+    console.log('📅 Step 6: Create Bookings');
+    await seedBookings(commonSpaces, users);
+    console.log('');
+    
+    // Step 7: Create Maintenance Demands
+    console.log('🔧 Step 7: Create Maintenance Demands');
+    await seedMaintenanceRequests(users);
+    console.log('');
+    
+    // Step 8: Create Bills
+    console.log('💰 Step 8: Create Bills');
+    await seedBills(buildings, users);
+    console.log('');
+    
+    // Summary
+    console.log('🎉 Demo environment created successfully!');
+    console.log('='.repeat(60));
+    console.log(`✅ Organization: ${organization.name} (${organization.type})`);
+    console.log(`✅ Buildings: ${buildings.length}`);
+    console.log(`✅ Residences: ${residences.length}`);
+    console.log(`✅ Common Spaces: ${commonSpaces.length}`);
+    console.log(`✅ Users: ${users.length}`);
+    console.log(`✅ Managers: ${users.filter(u => u.role.includes('manager')).length}`);
+    console.log(`✅ Residents: ${users.filter(u => u.role.includes('resident')).length}`);
+    console.log('✅ Bookings, demands, and bills created successfully');
+    console.log('');
+    console.log(`🚀 Demo environment for "${args.name}" is ready for use!`);
     
   } catch (error) {
     console.error('❌ Demo environment creation failed:', error);
