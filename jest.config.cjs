@@ -18,6 +18,8 @@ const config = {
     // Mock problematic ES modules
     '@google/genai': '<rootDir>/tests/mocks/googleGenaiMock.js',
     '@neondatabase/serverless': '<rootDir>/tests/mocks/serverDbMock.js',
+    'drizzle-orm/neon-http': '<rootDir>/tests/mocks/serverDbMock.js',
+    'drizzle-orm/neon-serverless': '<rootDir>/tests/mocks/serverDbMock.js',
     // Mock file system operations to prevent hanging  
     '^fs$': '<rootDir>/tests/mocks/fileSystemMock.js',
     '^multer$': '<rootDir>/tests/mocks/fileSystemMock.js',
