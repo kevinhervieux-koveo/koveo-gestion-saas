@@ -23,6 +23,8 @@
 import { eq, and, gte } from 'drizzle-orm';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcryptjs';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as schema from '../shared/schema';
 
 // Database connection variables
@@ -917,6 +919,26 @@ This demo showcases the document management capabilities of Koveo Gestion.
 }
 
 /**
+ * Ensure directory exists, create if not
+ */
+function ensureDirectoryExists(dirPath: string): void {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+/**
+ * Write file to disk and return file info
+ */
+function writeDocumentFile(filePath: string, content: string): { fileSize: number } {
+  const fullPath = path.resolve(filePath);
+  const dir = path.dirname(fullPath);
+  ensureDirectoryExists(dir);
+  fs.writeFileSync(fullPath, content, 'utf8');
+  return { fileSize: content.length };
+}
+
+/**
  * Create documents for bills, residences, and buildings
  */
 async function seedDocuments(
@@ -931,14 +953,19 @@ async function seedDocuments(
     let totalDocuments = 0;
     const demoDisclosure = createDemoDisclosure();
     
-    // Create Bill Documents (attached to bills)
+    // Create Bill Documents (attached to bills) - Only create for 10-15% of bills
     console.log('   Creating bill documents...');
-    for (const bill of bills) {
+    const billsWithDocs = bills.slice(0, Math.floor(bills.length * 0.15)); // Only 15% of bills get documents
+    
+    for (const bill of billsWithDocs) {
       const billCreator = users.find(user => user.buildingId === bill.buildingId && user.role.includes('manager'));
       if (!billCreator) continue;
       
-      // Create invoice document
-      const invoiceContent = `${demoDisclosure}INVOICE DOCUMENT
+      // Create only 1 document per bill (either invoice OR receipt)
+      const isInvoice = Math.random() > 0.5;
+      const docType = isInvoice ? 'invoice' : 'receipt';
+      
+      let documentContent = `${demoDisclosure}${docType.toUpperCase()} DOCUMENT
 
 Bill Number: ${bill.billNumber}
 Title: ${bill.title}
@@ -947,7 +974,10 @@ Category: ${bill.category.charAt(0).toUpperCase() + bill.category.slice(1)}
 Total Amount: $${bill.totalAmount}
 Description: ${bill.description}
 
-This invoice document would normally be uploaded by the property manager
+`;
+
+      if (isInvoice) {
+        documentContent += `This invoice document would normally be uploaded by the property manager
 as a PDF or image file, but for this demo we're showing it as text content.
 
 Payment Terms: Net 30 days
@@ -957,70 +987,43 @@ Due Date: ${faker.date.future().toLocaleDateString()}
 Service Details:
 - ${faker.lorem.sentence()}
 - ${faker.lorem.sentence()}
-- ${faker.lorem.sentence()}
 
 Thank you for your business!
 ${bill.vendor}`;
-
-      const invoiceFilePath = `demo-documents/bills/invoice-${bill.billNumber.toLowerCase()}.txt`;
-      
-      await db
-        .insert(schema.documents)
-        .values({
-          name: `Invoice - ${bill.billNumber}`,
-          description: `Invoice document for ${bill.title}`,
-          documentType: 'financial',
-          filePath: invoiceFilePath,
-          fileName: `invoice-${bill.billNumber}.txt`,
-          fileSize: invoiceContent.length,
-          mimeType: 'text/plain',
-          isVisibleToTenants: false,
-          buildingId: bill.buildingId,
-          uploadedById: billCreator.id,
-          attachedToType: 'bill',
-          attachedToId: bill.id
-        });
-      
-      // Create receipt document
-      const receiptContent = `${demoDisclosure}PAYMENT RECEIPT
-
-Receipt for Bill: ${bill.billNumber}
-Payment Amount: $${bill.totalAmount}
+      } else {
+        documentContent += `Payment Amount: $${bill.totalAmount}
 Payment Date: ${faker.date.recent().toLocaleDateString()}
 Payment Method: ${faker.helpers.arrayElement(['Electronic Transfer', 'Check', 'ACH Transfer'])}
 Reference Number: PAY-${faker.string.alphanumeric(8).toUpperCase()}
 
-Bill Details:
-- Title: ${bill.title}
-- Vendor: ${bill.vendor}
-- Category: ${bill.category}
-
 This payment has been processed successfully.
 Building Management Office`;
+      }
 
-      const receiptFilePath = `demo-documents/bills/receipt-${bill.billNumber.toLowerCase()}.txt`;
+      const filePath = `demo-documents/bills/${docType}-${bill.billNumber.toLowerCase()}.txt`;
+      const { fileSize } = writeDocumentFile(filePath, documentContent);
       
       await db
         .insert(schema.documents)
         .values({
-          name: `Receipt - ${bill.billNumber}`,
-          description: `Payment receipt for ${bill.title}`,
+          name: `${isInvoice ? 'Invoice' : 'Receipt'} - ${bill.billNumber}`,
+          description: `${isInvoice ? 'Invoice' : 'Payment receipt'} for ${bill.title}`,
           documentType: 'financial',
-          filePath: receiptFilePath,
-          fileName: `receipt-${bill.billNumber}.txt`,
-          fileSize: receiptContent.length,
+          filePath,
+          fileName: `${docType}-${bill.billNumber}.txt`,
+          fileSize,
           mimeType: 'text/plain',
-          isVisibleToTenants: true,
+          isVisibleToTenants: !isInvoice, // Receipts visible to tenants, invoices not
           buildingId: bill.buildingId,
           uploadedById: billCreator.id,
           attachedToType: 'bill',
           attachedToId: bill.id
         });
       
-      totalDocuments += 2;
+      totalDocuments++;
     }
     
-    // Create Residence Documents
+    // Create Residence Documents - 1-2 per category across all residences
     console.log('   Creating residence documents...');
     const residenceDocumentTypes = [
       { type: 'lease', name: 'Lease Agreement', description: 'Rental lease agreement' },
@@ -1028,24 +1031,26 @@ Building Management Office`;
       { type: 'maintenance', name: 'Maintenance Log', description: 'Maintenance history log' }
     ];
     
-    for (const residence of residences.slice(0, Math.min(residences.length, 20))) { // Limit to 20 residences for demo
-      const building = buildings.find(b => b.id === residence.buildingId);
-      const manager = users.find(user => user.buildingId === residence.buildingId && user.role.includes('manager'));
-      if (!building || !manager) continue;
+    // Create 1-2 documents per category spread across different residences
+    for (const docType of residenceDocumentTypes) {
+      const docsToCreate = faker.number.int({ min: 1, max: 2 });
+      const selectedResidences = faker.helpers.arrayElements(residences, docsToCreate);
       
-      // Create one document per residence
-      const docType = residenceDocumentTypes[Math.floor(Math.random() * residenceDocumentTypes.length)];
-      
-      let documentContent = `${demoDisclosure}${docType.name.toUpperCase()}
+      for (const residence of selectedResidences) {
+        const building = buildings.find(b => b.id === residence.buildingId);
+        const manager = users.find(user => user.buildingId === residence.buildingId && user.role.includes('manager'));
+        if (!building || !manager) continue;
+        
+        let documentContent = `${demoDisclosure}${docType.name.toUpperCase()}
 
 Unit: ${residence.unitNumber}
 Building: ${building.name}
 Address: ${faker.location.streetAddress()}
 
 `;
-      
-      if (docType.type === 'lease') {
-        documentContent += `LEASE AGREEMENT
+        
+        if (docType.type === 'lease') {
+          documentContent += `LEASE AGREEMENT
 
 Tenant Information:
 - Unit Number: ${residence.unitNumber}
@@ -1057,13 +1062,12 @@ Tenant Information:
 Terms and Conditions:
 - ${faker.lorem.sentence()}
 - ${faker.lorem.sentence()}
-- ${faker.lorem.sentence()}
 
 Landlord: ${building.name} Management
 Tenant Signature: ____________________
 Date: ${faker.date.recent().toLocaleDateString()}`;
-      } else if (docType.type === 'inspection') {
-        documentContent += `INSPECTION REPORT
+        } else if (docType.type === 'inspection') {
+          documentContent += `INSPECTION REPORT
 
 Inspection Date: ${faker.date.recent().toLocaleDateString()}
 Inspector: ${faker.person.fullName()}
@@ -1082,8 +1086,8 @@ Notes:
 ${faker.lorem.paragraph()}
 
 Inspector Signature: ____________________`;
-      } else {
-        documentContent += `MAINTENANCE LOG
+        } else {
+          documentContent += `MAINTENANCE LOG
 
 Maintenance History for Unit ${residence.unitNumber}:
 
@@ -1091,39 +1095,37 @@ ${faker.date.past().toLocaleDateString()} - ${faker.helpers.arrayElement(['Plumb
 Status: Completed
 Cost: $${faker.number.int({ min: 50, max: 500 })}
 
-${faker.date.past().toLocaleDateString()} - ${faker.helpers.arrayElement(['Paint touch-up', 'Carpet cleaning', 'Appliance repair'])}
-Status: Completed  
-Cost: $${faker.number.int({ min: 50, max: 500 })}
-
 ${faker.date.recent().toLocaleDateString()} - ${faker.helpers.arrayElement(['Annual inspection', 'Filter replacement', 'Light fixture repair'])}
 Status: In Progress
 Estimated Cost: $${faker.number.int({ min: 50, max: 500 })}
 
 Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
+        }
+        
+        const filePath = `demo-documents/residences/${docType.type}-${residence.unitNumber.toLowerCase()}.txt`;
+        const { fileSize } = writeDocumentFile(filePath, documentContent);
+        
+        await db
+          .insert(schema.documents)
+          .values({
+            name: `${docType.name} - Unit ${residence.unitNumber}`,
+            description: `${docType.description} for unit ${residence.unitNumber}`,
+            documentType: docType.type,
+            filePath,
+            fileName: `${docType.type}-${residence.unitNumber}.txt`,
+            fileSize,
+            mimeType: 'text/plain',
+            isVisibleToTenants: docType.type === 'lease',
+            residenceId: residence.id,
+            buildingId: residence.buildingId,
+            uploadedById: manager.id
+          });
+        
+        totalDocuments++;
       }
-      
-      const docFilePath = `demo-documents/residences/${docType.type}-${residence.unitNumber.toLowerCase()}.txt`;
-      
-      await db
-        .insert(schema.documents)
-        .values({
-          name: `${docType.name} - Unit ${residence.unitNumber}`,
-          description: `${docType.description} for unit ${residence.unitNumber}`,
-          documentType: docType.type,
-          filePath: docFilePath,
-          fileName: `${docType.type}-${residence.unitNumber}.txt`,
-          fileSize: documentContent.length,
-          mimeType: 'text/plain',
-          isVisibleToTenants: docType.type === 'lease',
-          residenceId: residence.id,
-          buildingId: residence.buildingId,
-          uploadedById: manager.id
-        });
-      
-      totalDocuments++;
     }
     
-    // Create Building Documents  
+    // Create Building Documents - 1-2 per category across all buildings  
     console.log('   Creating building documents...');
     const buildingDocumentTypes = [
       { type: 'insurance', name: 'Insurance Certificate', description: 'Building insurance certificate' },
@@ -1132,15 +1134,15 @@ Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
       { type: 'contracts', name: 'Service Contract', description: 'Maintenance service contract' }
     ];
     
-    for (const building of buildings) {
-      const manager = users.find(user => user.buildingId === building.id && user.role.includes('manager'));
-      if (!manager) continue;
+    // Create 1-2 documents per category spread across different buildings
+    for (const docType of buildingDocumentTypes) {
+      const docsToCreate = faker.number.int({ min: 1, max: 2 });
+      const selectedBuildings = faker.helpers.arrayElements(buildings, docsToCreate);
       
-      // Create 2-3 documents per building
-      const docsToCreate = faker.number.int({ min: 2, max: 3 });
-      const selectedTypes = faker.helpers.arrayElements(buildingDocumentTypes, docsToCreate);
-      
-      for (const docType of selectedTypes) {
+      for (const building of selectedBuildings) {
+        const manager = users.find(user => user.buildingId === building.id && user.role.includes('manager'));
+        if (!manager) continue;
+        
         let documentContent = `${demoDisclosure}${docType.name.toUpperCase()}
 
 Building: ${building.name}
@@ -1232,7 +1234,8 @@ Terms and Conditions:
 - ${faker.lorem.sentence()}`;
         }
         
-        const docFilePath = `demo-documents/buildings/${docType.type}-${building.id.slice(0, 8)}.txt`;
+        const filePath = `demo-documents/buildings/${docType.type}-${building.id.slice(0, 8)}.txt`;
+        const { fileSize } = writeDocumentFile(filePath, documentContent);
         
         await db
           .insert(schema.documents)
@@ -1240,9 +1243,9 @@ Terms and Conditions:
             name: `${docType.name} - ${building.name}`,
             description: `${docType.description} for ${building.name}`,
             documentType: docType.type,
-            filePath: docFilePath,
+            filePath,
             fileName: `${docType.type}-${building.name.replace(/\s+/g, '-').toLowerCase()}.txt`,
-            fileSize: documentContent.length,
+            fileSize,
             mimeType: 'text/plain',
             isVisibleToTenants: docType.type === 'meeting_minutes',
             buildingId: building.id,
@@ -1253,10 +1256,10 @@ Terms and Conditions:
       }
     }
     
-    console.log(`📊 Created ${totalDocuments} demo documents:`);
-    console.log(`   - Bill documents: ${bills.length * 2} (invoices + receipts)`);
-    console.log(`   - Residence documents: ${Math.min(residences.length, 20)}`);
-    console.log(`   - Building documents: ${buildings.length * 2}-${buildings.length * 3}`);
+    console.log(`📊 Created ${totalDocuments} demo documents (files written to disk):`);
+    console.log(`   - Bill documents: ~${billsWithDocs.length} (15% of bills)`);
+    console.log(`   - Residence documents: ${residenceDocumentTypes.length * 1}-${residenceDocumentTypes.length * 2} (1-2 per category)`);
+    console.log(`   - Building documents: ${buildingDocumentTypes.length * 1}-${buildingDocumentTypes.length * 2} (1-2 per category)`);
     
   } catch (error) {
     console.error('❌ Failed to create documents:', error);
