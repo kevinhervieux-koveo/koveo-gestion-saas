@@ -445,6 +445,7 @@ export default function Settings() {
                           <div className='relative'>
                             <Input
                               type={showCurrentPassword ? 'text' : 'password'}
+                              autoComplete="current-password"
                               data-testid='input-current-password'
                               {...field}
                             />
@@ -479,6 +480,7 @@ export default function Settings() {
                           <div className='relative'>
                             <Input
                               type={showNewPassword ? 'text' : 'password'}
+                              autoComplete="new-password"
                               data-testid='input-new-password'
                               {...field}
                             />
@@ -513,6 +515,7 @@ export default function Settings() {
                           <div className='relative'>
                             <Input
                               type={showConfirmPassword ? 'text' : 'password'}
+                              autoComplete="new-password"
                               data-testid='input-confirm-password'
                               {...field}
                             />
