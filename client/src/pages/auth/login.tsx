@@ -91,6 +91,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [demoUsers, setDemoUsers] = useState<DemoUsersData | null>(null);
   const [loadingDemoUsers, setLoadingDemoUsers] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
 
   // Check for demo query parameter on component mount
   useEffect(() => {
@@ -288,6 +289,7 @@ export default function LoginPage() {
 
   const handleRoleSelect = (roleKey: string) => {
     setSelectedRole(roleKey);
+    setCurrentPage(0); // Reset pagination when switching roles
   };
 
   const handleBackToRoles = () => {
@@ -404,7 +406,7 @@ export default function LoginPage() {
                 ) : (
                   // Role Detail View with Demo Users
                   <>
-                    <div className='flex items-center justify-between mb-4'>
+                    <div className='mb-4'>
                       <Button
                         variant='ghost'
                         size='sm'
@@ -413,8 +415,7 @@ export default function LoginPage() {
                       >
                         ← {language === 'fr' ? 'Retour' : 'Back'}
                       </Button>
-                      <h3 className='font-medium text-lg'>{getDemoRoles()[selectedRole]?.displayName}</h3>
-                      <div></div>
+                      <h3 className='font-medium text-lg text-center mt-2'>{getDemoRoles()[selectedRole]?.displayName}</h3>
                     </div>
 
                     <div className='bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-4'>
@@ -429,29 +430,73 @@ export default function LoginPage() {
                         : 'Select a demo user:'}
                     </div>
 
-                    {getDemoRoles()[selectedRole]?.users?.map((user, index) => (
-                      <Card
-                        key={user.email}
-                        className='cursor-pointer hover:shadow-md transition-shadow border border-green-200 hover:border-green-300'
-                        onClick={() => handleDemoLogin(user.email, user.name)}
-                        data-testid={`demo-user-${selectedRole}-${index}`}
-                      >
-                        <CardContent className='p-4'>
-                          <div className='flex items-center justify-between'>
-                            <div>
-                              <h4 className='font-medium text-sm'>{user.name}</h4>
-                              <p className='text-xs text-gray-500 dark:text-gray-400'>
-                                {user.building}
-                              </p>
-                              <p className='text-xs text-green-600 dark:text-green-400 mt-1'>
-                                {user.email}
-                              </p>
+                    {(() => {
+                      const users = getDemoRoles()[selectedRole]?.users || [];
+                      const usersPerPage = 3;
+                      const totalPages = Math.ceil(users.length / usersPerPage);
+                      const startIndex = currentPage * usersPerPage;
+                      const endIndex = startIndex + usersPerPage;
+                      const currentUsers = users.slice(startIndex, endIndex);
+
+                      return (
+                        <>
+                          {currentUsers.map((user, index) => (
+                            <Card
+                              key={user.email}
+                              className='cursor-pointer hover:shadow-md transition-shadow border border-green-200 hover:border-green-300'
+                              onClick={() => handleDemoLogin(user.email, user.name)}
+                              data-testid={`demo-user-${selectedRole}-${startIndex + index}`}
+                            >
+                              <CardContent className='p-4'>
+                                <div className='flex items-center justify-between'>
+                                  <div>
+                                    <h4 className='font-medium text-sm'>{user.name}</h4>
+                                    <p className='text-xs text-gray-500 dark:text-gray-400'>
+                                      {user.building}
+                                    </p>
+                                    <p className='text-xs text-green-600 dark:text-green-400 mt-1'>
+                                      {user.email}
+                                    </p>
+                                  </div>
+                                  <Building className='w-4 h-4 text-green-600 dark:text-green-400' />
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                          
+                          {totalPages > 1 && (
+                            <div className='flex items-center justify-between pt-2'>
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                                disabled={currentPage === 0}
+                                className='text-xs'
+                              >
+                                ← {language === 'fr' ? 'Précédent' : 'Previous'}
+                              </Button>
+                              
+                              <span className='text-xs text-gray-500'>
+                                {language === 'fr' 
+                                  ? `Page ${currentPage + 1} de ${totalPages}`
+                                  : `Page ${currentPage + 1} of ${totalPages}`
+                                }
+                              </span>
+                              
+                              <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                                disabled={currentPage === totalPages - 1}
+                                className='text-xs'
+                              >
+                                {language === 'fr' ? 'Suivant' : 'Next'} →
+                              </Button>
                             </div>
-                            <Building className='w-4 h-4 text-green-600 dark:text-green-400' />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          )}
+                        </>
+                      );
+                    })()}
                   </>
                 )}
 
