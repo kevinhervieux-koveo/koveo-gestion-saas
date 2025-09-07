@@ -496,7 +496,7 @@ describe('File Upload Forms Test Suite', () => {
   });
 
   describe('Bill Form with Receipt Attachments', () => {
-    const BillCreateForm = require('../../client/src/components/BillCreateForm.tsx').default;
+    const ModularBillForm = require('../../client/src/components/bill-management/ModularBillForm.tsx').default;
 
     it('should handle bill submission with receipt attachments', async () => {
       const mockProps = {
@@ -509,7 +509,7 @@ describe('File Upload Forms Test Suite', () => {
 
       render(
         <>
-          <BillCreateForm {...mockProps} />
+          <ModularBillForm mode="create" onCancel={mockProps.onClose} onSuccess={mockProps.onSuccess} buildingId={mockProps.buildingId} />
         </>
       );
 
