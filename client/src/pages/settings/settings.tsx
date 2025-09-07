@@ -51,7 +51,7 @@ import {
   Key,
 } from 'lucide-react';
 import { z } from 'zod';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/hooks/use-language';
 
 // Form schemas
 const profileSchema = z.object({
