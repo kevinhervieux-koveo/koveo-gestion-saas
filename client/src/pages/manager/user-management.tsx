@@ -92,7 +92,7 @@ export default function UserManagement() {
   const usersPerPage = 10;
 
   // Filter and search state - simplified for quick fix
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(''); // Temporarily disabled
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [organizationFilter, setOrganizationFilter] = useState('');
@@ -114,7 +114,14 @@ export default function UserManagement() {
       hasPrev: boolean;
     };
   }>({
-    queryKey: ['/api/users', { page: currentPage, limit: usersPerPage }],
+    queryKey: ['/api/users', { 
+      page: currentPage, 
+      limit: usersPerPage,
+      roleFilter,
+      statusFilter,
+      organizationFilter,
+      orphanFilter
+    }],
     queryFn: async () => {
       const response = await fetch(`/api/users?page=${currentPage}&limit=${usersPerPage}`);
       if (!response.ok) {
@@ -325,6 +332,13 @@ export default function UserManagement() {
       });
     }
   }, [deletingUser, deleteForm]);
+
+  // Reset to page 1 when filters change (excluding search since it's disabled)
+  React.useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
   const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
     if (!editingUser) {
@@ -537,54 +551,10 @@ export default function UserManagement() {
 
 
 
-  // Apply client-side search and simple filters to current page results
-  // Note: For full server-side filtering, these would need to be sent as query parameters
-  const filteredUsers = useMemo(() => {
-    let result = [...users];
-
-    // Apply search (client-side for now - could be moved server-side for better performance)
-    if (search) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(
-        (user) =>
-          user.firstName?.toLowerCase().includes(searchLower) ||
-          user.lastName?.toLowerCase().includes(searchLower) ||
-          user.email?.toLowerCase().includes(searchLower) ||
-          user.username?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Apply role filter (client-side for now)
-    if (roleFilter) {
-      result = result.filter((user) => user.role === roleFilter);
-    }
-
-    // Apply status filter (client-side for now)
-    if (statusFilter) {
-      result = result.filter((user) => user.isActive.toString() === statusFilter);
-    }
-
-    // Apply organization filter (client-side for now)
-    if (organizationFilter) {
-      result = result.filter((user) =>
-        user.organizations.some((org) => org.id === organizationFilter)
-      );
-    }
-
-    // Apply orphan filter (users with no organization, building, or residence assignments)
-    if (orphanFilter) {
-      const isOrphanFilter = orphanFilter === 'true';
-      result = result.filter((user) => {
-        const hasOrganizations = user.organizations && user.organizations.length > 0;
-        const hasBuildings = user.buildings && user.buildings.length > 0;
-        const hasResidences = user.residences && user.residences.length > 0;
-        const isOrphan = !hasOrganizations && !hasBuildings && !hasResidences;
-        return isOrphanFilter ? isOrphan : !isOrphan;
-      });
-    }
-
-    return result;
-  }, [users, search, roleFilter, statusFilter, organizationFilter, orphanFilter]);
+  // Use server-side paginated results directly
+  // Client-side filtering removed to avoid conflicts with server-side pagination
+  // TODO: Move all filtering to server-side for proper search across all users
+  const filteredUsers = users;
 
   // Filter handlers - temporarily disabled
   // const handleAddFilter = (filter: FilterValue) => {
@@ -600,7 +570,6 @@ export default function UserManagement() {
   // };
 
   const handleClearFilters = () => {
-    setSearch('');
     setRoleFilter('');
     setStatusFilter('');
     setOrganizationFilter('');
@@ -715,13 +684,14 @@ export default function UserManagement() {
                   <div className='space-y-4'>
                     {/* Simple Search and Filters */}
                     <div className='flex flex-col sm:flex-row gap-4 mb-4 p-4 bg-gray-50 rounded-lg'>
-                      {/* Search */}
+                      {/* Search - Temporarily disabled until server-side search is implemented */}
                       <div className='flex-1'>
                         <Input
-                          placeholder={t('searchUsers')}
+                          placeholder={t('searchUsers') + ' (Coming soon - server-side search)'}
                           value={search}
                           onChange={(e) => setSearch(e.target.value)}
                           className='w-full'
+                          disabled
                         />
                       </div>
 
@@ -779,7 +749,7 @@ export default function UserManagement() {
                       )}
 
                       {/* Clear Filters */}
-                      {(roleFilter || statusFilter || organizationFilter || orphanFilter || search) && (
+                      {(roleFilter || statusFilter || organizationFilter || orphanFilter) && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           {t('clearFilters')}
                         </Button>
