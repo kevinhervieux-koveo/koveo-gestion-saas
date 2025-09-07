@@ -234,8 +234,7 @@ describe('Orphan Element Detection Suite', () => {
       </TestWrapper>
     );
 
-    // Minimal wait for component to stabilize
-    await new Promise(resolve => setTimeout(resolve, 10));
+    // No wait needed for simple mock components
 
     return analyzeOrphanElements(container, pageName);
   };
@@ -323,16 +322,18 @@ describe('Orphan Element Detection Suite', () => {
         { component: Budget, name: 'Budget' },
       ];
 
-      const allReports = [];
-
-      for (const page of pages) {
+      // Process pages in parallel for better performance
+      const reportPromises = pages.map(async (page) => {
         try {
-          const report = await testPageForOrphans(page.component, page.name);
-          allReports.push(report);
+          return await testPageForOrphans(page.component, page.name);
         } catch (error) {
           console.log(`❌ Failed to analyze ${page.name}: ${error}`);
+          return null;
         }
-      }
+      });
+
+      const results = await Promise.all(reportPromises);
+      const allReports = results.filter(report => report !== null);
 
       // Generate summary statistics
       const summary = allReports.reduce((acc, report) => {
