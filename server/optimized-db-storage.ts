@@ -181,16 +181,21 @@ export class OptimizedDatabaseStorage implements IStorage {
                 uo.user_id,
                 COALESCE(
                   json_agg(
-                    DISTINCT json_build_object(
-                      'id', b.id,
-                      'name', b.name
+                    json_build_object(
+                      'id', buildings_distinct.id,
+                      'name', buildings_distinct.name
                     )
-                  ) FILTER (WHERE b.id IS NOT NULL),
+                  ),
                   '[]'::json
                 ) as buildings
               FROM user_organizations uo
-              INNER JOIN buildings b ON uo.organization_id = b.organization_id
-              WHERE uo.is_active = true AND b.is_active = true
+              INNER JOIN (
+                SELECT DISTINCT uo2.user_id, b.id, b.name
+                FROM user_organizations uo2
+                INNER JOIN buildings b ON uo2.organization_id = b.organization_id
+                WHERE uo2.is_active = true AND b.is_active = true
+              ) buildings_distinct ON uo.user_id = buildings_distinct.user_id
+              WHERE uo.is_active = true
               GROUP BY uo.user_id
             ),
             user_residences AS (
@@ -414,16 +419,21 @@ export class OptimizedDatabaseStorage implements IStorage {
                 uo.user_id,
                 COALESCE(
                   json_agg(
-                    DISTINCT json_build_object(
-                      'id', b.id,
-                      'name', b.name
+                    json_build_object(
+                      'id', buildings_distinct.id,
+                      'name', buildings_distinct.name
                     )
-                  ) FILTER (WHERE b.id IS NOT NULL),
+                  ),
                   '[]'::json
                 ) as buildings
               FROM user_organizations uo
-              INNER JOIN buildings b ON uo.organization_id = b.organization_id
-              WHERE uo.is_active = true AND b.is_active = true
+              INNER JOIN (
+                SELECT DISTINCT uo2.user_id, b.id, b.name
+                FROM user_organizations uo2
+                INNER JOIN buildings b ON uo2.organization_id = b.organization_id
+                WHERE uo2.is_active = true AND b.is_active = true
+              ) buildings_distinct ON uo.user_id = buildings_distinct.user_id
+              WHERE uo.is_active = true
               GROUP BY uo.user_id
             ),
             user_residences AS (
@@ -3484,11 +3494,11 @@ export class OptimizedDatabaseStorage implements IStorage {
           AND id != $1
           AND NOT EXISTS (
             SELECT 1 FROM user_organizations uo 
-            WHERE uo.user_id = users.id AND uo.is_active = true
+            WHERE uo.user_id = id AND uo.is_active = true
           )
           AND NOT EXISTS (
             SELECT 1 FROM user_residences ur 
-            WHERE ur.user_id = users.id AND ur.is_active = true
+            WHERE ur.user_id = id AND ur.is_active = true
           )
       `;
       
