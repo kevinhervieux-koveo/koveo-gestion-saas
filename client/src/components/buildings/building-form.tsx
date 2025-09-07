@@ -204,7 +204,7 @@ export function BuildingForm({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value='condo'>Condo</SelectItem>
-                      <SelectItem value='rental'>Rental</SelectItem>
+                      <SelectItem value='appartement'>Appartement</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

@@ -316,11 +316,7 @@ function BuildingForm({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value='condo'>{t('condoType')}</SelectItem>
-                        <SelectItem value='apartment'>{t('apartmentType')}</SelectItem>
-                        <SelectItem value='townhouse'>{t('townhouseType')}</SelectItem>
-                        <SelectItem value='commercial'>{t('commercialType')}</SelectItem>
-                        <SelectItem value='mixed_use'>{t('mixedUseType')}</SelectItem>
-                        <SelectItem value='other'>{t('otherBuildingType')}</SelectItem>
+                        <SelectItem value='appartement'>{t('appartementType')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -403,7 +399,7 @@ export default function Buildings() {
     city: z.string().min(1, t('cityRequired')).max(100, t('cityTooLong')),
     province: z.string().min(1, t('provinceRequired')).max(100, t('provinceTooLong')),
     postalCode: z.string().min(1, t('postalCodeRequired')).max(20, t('postalCodeTooLong')),
-    buildingType: z.enum(['condo', 'apartment', 'townhouse', 'commercial', 'mixed_use', 'other']),
+    buildingType: z.enum(['condo', 'appartement']),
     totalUnits: z
       .number()
       .int()

@@ -453,6 +453,7 @@ export interface Translations {
   inactiveBuilding: string;
   condoType: string;
   apartmentType: string;
+  appartementType: string;
   townhouseType: string;
   commercialType: string;
   mixedUseType: string;
@@ -1453,6 +1454,7 @@ export const translations: Record<Language, Translations> = {
     inactiveBuilding: 'Inactive',
     condoType: 'Condo',
     apartmentType: 'Apartment',
+    appartementType: 'Apartment',
     townhouseType: 'Townhouse',
     commercialType: 'Commercial',
     mixedUseType: 'Mixed Use',
