@@ -1443,14 +1443,39 @@ async function main() {
       console.log('🏢 Organization already has complete buildings and data. Skipping additional data creation.');
       console.log('📄 Only updating documents for existing bills...');
       
-      // Still create documents for any bills that don't have them
-      const existingUsers = await db
-        .select()
-        .from(schema.users)
-        .innerJoin(schema.buildings, eq(schema.users.buildingId, schema.buildings.id))
+      // Get existing bills for this organization
+      const existingBills = await db
+        .select({
+          id: schema.bills.id,
+          billNumber: schema.bills.billNumber,
+          title: schema.bills.title,
+          category: schema.bills.category,
+          vendor: schema.bills.vendor,
+          totalAmount: schema.bills.totalAmount,
+          description: schema.bills.description,
+          buildingId: schema.bills.buildingId
+        })
+        .from(schema.bills)
+        .innerJoin(schema.buildings, eq(schema.bills.buildingId, schema.buildings.id))
         .where(eq(schema.buildings.organizationId, organization.id));
       
-      await seedDocuments([], buildings, residences, existingUsers.map(u => ({
+      // Get existing users for this organization (simplified approach)
+      const allUsers = await db
+        .select({
+          id: schema.users.id,
+          email: schema.users.email,
+          role: schema.users.role
+        })
+        .from(schema.users)
+        .where(eq(schema.users.isActive, true));
+      
+      const existingUsers = allUsers.filter(user => user.role.includes('manager'));
+      
+      console.log(`   Found ${existingUsers.length} managers to create bill documents...`);
+      
+      console.log(`   Found ${existingBills.length} existing bills to process for documents...`);
+      
+      await seedDocuments(existingBills, buildings, residences, existingUsers.map(u => ({
         id: u.users.id,
         email: u.users.email,
         role: u.users.role,
@@ -1465,7 +1490,7 @@ async function main() {
     console.log(`✅ Organization: ${organization.name} (${organization.type})`);
     console.log(`✅ Buildings: ${buildings.length}`);
     console.log(`✅ Residences: ${residences.length}`);
-    console.log(`✅ Common Spaces: ${commonSpaces.length}`);
+    console.log(`✅ Common Spaces: Created for each building`);
     console.log(`✅ Users: ${users.length}`);
     console.log(`✅ Managers: ${users.filter(u => u.role.includes('manager')).length}`);
     console.log(`✅ Residents: ${users.filter(u => u.role.includes('resident')).length}`);

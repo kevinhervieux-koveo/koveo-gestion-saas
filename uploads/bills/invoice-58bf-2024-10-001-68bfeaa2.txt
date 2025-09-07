@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 58BF-2024-10-001
+Title: Landscaping - Kshlerin LLC
+Vendor: Dibbert and Sons
+Category: Landscaping
+Total Amount: $3992.46
+Description: Monthly landscaping service for March 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 1/8/2026
+
+Service Details:
+- Cattus demo adulatio aeger tutamen decerno arx.
+- Curso nihil cunctatio veritas compello tamdiu candidus thalassinus avaritia valens.
+
+Thank you for your business!
+Dibbert and Sons

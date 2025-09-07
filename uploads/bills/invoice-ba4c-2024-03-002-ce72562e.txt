@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: BA4C-2024-03-002
+Title: Administration - Armstrong - Strosin
+Vendor: Kub, Fahey and Cartwright
+Category: Administration
+Total Amount: $1444.05
+Description: Monthly administration service for August 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 4/4/2026
+
+Service Details:
+- Vereor coadunatio cupiditate aperio tactus traho bibo contigo.
+- Corrupti adfero subiungo magni creta desipio correptius suppellex.
+
+Thank you for your business!
+Kub, Fahey and Cartwright

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 2B6F-2024-11-002
+Title: Cleaning - Glover and Sons
+Vendor: Cole, Abbott and Cole
+Category: Cleaning
+Total Amount: $980.65
+Description: Monthly cleaning service for January 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 5/24/2026
+
+Service Details:
+- Commodi tersus patrocinor veritas magnam.
+- Conscendo solvo sub.
+
+Thank you for your business!
+Cole, Abbott and Cole
