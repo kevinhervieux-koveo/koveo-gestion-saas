@@ -1,0 +1,307 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-zvxHhuM6.js:1 🖱️ [FRONTEND] Delete orphans button clicked
+user-management-zvxHhuM6.js:1 👤 [FRONTEND] Triggering delete for user: kevin.hervieux@koveo-gestion.com
+user-management-zvxHhuM6.js:1 🗑️ [FRONTEND] Delete orphans mutation started
+user-management-zvxHhuM6.js:1 🔍 [FRONTEND] Current user: kevin.hervieux@koveo-gestion.com role: admin
+user-management-zvxHhuM6.js:1  DELETE https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/users/orphans 404 (Not Found)
+mutationFn @ user-management-zvxHhuM6.js:1
+fn @ vendor-query-CVwOpz66.js:1
+y @ vendor-query-CVwOpz66.js:1
+start @ vendor-query-CVwOpz66.js:1
+execute @ vendor-query-CVwOpz66.js:1
+await in execute
+mutate @ vendor-query-CVwOpz66.js:1
+(anonymous) @ vendor-query-CVwOpz66.js:1
+jn @ user-management-zvxHhuM6.js:1
+lr @ index-AJbvSFIj.js:185
+j @ index-AJbvSFIj.js:45
+gg @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+Gm @ index-AJbvSFIj.js:83
+rd @ index-AJbvSFIj.js:185
+Ad @ index-AJbvSFIj.js:194
+_1 @ index-AJbvSFIj.js:194
+<button>
+du.jsxDEV @ index-AJbvSFIj.js:15
+Button @ index-AJbvSFIj.js:360
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+lh @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+fg @ index-AJbvSFIj.js:185
+fl @ index-AJbvSFIj.js:185
+ad @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+<Button>
+du.jsxDEV @ index-AJbvSFIj.js:15
+Cs @ user-management-zvxHhuM6.js:1
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+fg @ index-AJbvSFIj.js:185
+fl @ index-AJbvSFIj.js:185
+ad @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-AJbvSFIj.js:240
+q @ index-AJbvSFIj.js:240
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+FS @ index-AJbvSFIj.js:163
+$S @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+dg @ index-AJbvSFIj.js:185
+d @ index-AJbvSFIj.js:23
+<q>
+du.jsxDEV @ index-AJbvSFIj.js:15
+HR @ index-AJbvSFIj.js:364
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+fg @ index-AJbvSFIj.js:185
+fl @ index-AJbvSFIj.js:185
+ad @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+<HR>
+du.jsxDEV @ index-AJbvSFIj.js:15
+jR @ index-AJbvSFIj.js:364
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+dg @ index-AJbvSFIj.js:185
+d @ index-AJbvSFIj.js:23
+<jR>
+du.jsxDEV @ index-AJbvSFIj.js:15
+(anonymous) @ index-AJbvSFIj.js:364
+user-management-zvxHhuM6.js:1 📡 [FRONTEND] API response status: 404 Not Found
+user-management-zvxHhuM6.js:1 ❌ [FRONTEND] API Error response: {_error: 'Not found', message: 'User not found'}
+overrideMethod @ hook.js:608
+mutationFn @ user-management-zvxHhuM6.js:1
+await in mutationFn
+fn @ vendor-query-CVwOpz66.js:1
+y @ vendor-query-CVwOpz66.js:1
+start @ vendor-query-CVwOpz66.js:1
+execute @ vendor-query-CVwOpz66.js:1
+await in execute
+mutate @ vendor-query-CVwOpz66.js:1
+(anonymous) @ vendor-query-CVwOpz66.js:1
+jn @ user-management-zvxHhuM6.js:1
+lr @ index-AJbvSFIj.js:185
+j @ index-AJbvSFIj.js:45
+gg @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+Gm @ index-AJbvSFIj.js:83
+rd @ index-AJbvSFIj.js:185
+Ad @ index-AJbvSFIj.js:194
+_1 @ index-AJbvSFIj.js:194
+<button>
+du.jsxDEV @ index-AJbvSFIj.js:15
+Button @ index-AJbvSFIj.js:360
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+lh @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+fg @ index-AJbvSFIj.js:185
+fl @ index-AJbvSFIj.js:185
+ad @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+<Button>
+du.jsxDEV @ index-AJbvSFIj.js:15
+Cs @ user-management-zvxHhuM6.js:1
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+fg @ index-AJbvSFIj.js:185
+fl @ index-AJbvSFIj.js:185
+ad @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-AJbvSFIj.js:240
+q @ index-AJbvSFIj.js:240
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+FS @ index-AJbvSFIj.js:163
+$S @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+dg @ index-AJbvSFIj.js:185
+d @ index-AJbvSFIj.js:23
+<q>
+du.jsxDEV @ index-AJbvSFIj.js:15
+HR @ index-AJbvSFIj.js:364
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+fg @ index-AJbvSFIj.js:185
+fl @ index-AJbvSFIj.js:185
+ad @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+<HR>
+du.jsxDEV @ index-AJbvSFIj.js:15
+jR @ index-AJbvSFIj.js:364
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+dg @ index-AJbvSFIj.js:185
+d @ index-AJbvSFIj.js:23
+<jR>
+du.jsxDEV @ index-AJbvSFIj.js:15
+(anonymous) @ index-AJbvSFIj.js:364
+user-management-zvxHhuM6.js:1 💥 [FRONTEND] Delete orphans mutation failed: Error: Failed to delete orphan users
+    at Object.mutationFn (user-management-zvxHhuM6.js:1:64951)
+overrideMethod @ hook.js:608
+onError @ user-management-zvxHhuM6.js:1
+execute @ vendor-query-CVwOpz66.js:1
+await in execute
+mutate @ vendor-query-CVwOpz66.js:1
+(anonymous) @ vendor-query-CVwOpz66.js:1
+jn @ user-management-zvxHhuM6.js:1
+lr @ index-AJbvSFIj.js:185
+j @ index-AJbvSFIj.js:45
+gg @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+Gm @ index-AJbvSFIj.js:83
+rd @ index-AJbvSFIj.js:185
+Ad @ index-AJbvSFIj.js:194
+_1 @ index-AJbvSFIj.js:194
+<button>
+du.jsxDEV @ index-AJbvSFIj.js:15
+Button @ index-AJbvSFIj.js:360
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+lh @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+fg @ index-AJbvSFIj.js:185
+fl @ index-AJbvSFIj.js:185
+ad @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+<Button>
+du.jsxDEV @ index-AJbvSFIj.js:15
+Cs @ user-management-zvxHhuM6.js:1
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+fg @ index-AJbvSFIj.js:185
+fl @ index-AJbvSFIj.js:185
+ad @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-AJbvSFIj.js:240
+q @ index-AJbvSFIj.js:240
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+FS @ index-AJbvSFIj.js:163
+$S @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+dg @ index-AJbvSFIj.js:185
+d @ index-AJbvSFIj.js:23
+<q>
+du.jsxDEV @ index-AJbvSFIj.js:15
+HR @ index-AJbvSFIj.js:364
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+fg @ index-AJbvSFIj.js:185
+fl @ index-AJbvSFIj.js:185
+ad @ index-AJbvSFIj.js:185
+(anonymous) @ index-AJbvSFIj.js:185
+<HR>
+du.jsxDEV @ index-AJbvSFIj.js:15
+jR @ index-AJbvSFIj.js:364
+react_stack_bottom_frame @ index-AJbvSFIj.js:229
+oc @ index-AJbvSFIj.js:120
+kc @ index-AJbvSFIj.js:141
+Yc @ index-AJbvSFIj.js:150
+j @ index-AJbvSFIj.js:45
+Jh @ index-AJbvSFIj.js:163
+Fh @ index-AJbvSFIj.js:163
+Wc @ index-AJbvSFIj.js:163
+Qh @ index-AJbvSFIj.js:163
+dg @ index-AJbvSFIj.js:185
+d @ index-AJbvSFIj.js:23
+<jR>
+du.jsxDEV @ index-AJbvSFIj.js:15
+(anonymous) @ index-AJbvSFIj.js:364
