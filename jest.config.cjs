@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.simple.ts'],
   // Temporarily disable global setup/teardown to debug hanging issues
   // globalSetup: '<rootDir>/jest.global-setup.js',
   // globalTeardown: '<rootDir>/jest.global-teardown.js',

@@ -69,29 +69,46 @@ Object.defineProperty(window, 'localStorage', {
   value: createMockStorage(),
 });
 
-// Mock basic hooks
-jest.mock('@/hooks/use-language', () => ({
-  useLanguage: () => ({
+// Mock basic hooks with proper ES module export
+jest.mock('@/hooks/use-language', () => {
+  const mockUseLanguage = () => ({
     t: (key: string) => key,
     language: 'en',
     setLanguage: jest.fn(),
     toggleLanguage: jest.fn(),
-  }),
-  LanguageProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
+  });
+  
+  return {
+    __esModule: true,
+    useLanguage: mockUseLanguage,
+    LanguageProvider: ({ children }: { children: React.ReactNode }) => children,
+    default: mockUseLanguage,
+  };
+});
 
 jest.mock('@/hooks/use-toast', () => ({
+  __esModule: true,
   useToast: () => ({
     toast: jest.fn(),
   }),
 }));
 
 jest.mock('@/hooks/use-auth', () => ({
+  __esModule: true,
   useAuth: () => ({
     user: { id: '1', username: 'test', role: 'admin' },
     isAuthenticated: true,
     login: jest.fn(),
     logout: jest.fn(),
+  }),
+}));
+
+// Mock useMobileMenu hook
+jest.mock('@/hooks/use-mobile-menu', () => ({
+  __esModule: true,
+  useMobileMenu: () => ({
+    isMobileMenuOpen: false,
+    toggleMobileMenu: jest.fn(),
   }),
 }));
 

@@ -1,0 +1,33 @@
+55d9afa94f9caafddb8cfffd3e41335e
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CalendarDay = void 0;
+const DateLib_js_1 = require("./DateLib.js");
+/**
+ * Represents a day displayed in the calendar.
+ *
+ * In DayPicker, a `CalendarDay` is a wrapper around a `Date` object that
+ * provides additional information about the day, such as whether it belongs to
+ * the displayed month.
+ */
+class CalendarDay {
+    constructor(date, displayMonth, dateLib = DateLib_js_1.defaultDateLib) {
+        this.date = date;
+        this.displayMonth = displayMonth;
+        this.outside = Boolean(displayMonth && !dateLib.isSameMonth(date, displayMonth));
+        this.dateLib = dateLib;
+    }
+    /**
+     * Checks if this day is equal to another `CalendarDay`, considering both the
+     * date and the displayed month.
+     *
+     * @param day The `CalendarDay` to compare with.
+     * @returns `true` if the days are equal, otherwise `false`.
+     */
+    isEqualTo(day) {
+        return (this.dateLib.isSameDay(day.date, this.date) &&
+            this.dateLib.isSameMonth(day.displayMonth, this.displayMonth));
+    }
+}
+exports.CalendarDay = CalendarDay;
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9ub2RlX21vZHVsZXMvcmVhY3QtZGF5LXBpY2tlci9kaXN0L2Nqcy9jbGFzc2VzL0NhbGVuZGFyRGF5LmpzIiwibWFwcGluZ3MiOiJBQUFBLFlBQVksQ0FBQztBQUNiLE1BQU0sQ0FBQyxjQUFjLENBQUMsT0FBTyxFQUFFLFlBQVksRUFBRSxFQUFFLEtBQUssRUFBRSxJQUFJLEVBQUUsQ0FBQyxDQUFDO0FBQzlELE9BQU8sQ0FBQyxXQUFXLEdBQUcsS0FBSyxDQUFDLENBQUM7QUFDN0IsTUFBTSxZQUFZLEdBQUcsT0FBTyxDQUFDLGNBQWMsQ0FBQyxDQUFDO0FBQzdDOzs7Ozs7R0FNRztBQUNILE1BQU0sV0FBVztJQUNiLFlBQVksSUFBSSxFQUFFLFlBQVksRUFBRSxPQUFPLEdBQUcsWUFBWSxDQUFDLGNBQWM7UUFDakUsSUFBSSxDQUFDLElBQUksR0FBRyxJQUFJLENBQUM7UUFDakIsSUFBSSxDQUFDLFlBQVksR0FBRyxZQUFZLENBQUM7UUFDakMsSUFBSSxDQUFDLE9BQU8sR0FBRyxPQUFPLENBQUMsWUFBWSxJQUFJLENBQUMsT0FBTyxDQUFDLFdBQVcsQ0FBQyxJQUFJLEVBQUUsWUFBWSxDQUFDLENBQUMsQ0FBQztRQUNqRixJQUFJLENBQUMsT0FBTyxHQUFHLE9BQU8sQ0FBQztJQUMzQixDQUFDO0lBQ0Q7Ozs7OztPQU1HO0lBQ0gsU0FBUyxDQUFDLEdBQUc7UUFDVCxPQUFPLENBQUMsSUFBSSxDQUFDLE9BQU8sQ0FBQyxTQUFTLENBQUMsR0FBRyxDQUFDLElBQUksRUFBRSxJQUFJLENBQUMsSUFBSSxDQUFDO1lBQy9DLElBQUksQ0FBQyxPQUFPLENBQUMsV0FBVyxDQUFDLEdBQUcsQ0FBQyxZQUFZLEVBQUUsSUFBSSxDQUFDLFlBQVksQ0FBQyxDQUFDLENBQUM7SUFDdkUsQ0FBQztDQUNKO0FBQ0QsT0FBTyxDQUFDLFdBQVcsR0FBRyxXQUFXLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9ub2RlX21vZHVsZXMvcmVhY3QtZGF5LXBpY2tlci9kaXN0L2Nqcy9jbGFzc2VzL0NhbGVuZGFyRGF5LmpzIl0sInNvdXJjZXNDb250ZW50IjpbIlwidXNlIHN0cmljdFwiO1xuT2JqZWN0LmRlZmluZVByb3BlcnR5KGV4cG9ydHMsIFwiX19lc01vZHVsZVwiLCB7IHZhbHVlOiB0cnVlIH0pO1xuZXhwb3J0cy5DYWxlbmRhckRheSA9IHZvaWQgMDtcbmNvbnN0IERhdGVMaWJfanNfMSA9IHJlcXVpcmUoXCIuL0RhdGVMaWIuanNcIik7XG4vKipcbiAqIFJlcHJlc2VudHMgYSBkYXkgZGlzcGxheWVkIGluIHRoZSBjYWxlbmRhci5cbiAqXG4gKiBJbiBEYXlQaWNrZXIsIGEgYENhbGVuZGFyRGF5YCBpcyBhIHdyYXBwZXIgYXJvdW5kIGEgYERhdGVgIG9iamVjdCB0aGF0XG4gKiBwcm92aWRlcyBhZGRpdGlvbmFsIGluZm9ybWF0aW9uIGFib3V0IHRoZSBkYXksIHN1Y2ggYXMgd2hldGhlciBpdCBiZWxvbmdzIHRvXG4gKiB0aGUgZGlzcGxheWVkIG1vbnRoLlxuICovXG5jbGFzcyBDYWxlbmRhckRheSB7XG4gICAgY29uc3RydWN0b3IoZGF0ZSwgZGlzcGxheU1vbnRoLCBkYXRlTGliID0gRGF0ZUxpYl9qc18xLmRlZmF1bHREYXRlTGliKSB7XG4gICAgICAgIHRoaXMuZGF0ZSA9IGRhdGU7XG4gICAgICAgIHRoaXMuZGlzcGxheU1vbnRoID0gZGlzcGxheU1vbnRoO1xuICAgICAgICB0aGlzLm91dHNpZGUgPSBCb29sZWFuKGRpc3BsYXlNb250aCAmJiAhZGF0ZUxpYi5pc1NhbWVNb250aChkYXRlLCBkaXNwbGF5TW9udGgpKTtcbiAgICAgICAgdGhpcy5kYXRlTGliID0gZGF0ZUxpYjtcbiAgICB9XG4gICAgLyoqXG4gICAgICogQ2hlY2tzIGlmIHRoaXMgZGF5IGlzIGVxdWFsIHRvIGFub3RoZXIgYENhbGVuZGFyRGF5YCwgY29uc2lkZXJpbmcgYm90aCB0aGVcbiAgICAgKiBkYXRlIGFuZCB0aGUgZGlzcGxheWVkIG1vbnRoLlxuICAgICAqXG4gICAgICogQHBhcmFtIGRheSBUaGUgYENhbGVuZGFyRGF5YCB0byBjb21wYXJlIHdpdGguXG4gICAgICogQHJldHVybnMgYHRydWVgIGlmIHRoZSBkYXlzIGFyZSBlcXVhbCwgb3RoZXJ3aXNlIGBmYWxzZWAuXG4gICAgICovXG4gICAgaXNFcXVhbFRvKGRheSkge1xuICAgICAgICByZXR1cm4gKHRoaXMuZGF0ZUxpYi5pc1NhbWVEYXkoZGF5LmRhdGUsIHRoaXMuZGF0ZSkgJiZcbiAgICAgICAgICAgIHRoaXMuZGF0ZUxpYi5pc1NhbWVNb250aChkYXkuZGlzcGxheU1vbnRoLCB0aGlzLmRpc3BsYXlNb250aCkpO1xuICAgIH1cbn1cbmV4cG9ydHMuQ2FsZW5kYXJEYXkgPSBDYWxlbmRhckRheTtcbiJdLCJ2ZXJzaW9uIjozfQ==

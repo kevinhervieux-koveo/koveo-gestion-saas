@@ -382,8 +382,9 @@ export default function BugReports() {
     return user?.role === 'admin' || bug.createdBy === user?.id;
   };
 
-  // Filter bugs with role-based access control
-  const filteredBugs = (bugs || []).filter((bug: Bug) => {
+  // Filter bugs with role-based access control - ensure bugs is always an array
+  const bugsArray = Array.isArray(bugs) ? bugs : [];
+  const filteredBugs = bugsArray.filter((bug: Bug) => {
     // Role-based filtering: users see only their bugs, admins see all
     const hasAccess = user?.role === 'admin' || bug.createdBy === user?.id;
     if (!hasAccess) return false;
@@ -451,7 +452,7 @@ export default function BugReports() {
                     <SelectItem value="critical">Critical</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-bug">
+                <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-report-bug">
                   <Plus className="w-4 h-4 mr-2" />
                   Report Bug
                 </Button>
