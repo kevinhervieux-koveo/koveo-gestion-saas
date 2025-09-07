@@ -1123,11 +1123,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
+        // Debug firstName extraction issue
+        console.log('🔍 [INVITATION] Form data analysis:', {
+          rawFirstName: firstName,
+          rawLastName: lastName,
+          rawPhone: phone,
+          rawLanguage: language
+        });
+
         // Sanitize and normalize all input data
         const sanitizedFirstName = sanitizeName(firstName);
         const sanitizedLastName = sanitizeName(lastName);
         const sanitizedPhone = phone ? sanitizeString(phone) : '';
         const normalizedEmail = normalizeEmail(invitationData.email);
+
+        console.log('🔍 [INVITATION] After sanitization:', {
+          originalFirstName: firstName,
+          sanitizedFirstName,
+          originalLastName: lastName,
+          sanitizedLastName,
+          phone: sanitizedPhone,
+          email: normalizedEmail
+        });
 
         // Validate Quebec postal code if provided
         if (postalCode && !isValidQuebecPostalCode(postalCode)) {
@@ -1144,23 +1161,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const baseUsername = generateUsernameFromEmail(normalizedEmail);
         let username = baseUsername;
 
-        // Ensure username uniqueness by checking existing users
-        let usernameCounter = 1;
+        // Ensure username uniqueness by checking existing users with random numbers
+        let attempts = 0;
+        const maxAttempts = 10;
         let existingUsername = await db
           .select({ username: schemaUsers.username })
           .from(schemaUsers)
           .where(eq(schemaUsers.username, username))
           .limit(1);
 
-        while (existingUsername.length > 0) {
-          username = `${baseUsername}${usernameCounter}`;
-          usernameCounter++;
+        console.log('🔍 [INVITATION] Username collision check:', {
+          baseUsername,
+          currentUsername: username,
+          collisionDetected: existingUsername.length > 0
+        });
+
+        while (existingUsername.length > 0 && attempts < maxAttempts) {
+          // Generate random 4-digit suffix
+          const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+          username = `${baseUsername}${randomSuffix}`;
+          attempts++;
+          
+          console.log('🔄 [INVITATION] Username collision attempt:', {
+            attempt: attempts,
+            newUsername: username
+          });
+          
           existingUsername = await db
             .select({ username: schemaUsers.username })
             .from(schemaUsers)
             .where(eq(schemaUsers.username, username))
             .limit(1);
         }
+
+        if (attempts >= maxAttempts && existingUsername.length > 0) {
+          throw new Error('Unable to generate unique username after maximum attempts');
+        }
+
+        console.log('✅ [INVITATION] Final username selected:', {
+          finalUsername: username,
+          attemptsUsed: attempts
+        });
 
         // Validate user data against schema before creation
         const createUserData = {
