@@ -38,6 +38,7 @@ import { BillCreateForm } from '@/components/BillCreateForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import type { Building, Bill } from '@shared/schema';
 
 const BILL_CATEGORIES = [
@@ -56,36 +57,9 @@ const BILL_CATEGORIES = [
   'other',
 ] as const;
 
-const CATEGORY_LABELS: Record<string, string> = {
-  insurance: 'Insurance',
-  maintenance: 'Maintenance',
-  salary: 'Salary',
-  utilities: 'Utilities',
-  cleaning: 'Cleaning',
-  security: 'Security',
-  landscaping: 'Landscaping',
-  professional_services: 'Professional Services',
-  administration: 'Administration',
-  repairs: 'Repairs',
-  supplies: 'Supplies',
-  taxes: 'Taxes',
-  other: 'Other',
-};
+// Category labels will use translation function instead of static object
 
-const MONTHS = [
-  { value: '1', label: 'January' },
-  { value: '2', label: 'February' },
-  { value: '3', label: 'March' },
-  { value: '4', label: 'April' },
-  { value: '5', label: 'May' },
-  { value: '6', label: 'June' },
-  { value: '7', label: 'July' },
-  { value: '8', label: 'August' },
-  { value: '9', label: 'September' },
-  { value: '10', label: 'October' },
-  { value: '11', label: 'November' },
-  { value: '12', label: 'December' },
-];
+// Months will use translation function instead of static array
 
 /**
  *
@@ -107,6 +81,7 @@ export default function /**
  */
 
 Bills() {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<BillFilters>({
     buildingId: '',
     category: '',
@@ -328,11 +303,11 @@ Bills() {
   if (buildingsLoading) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='Bills Management' subtitle='Manage building expenses and revenue tracking' />
+        <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center'>
             <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4'></div>
-            <p className='text-gray-500'>Loading buildings...</p>
+            <p className='text-gray-500'>{t('loadingBuildings')}</p>
           </div>
         </div>
       </div>
@@ -343,15 +318,15 @@ Bills() {
   if (buildingsError) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='Bills Management' subtitle='Manage building expenses and revenue tracking' />
+        <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center'>
-            <p className='text-red-500 mb-4'>Failed to load buildings</p>
+            <p className='text-red-500 mb-4'>{t('failedToLoadBuildings')}</p>
             <button
               onClick={() => window.location.reload()}
               className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
             >
-              Retry
+              {t('retry')}
             </button>
           </div>
         </div>
@@ -361,7 +336,7 @@ Bills() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='Bills Management' subtitle='Manage building expenses and revenue tracking' />
+      <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -370,7 +345,7 @@ Bills() {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <Filter className='w-5 h-5' />
-                Filters
+                {t('filters')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -378,14 +353,14 @@ Bills() {
                 <div className='space-y-2'>
                   <Label htmlFor='building-filter' className='flex items-center gap-2'>
                     <BuildingIcon className='w-4 h-4' />
-                    Building
+                    {t('building')}
                   </Label>
                   <Select
                     value={filters.buildingId}
                     onValueChange={(value) => handleFilterChange('buildingId', value)}
                   >
                     <SelectTrigger id='building-filter'>
-                      <SelectValue placeholder='Select building' />
+                      <SelectValue placeholder={t('selectBuilding')} />
                     </SelectTrigger>
                     <SelectContent>
                       {Array.isArray(buildings) &&
@@ -401,17 +376,17 @@ Bills() {
                 <div className='space-y-2'>
                   <Label htmlFor='category-filter' className='flex items-center gap-2'>
                     <Tag className='w-4 h-4' />
-                    Category
+                    {t('category')}
                   </Label>
                   <Select
                     value={filters.category}
                     onValueChange={(value) => handleFilterChange('category', value)}
                   >
                     <SelectTrigger id='category-filter'>
-                      <SelectValue placeholder='All categories' />
+                      <SelectValue placeholder={t('allCategories')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All categories</SelectItem>
+                      <SelectItem value='all'>{t('allCategories')}</SelectItem>
                       {BILL_CATEGORIES.map((category) => (
                         <SelectItem key={category} value={category}>
                           {CATEGORY_LABELS[category]}
@@ -424,7 +399,7 @@ Bills() {
                 <div className='space-y-2'>
                   <Label htmlFor='year-filter' className='flex items-center gap-2'>
                     <Calendar className='w-4 h-4' />
-                    Year
+                    {t('year')}
                   </Label>
                   <div className='space-y-2'>
                     <Select
@@ -475,7 +450,7 @@ Bills() {
                 <div className='space-y-2'>
                   <Label className='flex items-center gap-2'>
                     <Calendar className='w-4 h-4' />
-                    Months
+                    {t('months')}
                   </Label>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -532,12 +507,12 @@ Bills() {
                   <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                     <DialogTrigger asChild>
                       <Button className='w-full' disabled={!filters.buildingId}>
-                        Create Bill
+                        {t('createBill')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
                       <DialogHeader>
-                        <DialogTitle>Create New Bill</DialogTitle>
+                        <DialogTitle>{t('createNewBill')}</DialogTitle>
                       </DialogHeader>
                       <BillCreateForm
                         buildingId={filters.buildingId}
@@ -564,13 +539,13 @@ Bills() {
             <Card>
               <CardContent className='p-8 text-center'>
                 <div className='animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4'></div>
-                <p className='text-gray-500'>Loading bills...</p>
+                <p className='text-gray-500'>{t('loadingBills')}</p>
               </CardContent>
             </Card>
           ) : Object.keys(billsByCategory).length === 0 ? (
             <Card>
               <CardContent className='p-8 text-center'>
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Bills Found</h3>
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noBillsFound')}</h3>
                 <p className='text-gray-500 mb-4'>
                   No bills found for the selected filters. Create your first bill to get started.
                 </p>
