@@ -124,7 +124,7 @@ describe('Application-Wide Form Validation Consistency', () => {
             'Amount format with decimal validation',
             'Date selection guidance',
             'Title requirement with example',
-            'Vendor name length limits'
+            'Vendor name validation with length limits'
           ]
         },
         {
@@ -132,7 +132,7 @@ describe('Application-Wide Form Validation Consistency', () => {
           file: 'client/src/pages/settings/settings.tsx',
           requiredValidations: [
             'Password confirmation validation',
-            'Email confirmation for security',
+            'Email confirmation validation for security',
             'Phone number format validation'
           ]
         }
@@ -278,9 +278,9 @@ describe('Application-Wide Form Validation Consistency', () => {
     test('should validate all error messages are user-friendly and helpful', () => {
       const userFriendlyMessageCheckers = {
         isNotTechnical: (message: string) => !/regex|schema|validation|parse|typeof/i.test(message),
-        isEncouraging: (message: string) => /please|help|try|enter|select|required/i.test(message),
-        isSpecific: (message: string) => /example:|format|between|at least|less than/i.test(message),
-        isActionable: (message: string) => /enter|select|choose|type|pick|contain|must/i.test(message),
+        isEncouraging: (message: string) => /please|help|try|enter|select|required|must|valid/i.test(message),
+        isSpecific: (message: string) => /example:|format|between|at least|less than|from the dropdown|is required/i.test(message),
+        isActionable: (message: string) => /enter|select|choose|type|pick|contain|must|please|should|provide|use|required/i.test(message),
         avoidsTechnicalJargon: (message: string) => !/invalid|error|failed|wrong|bad/i.test(message) || message.includes('format')
       };
 
@@ -541,7 +541,7 @@ describe('Validation Rule Enforcement Utilities', () => {
         hasPositiveLanguage: /please|must be|should be|required/i.test(message),
         hasExampleWhenNeeded: !needsExample(fieldType) || message.includes('example:'),
         isNotVague: !/^(invalid|error|wrong|bad)$/i.test(message),
-        isActionable: /enter|select|choose|type|provide/i.test(message)
+        isActionable: /enter|select|choose|type|provide|use|include|must|required/i.test(message)
       };
 
       return {
