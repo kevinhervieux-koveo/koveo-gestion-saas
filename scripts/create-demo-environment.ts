@@ -310,6 +310,8 @@ async function upsertOrganization(name: string, type: 'demo' | 'production'): Pr
  */
 async function seedBuildings(organizationId: string): Promise<{ buildings: CreatedBuilding[], newBuildingsCreated: number }> {
   try {
+    console.log(`🔍 Checking buildings for organization ID: ${organizationId}`);
+    
     // Check for existing buildings in this organization
     const existingBuildings = await db
       .select({
@@ -323,8 +325,11 @@ async function seedBuildings(organizationId: string): Promise<{ buildings: Creat
     const maxBuildings = 5; // Maximum buildings per organization
     const buildingsToCreate = Math.max(0, maxBuildings - existingBuildings.length);
     
+    console.log(`🏢 Found ${existingBuildings.length} existing buildings for this organization (max: ${maxBuildings}).`);
+    console.log(`🏢 Will create ${buildingsToCreate} additional buildings.`);
+    
     if (existingBuildings.length >= maxBuildings) {
-      console.log(`🏢 Organization already has ${existingBuildings.length} buildings (max: ${maxBuildings}). Skipping building creation.`);
+      console.log(`🏢 Organization already has maximum buildings. Skipping building creation.`);
       return {
         buildings: existingBuildings.map(b => ({
           id: b.id,
@@ -335,7 +340,7 @@ async function seedBuildings(organizationId: string): Promise<{ buildings: Creat
       };
     }
     
-    console.log(`🏢 Found ${existingBuildings.length} existing buildings. Creating ${buildingsToCreate} additional buildings...`);
+    console.log(`🏢 Creating ${buildingsToCreate} additional buildings...`);
     
     const buildings: CreatedBuilding[] = [...existingBuildings.map(b => ({
       id: b.id,
@@ -344,7 +349,7 @@ async function seedBuildings(organizationId: string): Promise<{ buildings: Creat
     }))];
     
     for (let i = 1; i <= buildingsToCreate; i++) {
-      const buildingName = `${faker.location.streetAddress()} Building ${i}`;
+      const buildingName = `${faker.location.streetAddress()} Building ${existingBuildings.length + i}`;
       
       const [building] = await db
         .insert(schema.buildings)
