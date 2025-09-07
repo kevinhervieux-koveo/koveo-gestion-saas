@@ -1,4 +1,5 @@
 import { Header } from '@/components/layout/header';
+import { useLanguage } from '@/hooks/use-language';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -11,9 +12,11 @@ import {
 } from 'lucide-react';
 
 export default function Budget() {
+  const { t } = useLanguage();
+
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='Budget Dashboard' subtitle='Tableau de bord budgétaire' />
+      <Header title={t('budgetDashboard')} subtitle={t('budgetSubtitle')} />
       
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -21,52 +24,52 @@ export default function Budget() {
           <div className='grid grid-cols-1 md:grid-cols-4 gap-6'>
             <Card>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>Total Budget</CardTitle>
+                <CardTitle className='text-sm font-medium'>{t('totalBudget')}</CardTitle>
                 <DollarSign className='h-4 w-4 text-muted-foreground' />
               </CardHeader>
               <CardContent>
                 <div className='text-2xl font-bold'>$125,000</div>
                 <p className='text-xs text-muted-foreground'>
-                  <span className='text-green-600'>+2.1%</span> from last year
+                  <span className='text-green-600'>+2.1%</span> {t('fromLastYear')}
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>Used Budget</CardTitle>
+                <CardTitle className='text-sm font-medium'>{t('usedBudget')}</CardTitle>
                 <Calculator className='h-4 w-4 text-muted-foreground' />
               </CardHeader>
               <CardContent>
                 <div className='text-2xl font-bold'>$87,500</div>
                 <p className='text-xs text-muted-foreground'>
-                  70% of total budget
+                  70% {t('ofTotalBudget')}
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>Remaining</CardTitle>
+                <CardTitle className='text-sm font-medium'>{t('remaining')}</CardTitle>
                 <TrendingUp className='h-4 w-4 text-muted-foreground' />
               </CardHeader>
               <CardContent>
                 <div className='text-2xl font-bold'>$37,500</div>
                 <p className='text-xs text-muted-foreground'>
-                  30% remaining
+                  30% {t('percentRemaining')}
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>Variance</CardTitle>
+                <CardTitle className='text-sm font-medium'>{t('variance')}</CardTitle>
                 <TrendingDown className='h-4 w-4 text-muted-foreground' />
               </CardHeader>
               <CardContent>
                 <div className='text-2xl font-bold text-green-600'>-$2,500</div>
                 <p className='text-xs text-muted-foreground'>
-                  Under budget
+                  {t('underBudget')}
                 </p>
               </CardContent>
             </Card>
@@ -77,17 +80,17 @@ export default function Budget() {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <PieChart className='w-5 h-5' />
-                Budget Categories
+                {t('budgetCategories')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className='space-y-4'>
                 {[
-                  { category: 'Maintenance', budget: 45000, used: 32000, color: 'bg-blue-500' },
-                  { category: 'Utilities', budget: 30000, used: 28000, color: 'bg-green-500' },
-                  { category: 'Insurance', budget: 25000, used: 15000, color: 'bg-purple-500' },
-                  { category: 'Administration', budget: 15000, used: 8500, color: 'bg-orange-500' },
-                  { category: 'Cleaning', budget: 10000, used: 4000, color: 'bg-red-500' },
+                  { category: t('maintenance'), budget: 45000, used: 32000, color: 'bg-blue-500' },
+                  { category: t('utilities'), budget: 30000, used: 28000, color: 'bg-green-500' },
+                  { category: t('insurance'), budget: 25000, used: 15000, color: 'bg-purple-500' },
+                  { category: t('administration'), budget: 15000, used: 8500, color: 'bg-orange-500' },
+                  { category: t('cleaning'), budget: 10000, used: 4000, color: 'bg-red-500' },
                 ].map((item) => (
                   <div key={item.category} className='flex items-center justify-between p-4 border rounded-lg'>
                     <div className='flex items-center gap-3'>
@@ -113,14 +116,14 @@ export default function Budget() {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <BarChart className='w-5 h-5' />
-                Monthly Spending Trend
+                {t('monthlySpendingTrend')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className='h-64 flex items-center justify-center text-gray-500'>
                 <div className='text-center'>
                   <BarChart className='w-12 h-12 mx-auto mb-4 text-gray-300' />
-                  <p>Budget analytics chart would appear here</p>
+                  <p>{t('budgetAnalyticsChart')}</p>
                 </div>
               </div>
             </CardContent>

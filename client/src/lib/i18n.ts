@@ -522,6 +522,71 @@ export interface Translations {
   ownershipPercentage: string;
   editResidence: string;
   viewDocuments: string;
+  // Budget page translations
+  budgetDashboard: string;
+  budgetSubtitle: string;
+  totalBudget: string;
+  usedBudget: string;
+  remaining: string;
+  variance: string;
+  fromLastYear: string;
+  ofTotalBudget: string;
+  percentRemaining: string;
+  underBudget: string;
+  overBudget: string;
+  budgetCategories: string;
+  monthlySpendingTrend: string;
+  budgetAnalyticsChart: string;
+  // Budget categories
+  maintenance: string;
+  utilities: string;
+  insurance: string;
+  administration: string;
+  cleaning: string;
+  security: string;
+  landscaping: string;
+  professionalServices: string;
+  repairs: string;
+  supplies: string;
+  taxes: string;
+  salary: string;
+  other: string;
+  // Bills page translations
+  billsManagement: string;
+  billsSubtitle: string;
+  filters: string;
+  building: string;
+  category: string;
+  year: string;
+  months: string;
+  allMonths: string;
+  allCategories: string;
+  selectBuilding: string;
+  loadingBuildings: string;
+  failedToLoadBuildings: string;
+  retry: string;
+  createBill: string;
+  createNewBill: string;
+  createFirstBill: string;
+  noBillsFound: string;
+  noBillsFoundMessage: string;
+  loadingBills: string;
+  current: string;
+  showMoreYears: string;
+  showFewerYears: string;
+  // Month names
+  january: string;
+  february: string;
+  march: string;
+  april: string;
+  may: string;
+  june: string;
+  july: string;
+  august: string;
+  september: string;
+  october: string;
+  november: string;
+  december: string;
   tenants: string;
   noTenants: string;
   residenceDetails: string;
@@ -1213,6 +1278,71 @@ const translations: Record<Language, Translations> = {
     ownershipPercentage: 'Ownership %',
     editResidence: 'Edit Residence',
     viewDocuments: 'View Documents',
+    // Budget page translations
+    budgetDashboard: 'Budget Dashboard',
+    budgetSubtitle: 'Financial budget management and tracking',
+    totalBudget: 'Total Budget',
+    usedBudget: 'Used Budget',
+    remaining: 'Remaining',
+    variance: 'Variance',
+    fromLastYear: 'from last year',
+    ofTotalBudget: 'of total budget',
+    percentRemaining: 'remaining',
+    underBudget: 'Under budget',
+    overBudget: 'Over budget',
+    budgetCategories: 'Budget Categories',
+    monthlySpendingTrend: 'Monthly Spending Trend',
+    budgetAnalyticsChart: 'Budget analytics chart would appear here',
+    // Budget categories
+    maintenance: 'Maintenance',
+    utilities: 'Utilities',
+    insurance: 'Insurance',
+    administration: 'Administration',
+    cleaning: 'Cleaning',
+    security: 'Security',
+    landscaping: 'Landscaping',
+    professionalServices: 'Professional Services',
+    repairs: 'Repairs',
+    supplies: 'Supplies',
+    taxes: 'Taxes',
+    salary: 'Salary',
+    other: 'Other',
+    // Bills page translations
+    billsManagement: 'Bills Management',
+    billsSubtitle: 'Manage building expenses and revenue tracking',
+    filters: 'Filters',
+    building: 'Building',
+    category: 'Category',
+    year: 'Year',
+    months: 'Months',
+    allMonths: 'All months',
+    allCategories: 'All categories',
+    selectBuilding: 'Select building',
+    loadingBuildings: 'Loading buildings...',
+    failedToLoadBuildings: 'Failed to load buildings',
+    retry: 'Retry',
+    createBill: 'Create Bill',
+    createNewBill: 'Create New Bill',
+    createFirstBill: 'Create First Bill',
+    noBillsFound: 'No Bills Found',
+    noBillsFoundMessage: 'No bills found for the selected filters. Create your first bill to get started.',
+    loadingBills: 'Loading bills...',
+    current: 'Current',
+    showMoreYears: 'Show more years',
+    showFewerYears: 'Show fewer years',
+    // Month names
+    january: 'January',
+    february: 'February',
+    march: 'March',
+    april: 'April',
+    may: 'May',
+    june: 'June',
+    july: 'July',
+    august: 'August',
+    september: 'September',
+    october: 'October',
+    november: 'November',
+    december: 'December',
     tenants: 'Tenants',
     noTenants: 'No tenants assigned',
     residenceDetails: 'Residence Details',
@@ -1901,6 +2031,71 @@ const translations: Record<Language, Translations> = {
     ownershipPercentage: 'Propriété %',
     editResidence: 'Modifier la résidence',
     viewDocuments: 'Voir les documents',
+    // Traductions de la page budget
+    budgetDashboard: 'Tableau de bord budgétaire',
+    budgetSubtitle: 'Gestion et suivi du budget financier',
+    totalBudget: 'Budget total',
+    usedBudget: 'Budget utilisé',
+    remaining: 'Restant',
+    variance: 'Variance',
+    fromLastYear: 'par rapport à l\'année dernière',
+    ofTotalBudget: 'du budget total',
+    percentRemaining: 'restant',
+    underBudget: 'Sous le budget',
+    overBudget: 'Dépassement de budget',
+    budgetCategories: 'Catégories budgétaires',
+    monthlySpendingTrend: 'Tendance des dépenses mensuelles',
+    budgetAnalyticsChart: 'Le graphique d\'analyse budgétaire apparaîtrait ici',
+    // Catégories budgétaires
+    maintenance: 'Entretien',
+    utilities: 'Services publics',
+    insurance: 'Assurance',
+    administration: 'Administration',
+    cleaning: 'Nettoyage',
+    security: 'Sécurité',
+    landscaping: 'Aménagement paysager',
+    professionalServices: 'Services professionnels',
+    repairs: 'Réparations',
+    supplies: 'Fournitures',
+    taxes: 'Taxes',
+    salary: 'Salaire',
+    other: 'Autre',
+    // Traductions de la page factures
+    billsManagement: 'Gestion des factures',
+    billsSubtitle: 'Gérer les dépenses des bâtiments et le suivi des revenus',
+    filters: 'Filtres',
+    building: 'Bâtiment',
+    category: 'Catégorie',
+    year: 'Année',
+    months: 'Mois',
+    allMonths: 'Tous les mois',
+    allCategories: 'Toutes les catégories',
+    selectBuilding: 'Sélectionner un bâtiment',
+    loadingBuildings: 'Chargement des bâtiments...',
+    failedToLoadBuildings: 'Échec du chargement des bâtiments',
+    retry: 'Réessayer',
+    createBill: 'Créer une facture',
+    createNewBill: 'Créer une nouvelle facture',
+    createFirstBill: 'Créer la première facture',
+    noBillsFound: 'Aucune facture trouvée',
+    noBillsFoundMessage: 'Aucune facture trouvée pour les filtres sélectionnés. Créez votre première facture pour commencer.',
+    loadingBills: 'Chargement des factures...',
+    current: 'Actuel',
+    showMoreYears: 'Afficher plus d\'années',
+    showFewerYears: 'Afficher moins d\'années',
+    // Noms des mois
+    january: 'Janvier',
+    february: 'Février',
+    march: 'Mars',
+    april: 'Avril',
+    may: 'Mai',
+    june: 'Juin',
+    july: 'Juillet',
+    august: 'Août',
+    september: 'Septembre',
+    october: 'Octobre',
+    november: 'Novembre',
+    december: 'Décembre',
     tenants: 'Locataires',
     noTenants: 'Aucun locataire assigné',
     residenceDetails: 'Détails de la résidence',
