@@ -1,5 +1,6 @@
 // Simplified Jest setup file - minimal mocking to prevent hanging
 import '@testing-library/jest-dom';
+import React from 'react';
 
 // Fix Node.js environment issues for integration tests
 if (typeof globalThis.TextEncoder === 'undefined') {
@@ -74,7 +75,9 @@ jest.mock('@/hooks/use-language', () => ({
     t: (key: string) => key,
     language: 'en',
     setLanguage: jest.fn(),
+    toggleLanguage: jest.fn(),
   }),
+  LanguageProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('@/hooks/use-toast', () => ({
