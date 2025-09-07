@@ -10,10 +10,14 @@ const config = {
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     // Fix database mock imports
-    '^\\./server/db$': '<rootDir>/tests/mocks/database.js',
+    '^\\./server/db$': '<rootDir>/tests/mocks/serverDbMock.js',
     '^\\./tests/mocks/database$': '<rootDir>/tests/mocks/database.js',
+    // Mock server configuration
+    '^\\./server/config/index$': '<rootDir>/tests/mocks/serverConfigMock.js',
+    '^\\./config/index$': '<rootDir>/tests/mocks/serverConfigMock.js',
     // Mock problematic ES modules
     '@google/genai': '<rootDir>/tests/mocks/googleGenaiMock.js',
+    '@neondatabase/serverless': '<rootDir>/tests/mocks/serverDbMock.js',
     // Mock CSS and assets
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$':
