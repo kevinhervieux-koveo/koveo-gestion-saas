@@ -56,6 +56,13 @@ export function registerUserRoutes(app: Express): void {
         organization: req.query.organization as string,
         orphan: req.query.orphan as string,
       };
+      
+      console.log('🎯 [API] Raw query parameters:', {
+        role: req.query.role,
+        status: req.query.status,
+        organization: req.query.organization,
+        orphan: req.query.orphan
+      });
 
       // Apply role-based prefiltering at database level
       let roleBasedFilters = { ...filters };

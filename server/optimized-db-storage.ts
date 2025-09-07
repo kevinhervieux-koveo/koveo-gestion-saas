@@ -282,6 +282,8 @@ export class OptimizedDatabaseStorage implements IStorage {
       'users',
       async () => {
         try {
+          console.log('🔍 [DB FILTER] Input filters:', JSON.stringify(filters, null, 2));
+          
           // Build WHERE conditions for filtering
           let whereConditions = [];
           let countWhereConditions = [];
@@ -318,8 +320,8 @@ export class OptimizedDatabaseStorage implements IStorage {
           }
 
           // Manager organizations filter - only show users from specific organizations
-          if (filters.managerOrganizations) {
-            const orgIds = filters.managerOrganizations.split(',').map(id => `'${id}'`).join(',');
+          if (filters.managerOrganizations && filters.managerOrganizations.trim()) {
+            const orgIds = filters.managerOrganizations.split(',').map(id => `'${id.trim()}'`).join(',');
             whereConditions.push(`EXISTS (
               SELECT 1 FROM user_organizations uo_mgr 
               WHERE uo_mgr.user_id = u.id 
@@ -332,17 +334,18 @@ export class OptimizedDatabaseStorage implements IStorage {
               AND uo_mgr.organization_id IN (${orgIds})
               AND uo_mgr.is_active = true
             )`);
+            console.log('👔 [MANAGER FILTER] Applied organization filter for:', orgIds);
           }
 
           // First get total count for pagination metadata with filters
           const countQuery = `
             SELECT COUNT(*) as total 
             FROM users 
-            WHERE ${countWhereConditions.join(' AND ')}
-            ${filters.organization ? `AND EXISTS (
+            WHERE ${countWhereConditions.length > 0 ? countWhereConditions.join(' AND ') : '1=1'}
+            ${filters.organization && filters.organization.trim() ? `AND EXISTS (
               SELECT 1 FROM user_organizations uo_filter 
               WHERE uo_filter.user_id = users.id 
-              AND uo_filter.organization_id = '${filters.organization}'
+              AND uo_filter.organization_id = '${filters.organization.trim()}'
               AND uo_filter.is_active = true
             )` : ''}
             ${filters.orphan === 'true' ? `AND NOT EXISTS (
@@ -360,8 +363,10 @@ export class OptimizedDatabaseStorage implements IStorage {
               WHERE ur_assigned.user_id = users.id AND ur_assigned.is_active = true
             ))` : ''}
           `;
+          console.log('📊 [COUNT SQL]:', countQuery);
           const countResult = await db.execute(sql.raw(countQuery));
           const total = parseInt(countResult.rows[0]?.total || '0');
+          console.log('📊 [COUNT RESULT]:', total);
 
           // Single optimized query using CTEs and aggregation with pagination and filters
           const mainQuery = `
@@ -429,32 +434,50 @@ export class OptimizedDatabaseStorage implements IStorage {
             LEFT JOIN user_orgs uo ON u.id = uo.user_id
             LEFT JOIN user_buildings ub ON u.id = ub.user_id
             LEFT JOIN user_residences ur ON u.id = ur.user_id
-            WHERE ${whereConditions.join(' AND ')}
-            ${filters.organization ? `AND EXISTS (
-              SELECT 1 FROM user_organizations uo_filter 
-              WHERE uo_filter.user_id = u.id 
-              AND uo_filter.organization_id = '${filters.organization}'
-              AND uo_filter.is_active = true
-            )` : ''}
-            ${filters.orphan === 'true' ? `AND NOT EXISTS (
-              SELECT 1 FROM user_organizations uo_orphan 
-              WHERE uo_orphan.user_id = u.id AND uo_orphan.is_active = true
-            ) AND NOT EXISTS (
-              SELECT 1 FROM user_residences ur_orphan 
-              WHERE ur_orphan.user_id = u.id AND ur_orphan.is_active = true
-            )` : ''}
-            ${filters.orphan === 'false' ? `AND (EXISTS (
-              SELECT 1 FROM user_organizations uo_assigned 
-              WHERE uo_assigned.user_id = u.id AND uo_assigned.is_active = true
-            ) OR EXISTS (
-              SELECT 1 FROM user_residences ur_assigned 
-              WHERE ur_assigned.user_id = u.id AND ur_assigned.is_active = true
-            ))` : ''}
+            WHERE ${whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1'}
+            ${filters.organization && filters.organization.trim() ? (() => {
+              console.log('🏢 [ORG FILTER] Applying organization filter:', filters.organization.trim());
+              return `AND EXISTS (
+                SELECT 1 FROM user_organizations uo_filter 
+                WHERE uo_filter.user_id = u.id 
+                AND uo_filter.organization_id = '${filters.organization.trim()}'
+                AND uo_filter.is_active = true
+              )`;
+            })() : (() => {
+              console.log('🏢 [ORG FILTER] No organization filter applied (empty or undefined)');
+              return '';
+            })()
+            }
+            ${filters.orphan === 'true' ? (() => {
+              console.log('👻 [ORPHAN FILTER] Applying orphan filter: true (users with no assignments)');
+              return `AND NOT EXISTS (
+                SELECT 1 FROM user_organizations uo_orphan 
+                WHERE uo_orphan.user_id = u.id AND uo_orphan.is_active = true
+              ) AND NOT EXISTS (
+                SELECT 1 FROM user_residences ur_orphan 
+                WHERE ur_orphan.user_id = u.id AND ur_orphan.is_active = true
+              )`;
+            })() : filters.orphan === 'false' ? (() => {
+              console.log('👻 [ORPHAN FILTER] Applying orphan filter: false (users with assignments)');
+              return `AND (EXISTS (
+                SELECT 1 FROM user_organizations uo_assigned 
+                WHERE uo_assigned.user_id = u.id AND uo_assigned.is_active = true
+              ) OR EXISTS (
+                SELECT 1 FROM user_residences ur_assigned 
+                WHERE ur_assigned.user_id = u.id AND ur_assigned.is_active = true
+              ))`;
+            })() : (() => {
+              console.log('👻 [ORPHAN FILTER] No orphan filter applied (empty or undefined)');
+              return '';
+            })()
+            }
             ORDER BY u.created_at DESC
             LIMIT ${limit} OFFSET ${offset}
           `;
           
+          console.log('📊 [MAIN SQL]:', mainQuery);
           const result = await db.execute(sql.raw(mainQuery));
+          console.log('📊 [MAIN RESULT]:', result.rows.length, 'users found');
 
           // Transform the raw SQL result to match the expected TypeScript types
           const users = result.rows.map((row: any) => ({
