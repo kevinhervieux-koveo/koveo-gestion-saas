@@ -73,9 +73,7 @@ const detectEnvironment = () => {
   const isProduction = isExplicitProduction || isKoveoProduction || isDomainProduction;
   const isDevelopment = !isProduction;
 
-  console.log(
-    `🌍 Environment detected: ${isDevelopment ? 'development' : 'production'} (domain: ${domain}, koveo: ${isKoveoProduction})`
-  );
+  // Environment detected
 
   return {
     environment: isDevelopment ? 'development' : 'production',
