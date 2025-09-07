@@ -597,6 +597,7 @@ Bills() {
                   category={category}
                   bills={billsByCategory[category] || []}
                   onBillUpdate={() => queryClient.invalidateQueries({ queryKey: ['/api/bills'] })}
+                  t={t}
                 />
               ))}
             </div>
@@ -627,10 +628,12 @@ function BillCategorySection({
   category,
   bills,
   onBillUpdate,
+  t,
 }: {
   category: string;
   bills: Bill[];
   onBillUpdate: () => void;
+  t: (key: string) => string;
 }) {
   return (
     <Card>
@@ -669,6 +672,7 @@ function BillCategorySection({
  * @returns Function result.
  */
 function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
+  const { t } = useLanguage();
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
