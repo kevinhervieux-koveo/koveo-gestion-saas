@@ -3,7 +3,7 @@
  * Replaces decorators with direct implementation for better compatibility.
  */
 
-import { eq, desc, and, or, gte, lte, count, like, inArray, isNull, sql } from 'drizzle-orm';
+import { eq, desc, and, or, gte, lte, count, like, inArray, isNull, sql, notInArray } from 'drizzle-orm';
 // Use shared database connection to avoid multiple pools in production
 import { db } from './db';
 import crypto from 'crypto';
@@ -316,6 +316,26 @@ export class OptimizedDatabaseStorage implements IStorage {
             SELECT COUNT(*) as total 
             FROM users 
             WHERE ${countWhereConditions.join(' AND ')}
+            ${filters.organization ? `AND EXISTS (
+              SELECT 1 FROM user_organizations uo_filter 
+              WHERE uo_filter.user_id = users.id 
+              AND uo_filter.organization_id = '${filters.organization}'
+              AND uo_filter.is_active = true
+            )` : ''}
+            ${filters.orphan === 'true' ? `AND NOT EXISTS (
+              SELECT 1 FROM user_organizations uo_orphan 
+              WHERE uo_orphan.user_id = users.id AND uo_orphan.is_active = true
+            ) AND NOT EXISTS (
+              SELECT 1 FROM user_residences ur_orphan 
+              WHERE ur_orphan.user_id = users.id AND ur_orphan.is_active = true
+            )` : ''}
+            ${filters.orphan === 'false' ? `AND (EXISTS (
+              SELECT 1 FROM user_organizations uo_assigned 
+              WHERE uo_assigned.user_id = users.id AND uo_assigned.is_active = true
+            ) OR EXISTS (
+              SELECT 1 FROM user_residences ur_assigned 
+              WHERE ur_assigned.user_id = users.id AND ur_assigned.is_active = true
+            ))` : ''}
           `;
           const countResult = await db.execute(sql.raw(countQuery));
           const total = parseInt(countResult.rows[0]?.total || '0');
@@ -387,9 +407,26 @@ export class OptimizedDatabaseStorage implements IStorage {
             LEFT JOIN user_buildings ub ON u.id = ub.user_id
             LEFT JOIN user_residences ur ON u.id = ur.user_id
             WHERE ${whereConditions.join(' AND ')}
-            ${filters.organization ? `AND uo.organizations @> '[{"id":"${filters.organization}"}]'` : ''}
-            ${filters.orphan === 'true' ? `AND uo.organizations = '[]'::json AND ub.buildings = '[]'::json AND ur.residences = '[]'::json` : ''}
-            ${filters.orphan === 'false' ? `AND (uo.organizations != '[]'::json OR ub.buildings != '[]'::json OR ur.residences != '[]'::json)` : ''}
+            ${filters.organization ? `AND EXISTS (
+              SELECT 1 FROM user_organizations uo_filter 
+              WHERE uo_filter.user_id = u.id 
+              AND uo_filter.organization_id = '${filters.organization}'
+              AND uo_filter.is_active = true
+            )` : ''}
+            ${filters.orphan === 'true' ? `AND NOT EXISTS (
+              SELECT 1 FROM user_organizations uo_orphan 
+              WHERE uo_orphan.user_id = u.id AND uo_orphan.is_active = true
+            ) AND NOT EXISTS (
+              SELECT 1 FROM user_residences ur_orphan 
+              WHERE ur_orphan.user_id = u.id AND ur_orphan.is_active = true
+            )` : ''}
+            ${filters.orphan === 'false' ? `AND (EXISTS (
+              SELECT 1 FROM user_organizations uo_assigned 
+              WHERE uo_assigned.user_id = u.id AND uo_assigned.is_active = true
+            ) OR EXISTS (
+              SELECT 1 FROM user_residences ur_assigned 
+              WHERE ur_assigned.user_id = u.id AND ur_assigned.is_active = true
+            ))` : ''}
             ORDER BY u.created_at DESC
             LIMIT ${limit} OFFSET ${offset}
           `;
@@ -574,6 +611,9 @@ export class OptimizedDatabaseStorage implements IStorage {
         // Default: only show active users if no status filter is applied
         whereConditions.push(eq(schema.users.isActive, true));
       }
+
+      // Note: Organization and orphan filters are complex and might not work well in fallback method.
+      // These will be handled by the optimized query method primarily.
 
       // First get total count with filters
       const totalResult = await db
