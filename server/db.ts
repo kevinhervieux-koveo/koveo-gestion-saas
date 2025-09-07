@@ -32,9 +32,7 @@ if (!databaseUrl) {
 }
 
 const isUsingKoveoDb = databaseUrl.includes('DATABASE_URL_KOVEO') || (config.server.isProduction && process.env.DATABASE_URL_KOVEO);
-console.log('🔗 Connecting to database with URL:', databaseUrl.substring(0, 50) + '...');
-console.log('🌍 Environment:', config.server.nodeEnv);
-console.log(`📊 Database: Using ${config.server.isProduction ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)'} database`);
+// Database connection established
 
 /**
  * Neon serverless database connection using HTTP.
@@ -50,9 +48,9 @@ export const sql = neon(databaseUrl, {
 (async () => {
   try {
     const result = await sql`SELECT version()`;
-    console.log('✅ Database connection successful:', result[0].version.substring(0, 50) + '...');
+    // Database connection verified
   } catch (error: any) {
-    console.error('❌ Database connection failed:', error.message);
+    console.error('Database connection failed:', error.message);
   }
 })();
 
@@ -85,8 +83,7 @@ const schema = {
  */
 export const db = drizzle(sql, { schema });
 
-// Log schema loading
-console.log('📊 Database initialized with', Object.keys(schema).length, 'tables');
+// Database schema initialized
 
 // For compatibility, export sql as pool for session store
 export const pool = sql;
