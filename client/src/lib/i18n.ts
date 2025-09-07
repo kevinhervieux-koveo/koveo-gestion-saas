@@ -2393,6 +2393,7 @@ export const translations: Record<Language, Translations> = {
     inactiveBuilding: 'Inactif',
     condoType: 'Copropriété',
     apartmentType: 'Appartement',
+    appartementType: 'Appartement',
     townhouseType: 'Maison en rangée',
     commercialType: 'Commercial',
     mixedUseType: 'Usage mixte',
