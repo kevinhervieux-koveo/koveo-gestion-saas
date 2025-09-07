@@ -92,10 +92,10 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
         {isOpen ? <X className='h-6 w-6' /> : <Menu className='h-6 w-6' />}
       </Button>
 
-      {/* Overlay */}
+      {/* Invisible Overlay for Click Outside */}
       {isOpen && (
         <div
-          className='fixed inset-0 bg-black/50 z-40'
+          className='fixed inset-0 z-40'
           onClick={closeMenu}
           data-testid='menu-overlay'
         />
