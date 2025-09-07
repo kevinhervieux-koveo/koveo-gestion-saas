@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 9CE8-2024-07-001
+Title: Administration - Tremblay - Marks
+Vendor: Spencer, Schaefer and Schiller
+Category: Administration
+Total Amount: $220.91
+Description: Monthly administration service for February 2024
+
+Payment Amount: $220.91
+Payment Date: 9/6/2025
+Payment Method: Check
+Reference Number: PAY-BKZMZ9TZ
+
+This payment has been processed successfully.
+Building Management Office
