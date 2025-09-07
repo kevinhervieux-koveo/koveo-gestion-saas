@@ -28,6 +28,8 @@ import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
 import law25ComplianceRouter from './routes/law25-compliance';
+import { db } from './db';
+import * as schema from '@shared/schema';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -114,9 +116,7 @@ export async function registerRoutes(app: Express) {
     try {
       const { roadmap } = req.query;
       
-      // Import database and schema here to avoid import issues
-      const { db } = require('../db');
-      const schema = require('@shared/schema');
+      // Database and schema are now imported at the top of the file
       
       // Get all features from the database
       const features = await db.select().from(schema.features).orderBy(schema.features.createdAt);
