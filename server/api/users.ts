@@ -60,9 +60,9 @@ export function registerUserRoutes(app: Express): void {
         // Admin can see all users
         filteredUsers = result.users;
       } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see other demo users
+        // Demo users can only see other demo users (and always include themselves)
         filteredUsers = result.users.filter(user => 
-          ['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)
+          user.id === currentUser.id || ['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)
         );
       } else {
         // Regular managers and other users can only see non-demo users from their organizations
@@ -71,6 +71,11 @@ export function registerUserRoutes(app: Express): void {
         
         // Filter users to only include non-demo users from accessible organizations
         filteredUsers = result.users.filter(user => {
+          // Always include the current user (so they can see themselves)
+          if (user.id === currentUser.id) {
+            return true;
+          }
+          
           // Exclude demo users from regular manager view
           if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)) {
             return false;

@@ -604,6 +604,7 @@ export default function UserManagement() {
     setRoleFilter('');
     setStatusFilter('');
     setOrganizationFilter('');
+    setOrphanFilter('');
   };
 
   // const handleToggleSort = (field: string) => {
@@ -764,8 +765,21 @@ export default function UserManagement() {
                         </select>
                       )}
 
+                      {/* Orphan User Filter - Admin Only */}
+                      {currentUser?.role === 'admin' && (
+                        <select
+                          value={orphanFilter}
+                          onChange={(e) => setOrphanFilter(e.target.value)}
+                          className='px-3 py-2 border border-gray-300 rounded-md'
+                        >
+                          <option value=''>{t('allUsers') || 'All Users'}</option>
+                          <option value='true'>{t('orphanUsers') || 'Orphan Users'}</option>
+                          <option value='false'>{t('assignedUsers') || 'Assigned Users'}</option>
+                        </select>
+                      )}
+
                       {/* Clear Filters */}
-                      {(roleFilter || statusFilter || organizationFilter || search) && (
+                      {(roleFilter || statusFilter || organizationFilter || orphanFilter || search) && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           {t('clearFilters')}
                         </Button>
