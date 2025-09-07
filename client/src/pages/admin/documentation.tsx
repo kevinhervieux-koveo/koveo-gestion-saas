@@ -528,64 +528,6 @@ GENERATED_BY: Koveo Gestion Documentation System`;
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Overview Stats */}
-          <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-            <Card>
-              <CardContent className='p-4'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-sm font-medium text-gray-600'>Components</p>
-                    <p className='text-2xl font-bold text-koveo-navy'>
-                      {docData?.components.length || 0}
-                    </p>
-                  </div>
-                  <Package className='h-8 w-8 text-koveo-navy' />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className='p-4'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-sm font-medium text-gray-600'>API Endpoints</p>
-                    <p className='text-2xl font-bold text-koveo-navy'>
-                      {docData?.apis.length || 0}
-                    </p>
-                  </div>
-                  <Cpu className='h-8 w-8 text-koveo-navy' />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className='p-4'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-sm font-medium text-gray-600'>Database Tables</p>
-                    <p className='text-2xl font-bold text-koveo-navy'>
-                      {docData?.database.tables.length || 0}
-                    </p>
-                  </div>
-                  <FileSpreadsheet className='h-8 w-8 text-koveo-navy' />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className='p-4'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-sm font-medium text-gray-600'>Documentation Files</p>
-                    <p className='text-2xl font-bold text-koveo-navy'>
-                      {docData?.documentationFiles?.length || 0}
-                    </p>
-                  </div>
-                  <BookOpen className='h-8 w-8 text-koveo-navy' />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Export Options */}
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
