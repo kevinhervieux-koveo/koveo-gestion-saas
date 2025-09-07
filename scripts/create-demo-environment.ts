@@ -1023,7 +1023,7 @@ Building Management Office`;
       totalDocuments++;
     }
     
-    // Create Residence Documents - 1-2 per category across all residences
+    // Create Residence Documents - 1-2 documents per category for EACH residence
     console.log('   Creating residence documents...');
     const residenceDocumentTypes = [
       { type: 'lease', name: 'Lease Agreement', description: 'Rental lease agreement' },
@@ -1031,26 +1031,28 @@ Building Management Office`;
       { type: 'maintenance', name: 'Maintenance Log', description: 'Maintenance history log' }
     ];
     
-    // Create 1-2 documents per category spread across different residences
-    for (const docType of residenceDocumentTypes) {
-      const docsToCreate = faker.number.int({ min: 1, max: 2 });
-      const selectedResidences = faker.helpers.arrayElements(residences, docsToCreate);
-      
-      for (const residence of selectedResidences) {
-        const building = buildings.find(b => b.id === residence.buildingId);
-        const manager = users.find(user => user.buildingId === residence.buildingId && user.role.includes('manager'));
-        if (!building || !manager) continue;
+    // Create 1-2 documents per category for EACH residence
+    for (const residence of residences) {
+      for (const docType of residenceDocumentTypes) {
+        const docsToCreate = faker.number.int({ min: 1, max: 2 });
         
-        let documentContent = `${demoDisclosure}${docType.name.toUpperCase()}
+        for (let docIndex = 0; docIndex < docsToCreate; docIndex++) {
+          const building = buildings.find(b => b.id === residence.buildingId);
+          const manager = users.find(user => user.buildingId === residence.buildingId && user.role.includes('manager'));
+          if (!building || !manager) continue;
+          
+          const docSuffix = docsToCreate > 1 ? `-${docIndex + 1}` : '';
+          let documentContent = `${demoDisclosure}${docType.name.toUpperCase()}
 
 Unit: ${residence.unitNumber}
 Building: ${building.name}
 Address: ${faker.location.streetAddress()}
+Document ${docIndex + 1} of ${docsToCreate}
 
 `;
         
-        if (docType.type === 'lease') {
-          documentContent += `LEASE AGREEMENT
+          if (docType.type === 'lease') {
+            documentContent += `LEASE AGREEMENT
 
 Tenant Information:
 - Unit Number: ${residence.unitNumber}
@@ -1066,8 +1068,8 @@ Terms and Conditions:
 Landlord: ${building.name} Management
 Tenant Signature: ____________________
 Date: ${faker.date.recent().toLocaleDateString()}`;
-        } else if (docType.type === 'inspection') {
-          documentContent += `INSPECTION REPORT
+          } else if (docType.type === 'inspection') {
+            documentContent += `INSPECTION REPORT
 
 Inspection Date: ${faker.date.recent().toLocaleDateString()}
 Inspector: ${faker.person.fullName()}
@@ -1086,8 +1088,8 @@ Notes:
 ${faker.lorem.paragraph()}
 
 Inspector Signature: ____________________`;
-        } else {
-          documentContent += `MAINTENANCE LOG
+          } else {
+            documentContent += `MAINTENANCE LOG
 
 Maintenance History for Unit ${residence.unitNumber}:
 
@@ -1100,28 +1102,29 @@ Status: In Progress
 Estimated Cost: $${faker.number.int({ min: 50, max: 500 })}
 
 Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
+          }
+          
+          const filePath = `residences/${docType.type}-${residence.unitNumber.toLowerCase()}${docSuffix}.txt`;
+          const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
+          
+          await db
+            .insert(schema.documents)
+            .values({
+              name: `${docType.name} - Unit ${residence.unitNumber}${docSuffix}`,
+              description: `${docType.description} for unit ${residence.unitNumber}`,
+              documentType: docType.type,
+              filePath,
+              fileName: `${docType.type}-${residence.unitNumber}${docSuffix}.txt`,
+              fileSize,
+              mimeType: 'text/plain',
+              isVisibleToTenants: docType.type === 'lease',
+              residenceId: residence.id,
+              buildingId: residence.buildingId,
+              uploadedById: manager.id
+            });
+          
+          totalDocuments++;
         }
-        
-        const filePath = `residences/${docType.type}-${residence.unitNumber.toLowerCase()}.txt`;
-        const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
-        
-        await db
-          .insert(schema.documents)
-          .values({
-            name: `${docType.name} - Unit ${residence.unitNumber}`,
-            description: `${docType.description} for unit ${residence.unitNumber}`,
-            documentType: docType.type,
-            filePath,
-            fileName: `${docType.type}-${residence.unitNumber}.txt`,
-            fileSize,
-            mimeType: 'text/plain',
-            isVisibleToTenants: docType.type === 'lease',
-            residenceId: residence.id,
-            buildingId: residence.buildingId,
-            uploadedById: manager.id
-          });
-        
-        totalDocuments++;
       }
     }
     
@@ -1257,8 +1260,8 @@ Terms and Conditions:
     }
     
     console.log(`📊 Created ${totalDocuments} demo documents (files written to disk):`);
-    console.log(`   - Bill documents: ~${billsWithDocs.length} (15% of bills)`);
-    console.log(`   - Residence documents: ${residenceDocumentTypes.length * 1}-${residenceDocumentTypes.length * 2} (1-2 per category)`);
+    console.log(`   - Bill documents: ~${billsWithDocs.length} (ALL bills have documents)`);
+    console.log(`   - Residence documents: ${residences.length * residenceDocumentTypes.length * 1}-${residences.length * residenceDocumentTypes.length * 2} (1-2 per category for EACH residence)`);
     console.log(`   - Building documents: ${buildingDocumentTypes.length * 1}-${buildingDocumentTypes.length * 2} (1-2 per category)`);
     
   } catch (error) {
