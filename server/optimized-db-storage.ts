@@ -3,7 +3,7 @@
  * Replaces decorators with direct implementation for better compatibility.
  */
 
-import { eq, desc, and, or, gte, lte, count, like, inArray } from 'drizzle-orm';
+import { eq, desc, and, or, gte, lte, count, like, inArray, sql } from 'drizzle-orm';
 // Use shared database connection to avoid multiple pools in production
 import { db } from './db';
 import crypto from 'crypto';
