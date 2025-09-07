@@ -1,5 +1,7 @@
 # Koveo Gestion Documentation
 
+> Last updated: September 2025 with current testing infrastructure and project status
+
 ## Table of Contents
 
 - [Project Overview](#project-overview)
