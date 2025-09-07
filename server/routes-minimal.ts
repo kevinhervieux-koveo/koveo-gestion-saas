@@ -998,9 +998,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // POST /api/invitations/accept/:token - Accept invitation and create user account
     app.post('/api/invitations/accept/:token', async (req: any, res: any) => {
       try {
-        console.log('🔄 [INVITATION] Starting invitation acceptance process');
-        console.log('📝 [INVITATION] Request body received:', JSON.stringify(req.body, null, 2));
-        
         const { token } = req.params;
         const {
           password,
@@ -1020,16 +1017,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acknowledgedRights,
         } = req.body;
 
-        console.log('🔍 [INVITATION] Extracted fields:', {
-          hasToken: !!token,
-          hasPassword: !!password,
-          hasFirstName: !!firstName,
-          hasLastName: !!lastName,
-          hasPhone: !!phone,
-          language,
-          dataCollectionConsent,
-          acknowledgedRights,
-        });
 
         if (!token) {
           return res.status(400).json({
@@ -1046,17 +1033,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (!dataCollectionConsent || !acknowledgedRights) {
-          console.log('❌ [INVITATION] Privacy consent validation failed:', {
-            dataCollectionConsent,
-            acknowledgedRights,
-          });
           return res.status(400).json({
             message: 'Data collection consent and privacy rights acknowledgment are required',
             code: 'CONSENT_REQUIRED',
           });
         }
-
-        console.log('✅ [INVITATION] Basic validation passed');
 
         // Find and validate invitation
         const tokenHash = hashToken(token);
@@ -1123,28 +1104,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Debug firstName extraction issue
-        console.log('🔍 [INVITATION] Form data analysis:', {
-          rawFirstName: firstName,
-          rawLastName: lastName,
-          rawPhone: phone,
-          rawLanguage: language
-        });
-
         // Sanitize and normalize all input data
         const sanitizedFirstName = sanitizeName(firstName);
         const sanitizedLastName = sanitizeName(lastName);
         const sanitizedPhone = phone ? sanitizeString(phone) : '';
         const normalizedEmail = normalizeEmail(invitationData.email);
-
-        console.log('🔍 [INVITATION] After sanitization:', {
-          originalFirstName: firstName,
-          sanitizedFirstName,
-          originalLastName: lastName,
-          sanitizedLastName,
-          phone: sanitizedPhone,
-          email: normalizedEmail
-        });
 
         // Validate Quebec postal code if provided
         if (postalCode && !isValidQuebecPostalCode(postalCode)) {
@@ -1170,22 +1134,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .where(eq(schemaUsers.username, username))
           .limit(1);
 
-        console.log('🔍 [INVITATION] Username collision check:', {
-          baseUsername,
-          currentUsername: username,
-          collisionDetected: existingUsername.length > 0
-        });
-
         while (existingUsername.length > 0 && attempts < maxAttempts) {
           // Generate random 4-digit suffix
           const randomSuffix = Math.floor(1000 + Math.random() * 9000);
           username = `${baseUsername}${randomSuffix}`;
           attempts++;
-          
-          console.log('🔄 [INVITATION] Username collision attempt:', {
-            attempt: attempts,
-            newUsername: username
-          });
           
           existingUsername = await db
             .select({ username: schemaUsers.username })
@@ -1197,11 +1150,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (attempts >= maxAttempts && existingUsername.length > 0) {
           throw new Error('Unable to generate unique username after maximum attempts');
         }
-
-        console.log('✅ [INVITATION] Final username selected:', {
-          finalUsername: username,
-          attemptsUsed: attempts
-        });
 
         // Validate user data against schema before creation
         const createUserData = {
@@ -1215,13 +1163,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           language: language || 'fr',
         };
 
-        console.log('🔍 [INVITATION] User data to validate:', createUserData);
-
         // Validate using insertUserSchema - use safeParse to avoid throwing errors
         const validationResult = insertUserSchema.safeParse(createUserData);
         if (!validationResult.success) {
-          console.log('❌ [INVITATION] User data validation failed:', validationResult.error.issues);
-          console.log('📝 [INVITATION] Attempted user data:', createUserData);
           return res.status(400).json({
             message:
               'Invalid user data: ' +
@@ -1232,8 +1176,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             details: validationResult.error.issues,
           });
         }
-
-        console.log('✅ [INVITATION] User data validation passed');
 
         console.log('✅ User data validation successful for:', normalizedEmail);
 

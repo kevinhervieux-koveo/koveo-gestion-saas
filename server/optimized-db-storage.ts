@@ -512,21 +512,11 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.users.username, uniqueUsername))
         .limit(1);
 
-      console.log('🔍 [CREATE_USER] Username collision check:', {
-        originalUsername: insertUser.username,
-        collisionDetected: existingUser.length > 0
-      });
-
       while (existingUser.length > 0 && attempts < maxAttempts) {
         // Generate random 4-digit suffix
         const randomSuffix = Math.floor(1000 + Math.random() * 9000);
         uniqueUsername = `${insertUser.username}${randomSuffix}`;
         attempts++;
-        
-        console.log('🔄 [CREATE_USER] Username collision attempt:', {
-          attempt: attempts,
-          newUsername: uniqueUsername
-        });
         
         existingUser = await db
           .select({ username: schema.users.username })
@@ -538,11 +528,6 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (attempts >= maxAttempts && existingUser.length > 0) {
         throw new Error('Unable to generate unique username after maximum attempts');
       }
-
-      console.log('✅ [CREATE_USER] Final username selected:', {
-        finalUsername: uniqueUsername,
-        attemptsUsed: attempts
-      });
 
       // Filter only the fields that exist in the database schema
       const userData = {
@@ -558,15 +543,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         isActive: true, // Default value for new users
       };
 
-      console.log('🔍 Creating user with data:', {
-        username: userData.username,
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        role: userData.role,
-        language: userData.language,
-        hasPassword: !!userData.password,
-      });
 
       try {
         const inserted = await db.insert(schema.users).values([userData]).returning();
