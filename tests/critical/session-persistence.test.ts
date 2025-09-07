@@ -7,9 +7,10 @@
 
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import request from 'supertest';
-import { createTestApp } from '../setup/test-app';
+import express from 'express';
+import '../setup';
 import { storage } from '../../server/storage';
-import { hashPassword } from '../../server/auth';
+import { hashPassword, sessionConfig, setupAuthRoutes } from '../../server/auth';
 
 describe('Session Persistence Critical Tests', () => {
   let app: any;
@@ -17,7 +18,11 @@ describe('Session Persistence Critical Tests', () => {
   let sessionCookie: string;
 
   beforeEach(async () => {
-    app = await createTestApp();
+    // Create test Express app with session management
+    app = express();
+    app.use(express.json());
+    app.use(sessionConfig);
+    setupAuthRoutes(app);
     
     // Create test user
     testUser = {
