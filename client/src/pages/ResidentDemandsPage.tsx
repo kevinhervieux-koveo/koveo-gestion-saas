@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,7 +43,8 @@ import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { DemandCard } from '@/components/common/DemandCard';
 import { DemandFilters } from '@/components/common/DemandFilters';
-import { FileUpload } from '@/components/ui/file-upload';
+import { SharedUploader } from '@/components/document-management';
+import type { UploadContext } from '@shared/config/upload-config';
 import { useLanguage } from '@/hooks/use-language';
 import { schemas, enumFields } from '@/lib/validations';
 
@@ -197,6 +198,14 @@ ResidentDemandsPage() {
           lastName?: string;
         })
       : { id: '', role: 'tenant', email: '' };
+
+  // Upload context for secure storage (using useMemo to ensure it updates with defaultUser)
+  const uploadContext: UploadContext = useMemo(() => ({
+    type: 'demands',
+    organizationId: 'default',
+    userRole: defaultUser?.role || 'resident',
+    userId: defaultUser?.id
+  }), [defaultUser?.role, defaultUser?.id]);
 
   // File upload helper function
   const uploadFiles = async (files: File[]): Promise<string[]> => {
@@ -476,24 +485,20 @@ ResidentDemandsPage() {
                     />
                     <div className='space-y-2'>
                       <label className='text-sm font-medium'>Attachments (Optional)</label>
-                      <FileUpload
-                        onFilesSelect={(files) => {
-                          setSelectedFiles(files);
+                      <SharedUploader
+                        onDocumentChange={(file, extractedText) => {
+                          if (file) {
+                            setSelectedFiles([file]);
+                          }
                         }}
-                        maxFiles={5}
-                        maxSize={10}
-                        acceptedTypes={[
-                          'image/*',
-                          '.pdf',
-                          '.doc',
-                          '.docx',
-                          '.txt'
-                        ]}
-                        allowPaste={true}
-                        className='border-dashed border-2 border-gray-300 rounded-lg p-4'
+                        formType="demands"
+                        uploadContext={uploadContext}
+                        showAiToggle={false} // No toggle, use config-based AI enablement
+                        allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}
+                        maxFileSize={10}
                       />
                       <p className='text-xs text-muted-foreground'>
-                        You can upload up to 5 files (10MB each). Images, PDFs, and documents are supported. You can also paste screenshots directly (Ctrl+V).
+                        Upload photos, documents, or screenshots. Camera supported for mobile. Max 10MB per file.
                       </p>
                     </div>
                     <DialogFooter>
@@ -528,7 +533,29 @@ ResidentDemandsPage() {
 
           {/* Demands List */}
           <div className='space-y-6'>
-            {/* Pagination */}
+            {/* Page info */}
+            {filteredDemands.length > 0 && (
+              <div className='text-center text-sm text-muted-foreground'>
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of {filteredDemands.length} demands
+              </div>
+            )}
+
+            {/* Current page demands */}
+            {currentDemands.length === 0 ? (
+              <Card>
+                <CardContent className='p-6 text-center'>
+                  <p className='text-muted-foreground'>{t('noDemandsFound')}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                {currentDemands.map((demand: Demand) => (
+                  <DemandCard key={demand.id} demand={demand} />
+                ))}
+              </div>
+            )}
+
+            {/* Pagination - Moved to bottom */}
             {totalPages > 1 && (
               <div className='flex items-center justify-center gap-2'>
                 <Button
@@ -536,9 +563,10 @@ ResidentDemandsPage() {
                   size='sm'
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1}
+                  data-testid='button-previous-page'
                 >
                   <ChevronLeft className='h-4 w-4' />
-                  Previous
+                  {t('previous')}
                 </Button>
 
                 <div className='flex gap-1'>
@@ -560,6 +588,7 @@ ResidentDemandsPage() {
                         variant={currentPage === pageNum ? 'default' : 'outline'}
                         size='sm'
                         onClick={() => handlePageClick(pageNum)}
+                        data-testid={`button-page-${pageNum}`}
                       >
                         {pageNum}
                       </Button>
@@ -572,33 +601,11 @@ ResidentDemandsPage() {
                   size='sm'
                   onClick={handleNextPage}
                   disabled={currentPage === totalPages}
+                  data-testid='button-next-page'
                 >
-                  Next
+                  {t('next')}
                   <ChevronRight className='h-4 w-4' />
                 </Button>
-              </div>
-            )}
-
-            {/* Page info */}
-            {filteredDemands.length > 0 && (
-              <div className='text-center text-sm text-muted-foreground'>
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of{' '}
-                {filteredDemands.length} demands
-              </div>
-            )}
-
-            {/* Current page demands */}
-            {currentDemands.length === 0 ? (
-              <Card>
-                <CardContent className='p-6 text-center'>
-                  <p className='text-muted-foreground'>{t('noDemandsFound')}</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                {currentDemands.map((demand: Demand) => (
-                  <DemandCard key={demand.id} demand={demand} />
-                ))}
               </div>
             )}
           </div>

@@ -1,0 +1,94 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-D7opBtlg.js:136 ReferenceError: Cannot access 'p' before initialization
+    at Ls (idea-box-BkD--wB5.js:6:11193)
+    at Object.react_stack_bottom_frame (index-D7opBtlg.js:229:12448)
+    at lc (index-D7opBtlg.js:120:804)
+    at kc (index-D7opBtlg.js:141:5839)
+    at Yc (index-D7opBtlg.js:150:9693)
+    at B (index-D7opBtlg.js:45:108)
+    at Kh (index-D7opBtlg.js:163:29810)
+    at Jh (index-D7opBtlg.js:163:28479)
+    at Wc (index-D7opBtlg.js:163:28312)
+    at Xh (index-D7opBtlg.js:163:24807)
+
+The above error occurred in the <Ls> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, lD.
+
+overrideMethod @ hook.js:608
+ah @ index-D7opBtlg.js:136
+oh @ index-D7opBtlg.js:141
+B @ index-D7opBtlg.js:45
+Uc.i.componentDidCatch.e.callback @ index-D7opBtlg.js:141
+Ep @ index-D7opBtlg.js:107
+xp @ index-D7opBtlg.js:107
+B @ index-D7opBtlg.js:45
+Eh @ index-D7opBtlg.js:163
+Ch @ index-D7opBtlg.js:163
+Xn @ index-D7opBtlg.js:163
+Ch @ index-D7opBtlg.js:163
+Xn @ index-D7opBtlg.js:163
+Ch @ index-D7opBtlg.js:163
+Xn @ index-D7opBtlg.js:163
+Ch @ index-D7opBtlg.js:163
+Xn @ index-D7opBtlg.js:163
+Ch @ index-D7opBtlg.js:163
+Xn @ index-D7opBtlg.js:163
+Ch @ index-D7opBtlg.js:163
+Xn @ index-D7opBtlg.js:163
+Ch @ index-D7opBtlg.js:163
+ty @ index-D7opBtlg.js:163
+ed @ index-D7opBtlg.js:163
+Zh @ index-D7opBtlg.js:163
+Xh @ index-D7opBtlg.js:163
+dy @ index-D7opBtlg.js:185
+d @ index-D7opBtlg.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-D7opBtlg.js:240
+q @ index-D7opBtlg.js:240
+react_stack_bottom_frame @ index-D7opBtlg.js:229
+lc @ index-D7opBtlg.js:120
+kc @ index-D7opBtlg.js:141
+Yc @ index-D7opBtlg.js:150
+B @ index-D7opBtlg.js:45
+Kh @ index-D7opBtlg.js:163
+Jh @ index-D7opBtlg.js:163
+Wc @ index-D7opBtlg.js:163
+Xh @ index-D7opBtlg.js:163
+dy @ index-D7opBtlg.js:185
+d @ index-D7opBtlg.js:23
+<q>
+dr.jsxDEV @ index-D7opBtlg.js:15
+jD @ index-D7opBtlg.js:364
+react_stack_bottom_frame @ index-D7opBtlg.js:229
+lc @ index-D7opBtlg.js:120
+kc @ index-D7opBtlg.js:141
+Yc @ index-D7opBtlg.js:150
+B @ index-D7opBtlg.js:45
+Kh @ index-D7opBtlg.js:163
+Jh @ index-D7opBtlg.js:163
+Wc @ index-D7opBtlg.js:163
+Xh @ index-D7opBtlg.js:163
+fy @ index-D7opBtlg.js:185
+fi @ index-D7opBtlg.js:185
+ad @ index-D7opBtlg.js:185
+(anonymous) @ index-D7opBtlg.js:185
+<jD>
+dr.jsxDEV @ index-D7opBtlg.js:15
+BD @ index-D7opBtlg.js:364
+react_stack_bottom_frame @ index-D7opBtlg.js:229
+lc @ index-D7opBtlg.js:120
+kc @ index-D7opBtlg.js:141
+Yc @ index-D7opBtlg.js:150
+B @ index-D7opBtlg.js:45
+Kh @ index-D7opBtlg.js:163
+Jh @ index-D7opBtlg.js:163
+Wc @ index-D7opBtlg.js:163
+Xh @ index-D7opBtlg.js:163
+dy @ index-D7opBtlg.js:185
+d @ index-D7opBtlg.js:23
+<BD>
+dr.jsxDEV @ index-D7opBtlg.js:15
+(anonymous) @ index-D7opBtlg.js:364

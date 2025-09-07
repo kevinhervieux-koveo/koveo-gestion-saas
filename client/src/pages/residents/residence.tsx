@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { NoDataCard } from '@/components/ui/no-data-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -381,16 +382,15 @@ export default function Residence() {
           subtitle={t('viewResidenceInfo')}
         />
 
-        <div className='flex-1 flex items-center justify-center'>
-          <div className='text-center'>
-            <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-            <h3 className='text-lg font-medium mb-2'>{t('noResidencesFound')}</h3>
-            <p className='text-gray-600'>
-              {user?.role && ['admin', 'manager'].includes(user.role)
-                ? t('noResidencesFoundOrg')
-                : t('notAssignedResidences')}
-            </p>
-          </div>
+        <div className='flex-1 flex items-center justify-center p-6'>
+          <NoDataCard
+            icon={Home}
+            titleKey="noResidencesFound"
+            descriptionKey={user?.role && ['admin', 'manager'].includes(user.role)
+              ? 'noResidencesFoundOrg'
+              : 'notAssignedResidences'}
+            testId="no-residences-message"
+          />
         </div>
       </div>
     );

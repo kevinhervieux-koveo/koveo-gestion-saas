@@ -8,6 +8,9 @@ import { moneyFlowJob } from '../jobs/money_flow_job';
 import { billGenerationService } from '../services/bill-generation-service';
 import { delayedUpdateService } from '../services/delayed-update-service';
 import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
+import { geminiService } from '../services/geminiService';
+import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -61,6 +64,27 @@ const createBillSchema = z.object({
 
 const updateBillSchema = createBillSchema.partial();
 
+// Rate limiting for AI extraction endpoint (expensive operation)
+const extractionRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each user to 10 extraction requests per windowMs
+  message: {
+    error: 'Too many extraction requests',
+    message: 'Please wait before making another extraction request',
+    code: 'RATE_LIMIT_EXCEEDED'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  keyGenerator: (req: any) => {
+    // Rate limit per authenticated user ID (preferred) or use IP as fallback with IPv6 support
+    return req.user?.id || ipKeyGenerator(req);
+  },
+  skip: (req: any) => {
+    // Skip rate limiting if user is not authenticated (handled by requireAuth)
+    return !req.user?.id;
+  }
+});
+
 // Configure multer for file uploads
 const upload = multer({
   dest: '/tmp/uploads/',
@@ -87,6 +111,96 @@ const upload = multer({
  * @returns Function result.
  */
 export function registerBillRoutes(app: Express) {
+  /**
+   * POST /api/bills/extract-data
+   * Extract bill data from uploaded file using Gemini AI.
+   * 
+   * Security: Requires authentication, rate limiting, and file validation.
+   * File Types: PDF, JPEG, PNG, WebP, HEIC, HEIF
+   * Max Size: 25MB
+   */
+  app.post('/api/bills/extract-data', 
+    requireAuth,
+    extractionRateLimit,
+    uploadInvoiceFile,
+    handleUploadError,
+    async (req: any, res: Response) => {
+      const startTime = Date.now();
+      const userId = req.user.id;
+      const userRole = req.user.role;
+
+      console.log(`[BILL EXTRACTION] Starting extraction for user ${userId} (${userRole})`);
+
+      try {
+        // Validate file upload
+        if (!req.file) {
+          console.log(`[BILL EXTRACTION] No file uploaded by user ${userId}`);
+          return res.status(400).json({
+            error: 'No file uploaded',
+            message: 'Please upload a bill file',
+            code: 'NO_FILE'
+          });
+        }
+
+        const { buffer, mimetype, originalname, size } = req.file;
+        
+        console.log(`[BILL EXTRACTION] Processing file for user ${userId}:`, {
+          filename: originalname,
+          mimetype,
+          size: `${Math.round(size / 1024)}KB`
+        });
+
+        // Call Gemini service for bill extraction
+        const extractedData = await geminiService.extractBillData(buffer, mimetype);
+        
+        console.log(`[BILL EXTRACTION] Extraction completed for user ${userId} in ${Date.now() - startTime}ms`);
+
+        // Return successful response
+        res.status(200).json({
+          success: true,
+          data: extractedData,
+          metadata: {
+            confidence: 0.9, // Could be calculated based on field completeness
+            processingTime: Date.now() - startTime,
+            filename: originalname,
+            fileSize: size
+          }
+        });
+
+      } catch (error: any) {
+        console.error(`[BILL EXTRACTION] Error for user ${userId}:`, error);
+        
+        // Handle different error types
+        if (error.message?.includes('Unsupported file type')) {
+          return res.status(400).json({
+            error: 'Unsupported file type',
+            message: 'Please upload a PDF or image file (JPEG, PNG, WebP, HEIC, HEIF)',
+            code: 'UNSUPPORTED_FILE_TYPE'
+          });
+        } else if (error.message?.includes('FILE_TOO_LARGE')) {
+          return res.status(400).json({
+            error: 'File too large',
+            message: 'Please upload a file smaller than 25MB',
+            code: 'FILE_TOO_LARGE'
+          });
+        } else if (error.message?.includes('GEMINI_API_KEY')) {
+          return res.status(500).json({
+            error: 'AI service configuration error',
+            message: 'AI extraction service is temporarily unavailable',
+            code: 'GEMINI_API_ERROR'
+          });
+        }
+
+        // Generic error response
+        res.status(500).json({
+          error: 'Extraction failed',
+          message: 'Failed to extract bill data. Please try again.',
+          code: 'EXTRACTION_ERROR'
+        });
+      }
+    }
+  );
+
   /**
    * Get all bills with optional filtering
    * GET /api/bills?buildingId=uuid&category=insurance&year=2024&status=draft&months=1,3,6.
@@ -180,6 +294,10 @@ export function registerBillRoutes(app: Express) {
           startDate: bills.startDate,
           status: bills.status,
           notes: bills.notes,
+          filePath: bills.filePath,
+          fileName: bills.fileName,
+          fileSize: bills.fileSize,
+          isAiAnalyzed: bills.isAiAnalyzed,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
           updatedAt: bills.updatedAt,
@@ -193,6 +311,7 @@ export function registerBillRoutes(app: Express) {
           message: 'Bill not found',
         });
       }
+
 
       res.json(bill[0]);
     } catch (_error: any) {
@@ -455,42 +574,96 @@ export function registerBillRoutes(app: Express) {
     requireAuth,
     upload.single('document'),
     async (req: any, res: any) => {
+      console.log(`📄 [BILLS UPLOAD] Starting document upload for bill ID: ${req.params.id}`);
+      console.log(`📄 [BILLS UPLOAD] User: ${req.user.id} (${req.user.role})`);
+      
       try {
         const { id } = req.params;
 
         if (!req.file) {
+          console.log('❌ [BILLS UPLOAD] No file provided in request');
           return res.status(400).json({ message: 'No file uploaded' });
         }
+
+        console.log(`📄 [BILLS UPLOAD] File received:`, {
+          originalName: req.file.originalname,
+          mimeType: req.file.mimetype,
+          size: req.file.size,
+          tempPath: req.file.path
+        });
 
         // Get organization ID for document organization
         const organizations = await storage.getUserOrganizations(req.user.id);
         const organizationId =
           organizations.length > 0 ? organizations[0].organizationId : 'default';
-
-        // Note: File upload to external storage removed
+        
+        console.log(`📄 [BILLS UPLOAD] Organization ID determined: ${organizationId}`);
 
         // Create document path in the expected format
-        const documentPath = `prod_org_${organizationId}/${req.file.originalname}`;
+        const filePath = `prod_org_${organizationId}/${req.file.originalname}`;
+        console.log(`📄 [BILLS UPLOAD] File path determined: ${filePath}`);
+        
+        // Create uploads directory structure if it doesn't exist
+        const path = await import('path');
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        const orgDir = path.join(uploadsDir, `prod_org_${organizationId}`);
+        
+        console.log(`📄 [BILLS UPLOAD] Directory paths:`, {
+          uploadsDir,
+          orgDir,
+          uploadsExists: fs.existsSync(uploadsDir),
+          orgDirExists: fs.existsSync(orgDir)
+        });
+        
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+          console.log(`📄 [BILLS UPLOAD] Created uploads directory: ${uploadsDir}`);
+        }
+        if (!fs.existsSync(orgDir)) {
+          fs.mkdirSync(orgDir, { recursive: true });
+          console.log(`📄 [BILLS UPLOAD] Created organization directory: ${orgDir}`);
+        }
+
+        // Save file to permanent storage
+        const permanentFilePath = path.join(uploadsDir, filePath);
+        console.log(`📄 [BILLS UPLOAD] Copying file from ${req.file.path} to ${permanentFilePath}`);
+        fs.copyFileSync(req.file.path, permanentFilePath);
+        console.log(`📄 [BILLS UPLOAD] File successfully saved to permanent storage`);
 
         // Analyze document with Gemini AI (images and PDFs)
         let analysisResult = null;
         if (req.file.mimetype.startsWith('image/') || req.file.mimetype === 'application/pdf') {
+          console.log(`🤖 [BILLS UPLOAD] Starting AI analysis for ${req.file.mimetype} file`);
           try {
             analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path, req.file.mimetype);
+            console.log(`🤖 [BILLS UPLOAD] AI analysis successful:`, {
+              hasResult: !!analysisResult,
+              analysisKeys: analysisResult ? Object.keys(analysisResult) : []
+            });
           } catch (aiError) {
-            console.warn('AI analysis failed, continuing without analysis:', aiError);
+            console.warn('🤖 [BILLS UPLOAD] AI analysis failed, continuing without analysis:', aiError);
             // Continue without AI analysis
           }
+        } else {
+          console.log(`🤖 [BILLS UPLOAD] Skipping AI analysis for unsupported file type: ${req.file.mimetype}`);
         }
 
         // Update bill with document info and AI analysis
         const updateData: unknown = {
-          documentPath,
-          documentName: req.file.originalname,
+          filePath,
+          fileName: req.file.originalname,
+          fileSize: req.file.size,
           isAiAnalyzed: !!analysisResult,
           aiAnalysisData: analysisResult,
           updatedAt: new Date(),
         };
+
+        console.log(`📄 [BILLS UPLOAD] Updating bill ${id} in database with:`, {
+          filePath,
+          fileName: req.file.originalname,
+          fileSize: req.file.size,
+          hasAiAnalysis: !!analysisResult
+        });
 
         const updatedBill = await db
           .update(bills)
@@ -498,8 +671,13 @@ export function registerBillRoutes(app: Express) {
           .where(eq(bills.id, id))
           .returning();
 
+        console.log(`📄 [BILLS UPLOAD] Database update successful for bill ${id}`);
+
         // Clean up temporary file
+        console.log(`📄 [BILLS UPLOAD] Cleaning up temporary file: ${req.file.path}`);
         fs.unlinkSync(req.file.path);
+
+        console.log(`✅ [BILLS UPLOAD] Upload process completed successfully for bill ${id}`);
 
         res.json({
           message: 'Document uploaded and analyzed successfully',
@@ -531,28 +709,32 @@ export function registerBillRoutes(app: Express) {
    * GET /api/bills/:id/download-document.
    */
   app.get('/api/bills/:id/download-document', requireAuth, async (req: any, res: any) => {
+    console.log(`📥 [BILLS DOWNLOAD] Document download request for bill ID: ${req.params.id}`);
+    console.log(`📥 [BILLS DOWNLOAD] User: ${req.user.id} (${req.user.role})`);
+    
     try {
-      console.log('📱 [SERVER DEBUG] Document download requested for bill ID:', req.params.id);
       const { id } = req.params;
 
       // Get the bill to check if it has a document
+      console.log(`📥 [BILLS DOWNLOAD] Querying database for bill: ${id}`);
       const bill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
 
       if (bill.length === 0) {
-        console.error('❌ [SERVER DEBUG] Bill not found for document download:', id);
+        console.log(`❌ [BILLS DOWNLOAD] Bill not found: ${id}`);
         return res.status(404).json({ message: 'Bill not found' });
       }
 
       const billData = bill[0];
-      console.log('📄 [SERVER DEBUG] Bill found for document download:', {
+      console.log(`📥 [BILLS DOWNLOAD] Bill found:`, {
         id: billData.id,
-        documentPath: billData.documentPath,
-        documentName: billData.documentName,
-        hasDocument: !!(billData.documentPath && billData.documentName)
+        hasFilePath: !!billData.filePath,
+        hasFileName: !!billData.fileName,
+        filePath: billData.filePath,
+        fileName: billData.fileName
       });
 
-      if (!billData.documentPath || !billData.documentName) {
-        console.error('❌ [SERVER DEBUG] No document associated with this bill:', id);
+      if (!billData.filePath || !billData.fileName) {
+        console.log(`❌ [BILLS DOWNLOAD] No document associated with bill ${id}`);
         return res.status(404).json({ message: 'No document associated with this bill' });
       }
 
@@ -560,14 +742,40 @@ export function registerBillRoutes(app: Express) {
       const organizations = await storage.getUserOrganizations(req.user.id);
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
 
-      // Document download functionality removed (no external storage)
-      res.status(404).json({
-        message: 'Document download functionality has been disabled',
+      // Serve the file directly from local storage
+      const path = await import('path');
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      const fileFullPath = path.join(uploadsDir, billData.filePath);
+
+      console.log(`📥 [BILLS DOWNLOAD] File paths:`, {
+        uploadsDir,
+        filePath: billData.filePath,
+        fullFilePath: fileFullPath,
+        fileName: billData.fileName,
+        organizationId
       });
+
+      // Check if file exists
+      if (!fs.existsSync(fileFullPath)) {
+        console.log(`❌ [BILLS DOWNLOAD] File not found at path: ${fileFullPath}`);
+        return res.status(404).json({ message: 'Document file not found on server' });
+      }
+
+      console.log(`📥 [BILLS DOWNLOAD] File found, setting headers and sending...`);
+      
+      // Set appropriate headers for file download
+      res.setHeader('Content-Disposition', `attachment; filename="${billData.fileName}"`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      
+      // Stream the file
+      console.log(`📥 [BILLS DOWNLOAD] Streaming file to client`);
+      res.sendFile(fileFullPath);
+      
+      console.log(`✅ [BILLS DOWNLOAD] File download initiated successfully for bill ${id}`);
     } catch (_error: any) {
       console.error('❌ Error downloading document:', _error);
       res.status(500).json({
-        message: 'Failed to generate document download URL',
+        message: 'Failed to download document',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }

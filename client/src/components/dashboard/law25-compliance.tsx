@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { NoDataCard } from '@/components/ui/no-data-card';
 import { Progress } from '@/components/ui/progress';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -135,16 +136,13 @@ export function Law25Compliance() {
 
   if (!complianceData) {
     return (
-      <Card>
-        <CardContent className='p-8 text-center'>
-          <Shield className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-          <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Compliance Data Available</h3>
-          <p className='text-gray-500 mb-4'>
-            Run the compliance scan to view Law 25 compliance status.
-          </p>
-          <Badge variant='secondary'>No Data</Badge>
-        </CardContent>
-      </Card>
+      <NoDataCard
+        icon={Shield}
+        titleKey="noComplianceData"
+        descriptionKey="noComplianceDataMessage"
+        badgeKey="noData"
+        testId="no-compliance-data-message"
+      />
     );
   }
 

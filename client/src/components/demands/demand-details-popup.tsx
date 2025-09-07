@@ -37,7 +37,9 @@ interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
-  attachments?: string[];
+  filePath?: string;
+  fileName?: string;
+  fileSize?: number;
   status:
     | 'submitted'
     | 'under_review'
@@ -529,19 +531,19 @@ export default function DemandDetailsPopup({
                   </div>
 
                   {/* Attachments Section */}
-                  {demand.attachments && demand.attachments.length > 0 && (
+                  {demand.filePath && (
                     <div>
                       <Label className='flex items-center gap-1'>
                         <Paperclip className='h-4 w-4' />
-                        Attachments ({demand.attachments.length})
+                        File Attachment
                       </Label>
                       <div className='mt-2 space-y-2'>
-                        {demand.attachments.map((attachment, index) => {
-                          const filename = attachment.split('/').pop() || `attachment-${index + 1}`;
-                          const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(attachment);
+                        {demand.fileName && (() => {
+                          const filename = demand.fileName;
+                          const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
                           
                           return (
-                            <div key={index} className='flex items-center gap-2 p-2 bg-gray-50 rounded-md'>
+                            <div className='flex items-center gap-2 p-2 bg-gray-50 rounded-md'>
                               {isImage ? (
                                 <Image className='h-4 w-4 text-blue-500' />
                               ) : (
@@ -551,15 +553,15 @@ export default function DemandDetailsPopup({
                               <Button
                                 variant='outline'
                                 size='sm'
-                                onClick={() => window.open(attachment, '_blank')}
-                                data-testid={`button-view-attachment-${index}`}
+                                onClick={() => window.open(demand.filePath, '_blank')}
+                                data-testid='button-view-attachment-0'
                               >
                                 {isImage ? 'View' : 'Download'}
                                 <Download className='h-3 w-3 ml-1' />
                               </Button>
                             </div>
                           );
-                        })}
+                        })()}
                       </div>
                     </div>
                   )}

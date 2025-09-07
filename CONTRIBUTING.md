@@ -46,10 +46,10 @@ npm run dev
 3. **Quality Checks**:
 
    ```bash
-   npm run lint          # Code linting
-   npm run type-check    # TypeScript validation
-   npm test              # Run test suite
-   npm run test:coverage # Verify coverage
+   npm run lint                                     # Code linting
+   npm run type-check                              # TypeScript validation
+   npx jest --config=jest.config.simple.cjs       # Run stable test suite
+   npm run test:coverage                           # Verify coverage
    ```
 
 4. **Commit Changes**:

@@ -3,13 +3,18 @@
  * Provides instant responses without network calls
  */
 
+// Create a global mock data store
+const mockDataStore = new Map();
+let mockIdCounter = 1;
+
+const generateMockId = () => {
+  return `mock-${mockIdCounter++}-${Date.now().toString(36)}`;
+};
+
 export const createMockDatabase = () => {
-  const mockData = new Map();
-  
   return {
     // Mock query function that returns immediately
     query: jest.fn().mockImplementation(async (sql: string) => {
-      // Return empty results for test queries
       if (sql.includes('SELECT version()')) {
         return [{ version: 'PostgreSQL 15.0 (Mock)' }];
       }
@@ -18,77 +23,118 @@ export const createMockDatabase = () => {
     
     // Mock insert operations - proper Drizzle ORM structure
     insert: jest.fn().mockImplementation((table: any) => {
-      const insertChain = {
-        values: jest.fn().mockImplementation(async (data: any) => {
-          const id = Math.random().toString(36).substr(2, 9);
-          const result = Array.isArray(data) 
-            ? data.map(item => ({ ...item, id: Math.random().toString(36).substr(2, 9) }))
-            : [{ ...data, id }];
-          mockData.set(id, data);
-          return result;
-        }),
-        returning: jest.fn().mockImplementation(async () => {
-          const id = Math.random().toString(36).substr(2, 9);
-          return [{ id }];
+      return {
+        values: jest.fn().mockImplementation((data: any) => {
+          return {
+            returning: jest.fn().mockImplementation(async () => {
+              const id = generateMockId();
+              const now = new Date();
+              
+              if (Array.isArray(data)) {
+                return data.map(item => ({
+                  id: generateMockId(),
+                  ...item,
+                  createdAt: now,
+                  updatedAt: now
+                }));
+              } else {
+                const result = {
+                  id,
+                  ...data,
+                  createdAt: now,
+                  updatedAt: now
+                };
+                mockDataStore.set(id, result);
+                return [result];
+              }
+            })
+          };
         })
       };
-      
-      // Create chainable methods that return properly structured objects
-      const createValuesChain = (data: any) => {
-        const id = Math.random().toString(36).substr(2, 9);
-        const result = Array.isArray(data) 
-          ? data.map(item => ({ ...item, id: Math.random().toString(36).substr(2, 9) }))
-          : [{ ...data, id }];
-        mockData.set(id, data);
-        
-        return {
-          returning: jest.fn().mockImplementation(async () => result)
-        };
-      };
-      
-      insertChain.values = jest.fn().mockImplementation((data: any) => createValuesChain(data));
-      insertChain.returning = jest.fn().mockImplementation(() => insertChain);
-      
-      return insertChain;
     }),
     
-    // Mock select operations
-    select: jest.fn().mockImplementation(() => ({
-      from: jest.fn().mockImplementation(() => ({
-        where: jest.fn().mockImplementation(() => ({
-          limit: jest.fn().mockImplementation(async () => []),
-          orderBy: jest.fn().mockImplementation(async () => []),
-        })),
-        leftJoin: jest.fn().mockImplementation(() => ({
-          where: jest.fn().mockImplementation(() => ({
-            limit: jest.fn().mockImplementation(async () => []),
-          })),
-        })),
-        innerJoin: jest.fn().mockImplementation(() => ({
-          where: jest.fn().mockImplementation(() => ({
-            limit: jest.fn().mockImplementation(async () => []),
-          })),
-        })),
-        limit: jest.fn().mockImplementation(async () => []),
-        orderBy: jest.fn().mockImplementation(async () => []),
-      })),
-    })),
+    // Also provide async support for values chain
+    insertAsync: jest.fn().mockImplementation((table: any) => {
+      return {
+        values: jest.fn().mockImplementation(async (data: any) => {
+          const id = generateMockId();
+          const now = new Date();
+          
+          if (Array.isArray(data)) {
+            return data.map(item => ({
+              id: generateMockId(),
+              ...item,
+              createdAt: now,
+              updatedAt: now
+            }));
+          } else {
+            const result = {
+              id,
+              ...data,
+              createdAt: now,
+              updatedAt: now
+            };
+            mockDataStore.set(id, result);
+            return [result];
+          }
+        })
+      };
+    }),
+    
+    // Mock select operations with proper chaining
+    select: jest.fn().mockImplementation(() => {
+      const selectChain = {
+        from: jest.fn().mockImplementation(() => selectChain),
+        where: jest.fn().mockImplementation(() => selectChain),
+        leftJoin: jest.fn().mockImplementation(() => selectChain),
+        innerJoin: jest.fn().mockImplementation(() => selectChain),
+        rightJoin: jest.fn().mockImplementation(() => selectChain),
+        orderBy: jest.fn().mockImplementation(() => selectChain),
+        limit: jest.fn().mockImplementation(() => selectChain),
+        offset: jest.fn().mockImplementation(() => selectChain),
+        groupBy: jest.fn().mockImplementation(() => selectChain),
+        having: jest.fn().mockImplementation(() => selectChain),
+        // Make it thenable
+        then: jest.fn().mockImplementation((resolve) => {
+          return Promise.resolve([]).then(resolve);
+        }),
+        catch: jest.fn().mockImplementation((reject) => {
+          return Promise.resolve([]).catch(reject);
+        })
+      };
+      return selectChain;
+    }),
     
     // Mock delete operations - proper Drizzle ORM structure
-    delete: jest.fn().mockImplementation((table: any) => ({
-      where: jest.fn().mockImplementation(async () => {
-        return Promise.resolve({ affectedRows: 0 });
-      }),
-    })),
+    delete: jest.fn().mockImplementation((table: any) => {
+      const deleteChain = {
+        where: jest.fn().mockImplementation(() => deleteChain),
+        // Make it thenable
+        then: jest.fn().mockImplementation((resolve) => {
+          return Promise.resolve({ affectedRows: 1 }).then(resolve);
+        }),
+        catch: jest.fn().mockImplementation((reject) => {
+          return Promise.resolve({ affectedRows: 1 }).catch(reject);
+        })
+      };
+      return deleteChain;
+    }),
     
     // Mock update operations
-    update: jest.fn().mockImplementation((table: any) => ({
-      set: jest.fn().mockImplementation(() => ({
-        where: jest.fn().mockImplementation(async () => {
-          return Promise.resolve({ affectedRows: 0 });
+    update: jest.fn().mockImplementation((table: any) => {
+      const updateChain = {
+        set: jest.fn().mockImplementation(() => updateChain),
+        where: jest.fn().mockImplementation(() => updateChain),
+        // Make it thenable
+        then: jest.fn().mockImplementation((resolve) => {
+          return Promise.resolve({ affectedRows: 1 }).then(resolve);
         }),
-      })),
-    })),
+        catch: jest.fn().mockImplementation((reject) => {
+          return Promise.resolve({ affectedRows: 1 }).catch(reject);
+        })
+      };
+      return updateChain;
+    }),
   };
 };
 

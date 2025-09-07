@@ -172,7 +172,9 @@ export const demands = pgTable('demands', {
   assignationResidenceId: varchar('assignation_residence_id').references(() => residences.id),
   assignationBuildingId: varchar('assignation_building_id').references(() => buildings.id),
   description: text('description').notNull(),
-  attachments: text('attachments').array(), // Array of file URLs/paths for uploaded documents and images
+  filePath: text('file_path'), // Path to uploaded file
+  fileName: text('file_name'), // Original filename
+  fileSize: integer('file_size'), // File size in bytes
   residenceId: varchar('residence_id')
     .references(() => residences.id),
   buildingId: varchar('building_id')
@@ -321,7 +323,9 @@ export const insertDemandSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description must not exceed 2000 characters'),
-  attachments: z.array(z.string()).optional(), // Array of file URLs/paths
+  filePath: z.string().optional(), // Path to uploaded file
+  fileName: z.string().optional(), // Original filename  
+  fileSize: z.number().int().optional(), // File size in bytes
   residenceId: z.string().uuid().optional(),
   buildingId: z.string().uuid().optional(),
   status: z.string().default('submitted'),
@@ -388,6 +392,10 @@ export const insertFeatureRequestSchema = z.object({
     'other',
   ]),
   page: z.string().min(1, 'Page is required'),
+  // File attachment fields
+  filePath: z.string().optional(), // Path to the uploaded file
+  fileName: z.string().optional(), // Original file name
+  fileSize: z.number().int().optional(), // File size in bytes
 });
 
 export const insertFeatureRequestUpvoteSchema = z.object({

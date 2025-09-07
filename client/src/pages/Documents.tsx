@@ -207,6 +207,7 @@ Documents() {
 
   const documents = documentsResponse?.documents || [];
 
+
   // Get buildings for assignment
   const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
     queryKey: ['/api/manager/buildings'],
@@ -389,14 +390,14 @@ Documents() {
   });
 
   // Filter documents
-  const filteredDocuments = documents.filter((doc) => {
+  const filteredDocuments = Array.isArray(documents) ? documents.filter((doc) => {
     const matchesSearch =
       (doc.title && doc.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (doc.description && doc.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory =
       !selectedCategory || selectedCategory === 'all' || doc.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }) : [];
 
   // Get organization name
   const getOrganizationName = (id: string) => {

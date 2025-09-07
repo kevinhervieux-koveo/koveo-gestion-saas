@@ -1,0 +1,552 @@
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormDescription,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { FileText, Upload, Save, X, Download, Eye, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { SharedUploader } from './SharedUploader';
+import type { Document } from '@shared/schema';
+import type { UploadContext } from '@shared/config/upload-config';
+
+// Document categories matching the ones used in DocumentCreateForm
+const DOCUMENT_CATEGORIES = [
+  { value: 'bylaw', label: 'Bylaws' },
+  { value: 'financial', label: 'Financial' },
+  { value: 'maintenance', label: 'Maintenance' },
+  { value: 'legal', label: 'Legal' },
+  { value: 'meeting_minutes', label: 'Meeting Minutes' },
+  { value: 'insurance', label: 'Insurance' },
+  { value: 'contracts', label: 'Contracts' },
+  { value: 'permits', label: 'Permits' },
+  { value: 'inspection', label: 'Inspection' },
+  { value: 'other', label: 'Other' },
+];
+
+// Form schema for document editing
+const documentEditSchema = z.object({
+  name: z.string().min(1, 'Document name is required').max(255, 'Name must be less than 255 characters'),
+  description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
+  category: z.enum([
+    'bylaw',
+    'financial', 
+    'maintenance',
+    'legal',
+    'meeting_minutes',
+    'insurance',
+    'contracts',
+    'permits',
+    'inspection',
+    'other'
+  ]),
+  isVisibleToTenants: z.boolean().optional(),
+});
+
+type DocumentEditData = z.infer<typeof documentEditSchema>;
+
+interface DocumentEditFormProps {
+  document: Document;
+  onSuccess: () => void;
+  onCancel: () => void;
+  onDelete?: () => void;
+}
+
+export function DocumentEditForm({
+  document,
+  onSuccess,
+  onCancel,
+  onDelete,
+}: DocumentEditFormProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // State for file replacement
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [textContent, setTextContent] = useState<string | null>(null);
+  const [isReplaceFile, setIsReplaceFile] = useState(false);
+
+  // Upload context for secure storage
+  const uploadContext: UploadContext = {
+    type: document.buildingId ? 'buildings' : 'residences',
+    buildingId: document.buildingId || undefined,
+    residenceId: document.residenceId || undefined,
+    userRole: 'admin', // This would be dynamic based on current user
+    userId: 'current-user' // This would be dynamic based on current user
+  };
+
+  // Form setup with existing document data
+  const form = useForm<DocumentEditData>({
+    resolver: zodResolver(documentEditSchema),
+    defaultValues: {
+      name: document.name || '',
+      description: document.description || '',
+      category: (document.documentType as any) || document.category || 'other',
+      isVisibleToTenants: document.isVisibleToTenants || false,
+    }
+  });
+
+  // Delete document mutation
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('DELETE', `/api/documents/${document.id}`);
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(error.message || 'Failed to delete document');
+      }
+      
+      // DELETE endpoints often return empty responses, so don't try to parse JSON
+      // Just return success if the response is ok
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Document deleted',
+        description: 'The document has been successfully deleted.',
+      });
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents', document.id] });
+      
+      if (onDelete) {
+        onDelete();
+      } else {
+        onSuccess();
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Delete failed',
+        description: error.message || 'Failed to delete document. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Update document mutation
+  const updateDocumentMutation = useMutation({
+    mutationFn: async (data: DocumentEditData) => {
+      const formData = new FormData();
+      
+      // Add document metadata
+      formData.append('name', data.name);
+      formData.append('documentType', data.category);
+      if (data.description) {
+        formData.append('description', data.description);
+      }
+      formData.append('isVisibleToTenants', data.isVisibleToTenants ? 'true' : 'false');
+      
+      // Add entity associations
+      if (document.buildingId) {
+        formData.append('buildingId', document.buildingId);
+      }
+      if (document.residenceId) {
+        formData.append('residenceId', document.residenceId);
+      }
+
+      // Add file if replacing
+      if (isReplaceFile && selectedFile) {
+        formData.append('file', selectedFile);
+      } else if (isReplaceFile && textContent) {
+        // Handle text content creation
+        const textBlob = new Blob([textContent], { type: 'text/plain' });
+        const textFile = new File([textBlob], `${data.name}.txt`, { type: 'text/plain' });
+        formData.append('file', textFile);
+      }
+      
+      const response = await apiRequest('PUT', `/api/documents/${document.id}`, {
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        throw new Error(error.message || 'Failed to update document');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Document updated',
+        description: 'The document has been successfully updated.',
+      });
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents', document.id] });
+      
+      onSuccess();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Update failed',
+        description: error.message || 'Failed to update document. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const onSubmit = (data: DocumentEditData) => {
+    updateDocumentMutation.mutate(data);
+  };
+
+  const handleDelete = () => {
+    deleteDocumentMutation.mutate();
+  };
+
+  const handleFileUpload = (file: File | null, textContent: string | null) => {
+    setSelectedFile(file);
+    setTextContent(textContent);
+  };
+
+  const handleViewDocument = () => {
+    if (document.filePath) {
+      // Open document in new tab for viewing
+      window.open(`/api/documents/${document.id}/file`, '_blank');
+    }
+  };
+
+  const handleDownloadDocument = async () => {
+    try {
+      // Use fetch with credentials to ensure authentication
+      const response = await fetch(`/api/documents/${document.id}/file?download=true`, {
+        method: 'GET',
+        credentials: 'include', // Include authentication cookies
+      });
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
+
+      // Get the filename from Content-Disposition header or use document name
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let fileName = (document as any).fileName || document.name || 'document';
+      
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="([^"]+)"/);
+        if (fileNameMatch) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      // Convert response to blob and create download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Download started',
+        description: 'The document download has started.',
+      });
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast({
+        title: 'Download failed',
+        description: 'Failed to download document. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Document Information Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Document Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Document Name */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Document Name *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter document name"
+                        {...field}
+                        data-testid="input-document-name"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Category */}
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-document-category">
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {DOCUMENT_CATEGORIES.map((category) => (
+                          <SelectItem key={category.value} value={category.value}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter document description (optional)"
+                        className="resize-none"
+                        rows={3}
+                        {...field}
+                        data-testid="input-document-description"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Provide additional details about this document
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Visibility to Tenants */}
+              <FormField
+                control={form.control}
+                name="isVisibleToTenants"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Visible to Tenants</FormLabel>
+                      <FormDescription>
+                        Allow tenants to view and download this document
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value || false}
+                        onCheckedChange={field.onChange}
+                        data-testid="switch-visible-to-tenants"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* File Management Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">File Management</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Current File Info */}
+              {document.filePath && (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Current File</p>
+                      <p className="text-xs text-gray-600">
+                        {(document as any).fileName || document.name}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDocument()}
+                        data-testid="button-view-document"
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownloadDocument()}
+                        data-testid="button-download-document"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Replace File Option */}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="replace-file"
+                  checked={isReplaceFile}
+                  onChange={(e) => setIsReplaceFile(e.target.checked)}
+                  className="rounded"
+                  data-testid="checkbox-replace-file"
+                />
+                <Label htmlFor="replace-file">Replace file</Label>
+              </div>
+
+              {/* File Upload (only if replacing) */}
+              {isReplaceFile && (
+                <div>
+                  <SharedUploader
+                    context={uploadContext}
+                    onFileSelect={handleFileUpload}
+                    maxFiles={1}
+                    data-testid="uploader-replace-file"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Action Buttons */}
+          <div className="flex justify-between pt-4">
+            <div>
+              {/* Delete Button with Confirmation */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    disabled={updateDocumentMutation.isPending || deleteDocumentMutation.isPending}
+                    data-testid="button-delete-document"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Document
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{document.name}"? This action cannot be undone and will permanently remove the document and its file.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel data-testid="button-cancel-delete">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={deleteDocumentMutation.isPending}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      data-testid="button-confirm-delete"
+                    >
+                      {deleteDocumentMutation.isPending ? (
+                        <>
+                          <Upload className="w-4 h-4 mr-2 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </>
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={updateDocumentMutation.isPending || deleteDocumentMutation.isPending}
+                data-testid="button-cancel"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={updateDocumentMutation.isPending || deleteDocumentMutation.isPending}
+                data-testid="button-save-document"
+              >
+                {updateDocumentMutation.isPending ? (
+                  <>
+                    <Upload className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}

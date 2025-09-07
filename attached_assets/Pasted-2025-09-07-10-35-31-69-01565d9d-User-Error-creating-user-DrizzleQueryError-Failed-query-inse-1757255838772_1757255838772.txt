@@ -1,0 +1,80 @@
+2025-09-07 10:35:31.69
+01565d9d
+User
+❌ Error creating user: DrizzleQueryError: Failed query: insert into "users" ("id", "username", "email", "password", "first_name", "last_name", "phone", "profile_image", "language", "role", "is_active", "last_login_at", "created_at", "updated_at") values (default, $1, $2, $3, $4, $5, $6, default, $7, $8, $9, default, default, default) returning "id", "username", "email", "password", "first_name", "last_name", "phone", "profile_image", "language", "role", "is_active", "last_login_at", "created_at", "updated_at"
+2025-09-07 10:35:31.69
+01565d9d
+User
+params: francoispierrelandry,francois-pierre.landry@hotmail.com,$2b$12$DT2b6rHCxD9vbL4sQqXWlOo/8p.DcUByWQsSZc6T9DP1y92Q5nRC2,FP résident,Landry,,fr,resident,true
+2025-09-07 10:35:31.69
+01565d9d
+User
+at NeonHttpPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:41:15)
+2025-09-07 10:35:31.69
+01565d9d
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-09-07 10:35:31.69
+01565d9d
+User
+at async NeonHttpPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-http/session.js:45:20)
+2025-09-07 10:35:31.69
+01565d9d
+User
+... 2 lines matching cause stack trace ...
+2025-09-07 10:35:31.69
+01565d9d
+User
+at async file:///home/runner/workspace/dist/index.js:9602:23 {
+2025-09-07 10:35:31.69
+01565d9d
+User
+query: 'insert into "users" ("id", "username", "email", "password", "first_name", "last_name", "phone", "profile_image", "language", "role", "is_active", "last_login_at", "created_at", "updated_at") values (default, $1, $2, $3, $4, $5, $6, default, $7, $8, $9, default, default, default) returning "id", "username", "email", "password", "first_name", "last_name", "phone", "profile_image", "language", "role", "is_active", "last_login_at", "created_at", "updated_at"',
+2025-09-07 10:35:31.69
+01565d9d
+User
+params: [
+2025-09-07 10:35:31.69
+01565d9d
+User
+'francoispierrelandry',
+2025-09-07 10:35:31.69
+01565d9d
+User
+'francois-pierre.landry@hotmail.com',
+2025-09-07 10:35:31.69
+01565d9d
+User
+'$2b$12$DT2b6rHCxD9vbL4sQqXWlOo/8p.DcUByWQsSZc6T9DP1y92Q5nRC2',
+2025-09-07 10:35:31.69
+01565d9d
+User
+'FP résident',
+2025-09-07 10:35:31.69
+01565d9d
+User
+'Landry',
+2025-09-07 10:35:31.69
+01565d9d
+User
+'',
+2025-09-07 10:35:31.69
+01565d9d
+User
+'fr',
+2025-09-07 10:35:31.69
+01565d9d
+User
+'resident',
+2025-09-07 10:35:31.69
+01565d9d
+User
+true
+2025-09-07 10:35:31.69
+01565d9d
+User
+],
+2025-09-07 10:35:31.69
+01565d9d
+User
+cause: NeonDbError: duplicate key value violates unique constraint "users_username_unique"

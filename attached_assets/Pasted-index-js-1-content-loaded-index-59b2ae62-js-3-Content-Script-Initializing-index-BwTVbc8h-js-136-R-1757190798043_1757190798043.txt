@@ -1,0 +1,94 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-BwTVbc8h.js:136 ReferenceError: user is not defined
+    at Qs (ResidentDemandsPage-DTvRIxVr.js:1:11032)
+    at Object.react_stack_bottom_frame (index-BwTVbc8h.js:229:12448)
+    at lc (index-BwTVbc8h.js:120:804)
+    at kc (index-BwTVbc8h.js:141:5839)
+    at Yc (index-BwTVbc8h.js:150:9693)
+    at B (index-BwTVbc8h.js:45:108)
+    at Kh (index-BwTVbc8h.js:163:29810)
+    at Jh (index-BwTVbc8h.js:163:28479)
+    at Wc (index-BwTVbc8h.js:163:28312)
+    at Xh (index-BwTVbc8h.js:163:24807)
+
+The above error occurred in the <Qs> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, lD.
+
+overrideMethod @ hook.js:608
+ah @ index-BwTVbc8h.js:136
+oh @ index-BwTVbc8h.js:141
+B @ index-BwTVbc8h.js:45
+Uc.i.componentDidCatch.e.callback @ index-BwTVbc8h.js:141
+Ep @ index-BwTVbc8h.js:107
+xp @ index-BwTVbc8h.js:107
+B @ index-BwTVbc8h.js:45
+Eh @ index-BwTVbc8h.js:163
+Ch @ index-BwTVbc8h.js:163
+Xn @ index-BwTVbc8h.js:163
+Ch @ index-BwTVbc8h.js:163
+Xn @ index-BwTVbc8h.js:163
+Ch @ index-BwTVbc8h.js:163
+Xn @ index-BwTVbc8h.js:163
+Ch @ index-BwTVbc8h.js:163
+Xn @ index-BwTVbc8h.js:163
+Ch @ index-BwTVbc8h.js:163
+Xn @ index-BwTVbc8h.js:163
+Ch @ index-BwTVbc8h.js:163
+Xn @ index-BwTVbc8h.js:163
+Ch @ index-BwTVbc8h.js:163
+ty @ index-BwTVbc8h.js:163
+ed @ index-BwTVbc8h.js:163
+Zh @ index-BwTVbc8h.js:163
+Xh @ index-BwTVbc8h.js:163
+dy @ index-BwTVbc8h.js:185
+d @ index-BwTVbc8h.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-BwTVbc8h.js:240
+q @ index-BwTVbc8h.js:240
+react_stack_bottom_frame @ index-BwTVbc8h.js:229
+lc @ index-BwTVbc8h.js:120
+kc @ index-BwTVbc8h.js:141
+Yc @ index-BwTVbc8h.js:150
+B @ index-BwTVbc8h.js:45
+Kh @ index-BwTVbc8h.js:163
+Jh @ index-BwTVbc8h.js:163
+Wc @ index-BwTVbc8h.js:163
+Xh @ index-BwTVbc8h.js:163
+dy @ index-BwTVbc8h.js:185
+d @ index-BwTVbc8h.js:23
+<q>
+dr.jsxDEV @ index-BwTVbc8h.js:15
+jD @ index-BwTVbc8h.js:364
+react_stack_bottom_frame @ index-BwTVbc8h.js:229
+lc @ index-BwTVbc8h.js:120
+kc @ index-BwTVbc8h.js:141
+Yc @ index-BwTVbc8h.js:150
+B @ index-BwTVbc8h.js:45
+Kh @ index-BwTVbc8h.js:163
+Jh @ index-BwTVbc8h.js:163
+Wc @ index-BwTVbc8h.js:163
+Xh @ index-BwTVbc8h.js:163
+fy @ index-BwTVbc8h.js:185
+fi @ index-BwTVbc8h.js:185
+ad @ index-BwTVbc8h.js:185
+(anonymous) @ index-BwTVbc8h.js:185
+<jD>
+dr.jsxDEV @ index-BwTVbc8h.js:15
+BD @ index-BwTVbc8h.js:364
+react_stack_bottom_frame @ index-BwTVbc8h.js:229
+lc @ index-BwTVbc8h.js:120
+kc @ index-BwTVbc8h.js:141
+Yc @ index-BwTVbc8h.js:150
+B @ index-BwTVbc8h.js:45
+Kh @ index-BwTVbc8h.js:163
+Jh @ index-BwTVbc8h.js:163
+Wc @ index-BwTVbc8h.js:163
+Xh @ index-BwTVbc8h.js:163
+dy @ index-BwTVbc8h.js:185
+d @ index-BwTVbc8h.js:23
+<BD>
+dr.jsxDEV @ index-BwTVbc8h.js:15
+(anonymous) @ index-BwTVbc8h.js:364

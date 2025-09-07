@@ -2,42 +2,14 @@ import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router } from 'wouter';
+import { LanguageProvider } from '@/hooks/use-language';
 
-// Mock providers that match the real application structure
+// Use the real LanguageProvider in tests
 const TestLanguageProvider = ({ children }: { children: React.ReactNode }) => {
-  // Create a React context that provides the language hook values
-  const mockLanguageContext = React.createContext({
-    t: (key: string, options?: any) => {
-      if (options && typeof options === 'object') {
-        let result = key;
-        Object.keys(options).forEach(k => {
-          result = result.replace(new RegExp(`{{${k}}}`, 'g'), options[k]);
-        });
-        return result;
-      }
-      return key;
-    },
-    language: 'en',
-    setLanguage: jest.fn(),
-  });
-  
   return (
-    <mockLanguageContext.Provider value={{
-      t: jest.fn((key: string, options?: any) => {
-        if (options && typeof options === 'object') {
-          let result = key;
-          Object.keys(options).forEach(k => {
-            result = result.replace(new RegExp(`{{${k}}}`, 'g'), options[k]);
-          });
-          return result;
-        }
-        return key;
-      }),
-      language: 'en',
-      setLanguage: jest.fn(),
-    }}>
+    <LanguageProvider>
       <div data-testid="language-provider">{children}</div>
-    </mockLanguageContext.Provider>
+    </LanguageProvider>
   );
 };
 

@@ -166,6 +166,34 @@ export function registerBugRoutes(app: Express): void {
         };
       }
 
+      // Handle text content if present - save as .txt file
+      if (req.body.file_content && !req.file) {
+        try {
+          const textFilePath = path.join(process.cwd(), 'uploads', 'bugs');
+          if (!fs.existsSync(textFilePath)) {
+            fs.mkdirSync(textFilePath, { recursive: true });
+          }
+          
+          const fileName = `${uuidv4()}-text-document.txt`;
+          const fullPath = path.join(textFilePath, fileName);
+          fs.writeFileSync(fullPath, req.body.file_content, 'utf8');
+          
+          // Set file fields for text content
+          bugData = {
+            ...bugData,
+            filePath: `bugs/${fileName}`,
+            fileName: `${bugData.title}-text-content.txt`,
+            fileSize: Buffer.byteLength(req.body.file_content, 'utf8'),
+          };
+        } catch (fsError) {
+          console.error('Error saving bug text content:', fsError);
+          return res.status(500).json({ 
+            error: 'Internal server error',
+            message: 'Failed to save text content as file' 
+          });
+        }
+      }
+
       // Log the final bugData before saving
       console.log(`🐛 Creating bug with data:`, {
         title: bugData.title,

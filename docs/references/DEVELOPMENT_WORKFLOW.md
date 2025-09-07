@@ -53,6 +53,18 @@ hotfix/database-migration-rollback
 
 **Technical Design**
 
+- Review existing architecture and patterns
+- Consider test infrastructure requirements
+- Design for Quebec compliance from the start
+- Plan database schema changes with migrations
+
+**Testing Requirements (September 2025)**
+
+- Use stable Jest configuration (`jest.config.simple.cjs`)
+- Ensure ES module compatibility for new components
+- Follow established mock patterns for server testing
+- Validate Quebec compliance patterns
+
 - Architecture review for complex features
 - Database schema changes planning
 - API design and integration points

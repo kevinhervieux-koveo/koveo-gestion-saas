@@ -156,6 +156,31 @@ export function registerFeatureRequestRoutes(app: Express): void {
         featureRequestData.fileSize = req.file.size;
       }
       
+      // Handle text content if present - save as .txt file
+      if (req.body.file_content) {
+        try {
+          const textFilePath = path.join(process.cwd(), 'uploads', 'feature-requests');
+          if (!fs.existsSync(textFilePath)) {
+            fs.mkdirSync(textFilePath, { recursive: true });
+          }
+          
+          const fileName = `${uuidv4()}-text-document.txt`;
+          const fullPath = path.join(textFilePath, fileName);
+          fs.writeFileSync(fullPath, req.body.file_content, 'utf8');
+          
+          // Set file fields instead of file_content
+          featureRequestData.filePath = fullPath;
+          featureRequestData.fileName = fileName;
+          featureRequestData.fileSize = Buffer.byteLength(req.body.file_content, 'utf8');
+        } catch (fsError) {
+          console.error('Error saving feature request text content:', fsError);
+          return res.status(500).json({ 
+            error: 'Internal server error',
+            message: 'Failed to save text content as file' 
+          });
+        }
+      }
+      
       const featureRequest = await storage.createFeatureRequest(featureRequestData);
 
       console.log(`💡 Created new feature request ${featureRequest.id} by user ${currentUser.id}`);

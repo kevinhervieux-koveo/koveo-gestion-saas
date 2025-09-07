@@ -1,0 +1,74 @@
+**Objective:** Implement the invoice management form by extending the core document system. This implementation must support recurring payments with standard ('monthly', 'quarterly', 'annually') and 'custom' frequencies. Integrate a Google Gemini AI wrapper to automatically extract this data from uploaded invoice files.
+
+**File Structure and Component Breakdown:**
+
+1.  **Create a new file: `/app/invoices/components/InvoiceForm.tsx`**
+
+    * **Composition:** Use the `<SharedUploader />` component at the top, followed by the specific invoice form fields.
+    * **Form State Management:** Use `React Hook Form` and `Zod` for validation.
+    * **Specific Invoice Fields:**
+        * `vendorName: string`
+        * `invoiceNumber: string`
+        * `totalAmount: number`
+        * `dueDate: Date`
+        * `paymentType: enum('one-time', 'recurring')`
+        * **Recurring Fields (Conditional):**
+            * `frequency: enum('monthly', 'quarterly', 'annually', 'custom')`. Use a Shadcn/ui `RadioGroup`.
+            * `startDate: Date` (Visible only if frequency is not 'custom').
+            * **Custom Dates Field (Conditional):**
+                * This UI must only be visible when `frequency` is set to `'custom'`.
+                * Use the `useFieldArray` hook from `React Hook Form` to manage a dynamic list of dates.
+                * The UI should display the list of date inputs (`React Day Picker`) and include "Add Date" and "Remove" buttons for each entry.
+    * **AI Integration Logic:** When a file is uploaded via `SharedUploader`, send the file to a new component, `GeminiInvoiceExtractor`. The extracted data, including any `customPaymentDates`, should be used to populate the form fields using the `reset` function from `React Hook Form`.
+
+2.  **Create a new file: `/app/invoices/components/GeminiInvoiceExtractor.tsx`**
+
+    * **Purpose:** A client-side component to manage the API call for AI data extraction. This component will not render any UI.
+    * **Functionality:** Use TanStack Query (`useMutation`) to send the uploaded file to a new backend endpoint. The mutation should be triggered when a new file is received via props.
+    * **Props:**
+        * `file: File`: The invoice file to process.
+        * `onExtractionComplete: (data: any) => void`: A callback to return the extracted data to `InvoiceForm`.
+
+3.  **Create a new backend API endpoint: `POST /api/invoices/extract-data`**
+
+    * **Purpose:** A secure endpoint to process an invoice file with the Gemini API.
+    * **Security:** This endpoint must be protected by your authentication middleware.
+    * **Logic:**
+        1.  Accept a file upload (`multipart/form-data`).
+        2.  Retrieve the `GEMINI_API_KEY` from environment variables.
+        3.  Call the Gemini Pro Vision model using the file data and the updated, more sophisticated prompt below.
+        4.  Return the structured JSON to the client.
+
+4.  **The Updated Prompt for the Gemini API (to be used in the backend endpoint):**
+
+    * This prompt is critical for handling custom payment schedules.
+
+    ```text
+    You are an intelligent accounting assistant for Koveo Gestion, a property management SaaS. Your task is to accurately extract information from the provided invoice document and return a single, minified JSON object with no additional text, explanations, or markdown.
+
+    Follow these steps in order:
+    1. First, analyze the document to determine the payment structure. Set the 'paymentType' field to either "one-time" or "recurring". This is the most critical step.
+    2. Extract the following primary fields and format them exactly as specified:
+      - 'vendorName': string
+      - 'invoiceNumber': string
+      - 'totalAmount': number (use a floating-point number, no currency symbols)
+      - 'dueDate': string (format as "YYYY-MM-DD")
+    3. If 'paymentType' is "recurring", determine the frequency.
+      - If it is a standard period, set 'frequency' to one of: "monthly", "quarterly", or "annually" and extract the 'startDate' (format "YYYY-MM-DD").
+      - If you identify a list of specific, non-standard payment dates, set 'frequency' to "custom".
+    4. If, and only if, 'frequency' is "custom", extract all individual payment dates into a 'customPaymentDates' array of strings, each formatted as "YYYY-MM-DD".
+    5. If any field cannot be found, its value must be null.
+
+    Your final output must be only the JSON object.
+    Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ-123","totalAmount":450.75,"dueDate":"2025-10-15","paymentType":"recurring","frequency":"custom","startDate":null,"customPaymentDates":["2025-10-15", "2025-11-15", "2026-01-15"]}
+    ```
+
+***
+
+### Configuration Reminder
+
+Before running this, remember to add your Google Gemini API key to your `.env` file in Replit. The agent cannot do this for you.
+
+```ini
+# .env.local
+GEMINI_API_KEY="VOTRE_CLÉ_API_SECRÈTE_GEMINI_ICI"

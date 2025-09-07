@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { NoDataCard } from '@/components/ui/no-data-card';
 import {
   Select,
   SelectContent,
@@ -1201,16 +1202,14 @@ function CommonSpacesStatsPage() {
                         </TableBody>
                       </Table>
                     ) : (
-                      <div className='text-center py-12' data-testid='no-stats-message'>
-                        <TrendingUp className='w-12 h-12 mx-auto mb-4 text-gray-300' />
-                        <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-                          {language === 'fr' ? 'Aucune donnée disponible' : 'No Data Available'}
-                        </h3>
-                        <p className='text-gray-600'>
-                          {language === 'fr'
-                            ? 'Aucune réservation trouvée pour cet espace au cours des 12 derniers mois.'
-                            : 'No bookings found for this space in the last 12 months.'}
-                        </p>
+                      <div className='py-4'>
+                        <NoDataCard
+                          icon={TrendingUp}
+                          titleKey="noDataAvailable"
+                          descriptionKey="noBookingsFoundMessage"
+                          testId="no-stats-message"
+                          iconSize={12}
+                        />
                       </div>
                     )}
                   </CardContent>
@@ -1219,19 +1218,13 @@ function CommonSpacesStatsPage() {
             )}
 
             {!selectedSpaceId && (
-              <Card>
-                <CardContent className='text-center py-12'>
-                  <Building2 className='w-12 h-12 mx-auto mb-4 text-gray-300' />
-                  <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-                    {language === 'fr' ? 'Sélectionnez un espace commun' : 'Select a Common Space'}
-                  </h3>
-                  <p className='text-gray-600'>
-                    {language === 'fr'
-                      ? "Choisissez un bâtiment et un espace commun pour voir les statistiques d'utilisation."
-                      : 'Choose a building and common space to view usage statistics.'}
-                  </p>
-                </CardContent>
-              </Card>
+              <NoDataCard
+                icon={Building2}
+                titleKey="selectCommonSpace"
+                descriptionKey="selectCommonSpaceMessage"
+                testId="select-common-space-message"
+                iconSize={12}
+              />
             )}
 
             {/* Time Limit Dialog */}

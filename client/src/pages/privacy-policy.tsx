@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
-import { Shield, ArrowLeft } from 'lucide-react';
+import { Shield, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';

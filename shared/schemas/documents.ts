@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, boolean, varchar, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, varchar, uuid, integer } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings, residences } from './property';
@@ -20,7 +20,7 @@ export const documents = pgTable('documents', {
   documentType: text('document_type').notNull(),
   filePath: text('file_path').notNull().unique(),
   fileName: text('file_name'), // Original filename
-  fileSize: varchar('file_size'), // File size in bytes
+  fileSize: integer('file_size'), // File size in bytes
   mimeType: text('mime_type'), // MIME type for proper handling
   isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
   residenceId: varchar('residence_id').references(() => residences.id),
@@ -40,7 +40,7 @@ export const insertDocumentSchema = z.object({
   documentType: z.string().min(1, 'Document type is required'),
   filePath: z.string().min(1, 'File path is required'),
   fileName: z.string().optional(),
-  fileSize: z.string().optional(),
+  fileSize: z.number().int().optional(),
   mimeType: z.string().optional(),
   isVisibleToTenants: z.boolean().default(false),
   residenceId: z.string().uuid().optional(),
@@ -56,7 +56,7 @@ export const attachDocumentSchema = z.object({
   description: z.string().optional(),
   documentType: z.enum(['attachment', 'screenshot', 'evidence', 'supporting_document']).default('attachment'),
   fileName: z.string().min(1, 'File name is required'),
-  fileSize: z.string().optional(),
+  fileSize: z.number().int().optional(),
   mimeType: z.string().optional(),
   attachedToType: z.enum(['bill', 'feature_request', 'bug_report', 'maintenance_request']),
   attachedToId: z.string().uuid().min(1, 'Attached entity ID is required'),
@@ -77,6 +77,45 @@ export type AttachDocument = z.infer<typeof attachDocumentSchema>;
  * Select type for unified documents
  */
 export type Document = typeof documents.$inferSelect;
+
+// Enhanced types for modular document management components
+export interface DocumentWithMetadata extends Document {
+  uploadedBy?: {
+    id: string;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  };
+  residence?: {
+    id: string;
+    unitNumber?: string;
+    address?: string;
+  };
+  building?: {
+    id: string;
+    name?: string;
+    address?: string;
+  };
+}
+
+// User permissions for document access control
+export interface DocumentPermissions {
+  canView: boolean;
+  canDownload: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  canCreate: boolean;
+}
+
+// Document display preferences
+export interface DocumentDisplayOptions {
+  showMetadata?: boolean;
+  compact?: boolean;
+  showFileSize?: boolean;
+  showUploadDate?: boolean;
+  showUploader?: boolean;
+  showEntityInfo?: boolean;
+}
 
 // Document type constants for consistency
 export const DOCUMENT_TYPES = {

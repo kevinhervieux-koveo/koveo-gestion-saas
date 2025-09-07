@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { NoDataCard } from '@/components/ui/no-data-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -53,20 +54,7 @@ import { Header } from '@/components/layout/header';
 import { Link } from 'wouter';
 
 // Form schema for creating/editing buildings
-const buildingFormSchema = z.object({
-  name: z.string().min(1, 'Building name is required').max(255, 'Name too long'),
-  address: z.string().min(1, 'Address is required').max(500, 'Address too long'),
-  city: z.string().min(1, 'City is required').max(100, 'City too long'),
-  province: z.string().min(1, 'Province is required').max(100, 'Province too long'),
-  postalCode: z.string().min(1, 'Postal code is required').max(20, 'Postal code too long'),
-  buildingType: z.enum(['condo', 'apartment', 'townhouse', 'commercial', 'mixed_use', 'other']),
-  totalUnits: z
-    .number()
-    .int()
-    .min(1, 'Must have at least 1 unit')
-    .max(300, 'Maximum 300 units allowed'),
-  organizationId: z.string().min(1, 'Organization is required'),
-});
+// Schema will be created inside component with translations
 
 /**
  *
@@ -99,6 +87,7 @@ interface BuildingCardProps {
   userRole?: string;
   onEdit: (building: BuildingData) => void;
   onDelete: (building: BuildingData) => void;
+  t: (key: string) => string;
 }
 
 /**
@@ -109,7 +98,7 @@ interface BuildingCardProps {
  * @param root0.onEdit
  * @param root0.onDelete
  */
-function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProps) {
+function BuildingCard({ building, userRole, onEdit, onDelete, t }: BuildingCardProps) {
   const isAdmin = userRole === 'admin';
   const canEdit = ['admin', 'manager'].includes(userRole || '');
 
@@ -152,7 +141,7 @@ function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingCardProp
             </span>
           </div>
           <div className='flex items-center justify-between pt-2'>
-            <Badge variant='outline'>{building.totalUnits} units</Badge>
+            <Badge variant='outline'>{building.totalUnits} {t('unitsCount')}</Badge>
             <Badge variant='secondary'>{building.buildingType}</Badge>
           </div>
           <div className='pt-2 flex gap-2'>
@@ -185,6 +174,7 @@ interface BuildingFormProps {
   isSubmitting: boolean;
   title: string;
   submitLabel: string;
+  t: (key: string) => string;
 }
 
 /**
@@ -208,6 +198,7 @@ function BuildingForm({
   isSubmitting,
   title,
   submitLabel,
+  t,
 }: BuildingFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -215,7 +206,7 @@ function BuildingForm({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Fill in the building information below. All fields are required.
+            {t('fillBuildingInfo')}
           </DialogDescription>
         </DialogHeader>
 
@@ -227,9 +218,9 @@ function BuildingForm({
                 name='name'
                 render={({ field }) => (
                   <FormItem className='md:col-span-2'>
-                    <FormLabel>Building Name</FormLabel>
+                    <FormLabel>{t('buildingName')}</FormLabel>
                     <FormControl>
-                      <Input placeholder='Enter building name' {...field} />
+                      <Input placeholder={t('enterBuildingName')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -241,9 +232,9 @@ function BuildingForm({
                 name='address'
                 render={({ field }) => (
                   <FormItem className='md:col-span-2'>
-                    <FormLabel>Address</FormLabel>
+                    <FormLabel>{t('buildingAddress')}</FormLabel>
                     <FormControl>
-                      <Input placeholder='Enter street address' {...field} />
+                      <Input placeholder={t('enterStreetAddress')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -255,9 +246,9 @@ function BuildingForm({
                 name='city'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>City</FormLabel>
+                    <FormLabel>{t('buildingCity')}</FormLabel>
                     <FormControl>
-                      <Input placeholder='Enter city' {...field} />
+                      <Input placeholder={t('enterCity')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -269,11 +260,11 @@ function BuildingForm({
                 name='province'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Province</FormLabel>
+                    <FormLabel>{t('buildingProvince')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select province' />
+                          <SelectValue placeholder={t('selectProvince')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -302,9 +293,9 @@ function BuildingForm({
                 name='postalCode'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Postal Code</FormLabel>
+                    <FormLabel>{t('buildingPostalCode')}</FormLabel>
                     <FormControl>
-                      <Input placeholder='H1H 1H1' {...field} />
+                      <Input placeholder={t('enterPostalCode')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -316,20 +307,16 @@ function BuildingForm({
                 name='buildingType'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Building Type</FormLabel>
+                    <FormLabel>{t('buildingType')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select building type' />
+                          <SelectValue placeholder={t('selectBuildingType')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='condo'>Condominium</SelectItem>
-                        <SelectItem value='apartment'>Apartment</SelectItem>
-                        <SelectItem value='townhouse'>Townhouse</SelectItem>
-                        <SelectItem value='commercial'>Commercial</SelectItem>
-                        <SelectItem value='mixed_use'>Mixed Use</SelectItem>
-                        <SelectItem value='other'>Other</SelectItem>
+                        <SelectItem value='condo'>{t('condoType')}</SelectItem>
+                        <SelectItem value='appartement'>{t('appartementType')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -342,7 +329,7 @@ function BuildingForm({
                 name='totalUnits'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Units</FormLabel>
+                    <FormLabel>{t('totalUnits')}</FormLabel>
                     <FormControl>
                       <Input
                         type='number'
@@ -361,11 +348,11 @@ function BuildingForm({
                 name='organizationId'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Organization</FormLabel>
+                    <FormLabel>{t('organizationLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder='Select organization' />
+                          <SelectValue placeholder={t('selectOrganization')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -384,10 +371,10 @@ function BuildingForm({
 
             <DialogFooter>
               <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button type='submit' disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : submitLabel}
+                {isSubmitting ? t('saving') : submitLabel}
               </Button>
             </DialogFooter>
           </form>
@@ -404,6 +391,22 @@ export default function Buildings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+
+  // Create schema with translations
+  const buildingFormSchema = z.object({
+    name: z.string().min(1, t('buildingNameRequired')).max(255, t('nameTooLong')),
+    address: z.string().min(1, t('addressRequired')).max(500, t('addressTooLong')),
+    city: z.string().min(1, t('cityRequired')).max(100, t('cityTooLong')),
+    province: z.string().min(1, t('provinceRequired')).max(100, t('provinceTooLong')),
+    postalCode: z.string().min(1, t('postalCodeRequired')).max(20, t('postalCodeTooLong')),
+    buildingType: z.enum(['condo', 'appartement']),
+    totalUnits: z
+      .number()
+      .int()
+      .min(1, t('mustHaveAtLeastOneUnit'))
+      .max(300, t('maximumUnitsAllowed')),
+    organizationId: z.string().min(1, t('organizationRequired')),
+  });
 
   // State variables
   const [searchTerm, setSearchTerm] = useState('');
@@ -612,7 +615,7 @@ export default function Buildings() {
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
         title={t('buildings')}
-        subtitle={`Manage ${filteredBuildings.length} building${filteredBuildings.length !== 1 ? 's' : ''} in your organization`}
+        subtitle={t('manageBuildings')}
       />
 
       <div className='flex-1 overflow-auto p-6'>
@@ -647,22 +650,18 @@ export default function Buildings() {
                   userRole={user?.role}
                   onEdit={handleEditBuilding}
                   onDelete={handleDeleteBuilding}
+                  t={t}
                 />
               ))}
             </div>
           ) : (
-            <Card>
-              <CardContent className='p-8 text-center'>
-                <Building className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Buildings Found</h3>
-                <p className='text-gray-500 mb-4'>
-                  {user?.role === 'admin'
-                    ? 'No buildings are currently registered in your organizations.'
-                    : "You don't have access to any buildings yet."}
-                </p>
-                <Badge variant='secondary'>No Data</Badge>
-              </CardContent>
-            </Card>
+            <NoDataCard
+              icon={Building}
+              titleKey="noBuildingsFound"
+              descriptionKey={user?.role === 'admin' ? 'noBuildingsAdminMessage' : 'noBuildingsUserMessage'}
+              badgeKey="noData"
+              testId="no-buildings-message"
+            />
           )}
 
           {/* Add Building Dialog */}
@@ -673,8 +672,9 @@ export default function Buildings() {
             onSubmit={handleCreateBuilding}
             organizations={organizations}
             isSubmitting={createBuildingMutation.isPending}
-            title='Add New Building'
-            submitLabel='Create Building'
+            title={t('addBuilding')}
+            submitLabel={t('createBuilding')}
+            t={t}
           />
 
           {/* Edit Building Dialog */}
@@ -685,8 +685,9 @@ export default function Buildings() {
             onSubmit={handleUpdateBuilding}
             organizations={organizations}
             isSubmitting={updateBuildingMutation.isPending}
-            title='Edit Building'
-            submitLabel='Update Building'
+            title={t('editBuilding')}
+            submitLabel={t('save')}
+            t={t}
           />
 
           {/* Delete Confirmation Dialog */}

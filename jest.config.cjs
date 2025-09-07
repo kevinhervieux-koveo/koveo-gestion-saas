@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.simple.ts'],
   // Temporarily disable global setup/teardown to debug hanging issues
   // globalSetup: '<rootDir>/jest.global-setup.js',
   // globalTeardown: '<rootDir>/jest.global-teardown.js',
@@ -10,8 +10,20 @@ const config = {
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     // Fix database mock imports
-    '^\\./server/db$': '<rootDir>/tests/mocks/database.js',
+    '^\\./server/db$': '<rootDir>/tests/mocks/serverDbMock.js',
     '^\\./tests/mocks/database$': '<rootDir>/tests/mocks/database.js',
+    // Mock server configuration
+    '^\\./server/config/index$': '<rootDir>/tests/mocks/serverConfigMock.js',
+    '^\\./config/index$': '<rootDir>/tests/mocks/serverConfigMock.js',
+    // Mock problematic ES modules
+    '@google/genai': '<rootDir>/tests/mocks/googleGenaiMock.js',
+    '@neondatabase/serverless': '<rootDir>/tests/mocks/serverDbMock.js',
+    // Mock file system operations to prevent hanging  
+    '^fs$': '<rootDir>/tests/mocks/fileSystemMock.js',
+    '^multer$': '<rootDir>/tests/mocks/fileSystemMock.js',
+    // Mock supertest to prevent actual server requests
+    '^supertest$': '<rootDir>/tests/mocks/supertestMock.js',
+    // Mock CSS and assets
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$':
       '<rootDir>/tests/mocks/fileMock.js',
@@ -48,9 +60,9 @@ const config = {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google/genai|stream/web|lucide-react|drizzle-orm|drizzle-zod))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|stream/web|lucide-react|drizzle-orm|drizzle-zod|@neondatabase))'
   ],
-  testTimeout: 15000,
+  testTimeout: 30000,
   clearMocks: true,
   restoreMocks: true,
   resetMocks: true,

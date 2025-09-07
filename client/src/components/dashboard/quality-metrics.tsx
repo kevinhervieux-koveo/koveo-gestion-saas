@@ -35,7 +35,6 @@ export function QualityMetrics() {
 
   const { data: metricsData, isLoading } = useQuery<QualityMetricsData>({
     queryKey: ['/api/quality-metrics'],
-    queryFn: () => fetch('/api/quality-metrics').then(res => res.json()),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });

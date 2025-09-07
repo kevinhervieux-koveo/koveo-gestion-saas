@@ -43,6 +43,34 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      
+      // Add document click listener to close menu when clicking outside
+      const handleDocumentClick = (event: MouseEvent) => {
+        const target = event.target as Element;
+        const menuPanel = document.querySelector('[data-testid="menu-panel"]');
+        const hamburgerButton = document.querySelector('[data-testid="hamburger-button"]');
+        
+        // Don't close if clicking on the hamburger button or inside the menu panel
+        if (
+          hamburgerButton?.contains(target) || 
+          menuPanel?.contains(target)
+        ) {
+          return;
+        }
+        
+        // Close menu for any other clicks
+        closeMenu();
+      };
+      
+      // Add listener with a small delay to avoid immediate closure
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('click', handleDocumentClick);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('click', handleDocumentClick);
+      };
     } else {
       document.body.style.overflow = '';
     }
@@ -92,10 +120,11 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
         {isOpen ? <X className='h-6 w-6' /> : <Menu className='h-6 w-6' />}
       </Button>
 
-      {/* Overlay */}
+      {/* Invisible Overlay for Click Outside */}
       {isOpen && (
         <div
-          className='fixed inset-0 bg-black/50 z-40'
+          className='fixed inset-0'
+          style={{ zIndex: 999 }}
           onClick={closeMenu}
           data-testid='menu-overlay'
         />

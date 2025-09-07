@@ -1,31 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-// Using mock database for unit tests - real database testing moved to integration tests
-// import { mockDb } from '../../../server/mockDb';
 import * as schema from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-
-// Mock database for unit testing
-const mockDb = {
-  delete: jest.fn().mockResolvedValue([]),
-  insert: jest.fn().mockImplementation(() => ({
-    values: jest.fn().mockImplementation(() => ({
-      returning: jest.fn().mockResolvedValue([{ id: 'mock-id', name: 'Mock Data' }])
-    }))
-  })),
-  select: jest.fn().mockImplementation(() => ({
-    from: jest.fn().mockImplementation(() => ({
-      where: jest.fn().mockResolvedValue([])
-    }))
-  })),
-  update: jest.fn().mockImplementation(() => ({
-    set: jest.fn().mockImplementation(() => ({
-      where: jest.fn().mockImplementation(() => ({
-        returning: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
-      }))
-    }))
-  }))
-};
+import { mockDb, testUtils } from '../../mocks/unified-database-mock';
 
 describe('Invitation Table Integration Tests', () => {
   let adminUser: any;
@@ -34,11 +11,8 @@ describe('Invitation Table Integration Tests', () => {
   let organization2: any;
 
   beforeEach(async () => {
-    // Clean up tables (mocked for unit tests)
-    await mockDb.delete(schema.invitations);
-    await mockDb.delete(schema.userOrganizations);
-    await mockDb.delete(schema.users);
-    await mockDb.delete(schema.organizations);
+    // Reset mock data and clear all mocks
+    testUtils.resetMocks();
 
     // Create test organizations
     const [org1] = await mockDb.insert(schema.organizations).values({

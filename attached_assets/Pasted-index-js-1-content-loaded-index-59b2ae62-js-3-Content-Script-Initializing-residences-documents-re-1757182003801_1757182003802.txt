@@ -1,0 +1,58 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+residences/documents?residenceId=876d0f76-47e9-4ea9-a0cd-5e0de9956010:1 Refused to load the image 'blob:https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/df291291-4411-4639-b7a0-229b3f12d80d' because it violates the following Content Security Policy directive: "img-src 'self' data: https:".
+
+ModularBillForm-b3wCkISL.js:1 🐛 [DocumentCreateForm] Starting document creation with data: {name: 'test 1', description: 'test 1test 1test 1test 1', category: 'financial'}
+ModularBillForm-b3wCkISL.js:1 🐛 [DocumentCreateForm] Entity type: residence Entity ID: 876d0f76-47e9-4ea9-a0cd-5e0de9956010
+ModularBillForm-b3wCkISL.js:1 🐛 [DocumentCreateForm] Selected file: ImagefactureNonTaxable_texte.jpg (74563 bytes)
+ModularBillForm-b3wCkISL.js:1 🐛 [DocumentCreateForm] Text content: None
+ModularBillForm-b3wCkISL.js:1 🐛 [DocumentCreateForm] FormData contents:
+ModularBillForm-b3wCkISL.js:1   name: test 1
+ModularBillForm-b3wCkISL.js:1   documentType: financial
+ModularBillForm-b3wCkISL.js:1   description: test 1test 1test 1test 1
+ModularBillForm-b3wCkISL.js:1   residenceId: 876d0f76-47e9-4ea9-a0cd-5e0de9956010
+ModularBillForm-b3wCkISL.js:1   file: File(ImagefactureNonTaxable_texte.jpg, 74563 bytes, image/jpeg)
+ModularBillForm-b3wCkISL.js:1 🐛 [DocumentCreateForm] Making API request to /api/documents
+ModularBillForm-b3wCkISL.js:1  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/documents 400 (Bad Request)
+mutationFn @ ModularBillForm-b3wCkISL.js:1
+fn @ vendor-query-CVwOpz66.js:1
+y @ vendor-query-CVwOpz66.js:1
+start @ vendor-query-CVwOpz66.js:1
+execute @ vendor-query-CVwOpz66.js:1
+await in execute
+mutate @ vendor-query-CVwOpz66.js:1
+(anonymous) @ vendor-query-CVwOpz66.js:1
+W @ ModularBillForm-b3wCkISL.js:1
+(anonymous) @ vendor-forms-D2cFurk0.js:1
+await in (anonymous)
+is @ index-B-U1WAEX.js:185
+B @ index-B-U1WAEX.js:45
+yy @ index-B-U1WAEX.js:185
+(anonymous) @ index-B-U1WAEX.js:185
+Gm @ index-B-U1WAEX.js:83
+sd @ index-B-U1WAEX.js:185
+Ed @ index-B-U1WAEX.js:194
+_1 @ index-B-U1WAEX.js:194
+ModularBillForm-b3wCkISL.js:1 🐛 [DocumentCreateForm] Response status: 400
+ModularBillForm-b3wCkISL.js:1 🐛 [DocumentCreateForm] Error response text: {"message":"Invalid documentType. Must be either \"building\" or \"resident\""}
+overrideMethod @ hook.js:608
+mutationFn @ ModularBillForm-b3wCkISL.js:1
+await in mutationFn
+fn @ vendor-query-CVwOpz66.js:1
+y @ vendor-query-CVwOpz66.js:1
+start @ vendor-query-CVwOpz66.js:1
+execute @ vendor-query-CVwOpz66.js:1
+await in execute
+mutate @ vendor-query-CVwOpz66.js:1
+(anonymous) @ vendor-query-CVwOpz66.js:1
+W @ ModularBillForm-b3wCkISL.js:1
+(anonymous) @ vendor-forms-D2cFurk0.js:1
+await in (anonymous)
+is @ index-B-U1WAEX.js:185
+B @ index-B-U1WAEX.js:45
+yy @ index-B-U1WAEX.js:185
+(anonymous) @ index-B-U1WAEX.js:185
+Gm @ index-B-U1WAEX.js:83
+sd @ index-B-U1WAEX.js:185
+Ed @ index-B-U1WAEX.js:194
+_1 @ index-B-U1WAEX.js:194

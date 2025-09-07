@@ -134,7 +134,7 @@ const TestCommentForm = ({ demandId, onCommentAdded }: { demandId: string; onCom
         {comments.map((comment) => (
           <div key={comment.id} data-testid={`comment-${comment.id}`} className="comment">
             <div data-testid={`comment-author-${comment.id}`}>
-              {comment.author.firstName} {comment.author.lastName}
+              {comment.author?.firstName || 'Unknown'} {comment.author?.lastName || 'User'}
             </div>
             <div data-testid={`comment-text-${comment.id}`}>{comment.commentText}</div>
             <div data-testid={`comment-date-${comment.id}`}>{comment.createdAt}</div>
@@ -425,6 +425,12 @@ describe('Demand Comment Form Tests', () => {
           commenterId: 'user-123',
           isInternal: true,
           createdAt: '2023-01-01T12:00:00Z',
+          author: {
+            id: 'user-123',
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'test@example.com',
+          },
         }),
       } as any);
 
@@ -461,7 +467,23 @@ describe('Demand Comment Form Tests', () => {
       mockFetch.mockImplementation(
         () =>
           new Promise((resolve) =>
-            setTimeout(() => resolve({ ok: true, json: async () => ({}) }), 100)
+            setTimeout(() => resolve({ 
+              ok: true, 
+              json: async () => ({
+                id: 'comment-loading',
+                demandId: 'demand-123',
+                commentText: 'Loading test comment',
+                commenterId: 'user-123',
+                isInternal: false,
+                createdAt: '2023-01-01T12:00:00Z',
+                author: {
+                  id: 'user-123',
+                  firstName: 'Test',
+                  lastName: 'User',
+                  email: 'test@example.com',
+                },
+              })
+            }), 100)
           )
       );
 
@@ -496,6 +518,12 @@ describe('Demand Comment Form Tests', () => {
           commenterId: 'user-123',
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
+          author: {
+            id: 'user-123',
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'test@example.com',
+          },
         }),
       } as any);
 
@@ -585,6 +613,12 @@ describe('Demand Comment Form Tests', () => {
           commenterId: 'user-123',
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
+          author: {
+            id: 'user-123',
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'test@example.com',
+          },
         }),
       } as any);
 
@@ -623,6 +657,12 @@ describe('Demand Comment Form Tests', () => {
           commenterId: 'user-123',
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
+          author: {
+            id: 'user-123',
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'test@example.com',
+          },
         }),
       } as any);
 
@@ -667,6 +707,12 @@ End of comment.`;
           commenterId: 'user-123',
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
+          author: {
+            id: 'user-123',
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'test@example.com',
+          },
         }),
       } as any);
 
@@ -707,6 +753,12 @@ End of comment.`;
           commenterId: 'user-123',
           isInternal: false,
           createdAt: '2023-01-01T12:00:00Z',
+          author: {
+            id: 'user-123',
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'test@example.com',
+          },
         }),
       } as any);
 
@@ -749,10 +801,16 @@ End of comment.`;
             commenterId: 'user-123',
             isInternal: false,
             createdAt: '2023-01-01T12:00:00Z',
+            author: {
+              id: 'user-123',
+              firstName: 'Test',
+              lastName: 'User',
+              email: 'test@example.com',
+            },
           }),
         } as any);
 
-        render(
+        const { unmount } = render(
           <TestWrapper>
             <TestCommentForm demandId="demand-123" />
           </TestWrapper>
@@ -779,6 +837,7 @@ End of comment.`;
         } as any);
 
         mockFetch.mockClear();
+        unmount(); // Clean up between iterations
       }
     });
 

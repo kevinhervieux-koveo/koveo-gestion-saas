@@ -50,8 +50,9 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { CompactFileUpload } from '@/components/ui/file-upload';
+import { SharedUploader } from '@/components/document-management';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
+import type { UploadContext } from '@shared/config/upload-config';
 
 // Bug creation form schema (no status - new bugs are always created with "new" status)
 const bugFormSchema = z.object({
@@ -145,6 +146,14 @@ export default function BugReports() {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [editAttachmentMode, setEditAttachmentMode] = useState<'file' | 'text'>('file');
   const [editAttachmentText, setEditAttachmentText] = useState('');
+  
+  // Upload context for secure storage
+  const uploadContext: UploadContext = {
+    type: 'bugs',
+    organizationId: 'default',
+    userRole: user?.role || 'resident',
+    userId: user?.id
+  };
 
   // Forms
   const createForm = useForm<BugFormData>({
@@ -170,6 +179,10 @@ export default function BugReports() {
   // Fetch bugs
   const { data: bugs = [], isLoading } = useQuery({
     queryKey: ['/api/bugs'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/bugs');
+      return response.json();
+    },
     enabled: !!user,
   });
 
@@ -372,12 +385,9 @@ export default function BugReports() {
     return user?.role === 'admin' || bug.createdBy === user?.id;
   };
 
-  // Filter bugs with role-based access control
-  const filteredBugs = (bugs || []).filter((bug: Bug) => {
-    // Role-based filtering: users see only their bugs, admins see all
-    const hasAccess = user?.role === 'admin' || bug.createdBy === user?.id;
-    if (!hasAccess) return false;
-
+  // Filter bugs - server already handles role-based access control
+  const bugsArray = Array.isArray(bugs) ? bugs : [];
+  const filteredBugs = bugsArray.filter((bug: Bug) => {
     // Search filter
     const matchesSearch = searchTerm === '' || 
       bug.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -441,7 +451,7 @@ export default function BugReports() {
                     <SelectItem value="critical">Critical</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-bug">
+                <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-report-bug">
                   <Plus className="w-4 h-4 mr-2" />
                   Report Bug
                 </Button>
@@ -566,78 +576,24 @@ export default function BugReports() {
                     />
                   </div>
 
-                  {/* BOTTOM SECTION: Attachment Type Selection */}
+                  {/* BOTTOM SECTION: Document Upload */}
                   <div className="space-y-4 border-t pt-4">
-                    <Label className="text-sm font-medium">Choose Document Type</Label>
-                    <div className="flex space-x-3">
-                      <button
-                        type="button"
-                        onClick={() => setAttachmentMode('file')}
-                        className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                          attachmentMode === 'file'
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        data-testid="button-file-mode"
-                      >
-                        📁 Upload File
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAttachmentMode('text')}
-                        className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                          attachmentMode === 'text'
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        data-testid="button-text-mode"
-                      >
-                        📝 Text Document
-                      </button>
-                    </div>
-
-                    {/* Dynamic Content Based on Selection */}
-                    {attachmentMode === 'file' ? (
-                      <div>
-                        <Label htmlFor="file-upload">Select File to Upload</Label>
-                        <Input
-                          id="file-upload"
-                          type="file"
-                          multiple
-                          accept="image/*,.pdf,.txt,.log,.json,.csv"
-                          onChange={(e) => {
-                            const files = Array.from(e.target.files || []);
-                            if (files.length > 0) {
-                              handleFilesSelect(files);
-                            }
-                          }}
-                          className="w-full"
-                          data-testid="input-file-upload"
-                        />
-                        {attachedFiles.length > 0 && (
-                          <div className="space-y-2 mt-2">
-                            <p className="text-sm text-gray-500">
-                              Selected: {attachedFiles.map(f => f.name + ' (' + Math.round(f.size / 1024) + ' KB)').join(', ')}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <Label htmlFor="text-content">Document Content</Label>
-                        <Textarea
-                          id="text-content"
-                          value={attachmentText}
-                          onChange={(e) => setAttachmentText(e.target.value)}
-                          rows={5}
-                          className="w-full"
-                          data-testid="textarea-text-content"
-                        />
-                        <p className="text-sm text-gray-500 mt-1">
-                          This will add text notes that can be viewed with the bug report.
-                        </p>
-                      </div>
-                    )}
+                    <Label className="text-sm font-medium">Attach Documents (Optional)</Label>
+                    <SharedUploader
+                      onDocumentChange={(file, text) => {
+                        if (file) {
+                          setAttachedFiles([file]);
+                        }
+                        if (text) {
+                          setAttachmentText(text);
+                        }
+                      }}
+                      formType="bugs"
+                      uploadContext={uploadContext}
+                      showAiToggle={false} // No toggle, use config-based AI enablement
+                      allowedFileTypes={['image/*', '.pdf', '.txt', '.log', '.json', '.csv']}
+                      maxFileSize={15}
+                    />
                   </div>
 
                   <div className="flex justify-end gap-2 pt-4">

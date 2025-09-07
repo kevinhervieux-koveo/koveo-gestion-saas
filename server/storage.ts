@@ -11,6 +11,8 @@ import {
   type InsertContact,
   type Document,
   type InsertDocument,
+  type Invoice,
+  type InsertInvoice,
   type Pillar,
   type InsertPillar,
   type WorkspaceStatus,
@@ -116,6 +118,18 @@ export interface IStorage {
   createDocument(_document: InsertDocument): Promise<Document>;
   updateDocument(_id: string, _updates: Partial<Document>): Promise<Document | undefined>;
   deleteDocument(_id: string): Promise<boolean>;
+
+  // Invoice operations
+  getInvoices(_filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Invoice[]>;
+  getInvoice(_id: string): Promise<Invoice | undefined>;
+  createInvoice(_invoice: InsertInvoice): Promise<Invoice>;
+  updateInvoice(_id: string, _updates: Partial<Invoice>): Promise<Invoice | undefined>;
+  deleteInvoice(_id: string): Promise<boolean>;
 
   // Permission operations
   getPermissions(): Promise<Permission[]>;
@@ -224,6 +238,7 @@ export class MemStorage implements IStorage {
   private bugs: Map<string, Bug>;
   private featureRequests: Map<string, FeatureRequest>;
   private featureRequestUpvotes: Map<string, FeatureRequestUpvote>;
+  private invoices: Map<string, Invoice>;
 
   constructor() {
     this.users = new Map();
@@ -242,6 +257,7 @@ export class MemStorage implements IStorage {
     this.bugs = new Map();
     this.featureRequests = new Map();
     this.featureRequestUpvotes = new Map();
+    this.invoices = new Map();
 
     // Initialize test user asynchronously
     this.initializeTestUser().catch(console.error);
@@ -570,6 +586,63 @@ export class MemStorage implements IStorage {
 
   async deleteDocument(_id: string): Promise<boolean> {
     return false;
+  }
+
+  // Invoice operations
+  async getInvoices(filters?: {
+    buildingId?: string;
+    residenceId?: string;
+    userId?: string;
+    userRole?: string;
+  }): Promise<Invoice[]> {
+    let invoices = Array.from(this.invoices.values());
+    
+    if (filters) {
+      if (filters.buildingId) {
+        invoices = invoices.filter(invoice => invoice.buildingId === filters.buildingId);
+      }
+      if (filters.residenceId) {
+        invoices = invoices.filter(invoice => invoice.residenceId === filters.residenceId);
+      }
+      if (filters.userId && filters.userRole) {
+        // Apply role-based filtering
+        if (filters.userRole === 'tenant' || filters.userRole === 'resident') {
+          invoices = invoices.filter(invoice => invoice.createdBy === filters.userId);
+        }
+        // Admin and manager can see all invoices (already filtered by building/residence above)
+      }
+    }
+    
+    return invoices.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getInvoice(id: string): Promise<Invoice | undefined> {
+    return this.invoices.get(id);
+  }
+
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    const id = randomUUID();
+    const newInvoice: Invoice = {
+      ...invoice,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.invoices.set(id, newInvoice);
+    return newInvoice;
+  }
+
+  async updateInvoice(id: string, updates: Partial<Invoice>): Promise<Invoice | undefined> {
+    const existing = this.invoices.get(id);
+    if (!existing) return undefined;
+    
+    const updated = { ...existing, ...updates, updatedAt: new Date() };
+    this.invoices.set(id, updated);
+    return updated;
+  }
+
+  async deleteInvoice(id: string): Promise<boolean> {
+    return this.invoices.delete(id);
   }
 
   async getPermissions(): Promise<Permission[]> {

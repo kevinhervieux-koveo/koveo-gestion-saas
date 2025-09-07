@@ -23,6 +23,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { NoDataCard } from '@/components/ui/no-data-card';
+import { useLanguage } from '@/hooks/use-language';
 import { Trash2, Mail, Clock, Building2, Home } from 'lucide-react';
 
 interface InvitationWithDetails {
@@ -43,6 +45,7 @@ interface InvitationWithDetails {
 
 export function InvitationManagement() {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [deletingInvitation, setDeletingInvitation] = useState<InvitationWithDetails | null>(null);
 
@@ -64,7 +67,7 @@ export function InvitationManagement() {
     onSuccess: () => {
       toast({
         title: 'Success',
-        description: 'Invitation deleted successfully',
+        description: t('invitationDeletedSuccess'),
       });
       setDeletingInvitation(null);
       queryClient.invalidateQueries({ queryKey: ['/api/invitations/pending'] });
@@ -72,7 +75,7 @@ export function InvitationManagement() {
     onError: (error: Error) => {
       toast({
         title: 'Error',
-        description: error.message,
+        description: t('invitationDeletedError'),
         variant: 'destructive',
       });
     },
@@ -111,8 +114,8 @@ export function InvitationManagement() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Pending Invitations</CardTitle>
-          <CardDescription>Loading invitations...</CardDescription>
+          <CardTitle>{t('pendingInvitations')}</CardTitle>
+          <CardDescription>{t('loadingInvitations')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -129,31 +132,34 @@ export function InvitationManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Pending Invitations
+            {t('pendingInvitations')}
           </CardTitle>
           <CardDescription>
-            Manage pending user invitations. Only pending invitations are shown.
+            {t('managePendingInvitations')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {invitations.length === 0 ? (
-            <div className="text-center py-8">
-              <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No pending invitations found</p>
-            </div>
+            <NoDataCard
+              icon={Mail}
+              titleKey="noInvitationsFound"
+              descriptionKey="noInvitationsFound"
+              testId="no-invitations-message"
+              iconSize={12}
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Organization</TableHead>
-                    <TableHead>Building</TableHead>
-                    <TableHead>Residence</TableHead>
-                    <TableHead>Expires</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('email')}</TableHead>
+                    <TableHead>{t('role')}</TableHead>
+                    <TableHead>{t('organization')}</TableHead>
+                    <TableHead>{t('building')}</TableHead>
+                    <TableHead>{t('residence')}</TableHead>
+                    <TableHead>{t('expires')}</TableHead>
+                    <TableHead>{t('status')}</TableHead>
+                    <TableHead className="text-right">{t('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -194,7 +200,7 @@ export function InvitationManagement() {
                         {invitation.residenceUnitNumber ? (
                           <div className="flex items-center gap-2">
                             <Home className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">Unit {invitation.residenceUnitNumber}</span>
+                            <span className="text-sm">{t('unit')} {invitation.residenceUnitNumber}</span>
                           </div>
                         ) : (
                           <span className="text-gray-400 text-sm">—</span>
@@ -212,7 +218,7 @@ export function InvitationManagement() {
                         <Badge 
                           variant={isExpired(invitation.expiresAt) ? 'destructive' : 'default'}
                         >
-                          {isExpired(invitation.expiresAt) ? 'Expired' : 'Pending'}
+                          {isExpired(invitation.expiresAt) ? t('expired') : t('pending')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -242,10 +248,9 @@ export function InvitationManagement() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Invitation</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteInvitation')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the invitation for{' '}
-              <strong>{deletingInvitation?.email}</strong>? This action cannot be undone.
+              {t('deleteInvitationConfirm').replace('{email}', deletingInvitation?.email || '')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -253,7 +258,7 @@ export function InvitationManagement() {
               disabled={deleteInvitationMutation.isPending}
               data-testid="button-cancel-delete-invitation"
             >
-              Cancel
+              {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {

@@ -66,8 +66,9 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
-import { CompactFileUpload } from '@/components/ui/file-upload';
+import { SharedUploader } from '@/components/document-management';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
+import type { UploadContext } from '@shared/config/upload-config';
 
 // Feature request form schema
 const featureRequestFormSchema = z.object({
@@ -127,6 +128,7 @@ interface FeatureRequest {
   filePath?: string | null;
   fileName?: string | null;
   fileSize?: number | null;
+  file_content?: string | null; // Text content for text-only documents
 }
 
 const categoryLabels = {
@@ -295,10 +297,19 @@ export default function IdeaBox() {
   const [attachmentText, setAttachmentText] = useState('');
   const [editAttachmentMode, setEditAttachmentMode] = useState<'file' | 'text'>('file');
   const [editAttachmentText, setEditAttachmentText] = useState('');
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Upload context for secure storage
+  const uploadContext: UploadContext = {
+    type: 'features',
+    organizationId: 'default',
+    userRole: user?.role || 'resident',
+    userId: user?.id
+  };
 
   const form = useForm<FeatureRequestFormData>({
     resolver: zodResolver(featureRequestFormSchema),
@@ -399,6 +410,7 @@ export default function IdeaBox() {
       form.reset();
       setAttachmentText('');
       setAttachmentMode('file');
+      setUploadedFiles([]); // Clear uploaded files
       toast({
         title: 'Idea submitted!',
         description: 'Your feature idea has been submitted successfully.',
@@ -494,23 +506,25 @@ export default function IdeaBox() {
   });
 
   const handleSubmit = (data: FeatureRequestFormData) => {
-    if (attachmentMode === 'file') {
-      const fileInput = document.querySelector('#file-upload') as HTMLInputElement;
-      const file = fileInput?.files?.[0];
-      
+    // Use the uploaded file from SharedUploader component
+    const file = uploadedFiles[0];
+    
+    if (file) {
       createMutation.mutate({
         ...data,
         file,
       });
-    } else {
-      // For text mode, we could store the text as a text file or in a dedicated field
-      // For now, let's append it to the description
+    } else if (attachmentText) {
+      // For text mode, store text content separately in file_content field
       const enhancedData = {
         ...data,
-        description: attachmentText ? `${data.description}\n\n**Additional Notes:**\n${attachmentText}` : data.description,
+        file_content: attachmentText || null,
       };
       
       createMutation.mutate(enhancedData);
+    } else {
+      // No file or text attachment
+      createMutation.mutate(data);
     }
   };
 
@@ -599,133 +613,151 @@ export default function IdeaBox() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className="flex-1 flex flex-col overflow-hidden">
       <Header title="Idea Box" subtitle="Share your ideas to improve our platform" />
       
-      {/* Header with search and create */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Idea Box</h2>
-            <p className="text-muted-foreground">
-              Share your ideas to improve our platform
-            </p>
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Action and Search Section */}
+          <div className="flex items-center justify-between">
+            <div></div>
+            <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-idea">
+              <Plus className="mr-2 h-4 w-4" />
+              Submit New Idea
+            </Button>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-idea">
-            <Plus className="mr-2 h-4 w-4" />
-            Submit New Idea
-          </Button>
-        </div>
 
-        {/* Search and filters */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search ideas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                data-testid="input-search"
-              />
-            </div>
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48" data-testid="select-status-filter">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="submitted">Submitted</SelectItem>
-              <SelectItem value="under_review">Under Review</SelectItem>
-              <SelectItem value="planned">Planned</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-48" data-testid="select-category-filter">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {Object.entries(categoryLabels).map(([key, label]) => (
-                <SelectItem key={key} value={key}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-32" data-testid="select-sort">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="upvotes">Most Upvoted</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Category-grouped cards */}
-      <div className="space-y-6">
-        {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => {
-          const categoryIdeas = ideasByCategory[categoryKey] || [];
-          if (categoryIdeas.length === 0) return null;
-          
-          const isExpanded = expandedCategories.has(categoryKey);
-          
-          return (
-            <div key={categoryKey} className="space-y-3">
-              <Collapsible open={isExpanded} onOpenChange={() => toggleCategory(categoryKey)}>
-                <CollapsibleTrigger className="flex items-center gap-2 p-2 w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                  <span className="text-lg font-semibold">
-                    {categoryLabel}
-                  </span>
-                  <Badge variant="secondary" className="ml-2">
-                    {categoryIdeas.length}
-                  </Badge>
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-6">
-                    {categoryIdeas.map((idea) => (
-                      <IdeaCard
-                        key={idea.id}
-                        idea={idea}
-                        onView={handleViewIdea}
-                        onEdit={handleEditIdea}
-                        onUpvote={handleUpvoteIdea}
-                        canEdit={canEditIdea(idea)}
-                        canUpvote={canUpvoteIdea(idea)}
-                      />
-                    ))}
+          {/* Search and Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="w-5 h-5" />
+                Search & Filters
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                    <Input
+                      placeholder="Search ideas..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                      data-testid="input-search"
+                    />
                   </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          );
-        })}
-        
-        {filteredIdeas.length === 0 && (
-          <div className="text-center py-12">
-            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No ideas found</h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
-                ? 'Try adjusting your search or filters.'
-                : 'Get started by submitting your first idea.'}
-            </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Status</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger data-testid="select-status-filter">
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="under_review">Under Review</SelectItem>
+                      <SelectItem value="planned">Planned</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Category & Sort</label>
+                  <div className="flex gap-2">
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger data-testid="select-category-filter">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {Object.entries(categoryLabels).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="w-32" data-testid="select-sort">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest</SelectItem>
+                        <SelectItem value="oldest">Oldest</SelectItem>
+                        <SelectItem value="upvotes">Most Upvoted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category-grouped cards */}
+          <div className="space-y-6">
+            {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => {
+              const categoryIdeas = ideasByCategory[categoryKey] || [];
+              if (categoryIdeas.length === 0) return null;
+              
+              const isExpanded = expandedCategories.has(categoryKey);
+              
+              return (
+                <div key={categoryKey} className="space-y-3">
+                  <Collapsible open={isExpanded} onOpenChange={() => toggleCategory(categoryKey)}>
+                    <CollapsibleTrigger className="flex items-center gap-2 p-2 w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                      <span className="text-lg font-semibold">
+                        {categoryLabel}
+                      </span>
+                      <Badge variant="secondary" className="ml-2">
+                        {categoryIdeas.length}
+                      </Badge>
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-6">
+                        {categoryIdeas.map((idea) => (
+                          <IdeaCard
+                            key={idea.id}
+                            idea={idea}
+                            onView={handleViewIdea}
+                            onEdit={handleEditIdea}
+                            onUpvote={handleUpvoteIdea}
+                            canEdit={canEditIdea(idea)}
+                            canUpvote={canUpvoteIdea(idea)}
+                          />
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              );
+            })}
+            
+            {filteredIdeas.length === 0 && (
+              <div className="text-center py-12">
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No ideas found</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
+                    ? 'Try adjusting your search or filters.'
+                    : 'Get started by submitting your first idea.'}
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Create Dialog */}
@@ -812,66 +844,20 @@ export default function IdeaBox() {
 
             {/* Choose Document Type Section */}
             <div className="space-y-4 border-t pt-4">
-              <Label className="text-sm font-medium">Choose Document Type</Label>
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setAttachmentMode('file')}
-                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                    attachmentMode === 'file'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
-                  }`}
-                  data-testid="button-file-mode"
-                >
-                  📁 Upload File
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAttachmentMode('text')}
-                  className={`flex-1 p-3 rounded-lg border text-sm font-medium transition-colors ${
-                    attachmentMode === 'text'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
-                  }`}
-                  data-testid="button-text-mode"
-                >
-                  📝 Text Document
-                </button>
-              </div>
-
-              {/* Dynamic Content Based on Selection */}
-              {attachmentMode === 'file' ? (
-                <div>
-                  <Label htmlFor="file-upload">Select File to Upload</Label>
-                  <Input
-                    id="file-upload"
-                    type="file"
-                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
-                    data-testid="input-file"
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Attach a screenshot, mockup, or document to help explain your idea
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <Label htmlFor="text-content">Document Content</Label>
-                  <Textarea
-                    id="text-content"
-                    value={attachmentText}
-                    onChange={(e) => setAttachmentText(e.target.value)}
-                    rows={5}
-                    className="w-full mt-1"
-                    placeholder="Add detailed notes, specifications, or any additional information about your idea..."
-                    data-testid="textarea-text-content"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    This will show as additional notes with your idea
-                  </p>
-                </div>
-              )}
+              <Label className="text-sm font-medium">Attach Documents (Optional)</Label>
+              <SharedUploader
+                onDocumentChange={(file, text) => {
+                  if (file) {
+                    setUploadedFiles([file]);
+                  }
+                  if (text) {
+                    setAttachmentText(text);
+                  }
+                }}
+                formType="features"
+                uploadContext={uploadContext}
+                showAiToggle={false} // No toggle, use config-based AI enablement
+              />
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">
@@ -1161,6 +1147,7 @@ export default function IdeaBox() {
                   </p>
                 </div>
                 
+                {/* Show file attachment if exists */}
                 {viewingFeatureRequest.filePath && (
                   <div>
                     <h4 className="font-semibold mb-2">Attachment</h4>
@@ -1171,6 +1158,18 @@ export default function IdeaBox() {
                       fileName={viewingFeatureRequest.fileName}
                       fileSize={viewingFeatureRequest.fileSize}
                     />
+                  </div>
+                )}
+                
+                {/* Show text content if exists */}
+                {viewingFeatureRequest.file_content && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Document Content</h4>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                      <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-mono">
+                        {viewingFeatureRequest.file_content}
+                      </pre>
+                    </div>
                   </div>
                 )}
                 

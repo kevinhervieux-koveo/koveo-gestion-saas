@@ -58,7 +58,7 @@ function transformPermission(permission: string) {
  */
 export function registerPermissionsRoutes(app: Express) {
   // Get all system permissions from database
-  app.get('/api/permissions', requireAuth, authorize('read:users'), async (req, res) => {
+  app.get('/api/permissions', requireAuth, async (req, res) => {
     try {
       const permissions = await storage.getPermissions();
       res.json(permissions);
@@ -69,7 +69,7 @@ export function registerPermissionsRoutes(app: Express) {
   });
 
   // Get role-based permissions from database
-  app.get('/api/role-permissions', requireAuth, authorize('read:users'), async (req, res) => {
+  app.get('/api/role-permissions', requireAuth, async (req, res) => {
     try {
       const rolePermissions = await storage.getRolePermissions();
       res.json(rolePermissions);
@@ -80,7 +80,7 @@ export function registerPermissionsRoutes(app: Express) {
   });
 
   // Get permissions matrix for admin dashboard
-  app.get('/api/permissions-matrix', requireAuth, authorize('read:users'), async (req, res) => {
+  app.get('/api/permissions-matrix', requireAuth, async (req, res) => {
     try {
       const permissions = await storage.getPermissions();
       const rolePermissions = await storage.getRolePermissions();
@@ -115,7 +115,7 @@ export function registerPermissionsRoutes(app: Express) {
   });
 
   // Get user-specific permissions (overrides)
-  app.get('/api/user-permissions', requireAuth, authorize('read:users'), async (req, res) => {
+  app.get('/api/user-permissions', requireAuth, async (req, res) => {
     try {
       const userPermissions = await storage.getUserPermissions();
       res.json(userPermissions);
@@ -217,7 +217,7 @@ export function registerPermissionsRoutes(app: Express) {
   );
 
   // Get permission categories for organization
-  app.get('/api/permission-categories', requireAuth, authorize('read:users'), async (req, res) => {
+  app.get('/api/permission-categories', requireAuth, async (req, res) => {
     try {
       // Generate categories based on database permissions
       const permissions = await storage.getPermissions();

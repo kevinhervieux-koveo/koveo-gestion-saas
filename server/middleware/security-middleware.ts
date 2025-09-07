@@ -61,7 +61,7 @@ const getCSPConfig = (isDevelopment: boolean) => {
       imgSrc: [
         "'self'",
         'data:',
-        'blob:',
+        'blob:', // Required for image preview functionality during upload
         'https:', // Allow HTTPS images for property photos
         ...devSources,
       ],
@@ -276,8 +276,8 @@ export function configureSecurityMiddleware(app: Express): void {
   // Helmet Security Headers
   app.use(
     helmet({
-      // Content Security Policy - Disabled in development for React HMR
-      contentSecurityPolicy: isDevelopment ? false : getCSPConfig(isDevelopment),
+      // Content Security Policy - Always use custom config to ensure blob: support
+      contentSecurityPolicy: getCSPConfig(isDevelopment),
 
       // Cross-Origin Embedder Policy - Relaxed in development
       crossOriginEmbedderPolicy: isDevelopment
@@ -356,6 +356,22 @@ export function configureSecurityMiddleware(app: Express): void {
     res.setHeader('X-Download-Options', 'noopen');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
+
+    // Ensure blob: support for image previews in document uploads
+    if (isDevelopment) {
+      const existingCSP = res.getHeader('Content-Security-Policy') as string;
+      if (existingCSP && !existingCSP.includes('blob:')) {
+        console.log(`🛡️ CSP Debug: Adding blob: support to existing CSP for ${req.path}`);
+        const updatedCSP = existingCSP.replace(/img-src ([^;]+)/g, (match, sources) => {
+          if (!sources.includes('blob:')) {
+            return `img-src ${sources} blob:`;
+          }
+          return match;
+        });
+        res.setHeader('Content-Security-Policy', updatedCSP);
+        console.log(`🛡️ CSP Updated: ${updatedCSP}`);
+      }
+    }
 
     // Server information hiding
     res.removeHeader('X-Powered-By');

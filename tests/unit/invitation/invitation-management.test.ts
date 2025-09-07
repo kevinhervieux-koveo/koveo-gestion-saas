@@ -7,23 +7,37 @@ import * as schema from '../../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
-// Mock database for unit testing
+// Mock database for unit testing - robust implementation
 const mockDb = {
-  delete: jest.fn().mockResolvedValue([]),
-  insert: jest.fn().mockImplementation(() => ({
-    values: jest.fn().mockImplementation(() => ({
-      returning: jest.fn().mockResolvedValue([{ id: 'mock-id', name: 'Mock Data' }])
+  delete: jest.fn(() => Promise.resolve([])),
+  insert: jest.fn(() => {
+    const insertChain = {
+      values: jest.fn((data) => {
+        const valuesChain = {
+          returning: jest.fn(() => Promise.resolve([{
+            id: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+            ...data,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }]))
+        };
+        return valuesChain;
+      })
+    };
+    return insertChain;
+  }),
+  select: jest.fn(() => ({
+    from: jest.fn(() => ({
+      where: jest.fn(() => Promise.resolve([])),
+      leftJoin: jest.fn(() => ({
+        where: jest.fn(() => Promise.resolve([]))
+      }))
     }))
   })),
-  select: jest.fn().mockImplementation(() => ({
-    from: jest.fn().mockImplementation(() => ({
-      where: jest.fn().mockResolvedValue([])
-    }))
-  })),
-  update: jest.fn().mockImplementation(() => ({
-    set: jest.fn().mockImplementation(() => ({
-      where: jest.fn().mockImplementation(() => ({
-        returning: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
+  update: jest.fn(() => ({
+    set: jest.fn(() => ({
+      where: jest.fn(() => ({
+        returning: jest.fn(() => Promise.resolve([{ id: 'mock-id' }]))
       }))
     }))
   }))

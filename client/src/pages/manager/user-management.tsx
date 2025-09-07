@@ -218,15 +218,15 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       toast({
-        title: 'Success',
-        description: 'User updated successfully',
+        title: t('success'),
+        description: t('userUpdatedSuccess'),
       });
       setSelectedUsers(new Set());
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: (_error: Error) => {
       toast({
-        title: 'Error',
+        title: t('error'),
         description: _error.message,
         variant: 'destructive',
       });
@@ -245,15 +245,15 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       toast({
-        title: 'Success',
-        description: 'User updated successfully',
+        title: t('success'),
+        description: t('userUpdatedSuccess'),
       });
       setEditingUser(null);
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
+        title: t('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -347,8 +347,8 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       toast({
-        title: 'Success',
-        description: 'Organization assignments updated successfully',
+        title: t('success'),
+        description: t('organizationAssignmentsUpdated'),
       });
       setEditingUserOrganizations(null);
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
@@ -356,7 +356,7 @@ export default function UserManagement() {
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
+        title: t('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -379,14 +379,14 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       toast({
-        title: 'Success',
-        description: 'Building assignments updated successfully',
+        title: t('success'),
+        description: t('buildingAssignmentsUpdated'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
+        title: t('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -409,8 +409,8 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       toast({
-        title: 'Success',
-        description: 'Residence assignments updated successfully',
+        title: t('success'),
+        description: t('residenceAssignmentsUpdated'),
       });
       setEditingUserResidences(null);
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
@@ -418,7 +418,7 @@ export default function UserManagement() {
     },
     onError: (error: Error) => {
       toast({
-        title: 'Error',
+        title: t('error'),
         description: error.message,
         variant: 'destructive',
       });
@@ -439,8 +439,8 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       toast({
-        title: 'Account deleted',
-        description: 'User account and all associated data have been permanently deleted.',
+        title: t('accountDeleted'),
+        description: t('accountDeletedDescription'),
       });
       setDeletingUser(null);
       // Invalidate and refetch user data
@@ -452,8 +452,8 @@ export default function UserManagement() {
     },
     onError: (error: Error) => {
       toast({
-        title: 'Deletion failed',
-        description: error.message || 'Failed to delete account',
+        title: t('deletionFailed'),
+        description: error.message || t('deletionFailedDescription'),
         variant: 'destructive',
       });
     },
@@ -594,11 +594,11 @@ export default function UserManagement() {
   if (usersError) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='User Management' subtitle='Manage All Users' />
+        <Header title={t('userManagement')} subtitle={t('manageAllUsers')} />
         <div className='flex-1 overflow-auto p-6'>
           <Card>
             <CardContent className='p-6'>
-              <p className='text-red-600'>An error occurred</p>
+              <p className='text-red-600'>{t('anErrorOccurred')}</p>
             </CardContent>
           </Card>
         </div>
@@ -608,7 +608,7 @@ export default function UserManagement() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='User Management' subtitle='Manage All Users' />
+      <Header title={t('userManagement')} subtitle={t('manageAllUsers')} />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -616,34 +616,34 @@ export default function UserManagement() {
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
           <Card>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium text-gray-600'>Total Users</CardTitle>
+              <CardTitle className='text-sm font-medium text-gray-600'>{t('totalUsers')}</CardTitle>
               <Users className='h-4 w-4 text-muted-foreground' />
             </CardHeader>
             <CardContent>
               <div className='text-2xl font-bold'>{totalUsers}</div>
-              <p className='text-xs text-muted-foreground'>Total</p>
+              <p className='text-xs text-muted-foreground'>{t('total')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium text-gray-600'>Active Users</CardTitle>
+              <CardTitle className='text-sm font-medium text-gray-600'>{t('activeUsers')}</CardTitle>
               <UserPlus className='h-4 w-4 text-muted-foreground' />
             </CardHeader>
             <CardContent>
               <div className='text-2xl font-bold'>{activeUsers}</div>
-              <p className='text-xs text-muted-foreground'>Active</p>
+              <p className='text-xs text-muted-foreground'>{t('active')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium text-gray-600'>Admin</CardTitle>
+              <CardTitle className='text-sm font-medium text-gray-600'>{t('admin')}</CardTitle>
               <Shield className='h-4 w-4 text-muted-foreground' />
             </CardHeader>
             <CardContent>
               <div className='text-2xl font-bold'>{adminUsers}</div>
-              <p className='text-xs text-muted-foreground'>Role</p>
+              <p className='text-xs text-muted-foreground'>{t('role')}</p>
             </CardContent>
           </Card>
         </div>
@@ -654,17 +654,17 @@ export default function UserManagement() {
             <TabsList>
               <TabsTrigger value='users' className='flex items-center gap-2'>
                 <Users className='h-4 w-4' />
-                Users
+                {t('users')}
               </TabsTrigger>
               <TabsTrigger value='invitations' className='flex items-center gap-2'>
                 <Mail className='h-4 w-4' />
-                Invitations
+                {t('invitations')}
               </TabsTrigger>
             </TabsList>
 
             <Button onClick={() => setShowInviteDialog(true)}>
               <UserPlus className='h-4 w-4 mr-2' />
-              Invite User
+              {t('inviteUser')}
             </Button>
           </div>
 
@@ -672,7 +672,7 @@ export default function UserManagement() {
             <Card>
               <CardContent className='p-6'>
                 {usersLoading ? (
-                  <p>Loading users...</p>
+                  <p>{t('loadingUsers') || 'Loading users...'}</p>
                 ) : (
                   <div className='space-y-4'>
                     {/* Simple Search and Filters */}
@@ -680,7 +680,7 @@ export default function UserManagement() {
                       {/* Search */}
                       <div className='flex-1'>
                         <Input
-                          placeholder='Search users by name, email, or username...'
+                          placeholder={t('searchUsers')}
                           value={search}
                           onChange={(e) => setSearch(e.target.value)}
                           className='w-full'
@@ -693,11 +693,11 @@ export default function UserManagement() {
                         onChange={(e) => setRoleFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
-                        <option value=''>All Roles</option>
-                        <option value='admin'>Admin</option>
-                        <option value='manager'>Manager</option>
-                        <option value='tenant'>Tenant</option>
-                        <option value='resident'>Resident</option>
+                        <option value=''>{t('allRoles')}</option>
+                        <option value='admin'>{t('admin')}</option>
+                        <option value='manager'>{t('manager')}</option>
+                        <option value='tenant'>{t('tenant')}</option>
+                        <option value='resident'>{t('resident')}</option>
                       </select>
 
                       {/* Status Filter */}
@@ -706,9 +706,9 @@ export default function UserManagement() {
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
-                        <option value=''>All Status</option>
-                        <option value='true'>Active</option>
-                        <option value='false'>Inactive</option>
+                        <option value=''>{t('allStatuses')}</option>
+                        <option value='true'>{t('statusActive')}</option>
+                        <option value='false'>{t('statusInactive')}</option>
                       </select>
 
                       {/* Organization Filter */}
@@ -718,7 +718,7 @@ export default function UserManagement() {
                           onChange={(e) => setOrganizationFilter(e.target.value)}
                           className='px-3 py-2 border border-gray-300 rounded-md'
                         >
-                          <option value=''>All Organizations</option>
+                          <option value=''>{t('allOrganizations')}</option>
                           {organizations?.map((org) => (
                             <option key={org.id} value={org.id}>
                               {org.name}
@@ -730,13 +730,13 @@ export default function UserManagement() {
                       {/* Clear Filters */}
                       {(roleFilter || statusFilter || organizationFilter || search) && (
                         <Button variant='outline' onClick={handleClearFilters}>
-                          Clear All
+                          {t('clearFilters')}
                         </Button>
                       )}
                     </div>
 
                     <h3 className='text-lg font-semibold'>
-                      User List ({filteredTotal} of {totalUsers} users)
+                      {t('users')} ({filteredTotal} of {totalUsers} {t('users').toLowerCase()})
                     </h3>
 
                     {/* User Table - Completely Rebuilt */}
@@ -757,7 +757,7 @@ export default function UserManagement() {
                       <div className='flex justify-between items-center mt-4'>
                         <div className='text-sm text-gray-600'>
                           Showing {startIndex + 1}-{Math.min(endIndex, filteredTotal)} of{' '}
-                          {filteredTotal} filtered users ({totalUsers} total)
+                          {filteredTotal} filtered {t('users').toLowerCase()} ({totalUsers} total)
                         </div>
                         <div className='flex gap-2'>
                           <Button
@@ -766,10 +766,10 @@ export default function UserManagement() {
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
                           >
-                            Previous
+                            {t('previous') || 'Previous'}
                           </Button>
                           <span className='px-3 py-1 text-sm'>
-                            Page {currentPage} of {totalPages}
+                            {t('page') || 'Page'} {currentPage} {t('of') || 'of'} {totalPages}
                           </span>
                           <Button
                             variant='outline'
@@ -777,7 +777,7 @@ export default function UserManagement() {
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
                           >
-                            Next
+                            {t('next') || 'Next'}
                           </Button>
                         </div>
                       </div>
@@ -807,16 +807,16 @@ export default function UserManagement() {
         <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
           <DialogContent className='sm:max-w-[800px] max-h-[90vh] overflow-y-auto'>
             <DialogHeader>
-              <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>Update user information, organizations, buildings, and residences.</DialogDescription>
+              <DialogTitle>{t('editUserTitle')}</DialogTitle>
+              <DialogDescription>{t('editUserDescription')}</DialogDescription>
             </DialogHeader>
 
             <Tabs defaultValue='basic' className='w-full'>
               <TabsList className={`grid w-full ${canEditOrganizations && canEditResidences ? 'grid-cols-4' : canEditOrganizations || canEditResidences ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                <TabsTrigger value='basic'>Basic Info</TabsTrigger>
-                {canEditOrganizations && <TabsTrigger value='organizations'>Organizations</TabsTrigger>}
-                <TabsTrigger value='buildings'>Buildings</TabsTrigger>
-                {canEditResidences && <TabsTrigger value='residences'>Residences</TabsTrigger>}
+                <TabsTrigger value='basic'>{t('basicInfo') || 'Basic Info'}</TabsTrigger>
+                {canEditOrganizations && <TabsTrigger value='organizations'>{t('organizations')}</TabsTrigger>}
+                <TabsTrigger value='buildings'>{t('buildings') || 'Buildings'}</TabsTrigger>
+                {canEditResidences && <TabsTrigger value='residences'>{t('residences') || 'Residences'}</TabsTrigger>}
               </TabsList>
 
               <TabsContent value='basic' className='space-y-4'>
@@ -828,7 +828,7 @@ export default function UserManagement() {
                         name='firstName'
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>First Name</FormLabel>
+                            <FormLabel>{t('firstName')}</FormLabel>
                             <FormControl>
                               <Input {...field} data-testid='input-edit-firstName' />
                             </FormControl>
@@ -842,7 +842,7 @@ export default function UserManagement() {
                         name='lastName'
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Last Name</FormLabel>
+                            <FormLabel>{t('lastName')}</FormLabel>
                             <FormControl>
                               <Input {...field} data-testid='input-edit-lastName' />
                             </FormControl>
@@ -857,7 +857,7 @@ export default function UserManagement() {
                       name='email'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('email')}</FormLabel>
                           <FormControl>
                             <Input {...field} type='email' data-testid='input-edit-email' />
                           </FormControl>
@@ -871,11 +871,11 @@ export default function UserManagement() {
                       name='role'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Role</FormLabel>
+                          <FormLabel>{t('role')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid='select-edit-role'>
-                                <SelectValue placeholder='Select role' />
+                                <SelectValue placeholder={t('selectRole')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -896,19 +896,19 @@ export default function UserManagement() {
                       name='isActive'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Status</FormLabel>
+                          <FormLabel>{t('accountStatus')}</FormLabel>
                           <Select
                             onValueChange={(value) => field.onChange(value === 'true')}
                             defaultValue={field.value.toString()}
                           >
                             <FormControl>
                               <SelectTrigger data-testid='select-edit-status'>
-                                <SelectValue placeholder='Select status' />
+                                <SelectValue placeholder={t('selectStatus') || 'Select status'} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value='true'>Active</SelectItem>
-                              <SelectItem value='false'>Inactive</SelectItem>
+                              <SelectItem value='true'>{t('statusActive')}</SelectItem>
+                              <SelectItem value='false'>{t('statusInactive')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -923,14 +923,14 @@ export default function UserManagement() {
                         onClick={() => setEditingUser(null)}
                         data-testid='button-cancel-edit'
                       >
-                        Cancel
+                        {t('cancel')}
                       </Button>
                       <Button
                         type='submit'
                         disabled={editUserMutation.isPending}
                         data-testid='button-save-edit'
                       >
-                        {editUserMutation.isPending ? 'Saving...' : 'Save Changes'}
+                        {editUserMutation.isPending ? (t('saving') || 'Saving...') : t('saveChanges')}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -997,25 +997,21 @@ export default function UserManagement() {
         <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
           <AlertDialogContent className='sm:max-w-[500px]'>
             <AlertDialogHeader>
-              <AlertDialogTitle className='text-red-600'>Delete User Account</AlertDialogTitle>
+              <AlertDialogTitle className='text-red-600'>{t('deleteUserTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete{' '}
-                <strong>
-                  {deletingUser?.firstName} {deletingUser?.lastName}
-                </strong>{' '}
-                and all associated data. This action cannot be undone.
+                {t('deleteUserDescription').replace('and all associated data', `${deletingUser?.firstName} ${deletingUser?.lastName} and all associated data`)}
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             <div className='bg-red-50 dark:bg-red-950 p-4 rounded-lg border border-red-200 dark:border-red-800 mb-4'>
               <p className='text-red-700 dark:text-red-300 text-sm'>
-                <strong>Warning:</strong> This will delete all user data including:
+                <strong>{t('warning') || 'Warning'}:</strong> {t('deleteUserDataWarning') || 'This will delete all user data including'}:
               </p>
               <ul className='text-red-700 dark:text-red-300 text-sm mt-2 list-disc list-inside'>
-                <li>Profile information and account access</li>
-                <li>Organization and residence assignments</li>
-                <li>Bills, documents, and maintenance requests</li>
-                <li>Notifications and activity history</li>
+                <li>{t('profileInfoAccess') || 'Profile information and account access'}</li>
+                <li>{t('orgResidenceAssignments') || 'Organization and residence assignments'}</li>
+                <li>{t('billsDocsMaintenance') || 'Bills, documents, and maintenance requests'}</li>
+                <li>{t('notificationsActivity') || 'Notifications and activity history'}</li>
               </ul>
             </div>
 
@@ -1027,7 +1023,7 @@ export default function UserManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Confirm by typing the user's email address:{' '}
+                        {t('confirmEmailLabel')}:{' '}
                         <span className='font-mono text-sm'>{deletingUser?.email}</span>
                       </FormLabel>
                       <FormControl>
@@ -1048,11 +1044,11 @@ export default function UserManagement() {
                   name='reason'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Reason for deletion (optional)</FormLabel>
+                      <FormLabel>{t('reasonOptional')}</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder='Enter reason for deletion...'
+                          placeholder={t('enterReasonDeletion') || 'Enter reason for deletion...'}
                           data-testid='input-delete-reason'
                         />
                       </FormControl>

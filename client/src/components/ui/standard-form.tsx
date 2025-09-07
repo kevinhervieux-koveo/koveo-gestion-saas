@@ -186,17 +186,12 @@ StandardForm({
     defaultValues,
   });
 
-  const handleSubmit = async (_data: unknown) => {
+  const handleSubmit = async (data: unknown) => {
     try {
       await onSubmit(data as Record<string, unknown>);
-      /**
-       * Catch function.
-       * @param _error - _error parameter.
-       */ /**
-       * Catch function.
-       * @param _error - _error parameter.
-       */
-
+    } catch (error) {
+      console.error('Form submission error:', error);
+      // Handle error appropriately
     }
   };
 

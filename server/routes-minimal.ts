@@ -1017,6 +1017,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acknowledgedRights,
         } = req.body;
 
+
         if (!token) {
           return res.status(400).json({
             message: 'Token is required',
@@ -1124,22 +1125,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const baseUsername = generateUsernameFromEmail(normalizedEmail);
         let username = baseUsername;
 
-        // Ensure username uniqueness by checking existing users
-        let usernameCounter = 1;
+        // Ensure username uniqueness by checking existing users with random numbers
+        let attempts = 0;
+        const maxAttempts = 10;
         let existingUsername = await db
           .select({ username: schemaUsers.username })
           .from(schemaUsers)
           .where(eq(schemaUsers.username, username))
           .limit(1);
 
-        while (existingUsername.length > 0) {
-          username = `${baseUsername}${usernameCounter}`;
-          usernameCounter++;
+        while (existingUsername.length > 0 && attempts < maxAttempts) {
+          // Generate random 4-digit suffix
+          const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+          username = `${baseUsername}${randomSuffix}`;
+          attempts++;
+          
           existingUsername = await db
             .select({ username: schemaUsers.username })
             .from(schemaUsers)
             .where(eq(schemaUsers.username, username))
             .limit(1);
+        }
+
+        if (attempts >= maxAttempts && existingUsername.length > 0) {
+          throw new Error('Unable to generate unique username after maximum attempts');
         }
 
         // Validate user data against schema before creation
@@ -1157,8 +1166,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Validate using insertUserSchema - use safeParse to avoid throwing errors
         const validationResult = insertUserSchema.safeParse(createUserData);
         if (!validationResult.success) {
-          console.log('❌ User data validation failed:', validationResult.error.issues);
-          console.log('📝 Attempted user data:', createUserData);
           return res.status(400).json({
             message:
               'Invalid user data: ' +

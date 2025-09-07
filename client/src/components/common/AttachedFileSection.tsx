@@ -62,14 +62,47 @@ export function AttachedFileSection({
     window.open(fileUrl, '_blank');
   };
 
-  const handleDownloadFile = () => {
+  const handleDownloadFile = async () => {
     if (!canDownload || !filePath) return;
-    const link = window.document.createElement('a');
-    link.href = getApiEndpoint(true);
-    link.download = fileName || fallbackName;
-    window.document.body.appendChild(link);
-    link.click();
-    window.document.body.removeChild(link);
+    
+    try {
+      // Use fetch with credentials to ensure authentication
+      const response = await fetch(getApiEndpoint(true), {
+        method: 'GET',
+        credentials: 'include', // Include authentication cookies
+      });
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
+
+      // Get the filename from Content-Disposition header or use existing name
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let downloadFileName = fileName || fallbackName;
+      
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="([^"]+)"/);
+        if (fileNameMatch) {
+          downloadFileName = fileNameMatch[1];
+        }
+      }
+
+      // Convert response to blob and create download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = window.document.createElement('a');
+      link.href = url;
+      link.download = downloadFileName;
+      window.document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      window.document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('[DOWNLOAD] File download failed:', error);
+    }
   };
 
   const formatFileSize = (bytes?: number | null) => {

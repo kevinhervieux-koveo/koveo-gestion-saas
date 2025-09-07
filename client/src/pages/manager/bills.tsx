@@ -32,12 +32,12 @@ import {
   Tag,
   ChevronDown,
 } from 'lucide-react';
-import { BillEditForm } from '@/components/BillEditForm';
 import { BuildingSelectionGrid } from '@/components/BuildingSelectionGrid';
-import { BillCreateForm } from '@/components/BillCreateForm';
+import ModularBillForm from '@/components/bill-management/ModularBillForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import type { Building, Bill } from '@shared/schema';
 
 const BILL_CATEGORIES = [
@@ -56,22 +56,6 @@ const BILL_CATEGORIES = [
   'other',
 ] as const;
 
-const CATEGORY_LABELS: Record<string, string> = {
-  insurance: 'Insurance',
-  maintenance: 'Maintenance',
-  salary: 'Salary',
-  utilities: 'Utilities',
-  cleaning: 'Cleaning',
-  security: 'Security',
-  landscaping: 'Landscaping',
-  professional_services: 'Professional Services',
-  administration: 'Administration',
-  repairs: 'Repairs',
-  supplies: 'Supplies',
-  taxes: 'Taxes',
-  other: 'Other',
-};
-
 const MONTHS = [
   { value: '1', label: 'January' },
   { value: '2', label: 'February' },
@@ -86,6 +70,26 @@ const MONTHS = [
   { value: '11', label: 'November' },
   { value: '12', label: 'December' },
 ];
+
+// Category labels using translation keys
+const getCategoryLabel = (category: string, t: (key: string) => string) => {
+  const categoryTranslationKeys: Record<string, string> = {
+    insurance: 'insurance',
+    maintenance: 'maintenance', 
+    salary: 'salary',
+    utilities: 'utilities',
+    cleaning: 'cleaning',
+    security: 'security',
+    landscaping: 'landscaping',
+    professional_services: 'professionalServices',
+    administration: 'administration',
+    repairs: 'repairs',
+    supplies: 'supplies',
+    taxes: 'taxes',
+    other: 'other'
+  };
+  return t(categoryTranslationKeys[category] || category);
+};
 
 /**
  *
@@ -107,6 +111,7 @@ export default function /**
  */
 
 Bills() {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<BillFilters>({
     buildingId: '',
     category: '',
@@ -328,11 +333,11 @@ Bills() {
   if (buildingsLoading) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='Bills Management' subtitle='Manage building expenses and revenue tracking' />
+        <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center'>
             <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4'></div>
-            <p className='text-gray-500'>Loading buildings...</p>
+            <p className='text-gray-500'>{t('loadingBuildings')}</p>
           </div>
         </div>
       </div>
@@ -343,15 +348,15 @@ Bills() {
   if (buildingsError) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='Bills Management' subtitle='Manage building expenses and revenue tracking' />
+        <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center'>
-            <p className='text-red-500 mb-4'>Failed to load buildings</p>
+            <p className='text-red-500 mb-4'>{t('failedToLoadBuildings')}</p>
             <button
               onClick={() => window.location.reload()}
               className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
             >
-              Retry
+              {t('retry')}
             </button>
           </div>
         </div>
@@ -361,7 +366,7 @@ Bills() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='Bills Management' subtitle='Manage building expenses and revenue tracking' />
+      <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -370,7 +375,7 @@ Bills() {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <Filter className='w-5 h-5' />
-                Filters
+                {t('filters')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -378,14 +383,14 @@ Bills() {
                 <div className='space-y-2'>
                   <Label htmlFor='building-filter' className='flex items-center gap-2'>
                     <BuildingIcon className='w-4 h-4' />
-                    Building
+                    {t('building')}
                   </Label>
                   <Select
                     value={filters.buildingId}
                     onValueChange={(value) => handleFilterChange('buildingId', value)}
                   >
                     <SelectTrigger id='building-filter'>
-                      <SelectValue placeholder='Select building' />
+                      <SelectValue placeholder={t('selectBuilding')} />
                     </SelectTrigger>
                     <SelectContent>
                       {Array.isArray(buildings) &&
@@ -401,20 +406,20 @@ Bills() {
                 <div className='space-y-2'>
                   <Label htmlFor='category-filter' className='flex items-center gap-2'>
                     <Tag className='w-4 h-4' />
-                    Category
+                    {t('category')}
                   </Label>
                   <Select
                     value={filters.category}
                     onValueChange={(value) => handleFilterChange('category', value)}
                   >
                     <SelectTrigger id='category-filter'>
-                      <SelectValue placeholder='All categories' />
+                      <SelectValue placeholder={t('allCategories')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All categories</SelectItem>
+                      <SelectItem value='all'>{t('allCategories')}</SelectItem>
                       {BILL_CATEGORIES.map((category) => (
                         <SelectItem key={category} value={category}>
-                          {CATEGORY_LABELS[category]}
+                          {getCategoryLabel(category, t)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -424,7 +429,7 @@ Bills() {
                 <div className='space-y-2'>
                   <Label htmlFor='year-filter' className='flex items-center gap-2'>
                     <Calendar className='w-4 h-4' />
-                    Year
+                    {t('year')}
                   </Label>
                   <div className='space-y-2'>
                     <Select
@@ -475,7 +480,7 @@ Bills() {
                 <div className='space-y-2'>
                   <Label className='flex items-center gap-2'>
                     <Calendar className='w-4 h-4' />
-                    Months
+                    {t('months')}
                   </Label>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -532,16 +537,17 @@ Bills() {
                   <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                     <DialogTrigger asChild>
                       <Button className='w-full' disabled={!filters.buildingId}>
-                        Create Bill
+                        {t('createBill')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
                       <DialogHeader>
-                        <DialogTitle>Create New Bill</DialogTitle>
+                        <DialogTitle>{t('createNewBill')}</DialogTitle>
                       </DialogHeader>
-                      <BillCreateForm
+                      <ModularBillForm
+                        mode="create"
                         buildingId={filters.buildingId}
-                        onClose={() => setShowCreateDialog(false)}
+                        onCancel={() => setShowCreateDialog(false)}
                         onSuccess={() => {
                           setShowCreateDialog(false);
                           queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
@@ -564,13 +570,13 @@ Bills() {
             <Card>
               <CardContent className='p-8 text-center'>
                 <div className='animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4'></div>
-                <p className='text-gray-500'>Loading bills...</p>
+                <p className='text-gray-500'>{t('loadingBills')}</p>
               </CardContent>
             </Card>
           ) : Object.keys(billsByCategory).length === 0 ? (
             <Card>
               <CardContent className='p-8 text-center'>
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Bills Found</h3>
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noBillsFound')}</h3>
                 <p className='text-gray-500 mb-4'>
                   No bills found for the selected filters. Create your first bill to get started.
                 </p>
@@ -591,6 +597,7 @@ Bills() {
                   category={category}
                   bills={billsByCategory[category] || []}
                   onBillUpdate={() => queryClient.invalidateQueries({ queryKey: ['/api/bills'] })}
+                  t={t}
                 />
               ))}
             </div>
@@ -621,10 +628,12 @@ function BillCategorySection({
   category,
   bills,
   onBillUpdate,
+  t,
 }: {
   category: string;
   bills: Bill[];
   onBillUpdate: () => void;
+  t: (key: string) => string;
 }) {
   return (
     <Card>
@@ -632,7 +641,7 @@ function BillCategorySection({
         <CardTitle className='flex items-center justify-between'>
           <div className='flex items-center gap-2'>
             <Tag className='w-5 h-5' />
-            {CATEGORY_LABELS[category]}
+            {getCategoryLabel(category, t)}
             <Badge variant='secondary'>{bills.length}</Badge>
           </div>
         </CardTitle>
@@ -663,6 +672,7 @@ function BillCategorySection({
  * @returns Function result.
  */
 function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
+  const { t } = useLanguage();
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
@@ -704,7 +714,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
             {bill.vendor && <p className='text-xs text-gray-500'>Vendor: {bill.vendor}</p>}
 
             <div className='flex items-center gap-2 pt-2'>
-              {bill.documentPath && (
+              {bill.filePath && (
                 <Badge variant='outline' className='text-xs'>
                   <FileText className='w-3 h-3 mr-1' />
                   Document
@@ -727,7 +737,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
 
       {/* Bill Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className='max-w-2xl max-h-[95vh] overflow-y-auto'>
+        <DialogContent className='max-w-2xl max-h-[95vh] overflow-y-auto' aria-describedby="bill-details-description">
           <DialogHeader>
             <DialogTitle>Bill Details</DialogTitle>
           </DialogHeader>
@@ -748,17 +758,16 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
 
       {/* Bill Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto'>
-          <DialogHeader>
-            <DialogTitle>Edit Bill</DialogTitle>
-          </DialogHeader>
-          <BillEditForm
+        <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto' aria-describedby="edit-bill-description">
+          <ModularBillForm
+            mode="edit"
             bill={bill}
             onSuccess={() => {
               setShowEditDialog(false);
               onUpdate();
             }}
             onCancel={() => setShowEditDialog(false)}
+            buildingId={bill.buildingId}
           />
         </DialogContent>
       </Dialog>
@@ -766,22 +775,7 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
   );
 }
 
-// Bill detail and edit form
-/**
- *
- * @param root0
- * @param root0.bill
- * @param root0.onSuccess
- * @param root0.onCancel
- */
-/**
- * BillDetail function.
- * @param root0
- * @param root0.bill
- * @param root0.onSuccess
- * @param root0.onCancel
- * @returns Function result.
- */
+// Bill detail component
 function BillDetail({
   bill,
   onSuccess,
@@ -793,11 +787,26 @@ function BillDetail({
   onCancel: () => void;
   onEditBill: () => void;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [endDate, setEndDate] = useState(bill.endDate || '');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const queryClient = useQueryClient();
+
+  // Fetch fresh bill data to ensure we have updated document information
+  const { data: freshBill, error: freshBillError, isLoading: freshBillLoading } = useQuery({
+    queryKey: ['/api/bills', bill.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/bills/${bill.id}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch bill details');
+      }
+      return response.json();
+    },
+  });
+
+  // Use fresh bill data if available, fallback to props bill data
+  const currentBill = freshBill || bill;
+  
+  const [endDate, setEndDate] = useState(currentBill.endDate || '');
 
   const updateBillMutation = useMutation({
     mutationFn: async (updates: Partial<Bill>) => {
@@ -823,84 +832,11 @@ function BillDetail({
   });
 
   const handleSetEndDate = () => {
-    /**
-     * If function.
-     * @param endDate - EndDate parameter.
-     */ /**
-     * If function.
-     * @param endDate - EndDate parameter.
-     */
-
     if (endDate) {
       updateBillMutation.mutate({ endDate });
     }
   };
 
-  const uploadDocumentMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('document', file);
-
-      const response = await fetch(`/api/bills/${bill.id}/upload-document`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload document');
-      }
-
-      return response.json();
-    },
-    onSuccess: (_data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
-      setUploadedFile(null);
-      onSuccess();
-    },
-  });
-
-  const applyAiAnalysisMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/bills/${bill.id}/apply-ai-analysis`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to apply AI analysis');
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
-      onSuccess();
-    },
-  });
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]; /**
-     * If function.
-     * @param file - File parameter.
-     */ /**
-     * If function.
-     * @param file - File parameter.
-     */
-
-    if (file) {
-      setUploadedFile(file);
-      setIsAnalyzing(true);
-      uploadDocumentMutation.mutate(file);
-    }
-  };
-
-  const handleApplyAiAnalysis = () => {
-    applyAiAnalysisMutation.mutate();
-  };
 
   return (
     <div className='space-y-6'>
@@ -908,59 +844,59 @@ function BillDetail({
       <div className='grid grid-cols-2 gap-4'>
         <div>
           <Label className='text-sm font-medium'>Bill Number</Label>
-          <p className='text-sm text-gray-600'>{bill.billNumber}</p>
+          <p className='text-sm text-gray-600'>{currentBill.billNumber}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Status</Label>
-          <p className='text-sm text-gray-600 capitalize'>{bill.status}</p>
+          <p className='text-sm text-gray-600 capitalize'>{currentBill.status}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Category</Label>
-          <p className='text-sm text-gray-600 capitalize'>{bill.category}</p>
+          <p className='text-sm text-gray-600 capitalize'>{currentBill.category}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Payment Type</Label>
-          <p className='text-sm text-gray-600 capitalize'>{bill.paymentType}</p>
+          <p className='text-sm text-gray-600 capitalize'>{currentBill.paymentType}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Total Amount</Label>
-          <p className='text-sm text-gray-600'>${Number(bill.totalAmount).toLocaleString()}</p>
+          <p className='text-sm text-gray-600'>${Number(currentBill.totalAmount).toLocaleString()}</p>
         </div>
         <div>
           <Label className='text-sm font-medium'>Start Date</Label>
-          <p className='text-sm text-gray-600'>{bill.startDate}</p>
+          <p className='text-sm text-gray-600'>{currentBill.startDate}</p>
         </div>
       </div>
 
       {/* Title and Description */}
       <div>
         <Label className='text-sm font-medium'>Title</Label>
-        <p className='text-sm text-gray-600'>{bill.title}</p>
+        <p className='text-sm text-gray-600'>{currentBill.title}</p>
       </div>
 
-      {bill.description && (
+      {currentBill.description && (
         <div>
           <Label className='text-sm font-medium'>Description</Label>
-          <p className='text-sm text-gray-600'>{bill.description}</p>
+          <p className='text-sm text-gray-600'>{currentBill.description}</p>
         </div>
       )}
 
-      {bill.vendor && (
+      {currentBill.vendor && (
         <div>
           <Label className='text-sm font-medium'>Vendor</Label>
-          <p className='text-sm text-gray-600'>{bill.vendor}</p>
+          <p className='text-sm text-gray-600'>{currentBill.vendor}</p>
         </div>
       )}
 
-      {bill.notes && (
+      {currentBill.notes && (
         <div>
           <Label className='text-sm font-medium'>Notes</Label>
-          <p className='text-sm text-gray-600'>{bill.notes}</p>
+          <p className='text-sm text-gray-600'>{currentBill.notes}</p>
         </div>
       )}
 
       {/* End Date Management for Recurrent Bills */}
-      {bill.paymentType === 'recurrent' && (
+      {currentBill.paymentType === 'recurrent' && (
         <div className='border-t pt-4'>
           <Label className='text-sm font-medium'>Recurrence End Date</Label>
           <div className='flex items-center gap-2 mt-2'>
@@ -981,11 +917,11 @@ function BillDetail({
       )}
 
       {/* Costs Breakdown */}
-      {bill.costs && bill.costs.length > 1 && (
+      {currentBill.costs && currentBill.costs.length > 1 && (
         <div>
           <Label className='text-sm font-medium'>Payment Breakdown</Label>
           <div className='space-y-1 mt-1'>
-            {bill.costs.map((cost, index) => (
+            {currentBill.costs.map((cost, index) => (
               <div key={index} className='flex justify-between text-sm'>
                 <span>Payment {index + 1}:</span>
                 <span>${Number(cost).toLocaleString()}</span>
@@ -995,17 +931,16 @@ function BillDetail({
         </div>
       )}
 
-      {/* Document Upload Section */}
-      <div className='border-t pt-4'>
-        <Label className='text-sm font-medium'>Document Upload & AI Analysis</Label>
-        <div className='mt-2 space-y-3'>
-          {/* Current document info */}
-          {bill.documentPath && (
+      {/* Document Section - Only show if document exists */}
+      {currentBill.filePath && (
+        <div className='border-t pt-4'>
+          <Label className='text-sm font-medium'>Uploaded Document</Label>
+          <div className='mt-2'>
             <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
               <div className='flex items-center gap-2'>
                 <FileText className='w-4 h-4 text-blue-600' />
-                <span className='text-sm'>{bill.documentName}</span>
-                {bill.isAiAnalyzed && (
+                <span className='text-sm'>{currentBill.fileName}</span>
+                {currentBill.isAiAnalyzed && (
                   <Badge variant='outline' className='text-xs'>
                     AI Analyzed
                   </Badge>
@@ -1015,64 +950,35 @@ function BillDetail({
                 variant='outline'
                 size='sm'
                 onClick={() => {
+                  console.log('[DOWNLOAD] Starting download for bill:', currentBill.id);
+                  console.log('[DOWNLOAD] Document name:', currentBill.fileName);
+                  console.log('[DOWNLOAD] Document path:', currentBill.filePath);
+                  
                   // Download the document
                   const link = document.createElement('a');
-                  link.href = `/api/bills/${bill.id}/download-document`;
-                  link.download = bill.documentName || 'bill-document';
+                  link.href = `/api/bills/${currentBill.id}/download-document`;
+                  link.download = currentBill.fileName || 'bill-document';
                   document.body.appendChild(link);
                   link.click();
                   document.body.removeChild(link);
+                  
+                  console.log('[DOWNLOAD] Download link clicked');
                 }}
                 className='flex items-center gap-1'
-                data-testid={`button-download-document-${bill.id}`}
+                data-testid={`button-download-document-${currentBill.id}`}
               >
                 <FileText className='w-3 h-3' />
                 Download
               </Button>
             </div>
-          )}
-
-          {/* File upload */}
-          <div className='flex items-center gap-2'>
-            <Input
-              type='file'
-              accept='image/*,.pdf'
-              onChange={handleFileUpload}
-              disabled={uploadDocumentMutation.isPending}
-              className='flex-1'
-            />
-            {uploadDocumentMutation.isPending && (
-              <div className='text-sm text-gray-500'>Uploading & analyzing...</div>
-            )}
           </div>
-
-          {/* AI Analysis Actions */}
-          {bill.isAiAnalyzed && bill.aiAnalysisData && (
-            <div className='space-y-2'>
-              <div className='p-3 bg-blue-50 rounded-lg'>
-                <div className='text-sm font-medium text-blue-800'>AI Analysis Available</div>
-                <div className='text-xs text-blue-600 mt-1'>
-                  Confidence: {((bill.aiAnalysisData as any).confidence * 100).toFixed(1)}%
-                </div>
-              </div>
-              <Button
-                onClick={handleApplyAiAnalysis}
-                disabled={applyAiAnalysisMutation.isPending}
-                variant='outline'
-                size='sm'
-                className='w-full'
-              >
-                {applyAiAnalysisMutation.isPending ? 'Applying...' : 'Apply AI Analysis to Form'}
-              </Button>
-            </div>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Edit Mode Toggle */}
       <div className='border-t pt-4'>
         <div className='flex items-center justify-between'>
-          <Label className='text-sm font-medium'>Edit Bill Information</Label>
+          <Label className='text-sm font-medium'>Actions</Label>
           <Button onClick={onEditBill} variant='outline' size='sm'>
             Edit Bill
           </Button>

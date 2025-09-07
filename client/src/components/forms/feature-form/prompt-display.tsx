@@ -54,6 +54,7 @@ export function PromptDisplay({
         title: 'Prompt Copied!',
         description: 'The development prompt has been copied to your clipboard.',
       });
+    } catch (error) {
       toast({
         title: 'Copy Failed',
         description: 'Failed to copy the prompt to clipboard.',

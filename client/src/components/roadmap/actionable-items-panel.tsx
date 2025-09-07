@@ -151,6 +151,27 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
           variant: 'destructive',
         });
       }
+    } catch (error) {
+      // Fallback to creating a text area and selecting the text
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = prompt;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        toast({
+          title: '📋 Prompt Copied!',
+          description: 'The implementation prompt has been copied using fallback method.',
+        });
+      } catch (fallbackError) {
+        toast({
+          title: 'Copy Failed',
+          description:
+            'Failed to copy prompt to clipboard. Please manually select and copy the text.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 

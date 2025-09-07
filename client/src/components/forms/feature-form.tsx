@@ -23,7 +23,7 @@ import { Copy, FileText, Zap, Save, Clock, Trash2, Plus, Paperclip } from 'lucid
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Feature } from '@shared/schema';
-import { CompactFileUpload } from '@/components/ui/file-upload';
+import { SharedUploader } from '@/components/document-management';
 
 /**
  * Props for the FeatureForm component.
@@ -1065,10 +1065,17 @@ ${formData.additionalNotes || 'No additional notes'}
                     (Optional - Mockups, wireframes, screenshots, requirements docs)
                   </span>
                 </div>
-                <CompactFileUpload
-                  onFilesSelect={handleFilesSelect}
-                  maxFiles={5}
-                  acceptedTypes={['image/*', '.pdf', '.doc', '.docx', '.txt', '.fig', '.sketch']}
+                <SharedUploader
+                  onDocumentChange={(file, extractedText) => {
+                    if (file) {
+                      handleFilesSelect([file]);
+                    }
+                  }}
+                  allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt', '.fig', '.sketch']}
+                  maxFileSize={25}
+                  showCamera={true}
+                  compact={true}
+                  placeholder="Upload wireframes, mockups, or requirements"
                 />
               </div>
               {attachedFiles.length > 0 && (
