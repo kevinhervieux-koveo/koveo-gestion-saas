@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 528
+Building: 98099 W 3rd Street Building 2
+Address: 95359 Castle Street
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 528
+- Lease Start Date: 11/12/2024
+- Lease End Date: 11/9/2025
+- Monthly Rent: $1124
+- Security Deposit: $929
+
+Terms and Conditions:
+- Thymbra expedita sapiente architecto campana succedo cibo alveus.
+- Vivo beneficium cubo nemo bibo universe turba a tero.
+
+Landlord: 98099 W 3rd Street Building 2 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

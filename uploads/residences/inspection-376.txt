@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 376
+Building: 98099 W 3rd Street Building 2
+Address: 4054 Clement Rue
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Joel Robel
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Fair
+
+Notes:
+Acerbitas terreo denuncio ventito. Culpa atrox sponte. Adulatio optio colo cui spes audio.
+
+Inspector Signature: ____________________
