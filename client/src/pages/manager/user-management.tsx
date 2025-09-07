@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { FilterSort } from '@/components/filter-sort/FilterSort';
@@ -92,11 +92,21 @@ export default function UserManagement() {
   const usersPerPage = 10;
 
   // Filter and search state - simplified for quick fix
-  const [search, setSearch] = useState(''); // Temporarily disabled
+  const [searchInput, setSearchInput] = useState(''); // Input field value
+  const [search, setSearch] = useState(''); // Debounced search value for API
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [organizationFilter, setOrganizationFilter] = useState('');
   const [orphanFilter, setOrphanFilter] = useState('');
+
+  // Debounce search input - wait 3 seconds after user stops typing
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearch(searchInput);
+    }, 3000);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInput]);
 
   // Fetch users with server-side pagination
   const {
@@ -590,6 +600,8 @@ export default function UserManagement() {
   // };
 
   const handleClearFilters = () => {
+    setSearchInput('');
+    setSearch('');
     setRoleFilter('');
     setStatusFilter('');
     setOrganizationFilter('');
@@ -720,8 +732,8 @@ export default function UserManagement() {
                       <div className='flex-1'>
                         <Input
                           placeholder={t('searchUsers')}
-                          value={search}
-                          onChange={(e) => setSearch(e.target.value)}
+                          value={searchInput}
+                          onChange={(e) => setSearchInput(e.target.value)}
                           className='w-full'
                         />
                       </div>
@@ -783,7 +795,7 @@ export default function UserManagement() {
                       )}
 
                       {/* Clear Filters */}
-                      {(roleFilter || statusFilter || organizationFilter || orphanFilter) && (
+                      {(searchInput || roleFilter || statusFilter || organizationFilter || orphanFilter) && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           {t('clearFilters')}
                         </Button>
