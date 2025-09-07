@@ -56,9 +56,40 @@ const BILL_CATEGORIES = [
   'other',
 ] as const;
 
-// Category labels will use translation function instead of static object
+const MONTHS = [
+  { value: '1', label: 'January' },
+  { value: '2', label: 'February' },
+  { value: '3', label: 'March' },
+  { value: '4', label: 'April' },
+  { value: '5', label: 'May' },
+  { value: '6', label: 'June' },
+  { value: '7', label: 'July' },
+  { value: '8', label: 'August' },
+  { value: '9', label: 'September' },
+  { value: '10', label: 'October' },
+  { value: '11', label: 'November' },
+  { value: '12', label: 'December' },
+];
 
-// Months will use translation function instead of static array
+// Category labels using translation keys
+const getCategoryLabel = (category: string, t: (key: string) => string) => {
+  const categoryTranslationKeys: Record<string, string> = {
+    insurance: 'insurance',
+    maintenance: 'maintenance', 
+    salary: 'salary',
+    utilities: 'utilities',
+    cleaning: 'cleaning',
+    security: 'security',
+    landscaping: 'landscaping',
+    professional_services: 'professionalServices',
+    administration: 'administration',
+    repairs: 'repairs',
+    supplies: 'supplies',
+    taxes: 'taxes',
+    other: 'other'
+  };
+  return t(categoryTranslationKeys[category] || category);
+};
 
 /**
  *
@@ -388,7 +419,7 @@ Bills() {
                       <SelectItem value='all'>{t('allCategories')}</SelectItem>
                       {BILL_CATEGORIES.map((category) => (
                         <SelectItem key={category} value={category}>
-                          {CATEGORY_LABELS[category]}
+                          {getCategoryLabel(category, t)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -607,7 +638,7 @@ function BillCategorySection({
         <CardTitle className='flex items-center justify-between'>
           <div className='flex items-center gap-2'>
             <Tag className='w-5 h-5' />
-            {CATEGORY_LABELS[category]}
+            {getCategoryLabel(category, t)}
             <Badge variant='secondary'>{bills.length}</Badge>
           </div>
         </CardTitle>
