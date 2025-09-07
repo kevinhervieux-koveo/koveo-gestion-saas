@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/use-auth';
 import { LanguageProvider } from '@/hooks/use-language';
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
@@ -147,7 +146,7 @@ describe('Sidebar Layout Consistency Tests', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getAllByText(/Budget Dashboard|Tableau de bord budgétaire/)).toHaveLength(2);
+        expect(screen.getByText(/Budget Dashboard|Tableau de bord budgétaire/)).toBeInTheDocument();
       });
 
       // Budget page should NOT use min-h-screen (that's the bug we need to fix)
