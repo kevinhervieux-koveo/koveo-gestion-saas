@@ -21,7 +21,7 @@ const config = {
     '^drizzle-orm/pg-core$': '<rootDir>/tests/mocks/pgCoreMock.js',
     // Mock Drizzle ORM (more general patterns)  
     '^drizzle-orm$': '<rootDir>/tests/mocks/drizzleMock.js',
-    '^drizzle-orm/(.*)$': '<rootDir>/tests/mocks/pgCoreMock.js',
+    '^drizzle-orm/(.*)$': '<rootDir>/tests/mocks/drizzleMock.js',
     // Mock shared schema more comprehensively to catch pgEnum imports  
     '^../../shared/schemas/core$': '<rootDir>/tests/mocks/sharedSchemaMock.js',
     '^../shared/schemas/core$': '<rootDir>/tests/mocks/sharedSchemaMock.js',

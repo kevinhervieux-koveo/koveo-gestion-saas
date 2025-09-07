@@ -15,6 +15,7 @@ const createPgCoreMock = () => {
       unique: function() { return { ...this, isUnique: true }; },
       default: function(value) { return { ...this, defaultValue: value }; },
       references: function(column) { return { ...this, references: column }; },
+      array: function() { return { ...this, isArray: true }; },
     });
     
     // Add metadata to the function
@@ -46,6 +47,7 @@ const createPgCoreMock = () => {
     unique: function() { return { ...this, isUnique: true }; },
     default: function(value) { return { ...this, defaultValue: value }; },
     references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
   });
 
   const text = (name, config = {}) => ({ 
@@ -57,6 +59,7 @@ const createPgCoreMock = () => {
     unique: function() { return { ...this, isUnique: true }; },
     default: function(value) { return { ...this, defaultValue: value }; },
     references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
   });
 
   const timestamp = (name, config = {}) => ({ 
@@ -69,6 +72,7 @@ const createPgCoreMock = () => {
     default: function(value) { return { ...this, defaultValue: value }; },
     defaultNow: function() { return { ...this, hasDefault: true }; },
     references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
   });
 
   const uuid = (name, config = {}) => ({ 
@@ -81,6 +85,7 @@ const createPgCoreMock = () => {
     default: function(value) { return { ...this, defaultValue: value }; },
     defaultRandom: function() { return { ...this, hasDefault: true }; },
     references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
   });
 
   const boolean = (name, config = {}) => ({ 
@@ -92,6 +97,7 @@ const createPgCoreMock = () => {
     unique: function() { return { ...this, isUnique: true }; },
     default: function(value) { return { ...this, defaultValue: value }; },
     references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
   });
 
   const integer = (name, config = {}) => ({ 
@@ -103,6 +109,7 @@ const createPgCoreMock = () => {
     unique: function() { return { ...this, isUnique: true }; },
     default: function(value) { return { ...this, defaultValue: value }; },
     references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
   });
 
   const date = (name, config = {}) => ({ 
@@ -114,6 +121,7 @@ const createPgCoreMock = () => {
     unique: function() { return { ...this, isUnique: true }; },
     default: function(value) { return { ...this, defaultValue: value }; },
     references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
   });
 
   const json = (name, config = {}) => ({ 
@@ -125,6 +133,7 @@ const createPgCoreMock = () => {
     unique: function() { return { ...this, isUnique: true }; },
     default: function(value) { return { ...this, defaultValue: value }; },
     references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
   });
 
   const jsonb = (name, config = {}) => ({ 
@@ -136,6 +145,67 @@ const createPgCoreMock = () => {
     unique: function() { return { ...this, isUnique: true }; },
     default: function(value) { return { ...this, defaultValue: value }; },
     references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
+  });
+
+  const numeric = (name, config = {}) => ({ 
+    name, 
+    dataType: 'numeric', 
+    ...config,
+    primaryKey: function() { return { ...this, isPrimaryKey: true }; },
+    notNull: function() { return { ...this, isNotNull: true }; },
+    unique: function() { return { ...this, isUnique: true }; },
+    default: function(value) { return { ...this, defaultValue: value }; },
+    references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
+  });
+
+  const real = (name, config = {}) => ({ 
+    name, 
+    dataType: 'real', 
+    ...config,
+    primaryKey: function() { return { ...this, isPrimaryKey: true }; },
+    notNull: function() { return { ...this, isNotNull: true }; },
+    unique: function() { return { ...this, isUnique: true }; },
+    default: function(value) { return { ...this, defaultValue: value }; },
+    references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
+  });
+
+  const decimal = (name, config = {}) => ({ 
+    name, 
+    dataType: 'decimal', 
+    ...config,
+    primaryKey: function() { return { ...this, isPrimaryKey: true }; },
+    notNull: function() { return { ...this, isNotNull: true }; },
+    unique: function() { return { ...this, isUnique: true }; },
+    default: function(value) { return { ...this, defaultValue: value }; },
+    references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
+  });
+
+  const serial = (name, config = {}) => ({ 
+    name, 
+    dataType: 'serial', 
+    ...config,
+    primaryKey: function() { return { ...this, isPrimaryKey: true }; },
+    notNull: function() { return { ...this, isNotNull: true }; },
+    unique: function() { return { ...this, isUnique: true }; },
+    default: function(value) { return { ...this, defaultValue: value }; },
+    references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
+  });
+
+  const bigint = (name, config = {}) => ({ 
+    name, 
+    dataType: 'bigint', 
+    ...config,
+    primaryKey: function() { return { ...this, isPrimaryKey: true }; },
+    notNull: function() { return { ...this, isNotNull: true }; },
+    unique: function() { return { ...this, isUnique: true }; },
+    default: function(value) { return { ...this, defaultValue: value }; },
+    references: function(column) { return { ...this, references: column }; },
+    array: function() { return { ...this, isArray: true }; },
   });
 
   return {
@@ -150,6 +220,11 @@ const createPgCoreMock = () => {
     date,
     json,
     jsonb,
+    numeric,
+    real,
+    decimal,
+    serial,
+    bigint,
   };
 };
 

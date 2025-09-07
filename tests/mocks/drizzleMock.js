@@ -23,15 +23,12 @@ const sql = {
   placeholder: (name) => ({ type: 'placeholder', name }),
 };
 
+// Import pg-core mock functions
+const { createPgCoreMock } = require('./testUtils');
+const pgCoreMocks = createPgCoreMock();
+
 // PostgreSQL specific mocks - include here for broader compatibility
-const pgEnum = (name, values) => ({
-  enumName: name,
-  enumValues: values,
-  _: {
-    brand: 'PgEnum',
-    baseType: 'string',
-  },
-});
+const pgEnum = pgCoreMocks.pgEnum;
 
 module.exports = {
   eq,
@@ -51,5 +48,5 @@ module.exports = {
   between,
   notBetween,
   sql,
-  pgEnum,
+  ...pgCoreMocks,
 };
