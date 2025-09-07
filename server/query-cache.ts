@@ -18,37 +18,53 @@ interface CacheConfig {
  */
 const CACHE_CONFIGS: Record<string, CacheConfig> = {
   // User data - frequently accessed, moderate changes
-  users: { maxSize: 1000, ttl: 5 * 60 * 1000 }, // 5 minutes
+  // OPTIMIZED: Longer TTL for complex user assignments query
+  users: { maxSize: 1500, ttl: 8 * 60 * 1000 }, // 8 minutes (was 5)
 
   // Organization data - stable, infrequent changes
-  organizations: { maxSize: 100, ttl: 30 * 60 * 1000 }, // 30 minutes
+  organizations: { maxSize: 200, ttl: 45 * 60 * 1000 }, // 45 minutes (was 30)
 
   // Building data - relatively stable
-  buildings: { maxSize: 500, ttl: 15 * 60 * 1000 }, // 15 minutes
+  // OPTIMIZED: Increased cache size and TTL for building queries
+  buildings: { maxSize: 1000, ttl: 20 * 60 * 1000 }, // 20 minutes (was 15)
 
   // Residence data - stable structure, occasional updates
-  residences: { maxSize: 2000, ttl: 10 * 60 * 1000 }, // 10 minutes
+  // OPTIMIZED: Increased cache size for residence queries
+  residences: { maxSize: 3000, ttl: 12 * 60 * 1000 }, // 12 minutes (was 10)
+
+  // Documents - frequently accessed, moderate updates
+  // OPTIMIZED: New cache category for document queries
+  documents: { maxSize: 2000, ttl: 10 * 60 * 1000 }, // 10 minutes
 
   // Bills - time-sensitive, frequent updates
-  bills: { maxSize: 1000, ttl: 2 * 60 * 1000 }, // 2 minutes
+  bills: { maxSize: 1500, ttl: 3 * 60 * 1000 }, // 3 minutes (was 2)
 
   // Maintenance requests - dynamic, frequent status changes
-  maintenance: { maxSize: 500, ttl: 1 * 60 * 1000 }, // 1 minute
+  maintenance: { maxSize: 750, ttl: 90 * 1000 }, // 90 seconds (was 60)
 
   // Notifications - real-time, short cache
-  notifications: { maxSize: 500, ttl: 30 * 1000 }, // 30 seconds
+  notifications: { maxSize: 1000, ttl: 45 * 1000 }, // 45 seconds (was 30)
 
   // Quality metrics - stable for periods
-  metrics: { maxSize: 200, ttl: 5 * 60 * 1000 }, // 5 minutes
+  metrics: { maxSize: 300, ttl: 8 * 60 * 1000 }, // 8 minutes (was 5)
 
   // Features and roadmap - moderately stable
-  features: { maxSize: 300, ttl: 3 * 60 * 1000 }, // 3 minutes
+  features: { maxSize: 500, ttl: 5 * 60 * 1000 }, // 5 minutes (was 3)
 
   // Framework configuration - very stable
-  config: { maxSize: 100, ttl: 60 * 60 * 1000 }, // 1 hour
+  config: { maxSize: 150, ttl: 90 * 60 * 1000 }, // 1.5 hours (was 1)
 
   // Bug reports - moderate changes, user-specific
-  bugs: { maxSize: 500, ttl: 2 * 60 * 1000 }, // 2 minutes
+  bugs: { maxSize: 750, ttl: 4 * 60 * 1000 }, // 4 minutes (was 2)
+
+  // Financial data - moderate changes, important for dashboard
+  financial: { maxSize: 500, ttl: 5 * 60 * 1000 }, // 5 minutes
+
+  // Search results - temporary but frequently accessed
+  search: { maxSize: 1000, ttl: 2 * 60 * 1000 }, // 2 minutes
+
+  // Statistics and aggregations - expensive to compute
+  stats: { maxSize: 300, ttl: 10 * 60 * 1000 }, // 10 minutes
 };
 
 /**
@@ -251,36 +267,151 @@ export function withCache<T>(
 
 /**
  * Cache invalidation utilities for specific operations.
+ * OPTIMIZED: Added smarter invalidation patterns and cascade invalidation.
  */
 export class CacheInvalidator {
   /**
    * Invalidates user-related caches when user data changes.
+   * OPTIMIZED: More comprehensive user cache invalidation.
    * @param userId
    */
   static invalidateUserCaches(userId: string): void {
+    // Individual user caches
     queryCache.invalidate('users', `user:${userId}*`);
+    queryCache.invalidate('users', `users_by_org:${userId}*`);
     queryCache.invalidate('residences', `user_residences:${userId}*`);
+    queryCache.invalidate('residences', `user_residences_details:${userId}*`);
+    queryCache.invalidate('documents', `legacy_docs:${userId}*`);
     queryCache.invalidate('notifications', `user_notifications:${userId}*`);
+    
+    // Invalidate aggregated user queries that include this user
+    queryCache.invalidate('users', 'all_users');
+    queryCache.invalidate('users', 'all_users_assignments*');
   }
 
   /**
    * Invalidates building-related caches when building data changes.
+   * OPTIMIZED: Cascade invalidation for building dependencies.
    * @param buildingId
    */
   static invalidateBuildingCaches(buildingId: string): void {
+    // Building-specific caches
     queryCache.invalidate('buildings', `building:${buildingId}*`);
     queryCache.invalidate('residences', `building_residences:${buildingId}*`);
-    queryCache.invalidate('budgets', `building_budgets:${buildingId}*`);
+    queryCache.invalidate('documents', `building_documents:${buildingId}*`);
+    queryCache.invalidate('financial', `building_budgets:${buildingId}*`);
+    queryCache.invalidate('stats', `building_stats:${buildingId}*`);
+    
+    // Invalidate aggregated building queries
+    queryCache.invalidate('buildings', 'all_buildings');
+    queryCache.invalidate('buildings', 'buildings_with_residents*');
+    
+    // Cascade invalidation - building changes affect user assignments
+    queryCache.invalidate('users', 'all_users_assignments*');
   }
 
   /**
    * Invalidates residence-related caches when residence data changes.
+   * OPTIMIZED: Comprehensive residence cache invalidation.
    * @param residenceId
    */
   static invalidateResidenceCaches(residenceId: string): void {
+    // Residence-specific caches
     queryCache.invalidate('residences', `residence:${residenceId}*`);
+    queryCache.invalidate('documents', `residence_documents:${residenceId}*`);
     queryCache.invalidate('bills', `residence_bills:${residenceId}*`);
     queryCache.invalidate('maintenance', `residence_maintenance:${residenceId}*`);
+    
+    // Invalidate aggregated queries that include this residence
+    queryCache.invalidate('residences', 'all_residences');
+    queryCache.invalidate('users', 'all_users_assignments*');
+  }
+
+  /**
+   * Invalidates organization-related caches when organization data changes.
+   * OPTIMIZED: New method for organization cache invalidation.
+   * @param organizationId
+   */
+  static invalidateOrganizationCaches(organizationId: string): void {
+    // Organization-specific caches
+    queryCache.invalidate('organizations', `organization:${organizationId}*`);
+    queryCache.invalidate('buildings', `org_buildings:${organizationId}*`);
+    queryCache.invalidate('stats', `organization_overview:${organizationId}*`);
+    
+    // Invalidate aggregated queries
+    queryCache.invalidate('organizations', 'all_organizations');
+    queryCache.invalidate('users', 'all_users_assignments*');
+  }
+
+  /**
+   * Invalidates document-related caches when document data changes.
+   * OPTIMIZED: New method for document cache invalidation.
+   * @param documentId
+   * @param buildingId
+   * @param residenceId
+   */
+  static invalidateDocumentCaches(documentId?: string, buildingId?: string, residenceId?: string): void {
+    if (documentId) {
+      queryCache.invalidate('documents', `document:${documentId}*`);
+    }
+    
+    if (buildingId) {
+      queryCache.invalidate('documents', `building_documents:${buildingId}*`);
+    }
+    
+    if (residenceId) {
+      queryCache.invalidate('documents', `residence_documents:${residenceId}*`);
+    }
+    
+    // Invalidate general document queries
+    queryCache.invalidate('documents', 'documents:*');
+  }
+
+  /**
+   * Smart invalidation based on operation type.
+   * OPTIMIZED: Intelligent cache invalidation based on operation context.
+   * @param operation
+   * @param entityType
+   * @param entityId
+   * @param additionalContext
+   */
+  static smartInvalidate(
+    operation: 'create' | 'update' | 'delete',
+    entityType: 'user' | 'building' | 'residence' | 'organization' | 'document',
+    entityId: string,
+    additionalContext?: { buildingId?: string; residenceId?: string; userId?: string }
+  ): void {
+    switch (entityType) {
+      case 'user':
+        this.invalidateUserCaches(entityId);
+        break;
+      case 'building':
+        this.invalidateBuildingCaches(entityId);
+        break;
+      case 'residence':
+        this.invalidateResidenceCaches(entityId);
+        // Cascade to building if provided
+        if (additionalContext?.buildingId) {
+          this.invalidateBuildingCaches(additionalContext.buildingId);
+        }
+        break;
+      case 'organization':
+        this.invalidateOrganizationCaches(entityId);
+        break;
+      case 'document':
+        this.invalidateDocumentCaches(
+          entityId,
+          additionalContext?.buildingId,
+          additionalContext?.residenceId
+        );
+        break;
+    }
+
+    // For delete operations, be more aggressive with cache clearing
+    if (operation === 'delete') {
+      // Clear search caches as deleted items should not appear
+      queryCache.invalidate('search');
+    }
   }
 
   /**

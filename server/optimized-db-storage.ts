@@ -147,12 +147,128 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves all active users with their assignments (organizations, buildings, residences).
+   * OPTIMIZED: Uses single query with JOINs and aggregation instead of N+1 queries.
    */
   async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
-    // Clear any existing cache to ensure fresh data
-    queryCache.invalidate('users', 'all_users_assignments_v2');
-    queryCache.invalidate('users', 'all_users_assignments_v3');
-    
+    return this.withOptimizations(
+      'getUsersWithAssignments',
+      'all_users_assignments_optimized_v4',
+      'users',
+      async () => {
+        try {
+          // Single optimized query using CTEs and aggregation
+          const result = await db.execute(sql`
+            WITH user_orgs AS (
+              SELECT 
+                uo.user_id,
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', o.id,
+                      'name', o.name,
+                      'type', o.type
+                    )
+                  ) FILTER (WHERE o.id IS NOT NULL),
+                  '[]'::json
+                ) as organizations
+              FROM user_organizations uo
+              INNER JOIN organizations o ON uo.organization_id = o.id
+              WHERE uo.is_active = true AND o.is_active = true
+              GROUP BY uo.user_id
+            ),
+            user_buildings AS (
+              SELECT 
+                uo.user_id,
+                COALESCE(
+                  json_agg(
+                    DISTINCT json_build_object(
+                      'id', b.id,
+                      'name', b.name
+                    )
+                  ) FILTER (WHERE b.id IS NOT NULL),
+                  '[]'::json
+                ) as buildings
+              FROM user_organizations uo
+              INNER JOIN buildings b ON uo.organization_id = b.organization_id
+              WHERE uo.is_active = true AND b.is_active = true
+              GROUP BY uo.user_id
+            ),
+            user_residences AS (
+              SELECT 
+                ur.user_id,
+                COALESCE(
+                  json_agg(
+                    json_build_object(
+                      'id', r.id,
+                      'unitNumber', r.unit_number,
+                      'buildingId', r.building_id,
+                      'buildingName', b.name
+                    )
+                  ) FILTER (WHERE r.id IS NOT NULL),
+                  '[]'::json
+                ) as residences
+              FROM user_residences ur
+              INNER JOIN residences r ON ur.residence_id = r.id
+              INNER JOIN buildings b ON r.building_id = b.id
+              WHERE ur.is_active = true AND r.is_active = true
+              GROUP BY ur.user_id
+            )
+            SELECT 
+              u.*,
+              COALESCE(uo.organizations, '[]'::json) as organizations,
+              COALESCE(ub.buildings, '[]'::json) as buildings,
+              COALESCE(ur.residences, '[]'::json) as residences
+            FROM users u
+            LEFT JOIN user_orgs uo ON u.id = uo.user_id
+            LEFT JOIN user_buildings ub ON u.id = ub.user_id
+            LEFT JOIN user_residences ur ON u.id = ur.user_id
+            WHERE u.is_active = true
+            ORDER BY u.created_at DESC
+            LIMIT 100
+          `);
+
+          // Transform the raw SQL result to match the expected TypeScript types
+          return result.rows.map((row: any) => ({
+            id: row.id,
+            username: row.username,
+            password: row.password,
+            email: row.email,
+            firstName: row.first_name,
+            lastName: row.last_name,
+            phone: row.phone,
+            profileImage: row.profile_image,
+            language: row.language,
+            role: row.role,
+            isActive: row.is_active,
+            lastLoginAt: row.last_login_at,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+            organizations: typeof row.organizations === 'string' 
+              ? JSON.parse(row.organizations) 
+              : row.organizations || [],
+            buildings: typeof row.buildings === 'string' 
+              ? JSON.parse(row.buildings) 
+              : row.buildings || [],
+            residences: typeof row.residences === 'string' 
+              ? JSON.parse(row.residences) 
+              : row.residences || []
+          }));
+        } catch (error: any) {
+          console.error('❌ Error in optimized getUsersWithAssignments:', error);
+          
+          // Fallback to the original implementation if optimized query fails
+          console.log('🔄 Falling back to original implementation...');
+          return this.getUsersWithAssignmentsFallback();
+        }
+      }
+    );
+  }
+
+  /**
+   * Fallback implementation for getUsersWithAssignments if optimized version fails.
+   * This is the original N+1 query implementation kept for reliability.
+   */
+  private async getUsersWithAssignmentsFallback(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
     try {
       // Get all users first
       const users = await db
@@ -161,7 +277,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.users.isActive, true))
         .limit(100)
         .orderBy(desc(schema.users.createdAt));
-
 
       // For each user, fetch their assignments with limited concurrency to prevent connection issues
       const batchSize = 5; // Process 5 users at a time to avoid connection pool exhaustion
@@ -224,15 +339,12 @@ export class OptimizedDatabaseStorage implements IStorage {
                 )
               );
 
-            const result = {
+            return {
               ...user,
               organizations: userOrgs || [],
               buildings: userBuildings || [],
               residences: userResidences || [],
             };
-
-
-            return result;
           } catch (error: any) {
             console.error('❌ Error getting user assignments:', error);
             // Return user with empty assignments if there's an error

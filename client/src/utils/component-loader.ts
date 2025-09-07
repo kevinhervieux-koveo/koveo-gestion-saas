@@ -166,47 +166,165 @@ export function getComponentCacheSize(): number {
 
 /**
  * Optimized lazy loading for heavy page components.
+ * OPTIMIZED: Enhanced preloading strategies and route-based optimization.
  */
 export const optimizedPageLoaders = {
-  // Admin pages
+  // Admin pages - Higher preload delays for heavy admin components
   AdminOrganizations: createOptimizedLoader(
     () => import('@/pages/admin/organizations'),
     'admin-organizations',
-    { enableMemoryCleanup: true }
+    { preloadDelay: 2000, enableMemoryCleanup: true }
   ),
   AdminRoadmap: createOptimizedLoader(() => import('@/pages/admin/roadmap'), 'admin-roadmap', {
-    preloadDelay: 3000,
+    preloadDelay: 4000,
     enableMemoryCleanup: true,
   }),
   AdminQuality: createOptimizedLoader(() => import('@/pages/admin/quality'), 'admin-quality', {
-    preloadDelay: 5000,
+    preloadDelay: 6000,
     enableMemoryCleanup: true,
   }),
 
-  // Manager pages
+  // Manager pages - Medium preload for frequently accessed pages
   ManagerBuildings: createOptimizedLoader(
     () => import('@/pages/manager/buildings'),
     'manager-buildings',
-    { enableMemoryCleanup: true }
+    { preloadDelay: 1500, enableMemoryCleanup: true }
   ),
   ManagerResidences: createOptimizedLoader(
     () => import('@/pages/manager/residences'),
     'manager-residences',
-    { enableMemoryCleanup: true }
+    { preloadDelay: 1500, enableMemoryCleanup: true }
+  ),
+  ManagerBills: createOptimizedLoader(
+    () => import('@/pages/manager/bills'),
+    'manager-bills',
+    { preloadDelay: 2000, enableMemoryCleanup: true }
+  ),
+  ManagerInvoices: createOptimizedLoader(
+    () => import('@/pages/manager/invoices'),
+    'manager-invoices',
+    { preloadDelay: 2000, enableMemoryCleanup: true }
+  ),
+  ManagerUserManagement: createOptimizedLoader(
+    () => import('@/pages/manager/user-management'),
+    'manager-user-management',
+    { preloadDelay: 3000, enableMemoryCleanup: true }
   ),
 
-  // Residents pages
+  // Residents pages - Fast preload for high traffic pages
   ResidentsDashboard: createOptimizedLoader(
     () => import('@/pages/residents/dashboard'),
     'residents-dashboard',
-    { preloadDelay: 1000, enableMemoryCleanup: true }
+    { preloadDelay: 500, enableMemoryCleanup: true }
   ),
   ResidentsBuilding: createOptimizedLoader(
     () => import('@/pages/residents/building'),
     'residents-building',
-    { enableMemoryCleanup: true }
+    { preloadDelay: 1000, enableMemoryCleanup: true }
+  ),
+  ResidentsResidence: createOptimizedLoader(
+    () => import('@/pages/residents/residence'),
+    'residents-residence',
+    { preloadDelay: 1000, enableMemoryCleanup: true }
+  ),
+
+  // Document management pages - Critical for user workflow
+  BuildingDocuments: createOptimizedLoader(
+    () => import('@/pages/manager/BuildingDocuments'),
+    'building-documents',
+    { preloadDelay: 1500, enableMemoryCleanup: true }
+  ),
+  ResidenceDocuments: createOptimizedLoader(
+    () => import('@/pages/manager/ResidenceDocuments'),
+    'residence-documents',
+    { preloadDelay: 1500, enableMemoryCleanup: true }
+  ),
+
+  // Settings pages - Lower priority
+  SettingsSettings: createOptimizedLoader(
+    () => import('@/pages/settings/settings'),
+    'settings-settings',
+    { preloadDelay: 5000, enableMemoryCleanup: true }
+  ),
+  SettingsBugReports: createOptimizedLoader(
+    () => import('@/pages/settings/bug-reports'),
+    'settings-bug-reports',
+    { preloadDelay: 8000, enableMemoryCleanup: true }
   ),
 };
+
+/**
+ * Route-based preloading strategies.
+ * OPTIMIZED: Intelligent preloading based on user navigation patterns.
+ */
+export const routePreloadingStrategy = {
+  // When user visits admin pages, preload related admin components
+  '/admin/*': [
+    () => import('@/pages/admin/organizations'),
+    () => import('@/pages/admin/roadmap'),
+  ],
+
+  // When user visits manager pages, preload commonly used manager components
+  '/manager/*': [
+    () => import('@/pages/manager/buildings'),
+    () => import('@/pages/manager/residences'),
+    () => import('@/pages/manager/user-management'),
+  ],
+
+  // When user visits resident pages, preload resident workflow components
+  '/residents/*': [
+    () => import('@/pages/residents/dashboard'),
+    () => import('@/pages/residents/building'),
+    () => import('@/pages/residents/residence'),
+  ],
+
+  // Dashboard pages should preload based on user role
+  '/dashboard/*': [
+    () => import('@/pages/dashboard'),
+    () => import('@/pages/dashboard/calendar'),
+  ],
+};
+
+/**
+ * Progressive loading helper for complex components.
+ * OPTIMIZED: Load components in priority order.
+ * @param components Array of import functions in priority order.
+ */
+export function progressivePreload(components: (() => Promise<any>)[]): void {
+  let delay = 0;
+  
+  components.forEach((componentImport, index) => {
+    setTimeout(() => {
+      componentImport().catch(() => {
+        // Ignore preload errors
+      });
+    }, delay);
+    
+    // Stagger preloads with exponential backoff
+    delay += Math.min(500 * (index + 1), 3000);
+  });
+}
+
+/**
+ * Smart preloader based on current route.
+ * OPTIMIZED: Context-aware preloading.
+ * @param currentPath Current route path.
+ */
+export function smartPreload(currentPath: string): void {
+  // Find matching route pattern
+  const matchingPatterns = Object.keys(routePreloadingStrategy).filter(pattern => {
+    const regex = new RegExp(pattern.replace('*', '.*'));
+    return regex.test(currentPath);
+  });
+
+  // Preload components for matching patterns
+  matchingPatterns.forEach(pattern => {
+    const components = routePreloadingStrategy[pattern as keyof typeof routePreloadingStrategy];
+    if (components) {
+      progressivePreload(components);
+    }
+  });
+}
 
 /**
  * Register memory cleanup for component cache.
