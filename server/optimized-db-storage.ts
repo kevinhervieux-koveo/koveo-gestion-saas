@@ -181,7 +181,7 @@ export class OptimizedDatabaseStorage implements IStorage {
                 uo.user_id,
                 COALESCE(
                   json_agg(
-                    json_build_object(
+                    DISTINCT json_build_object(
                       'id', b.id,
                       'name', b.name
                     )
@@ -191,7 +191,7 @@ export class OptimizedDatabaseStorage implements IStorage {
               FROM user_organizations uo
               INNER JOIN buildings b ON uo.organization_id = b.organization_id
               WHERE uo.is_active = true AND b.is_active = true
-              GROUP BY uo.user_id, b.id, b.name
+              GROUP BY uo.user_id
             ),
             user_residences AS (
               SELECT 
@@ -414,7 +414,7 @@ export class OptimizedDatabaseStorage implements IStorage {
                 uo.user_id,
                 COALESCE(
                   json_agg(
-                    json_build_object(
+                    DISTINCT json_build_object(
                       'id', b.id,
                       'name', b.name
                     )
@@ -424,7 +424,7 @@ export class OptimizedDatabaseStorage implements IStorage {
               FROM user_organizations uo
               INNER JOIN buildings b ON uo.organization_id = b.organization_id
               WHERE uo.is_active = true AND b.is_active = true
-              GROUP BY uo.user_id, b.id, b.name
+              GROUP BY uo.user_id
             ),
             user_residences AS (
               SELECT 
