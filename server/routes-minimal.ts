@@ -998,6 +998,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // POST /api/invitations/accept/:token - Accept invitation and create user account
     app.post('/api/invitations/accept/:token', async (req: any, res: any) => {
       try {
+        console.log('🔄 [INVITATION] Starting invitation acceptance process');
+        console.log('📝 [INVITATION] Request body received:', JSON.stringify(req.body, null, 2));
+        
         const { token } = req.params;
         const {
           password,
@@ -1017,6 +1020,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acknowledgedRights,
         } = req.body;
 
+        console.log('🔍 [INVITATION] Extracted fields:', {
+          hasToken: !!token,
+          hasPassword: !!password,
+          hasFirstName: !!firstName,
+          hasLastName: !!lastName,
+          hasPhone: !!phone,
+          language,
+          dataCollectionConsent,
+          acknowledgedRights,
+        });
+
         if (!token) {
           return res.status(400).json({
             message: 'Token is required',
@@ -1032,11 +1046,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         if (!dataCollectionConsent || !acknowledgedRights) {
+          console.log('❌ [INVITATION] Privacy consent validation failed:', {
+            dataCollectionConsent,
+            acknowledgedRights,
+          });
           return res.status(400).json({
             message: 'Data collection consent and privacy rights acknowledgment are required',
             code: 'CONSENT_REQUIRED',
           });
         }
+
+        console.log('✅ [INVITATION] Basic validation passed');
 
         // Find and validate invitation
         const tokenHash = hashToken(token);
@@ -1154,11 +1174,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           language: language || 'fr',
         };
 
+        console.log('🔍 [INVITATION] User data to validate:', createUserData);
+
         // Validate using insertUserSchema - use safeParse to avoid throwing errors
         const validationResult = insertUserSchema.safeParse(createUserData);
         if (!validationResult.success) {
-          console.log('❌ User data validation failed:', validationResult.error.issues);
-          console.log('📝 Attempted user data:', createUserData);
+          console.log('❌ [INVITATION] User data validation failed:', validationResult.error.issues);
+          console.log('📝 [INVITATION] Attempted user data:', createUserData);
           return res.status(400).json({
             message:
               'Invalid user data: ' +
@@ -1169,6 +1191,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             details: validationResult.error.issues,
           });
         }
+
+        console.log('✅ [INVITATION] User data validation passed');
 
         console.log('✅ User data validation successful for:', normalizedEmail);
 
