@@ -368,204 +368,164 @@ COMPLIANCE:
       return '';
     }
 
+    const lastUpdated = _data.projectOverview.lastUpdated || new Date().toISOString();
+
     return `KOVEO_GESTION_COMPREHENSIVE_DOCUMENTATION_FOR_LLM_PROCESSING
 
 === EXECUTIVE SUMMARY ===
-Koveo Gestion is a sophisticated Quebec property management SaaS platform engineered for residential communities, syndicates, and co-ownership properties. Built with modern web technologies and strict Quebec Law 25 compliance, the platform provides comprehensive property management solutions including financial tracking, maintenance coordination, resident communication, and administrative oversight.
+${_data.projectOverview.description}
 
-=== PROJECT_CONTEXT ===
+Generated on: ${new Date(lastUpdated).toLocaleString()}
+Project Version: ${_data.projectOverview.version}
+Architecture: ${_data.projectOverview.architecture}
+
+=== PROJECT_OVERVIEW ===
 PROJECT_IDENTITY:
 - Name: ${_data.projectOverview.name}
-- Type: Multi-tenant Quebec Property Management SaaS Platform
 - Version: ${_data.projectOverview.version}
-- Industry: PropTech (Property Technology)
-- Geographic Focus: Quebec, Canada
-- Target Market: Residential property management companies, building owners, property managers
-- Primary Language: French (Quebec French)
-- Secondary Language: English
-- Regulatory Compliance: Quebec Law 25 (Privacy), Quebec Civil Code, Condominium Act
+- Description: ${_data.projectOverview.description}
+- Architecture: ${_data.projectOverview.architecture}
+- Last Updated: ${lastUpdated}
 
-BUSINESS_MODEL:
-- Subscription-based SaaS platform
-- Multi-tenant architecture supporting multiple organizations
-- Role-based access control for owners, managers, and residents
-- Scalable pricing tiers based on property portfolio size
-- API-first architecture for third-party integrations
-- White-label customization capabilities
+=== SYSTEM_COMPONENTS ===
+Total Components: ${_data.components.length}
 
-MARKET_POSITIONING:
-- Primary Competitors: Buildium, AppFolio, Yardi Breeze
-- Unique Value Proposition: Quebec-specific legal compliance and French-first design
-- Target Customer Segments: 
-  * Small to medium property management companies (5-500 units)
-  * Individual property owners with multiple buildings
-  * Condominium associations and syndicates
-  * Building management cooperatives
+${_data.components.map(component => `
+COMPONENT: ${component.name}
+- Type: ${component.type}
+- Dependencies: ${component.dependencies.join(', ')}
+- Exports: ${component.exports.join(', ')}
+- Complexity Score: ${component.complexity}
+`).join('')}
 
-=== TECHNICAL_ARCHITECTURE ===
+=== API_ENDPOINTS ===
+Total API Endpoints: ${_data.apis.length}
 
-SYSTEM_ARCHITECTURE:
-- Architecture Pattern: Microservices with monolithic frontend
-- Design Philosophy: Domain-driven design with clean architecture principles
-- Communication: RESTful APIs with WebSocket support for real-time features
-- Data Architecture: Event-driven with CQRS patterns for complex operations
-- Deployment Model: Cloud-native with containerization support
+${_data.apis.map(api => `
+ENDPOINT: ${api.method} ${api.endpoint}
+- Description: ${api.description}
+- Parameters: ${api.parameters.length > 0 ? api.parameters.join(', ') : 'None'}
+- Response Type: ${api.response}
+`).join('')}
 
-FRONTEND_STACK:
-Core Technologies:
-- React 18.2.0: Component-based UI framework with concurrent features
-- TypeScript 5.x: Static type checking and enhanced developer experience
-- Vite 4.x: Fast build tool with hot module replacement
-- Wouter 2.x: Lightweight client-side routing (5KB vs React Router 20KB)
+=== DATABASE_SCHEMA ===
+Total Tables: ${_data.database.tables.length}
 
-UI/UX Framework:
-- Tailwind CSS 3.x: Utility-first CSS framework for rapid styling
-- Shadcn/ui: Reusable component library built on Radix UI primitives
-- Radix UI: Unstyled, accessible component primitives
-- Lucide React: Consistent icon system with 1000+ icons
-- React Day Picker: Date selection components with i18n support
+${_data.database.tables.map(table => `
+TABLE: ${table.name}
+Columns:
+${table.columns.map(col => `  - ${col.name}: ${col.type} ${col.nullable ? '(nullable)' : '(required)'} ${col.primary ? '(primary key)' : ''}`).join('\n')}
+`).join('')}
 
-State Management:
-- TanStack Query v5: Server state synchronization with caching
-- React Context: Global state management for user preferences and authentication
-- React Hook Form: Form state management with validation
-- Zod: Runtime schema validation and type inference
+=== DEPENDENCIES ===
+Total Dependencies: ${_data.dependencies.length}
 
-Development Tools:
-- ESLint: Code quality and style enforcement
-- Prettier: Consistent code formatting
-- TypeScript strict mode: Maximum type safety
-- Jest + React Testing Library: Unit and integration testing
-- Vite Plugin React: Fast refresh and development optimization
+PRODUCTION DEPENDENCIES (${_data.dependencies.filter(d => d.type === 'production').length}):
+${_data.dependencies.filter(d => d.type === 'production').map(dep => `
+- ${dep.name} (${dep.version}): ${dep.description}
+`).join('')}
 
-BACKEND_STACK:
-Core Technologies:
-- Node.js 20.x: JavaScript runtime with native ES modules support
-- Express.js 4.x: Web application framework with middleware architecture
-- TypeScript 5.x: Type-safe server-side development
-- Drizzle ORM: Lightweight, type-safe database ORM with SQL-first approach
+DEVELOPMENT DEPENDENCIES (${_data.dependencies.filter(d => d.type === 'development').length}):
+${_data.dependencies.filter(d => d.type === 'development').map(dep => `
+- ${dep.name} (${dep.version}): ${dep.description}
+`).join('')}
 
-Authentication & Security:
-- Passport.js: Authentication middleware with local strategy
-- Express Session: Session management with PostgreSQL store
-- bcryptjs: Password hashing with salt rounds
-- Express Rate Limit: Request rate limiting and DDoS protection
-- Helmet: Security headers and vulnerability protection
-- CORS: Cross-origin resource sharing configuration
+=== DOCUMENTATION_FILES ===
+Total Documentation Files: ${_data.documentationFiles.length}
 
-Database & Storage:
-- PostgreSQL 16.x: Primary relational database with ACID compliance
-- Neon PostgreSQL: Serverless database hosting with automatic scaling
-- Connection Pooling: Optimized database connections for performance
-- Database Migrations: Schema versioning with Drizzle migrations
-- Backup Strategy: Automated daily backups with point-in-time recovery
+Documentation by Category:
+${Object.entries(_data.documentationFiles.reduce((groups, file) => {
+  const category = file.category || 'general';
+  if (!groups[category]) groups[category] = [];
+  groups[category].push(file);
+  return groups;
+}, {} as Record<string, typeof _data.documentationFiles>)).map(([category, files]) => `
+${category.toUpperCase()} (${files.length} files):
+${files.map(file => `  - ${file.name} (${(file.size / 1024).toFixed(1)} KB) - ${file.path}`).join('\n')}
+`).join('')}
 
-API & Communication:
-- RESTful API Design: Resource-oriented endpoints with proper HTTP methods
-- WebSocket Support: Real-time notifications and updates
-- API Documentation: OpenAPI/Swagger specification
-- Request Validation: Zod schema validation for all endpoints
-- Response Caching: Strategic caching for performance optimization
+=== TECHNICAL_METRICS ===
+- Components: ${_data.components.length}
+- API Endpoints: ${_data.apis.length}  
+- Database Tables: ${_data.database.tables.length}
+- Dependencies: ${_data.dependencies.length}
+- Documentation Files: ${_data.documentationFiles.length}
+- Average Component Complexity: ${(_data.components.reduce((sum, c) => sum + c.complexity, 0) / _data.components.length).toFixed(2)}
 
-DEPLOYMENT_INFRASTRUCTURE:
-Development Environment:
-- Replit: Cloud-based development environment with integrated hosting
-- Vite Dev Server: Hot module replacement and fast development builds
-- Database: Neon PostgreSQL development instance
-- Environment Variables: Secure secret management
+LAST_UPDATED: ${lastUpdated}
+DOCUMENTATION_VERSION: 3.0
+SYSTEM_VERSION: ${_data.projectOverview.version}
+GENERATED_BY: Koveo Gestion Documentation System`;
+  };
 
-Production Architecture:
-- Containerization: Docker containers for consistent deployment
-- Load Balancing: Automatic scaling based on traffic
-- CDN: Content delivery network for static assets
-- SSL/TLS: End-to-end encryption with automatic certificate management
-- Monitoring: Real-time application performance monitoring
-- Logging: Centralized logging with structured log format
+  const downloadFile = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
-=== USER_ROLES_AND_PERMISSIONS ===
+  return (
+    <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header
+        title='Documentation Center'
+        subtitle='Generate and export comprehensive project documentation'
+      />
 
-OWNER_ROLE:
-Primary Responsibilities:
-- Strategic property management decisions
-- Financial oversight and budget approval
-- System administration and user management
-- Quality assurance and compliance monitoring
-- Performance analytics and reporting
+      {/* Refresh Command */}
+      <div className='border-b bg-gray-50 px-6 py-3'>
+        <div className='max-w-7xl mx-auto'>
+          <div className='flex items-center gap-2 text-sm text-gray-600'>
+            <Terminal className='h-4 w-4' />
+            <span className='font-medium'>Refresh Command:</span>
+            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>
+              npm run docs:generate
+            </code>
+          </div>
+        </div>
+      </div>
 
-Specific Permissions:
-- Full access to all organizations and properties
-- User management: create, modify, deactivate accounts
-- Financial management: budget creation, expense approval
-- System configuration: settings, integrations, customization
-- Audit trail access: complete activity logs and compliance reports
-- Advanced analytics: custom reports, data export, business intelligence
+      {/* Auto-refresh status bar */}
+      <div className='px-6 py-2 bg-gray-50 border-b'>
+        <div className='max-w-7xl mx-auto flex items-center justify-between text-sm'>
+          <div className='flex items-center gap-4 text-gray-600'>
+            <div className='flex items-center gap-2'>
+              <Clock className='h-4 w-4' />
+              <span>
+                Last updated: {lastRefresh.toLocaleDateString()} at{' '}
+                {lastRefresh.toLocaleTimeString()}
+              </span>
+            </div>
+            {isAutoRefreshing && (
+              <div className='flex items-center gap-2 text-blue-600'>
+                <RefreshCw className='h-4 w-4 animate-spin' />
+                <span>Auto-refreshing...</span>
+              </div>
+            )}
+          </div>
+          <Button
+            variant='ghost'
+            size='sm'
+            onClick={handleManualRefresh}
+            disabled={isFetching || isAutoRefreshing}
+            className='h-8'
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-1 ${isFetching || isAutoRefreshing ? 'animate-spin' : ''}`}
+            />
+            Refresh Now
+          </Button>
+        </div>
+      </div>
 
-Technical Capabilities:
-- Admin panel access for system management
-- API access for data integration
-- Bulk operations for efficiency
-- Advanced filtering and search capabilities
-- Export functionality for regulatory compliance
-
-MANAGER_ROLE:
-Primary Responsibilities:
-- Day-to-day building operations management
-- Maintenance request coordination and oversight
-- Financial tracking and expense management
-- Resident communication and issue resolution
-- Compliance documentation and reporting
-
-Specific Permissions:
-- Building-specific access based on assignment
-- Maintenance request management: review, assign, track progress
-- Financial operations: expense recording, budget monitoring
-- Resident communication: messaging, announcements, notifications
-- Document management: lease agreements, insurance, compliance docs
-- Reporting: operational reports, maintenance logs, financial summaries
-
-Technical Capabilities:
-- Mobile-responsive interface for on-site management
-- Push notifications for urgent issues
-- Calendar integration for maintenance scheduling
-- Document scanning and digital storage
-- Communication tools with residents and vendors
-
-RESIDENT_ROLE:
-Primary Responsibilities:
-- Personal unit and account management
-- Maintenance request submission and tracking
-- Payment processing and financial account monitoring
-- Communication with management and other residents
-- Document access and personal record keeping
-
-Specific Permissions:
-- Unit-specific access with personal data protection
-- Maintenance requests: submit, track status, provide feedback
-- Financial account: view bills, make payments, transaction history
-- Communication: message management, announcement viewing
-- Document access: lease agreements, receipts, important notices
-- Profile management: contact information, preferences, emergency contacts
-
-Technical Capabilities:
-- Mobile-first design for smartphone usage
-- Simplified interface for non-technical users
-- Notification preferences and management
-- Payment portal with multiple payment methods
-- Digital document storage and retrieval
-
-=== COMPREHENSIVE_FEATURE_DOCUMENTATION ===
-
-PROPERTY_MANAGEMENT_CORE:
-Building Management:
-- Multi-building portfolio support with hierarchical organization
-- Building profiles: address, type, construction year, specifications
-- Unit management: floor plans, square footage, occupancy status
-- Common area management: amenities, shared spaces, maintenance schedules
-- Building documentation: permits, insurance, warranty information
-- Vendor management: contractor database, service agreements, performance tracking
-
-Financial Management System:
-- Multi-currency support (CAD primary, USD secondary)
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
+          {/* Overview Stats */}
+          <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
 - Automated bill generation based on unit specifications and usage
 - Payment processing: credit cards, bank transfers, automated payments
 - Expense tracking: categorization, approval workflows, receipt management
