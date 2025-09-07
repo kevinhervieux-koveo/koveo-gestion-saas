@@ -526,11 +526,121 @@ GENERATED_BY: Koveo Gestion Documentation System`;
         <div className='max-w-7xl mx-auto space-y-6'>
           {/* Overview Stats */}
           <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-- Automated bill generation based on unit specifications and usage
-- Payment processing: credit cards, bank transfers, automated payments
-- Expense tracking: categorization, approval workflows, receipt management
-- Budget management: annual budgets, variance tracking, forecasting
-- Financial reporting: income statements, balance sheets, cash flow analysis
+            <Card>
+              <CardContent className='p-4'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-sm font-medium text-gray-600'>Components</p>
+                    <p className='text-2xl font-bold text-koveo-navy'>
+                      {docData?.components.length || 0}
+                    </p>
+                  </div>
+                  <Package className='h-8 w-8 text-koveo-navy' />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className='p-4'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-sm font-medium text-gray-600'>API Endpoints</p>
+                    <p className='text-2xl font-bold text-koveo-navy'>
+                      {docData?.apis.length || 0}
+                    </p>
+                  </div>
+                  <Cpu className='h-8 w-8 text-koveo-navy' />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className='p-4'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-sm font-medium text-gray-600'>Database Tables</p>
+                    <p className='text-2xl font-bold text-koveo-navy'>
+                      {docData?.database.tables.length || 0}
+                    </p>
+                  </div>
+                  <FileSpreadsheet className='h-8 w-8 text-koveo-navy' />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className='p-4'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-sm font-medium text-gray-600'>Documentation Files</p>
+                    <p className='text-2xl font-bold text-koveo-navy'>
+                      {docData?.documentationFiles?.length || 0}
+                    </p>
+                  </div>
+                  <BookOpen className='h-8 w-8 text-koveo-navy' />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Export Options */}
+          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+            {/* Google Suite Export */}
+            <Card>
+              <CardHeader>
+                <CardTitle className='flex items-center gap-2'>
+                  <Download className='h-5 w-5' />
+                  Human Documentation (Google Suite)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-4'>
+                <p className='text-sm text-gray-600'>
+                  Export comprehensive documentation in human-readable formats including Word
+                  documents, Excel spreadsheets, and other Google Suite compatible files.
+                </p>
+
+                <div className='space-y-2'>
+                  <div className='flex items-center gap-2 text-sm'>
+                    <FileText className='h-4 w-4 text-blue-600' />
+                    <span>Project Overview (.docx)</span>
+                  </div>
+                  <div className='flex items-center gap-2 text-sm'>
+                    <FileSpreadsheet className='h-4 w-4 text-green-600' />
+                    <span>Component Specifications (.xlsx)</span>
+                  </div>
+                  <div className='flex items-center gap-2 text-sm'>
+                    <FileText className='h-4 w-4 text-blue-600' />
+                    <span>API Documentation (.docx)</span>
+                  </div>
+                  <div className='flex items-center gap-2 text-sm'>
+                    <FileSpreadsheet className='h-4 w-4 text-green-600' />
+                    <span>Database Schema (.xlsx)</span>
+                  </div>
+                  <div className='flex items-center gap-2 text-sm'>
+                    <FileText className='h-4 w-4 text-blue-600' />
+                    <span>Dependencies List (.docx)</span>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleExportGoogleSuite}
+                  disabled={isExportingGoogleSuite || isLoading}
+                  className='w-full'
+                >
+                  {isExportingGoogleSuite ? (
+                    <>
+                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                      Exporting Documentation...
+                    </>
+                  ) : (
+                    <>
+                      <Package className='mr-2 h-4 w-4' />
+                      Export Google Suite Package
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
 - Tax preparation: T4 generation, expense categorization for tax purposes
 - Reserve fund management: mandatory Quebec reserve calculations
 
