@@ -12,6 +12,9 @@ const config = {
     // Fix database mock imports
     '^\\./server/db$': '<rootDir>/tests/mocks/database.js',
     '^\\./tests/mocks/database$': '<rootDir>/tests/mocks/database.js',
+    // Mock problematic ES modules
+    '@google/genai': '<rootDir>/tests/mocks/googleGenaiMock.js',
+    // Mock CSS and assets
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$':
       '<rootDir>/tests/mocks/fileMock.js',
@@ -48,7 +51,7 @@ const config = {
     ],
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|@google/genai|stream/web|lucide-react|drizzle-orm|drizzle-zod))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|stream/web|lucide-react|drizzle-orm|drizzle-zod|@neondatabase))'
   ],
   testTimeout: 15000,
   clearMocks: true,
