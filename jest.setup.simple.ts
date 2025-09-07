@@ -1,6 +1,13 @@
 // Simplified Jest setup file - minimal mocking to prevent hanging
 import '@testing-library/jest-dom';
 
+// Fix Node.js environment issues for integration tests
+if (typeof globalThis.TextEncoder === 'undefined') {
+  const { TextEncoder, TextDecoder } = require('util');
+  globalThis.TextEncoder = TextEncoder;
+  globalThis.TextDecoder = TextDecoder;
+}
+
 // Set test environment variables
 process.env.TEST_TYPE = 'unit';
 process.env.USE_MOCK_DB = 'true';
@@ -83,6 +90,20 @@ jest.mock('@/hooks/use-auth', () => ({
     login: jest.fn(),
     logout: jest.fn(),
   }),
+}));
+
+// Mock drizzle-zod to fix compatibility issues
+jest.mock('drizzle-zod', () => ({
+  createInsertSchema: jest.fn().mockImplementation(() => ({
+    parse: jest.fn(),
+    safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
+    omit: jest.fn().mockReturnThis(),
+    extend: jest.fn().mockReturnThis(),
+  })),
+  createSelectSchema: jest.fn().mockImplementation(() => ({
+    parse: jest.fn(),
+    safeParse: jest.fn().mockReturnValue({ success: true, data: {} }),
+  })),
 }));
 
 // Mock database operations simply

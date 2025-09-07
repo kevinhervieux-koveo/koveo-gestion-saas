@@ -23,8 +23,10 @@ const config = {
       'ts-jest',
       {
         tsconfig: '<rootDir>/tsconfig.test.json',
+        useESM: true,
       },
     ],
+    '^.+\\.(js|jsx|mjs)$': 'babel-jest',
   },
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|lucide-react))'
