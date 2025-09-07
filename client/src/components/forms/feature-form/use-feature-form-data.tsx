@@ -114,6 +114,8 @@ export function useFeatureFormData(feature: Feature | null) {
         description: 'Your progress has been automatically saved.',
         duration: 2000,
       });
+    } catch (error) {
+      console.error('Failed to save draft:', error);
     }
   }, [formData, feature?.id, toast, getDraftKey]);
 
@@ -136,6 +138,8 @@ export function useFeatureFormData(feature: Feature | null) {
         setLastSaved(new Date(draftData.timestamp));
         setIsDirty(false);
       }
+    } catch (error) {
+      console.error('Failed to load draft:', error);
     }
   }, [getDraftKey]);
 

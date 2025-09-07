@@ -112,7 +112,8 @@ export function StandardUploadForm({
         schemaFields[field.name] = field.required
           ? z.string().min(1, `${field.label} is required`)
           : z.string().optional();
-      }\n    });
+      }
+    });
     
     return z.object(schemaFields);
   };
