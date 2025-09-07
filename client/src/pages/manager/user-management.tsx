@@ -120,7 +120,8 @@ export default function UserManagement() {
       roleFilter,
       statusFilter,
       organizationFilter,
-      orphanFilter
+      orphanFilter,
+      search
     }],
     queryFn: async () => {
       // Build query parameters including filters
@@ -133,6 +134,7 @@ export default function UserManagement() {
       if (statusFilter) params.append('status', statusFilter);
       if (organizationFilter) params.append('organization', organizationFilter);
       if (orphanFilter) params.append('orphan', orphanFilter);
+      if (search) params.append('search', search);
       
       const response = await fetch(`/api/users?${params.toString()}`);
       if (!response.ok) {
@@ -714,14 +716,13 @@ export default function UserManagement() {
                   <div className='space-y-4'>
                     {/* Simple Search and Filters */}
                     <div className='flex flex-col sm:flex-row gap-4 mb-4 p-4 bg-gray-50 rounded-lg'>
-                      {/* Search - Temporarily disabled until server-side search is implemented */}
+                      {/* Search */}
                       <div className='flex-1'>
                         <Input
                           placeholder={t('searchUsers')}
                           value={search}
                           onChange={(e) => setSearch(e.target.value)}
                           className='w-full'
-                          disabled
                         />
                       </div>
 

@@ -271,14 +271,14 @@ export class OptimizedDatabaseStorage implements IStorage {
   async getUsersWithAssignmentsPaginated(
     offset: number = 0, 
     limit: number = 10, 
-    filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string } = {}
+    filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string } = {}
   ): Promise<{
     users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
     total: number;
   }> {
     return this.withOptimizations(
       'getUsersWithAssignmentsPaginated',
-      `paginated_users_${offset}_${limit}_${JSON.stringify(filters)}_v3`,
+      `paginated_users_${offset}_${limit}_${JSON.stringify(filters)}_v4`,
       'users',
       async () => {
         try {
@@ -317,6 +317,22 @@ export class OptimizedDatabaseStorage implements IStorage {
           if (filters.demoOnly === 'true') {
             whereConditions.push("(u.role LIKE 'demo_%')");
             countWhereConditions.push("(role LIKE 'demo_%')");
+          }
+
+          // Search filter for name/email
+          if (filters.search && filters.search.trim()) {
+            const searchTerm = filters.search.trim().toLowerCase();
+            whereConditions.push(`(
+              LOWER(u.first_name || ' ' || u.last_name) LIKE '%${searchTerm}%' OR 
+              LOWER(u.email) LIKE '%${searchTerm}%' OR 
+              LOWER(u.username) LIKE '%${searchTerm}%'
+            )`);
+            countWhereConditions.push(`(
+              LOWER(first_name || ' ' || last_name) LIKE '%${searchTerm}%' OR 
+              LOWER(email) LIKE '%${searchTerm}%' OR 
+              LOWER(username) LIKE '%${searchTerm}%'
+            )`);
+            console.log('🔍 [SEARCH FILTER] Applied search for:', searchTerm);
           }
 
           // Manager organizations filter - only show users from specific organizations
@@ -362,6 +378,11 @@ export class OptimizedDatabaseStorage implements IStorage {
               SELECT 1 FROM user_residences ur_assigned 
               WHERE ur_assigned.user_id = users.id AND ur_assigned.is_active = true
             ))` : ''}
+            ${filters.search && filters.search.trim() ? `AND (
+              LOWER(first_name || ' ' || last_name) LIKE '%${filters.search.trim().toLowerCase()}%' OR 
+              LOWER(email) LIKE '%${filters.search.trim().toLowerCase()}%' OR 
+              LOWER(username) LIKE '%${filters.search.trim().toLowerCase()}%'
+            )` : ''}
           `;
           console.log('📊 [COUNT SQL]:', countQuery);
           const countResult = await db.execute(sql.raw(countQuery));
@@ -629,7 +650,7 @@ export class OptimizedDatabaseStorage implements IStorage {
   private async getUsersWithAssignmentsPaginatedFallback(
     offset: number = 0, 
     limit: number = 10, 
-    filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string } = {}
+    filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string } = {}
   ): Promise<{
     users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
     total: number;
@@ -661,6 +682,19 @@ export class OptimizedDatabaseStorage implements IStorage {
       // Demo-only filter for demo users
       if (filters.demoOnly === 'true') {
         whereConditions.push(sql`${schema.users.role} LIKE 'demo_%'`);
+      }
+
+      // Search filter for name/email
+      if (filters.search && filters.search.trim()) {
+        const searchTerm = `%${filters.search.trim().toLowerCase()}%`;
+        whereConditions.push(
+          or(
+            sql`LOWER(${schema.users.firstName} || ' ' || ${schema.users.lastName}) LIKE ${searchTerm}`,
+            sql`LOWER(${schema.users.email}) LIKE ${searchTerm}`,
+            sql`LOWER(${schema.users.username}) LIKE ${searchTerm}`
+          )
+        );
+        console.log('🔍 [SEARCH FILTER FALLBACK] Applied search for:', filters.search.trim());
       }
 
       // Manager organizations filter
