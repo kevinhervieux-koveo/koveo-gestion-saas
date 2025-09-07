@@ -609,6 +609,13 @@ export default function UserManagement() {
     setOrphanFilter('');
   };
 
+  // Clear orphan filter when organization is selected
+  useEffect(() => {
+    if (organizationFilter) {
+      setOrphanFilter('');
+    }
+  }, [organizationFilter]);
+
   // Delete orphan users mutation (admin only)
   const deleteOrphanUsersMutation = useMutation({
     mutationFn: async () => {
@@ -832,8 +839,8 @@ export default function UserManagement() {
                         </select>
                       )}
 
-                      {/* Orphan User Filter - Admin Only */}
-                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && (
+                      {/* Orphan User Filter - Admin Only, Hidden when organization is selected */}
+                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && (
                         <select
                           value={orphanFilter}
                           onChange={(e) => setOrphanFilter(e.target.value)}
@@ -845,6 +852,13 @@ export default function UserManagement() {
                             </option>
                           ))}
                         </select>
+                      )}
+                      
+                      {/* Show explanation when orphan filter is disabled */}
+                      {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && (
+                        <div className="text-sm text-gray-500 italic px-3 py-2 border border-gray-200 rounded-md bg-gray-100">
+                          Orphan filter unavailable (organization selected)
+                        </div>
                       )}
 
                       {/* Clear Filters */}
