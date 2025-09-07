@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { NoDataCard } from '@/components/ui/no-data-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -658,18 +659,13 @@ export default function Buildings() {
               ))}
             </div>
           ) : (
-            <Card>
-              <CardContent className='p-8 text-center'>
-                <Building className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>No Buildings Found</h3>
-                <p className='text-gray-500 mb-4'>
-                  {user?.role === 'admin'
-                    ? 'No buildings are currently registered in your organizations.'
-                    : "You don't have access to any buildings yet."}
-                </p>
-                <Badge variant='secondary'>No Data</Badge>
-              </CardContent>
-            </Card>
+            <NoDataCard
+              icon={Building}
+              titleKey="noBuildingsFound"
+              descriptionKey={user?.role === 'admin' ? 'noBuildingsAdminMessage' : 'noBuildingsUserMessage'}
+              badgeKey="noData"
+              testId="no-buildings-message"
+            />
           )}
 
           {/* Add Building Dialog */}

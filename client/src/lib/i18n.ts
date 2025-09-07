@@ -321,6 +321,8 @@ export interface Translations {
   myBuildings: string;
   viewBuildingsAccess: string;
   noBuildingsFound: string;
+  noBuildingsAdminMessage: string;
+  noBuildingsUserMessage: string;
   buildingType: string;
   yearBuilt: string;
   totalUnits: string;
@@ -1295,6 +1297,8 @@ export const translations: Record<Language, Translations> = {
     myBuildings: 'My Buildings',
     viewBuildingsAccess: 'View buildings you have access to',
     noBuildingsFound: 'No buildings found',
+    noBuildingsAdminMessage: 'No buildings are currently registered in your organizations.',
+    noBuildingsUserMessage: "You don't have access to any buildings yet.",
     buildingType: 'Building Type',
     yearBuilt: 'Year Built',
     totalUnits: 'Total Units',
@@ -2223,6 +2227,8 @@ export const translations: Record<Language, Translations> = {
     myBuildings: 'Mes bâtiments',
     viewBuildingsAccess: 'Voir les bâtiments auxquels vous avez accès',
     noBuildingsFound: 'Aucun bâtiment trouvé',
+    noBuildingsAdminMessage: 'Aucun bâtiment n\'est actuellement enregistré dans vos organisations.',
+    noBuildingsUserMessage: 'Vous n\'avez pas encore accès à des bâtiments.',
     buildingType: 'Type de bâtiment',
     yearBuilt: 'Année de construction',
     totalUnits: 'Unités totales',
