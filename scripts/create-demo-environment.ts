@@ -120,7 +120,7 @@ const MAX_RESIDENCES_PER_BUILDING = 10;
 const COMMON_SPACES_PER_BUILDING = 4;
 const BOOKINGS_PER_RESERVABLE_SPACE = 8;
 const DEMANDS_PER_RESIDENT = 2;
-const BILLS_PER_BUILDING_PER_MONTH = 6;
+const BILLS_PER_BUILDING_PER_MONTH = 3;
 
 // Quebec-specific data
 const QUEBEC_CITIES = [
@@ -953,9 +953,9 @@ async function seedDocuments(
     let totalDocuments = 0;
     const demoDisclosure = createDemoDisclosure();
     
-    // Create Bill Documents (attached to bills) - Only create for 10-15% of bills
+    // Create Bill Documents (attached to bills) - Create for ALL bills
     console.log('   Creating bill documents...');
-    const billsWithDocs = bills.slice(0, Math.floor(bills.length * 0.15)); // Only 15% of bills get documents
+    const billsWithDocs = bills; // ALL bills get documents
     
     for (const bill of billsWithDocs) {
       const billCreator = users.find(user => user.buildingId === bill.buildingId && user.role.includes('manager'));
