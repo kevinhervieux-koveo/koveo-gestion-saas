@@ -2977,8 +2977,14 @@ export const translations: Record<Language, Translations> = {
     foundationDesc: 'Company creation with the mission to modernize property gestion in Quebec.',
     startManagingToday: 'Start managing today',
     buildingManagementDesc: 'Complete bâtiment and unit gestion system',
-    expertSupport: 'Expert Support',
-    termsOfService: 'Terms of Service',
-    noSetupFees: 'No setup fees',
-    noDocumentsUploadedYet: 'No documents have been uploaded yet for this résidence.',
-  
+    expertSupport: 'Support expert',
+    termsOfService: 'Conditions de service',
+    noSetupFees: 'Aucun frais d\'installation',
+    noDocumentsUploadedYet: 'Aucun document n\'a encore été téléchargé pour cette résidence.',
+    comprehensivePropertyManagement: 'Gestion immobilière complète',
+    developmentDesc: 'Description du développement',
+    quebecComplianceDesc: 'Description de la conformité québécoise',
+    quebecDataProtectionDesc: 'Description de la protection des données québécoise',
+    whatsIncluded: 'Ce qui est inclus',
+  }
+};

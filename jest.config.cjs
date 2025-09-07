@@ -18,9 +18,8 @@ const config = {
     // Mock problematic ES modules
     '@google/genai': '<rootDir>/tests/mocks/googleGenaiMock.js',
     '@neondatabase/serverless': '<rootDir>/tests/mocks/serverDbMock.js',
-    // Mock file system operations to prevent hanging
+    // Mock file system operations to prevent hanging  
     '^fs$': '<rootDir>/tests/mocks/fileSystemMock.js',
-    '^path$': '<rootDir>/tests/mocks/fileSystemMock.js',
     '^multer$': '<rootDir>/tests/mocks/fileSystemMock.js',
     // Mock supertest to prevent actual server requests
     '^supertest$': '<rootDir>/tests/mocks/supertestMock.js',

@@ -110,30 +110,25 @@ const mockFs = {
   })
 };
 
-// Mock path operations
+// Import real path to avoid breaking Jest internals
+const realPath = require.cache[require.resolve('path')] ? require.cache[require.resolve('path')].exports : require('path');
+
+// Create a more robust path mock that preserves core functionality
 const mockPath = {
-  join: jest.fn().mockImplementation((...args) => args.join('/')),
-  resolve: jest.fn().mockImplementation((...args) => '/' + args.join('/')),
-  dirname: jest.fn().mockImplementation((p) => p.split('/').slice(0, -1).join('/') || '/'),
-  basename: jest.fn().mockImplementation((p) => p.split('/').pop() || ''),
-  extname: jest.fn().mockImplementation((p) => {
-    const base = p.split('/').pop() || '';
-    const lastDot = base.lastIndexOf('.');
-    return lastDot > 0 ? base.slice(lastDot) : '';
-  }),
-  parse: jest.fn().mockImplementation((p) => ({
-    root: '/',
-    dir: mockPath.dirname(p),
-    base: mockPath.basename(p),
-    ext: mockPath.extname(p),
-    name: mockPath.basename(p, mockPath.extname(p))
-  })),
-  sep: '/',
-  delimiter: ':',
-  posix: {
-    join: jest.fn().mockImplementation((...args) => args.join('/')),
-    resolve: jest.fn().mockImplementation((...args) => '/' + args.join('/')),
-  }
+  // Use real implementations for core functions to avoid breaking Jest
+  join: realPath.join,
+  resolve: realPath.resolve,
+  dirname: realPath.dirname,
+  basename: realPath.basename,
+  extname: realPath.extname,
+  parse: realPath.parse,
+  sep: realPath.sep,
+  delimiter: realPath.delimiter,
+  posix: realPath.posix,
+  win32: realPath.win32,
+  
+  // Add any additional mock functionality if needed
+  _isMocked: true
 };
 
 // Mock multer for file uploads
