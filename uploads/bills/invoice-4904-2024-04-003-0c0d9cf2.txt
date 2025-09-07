@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 4904-2024-04-003
+Title: Supplies - MacGyver LLC
+Vendor: Waters Inc
+Category: Supplies
+Total Amount: $2943.25
+Description: Monthly supplies service for January 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 6/7/2026
+
+Service Details:
+- Talis tergeo vapulus curtus.
+- Illo ullam turpis ratione cohors comburo.
+
+Thank you for your business!
+Waters Inc

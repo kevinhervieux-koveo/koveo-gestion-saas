@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 6DFF-2024-09-005
+Title: Supplies - Gusikowski, McClure and Schoen
+Vendor: Konopelski, Langworth and Kuvalis
+Category: Supplies
+Total Amount: $2661.37
+Description: Monthly supplies service for September 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 1/2/2026
+
+Service Details:
+- Vero dicta cunabula creptio defendo.
+- Adhuc tum strenuus arx degenero deprecator delectatio pel aperiam.
+
+Thank you for your business!
+Konopelski, Langworth and Kuvalis

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 1EDE-2024-07-006
+Title: Security - Lang, Reilly and Deckow
+Vendor: Armstrong and Sons
+Category: Security
+Total Amount: $179.40
+Description: Monthly security service for May 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 8/16/2026
+
+Service Details:
+- Tot torqueo error adstringo explicabo amitto convoco.
+- Deleo adipiscor caute sunt vergo vinitor apparatus crustulum nulla virga.
+
+Thank you for your business!
+Armstrong and Sons

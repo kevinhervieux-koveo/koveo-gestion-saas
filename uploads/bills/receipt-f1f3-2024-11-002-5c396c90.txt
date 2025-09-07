@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: F1F3-2024-11-002
+Title: Professional_services - Ortiz - Langosh
+Vendor: Durgan Inc
+Category: Professional_services
+Total Amount: $2116.92
+Description: Monthly professional_services service for January 2024
+
+Payment Amount: $2116.92
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-TWLZCCMM
+
+This payment has been processed successfully.
+Building Management Office

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 39D8-2024-07-005
+Title: Insurance - Kessler - Stokes
+Vendor: Quigley - Hoeger
+Category: Insurance
+Total Amount: $2882.94
+Description: Monthly insurance service for July 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 4/28/2026
+
+Service Details:
+- Patrocinor accedo sopor accusantium deporto assentator.
+- Tabgo arcesso tripudio vicissitudo claudeo victus.
+
+Thank you for your business!
+Quigley - Hoeger

@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 4296-2024-05-004
+Title: Cleaning - Gottlieb, Raynor and Funk
+Vendor: Cormier Inc
+Category: Cleaning
+Total Amount: $2584.30
+Description: Monthly cleaning service for November 2024
+
+Payment Amount: $2584.30
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-IOB8EYBY
+
+This payment has been processed successfully.
+Building Management Office

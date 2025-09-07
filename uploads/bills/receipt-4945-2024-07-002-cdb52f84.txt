@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 4945-2024-07-002
+Title: Cleaning - Grimes, Rosenbaum and Stanton
+Vendor: Gleason LLC
+Category: Cleaning
+Total Amount: $4148.93
+Description: Monthly cleaning service for September 2024
+
+Payment Amount: $4148.93
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-T0DG1PGC
+
+This payment has been processed successfully.
+Building Management Office

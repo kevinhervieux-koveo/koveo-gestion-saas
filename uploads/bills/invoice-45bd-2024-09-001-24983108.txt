@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 45BD-2024-09-001
+Title: Insurance - Lakin - Casper
+Vendor: Green Inc
+Category: Insurance
+Total Amount: $1168.79
+Description: Monthly insurance service for July 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 9/21/2025
+
+Service Details:
+- Accusamus spes xiphias apparatus temeritas carbo supellex desparatus.
+- Cubo amo desino.
+
+Thank you for your business!
+Green Inc

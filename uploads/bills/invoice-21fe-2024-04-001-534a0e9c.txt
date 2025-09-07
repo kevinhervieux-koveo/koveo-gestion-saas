@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 21FE-2024-04-001
+Title: Supplies - Ziemann, DuBuque and Effertz
+Vendor: Tillman, Wiza and Lind
+Category: Supplies
+Total Amount: $977.58
+Description: Monthly supplies service for March 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 10/30/2025
+
+Service Details:
+- Cubo tum curia.
+- Vulpes fugit eveniet depromo vilicus talio accedo derelinquo decerno admoneo.
+
+Thank you for your business!
+Tillman, Wiza and Lind

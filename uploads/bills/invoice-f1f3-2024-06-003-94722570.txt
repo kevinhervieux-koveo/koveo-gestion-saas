@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: F1F3-2024-06-003
+Title: Security - Zieme, Willms and Schuster
+Vendor: Quigley, Muller and Ullrich
+Category: Security
+Total Amount: $1634.11
+Description: Monthly security service for August 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 6/16/2026
+
+Service Details:
+- Defleo caterva adduco tristis.
+- Aspernatur aliqua at suppellex atqui crustulum vinitor denuo.
+
+Thank you for your business!
+Quigley, Muller and Ullrich

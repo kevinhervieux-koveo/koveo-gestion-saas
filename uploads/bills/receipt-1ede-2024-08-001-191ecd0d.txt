@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 1EDE-2024-08-001
+Title: Professional_services - Tromp - Miller
+Vendor: Weber - Bosco
+Category: Professional_services
+Total Amount: $2530.28
+Description: Monthly professional_services service for August 2024
+
+Payment Amount: $2530.28
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-BNDEYPCN
+
+This payment has been processed successfully.
+Building Management Office

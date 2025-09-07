@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: B1C0-2024-06-003
+Title: Supplies - Schimmel and Sons
+Vendor: Ankunding and Sons
+Category: Supplies
+Total Amount: $2991.42
+Description: Monthly supplies service for January 2024
+
+Payment Amount: $2991.42
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-INS1HPF2
+
+This payment has been processed successfully.
+Building Management Office

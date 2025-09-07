@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: FF55-2024-03-001
+Title: Professional_services - Deckow - Roob
+Vendor: Dibbert, Gleichner and Haag
+Category: Professional_services
+Total Amount: $1348.73
+Description: Monthly professional_services service for January 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 7/10/2026
+
+Service Details:
+- Cognatus calculus volutabrum.
+- Approbo tantillus cognatus vinitor laboriosam.
+
+Thank you for your business!
+Dibbert, Gleichner and Haag

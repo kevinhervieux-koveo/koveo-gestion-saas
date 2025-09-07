@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: F1F3-2024-12-001
+Title: Landscaping - Hoeger - Bogisich
+Vendor: Heller - Hahn
+Category: Landscaping
+Total Amount: $2330.25
+Description: Monthly landscaping service for June 2024
+
+Payment Amount: $2330.25
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-4YF5YNYT
+
+This payment has been processed successfully.
+Building Management Office

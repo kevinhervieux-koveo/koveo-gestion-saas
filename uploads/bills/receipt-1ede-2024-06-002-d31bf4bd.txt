@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 1EDE-2024-06-002
+Title: Security - Bailey - Donnelly
+Vendor: Reilly and Sons
+Category: Security
+Total Amount: $4141.50
+Description: Monthly security service for December 2024
+
+Payment Amount: $4141.50
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-OIIJ7KBC
+
+This payment has been processed successfully.
+Building Management Office

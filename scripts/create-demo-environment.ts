@@ -308,13 +308,42 @@ async function upsertOrganization(name: string, type: 'demo' | 'production'): Pr
 /**
  * Create buildings for an organization
  */
-async function seedBuildings(organizationId: string): Promise<CreatedBuilding[]> {
+async function seedBuildings(organizationId: string): Promise<{ buildings: CreatedBuilding[], newBuildingsCreated: number }> {
   try {
-    console.log(`🏢 Creating ${BUILDINGS_PER_ORG} buildings...`);
+    // Check for existing buildings in this organization
+    const existingBuildings = await db
+      .select({
+        id: schema.buildings.id,
+        name: schema.buildings.name,
+        organizationId: schema.buildings.organizationId
+      })
+      .from(schema.buildings)
+      .where(eq(schema.buildings.organizationId, organizationId));
     
-    const buildings: CreatedBuilding[] = [];
+    const maxBuildings = 5; // Maximum buildings per organization
+    const buildingsToCreate = Math.max(0, maxBuildings - existingBuildings.length);
     
-    for (let i = 1; i <= BUILDINGS_PER_ORG; i++) {
+    if (existingBuildings.length >= maxBuildings) {
+      console.log(`🏢 Organization already has ${existingBuildings.length} buildings (max: ${maxBuildings}). Skipping building creation.`);
+      return {
+        buildings: existingBuildings.map(b => ({
+          id: b.id,
+          name: b.name,
+          organizationId: b.organizationId
+        })),
+        newBuildingsCreated: 0
+      };
+    }
+    
+    console.log(`🏢 Found ${existingBuildings.length} existing buildings. Creating ${buildingsToCreate} additional buildings...`);
+    
+    const buildings: CreatedBuilding[] = [...existingBuildings.map(b => ({
+      id: b.id,
+      name: b.name,
+      organizationId: b.organizationId
+    }))];
+    
+    for (let i = 1; i <= buildingsToCreate; i++) {
       const buildingName = `${faker.location.streetAddress()} Building ${i}`;
       
       const [building] = await db
@@ -350,8 +379,11 @@ async function seedBuildings(organizationId: string): Promise<CreatedBuilding[]>
       console.log(`   ✅ Created building: ${building.name}`);
     }
     
-    console.log(`📊 Created ${buildings.length} buildings`);
-    return buildings;
+    console.log(`📊 Created ${buildingsToCreate} new buildings (total: ${buildings.length})`);
+    return {
+      buildings,
+      newBuildingsCreated: buildingsToCreate
+    };
   } catch (error) {
     console.error('❌ Failed to create buildings:', error);
     throw error;
@@ -359,15 +391,28 @@ async function seedBuildings(organizationId: string): Promise<CreatedBuilding[]>
 }
 
 /**
- * Create residences for buildings
+ * Create residences for buildings (only for new buildings that don't have residences)
  */
-async function seedResidences(buildings: CreatedBuilding[]): Promise<CreatedResidence[]> {
+async function seedResidences(buildings: CreatedBuilding[], newBuildingsOnly: boolean = false): Promise<CreatedResidence[]> {
   try {
     console.log('🏠 Creating residences...');
     
     const residences: CreatedResidence[] = [];
     
     for (const building of buildings) {
+      // Check if this building already has residences (if we only want new buildings)
+      if (newBuildingsOnly) {
+        const existingResidences = await db
+          .select({ id: schema.residences.id })
+          .from(schema.residences)
+          .where(eq(schema.residences.buildingId, building.id))
+          .limit(1);
+        
+        if (existingResidences.length > 0) {
+          console.log(`   Building ${building.name} already has residences, skipping...`);
+          continue;
+        }
+      }
       // Get the building's totalUnits to create exact number of residences
       const buildingData = await db
         .select({ totalUnits: schema.buildings.totalUnits })
@@ -953,11 +998,54 @@ async function seedDocuments(
     let totalDocuments = 0;
     const demoDisclosure = createDemoDisclosure();
     
-    // Create Bill Documents (attached to bills) - Create for ALL bills
+    // Create Bill Documents (attached to bills) - Create for ALL bills in organization
     console.log('   Creating bill documents...');
-    const billsWithDocs = bills; // ALL bills get documents
+    
+    // Get ALL bills for this organization (not just newly created ones)
+    const allOrgBills = await db
+      .select({
+        id: schema.bills.id,
+        billNumber: schema.bills.billNumber,
+        title: schema.bills.title,
+        category: schema.bills.category,
+        vendor: schema.bills.vendor,
+        totalAmount: schema.bills.totalAmount,
+        description: schema.bills.description,
+        buildingId: schema.bills.buildingId
+      })
+      .from(schema.bills)
+      .innerJoin(schema.buildings, eq(schema.bills.buildingId, schema.buildings.id))
+      .where(eq(schema.buildings.organizationId, buildings[0].organizationId));
+
+    console.log(`   Found ${allOrgBills.length} total bills for organization, creating documents for bills without them...`);
+    
+    const billsWithDocs = allOrgBills.map(bill => ({
+      id: bill.id,
+      billNumber: bill.billNumber,
+      title: bill.title,
+      category: bill.category,
+      vendor: bill.vendor,
+      totalAmount: bill.totalAmount,
+      description: bill.description,
+      buildingId: bill.buildingId
+    }));
     
     for (const bill of billsWithDocs) {
+      // Check if this bill already has a document
+      const existingDoc = await db
+        .select({ id: schema.documents.id })
+        .from(schema.documents)
+        .where(and(
+          eq(schema.documents.attachedToId, bill.id),
+          eq(schema.documents.attachedToType, 'bill')
+        ))
+        .limit(1);
+      
+      if (existingDoc.length > 0) {
+        // Skip bills that already have documents
+        continue;
+      }
+      
       // Find a manager for this building, with fallback to any manager
       let billCreator = users.find(user => user.buildingId === bill.buildingId && user.role.includes('manager'));
       if (!billCreator) {
@@ -1305,43 +1393,66 @@ async function main() {
     
     // Step 2: Create Buildings
     console.log('🏢 Step 2: Create Buildings');
-    const buildings = await seedBuildings(organization.id);
+    const buildingResult = await seedBuildings(organization.id);
+    const buildings = buildingResult.buildings;
+    const newBuildingsCreated = buildingResult.newBuildingsCreated;
     console.log('');
     
-    // Step 3: Create Residences
+    // Step 3: Create Residences (only for new buildings if organization already has 5 buildings)
     console.log('🏠 Step 3: Create Residences');
-    const residences = await seedResidences(buildings);
+    const residences = await seedResidences(buildings, newBuildingsCreated === 0);
     console.log('');
     
-    // Step 4: Create Common Spaces
-    console.log('🏛️ Step 4: Create Common Spaces');
-    const commonSpaces = await seedCommonSpaces(buildings);
-    console.log('');
-    
-    // Step 5: Create Users
-    console.log('👥 Step 5: Create Users');
-    const users = await seedUsers(args.type, organization.id, buildings, residences);
-    console.log('');
-    
-    // Step 6: Create Bookings
-    console.log('📅 Step 6: Create Bookings');
-    await seedBookings(commonSpaces, users);
-    console.log('');
-    
-    // Step 7: Create Maintenance Demands
-    console.log('🔧 Step 7: Create Maintenance Demands');
-    await seedMaintenanceRequests(users);
-    console.log('');
-    
-    // Step 8: Create Bills
-    console.log('💰 Step 8: Create Bills');
-    const bills = await seedBills(buildings, users);
-    console.log('');
-    
-    // Step 9: Create Documents
-    console.log('📄 Step 9: Create Documents');
-    await seedDocuments(bills, buildings, residences, users);
-    console.log('');
+    // Only create additional data if we have new buildings or this is the first run
+    if (newBuildingsCreated > 0 || buildings.length <= 5) {
+      // Step 4: Create Common Spaces
+      console.log('🏛️ Step 4: Create Common Spaces');
+      const commonSpaces = await seedCommonSpaces(buildings);
+      console.log('');
+      
+      // Step 5: Create Users
+      console.log('👥 Step 5: Create Users');
+      const users = await seedUsers(args.type, organization.id, buildings, residences);
+      console.log('');
+      
+      // Step 6: Create Bookings
+      console.log('📅 Step 6: Create Bookings');
+      await seedBookings(commonSpaces, users);
+      console.log('');
+      
+      // Step 7: Create Maintenance Demands
+      console.log('🔧 Step 7: Create Maintenance Demands');
+      await seedMaintenanceRequests(users);
+      console.log('');
+      
+      // Step 8: Create Bills
+      console.log('💰 Step 8: Create Bills');
+      const bills = await seedBills(buildings, users);
+      console.log('');
+      
+      // Step 9: Create Documents
+      console.log('📄 Step 9: Create Documents');
+      await seedDocuments(bills, buildings, residences, users);
+      console.log('');
+    } else {
+      console.log('🏢 Organization already has complete buildings and data. Skipping additional data creation.');
+      console.log('📄 Only updating documents for existing bills...');
+      
+      // Still create documents for any bills that don't have them
+      const existingUsers = await db
+        .select()
+        .from(schema.users)
+        .innerJoin(schema.buildings, eq(schema.users.buildingId, schema.buildings.id))
+        .where(eq(schema.buildings.organizationId, organization.id));
+      
+      await seedDocuments([], buildings, residences, existingUsers.map(u => ({
+        id: u.users.id,
+        email: u.users.email,
+        role: u.users.role,
+        buildingId: u.users.buildingId
+      })));
+      console.log('');
+    }
     
     // Summary
     console.log('🎉 Demo environment created successfully!');
