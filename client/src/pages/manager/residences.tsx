@@ -239,7 +239,7 @@ Residences() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='Residences Management' subtitle='Manage all residences and units' />
+      <Header title={t('residencesManagement')} subtitle={t('manageResidences')} />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -248,15 +248,15 @@ Residences() {
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
                 <Search className='w-5 h-5' />
-                Search & Filters
+                {t('searchFilters')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Search</label>
+                  <label className='text-sm font-medium'>{t('searchResidences')}</label>
                   <Input
-                    placeholder='Search by unit number or tenant name...'
+                    placeholder={t('searchUnitTenant')}
                     value={searchTerm}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     className='w-full'
@@ -264,13 +264,13 @@ Residences() {
                 </div>
 
                 <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Building</label>
+                  <label className='text-sm font-medium'>{t('buildingFilter')}</label>
                   <Select value={selectedBuilding} onValueChange={handleBuildingChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder='All Buildings' />
+                      <SelectValue placeholder={t('allBuildings')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All Buildings</SelectItem>
+                      <SelectItem value='all'>{t('allBuildings')}</SelectItem>
                       {buildings?.map((building: any) => (
                         <SelectItem key={building.id} value={building.id}>
                           {building.name}
@@ -281,13 +281,13 @@ Residences() {
                 </div>
 
                 <div className='space-y-2'>
-                  <label className='text-sm font-medium'>Floor</label>
+                  <label className='text-sm font-medium'>{t('floorFilter')}</label>
                   <Select value={selectedFloor} onValueChange={handleFloorChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder='All Floors' />
+                      <SelectValue placeholder={t('allFloors')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All Floors</SelectItem>
+                      <SelectItem value='all'>{t('allFloors')}</SelectItem>
                       {availableFloors.map((floor) => (
                         <SelectItem key={floor} value={floor.toString()}>
                           Floor {floor}

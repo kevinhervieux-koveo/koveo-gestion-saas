@@ -442,6 +442,77 @@ export interface Translations {
   complaintFilter: string;
   informationFilter: string;
   otherFilter: string;
+  // Manager Buildings page
+  buildingsManagement: string;
+  manageBuildings: string;
+  addBuilding: string;
+  editBuilding: string;
+  createBuilding: string;
+  buildingName: string;
+  buildingAddress: string;
+  buildingCity: string;
+  buildingProvince: string;
+  buildingPostalCode: string;
+  buildingType: string;
+  totalUnits: string;
+  organizationLabel: string;
+  enterBuildingName: string;
+  enterStreetAddress: string;
+  enterCity: string;
+  selectProvince: string;
+  enterPostalCode: string;
+  selectBuildingType: string;
+  selectOrganization: string;
+  fillBuildingInfo: string;
+  allFieldsRequired: string;
+  buildingNameRequired: string;
+  addressRequired: string;
+  cityRequired: string;
+  provinceRequired: string;
+  postalCodeRequired: string;
+  organizationRequired: string;
+  nameTooLong: string;
+  addressTooLong: string;
+  cityTooLong: string;
+  provinceTooLong: string;
+  postalCodeTooLong: string;
+  mustHaveAtLeastOneUnit: string;
+  maximumUnitsAllowed: string;
+  searchBuildingsPlaceholder: string;
+  unitsCount: string;
+  activeBuilding: string;
+  inactiveBuilding: string;
+  // Building types
+  condoType: string;
+  apartmentType: string;
+  townhouseType: string;
+  commercialType: string;
+  mixedUseType: string;
+  otherBuildingType: string;
+  // Manager Residences page
+  residencesManagement: string;
+  manageResidences: string;
+  searchFilters: string;
+  searchResidences: string;
+  searchUnitTenant: string;
+  buildingFilter: string;
+  floorFilter: string;
+  allBuildings: string;
+  allFloors: string;
+  unitNumber: string;
+  floor: string;
+  bedrooms: string;
+  bathrooms: string;
+  parking: string;
+  storage: string;
+  squareFootage: string;
+  monthlyFees: string;
+  ownershipPercentage: string;
+  editResidence: string;
+  viewDocuments: string;
+  tenants: string;
+  noTenants: string;
+  residenceDetails: string;
   // Privacy Policy page
   privacyPolicyTitle: string;
   lastUpdated: string;
@@ -607,6 +678,8 @@ export interface Translations {
   exitFullscreen: string;
   // Common action buttons
   save: string;
+  cancel: string;
+  saving: string;
   close: string;
   edit: string;
   delete: string;
@@ -1048,6 +1121,77 @@ const translations: Record<Language, Translations> = {
     complaintFilter: 'Complaint',
     informationFilter: 'Information',
     otherFilter: 'Other',
+    // Manager Buildings page
+    buildingsManagement: 'Buildings Management',
+    manageBuildings: 'Manage all buildings in your organization',
+    addBuilding: 'Add Building',
+    editBuilding: 'Edit Building',
+    createBuilding: 'Create Building',
+    buildingName: 'Building Name',
+    buildingAddress: 'Address',
+    buildingCity: 'City',
+    buildingProvince: 'Province',
+    buildingPostalCode: 'Postal Code',
+    buildingType: 'Building Type',
+    totalUnits: 'Total Units',
+    organizationLabel: 'Organization',
+    enterBuildingName: 'Enter building name',
+    enterStreetAddress: 'Enter street address',
+    enterCity: 'Enter city',
+    selectProvince: 'Select province',
+    enterPostalCode: 'Enter postal code',
+    selectBuildingType: 'Select building type',
+    selectOrganization: 'Select organization',
+    fillBuildingInfo: 'Fill in the building information below. All fields are required.',
+    allFieldsRequired: 'All fields are required',
+    buildingNameRequired: 'Building name is required',
+    addressRequired: 'Address is required',
+    cityRequired: 'City is required',
+    provinceRequired: 'Province is required',
+    postalCodeRequired: 'Postal code is required',
+    organizationRequired: 'Organization is required',
+    nameTooLong: 'Name too long',
+    addressTooLong: 'Address too long',
+    cityTooLong: 'City too long',
+    provinceTooLong: 'Province too long',
+    postalCodeTooLong: 'Postal code too long',
+    mustHaveAtLeastOneUnit: 'Must have at least 1 unit',
+    maximumUnitsAllowed: 'Maximum 300 units allowed',
+    searchBuildingsPlaceholder: 'Search buildings by name or address...',
+    unitsCount: 'units',
+    activeBuilding: 'Active',
+    inactiveBuilding: 'Inactive',
+    // Building types
+    condoType: 'Condo',
+    apartmentType: 'Apartment',
+    townhouseType: 'Townhouse',
+    commercialType: 'Commercial',
+    mixedUseType: 'Mixed Use',
+    otherBuildingType: 'Other',
+    // Manager Residences page
+    residencesManagement: 'Residences Management',
+    manageResidences: 'Manage all residences and units',
+    searchFilters: 'Search & Filters',
+    searchResidences: 'Search',
+    searchUnitTenant: 'Search by unit number or tenant name...',
+    buildingFilter: 'Building',
+    floorFilter: 'Floor',
+    allBuildings: 'All Buildings',
+    allFloors: 'All Floors',
+    unitNumber: 'Unit Number',
+    floor: 'Floor',
+    bedrooms: 'Bedrooms',
+    bathrooms: 'Bathrooms',
+    parking: 'Parking',
+    storage: 'Storage',
+    squareFootage: 'Square Footage',
+    monthlyFees: 'Monthly Fees',
+    ownershipPercentage: 'Ownership %',
+    editResidence: 'Edit Residence',
+    viewDocuments: 'View Documents',
+    tenants: 'Tenants',
+    noTenants: 'No tenants assigned',
+    residenceDetails: 'Residence Details',
     // Privacy Policy page
     privacyPolicyTitle: 'Privacy Policy',
     lastUpdated: 'Last updated:',
@@ -1212,6 +1356,8 @@ const translations: Record<Language, Translations> = {
     exitFullscreen: 'Exit Fullscreen',
     // Common action buttons
     save: 'Save',
+    cancel: 'Cancel',
+    saving: 'Saving...',
     close: 'Close',
     edit: 'Edit',
     delete: 'Delete',
@@ -1651,6 +1797,77 @@ const translations: Record<Language, Translations> = {
     complaintFilter: 'Plainte',
     informationFilter: 'Information',
     otherFilter: 'Autre',
+    // Page de gestion des bâtiments
+    buildingsManagement: 'Gestion des bâtiments',
+    manageBuildings: 'Gérer tous les bâtiments de votre organisation',
+    addBuilding: 'Ajouter un bâtiment',
+    editBuilding: 'Modifier le bâtiment',
+    createBuilding: 'Créer un bâtiment',
+    buildingName: 'Nom du bâtiment',
+    buildingAddress: 'Adresse',
+    buildingCity: 'Ville',
+    buildingProvince: 'Province',
+    buildingPostalCode: 'Code postal',
+    buildingType: 'Type de bâtiment',
+    totalUnits: 'Nombre total d\'unités',
+    organizationLabel: 'Organisation',
+    enterBuildingName: 'Entrez le nom du bâtiment',
+    enterStreetAddress: 'Entrez l\'adresse de la rue',
+    enterCity: 'Entrez la ville',
+    selectProvince: 'Sélectionnez la province',
+    enterPostalCode: 'Entrez le code postal',
+    selectBuildingType: 'Sélectionnez le type de bâtiment',
+    selectOrganization: 'Sélectionnez l\'organisation',
+    fillBuildingInfo: 'Remplissez les informations du bâtiment ci-dessous. Tous les champs sont obligatoires.',
+    allFieldsRequired: 'Tous les champs sont obligatoires',
+    buildingNameRequired: 'Le nom du bâtiment est obligatoire',
+    addressRequired: 'L\'adresse est obligatoire',
+    cityRequired: 'La ville est obligatoire',
+    provinceRequired: 'La province est obligatoire',
+    postalCodeRequired: 'Le code postal est obligatoire',
+    organizationRequired: 'L\'organisation est obligatoire',
+    nameTooLong: 'Nom trop long',
+    addressTooLong: 'Adresse trop longue',
+    cityTooLong: 'Ville trop longue',
+    provinceTooLong: 'Province trop longue',
+    postalCodeTooLong: 'Code postal trop long',
+    mustHaveAtLeastOneUnit: 'Doit avoir au moins 1 unité',
+    maximumUnitsAllowed: 'Maximum 300 unités autorisées',
+    searchBuildingsPlaceholder: 'Rechercher des bâtiments par nom ou adresse...',
+    unitsCount: 'unités',
+    activeBuilding: 'Actif',
+    inactiveBuilding: 'Inactif',
+    // Types de bâtiments
+    condoType: 'Copropriété',
+    apartmentType: 'Appartement',
+    townhouseType: 'Maison en rangée',
+    commercialType: 'Commercial',
+    mixedUseType: 'Usage mixte',
+    otherBuildingType: 'Autre',
+    // Page de gestion des résidences
+    residencesManagement: 'Gestion des résidences',
+    manageResidences: 'Gérer toutes les résidences et unités',
+    searchFilters: 'Recherche et filtres',
+    searchResidences: 'Recherche',
+    searchUnitTenant: 'Rechercher par numéro d\'unité ou nom de locataire...',
+    buildingFilter: 'Bâtiment',
+    floorFilter: 'Étage',
+    allBuildings: 'Tous les bâtiments',
+    allFloors: 'Tous les étages',
+    unitNumber: 'Numéro d\'unité',
+    floor: 'Étage',
+    bedrooms: 'Chambres',
+    bathrooms: 'Salles de bain',
+    parking: 'Stationnement',
+    storage: 'Entreposage',
+    squareFootage: 'Superficie (pi²)',
+    monthlyFees: 'Frais mensuels',
+    ownershipPercentage: 'Propriété %',
+    editResidence: 'Modifier la résidence',
+    viewDocuments: 'Voir les documents',
+    tenants: 'Locataires',
+    noTenants: 'Aucun locataire assigné',
+    residenceDetails: 'Détails de la résidence',
     // Page Politique de confidentialité
     privacyPolicyTitle: 'Politique de confidentialité',
     lastUpdated: 'Dernière mise à jour :',
@@ -1815,6 +2032,8 @@ const translations: Record<Language, Translations> = {
     exitFullscreen: 'Quitter le plein écran',
     // Boutons d'action communs
     save: 'Enregistrer',
+    cancel: 'Annuler',
+    saving: 'Enregistrement...',
     close: 'Fermer',
     edit: 'Modifier',
     delete: 'Supprimer',
