@@ -271,14 +271,14 @@ export class OptimizedDatabaseStorage implements IStorage {
   async getUsersWithAssignmentsPaginated(
     offset: number = 0, 
     limit: number = 10, 
-    filters: { role?: string; status?: string; organization?: string; orphan?: string } = {}
+    filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string } = {}
   ): Promise<{
     users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
     total: number;
   }> {
     return this.withOptimizations(
       'getUsersWithAssignmentsPaginated',
-      `paginated_users_${offset}_${limit}_${JSON.stringify(filters)}_v2`,
+      `paginated_users_${offset}_${limit}_${JSON.stringify(filters)}_v3`,
       'users',
       async () => {
         try {
@@ -309,6 +309,29 @@ export class OptimizedDatabaseStorage implements IStorage {
             // Default: only show active users if no status filter is applied
             whereConditions.push('u.is_active = true');
             countWhereConditions.push('is_active = true');
+          }
+
+          // Demo-only filter for demo users
+          if (filters.demoOnly === 'true') {
+            whereConditions.push("(u.role LIKE 'demo_%')");
+            countWhereConditions.push("(role LIKE 'demo_%')");
+          }
+
+          // Manager organizations filter - only show users from specific organizations
+          if (filters.managerOrganizations) {
+            const orgIds = filters.managerOrganizations.split(',').map(id => `'${id}'`).join(',');
+            whereConditions.push(`EXISTS (
+              SELECT 1 FROM user_organizations uo_mgr 
+              WHERE uo_mgr.user_id = u.id 
+              AND uo_mgr.organization_id IN (${orgIds})
+              AND uo_mgr.is_active = true
+            )`);
+            countWhereConditions.push(`EXISTS (
+              SELECT 1 FROM user_organizations uo_mgr 
+              WHERE uo_mgr.user_id = users.id 
+              AND uo_mgr.organization_id IN (${orgIds})
+              AND uo_mgr.is_active = true
+            )`);
           }
 
           // First get total count for pagination metadata with filters
@@ -583,7 +606,7 @@ export class OptimizedDatabaseStorage implements IStorage {
   private async getUsersWithAssignmentsPaginatedFallback(
     offset: number = 0, 
     limit: number = 10, 
-    filters: { role?: string; status?: string; organization?: string; orphan?: string } = {}
+    filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string } = {}
   ): Promise<{
     users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
     total: number;
@@ -610,6 +633,26 @@ export class OptimizedDatabaseStorage implements IStorage {
       } else {
         // Default: only show active users if no status filter is applied
         whereConditions.push(eq(schema.users.isActive, true));
+      }
+
+      // Demo-only filter for demo users
+      if (filters.demoOnly === 'true') {
+        whereConditions.push(sql`${schema.users.role} LIKE 'demo_%'`);
+      }
+
+      // Manager organizations filter
+      if (filters.managerOrganizations) {
+        const orgIds = filters.managerOrganizations.split(',');
+        const orgFilterQuery = db
+          .select({ userId: schema.userOrganizations.userId })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              inArray(schema.userOrganizations.organizationId, orgIds),
+              eq(schema.userOrganizations.isActive, true)
+            )
+          );
+        whereConditions.push(inArray(schema.users.id, orgFilterQuery));
       }
 
       // Note: Organization and orphan filters are complex and might not work well in fallback method.

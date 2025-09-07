@@ -57,42 +57,54 @@ export function registerUserRoutes(app: Express): void {
         orphan: req.query.orphan as string,
       };
 
-      // Get users with their full assignment data and pagination
-      const result = await storage.getUsersWithAssignmentsPaginated(offset, limit, filters);
+      // Apply role-based prefiltering at database level
+      let roleBasedFilters = { ...filters };
+      
+      console.log(`🔐 [USER FILTER] Current user role: ${currentUser.role}, applying role-based filters...`);
+      
+      if (currentUser.role === 'admin') {
+        // Admin can see all users - no additional filtering
+        console.log('🔓 [ADMIN] No role-based filtering applied - admin can see all users');
+      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // Demo users can only see other demo users
+        if (!roleBasedFilters.role) {
+          // If no role filter is applied, restrict to demo roles only
+          roleBasedFilters.demoOnly = 'true';
+        }
+      } else {
+        // Regular managers can only see users from their organizations
+        console.log('👔 [MANAGER] Restricting to users from manager\'s organizations');
+        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
+        console.log(`   → Manager organizations: [${userOrgIds.join(', ')}]`);
+        if (userOrgIds.length > 0) {
+          roleBasedFilters.managerOrganizations = userOrgIds.join(',');
+          console.log('   → Added managerOrganizations filter');
+        } else {
+          // Manager has no organizations, return empty result
+          return res.json({
+            users: [],
+            pagination: {
+              page,
+              limit,
+              total: 0,
+              totalPages: 0,
+              hasNext: false,
+              hasPrev: false
+            }
+          });
+        }
+      }
+
+      // Get users with their full assignment data and pagination (now with role-based prefiltering)
+      console.log('📊 [QUERY] Applying filters:', JSON.stringify(roleBasedFilters, null, 2));
+      const result = await storage.getUsersWithAssignmentsPaginated(offset, limit, roleBasedFilters);
+      console.log(`📈 [RESULT] Found ${result.users.length} users out of ${result.total} total (page ${page})`);
 
       
 
-      // Apply role-based filtering to the paginated result
-      let filteredUsers;
-      if (currentUser.role === 'admin') {
-        // Admin can see all users
-        filteredUsers = result.users;
-      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see other demo users (and always include themselves)
-        filteredUsers = result.users.filter(user => 
-          user.id === currentUser.id || ['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)
-        );
-      } else {
-        // Regular managers and other users can only see non-demo users from their organizations
-        // Get the organization IDs that the current user has access to
-        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
-        
-        // Filter users to only include non-demo users from accessible organizations
-        filteredUsers = result.users.filter(user => {
-          // Always include the current user (so they can see themselves)
-          if (user.id === currentUser.id) {
-            return true;
-          }
-          
-          // Exclude demo users from regular manager view
-          if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(user.role)) {
-            return false;
-          }
-          
-          const hasAccess = user.organizations?.some(org => userOrgIds.includes(org.id)) || false;
-          return hasAccess;
-        });
-      }
+      // Role-based filtering is now handled at database level in roleBasedFilters
+      // No additional application-level filtering needed
+      const filteredUsers = result.users;
 
       // Return paginated response with metadata
       res.json({
@@ -140,7 +152,7 @@ export function registerUserRoutes(app: Express): void {
         .from(schema.users)
         .orderBy(schema.users.isActive);
 
-      // Get organizations the current user has access to
+      // Role-based organization filtering for filter options
       let organizations = [];
       if (currentUser.role === 'admin') {
         // Admin can see all organizations
@@ -150,8 +162,21 @@ export function registerUserRoutes(app: Express): void {
           .where(eq(schema.organizations.isActive, true))
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
+      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // Demo users can only see demo organizations
+        const orgsResult = await db
+          .select({ id: schema.organizations.id, name: schema.organizations.name })
+          .from(schema.organizations)
+          .where(
+            and(
+              eq(schema.organizations.isActive, true),
+              eq(schema.organizations.type, 'demo')
+            )
+          )
+          .orderBy(schema.organizations.name);
+        organizations = orgsResult;
       } else {
-        // Regular users see only their organizations
+        // Regular managers see only their organizations
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
         if (userOrgIds.length > 0) {
           const orgsResult = await db
