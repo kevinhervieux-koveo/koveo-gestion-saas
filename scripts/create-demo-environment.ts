@@ -315,7 +315,7 @@ async function seedBuildings(organizationId: string): Promise<CreatedBuilding[]>
           postalCode: generateQuebecPostalCode(),
           buildingType: Math.random() > 0.5 ? 'condo' : 'appartement',
           yearBuilt: faker.number.int({ min: 1950, max: 2023 }),
-          totalUnits: faker.number.int({ min: 20, max: 300 }),
+          totalUnits: faker.number.int({ min: MIN_RESIDENCES_PER_BUILDING, max: MAX_RESIDENCES_PER_BUILDING }),
           totalFloors: faker.number.int({ min: 3, max: 25 }),
           parkingSpaces: faker.number.int({ min: 10, max: 150 }),
           storageSpaces: faker.number.int({ min: 5, max: 75 }),
@@ -355,10 +355,14 @@ async function seedResidences(buildings: CreatedBuilding[]): Promise<CreatedResi
     const residences: CreatedResidence[] = [];
     
     for (const building of buildings) {
-      const residenceCount = faker.number.int({ 
-        min: MIN_RESIDENCES_PER_BUILDING, 
-        max: MAX_RESIDENCES_PER_BUILDING 
-      });
+      // Get the building's totalUnits to create exact number of residences
+      const buildingData = await db
+        .select({ totalUnits: schema.buildings.totalUnits })
+        .from(schema.buildings)
+        .where(eq(schema.buildings.id, building.id))
+        .limit(1);
+      
+      const residenceCount = buildingData[0]?.totalUnits || MIN_RESIDENCES_PER_BUILDING;
       
       console.log(`   Creating ${residenceCount} residences for ${building.name}`);
       
