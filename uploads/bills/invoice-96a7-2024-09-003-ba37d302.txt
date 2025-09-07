@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 96A7-2024-09-003
+Title: Administration - Mayer Group
+Vendor: Hauck and Sons
+Category: Administration
+Total Amount: $545.98
+Description: Monthly administration service for February 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 3/20/2026
+
+Service Details:
+- Beneficium comedo videlicet artificiose tunc victus.
+- Crepusculum cupressus degero abbas pauper advoco arx capio amaritudo earum.
+
+Thank you for your business!
+Hauck and Sons

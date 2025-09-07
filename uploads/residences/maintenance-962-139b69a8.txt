@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 962
+Building: 7567 Ola Garden Building 1
+Address: 82649 Weissnat Manors
+Document 1 of 1
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 962:
+
+6/16/2025 - Plumbing repair
+Status: Completed
+Cost: $62
+
+9/7/2025 - Light fixture repair
+Status: In Progress
+Estimated Cost: $322
+
+Next Scheduled Maintenance: 3/7/2026

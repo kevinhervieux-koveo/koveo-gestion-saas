@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 952
+Building: 1448 Warren Close Building 2
+Address: 52671 S Broad Street
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 952
+- Lease Start Date: 9/29/2024
+- Lease End Date: 5/28/2026
+- Monthly Rent: $859
+- Security Deposit: $2429
+
+Terms and Conditions:
+- Nulla alioqui benigne cui carpo.
+- Assumenda usque subito abscido doloremque totam paens.
+
+Landlord: 1448 Warren Close Building 2 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

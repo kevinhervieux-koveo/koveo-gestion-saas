@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 647
+Building: 7567 Ola Garden Building 1
+Address: 88969 Schaden Islands
+Document 1 of 1
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 647:
+
+5/9/2025 - Electrical work
+Status: Completed
+Cost: $350
+
+9/7/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $129
+
+Next Scheduled Maintenance: 1/10/2026

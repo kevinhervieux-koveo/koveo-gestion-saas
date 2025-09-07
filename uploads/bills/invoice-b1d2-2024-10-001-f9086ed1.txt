@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: B1D2-2024-10-001
+Title: Cleaning - Willms, Strosin and Cartwright
+Vendor: Champlin, Torp and Beier
+Category: Cleaning
+Total Amount: $3562.17
+Description: Monthly cleaning service for May 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 1/4/2026
+
+Service Details:
+- Studio decumbo ago beatae coepi terga tergo.
+- Deserunt subvenio theca curiositas usus patrocinor.
+
+Thank you for your business!
+Champlin, Torp and Beier

@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 919
+Building: 7567 Ola Garden Building 1
+Address: 2044 Violet Manor
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 919
+- Lease Start Date: 1/20/2025
+- Lease End Date: 9/9/2025
+- Monthly Rent: $2336
+- Security Deposit: $1240
+
+Terms and Conditions:
+- Vere aliqua maiores advoco volo pel corpus tamen crapula vereor.
+- Corrupti triduana iste aeger demonstro angulus vulariter antiquus pauci adaugeo.
+
+Landlord: 7567 Ola Garden Building 1 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

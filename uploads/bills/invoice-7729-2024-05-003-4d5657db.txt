@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 7729-2024-05-003
+Title: Insurance - McClure, Rutherford and Vandervort
+Vendor: Haag, Bayer and Rempel
+Category: Insurance
+Total Amount: $4094.43
+Description: Monthly insurance service for March 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 2/13/2026
+
+Service Details:
+- Alter auditor desino averto beatae totam clam.
+- Vaco vereor argumentum vita tempus suus vere vapulus libero caecus.
+
+Thank you for your business!
+Haag, Bayer and Rempel

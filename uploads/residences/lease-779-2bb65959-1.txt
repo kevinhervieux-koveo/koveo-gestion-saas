@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 779
+Building: 8271 Gayle Camp Building 4
+Address: 3362 W South Street
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 779
+- Lease Start Date: 7/31/2025
+- Lease End Date: 10/2/2025
+- Monthly Rent: $1519
+- Security Deposit: $1189
+
+Terms and Conditions:
+- Currus doloribus crastinus.
+- Theatrum copia adulatio tabula defleo defluo contra trado utpote amplus.
+
+Landlord: 8271 Gayle Camp Building 4 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

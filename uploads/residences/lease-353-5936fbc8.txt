@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 353
+Building: 791 Idell Trace Building 3
+Address: 23893 Jamey Ridge
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 353
+- Lease Start Date: 2/6/2025
+- Lease End Date: 3/3/2026
+- Monthly Rent: $1026
+- Security Deposit: $1284
+
+Terms and Conditions:
+- Vado aliquid tamen viduo odio defero carcer eius laborum.
+- Rerum cum truculenter undique vester substantia amplus vitiosus a.
+
+Landlord: 791 Idell Trace Building 3 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

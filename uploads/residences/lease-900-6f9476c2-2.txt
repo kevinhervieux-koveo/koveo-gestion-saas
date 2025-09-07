@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 900
+Building: 791 Idell Trace Building 3
+Address: 2432 Kyra Points
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 900
+- Lease Start Date: 9/2/2025
+- Lease End Date: 8/9/2026
+- Monthly Rent: $2345
+- Security Deposit: $1831
+
+Terms and Conditions:
+- Stips utpote aetas ambulo arcesso tersus angulus ustulo.
+- Concedo auditor tergeo cuppedia agnitio debitis.
+
+Landlord: 791 Idell Trace Building 3 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

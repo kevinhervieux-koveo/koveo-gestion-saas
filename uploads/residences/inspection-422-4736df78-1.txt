@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 422
+Building: 7567 Ola Garden Building 1
+Address: 29904 Pacocha Shores
+Document 1 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Mr. Shawn Hand
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Fair
+
+Notes:
+Certus terminatio adaugeo demens beneficium. Tergiversatio taedium minima conitor saepe. Complectus decet cogo charisma toties varietas veniam calamitas tutamen.
+
+Inspector Signature: ____________________

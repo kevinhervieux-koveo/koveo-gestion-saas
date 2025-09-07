@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 682
+Building: 85671 Wolff Fords Building 5
+Address: 885 O'Kon Extensions
+Document 1 of 1
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 682:
+
+3/6/2025 - HVAC maintenance
+Status: Completed
+Cost: $440
+
+9/7/2025 - Annual inspection
+Status: In Progress
+Estimated Cost: $386
+
+Next Scheduled Maintenance: 7/29/2026

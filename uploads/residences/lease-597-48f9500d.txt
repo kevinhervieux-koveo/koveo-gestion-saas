@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 597
+Building: 7567 Ola Garden Building 1
+Address: 928 Percy Rest
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 597
+- Lease Start Date: 4/1/2025
+- Lease End Date: 6/29/2026
+- Monthly Rent: $2356
+- Security Deposit: $1460
+
+Terms and Conditions:
+- Color inventore aestus vulariter.
+- Tersus crux aqua uxor nihil totam speciosus antepono depopulo.
+
+Landlord: 7567 Ola Garden Building 1 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 1D57-2024-11-001
+Title: Cleaning - Zieme LLC
+Vendor: Ritchie, Braun and Bruen
+Category: Cleaning
+Total Amount: $3650
+Description: Monthly cleaning service for April 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 10/16/2025
+
+Service Details:
+- Modi ad vilis talis.
+- Earum cornu calamitas substantia tendo amo tres denego numquam viriliter.
+
+Thank you for your business!
+Ritchie, Braun and Bruen

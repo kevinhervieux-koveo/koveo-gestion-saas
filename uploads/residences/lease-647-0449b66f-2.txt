@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 647
+Building: 7567 Ola Garden Building 1
+Address: 97296 Boyle Keys
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 647
+- Lease Start Date: 3/16/2025
+- Lease End Date: 3/9/2026
+- Monthly Rent: $986
+- Security Deposit: $1060
+
+Terms and Conditions:
+- Qui confugo defero tam arceo.
+- Tametsi placeat iure suppellex barba cohors subvenio acerbitas victus.
+
+Landlord: 7567 Ola Garden Building 1 Management
+Tenant Signature: ____________________
+Date: 9/7/2025
