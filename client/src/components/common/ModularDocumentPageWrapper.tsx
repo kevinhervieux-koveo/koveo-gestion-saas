@@ -486,32 +486,26 @@ export default function ModularDocumentPageWrapper({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header with Back Button */}
-      <div className="p-6 pb-0">
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="outline"
-            onClick={() => navigate(backPath)}
-            data-testid="button-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {defaultBackLabel}
-          </Button>
-          
-          <div className="text-right">
-            <h1 className="text-2xl font-semibold">
-              {type === 'building' ? <Building className="w-6 h-6 inline mr-2" /> : <Home className="w-6 h-6 inline mr-2" />}
-              {entityName}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {type === 'building' ? 'Building Documents' : 'Residence Documents'}
-            </p>
-          </div>
-        </div>
-      </div>
+      <Header 
+        title={entityName}
+        subtitle={type === 'building' ? 'Building Documents' : 'Residence Documents'}
+      />
 
-      <div className="flex-1 overflow-auto px-6 pb-6">
+      <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto space-y-6">
+          {/* Back Button */}
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={() => navigate(backPath)}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              {defaultBackLabel}
+            </Button>
+            <div></div>
+          </div>
+
           {/* Filters and Search Section */}
           <Card>
             <CardHeader>
