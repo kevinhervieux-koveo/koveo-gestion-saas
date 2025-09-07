@@ -114,6 +114,18 @@ const statusColors = {
 export default function ManagerDemandsPage() {
   const { toast } = useToast();
   const { t } = useLanguage();
+
+  // Function to get translated type labels
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'maintenance': return t('maintenanceType');
+      case 'complaint': return t('complaintType');
+      case 'information': return t('informationType');
+      case 'other': return t('otherType');
+      default: return type;
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -179,15 +191,15 @@ export default function ManagerDemandsPage() {
       setIsNewDemandOpen(false);
       newDemandForm.reset();
       toast({
-        title: 'Success',
-        description: 'Demand created successfully',
+        title: t('success'),
+        description: t('demandCreatedSuccess'),
       });
     },
     onError: (error: any) => {
       // Error creating demand
       toast({
-        title: 'Error',
-        description: 'Failed to create demand',
+        title: t('error'),
+        description: t('failedCreateDemand'),
         variant: 'destructive',
       });
     },
@@ -211,7 +223,7 @@ export default function ManagerDemandsPage() {
   const filteredDemands = demandsArray.filter((demand: Demand) => {
     const matchesSearch =
       demand.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      typeLabels[demand.type]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getTypeLabel(demand.type)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       demand.submitter?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       demand.submitter?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       demand.building?.name?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -258,7 +270,7 @@ export default function ManagerDemandsPage() {
         <CardHeader className='pb-3'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
-              <Badge variant='outline'>{typeLabels[demand.type]}</Badge>
+              <Badge variant='outline'>{getTypeLabel(demand.type)}</Badge>
               <Badge className={statusColors[demand.status]}>
                 {demand.status.replace('_', ' ')}
               </Badge>
@@ -272,19 +284,19 @@ export default function ManagerDemandsPage() {
         <CardContent className='pt-0'>
           <div className='text-sm text-muted-foreground space-y-1'>
             <p>
-              <strong>Submitted by:</strong> {demand.submitter?.firstName}{' '}
+              <strong>{t('submittedBy')}:</strong> {demand.submitter?.firstName}{' '}
               {demand.submitter?.lastName}
             </p>
             <p>
-              <strong>Building:</strong> {building?.name || 'Unknown'}
+              <strong>{t('building')}:</strong> {building?.name || t('unknown')}
             </p>
             {residence && (
               <p>
-                <strong>Residence:</strong> {residence.name}
+                <strong>{t('residence')}:</strong> {residence.name}
               </p>
             )}
             <p>
-              <strong>Created:</strong> {new Date(demand.createdAt).toLocaleDateString()}
+              <strong>{t('created')}:</strong> {new Date(demand.createdAt).toLocaleDateString()}
             </p>
           </div>
         </CardContent>
@@ -462,14 +474,14 @@ export default function ManagerDemandsPage() {
               <TabsTrigger value='pending'>{t('pendingReview')} ({pendingDemands.length})</TabsTrigger>
               <TabsTrigger value='active'>{t('activeTab')} ({activeDemands.length})</TabsTrigger>
               <TabsTrigger value='completed'>{t('completedTab')} ({completedDemands.length})</TabsTrigger>
-              <TabsTrigger value='all'>All ({allDemands.length})</TabsTrigger>
+              <TabsTrigger value='all'>{t('all')} ({allDemands.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value='pending' className='space-y-4'>
               {pendingDemands.length === 0 ? (
                 <Card>
                   <CardContent className='p-6 text-center'>
-                    <p className='text-muted-foreground'>No demands pending review</p>
+                    <p className='text-muted-foreground'>{t('noDemandsPending')}</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -485,7 +497,7 @@ export default function ManagerDemandsPage() {
               {activeDemands.length === 0 ? (
                 <Card>
                   <CardContent className='p-6 text-center'>
-                    <p className='text-muted-foreground'>No active demands</p>
+                    <p className='text-muted-foreground'>{t('noActiveDemands')}</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -501,7 +513,7 @@ export default function ManagerDemandsPage() {
               {completedDemands.length === 0 ? (
                 <Card>
                   <CardContent className='p-6 text-center'>
-                    <p className='text-muted-foreground'>No completed demands</p>
+                    <p className='text-muted-foreground'>{t('noCompletedDemands')}</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -517,16 +529,16 @@ export default function ManagerDemandsPage() {
               {isLoading ? (
                 <Card>
                   <CardContent className='p-6 text-center'>
-                    <p className='text-muted-foreground'>Loading demands...</p>
+                    <p className='text-muted-foreground'>{t('loadingDemands')}</p>
                   </CardContent>
                 </Card>
               ) : allDemands.length === 0 ? (
                 <Card>
                   <CardContent className='p-6 text-center'>
-                    <p className='text-muted-foreground'>No demands found</p>
+                    <p className='text-muted-foreground'>{t('noDemandsFound')}</p>
                     {demandsArray.length > 0 && (
                       <p className='text-sm text-gray-400 mt-2'>
-                        ({demandsArray.length} total demands loaded, but filtered out)
+                        ({demandsArray.length} {t('totalDemandsLoaded')})
                       </p>
                     )}
                   </CardContent>
