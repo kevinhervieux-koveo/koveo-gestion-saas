@@ -1,22 +1,2 @@
-import ModularBillForm from '@/components/bill-management/ModularBillForm';
-import type { Bill } from '@shared/schema';
-
-export function BillEditForm({
-  bill,
-  onSuccess,
-  onCancel,
-}: {
-  bill: Bill;
-  onSuccess: () => void;
-  onCancel: () => void;
-}) {
-  return (
-    <ModularBillForm
-      mode="edit"
-      bill={bill}
-      onSuccess={onSuccess}
-      onCancel={onCancel}
-      buildingId={bill.buildingId}
-    />
-  );
-}
+// This file has been removed - use ModularBillForm directly instead
+// See client/src/components/bill-management/ModularBillForm.tsx

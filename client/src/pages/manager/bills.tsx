@@ -32,9 +32,8 @@ import {
   Tag,
   ChevronDown,
 } from 'lucide-react';
-import { BillEditForm } from '@/components/BillEditForm';
 import { BuildingSelectionGrid } from '@/components/BuildingSelectionGrid';
-import { BillCreateForm } from '@/components/BillCreateForm';
+import ModularBillForm from '@/components/bill-management/ModularBillForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
@@ -514,9 +513,10 @@ Bills() {
                       <DialogHeader>
                         <DialogTitle>{t('createNewBill')}</DialogTitle>
                       </DialogHeader>
-                      <BillCreateForm
+                      <ModularBillForm
+                        mode="create"
                         buildingId={filters.buildingId}
-                        onClose={() => setShowCreateDialog(false)}
+                        onCancel={() => setShowCreateDialog(false)}
                         onSuccess={() => {
                           setShowCreateDialog(false);
                           queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
@@ -724,13 +724,15 @@ function BillCard({ bill, onUpdate }: { bill: Bill; onUpdate: () => void }) {
       {/* Bill Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto' aria-describedby="edit-bill-description">
-          <BillEditForm
+          <ModularBillForm
+            mode="edit"
             bill={bill}
             onSuccess={() => {
               setShowEditDialog(false);
               onUpdate();
             }}
             onCancel={() => setShowEditDialog(false)}
+            buildingId={bill.buildingId}
           />
         </DialogContent>
       </Dialog>
