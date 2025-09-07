@@ -155,3 +155,5 @@ jest.mock('@/lib/queryClient', () => ({
     invalidateQueries: jest.fn(),
   },
 }));
+
+// Note: Server API route mocks are handled via moduleNameMapper in Jest config
