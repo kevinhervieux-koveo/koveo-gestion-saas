@@ -2788,4 +2788,46 @@ export function registerUserRoutes(app: Express): void {
       });
     }
   });
+
+  // Admin-only endpoint to delete orphan users
+  app.delete('/api/users/orphans', requireAuth, async (req: any, res) => {
+    try {
+      console.log('🗑️ [DELETE ORPHANS] Request from user:', req.user?.id, 'role:', req.user?.role);
+      
+      // Check if user is admin
+      if (req.user?.role !== 'admin') {
+        console.log('❌ [DELETE ORPHANS] Access denied - user is not admin');
+        return res.status(403).json({ error: 'Access denied. Admin role required.' });
+      }
+
+      // Get count of orphan users before deletion
+      const orphanCount = await storage.countOrphanUsers();
+      console.log('🗑️ [DELETE ORPHANS] Found', orphanCount, 'orphan users to delete');
+
+      if (orphanCount === 0) {
+        return res.json({ 
+          success: true, 
+          message: 'No orphan users found to delete',
+          deletedCount: 0 
+        });
+      }
+
+      // Delete orphan users (excluding current admin)
+      const deletedCount = await storage.deleteOrphanUsers(req.user.id);
+      console.log('🗑️ [DELETE ORPHANS] Successfully deleted', deletedCount, 'orphan users');
+
+      res.json({ 
+        success: true, 
+        message: `Successfully deleted ${deletedCount} orphan users`,
+        deletedCount 
+      });
+
+    } catch (error) {
+      console.error('❌ [DELETE ORPHANS] Error:', error);
+      res.status(500).json({ 
+        error: 'Failed to delete orphan users',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 }

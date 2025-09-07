@@ -86,6 +86,7 @@ export default function UserManagement() {
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [editingUserOrganizations, setEditingUserOrganizations] = useState<UserWithAssignments | null>(null);
   const [editingUserResidences, setEditingUserResidences] = useState<UserWithAssignments | null>(null);
+  const [showDeleteOrphansDialog, setShowDeleteOrphansDialog] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -608,6 +609,44 @@ export default function UserManagement() {
     setOrphanFilter('');
   };
 
+  // Delete orphan users mutation (admin only)
+  const deleteOrphanUsersMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/users/orphans', {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete orphan users');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Success',
+        description: data.message || `Deleted ${data.deletedCount} orphan users`,
+      });
+      
+      // Refresh the users list
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      setShowDeleteOrphansDialog(false);
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete orphan users',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle delete orphan users
+  const handleDeleteOrphanUsers = () => {
+    deleteOrphanUsersMutation.mutate();
+  };
+
   // const handleToggleSort = (field: string) => {
   //   if (sort?.field === field) {
   //     setSort({ ...sort, direction: sort.direction === 'asc' ? 'desc' : 'asc' });
@@ -713,10 +752,24 @@ export default function UserManagement() {
               </TabsTrigger>
             </TabsList>
 
-            <Button onClick={() => setShowInviteDialog(true)}>
-              <UserPlus className='h-4 w-4 mr-2' />
-              {t('inviteUser')}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowInviteDialog(true)}>
+                <UserPlus className='h-4 w-4 mr-2' />
+                {t('inviteUser')}
+              </Button>
+              
+              {/* Admin-only: Delete Orphan Users button */}
+              {currentUser?.role === 'admin' && (
+                <Button 
+                  variant="destructive" 
+                  onClick={() => setShowDeleteOrphansDialog(true)}
+                  data-testid="button-delete-orphans"
+                >
+                  <Trash2 className='h-4 w-4 mr-2' />
+                  Delete Orphan Users
+                </Button>
+              )}
+            </div>
           </div>
 
           <TabsContent value='users' className='space-y-6'>
@@ -1058,6 +1111,48 @@ export default function UserManagement() {
           </DialogContent>
         </Dialog>
 
+
+        {/* Delete Orphan Users Confirmation Dialog */}
+        <AlertDialog open={showDeleteOrphansDialog} onOpenChange={setShowDeleteOrphansDialog}>
+          <AlertDialogContent className='sm:max-w-[500px]'>
+            <AlertDialogHeader>
+              <AlertDialogTitle className='text-red-600'>Delete All Orphan Users</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently mark all orphan users (users with no organization or residence assignments) as inactive.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className='bg-red-50 dark:bg-red-950 p-4 rounded-lg border border-red-200 dark:border-red-800 mb-4'>
+              <p className='text-red-700 dark:text-red-300 text-sm'>
+                <strong>Warning:</strong> This action will:
+              </p>
+              <ul className='text-red-700 dark:text-red-300 text-sm mt-2 list-disc list-inside'>
+                <li>Mark all orphan users as inactive (they will be hidden from the interface)</li>
+                <li>Preserve their data for audit purposes but remove access</li>
+                <li>Only affect users with no organization or residence assignments</li>
+                <li>Cannot be undone through the interface</li>
+              </ul>
+            </div>
+
+            <AlertDialogFooter>
+              <Button
+                variant='outline'
+                onClick={() => setShowDeleteOrphansDialog(false)}
+                disabled={deleteOrphanUsersMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant='destructive'
+                onClick={handleDeleteOrphanUsers}
+                disabled={deleteOrphanUsersMutation.isPending}
+                data-testid="button-confirm-delete-orphans"
+              >
+                {deleteOrphanUsersMutation.isPending ? 'Deleting...' : 'Delete Orphan Users'}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Delete User Confirmation Dialog */}
         <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>

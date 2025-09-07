@@ -3446,4 +3446,76 @@ export class OptimizedDatabaseStorage implements IStorage {
       return false;
     }
   }
+
+  // Admin-only method to count orphan users
+  async countOrphanUsers(): Promise<number> {
+    try {
+      const countQuery = `
+        SELECT COUNT(*) as total 
+        FROM users u
+        WHERE u.is_active = true
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = u.id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = u.id AND ur.is_active = true
+          )
+      `;
+      
+      const result = await db.execute(sql.raw(countQuery));
+      return parseInt(result.rows[0]?.total || '0');
+    } catch (error: any) {
+      console.error('❌ Error counting orphan users:', error);
+      return 0;
+    }
+  }
+
+  // Admin-only method to delete orphan users (excluding specified admin user)
+  async deleteOrphanUsers(excludeUserId: string): Promise<number> {
+    try {
+      // First mark orphan users as inactive to avoid foreign key issues
+      const updateQuery = `
+        UPDATE users 
+        SET is_active = false,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE is_active = true
+          AND id != $1
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = users.id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = users.id AND ur.is_active = true
+          )
+      `;
+      
+      const result = await db.execute(sql.raw(updateQuery, [excludeUserId]));
+      
+      // For PostgreSQL, we need to get the row count differently
+      const countQuery = `
+        SELECT COUNT(*) as deleted_count
+        FROM users u
+        WHERE u.is_active = false
+          AND u.id != $1
+          AND u.updated_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute'
+          AND NOT EXISTS (
+            SELECT 1 FROM user_organizations uo 
+            WHERE uo.user_id = u.id AND uo.is_active = true
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM user_residences ur 
+            WHERE ur.user_id = u.id AND ur.is_active = true
+          )
+      `;
+      
+      const countResult = await db.execute(sql.raw(countQuery, [excludeUserId]));
+      return parseInt(countResult.rows[0]?.deleted_count || '0');
+    } catch (error: any) {
+      console.error('❌ Error deleting orphan users:', error);
+      throw error;
+    }
+  }
 }
