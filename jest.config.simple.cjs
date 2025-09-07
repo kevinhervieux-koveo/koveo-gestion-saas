@@ -12,6 +12,8 @@ const config = {
     '^../../server/api/(.*)$': '<rootDir>/tests/mocks/serverApiMock.js',
     '^../../shared/schema$': '<rootDir>/tests/mocks/schemaMock.js',
     '^../../server/config/(.*)$': '<rootDir>/tests/mocks/configMock.js',
+    '^../../server/routes$': '<rootDir>/tests/mocks/serverRoutesMock.js',
+    '^../../server/db$': '<rootDir>/tests/mocks/serverDbMock.js',
   },
   testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
   testPathIgnorePatterns: ['/node_modules/'],
