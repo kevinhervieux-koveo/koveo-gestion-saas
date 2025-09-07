@@ -50,13 +50,43 @@ const bills = { id: { name: 'id' }, buildingId: { name: 'buildingId' }, referenc
 // Mock enums
 const userRoleEnum = pgEnum('user_role', ['admin', 'manager', 'tenant', 'resident']);
 
-// Mock insert schemas
-const insertOrganizationSchema = { parse: jest.fn(), safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), omit: jest.fn().mockReturnThis() };
-const insertUserSchema = { parse: jest.fn(), safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), omit: jest.fn().mockReturnThis() };
-const insertBuildingSchema = { parse: jest.fn(), safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), omit: jest.fn().mockReturnThis() };
-const insertDocumentSchema = { parse: jest.fn(), safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), omit: jest.fn().mockReturnThis() };
-const insertDemandSchema = { parse: jest.fn(), safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), omit: jest.fn().mockReturnThis() };
-const insertResidenceSchema = { parse: jest.fn(), safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), omit: jest.fn().mockReturnThis() };
+// Mock insert schemas with .extend() method
+const insertOrganizationSchema = { 
+  parse: jest.fn(), 
+  safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), 
+  omit: jest.fn().mockReturnThis(),
+  extend: jest.fn().mockReturnThis()
+};
+const insertUserSchema = { 
+  parse: jest.fn(), 
+  safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), 
+  omit: jest.fn().mockReturnThis(),
+  extend: jest.fn().mockReturnThis()
+};
+const insertBuildingSchema = { 
+  parse: jest.fn(), 
+  safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), 
+  omit: jest.fn().mockReturnThis(),
+  extend: jest.fn().mockReturnThis()
+};
+const insertDocumentSchema = { 
+  parse: jest.fn(), 
+  safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), 
+  omit: jest.fn().mockReturnThis(),
+  extend: jest.fn().mockReturnThis()
+};
+const insertDemandSchema = { 
+  parse: jest.fn(), 
+  safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), 
+  omit: jest.fn().mockReturnThis(),
+  extend: jest.fn().mockReturnThis()
+};
+const insertResidenceSchema = { 
+  parse: jest.fn(), 
+  safeParse: jest.fn().mockReturnValue({ success: true, data: {} }), 
+  omit: jest.fn().mockReturnThis(),
+  extend: jest.fn().mockReturnThis()
+};
 
 module.exports = {
   // Schema objects

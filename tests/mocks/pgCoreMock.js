@@ -11,6 +11,7 @@ const date = (name, config = {}) => ({
   primaryKey: function() { return { ...this, isPrimaryKey: true }; },
   notNull: function() { return { ...this, isNotNull: true }; },
   unique: function() { return { ...this, isUnique: true }; },
+  array: function() { return { ...this, isArray: true }; },
 });
 
 const json = (name, config = {}) => ({ 
@@ -20,6 +21,7 @@ const json = (name, config = {}) => ({
   primaryKey: function() { return { ...this, isPrimaryKey: true }; },
   notNull: function() { return { ...this, isNotNull: true }; },
   unique: function() { return { ...this, isUnique: true }; },
+  array: function() { return { ...this, isArray: true }; },
 });
 
 module.exports = {
