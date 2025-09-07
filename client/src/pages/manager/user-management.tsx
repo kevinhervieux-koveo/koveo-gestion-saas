@@ -97,14 +97,35 @@ export default function UserManagement() {
   const [statusFilter, setStatusFilter] = useState('');
   const [organizationFilter, setOrganizationFilter] = useState('');
 
-  // Fetch users 
+  // Fetch users with server-side pagination
   const {
-    data: users = [],
+    data: usersResponse,
     isLoading: usersLoading,
     error: usersError,
-  } = useQuery<UserWithAssignments[]>({
-    queryKey: ['/api/users']
+  } = useQuery<{
+    users: UserWithAssignments[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }>({
+    queryKey: ['/api/users', { page: currentPage, limit: usersPerPage }],
+    queryFn: async () => {
+      const response = await fetch(`/api/users?page=${currentPage}&limit=${usersPerPage}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      return response.json();
+    },
   });
+
+  // Extract users and pagination info from response
+  const users = usersResponse?.users || [];
+  const paginationInfo = usersResponse?.pagination;
 
 
 
@@ -515,11 +536,12 @@ export default function UserManagement() {
 
 
 
-  // Apply search and simple filters
+  // Apply client-side search and simple filters to current page results
+  // Note: For full server-side filtering, these would need to be sent as query parameters
   const filteredUsers = useMemo(() => {
     let result = [...users];
 
-    // Apply search
+    // Apply search (client-side for now - could be moved server-side for better performance)
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(
@@ -531,17 +553,17 @@ export default function UserManagement() {
       );
     }
 
-    // Apply role filter
+    // Apply role filter (client-side for now)
     if (roleFilter) {
       result = result.filter((user) => user.role === roleFilter);
     }
 
-    // Apply status filter
+    // Apply status filter (client-side for now)
     if (statusFilter) {
       result = result.filter((user) => user.isActive.toString() === statusFilter);
     }
 
-    // Apply organization filter
+    // Apply organization filter (client-side for now)
     if (organizationFilter) {
       result = result.filter((user) =>
         user.organizations.some((org) => org.id === organizationFilter)
@@ -579,17 +601,19 @@ export default function UserManagement() {
   //   }
   // };
 
-  // Calculate stats and pagination
-  const totalUsers = users?.length || 0;
-  const filteredTotal = filteredUsers.length;
+  // Calculate stats using server-side pagination data
+  const totalUsers = paginationInfo?.total || 0;
+  const filteredTotal = filteredUsers.length; // This is the count after client-side filtering
   const activeUsers = users?.filter((user: User) => user.isActive).length || 0;
   const adminUsers = users?.filter((user: User) => user.role === 'admin').length || 0;
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredTotal / usersPerPage);
-  const startIndex = (currentPage - 1) * usersPerPage;
-  const endIndex = startIndex + usersPerPage;
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+  // Use server-side pagination calculations
+  const totalPages = paginationInfo?.totalPages || 1;
+  const hasNext = paginationInfo?.hasNext || false;
+  const hasPrev = paginationInfo?.hasPrev || false;
+  
+  // For display, use filteredUsers (which may be less than the page size if filters are applied)
+  const currentUsers = filteredUsers;
 
   if (usersError) {
     return (
@@ -752,19 +776,18 @@ export default function UserManagement() {
                       canDeleteUsers={canDeleteUsers}
                     />
 
-                    {/* Pagination */}
+                    {/* Server-side Pagination */}
                     {totalPages > 1 && (
                       <div className='flex justify-between items-center mt-4'>
                         <div className='text-sm text-gray-600'>
-                          Showing {startIndex + 1}-{Math.min(endIndex, filteredTotal)} of{' '}
-                          {filteredTotal} filtered {t('users').toLowerCase()} ({totalUsers} total)
+                          Page {currentPage} of {totalPages} - Showing {users.length} {t('users').toLowerCase()} ({totalUsers} total)
                         </div>
                         <div className='flex gap-2'>
                           <Button
                             variant='outline'
                             size='sm'
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
+                            disabled={!hasPrev || usersLoading}
                           >
                             {t('previous') || 'Previous'}
                           </Button>
@@ -775,7 +798,7 @@ export default function UserManagement() {
                             variant='outline'
                             size='sm'
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
+                            disabled={!hasNext || usersLoading}
                           >
                             {t('next') || 'Next'}
                           </Button>
