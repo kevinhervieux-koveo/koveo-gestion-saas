@@ -95,7 +95,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
       {/* Invisible Overlay for Click Outside */}
       {isOpen && (
         <div
-          className='fixed inset-0 z-40'
+          className='fixed inset-0 z-[999]'
           onClick={closeMenu}
           data-testid='menu-overlay'
         />
