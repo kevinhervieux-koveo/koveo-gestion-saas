@@ -8,6 +8,9 @@ const config = {
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/tests/mocks/fileMock.js',
+    // Mock wouter router
+    '^wouter$': '<rootDir>/tests/mocks/wouterMock.js',
+    '^wouter/(.*)$': '<rootDir>/tests/mocks/wouterMock.js',
     // Mock all server imports comprehensively
     '^../../server/(.*)$': '<rootDir>/tests/mocks/serverUniversalMock.js',
     '^../server/(.*)$': '<rootDir>/tests/mocks/serverUniversalMock.js', 
@@ -34,7 +37,7 @@ const config = {
     '^.+\\.(js|jsx|mjs)$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|lucide-react))'
+    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|lucide-react|react-dom))'
   ],
   testTimeout: 10000,
   clearMocks: true,
