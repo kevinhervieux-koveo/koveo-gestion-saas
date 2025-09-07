@@ -364,14 +364,14 @@ export class OptimizedDatabaseStorage implements IStorage {
               AND uo_filter.organization_id = '${filters.organization.trim()}'
               AND uo_filter.is_active = true
             )` : ''}
-            ${filters.orphan === 'true' ? `AND NOT EXISTS (
+            ${!filters.organization && filters.orphan === 'true' ? `AND NOT EXISTS (
               SELECT 1 FROM user_organizations uo_orphan 
               WHERE uo_orphan.user_id = users.id AND uo_orphan.is_active = true
             ) AND NOT EXISTS (
               SELECT 1 FROM user_residences ur_orphan 
               WHERE ur_orphan.user_id = users.id AND ur_orphan.is_active = true
             )` : ''}
-            ${filters.orphan === 'false' ? `AND (EXISTS (
+            ${!filters.organization && filters.orphan === 'false' ? `AND (EXISTS (
               SELECT 1 FROM user_organizations uo_assigned 
               WHERE uo_assigned.user_id = users.id AND uo_assigned.is_active = true
             ) OR EXISTS (
@@ -469,7 +469,7 @@ export class OptimizedDatabaseStorage implements IStorage {
               return '';
             })()
             }
-            ${filters.orphan === 'true' ? (() => {
+            ${!filters.organization && filters.orphan === 'true' ? (() => {
               console.log('👻 [ORPHAN FILTER] Applying orphan filter: true (users with no assignments)');
               return `AND NOT EXISTS (
                 SELECT 1 FROM user_organizations uo_orphan 
@@ -478,7 +478,7 @@ export class OptimizedDatabaseStorage implements IStorage {
                 SELECT 1 FROM user_residences ur_orphan 
                 WHERE ur_orphan.user_id = u.id AND ur_orphan.is_active = true
               )`;
-            })() : filters.orphan === 'false' ? (() => {
+            })() : !filters.organization && filters.orphan === 'false' ? (() => {
               console.log('👻 [ORPHAN FILTER] Applying orphan filter: false (users with assignments)');
               return `AND (EXISTS (
                 SELECT 1 FROM user_organizations uo_assigned 
@@ -487,6 +487,9 @@ export class OptimizedDatabaseStorage implements IStorage {
                 SELECT 1 FROM user_residences ur_assigned 
                 WHERE ur_assigned.user_id = u.id AND ur_assigned.is_active = true
               ))`;
+            })() : filters.organization && filters.orphan ? (() => {
+              console.log('👻 [ORPHAN FILTER] Ignoring orphan filter - conflicts with organization filter');
+              return '';
             })() : (() => {
               console.log('👻 [ORPHAN FILTER] No orphan filter applied (empty or undefined)');
               return '';
