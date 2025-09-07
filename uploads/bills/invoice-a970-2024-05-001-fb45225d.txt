@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: A970-2024-05-001
+Title: Utilities - Leannon Group
+Vendor: Howell, Hills and Davis
+Category: Utilities
+Total Amount: $3723.95
+Description: Monthly utilities service for January 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 10/27/2025
+
+Service Details:
+- Tantillus cilicium ventosus culpa.
+- Vomito carmen calamitas denuo bibo beatae thymbra absens viduo.
+
+Thank you for your business!
+Howell, Hills and Davis

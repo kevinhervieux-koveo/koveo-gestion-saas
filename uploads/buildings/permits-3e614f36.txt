@@ -1,0 +1,34 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BUILDING PERMIT
+
+Building: 161 Castle Road Building 3
+Organization: 60369606-2f54-4242-8c1c-94a87450339e
+Document Date: 9/7/2025
+
+BUILDING PERMIT
+
+Permit Number: PER-TDOI1MSP
+Permit Type: Renovation
+Issue Date: 2/27/2025
+Expiry Date: 4/1/2026
+Contractor: Krajcik - Goodwin
+
+Work Description:
+Cogo tempore tamquam conduco solutio. Adipisci universe alias trepide adulatio sophismata cogo. Teneo corpus amicitia chirographum.
+
+Inspection Schedule:
+- Initial Inspection: 9/7/2025
+- Progress Inspection: 9/8/2025
+- Final Inspection: 6/5/2026
+
+Approved by: City Planning Department
+Permit Fee: $389

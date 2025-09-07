@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 589
+Building: 161 Castle Road Building 3
+Address: 129 The Mews
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 589
+- Lease Start Date: 1/13/2025
+- Lease End Date: 4/1/2026
+- Monthly Rent: $980
+- Security Deposit: $1805
+
+Terms and Conditions:
+- Suscipit possimus abscido voluptatem.
+- Conscendo conforto minus vomer voluptate sonitus adeptio abduco.
+
+Landlord: 161 Castle Road Building 3 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

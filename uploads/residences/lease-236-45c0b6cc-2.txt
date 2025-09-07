@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 236
+Building: 656 Kayley Brook Building 5
+Address: 9846 Lela Course
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 236
+- Lease Start Date: 11/9/2024
+- Lease End Date: 8/12/2026
+- Monthly Rent: $2109
+- Security Deposit: $2144
+
+Terms and Conditions:
+- Thesaurus deficio viriliter crastinus color laudantium copiose caterva fugit.
+- Occaecati currus minus degenero taceo amoveo modi crustulum stipes certus.
+
+Landlord: 656 Kayley Brook Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 610
+Building: 161 Castle Road Building 3
+Address: 794 E Market Street
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 610
+- Lease Start Date: 9/23/2024
+- Lease End Date: 8/8/2026
+- Monthly Rent: $1357
+- Security Deposit: $1296
+
+Terms and Conditions:
+- Suppono suscipio solvo convoco explicabo demonstro impedit terminatio adsidue facere.
+- Tutamen decor studio caute basium delectus aegrotatio enim acerbitas.
+
+Landlord: 161 Castle Road Building 3 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

@@ -1008,7 +1008,7 @@ This payment has been processed successfully.
 Building Management Office`;
       }
 
-      const filePath = `bills/${docType}-${bill.billNumber.toLowerCase()}.txt`;
+      const filePath = `bills/${docType}-${bill.billNumber.toLowerCase()}-${bill.id.slice(0, 8)}.txt`;
       const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
       
       await db
@@ -1112,7 +1112,7 @@ Estimated Cost: $${faker.number.int({ min: 50, max: 500 })}
 Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
           }
           
-          const filePath = `residences/${docType.type}-${residence.unitNumber.toLowerCase()}${docSuffix}.txt`;
+          const filePath = `residences/${docType.type}-${residence.unitNumber.toLowerCase()}-${residence.id.slice(0, 8)}${docSuffix}.txt`;
           const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
           
           await db

@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 455
+Building: 40183 Church View Building 2
+Address: 928 Steuber Highway
+Document 2 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 455:
+
+2/21/2025 - HVAC maintenance
+Status: Completed
+Cost: $412
+
+9/7/2025 - Light fixture repair
+Status: In Progress
+Estimated Cost: $397
+
+Next Scheduled Maintenance: 2/28/2026

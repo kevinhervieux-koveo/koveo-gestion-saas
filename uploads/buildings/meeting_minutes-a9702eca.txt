@@ -1,0 +1,38 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 40183 Church View Building 2
+Organization: 60369606-2f54-4242-8c1c-94a87450339e
+Document Date: 9/7/2025
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 20:00
+Location: 40183 Church View Building 2 Community Room
+
+Attendees:
+- Gustavo Gerhold (Board President)
+- Ron Bosco (Treasurer)  
+- Kathy Bernier (Secretary)
+- Raymond Stark (Property Manager)
+
+Agenda Items:
+1. Budget Review - Contabesco acer abeo.
+2. Maintenance Updates - Pecus adsum desolo.
+3. New Policies - Consequatur demo delicate.
+
+Action Items:
+- Cur acquiro pel amet.
+- Tabernus subiungo territo.
+
+Next Meeting: 4/28/2026

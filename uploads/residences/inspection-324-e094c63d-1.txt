@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 324
+Building: 7812 Clyde Plain Building 4
+Address: 94831 W Franklin Street
+Document 1 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Dr. Lyle Flatley
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Good
+
+Notes:
+Acquiro cohibeo illum dolor terebro accendo tollo deinde cetera balbus. Thesis velut amplus. Deleniti cultellus decet quo arceo voveo sortitus vos.
+
+Inspector Signature: ____________________

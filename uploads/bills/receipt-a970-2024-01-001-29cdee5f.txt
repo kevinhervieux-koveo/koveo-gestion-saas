@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A970-2024-01-001
+Title: Insurance - Connelly and Sons
+Vendor: Monahan, Walsh and Leannon
+Category: Insurance
+Total Amount: $300.64
+Description: Monthly insurance service for July 2024
+
+Payment Amount: $300.64
+Payment Date: 9/7/2025
+Payment Method: Check
+Reference Number: PAY-KUYJMCV0
+
+This payment has been processed successfully.
+Building Management Office

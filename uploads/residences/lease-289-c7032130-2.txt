@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 289
+Building: 7812 Clyde Plain Building 4
+Address: 268 Thiel Fields
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 289
+- Lease Start Date: 8/13/2025
+- Lease End Date: 12/31/2025
+- Monthly Rent: $1872
+- Security Deposit: $910
+
+Terms and Conditions:
+- Beneficium tubineus centum subito complectus animi blanditiis.
+- Explicabo templum pecus sordeo cum omnis adfectus.
+
+Landlord: 7812 Clyde Plain Building 4 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

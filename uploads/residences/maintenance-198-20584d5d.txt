@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 198
+Building: 10723 Lawrence Street Building 1
+Address: 2761 Castle Lane
+Document 1 of 1
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 198:
+
+11/30/2024 - Electrical work
+Status: Completed
+Cost: $99
+
+9/7/2025 - Annual inspection
+Status: In Progress
+Estimated Cost: $299
+
+Next Scheduled Maintenance: 4/22/2026

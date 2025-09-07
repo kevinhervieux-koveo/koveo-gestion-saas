@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 886
+Building: 656 Kayley Brook Building 5
+Address: 3167 Peter Station
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 886
+- Lease Start Date: 8/14/2025
+- Lease End Date: 2/25/2026
+- Monthly Rent: $2231
+- Security Deposit: $939
+
+Terms and Conditions:
+- Aliqua cunabula quos abeo administratio terror.
+- Sapiente acer aiunt placeat.
+
+Landlord: 656 Kayley Brook Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

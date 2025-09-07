@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 113
+Building: 656 Kayley Brook Building 5
+Address: 40697 S 14th Street
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 113
+- Lease Start Date: 2/14/2025
+- Lease End Date: 1/21/2026
+- Monthly Rent: $2287
+- Security Deposit: $1515
+
+Terms and Conditions:
+- Tamquam vulgivagus quisquam arcus id caste.
+- Aegre tui deserunt appello creber campana supra.
+
+Landlord: 656 Kayley Brook Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025
