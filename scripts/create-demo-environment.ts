@@ -1321,7 +1321,12 @@ async function main() {
     
     // Step 8: Create Bills
     console.log('💰 Step 8: Create Bills');
-    await seedBills(buildings, users);
+    const bills = await seedBills(buildings, users);
+    console.log('');
+    
+    // Step 9: Create Documents
+    console.log('📄 Step 9: Create Documents');
+    await seedDocuments(bills, buildings, residences, users);
     console.log('');
     
     // Summary
@@ -1334,9 +1339,12 @@ async function main() {
     console.log(`✅ Users: ${users.length}`);
     console.log(`✅ Managers: ${users.filter(u => u.role.includes('manager')).length}`);
     console.log(`✅ Residents: ${users.filter(u => u.role.includes('resident')).length}`);
-    console.log('✅ Bookings, demands, and bills created successfully');
+    console.log(`✅ Bills: ${bills.length} (with attached invoice & receipt documents)`);
+    console.log('✅ Documents: Comprehensive .txt documents with demo disclosures');
+    console.log('✅ Bookings, demands, and maintenance requests created successfully');
     console.log('');
     console.log(`🚀 Demo environment for "${args.name}" is ready for use!`);
+    console.log('📋 All documents include demo disclosure notices for demonstration purposes');
     
   } catch (error) {
     console.error('❌ Demo environment creation failed:', error);
