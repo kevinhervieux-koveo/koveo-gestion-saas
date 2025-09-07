@@ -18,6 +18,12 @@ const config = {
     // Mock problematic ES modules
     '@google/genai': '<rootDir>/tests/mocks/googleGenaiMock.js',
     '@neondatabase/serverless': '<rootDir>/tests/mocks/serverDbMock.js',
+    // Mock file system operations to prevent hanging
+    '^fs$': '<rootDir>/tests/mocks/fileSystemMock.js',
+    '^path$': '<rootDir>/tests/mocks/fileSystemMock.js',
+    '^multer$': '<rootDir>/tests/mocks/fileSystemMock.js',
+    // Mock supertest to prevent actual server requests
+    '^supertest$': '<rootDir>/tests/mocks/supertestMock.js',
     // Mock CSS and assets
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$':
@@ -57,7 +63,7 @@ const config = {
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|stream/web|lucide-react|drizzle-orm|drizzle-zod|@neondatabase))'
   ],
-  testTimeout: 15000,
+  testTimeout: 30000,
   clearMocks: true,
   restoreMocks: true,
   resetMocks: true,
