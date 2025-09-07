@@ -33,18 +33,10 @@ interface Law25ComplianceData {
  * Runs Semgrep scan and analyzes Law 25 compliance.
  */
 /**
- * RunLaw25ComplianceScan function.
- * @returns Function result.
- */
-function /**
- * Run law25 compliance scan function.
- * @returns Law25ComplianceData result.
- */ /**
  * Run law25 compliance scan function.
  * @returns Law25ComplianceData result.
  */
-
-runLaw25ComplianceScan(): Law25ComplianceData {
+function runLaw25ComplianceScan(): Law25ComplianceData {
   try {
     // Run Semgrep with Law 25 rules
     const semgrepOutput = execSync(
@@ -128,15 +120,7 @@ runLaw25ComplianceScan(): Law25ComplianceData {
       categories,
       violations: processedViolations,
     };
-    /**
-     * Catch function.
-     * @param _error - _error parameter.
-     */
-    /**
-     * Catch function.
-     * @param _error - _error parameter.
-     */
-
+  } catch (_error) {
     // Return default/fallback data
     return {
       complianceScore: 85, // Default to good score
@@ -176,8 +160,10 @@ router.get('/', (req, res) => {
   try {
     const complianceData = runLaw25ComplianceScan();
     res.json(complianceData);
+  } catch (error) {
+    console.error('Error generating compliance data:', error);
     res.status(500).json({
-      _error: 'Failed to generate compliance data',
+      error: 'Failed to generate compliance data',
       complianceScore: 0,
       totalViolations: 0,
       criticalViolations: 0,

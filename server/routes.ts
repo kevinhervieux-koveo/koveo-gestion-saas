@@ -27,6 +27,7 @@ import { registerDocumentationRoutes } from './api/documentation';
 import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
+import law25ComplianceRouter from './routes/law25-compliance';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -102,6 +103,10 @@ export async function registerRoutes(app: Express) {
   registerPillarsSuggestionsRoutes(app);
   registerQualityMetricsRoutes(app);
   registerFeatureManagementRoutes(app);
+  
+  // Law 25 compliance routes
+  app.use('/api/law25-compliance', requireAuth, law25ComplianceRouter);
+  
   console.log('✅ All API routes registered');
   
   // Features API for roadmap
