@@ -613,133 +613,151 @@ export default function IdeaBox() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className="flex-1 flex flex-col overflow-hidden">
       <Header title="Idea Box" subtitle="Share your ideas to improve our platform" />
       
-      {/* Header with search and create */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Idea Box</h2>
-            <p className="text-muted-foreground">
-              Share your ideas to improve our platform
-            </p>
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Action and Search Section */}
+          <div className="flex items-center justify-between">
+            <div></div>
+            <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-idea">
+              <Plus className="mr-2 h-4 w-4" />
+              Submit New Idea
+            </Button>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-idea">
-            <Plus className="mr-2 h-4 w-4" />
-            Submit New Idea
-          </Button>
-        </div>
 
-        {/* Search and filters */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search ideas..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                data-testid="input-search"
-              />
-            </div>
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48" data-testid="select-status-filter">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="submitted">Submitted</SelectItem>
-              <SelectItem value="under_review">Under Review</SelectItem>
-              <SelectItem value="planned">Planned</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-48" data-testid="select-category-filter">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {Object.entries(categoryLabels).map(([key, label]) => (
-                <SelectItem key={key} value={key}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-32" data-testid="select-sort">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="upvotes">Most Upvoted</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Category-grouped cards */}
-      <div className="space-y-6">
-        {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => {
-          const categoryIdeas = ideasByCategory[categoryKey] || [];
-          if (categoryIdeas.length === 0) return null;
-          
-          const isExpanded = expandedCategories.has(categoryKey);
-          
-          return (
-            <div key={categoryKey} className="space-y-3">
-              <Collapsible open={isExpanded} onOpenChange={() => toggleCategory(categoryKey)}>
-                <CollapsibleTrigger className="flex items-center gap-2 p-2 w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                  <span className="text-lg font-semibold">
-                    {categoryLabel}
-                  </span>
-                  <Badge variant="secondary" className="ml-2">
-                    {categoryIdeas.length}
-                  </Badge>
-                </CollapsibleTrigger>
-                
-                <CollapsibleContent className="space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-6">
-                    {categoryIdeas.map((idea) => (
-                      <IdeaCard
-                        key={idea.id}
-                        idea={idea}
-                        onView={handleViewIdea}
-                        onEdit={handleEditIdea}
-                        onUpvote={handleUpvoteIdea}
-                        canEdit={canEditIdea(idea)}
-                        canUpvote={canUpvoteIdea(idea)}
-                      />
-                    ))}
+          {/* Search and Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="w-5 h-5" />
+                Search & Filters
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                    <Input
+                      placeholder="Search ideas..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                      data-testid="input-search"
+                    />
                   </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
-          );
-        })}
-        
-        {filteredIdeas.length === 0 && (
-          <div className="text-center py-12">
-            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No ideas found</h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
-                ? 'Try adjusting your search or filters.'
-                : 'Get started by submitting your first idea.'}
-            </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Status</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger data-testid="select-status-filter">
+                      <SelectValue placeholder="All Statuses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="under_review">Under Review</SelectItem>
+                      <SelectItem value="planned">Planned</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Category & Sort</label>
+                  <div className="flex gap-2">
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger data-testid="select-category-filter">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {Object.entries(categoryLabels).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="w-32" data-testid="select-sort">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest</SelectItem>
+                        <SelectItem value="oldest">Oldest</SelectItem>
+                        <SelectItem value="upvotes">Most Upvoted</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category-grouped cards */}
+          <div className="space-y-6">
+            {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => {
+              const categoryIdeas = ideasByCategory[categoryKey] || [];
+              if (categoryIdeas.length === 0) return null;
+              
+              const isExpanded = expandedCategories.has(categoryKey);
+              
+              return (
+                <div key={categoryKey} className="space-y-3">
+                  <Collapsible open={isExpanded} onOpenChange={() => toggleCategory(categoryKey)}>
+                    <CollapsibleTrigger className="flex items-center gap-2 p-2 w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                      {isExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                      <span className="text-lg font-semibold">
+                        {categoryLabel}
+                      </span>
+                      <Badge variant="secondary" className="ml-2">
+                        {categoryIdeas.length}
+                      </Badge>
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-6">
+                        {categoryIdeas.map((idea) => (
+                          <IdeaCard
+                            key={idea.id}
+                            idea={idea}
+                            onView={handleViewIdea}
+                            onEdit={handleEditIdea}
+                            onUpvote={handleUpvoteIdea}
+                            canEdit={canEditIdea(idea)}
+                            canUpvote={canUpvoteIdea(idea)}
+                          />
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+              );
+            })}
+            
+            {filteredIdeas.length === 0 && (
+              <div className="text-center py-12">
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No ideas found</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
+                    ? 'Try adjusting your search or filters.'
+                    : 'Get started by submitting your first idea.'}
+                </p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Create Dialog */}
