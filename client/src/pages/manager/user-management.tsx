@@ -146,8 +146,15 @@ export default function UserManagement() {
   const users = usersResponse?.users || [];
   const paginationInfo = usersResponse?.pagination;
 
-
-
+  // Fetch dynamic filter options
+  const { data: filterOptions } = useQuery<{
+    roles: Array<{ value: string; label: string }>;
+    statuses: Array<{ value: string; label: string }>;
+    organizations: Array<{ value: string; label: string }>;
+    orphanOptions: Array<{ value: string; label: string }>;
+  }>({
+    queryKey: ['/api/users/filter-options'],
+  });
 
   // Fetch organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
@@ -724,11 +731,11 @@ export default function UserManagement() {
                         onChange={(e) => setRoleFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
-                        <option value=''>{t('allRoles')}</option>
-                        <option value='admin'>{t('admin')}</option>
-                        <option value='manager'>{t('manager')}</option>
-                        <option value='tenant'>{t('tenant')}</option>
-                        <option value='resident'>{t('resident')}</option>
+                        {filterOptions?.roles?.map((role) => (
+                          <option key={role.value} value={role.value}>
+                            {role.label}
+                          </option>
+                        )) || []}
                       </select>
 
                       {/* Status Filter */}
@@ -737,37 +744,40 @@ export default function UserManagement() {
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className='px-3 py-2 border border-gray-300 rounded-md'
                       >
-                        <option value=''>{t('allStatuses')}</option>
-                        <option value='true'>{t('statusActive')}</option>
-                        <option value='false'>{t('statusInactive')}</option>
+                        {filterOptions?.statuses?.map((status) => (
+                          <option key={status.value} value={status.value}>
+                            {status.label}
+                          </option>
+                        )) || []}
                       </select>
 
                       {/* Organization Filter */}
-                      {organizations && organizations.length > 0 && (
+                      {filterOptions?.organizations && filterOptions.organizations.length > 0 && (
                         <select
                           value={organizationFilter}
                           onChange={(e) => setOrganizationFilter(e.target.value)}
                           className='px-3 py-2 border border-gray-300 rounded-md'
                         >
-                          <option value=''>{t('allOrganizations')}</option>
-                          {organizations?.map((org) => (
-                            <option key={org.id} value={org.id}>
-                              {org.name}
+                          {filterOptions.organizations.map((org) => (
+                            <option key={org.value} value={org.value}>
+                              {org.label}
                             </option>
-                          )) || []}
+                          ))}
                         </select>
                       )}
 
                       {/* Orphan User Filter - Admin Only */}
-                      {currentUser?.role === 'admin' && (
+                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && (
                         <select
                           value={orphanFilter}
                           onChange={(e) => setOrphanFilter(e.target.value)}
                           className='px-3 py-2 border border-gray-300 rounded-md'
                         >
-                          <option value=''>{t('allUsers') || 'All Users'}</option>
-                          <option value='true'>{t('orphanUsers') || 'Orphan Users'}</option>
-                          <option value='false'>{t('assignedUsers') || 'Assigned Users'}</option>
+                          {filterOptions.orphanOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
                         </select>
                       )}
 

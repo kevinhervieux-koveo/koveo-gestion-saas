@@ -3,7 +3,7 @@
  * Replaces decorators with direct implementation for better compatibility.
  */
 
-import { eq, desc, and, or, gte, lte, count, like, inArray, sql } from 'drizzle-orm';
+import { eq, desc, and, or, gte, lte, count, like, inArray, isNull, sql } from 'drizzle-orm';
 // Use shared database connection to avoid multiple pools in production
 import { db } from './db';
 import crypto from 'crypto';
@@ -283,18 +283,32 @@ export class OptimizedDatabaseStorage implements IStorage {
       async () => {
         try {
           // Build WHERE conditions for filtering
-          let whereConditions = ['u.is_active = true'];
-          let countWhereConditions = ['is_active = true'];
+          let whereConditions = [];
+          let countWhereConditions = [];
           
           if (filters.role) {
-            whereConditions.push(`u.role = '${filters.role}'`);
-            countWhereConditions.push(`role = '${filters.role}'`);
+            if (filters.role === 'null') {
+              whereConditions.push('u.role IS NULL');
+              countWhereConditions.push('role IS NULL');
+            } else {
+              whereConditions.push(`u.role = '${filters.role}'`);
+              countWhereConditions.push(`role = '${filters.role}'`);
+            }
           }
           
           if (filters.status) {
-            const isActive = filters.status === 'true';
-            whereConditions.push(`u.is_active = ${isActive}`);
-            countWhereConditions.push(`is_active = ${isActive}`);
+            if (filters.status === 'null') {
+              whereConditions.push('u.is_active IS NULL');
+              countWhereConditions.push('is_active IS NULL');
+            } else {
+              const isActive = filters.status === 'true';
+              whereConditions.push(`u.is_active = ${isActive}`);
+              countWhereConditions.push(`is_active = ${isActive}`);
+            }
+          } else {
+            // Default: only show active users if no status filter is applied
+            whereConditions.push('u.is_active = true');
+            countWhereConditions.push('is_active = true');
           }
 
           // First get total count for pagination metadata with filters
@@ -539,15 +553,26 @@ export class OptimizedDatabaseStorage implements IStorage {
   }> {
     try {
       // Build WHERE conditions for filtering
-      let whereConditions = [eq(schema.users.isActive, true)];
+      let whereConditions = [];
       
       if (filters.role) {
-        whereConditions.push(eq(schema.users.role, filters.role as any));
+        if (filters.role === 'null') {
+          whereConditions.push(isNull(schema.users.role));
+        } else {
+          whereConditions.push(eq(schema.users.role, filters.role as any));
+        }
       }
       
       if (filters.status) {
-        const isActive = filters.status === 'true';
-        whereConditions.push(eq(schema.users.isActive, isActive));
+        if (filters.status === 'null') {
+          whereConditions.push(isNull(schema.users.isActive));
+        } else {
+          const isActive = filters.status === 'true';
+          whereConditions.push(eq(schema.users.isActive, isActive));
+        }
+      } else {
+        // Default: only show active users if no status filter is applied
+        whereConditions.push(eq(schema.users.isActive, true));
       }
 
       // First get total count with filters

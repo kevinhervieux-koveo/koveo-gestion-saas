@@ -115,6 +115,104 @@ export function registerUserRoutes(app: Express): void {
     }
   });
 
+  /**
+   * GET /api/users/filter-options - Get distinct values for filter dropdowns
+   */
+  app.get('/api/users/filter-options', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Get distinct roles (including null values)
+      const rolesResult = await db
+        .selectDistinct({ role: schema.users.role })
+        .from(schema.users)
+        .orderBy(schema.users.role);
+
+      // Get distinct status values (including null values)
+      const statusResult = await db
+        .selectDistinct({ isActive: schema.users.isActive })
+        .from(schema.users)
+        .orderBy(schema.users.isActive);
+
+      // Get organizations the current user has access to
+      let organizations = [];
+      if (currentUser.role === 'admin') {
+        // Admin can see all organizations
+        const orgsResult = await db
+          .select({ id: schema.organizations.id, name: schema.organizations.name })
+          .from(schema.organizations)
+          .where(eq(schema.organizations.isActive, true))
+          .orderBy(schema.organizations.name);
+        organizations = orgsResult;
+      } else {
+        // Regular users see only their organizations
+        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
+        if (userOrgIds.length > 0) {
+          const orgsResult = await db
+            .select({ id: schema.organizations.id, name: schema.organizations.name })
+            .from(schema.organizations)
+            .where(
+              and(
+                eq(schema.organizations.isActive, true),
+                inArray(schema.organizations.id, userOrgIds)
+              )
+            )
+            .orderBy(schema.organizations.name);
+          organizations = orgsResult;
+        }
+      }
+
+      // Prepare filter options with All and null handling
+      const roleOptions = [
+        { value: '', label: 'All Roles' },
+        ...rolesResult.map(r => ({
+          value: r.role || 'null',
+          label: r.role ? r.role.charAt(0).toUpperCase() + r.role.slice(1).replace('_', ' ') : 'No Role'
+        }))
+      ];
+
+      const statusOptions = [
+        { value: '', label: 'All Statuses' },
+        ...statusResult.map(s => ({
+          value: s.isActive === null ? 'null' : s.isActive.toString(),
+          label: s.isActive === null ? 'No Status' : (s.isActive ? 'Active' : 'Inactive')
+        }))
+      ];
+
+      const organizationOptions = [
+        { value: '', label: 'All Organizations' },
+        ...organizations.map(org => ({
+          value: org.id,
+          label: org.name
+        }))
+      ];
+
+      const orphanOptions = currentUser.role === 'admin' ? [
+        { value: '', label: 'All Users' },
+        { value: 'true', label: 'Orphan Users' },
+        { value: 'false', label: 'Assigned Users' }
+      ] : [];
+
+      res.json({
+        roles: roleOptions,
+        statuses: statusOptions,
+        organizations: organizationOptions,
+        orphanOptions
+      });
+    } catch (error: any) {
+      console.error('❌ Error fetching filter options:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch filter options',
+      });
+    }
+  });
 
   /**
    * GET /api/users/:id - Retrieves a specific user by ID.
