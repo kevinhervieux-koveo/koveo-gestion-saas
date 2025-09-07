@@ -2370,7 +2370,7 @@ export function registerDocumentRoutes(app: Express): void {
         // Copy uploaded file to local storage
         try {
           fs.copyFileSync(req.file!.path, localFilePath);
-          console.log(`📁 File saved successfully at ${localFilePath}`);
+          // File saved successfully
         } catch (copyError) {
           console.error('Failed to copy file:', copyError);
           throw new Error('Cannot save file - check disk space and permissions');
@@ -2394,26 +2394,12 @@ export function registerDocumentRoutes(app: Express): void {
         attachedToId: validatedData.attachedToId,
       };
 
-      // CRITICAL DEBUG POINT: Database creation
-      console.log(`[${timestamp}] 🎯 CRITICAL: About to create document in database:`, {
-        name: documentData.name,
-        type: documentData.documentType,
-        buildingId: documentData.buildingId,
-        residenceId: documentData.residenceId,
-        uploadedById: documentData.uploadedById,
-        attachedToType: documentData.attachedToType,
-        attachedToId: documentData.attachedToId
-      });
+      // Create document record in database
 
       // Create document record in database  
       const newDocument = await storage.createDocument(documentData);
       
-      // CRITICAL: Log successful database creation
-      console.log(`[${timestamp}] ✅ CRITICAL: DocumentRecord created successfully:`, { 
-        id: newDocument?.id, 
-        name: newDocument?.name,
-        filePath: newDocument?.filePath 
-      });
+      // Document record created successfully
 
       // Clean up temporary file
       if (fs.existsSync(req.file.path)) {
