@@ -278,6 +278,23 @@ export default function ModularDocumentPageWrapper({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // State for collapsible categories (start with all categories expanded)
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(() => {
+    // Initialize with all possible categories expanded
+    return new Set(DOCUMENT_CATEGORIES.map(cat => cat.value).filter(val => val !== 'all'));
+  });
+
+  // Toggle category expansion
+  const toggleCategory = (category: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(category)) {
+      newExpanded.delete(category);
+    } else {
+      newExpanded.add(category);
+    }
+    setExpandedCategories(newExpanded);
+  };
 
   // Get entityId from URL (both path param and query param)
   const urlParams = new URLSearchParams(window.location.search);
@@ -515,7 +532,7 @@ export default function ModularDocumentPageWrapper({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Search */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Search</label>
@@ -536,7 +553,7 @@ export default function ModularDocumentPageWrapper({
                   <label className="text-sm font-medium">Category</label>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                     <SelectTrigger data-testid="select-category-filter">
-                      <SelectValue />
+                      <SelectValue placeholder="All Categories" />
                     </SelectTrigger>
                     <SelectContent>
                       {DOCUMENT_CATEGORIES.map((category) => (
@@ -548,39 +565,32 @@ export default function ModularDocumentPageWrapper({
                   </Select>
                 </div>
 
-                {/* View Mode Toggle */}
+                {/* View Mode & Actions */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">View</label>
+                  <label className="text-sm font-medium">View & Actions</label>
                   <div className="flex gap-2">
-                    <Button
-                      variant={viewMode === 'grid' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setViewMode('grid')}
-                      className="flex-1"
-                      data-testid="button-grid-view"
-                    >
-                      <Grid className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant={viewMode === 'list' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setViewMode('list')}
-                      className="flex-1"
-                      data-testid="button-list-view"
-                    >
-                      <List className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium invisible">Actions</label>
-                  <div className="flex gap-2">
+                    <div className="flex gap-1">
+                      <Button
+                        variant={viewMode === 'grid' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setViewMode('grid')}
+                        data-testid="button-grid-view"
+                      >
+                        <Grid className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant={viewMode === 'list' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setViewMode('list')}
+                        data-testid="button-list-view"
+                      >
+                        <List className="w-4 h-4" />
+                      </Button>
+                    </div>
                     {userPermissions.canCreate && (
                       <Button 
                         onClick={handleCreateDocument} 
-                        className="flex-1"
+                        size="sm"
                         data-testid="button-create-document"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -589,6 +599,7 @@ export default function ModularDocumentPageWrapper({
                     )}
                     <Button 
                       variant="outline" 
+                      size="sm"
                       onClick={clearFilters}
                       data-testid="button-clear-filters"
                     >
@@ -652,35 +663,53 @@ export default function ModularDocumentPageWrapper({
             </Card>
           ) : (
             <div className="space-y-6">
-              {Object.entries(groupedDocuments).map(([category, categoryDocuments]) => (
-                <Card key={category}>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center justify-between">
-                      {getCategoryDisplayName(category)}
-                      <Badge variant="secondary">{categoryDocuments.length}</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className={`grid gap-4 ${
-                      viewMode === 'grid' 
-                        ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                        : 'grid-cols-1'
-                    }`}>
-                      {categoryDocuments.map((document) => (
-                        <DocumentCard
-                          key={document.id}
-                          documentId={document.id}
-                          title={document.name}
-                          documentType={document.category || document.documentType}
-                          createdAt={document.createdAt}
-                          onViewClick={handleDocumentView}
-                          compact={viewMode === 'list'}
-                        />
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              {Object.entries(groupedDocuments).map(([category, categoryDocuments]) => {
+                const isExpanded = expandedCategories.has(category);
+                
+                return (
+                  <div key={category} className="space-y-3">
+                    <Collapsible open={isExpanded} onOpenChange={() => toggleCategory(category)}>
+                      <CollapsibleTrigger className="flex items-center gap-2 p-2 w-full text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                        <span className="text-lg font-semibold">
+                          {getCategoryDisplayName(category)}
+                        </span>
+                        <Badge variant="secondary" className="ml-2">
+                          {categoryDocuments.length}
+                        </Badge>
+                      </CollapsibleTrigger>
+                      
+                      <CollapsibleContent className="space-y-3">
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className={`grid gap-4 ${
+                              viewMode === 'grid' 
+                                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+                                : 'grid-cols-1'
+                            }`}>
+                              {categoryDocuments.map((document) => (
+                                <DocumentCard
+                                  key={document.id}
+                                  documentId={document.id}
+                                  title={document.name}
+                                  documentType={document.category || document.documentType}
+                                  createdAt={document.createdAt}
+                                  onViewClick={handleDocumentView}
+                                  compact={viewMode === 'list'}
+                                />
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                );
+              })}
             </div>
           )}
 
