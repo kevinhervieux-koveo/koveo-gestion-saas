@@ -365,18 +365,18 @@ export class OptimizedDatabaseStorage implements IStorage {
               AND uo_filter.is_active = true
             )` : ''}
             ${!filters.organization && filters.orphan === 'true' ? `AND NOT EXISTS (
-              SELECT 1 FROM user_organizations uo_orphan 
-              WHERE uo_orphan.user_id = users.id AND uo_orphan.is_active = true
+              SELECT 1 FROM user_organizations uo_count_orphan 
+              WHERE uo_count_orphan.user_id = users.id AND uo_count_orphan.is_active = true
             ) AND NOT EXISTS (
-              SELECT 1 FROM user_residences ur_orphan 
-              WHERE ur_orphan.user_id = users.id AND ur_orphan.is_active = true
+              SELECT 1 FROM user_residences ur_count_orphan 
+              WHERE ur_count_orphan.user_id = users.id AND ur_count_orphan.is_active = true
             )` : ''}
             ${!filters.organization && filters.orphan === 'false' ? `AND (EXISTS (
-              SELECT 1 FROM user_organizations uo_assigned 
-              WHERE uo_assigned.user_id = users.id AND uo_assigned.is_active = true
+              SELECT 1 FROM user_organizations uo_count_assigned 
+              WHERE uo_count_assigned.user_id = users.id AND uo_count_assigned.is_active = true
             ) OR EXISTS (
-              SELECT 1 FROM user_residences ur_assigned 
-              WHERE ur_assigned.user_id = users.id AND ur_assigned.is_active = true
+              SELECT 1 FROM user_residences ur_count_assigned 
+              WHERE ur_count_assigned.user_id = users.id AND ur_count_assigned.is_active = true
             ))` : ''}
             ${filters.search && filters.search.trim() ? `AND (
               LOWER(first_name || ' ' || last_name) LIKE '%${filters.search.trim().toLowerCase()}%' OR 
@@ -472,20 +472,20 @@ export class OptimizedDatabaseStorage implements IStorage {
             ${!filters.organization && filters.orphan === 'true' ? (() => {
               console.log('👻 [ORPHAN FILTER] Applying orphan filter: true (users with no assignments)');
               return `AND NOT EXISTS (
-                SELECT 1 FROM user_organizations uo_orphan 
-                WHERE uo_orphan.user_id = u.id AND uo_orphan.is_active = true
+                SELECT 1 FROM user_organizations uo_filter_orphan 
+                WHERE uo_filter_orphan.user_id = u.id AND uo_filter_orphan.is_active = true
               ) AND NOT EXISTS (
-                SELECT 1 FROM user_residences ur_orphan 
-                WHERE ur_orphan.user_id = u.id AND ur_orphan.is_active = true
+                SELECT 1 FROM user_residences ur_filter_orphan 
+                WHERE ur_filter_orphan.user_id = u.id AND ur_filter_orphan.is_active = true
               )`;
             })() : !filters.organization && filters.orphan === 'false' ? (() => {
               console.log('👻 [ORPHAN FILTER] Applying orphan filter: false (users with assignments)');
               return `AND (EXISTS (
-                SELECT 1 FROM user_organizations uo_assigned 
-                WHERE uo_assigned.user_id = u.id AND uo_assigned.is_active = true
+                SELECT 1 FROM user_organizations uo_filter_assigned 
+                WHERE uo_filter_assigned.user_id = u.id AND uo_filter_assigned.is_active = true
               ) OR EXISTS (
-                SELECT 1 FROM user_residences ur_assigned 
-                WHERE ur_assigned.user_id = u.id AND ur_assigned.is_active = true
+                SELECT 1 FROM user_residences ur_filter_assigned 
+                WHERE ur_filter_assigned.user_id = u.id AND ur_filter_assigned.is_active = true
               ))`;
             })() : filters.organization && filters.orphan ? (() => {
               console.log('👻 [ORPHAN FILTER] Ignoring orphan filter - conflicts with organization filter');
