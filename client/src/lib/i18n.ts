@@ -2981,10 +2981,5 @@ export const translations: Record<Language, Translations> = {
     termsOfService: 'Conditions de service',
     noSetupFees: 'Aucun frais d\'installation',
     noDocumentsUploadedYet: 'Aucun document n\'a encore été téléchargé pour cette résidence.',
-    comprehensivePropertyManagement: 'Gestion immobilière complète',
-    developmentDesc: 'Description du développement',
-    quebecComplianceDesc: 'Description de la conformité québécoise',
-    quebecDataProtectionDesc: 'Description de la protection des données québécoise',
-    whatsIncluded: 'Ce qui est inclus',
   }
 };
