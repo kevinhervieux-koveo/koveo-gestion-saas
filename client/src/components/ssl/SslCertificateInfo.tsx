@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { NoDataCard } from '@/components/ui/no-data-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -495,19 +496,13 @@ export function SslCertificateInfo({ initialDomain = '', className }: SslCertifi
 
       {/* No Data State */}
       {!data?.data && !isLoading && !error && selectedDomain && (
-        <Card>
-          <CardContent className='p-6 text-center'>
-            <div className='flex flex-col items-center gap-3'>
-              <Shield className='h-12 w-12 text-muted-foreground' />
-              <div>
-                <h3 className='font-semibold'>No Certificate Found</h3>
-                <p className='text-sm text-muted-foreground'>
-                  No SSL certificate found for domain "{selectedDomain}".
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <NoDataCard
+          icon={Shield}
+          titleKey="noCertificateFound"
+          descriptionKey="noCertificateFoundMessage"
+          testId="no-certificate-found-message"
+          iconSize={12}
+        />
       )}
     </div>
   );

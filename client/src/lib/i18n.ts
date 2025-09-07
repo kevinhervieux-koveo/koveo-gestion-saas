@@ -642,6 +642,10 @@ export interface Translations {
   noBookingsFoundMessage: string;
   selectCommonSpace: string;
   selectCommonSpaceMessage: string;
+  noComplianceData: string;
+  noComplianceDataMessage: string;
+  noCertificateFound: string;
+  noCertificateFoundMessage: string;
   deleteAccountAction: string;
   profileUpdated: string;
   profileUpdatedDescription: string;
@@ -1622,6 +1626,10 @@ export const translations: Record<Language, Translations> = {
     noBookingsFoundMessage: 'No bookings found for this space in the last 12 months.',
     selectCommonSpace: 'Select a Common Space',
     selectCommonSpaceMessage: 'Choose a building and common space to view usage statistics.',
+    noComplianceData: 'No Compliance Data Available',
+    noComplianceDataMessage: 'Run the compliance scan to view Law 25 compliance status.',
+    noCertificateFound: 'No Certificate Found',
+    noCertificateFoundMessage: 'No SSL certificate found for this domain.',
     deleteAccountAction: 'Delete Account',
     profileUpdated: 'Profile updated',
     profileUpdatedDescription: 'Your profile has been updated successfully.',
@@ -2526,6 +2534,10 @@ export const translations: Record<Language, Translations> = {
     noBookingsFoundMessage: 'Aucune réservation trouvée pour cet espace au cours des 12 derniers mois.',
     selectCommonSpace: 'Sélectionnez un espace commun',
     selectCommonSpaceMessage: "Choisissez un bâtiment et un espace commun pour voir les statistiques d'utilisation.",
+    noComplianceData: 'Aucune donnée de conformité disponible',
+    noComplianceDataMessage: 'Exécutez l\'analyse de conformité pour voir le statut de conformité à la Loi 25.',
+    noCertificateFound: 'Aucun certificat trouvé',
+    noCertificateFoundMessage: 'Aucun certificat SSL trouvé pour ce domaine.',
     deleteAccountAction: 'Supprimer le compte',
     profileUpdated: 'Profil mis à jour',
     profileUpdatedDescription: 'Votre profil a été mis à jour avec succès.',
