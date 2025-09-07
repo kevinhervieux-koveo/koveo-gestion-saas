@@ -958,8 +958,16 @@ async function seedDocuments(
     const billsWithDocs = bills; // ALL bills get documents
     
     for (const bill of billsWithDocs) {
-      const billCreator = users.find(user => user.buildingId === bill.buildingId && user.role.includes('manager'));
-      if (!billCreator) continue;
+      // Find a manager for this building, with fallback to any manager
+      let billCreator = users.find(user => user.buildingId === bill.buildingId && user.role.includes('manager'));
+      if (!billCreator) {
+        // Fallback: use any available manager
+        billCreator = users.find(user => user.role.includes('manager'));
+      }
+      if (!billCreator) {
+        console.warn(`   ⚠️ No manager found for bill ${bill.billNumber}, skipping document creation`);
+        continue;
+      }
       
       // Create only 1 document per bill (either invoice OR receipt)
       const isInvoice = Math.random() > 0.5;
