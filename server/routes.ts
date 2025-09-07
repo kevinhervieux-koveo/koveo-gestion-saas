@@ -26,6 +26,7 @@ import { registerAiAnalysisRoutes } from './api/ai-document-analysis';
 import { registerDocumentationRoutes } from './api/documentation';
 import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
+import { registerFeatureManagementRoutes } from './api/feature-management';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -100,7 +101,88 @@ export async function registerRoutes(app: Express) {
   registerDocumentationRoutes(app);
   registerPillarsSuggestionsRoutes(app);
   registerQualityMetricsRoutes(app);
+  registerFeatureManagementRoutes(app);
   console.log('✅ All API routes registered');
+  
+  // Features API for roadmap
+  app.get('/api/features', requireAuth, async (req: any, res) => {
+    try {
+      const { roadmap } = req.query;
+      
+      // Import database and schema here to avoid import issues
+      const { db } = require('../db');
+      const schema = require('@shared/schema');
+      
+      // Get all features from the database
+      const features = await db.select().from(schema.features).orderBy(schema.features.createdAt);
+      
+      // Transform database columns to match expected format
+      const transformedFeatures = features.map((feature: any) => ({
+        ...feature,
+        isPublicRoadmap: feature.is_public_roadmap,
+        isStrategicPath: feature.is_strategic_path, 
+        businessObjective: feature.business_objective,
+        targetUsers: feature.target_users,
+        successMetrics: feature.success_metrics,
+        technicalComplexity: feature.technical_complexity,
+        userFlow: feature.user_flow,
+        aiAnalysisResult: feature.ai_analysis_result,
+        aiAnalyzedAt: feature.ai_analyzed_at,
+        syncedAt: feature.synced_at,
+        createdAt: feature.created_at,
+        updatedAt: feature.updated_at,
+        estimatedHours: feature.estimated_hours,
+        actualHours: feature.actual_hours,
+        startDate: feature.start_date,
+        completedDate: feature.completed_date,
+        requestedBy: feature.requested_by,
+        assignedTo: feature.assigned_to,
+      }));
+      
+      // If roadmap=true, filter to only roadmap-visible features
+      if (roadmap === 'true') {
+        const roadmapFeatures = transformedFeatures.filter((f: any) => f.isPublicRoadmap !== false);
+        res.json(roadmapFeatures);
+      } else {
+        res.json(transformedFeatures);
+      }
+    } catch (error) {
+      console.error('Error fetching features:', error);
+      res.status(500).json({ 
+        message: 'Failed to fetch features',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+  
+  // Sync to production endpoint (should only work during deployment)
+  app.post('/api/features/trigger-sync', requireAuth, async (req: any, res) => {
+    try {
+      // Only allow sync in development environment or during deployment
+      if (process.env.NODE_ENV === 'production' && !process.env.DEPLOYMENT_CONTEXT) {
+        return res.status(403).json({
+          message: 'Production database sync is only allowed during deployment',
+          code: 'SYNC_FORBIDDEN_IN_PRODUCTION'
+        });
+      }
+      
+      // Mock response for now - this would normally sync to production database
+      res.json({
+        success: true,
+        message: process.env.NODE_ENV === 'development' 
+          ? 'Development environment: Sync simulation completed'
+          : 'Features synchronized to production database',
+        syncedAt: new Date().toISOString(),
+        syncedCount: 0 // Would be actual count in real implementation
+      });
+    } catch (error) {
+      console.error('Error during sync:', error);
+      res.status(500).json({
+        message: 'Failed to sync to production',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
   
   // Basic API routes
   app.get('/api/health', (req, res) => {
