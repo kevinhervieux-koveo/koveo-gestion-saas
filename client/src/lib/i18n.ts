@@ -62,6 +62,7 @@ export interface Translations {
   setupValidationQualityAssurance: string;
   configureTesting: string;
   continuousImprovementPillar: string;
+  continuousImprovementDescription: string;
   documentationPillar: string;
   documentationDescription: string;
   activePillar: string;
@@ -866,6 +867,7 @@ export interface Translations {
   noTenants: string;
   residenceDetails: string;
   privacyPolicyTitle: string;
+  privacyPolicyIntro: string;
   lastUpdated: string;
   informationCollection: string;
   informationCollectionDesc: string;
@@ -911,6 +913,7 @@ export interface Translations {
   navLaw25Compliance: string;
   rbacPermissions: string;
   modernPropertyManagement: string;
+  comprehensivePropertyManagement: string;
   forQuebec: string;
   startManagingToday: string;
   goToDashboard: string;
@@ -1063,6 +1066,7 @@ export const translations: Record<Language, Translations> = {
     setupValidationQualityAssurance: 'Set up validation and quality assurance framework',
     configureTesting: 'Configure Testing',
     continuousImprovementPillar: 'Continuous Improvement',
+    continuousImprovementDescription: 'Ongoing optimization and enhancement framework',
     documentationPillar: 'Documentation & Knowledge',
     documentationDescription: 'Comprehensive documentation and knowledge management system',
     activePillar: 'Active',
@@ -1854,6 +1858,7 @@ export const translations: Record<Language, Translations> = {
     noTenants: 'No tenants assigned',
     residenceDetails: 'Residence Details',
     privacyPolicyTitle: 'Privacy Policy',
+    privacyPolicyIntro: 'Your privacy is important to us. This policy explains how we collect, use, and protect your personal information.',
     lastUpdated: 'Last updated:',
     informationCollection: '1. Information Collection',
     informationCollectionDesc: 'We collect the following personal information as part of our services:',
@@ -1899,6 +1904,7 @@ export const translations: Record<Language, Translations> = {
     navLaw25Compliance: 'Law 25 Compliance',
     rbacPermissions: 'RBAC Permissions',
     modernPropertyManagement: 'Modern Property Management',
+    comprehensivePropertyManagement: 'Comprehensive property management solution designed specifically for Quebec residential communities',
     forQuebec: 'for Quebec',
     startManagingToday: 'Start managing today',
     goToDashboard: 'Go to Dashboard',
@@ -2041,6 +2047,7 @@ export const translations: Record<Language, Translations> = {
     initializeQAPillar: 'Initialiser le pilier AQ',
     configureTesting: 'Configurer les tests',
     continuousImprovementPillar: 'Amélioration continue',
+    continuousImprovementDescription: 'Cadre d\'optimisation et d\'amélioration continue',
     documentationPillar: 'Documentation et connaissances',
     documentationDescription: 'Système complet de documentation et de gestion des connaissances',
     activePillar: 'Actif',
@@ -2748,6 +2755,7 @@ export const translations: Record<Language, Translations> = {
     noTenants: 'Aucun locataire assigné',
     residenceDetails: 'Détails de la résidence',
     privacyPolicyTitle: 'Politique de confidentialité',
+    privacyPolicyIntro: 'Votre confidentialité est importante pour nous. Cette politique explique comment nous collectons, utilisons et protégeons vos renseignements personnels.',
     lastUpdated: 'Dernière mise à jour :',
     informationCollection: '1. Collecte des renseignements',
     informationCollectionDesc: 'Nous collectons les renseignements personnels suivants dans le cadre de nos services :',
