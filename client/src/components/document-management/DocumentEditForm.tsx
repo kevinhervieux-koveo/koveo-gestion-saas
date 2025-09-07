@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Upload, Save, X } from 'lucide-react';
+import { FileText, Upload, Save, X, Download, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { SharedUploader } from './SharedUploader';
@@ -178,22 +178,66 @@ export function DocumentEditForm({
     setTextContent(textContent);
   };
 
+  const handleViewDocument = () => {
+    if (document.filePath) {
+      // Open document in new tab for viewing
+      window.open(`/api/documents/${document.id}/file`, '_blank');
+    }
+  };
+
+  const handleDownloadDocument = async () => {
+    try {
+      // Use fetch with credentials to ensure authentication
+      const response = await fetch(`/api/documents/${document.id}/file?download=true`, {
+        method: 'GET',
+        credentials: 'include', // Include authentication cookies
+      });
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
+
+      // Get the filename from Content-Disposition header or use document name
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let fileName = (document as any).fileName || document.name || 'document';
+      
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="([^"]+)"/);
+        if (fileNameMatch) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      // Convert response to blob and create download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Download started',
+        description: 'The document download has started.',
+      });
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast({
+        title: 'Download failed',
+        description: 'Failed to download document. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-primary" />
-          <h2 className="text-xl font-semibold">Edit Document</h2>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onCancel}
-          data-testid="button-cancel-edit"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -312,6 +356,28 @@ export function DocumentEditForm({
                       <p className="text-xs text-gray-600">
                         {(document as any).fileName || document.name}
                       </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDocument()}
+                        data-testid="button-view-document"
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDownloadDocument()}
+                        data-testid="button-download-document"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        Download
+                      </Button>
                     </div>
                   </div>
                 </div>
