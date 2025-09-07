@@ -8,12 +8,11 @@ const config = {
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/tests/mocks/fileMock.js',
-    // Mock server API routes for integration tests
-    '^../../server/api/(.*)$': '<rootDir>/tests/mocks/serverApiMock.js',
+    // Mock all server imports comprehensively
+    '^../../server/(.*)$': '<rootDir>/tests/mocks/serverUniversalMock.js',
+    '^../server/(.*)$': '<rootDir>/tests/mocks/serverUniversalMock.js', 
     '^../../shared/schema$': '<rootDir>/tests/mocks/schemaMock.js',
-    '^../../server/config/(.*)$': '<rootDir>/tests/mocks/configMock.js',
-    '^../../server/routes$': '<rootDir>/tests/mocks/serverRoutesMock.js',
-    '^../../server/db$': '<rootDir>/tests/mocks/serverDbMock.js',
+    '^@/server/(.*)$': '<rootDir>/tests/mocks/serverUniversalMock.js',
   },
   testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
   testPathIgnorePatterns: ['/node_modules/'],
