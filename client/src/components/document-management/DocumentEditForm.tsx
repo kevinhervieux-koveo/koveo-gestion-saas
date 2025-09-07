@@ -129,7 +129,9 @@ export function DocumentEditForm({
         throw new Error(error.message || 'Failed to delete document');
       }
       
-      return response.json();
+      // DELETE endpoints often return empty responses, so don't try to parse JSON
+      // Just return success if the response is ok
+      return { success: true };
     },
     onSuccess: () => {
       toast({
