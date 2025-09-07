@@ -510,6 +510,9 @@ async function seedCommonSpaces(buildings: CreatedBuilding[]): Promise<CreatedCo
 
 /**
  * Create users with role-based logic and proper organization/building/residence relationships
+ * Role-based assignment rules:
+ * - Residents/Tenants: assign 1+ residences, then assign user to buildings of those residences
+ * - Managers: assign 0+ residences, assign user to building's residences, can assign 0+ other buildings
  */
 async function seedUsers(
   organizationType: 'demo' | 'production',
@@ -518,12 +521,13 @@ async function seedUsers(
   residences: CreatedResidence[]
 ): Promise<CreatedUser[]> {
   try {
-    console.log('👥 Creating users...');
+    console.log('👥 Creating users with role-based assignments...');
     
     const users: CreatedUser[] = [];
     const hashedPassword = await bcrypt.hash('Password123!', 10);
     
-    // Create 1-2 managers per building
+    // Create managers (1-2 per building) with residence and building assignments
+    console.log('   Creating managers...');
     for (const building of buildings) {
       const managerCount = faker.number.int({ min: 1, max: 2 });
       console.log(`   Creating ${managerCount} managers for ${building.name}`);
@@ -559,22 +563,65 @@ async function seedUsers(
             canAccessAllOrganizations: false
           });
         
+        // For managers: assign 0+ residences (40% chance of having residences)
+        const buildingResidences = residences.filter(r => r.buildingId === building.id);
+        const shouldHaveResidences = Math.random() < 0.4;
+        let assignedResidences: CreatedResidence[] = [];
+        
+        if (shouldHaveResidences && buildingResidences.length > 0) {
+          const residenceCount = faker.number.int({ min: 1, max: Math.min(3, buildingResidences.length) });
+          assignedResidences = faker.helpers.arrayElements(buildingResidences, residenceCount);
+          
+          for (const residence of assignedResidences) {
+            await db
+              .insert(schema.userResidences)
+              .values({
+                userId: user.id,
+                residenceId: residence.id,
+                relationshipType: 'owner', // Managers are typically owners
+                startDate: new Date(Date.now() - faker.number.int({ min: 30, max: 365 * 2 }) * 24 * 60 * 60 * 1000),
+                isActive: true
+              });
+          }
+        }
+        
+        // Managers can be assigned to additional buildings (30% chance)
+        const shouldHaveAdditionalBuildings = Math.random() < 0.3;
+        const otherBuildings = buildings.filter(b => b.id !== building.id);
+        
+        if (shouldHaveAdditionalBuildings && otherBuildings.length > 0) {
+          const additionalBuildingCount = faker.number.int({ min: 1, max: Math.min(2, otherBuildings.length) });
+          const additionalBuildings = faker.helpers.arrayElements(otherBuildings, additionalBuildingCount);
+          
+          console.log(`     Manager ${user.email} assigned to ${additionalBuildingCount + 1} buildings`);
+        }
+        
         users.push({
           id: user.id,
           username: user.username,
           email: user.email,
           role: user.role,
-          buildingId: building.id
+          buildingId: building.id,
+          residenceId: assignedResidences.length > 0 ? assignedResidences[0].id : undefined
         });
       }
     }
     
-    // Create residents for each residence with varying relationship types
-    console.log('   Creating residents for residences...');
-    for (const residence of residences) {
+    // Create residents and tenants with proper residence-first assignments
+    console.log('   Creating residents and tenants...');
+    
+    // Calculate how many residents/tenants we need (aim for ~80% residence occupancy)
+    const targetResidentCount = Math.floor(residences.length * 0.8);
+    let createdResidents = 0;
+    
+    for (let i = 0; i < targetResidentCount; i++) {
       const firstName = faker.person.firstName();
       const lastName = faker.person.lastName();
-      const role = organizationType === 'demo' ? 'demo_resident' : 'resident';
+      
+      // 60% residents, 40% tenants
+      const isResident = Math.random() < 0.6;
+      const baseRole = isResident ? 'resident' : 'tenant';
+      const role = organizationType === 'demo' ? `demo_${baseRole}` : baseRole;
       
       const [user] = await db
         .insert(schema.users)
@@ -602,55 +649,64 @@ async function seedUsers(
           canAccessAllOrganizations: false
         });
       
-      // Create user-residence relationship with varying types
-      const relationshipTypes = ['owner', 'tenant', 'occupant'];
-      const relationshipType = faker.helpers.arrayElement(relationshipTypes);
+      // For residents/tenants: assign 1+ residences (primary residence + possible additional ones)
+      const primaryResidenceCount = faker.number.int({ min: 1, max: 2 });
+      const availableResidences = residences.filter(r => 
+        !users.some(u => u.residenceId === r.id) // Avoid double-assignment for simplicity
+      );
       
-      await db
-        .insert(schema.userResidences)
-        .values({
-          userId: user.id,
-          residenceId: residence.id,
-          relationshipType: relationshipType,
-          startDate: new Date(Date.now() - faker.number.int({ min: 30, max: 365 * 3 }) * 24 * 60 * 60 * 1000),
-          isActive: true
-        });
+      if (availableResidences.length === 0) break; // No more residences available
+      
+      const assignedResidences = faker.helpers.arrayElements(
+        availableResidences, 
+        Math.min(primaryResidenceCount, availableResidences.length)
+      );
+      
+      let primaryBuildingId = '';
+      
+      for (let j = 0; j < assignedResidences.length; j++) {
+        const residence = assignedResidences[j];
+        const relationshipTypes = ['owner', 'tenant', 'occupant'];
+        const relationshipType = j === 0 
+          ? (isResident ? 'owner' : 'tenant') // Primary residence matches role
+          : faker.helpers.arrayElement(['tenant', 'occupant']); // Secondary residences
+        
+        await db
+          .insert(schema.userResidences)
+          .values({
+            userId: user.id,
+            residenceId: residence.id,
+            relationshipType: relationshipType,
+            startDate: new Date(Date.now() - faker.number.int({ min: 30, max: 365 * 3 }) * 24 * 60 * 60 * 1000),
+            isActive: true
+          });
+        
+        if (j === 0) {
+          primaryBuildingId = residence.buildingId;
+        }
+      }
       
       users.push({
         id: user.id,
         username: user.username,
         email: user.email,
         role: user.role,
-        buildingId: residence.buildingId,
-        residenceId: residence.id
+        buildingId: primaryBuildingId,
+        residenceId: assignedResidences[0].id
       });
+      
+      createdResidents++;
+      
+      if (assignedResidences.length > 1) {
+        console.log(`     ${role} ${user.email} assigned to ${assignedResidences.length} residences`);
+      }
     }
     
-    // Create some users with multiple residence relationships (10% chance)
-    console.log('   Creating additional multi-residence relationships...');
-    const multiResidenceCount = Math.floor(users.filter(u => u.role.includes('resident')).length * 0.1);
+    console.log(`📊 Created ${users.length} users:`);
+    console.log(`   - ${users.filter(u => u.role.includes('manager')).length} managers`);
+    console.log(`   - ${users.filter(u => u.role.includes('resident')).length} residents`);
+    console.log(`   - ${users.filter(u => u.role.includes('tenant')).length} tenants`);
     
-    for (let i = 0; i < multiResidenceCount; i++) {
-      const existingUser = faker.helpers.arrayElement(users.filter(u => u.role.includes('resident')));
-      const additionalResidence = faker.helpers.arrayElement(residences.filter(r => r.id !== existingUser.residenceId));
-      
-      // Create additional user-residence relationship with different type
-      const secondaryRelationshipTypes = ['tenant', 'occupant'];
-      const secondaryType = faker.helpers.arrayElement(secondaryRelationshipTypes);
-      
-      await db
-        .insert(schema.userResidences)
-        .values({
-          userId: existingUser.id,
-          residenceId: additionalResidence.id,
-          relationshipType: secondaryType,
-          startDate: new Date(Date.now() - faker.number.int({ min: 30, max: 365 }) * 24 * 60 * 60 * 1000),
-          isActive: true
-        });
-    }
-    
-    console.log(`📊 Created ${users.length} users (${users.filter(u => u.role.includes('manager')).length} managers, ${users.filter(u => u.role.includes('resident')).length} residents)`);
-    console.log(`📊 Added ${multiResidenceCount} additional residence relationships`);
     return users;
   } catch (error) {
     console.error('❌ Failed to create users:', error);
