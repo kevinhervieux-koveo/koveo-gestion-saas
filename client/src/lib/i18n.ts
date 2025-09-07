@@ -2989,11 +2989,5 @@ export const translations: Record<Language, Translations> = {
     termsOfService: 'Conditions de service',
     noSetupFees: 'Aucun frais d\'installation',
     noDocumentsUploadedYet: 'Aucun document n\'a encore été téléchargé pour cette résidence.',
-    fullscreen: 'Plein écran',
-    exitFullscreen: 'Quitter le plein écran',
-    save: 'Enregistrer',
-    close: 'Fermer',
-    edit: 'Modifier',
-    delete: 'Supprimer',
   }
 };
