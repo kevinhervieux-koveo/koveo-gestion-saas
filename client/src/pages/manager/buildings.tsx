@@ -65,7 +65,7 @@ type BuildingFormData = {
   city: string;
   province: string;
   postalCode: string;
-  buildingType: string;
+  buildingType: 'condo' | 'appartement';
   totalUnits: number;
   organizationId: string;
 };
