@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Maintenance history log for unit 889
+
+Unit: 889  
+Building: Demo Building
+Address: Montreal, QC
+
+Maintenance History for Unit 889:
+
+07/10/2024 - HVAC maintenance
+Status: Completed
+Cost: $175
+Technician: Service Plus Ltd
+
+08/05/2024 - Faucet repair in kitchen
+Status: Completed  
+Cost: $85
+Technician: Montreal Plumbing
+
+08/20/2024 - Annual inspection
+Status: Completed
+Cost: $0
+Inspector: Jean-Pierre Martin
+
+Next Scheduled Maintenance: 01/15/2025
