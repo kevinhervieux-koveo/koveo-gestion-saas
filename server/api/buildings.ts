@@ -354,6 +354,13 @@ export function registerBuildingRoutes(app: Express): void {
     }
 
     try {
+      // Check for organizationId filter parameter
+      const organizationIdFilter = req.query.organizationId as string;
+      
+      console.log(
+        `📊 Fetching buildings${organizationIdFilter ? ` for organization ${organizationIdFilter}` : ' (all)'} by user ${req.session?.userId} with role ${req.session?.user?.role || req.user?.role}`
+      );
+      
       // Use session data directly for now
       let currentUser = req.user || req.session?.user;
 
@@ -394,7 +401,12 @@ export function registerBuildingRoutes(app: Express): void {
 
       if (hasGlobalAccess) {
 
-        // Koveo users can see ALL buildings from ALL organizations
+        // Koveo users can see ALL buildings from ALL organizations (or filtered by organizationId)
+        const whereConditions = [eq(buildings.isActive, true)];
+        if (organizationIdFilter) {
+          whereConditions.push(eq(buildings.organizationId, organizationIdFilter));
+        }
+        
         const allBuildings = await db
           .select({
             id: buildings.id,
@@ -420,7 +432,7 @@ export function registerBuildingRoutes(app: Express): void {
           })
           .from(buildings)
           .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-          .where(eq(buildings.isActive, true))
+          .where(and(...whereConditions))
           .orderBy(organizations.name, buildings.name);
 
         // Add all buildings with special Koveo access type
@@ -439,7 +451,16 @@ export function registerBuildingRoutes(app: Express): void {
           if (userOrgs.length > 0) {
             const orgIds = userOrgs.map((uo) => uo.organizationId);
 
-            // Get all buildings from these organizations only
+            // Get all buildings from these organizations (or filtered by organizationId)
+            const whereConditions = [eq(buildings.isActive, true)];
+            if (organizationIdFilter) {
+              // Filter to specific organization if requested
+              whereConditions.push(eq(buildings.organizationId, organizationIdFilter));
+            } else {
+              // Otherwise show all organizations user has access to
+              whereConditions.push(inArray(buildings.organizationId, orgIds));
+            }
+            
             const orgBuildings = await db
               .select({
                 id: buildings.id,
@@ -465,7 +486,7 @@ export function registerBuildingRoutes(app: Express): void {
               })
               .from(buildings)
               .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-              .where(and(inArray(buildings.organizationId, orgIds), eq(buildings.isActive, true)));
+              .where(and(...whereConditions));
 
             orgBuildings.forEach((building) => {
               if (!buildingIds.has(building.id)) {
