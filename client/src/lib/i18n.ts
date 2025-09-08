@@ -649,19 +649,10 @@ export interface Translations {
   noCertificateFound: string;
   noCertificateFoundMessage: string;
   // Invitation management
-  pendingInvitations: string;
   managePendingInvitations: string;
   loadingInvitations: string;
-  noInvitationsFound: string;
-  expires: string;
-  status: string;
-  actions: string;
-  unit: string;
-  expired: string;
-  pending: string;
   deleteInvitation: string;
   deleteInvitationConfirm: string;
-  cancel: string;
   invitationDeletedSuccess: string;
   invitationDeletedError: string;
   deleteAccountAction: string;
@@ -893,6 +884,7 @@ export interface Translations {
   foundationDesc: string;
   developmentYear: string;
   developmentTitle: string;
+  developmentDesc: string;
   launchYear: string;
   launchTitle: string;
   launchDesc: string;
@@ -1653,6 +1645,10 @@ export const translations: Record<Language, Translations> = {
     noCertificateFound: 'No Certificate Found',
     noCertificateFoundMessage: 'No SSL certificate found for this domain.',
     // Invitation management (moved to prevent duplicates)
+    managePendingInvitations: 'Manage Pending Invitations',
+    loadingInvitations: 'Loading invitations...',
+    deleteInvitation: 'Delete Invitation',
+    deleteInvitationConfirm: 'Are you sure you want to delete this invitation?',
     invitationDeletedSuccess: 'Invitation deleted successfully',
     invitationDeletedError: 'Failed to delete invitation',
     deleteAccountAction: 'Delete Account',
@@ -1884,6 +1880,7 @@ export const translations: Record<Language, Translations> = {
     foundationDesc: 'Company creation with the mission to modernize property management in Quebec.',
     developmentYear: '2024',
     developmentTitle: 'Platform Development',
+    developmentDesc: 'Design and development of our comprehensive solution in compliance with Quebec Law 25.',
     launchYear: '2025',
     launchTitle: 'Official Launch',
     launchDesc: 'Launch of our platform with complete bilingual support and Quebec compliance.',
@@ -2569,6 +2566,10 @@ export const translations: Record<Language, Translations> = {
     noCertificateFound: 'Aucun certificat trouvé',
     noCertificateFoundMessage: 'Aucun certificat SSL trouvé pour ce domaine.',
     // Invitation management (moved to prevent duplicates)
+    managePendingInvitations: 'Gérer les invitations en attente',
+    loadingInvitations: 'Chargement des invitations...',
+    deleteInvitation: 'Supprimer l\'invitation',
+    deleteInvitationConfirm: 'Êtes-vous sûr de vouloir supprimer cette invitation?',
     invitationDeletedSuccess: 'Invitation supprimée avec succès',
     invitationDeletedError: 'Échec de la suppression de l\'invitation',
     deleteAccountAction: 'Supprimer le compte',
@@ -2770,7 +2771,6 @@ export const translations: Record<Language, Translations> = {
     enterpriseEncryption: 'Chiffrement de niveau entreprise',
     enterpriseEncryptionDesc: 'Toutes les données sont chiffrées en transit et au repos avec des standards militaires AES-256.',
     quebecDataProtection: 'Protection des données québécoises',
-    quebecDataProtectionDesc: 'Conformité stricte à la Loi 25 du Québec avec hébergement des données au Canada.',
     secureInfrastructure: 'Infrastructure sécurisée',
     secureInfrastructureDesc: 'Architecture cloud redondante avec surveillance 24/7 et sauvegardes automatisées.',
     ourStoryTitle: 'Notre histoire',
@@ -2810,7 +2810,7 @@ export const translations: Record<Language, Translations> = {
     financialReporting: 'Rapports financiers',
     financialReportingDesc: 'Suivi et rapports financiers complets',
     quebecCompliance: 'Conformité québécoise',
-    quebecComplianceDesc: 'Conformité complète à la Loi 25 du Québec et aux réglementations',
+    quebecCompliance: 'Conformité complète à la Loi 25 du Québec et aux réglementations',
     whyChooseKoveo: 'Pourquoi choisir Koveo?',
     quebecLaw25Compliant: 'Conforme à la Loi 25 du Québec',
     quebecLaw25CompliantDesc: 'Protection de la vie privée et sécurité des données intégrées',
