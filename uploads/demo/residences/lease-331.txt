@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+
+
+LEASE AGREEMENT
+
+Unit: 331
+Building: 4647 Meggie Pass Building 2
+Address: 4647 Meggie Pass, Montreal, QC
+
+Tenant Information:
+- Unit Number: 331
+- Lease Start Date: 09/01/2024
+- Lease End Date: 08/31/2025
+- Monthly Rent: $1,800
+- Security Deposit: $1,800
+
+Terms and Conditions:
+- Tenant responsible for utilities (electricity, internet, cable)
+- No pets allowed without prior written consent from landlord
+
+Landlord: 4647 Meggie Pass Building 2 Management
+Tenant Signature: ____________________
+Date: 08/25/2024
