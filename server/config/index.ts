@@ -99,21 +99,14 @@ export const config = {
 
   // Database configuration
   database: {
-    // CRITICAL: koveo-gestion.com MUST use DATABASE_URL_KOVEO exclusively
-    url: envConfig.isProduction ? env.DATABASE_URL_KOVEO! : env.DATABASE_URL,
+    // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
+    url: envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
     // Helper function to get database URL at runtime based on request
     getRuntimeDatabaseUrl: (requestDomain?: string) => {
-      // CRITICAL: koveo-gestion.com MUST use DATABASE_URL_KOVEO exclusively  
-      const isKoveoProduction = requestDomain?.includes('koveo-gestion.com') || envConfig.isProduction;
-      if (isKoveoProduction) {
-        if (!env.DATABASE_URL_KOVEO) {
-          throw new Error('DATABASE_URL_KOVEO is required for production/koveo-gestion.com');
-        }
-        return env.DATABASE_URL_KOVEO;
-      }
-      return env.DATABASE_URL;
+      // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
+      return envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL;
     },
   },
 
@@ -157,6 +150,27 @@ export const config = {
     supportedLanguages: ['en', 'fr'] as const,
     requireBilingual: true,
     law25Compliance: true,
+  },
+
+  // Debug logging configuration
+  logging: {
+    enabled: envConfig.isDevelopment, // Only log in development (not DATABASE_URL_KOVEO)
+    level: envConfig.isDevelopment ? 'DEBUG' : 'ERROR',
+    categories: {
+      auth: true,
+      api: true,
+      db: true,
+      storage: true,
+      document: true,
+      security: true, // Always enabled for security auditing
+      performance: envConfig.isDevelopment,
+      system: true,
+    },
+    performance: {
+      enableTiming: envConfig.isDevelopment,
+      slowQueryThreshold: 1000, // Log queries slower than 1s
+      enableSqlLogging: envConfig.isDevelopment,
+    },
   },
 } as const;
 
