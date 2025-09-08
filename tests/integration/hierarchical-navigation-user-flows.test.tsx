@@ -3,10 +3,11 @@
  * Tests complete user scenarios and flows through the hierarchical navigation system
  */
 
-import React from 'react';
+import React, { useContext } from 'react';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, test, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { withHierarchicalSelection, HierarchyContext } from '@/components/hoc/withHierarchicalSelection';
 import '@testing-library/jest-dom';
 
 // Mock wouter
