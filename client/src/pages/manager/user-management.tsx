@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -773,10 +774,25 @@ export default function UserManagement() {
             </TabsList>
 
             <div className="flex gap-2">
-              <Button onClick={() => setShowInviteDialog(true)}>
-                <UserPlus className='h-4 w-4 mr-2' />
-                {t('inviteUser')}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={() => setShowInviteDialog(true)}
+                      disabled={currentUser?.role === 'demo_manager'}
+                      data-testid="button-invite-user"
+                    >
+                      <UserPlus className='h-4 w-4 mr-2' />
+                      {t('inviteUser')}
+                    </Button>
+                  </TooltipTrigger>
+                  {currentUser?.role === 'demo_manager' && (
+                    <TooltipContent>
+                      <p>User invitations are not available in demo mode</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
               
               {/* Admin-only: Delete Orphan Users button */}
               {currentUser?.role === 'admin' && (
