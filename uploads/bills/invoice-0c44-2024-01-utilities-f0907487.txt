@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 0C44-2024-01-UTILITIES
+Title: Utilities  - Sipes, Wolf and Lockman
+Vendor: Dickinson, Bahringer and Lemke
+Category: Utilities
+Total Amount: $229.48
+Description: Monthly utilities service for July 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 1/8/2026
+
+Service Details:
+- Volup conqueror vulticulus.
+- Admoneo at ascit crudelis ipsam saepe suppellex adaugeo.
+
+Thank you for your business!
+Dickinson, Bahringer and Lemke

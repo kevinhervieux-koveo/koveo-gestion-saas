@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 9125-2024-04-MAINTENANCE-1
+Title: Maintenance (1) - Harber, Spencer and Bode
+Vendor: Sporer, Lebsack and Hartmann
+Category: Maintenance
+Total Amount: $1373.00
+Description: Monthly maintenance service for March 2024 - Invoice 1
+
+Payment Amount: $1373.00
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-MYSETV5I
+
+This payment has been processed successfully.
+Building Management Office

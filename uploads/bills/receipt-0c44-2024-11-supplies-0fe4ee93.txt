@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 0C44-2024-11-SUPPLIES
+Title: Supplies  - Boehm - Raynor
+Vendor: Stark Inc
+Category: Supplies
+Total Amount: $571.26
+Description: Monthly supplies service for August 2024
+
+Payment Amount: $571.26
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-9AXKGU5Z
+
+This payment has been processed successfully.
+Building Management Office

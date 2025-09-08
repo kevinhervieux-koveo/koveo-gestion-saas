@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 9125-2024-05-MAINTENANCE-1
+Title: Maintenance (1) - Hessel Group
+Vendor: O'Connell - Romaguera
+Category: Maintenance
+Total Amount: $1872.41
+Description: Monthly maintenance service for August 2024 - Invoice 1
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 5/16/2026
+
+Service Details:
+- Deripio caelum aperiam vomica conculco.
+- Arma suspendo confido ultra bardus occaecati thorax.
+
+Thank you for your business!
+O'Connell - Romaguera

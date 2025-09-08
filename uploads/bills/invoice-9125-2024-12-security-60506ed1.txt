@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 9125-2024-12-SECURITY
+Title: Security  - Schneider, Schaden and Klein
+Vendor: Kihn - Labadie
+Category: Security
+Total Amount: $3155.74
+Description: Monthly security service for July 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 2/15/2026
+
+Service Details:
+- Terreo natus taedium qui sui sonitus deduco circumvenio.
+- Infit asper corpus canonicus.
+
+Thank you for your business!
+Kihn - Labadie

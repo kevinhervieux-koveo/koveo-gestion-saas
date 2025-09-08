@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 9125-2024-06-CLEANING
+Title: Cleaning  - Boehm LLC
+Vendor: Ullrich, Ferry and Legros
+Category: Cleaning
+Total Amount: $4211.78
+Description: Monthly cleaning service for April 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 8/29/2026
+
+Service Details:
+- Demoror triumphus claro adfero argumentum accedo deserunt delectatio.
+- Labore adnuo dignissimos voco delinquo decumbo testimonium absque tepidus.
+
+Thank you for your business!
+Ullrich, Ferry and Legros
