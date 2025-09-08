@@ -20,13 +20,13 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { render } from '../utils/test-utils';
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/extend-expect';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 // Import components for testing
-import BugReportDialog from '../../client/src/components/bug-reports/bug-report-dialog';
-import IdeaBoxDialog from '../../client/src/components/idea-box/idea-box-dialog';
+import BugReports from '../../client/src/pages/settings/bug-reports';
+import IdeaBox from '../../client/src/pages/settings/idea-box';
 import DemandDetailsPopup from '../../client/src/components/demands/demand-details-popup';
 import ModularBillForm from '../../client/src/components/bill-management/ModularBillForm';
 import ModularBuildingDocuments from '../../client/src/pages/manager/ModularBuildingDocuments';
@@ -535,6 +535,8 @@ describe('File Upload Forms Test Suite', () => {
         isOpen: true,
         onClose: jest.fn(),
         onSubmit: jest.fn(),
+        onSuccess: jest.fn(),
+        buildingId: 'building-123',
         buildings: [],
         residences: []
       };
