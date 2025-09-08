@@ -31,6 +31,7 @@
   },
   "scripts": {
     "dev": "NODE_ENV=development npx tsx server/index.ts",
+    "dev:force": "kill 1 && npm run dev",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "build:client": "vite build",
     "build:server": "npx tsx scripts/build-server.ts",
