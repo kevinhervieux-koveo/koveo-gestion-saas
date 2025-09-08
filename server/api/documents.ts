@@ -1159,7 +1159,7 @@ export function registerDocumentRoutes(app: Express): void {
       } else if (documentType === 'building') {
         // For building documents, search in buildings user has access to
         if (buildingIds.length > 0) {
-          // Get all documents for buildings, will filter later
+          // Get all documents for buildings, will filter later to show only building-level documents
         }
       } else if (documentType === 'resident') {
         // For resident documents, search in residences user has access to
@@ -1241,6 +1241,16 @@ export function registerDocumentRoutes(app: Express): void {
           if (doc.buildingId !== specificBuildingId) {
             return false;
           }
+          
+          // When viewing Building Documents, only show building-level documents (not residence-level)
+          if (documentType === 'building' && doc.filePath && doc.filePath.includes('residences/')) {
+            return false;
+          }
+        }
+
+        // When viewing Building Documents (documentType === 'building'), filter out residence-level documents
+        if (documentType === 'building' && doc.filePath && doc.filePath.includes('residences/')) {
+          return false;
         }
 
         // Admin can see all documents
