@@ -348,6 +348,8 @@ export function withHierarchicalSelection<T extends object>(
             console.log('🔍 Current location:', location);
             const basePath = location.split('?')[0];
             console.log('🔍 Navigating to:', basePath);
+            // Use window.history to prevent URL reversion
+            window.history.pushState(null, '', basePath);
             setLocation(basePath);
           }
         };
