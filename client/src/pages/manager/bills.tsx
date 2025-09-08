@@ -1037,7 +1037,7 @@ function BillDetail({
                     size='sm'
                     onClick={() => {
                       // View the document (open in new tab)
-                      window.open(`/api/documents/${doc.id}/download`, '_blank');
+                      window.open(`/api/documents/${doc.id}/file`, '_blank');
                     }}
                     className='flex items-center gap-1'
                     data-testid={`button-view-document-${doc.id}`}
@@ -1055,7 +1055,7 @@ function BillDetail({
                       
                       // Download the document
                       const link = document.createElement('a');
-                      link.href = `/api/documents/${doc.id}/download`;
+                      link.href = `/api/documents/${doc.id}/file?download=true`;
                       link.download = doc.fileName || doc.name;
                       document.body.appendChild(link);
                       link.click();
