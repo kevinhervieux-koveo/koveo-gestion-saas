@@ -249,17 +249,17 @@ export function withHierarchicalSelection<T extends object>(
         <div className='flex-1 flex flex-col overflow-hidden'>
           <Header title={t('billsManagement' as any)} subtitle={t('selectBuilding' as any)} />
           
-          {/* Back to Organization Navigation */}
-          {config.hierarchy.includes('organization') && (
-            <div className="p-4 border-b border-gray-200">
+          {/* Back to Organization Navigation - only show if user has multiple organizations */}
+          {config.hierarchy.includes('organization') && organizations.length > 1 && (
+            <div className="p-6 pb-0">
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={handleBack}
                 className="flex items-center gap-2"
                 data-testid="button-back-to-organization"
               >
                 <ArrowLeft className="w-4 h-4" />
-                {t('organization' as any)}
+                Organization
               </Button>
             </div>
           )}
@@ -285,14 +285,38 @@ export function withHierarchicalSelection<T extends object>(
         type: 'residence'
       }));
 
+      // Determine if we should show back button to building level
+      const showBackToBuilding = config.hierarchy.includes('building') && buildings.length > 1;
+
       return (
-        <SelectionGrid
-          title={t('selectResidence' as any)}
-          items={items}
-          onSelectItem={handleSelection}
-          onBack={handleBack}
-          isLoading={isLoadingResidences}
-        />
+        <div className='flex-1 flex flex-col overflow-hidden'>
+          <Header title={t('billsManagement' as any)} subtitle={t('selectResidence' as any)} />
+          
+          {/* Back to Building Navigation - only show if user has multiple buildings */}
+          {showBackToBuilding && (
+            <div className="p-6 pb-0">
+              <Button
+                variant="ghost"
+                onClick={handleBack}
+                className="flex items-center gap-2"
+                data-testid="button-back-to-building"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Building
+              </Button>
+            </div>
+          )}
+          
+          <div className='flex-1 overflow-auto p-6'>
+            <SelectionGrid
+              title=""
+              items={items}
+              onSelectItem={handleSelection}
+              onBack={null}
+              isLoading={isLoadingResidences}
+            />
+          </div>
+        </div>
       );
     }
 

@@ -475,9 +475,7 @@ function CommonSpacesPageInner({ buildingId }: CommonSpacesProps) {
     },
   });
 
-  const handleBackToBuilding = () => {
-    navigate('/resident/common-spaces');
-  };
+  // Back navigation is now handled by the HOC
 
   // Fetch common spaces in user's buildings (filtered by building if provided)
   const { data: commonSpaces = [], isLoading: spacesLoading } = useQuery<CommonSpace[]>({
@@ -753,20 +751,7 @@ function CommonSpacesPageInner({ buildingId }: CommonSpacesProps) {
         subtitle={language === 'fr' ? 'Réservez vos espaces communs' : 'Book your common spaces'}
       />
 
-      {/* Back Navigation */}
-      {buildingId && (
-        <div className="p-4 border-b border-gray-200">
-          <Button
-            variant="outline"
-            onClick={handleBackToBuilding}
-            className="flex items-center gap-2"
-            data-testid="button-back-to-building"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {language === 'fr' ? 'Bâtiment' : 'Building'}
-          </Button>
-        </div>
-      )}
+      {/* Back navigation is now handled automatically by the HOC */}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>

@@ -379,15 +379,7 @@ function ResidencePageInner({ buildingId }: ResidenceProps) {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Back to building selection */}
-          {buildingId && (
-            <div className="mb-4">
-              <Button variant="ghost" onClick={handleBackToBuilding} className="flex items-center gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                {t('backToBuildings')}
-              </Button>
-            </div>
-          )}
+          {/* Back navigation is now handled automatically by the HOC */}
 
           {/* Residence Selection */}
           {filteredResidences.length > 1 && (
