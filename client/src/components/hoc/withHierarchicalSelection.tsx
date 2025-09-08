@@ -334,7 +334,10 @@ export function withHierarchicalSelection<T extends object>(
         return {
           showBackButton: true,
           backButtonLabel: 'Building',
-          onBack: () => navigate({ building: null, residence: null })
+          onBack: () => {
+            console.log('🔄 Back button clicked - navigating to building selection');
+            navigate({ building: null, residence: null });
+          }
         };
       }
       
@@ -343,7 +346,10 @@ export function withHierarchicalSelection<T extends object>(
         return {
           showBackButton: true,
           backButtonLabel: 'Building',
-          onBack: () => navigate({ building: null, residence: null })
+          onBack: () => {
+            console.log('🔄 Back to building clicked for multi-level hierarchy');
+            navigate({ building: null, residence: null });
+          }
         };
       }
       
