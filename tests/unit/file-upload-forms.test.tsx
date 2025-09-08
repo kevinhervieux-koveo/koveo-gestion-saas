@@ -299,7 +299,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/maximum.*size/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -511,7 +511,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/unsupported.*format/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -635,7 +635,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/only.*pdf.*jpg.*png/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -896,7 +896,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/maximum.*file.*size/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -943,7 +943,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/file.*limit.*exceeded/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -982,7 +982,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/only.*images.*pdf.*documents/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -1028,7 +1028,7 @@ describe('File Upload Forms Test Suite', () => {
                               screen.queryByTestId('file-preview-0');
             
             if (pastedFile) {
-              expect(pastedFile).toBeInTheDocument();
+              expect(pastedFile).toBeTruthy();
             }
           });
         }
@@ -1084,7 +1084,7 @@ describe('File Upload Forms Test Suite', () => {
                                     screen.queryByText(/failed.*attach/i);
                 
                 if (errorMessage) {
-                  expect(errorMessage).toBeInTheDocument();
+                  expect(errorMessage).toBeTruthy();
                 }
               });
             }
@@ -1190,7 +1190,7 @@ describe('File Upload Forms Test Suite', () => {
                           screen.queryByText(/view/i);
         
         if (viewButton) {
-          expect(viewButton).toBeInTheDocument();
+          expect(viewButton).toBeTruthy();
         }
       });
 
@@ -1239,7 +1239,7 @@ describe('File Upload Forms Test Suite', () => {
       // Should NOT show file attachment section
       await waitFor(() => {
         const attachmentSection = screen.queryByText(/file attachment/i);
-        expect(attachmentSection).not.toBeInTheDocument();
+        expect(attachmentSection).toBeNull();
       });
     });
   });
