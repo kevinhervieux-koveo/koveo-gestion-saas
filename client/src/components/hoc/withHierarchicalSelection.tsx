@@ -3,6 +3,8 @@ import { useLocation, useSearch } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { SelectionGrid, SelectionGridItem } from '@/components/common/SelectionGrid';
 import { Header } from '@/components/layout/header';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
 /**
@@ -246,10 +248,10 @@ export function withHierarchicalSelection<T extends object>(
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={t('selectOrganization' as any)} subtitle={t('chooseOrganizationSubtitle' as any)} />
+          <Header title={t('billsManagement' as any)} subtitle={t('selectOrganization' as any)} />
           <div className='flex-1 overflow-auto p-6'>
             <SelectionGrid
-              title={t('selectOrganization' as any)}
+              title=""
               items={items}
               onSelectItem={handleSelection}
               onBack={null}
@@ -270,14 +272,29 @@ export function withHierarchicalSelection<T extends object>(
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={t('selectBuilding' as any)} subtitle={t('chooseBuildingSubtitle' as any)} />
+          <Header title={t('billsManagement' as any)} subtitle={t('selectBuilding' as any)} />
+          
+          {/* Back to Organization Navigation */}
+          {config.hierarchy.includes('organization') && (
+            <div className="p-4 border-b border-gray-200">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                className="flex items-center gap-2"
+                data-testid="button-back-to-organization"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {t('organization' as any)}
+              </Button>
+            </div>
+          )}
+          
           <div className='flex-1 overflow-auto p-6'>
             <SelectionGrid
-              title={t('selectBuilding' as any)}
+              title=""
               items={items}
               onSelectItem={handleSelection}
-              onBack={config.hierarchy.includes('organization') ? handleBack : null}
-              backButtonText={t('organization' as any)}
+              onBack={null}
               isLoading={isLoadingBuildings}
             />
           </div>
