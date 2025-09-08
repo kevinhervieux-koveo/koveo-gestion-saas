@@ -1497,10 +1497,10 @@ async function main() {
       console.log(`   Found ${existingBills.length} existing bills to process for documents...`);
       
       await seedDocuments(existingBills, buildings, residences, existingUsers.map(u => ({
-        id: u.users.id,
-        email: u.users.email,
-        role: u.users.role,
-        buildingId: u.users.buildingId
+        id: u.id,
+        email: u.email,
+        role: u.role,
+        buildingId: null // Not needed for document creation
       })));
       console.log('');
     }

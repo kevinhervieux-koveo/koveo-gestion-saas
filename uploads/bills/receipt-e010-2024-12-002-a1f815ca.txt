@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: E010-2024-12-002
+Title: Supplies - Mertz and Sons
+Vendor: Yundt, Beahan and Kub
+Category: Supplies
+Total Amount: $653.78
+Description: Monthly supplies service for April 2024
+
+Payment Amount: $653.78
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-VFCIAHGO
+
+This payment has been processed successfully.
+Building Management Office

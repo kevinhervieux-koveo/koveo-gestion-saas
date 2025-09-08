@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 27F8-2024-10-001
+Title: Landscaping - Bernier - Heidenreich
+Vendor: Okuneva LLC
+Category: Landscaping
+Total Amount: $251.48
+Description: Monthly landscaping service for July 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 1/4/2026
+
+Service Details:
+- Rerum quod timor.
+- Vomito concedo aranea defluo aufero tametsi acidus ea.
+
+Thank you for your business!
+Okuneva LLC
