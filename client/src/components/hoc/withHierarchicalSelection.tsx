@@ -59,8 +59,7 @@ export function withHierarchicalSelection<T extends object>(
     
     // Force re-render when location changes
     React.useEffect(() => {
-      console.log('📍 [HIERARCHY DEBUG] Location changed:', location);
-      console.log('📍 [HIERARCHY DEBUG] Search changed:', search);
+      // Location effect for debugging
     }, [location, search]);
     
     // Parse URL query parameters using wouter's useSearch
@@ -69,25 +68,11 @@ export function withHierarchicalSelection<T extends object>(
     const buildingId = urlParams.get('building');
     const residenceId = urlParams.get('residence');
 
-    // DEBUG: Log current URL state  
-    console.log('🔍 [HIERARCHY DEBUG] Current location:', location);
-    console.log('🔍 [HIERARCHY DEBUG] Search params:', search);
-    console.log('🔍 [HIERARCHY DEBUG] URL params:', {
-      organizationId,
-      buildingId,
-      residenceId,
-      hierarchy: config.hierarchy
-    });
-
     // Determine current selection level
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
-    console.log('🔍 [HIERARCHY DEBUG] Current level:', currentLevel);
-    console.log('🔍 [HIERARCHY DEBUG] Should show wrapped component:', currentLevel === 'complete');
     
     // Navigate to update URL parameters
     const navigate = (updates: Record<string, string | null>) => {
-      console.log('🚀 [HIERARCHY DEBUG] Navigate called with updates:', updates);
-      
       // Start with current URL params
       const currentSearchParams = location.includes('?') ? location.split('?')[1] : '';
       const newParams = new URLSearchParams(currentSearchParams);
@@ -103,10 +88,6 @@ export function withHierarchicalSelection<T extends object>(
       const newSearch = newParams.toString();
       const basePath = location.split('?')[0];
       const newUrl = newSearch ? `${basePath}?${newSearch}` : basePath;
-      
-      console.log('🚀 [HIERARCHY DEBUG] Current searchParams:', currentSearchParams);
-      console.log('🚀 [HIERARCHY DEBUG] Navigating from:', location);
-      console.log('🚀 [HIERARCHY DEBUG] Navigating to:', newUrl);
       
       setLocation(newUrl);
     };
@@ -170,51 +151,33 @@ export function withHierarchicalSelection<T extends object>(
 
     // Auto-forwarding logic
     React.useEffect(() => {
-      console.log('⚡ [HIERARCHY DEBUG] Auto-forward check:', {
-        currentLevel,
-        organizationsCount: organizations.length,
-        buildingsCount: buildings.length,
-        residencesCount: residences.length,
-        organizationId,
-        buildingId,
-        residenceId
-      });
-      
       if (currentLevel === 'organization' && organizations.length === 1 && !organizationId) {
         // Auto-forward if only one organization
-        console.log('⚡ [HIERARCHY DEBUG] Auto-forwarding to organization:', organizations[0].id);
         navigate({ organization: organizations[0].id });
         return;
       }
       
       if (currentLevel === 'building' && buildings.length === 1 && !buildingId) {
         // Auto-forward if only one building (preserve organization)
-        console.log('⚡ [HIERARCHY DEBUG] Auto-forwarding to building:', buildings[0].id);
         navigate({ organization: organizationId, building: buildings[0].id });
         return;
       }
       
       if (currentLevel === 'residence' && residences.length === 1 && !residenceId) {
         // Auto-forward if only one residence (preserve organization and building)
-        console.log('⚡ [HIERARCHY DEBUG] Auto-forwarding to residence:', residences[0].id);
         navigate({ organization: organizationId, building: buildingId, residence: residences[0].id });
         return;
       }
-    }, [organizations, buildings, residences, currentLevel, organizationId, buildingId, residenceId]);
+    }, [organizations.length, buildings.length, residences.length, currentLevel, organizationId, buildingId, residenceId]);
 
     // Handle selection
-    const handleSelection = (id: string) => {
-      console.log('✅ [HIERARCHY DEBUG] handleSelection called:', { id, currentLevel });
-      
+    const handleSelection = (id: string) => {      
       if (currentLevel === 'organization') {
-        console.log('✅ [HIERARCHY DEBUG] Selecting organization:', id);
         navigate({ organization: id });
       } else if (currentLevel === 'building') {
-        console.log('✅ [HIERARCHY DEBUG] Selecting building:', id);
         // Preserve organization when selecting building
         navigate({ organization: organizationId, building: id });
       } else if (currentLevel === 'residence') {
-        console.log('✅ [HIERARCHY DEBUG] Selecting residence:', id);
         // Preserve organization and building when selecting residence
         navigate({ organization: organizationId, building: buildingId, residence: id });
       }
