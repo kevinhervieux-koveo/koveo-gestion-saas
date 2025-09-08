@@ -1,0 +1,221 @@
+5089332dae4c8c3350debec3391e37b2
+"use strict";
+
+/* istanbul ignore next */
+function cov_1n2dsdy8su() {
+  var path = "/home/runner/workspace/client/src/components/invoice-management/index.ts";
+  var hash = "b3eec2febeac01216504849743778887715b465f";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/components/invoice-management/index.ts",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 2,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 0
+        },
+        end: {
+          line: 3,
+          column: 51
+        }
+      },
+      "2": {
+        start: {
+          line: 5,
+          column: 20
+        },
+        end: {
+          line: 5,
+          column: 44
+        }
+      },
+      "3": {
+        start: {
+          line: 6,
+          column: 0
+        },
+        end: {
+          line: 6,
+          column: 124
+        }
+      },
+      "4": {
+        start: {
+          line: 6,
+          column: 85
+        },
+        end: {
+          line: 6,
+          column: 118
+        }
+      },
+      "5": {
+        start: {
+          line: 7,
+          column: 20
+        },
+        end: {
+          line: 7,
+          column: 44
+        }
+      },
+      "6": {
+        start: {
+          line: 8,
+          column: 0
+        },
+        end: {
+          line: 8,
+          column: 124
+        }
+      },
+      "7": {
+        start: {
+          line: 8,
+          column: 85
+        },
+        end: {
+          line: 8,
+          column: 118
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 6,
+            column: 71
+          },
+          end: {
+            line: 6,
+            column: 72
+          }
+        },
+        loc: {
+          start: {
+            line: 6,
+            column: 83
+          },
+          end: {
+            line: 6,
+            column: 120
+          }
+        },
+        line: 6
+      },
+      "1": {
+        name: "(anonymous_1)",
+        decl: {
+          start: {
+            line: 8,
+            column: 71
+          },
+          end: {
+            line: 8,
+            column: 72
+          }
+        },
+        loc: {
+          start: {
+            line: 8,
+            column: 83
+          },
+          end: {
+            line: 8,
+            column: 120
+          }
+        },
+        line: 8
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0
+    },
+    b: {},
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/components/invoice-management/index.ts",
+      mappings: ";;;AAAA,2FAA2F;AAC3F,6CAA4C;AAAnC,0GAAA,WAAW,OAAA;AACpB,6CAA4C;AAAnC,0GAAA,WAAW,OAAA",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/components/invoice-management/index.ts"],
+      sourcesContent: ["// Modern invoice management components using the new modular document management structure\nexport { InvoiceForm } from './InvoiceForm';\nexport { InvoiceCard } from './InvoiceCard';"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "b3eec2febeac01216504849743778887715b465f"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_1n2dsdy8su = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_1n2dsdy8su();
+cov_1n2dsdy8su().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_1n2dsdy8su().s[1]++;
+exports.InvoiceCard = exports.InvoiceForm = void 0;
+// Modern invoice management components using the new modular document management structure
+var InvoiceForm_1 =
+/* istanbul ignore next */
+(cov_1n2dsdy8su().s[2]++, require("./InvoiceForm"));
+/* istanbul ignore next */
+cov_1n2dsdy8su().s[3]++;
+Object.defineProperty(exports, "InvoiceForm", {
+  enumerable: true,
+  get: function () {
+    /* istanbul ignore next */
+    cov_1n2dsdy8su().f[0]++;
+    cov_1n2dsdy8su().s[4]++;
+    return InvoiceForm_1.InvoiceForm;
+  }
+});
+var InvoiceCard_1 =
+/* istanbul ignore next */
+(cov_1n2dsdy8su().s[5]++, require("./InvoiceCard"));
+/* istanbul ignore next */
+cov_1n2dsdy8su().s[6]++;
+Object.defineProperty(exports, "InvoiceCard", {
+  enumerable: true,
+  get: function () {
+    /* istanbul ignore next */
+    cov_1n2dsdy8su().f[1]++;
+    cov_1n2dsdy8su().s[7]++;
+    return InvoiceCard_1.InvoiceCard;
+  }
+});
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJJbnZvaWNlRm9ybV8xIiwiY292XzFuMmRzZHk4c3UiLCJzIiwicmVxdWlyZSIsIk9iamVjdCIsImRlZmluZVByb3BlcnR5IiwiZXhwb3J0cyIsImVudW1lcmFibGUiLCJnZXQiLCJmIiwiSW52b2ljZUZvcm0iLCJJbnZvaWNlQ2FyZF8xIiwiSW52b2ljZUNhcmQiXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL2NsaWVudC9zcmMvY29tcG9uZW50cy9pbnZvaWNlLW1hbmFnZW1lbnQvaW5kZXgudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLy8gTW9kZXJuIGludm9pY2UgbWFuYWdlbWVudCBjb21wb25lbnRzIHVzaW5nIHRoZSBuZXcgbW9kdWxhciBkb2N1bWVudCBtYW5hZ2VtZW50IHN0cnVjdHVyZVxuZXhwb3J0IHsgSW52b2ljZUZvcm0gfSBmcm9tICcuL0ludm9pY2VGb3JtJztcbmV4cG9ydCB7IEludm9pY2VDYXJkIH0gZnJvbSAnLi9JbnZvaWNlQ2FyZCc7Il0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBQUE7QUFDQSxJQUFBQSxhQUFBO0FBQUE7QUFBQSxDQUFBQyxjQUFBLEdBQUFDLENBQUEsT0FBQUMsT0FBQTtBQUE0QztBQUFBRixjQUFBLEdBQUFDLENBQUE7QUFBbkNFLE1BQUEsQ0FBQUMsY0FBQSxDQUFBQyxPQUFBO0VBQUFDLFVBQUE7RUFBQUMsR0FBQSxXQUFBQSxDQUFBO0lBQUE7SUFBQVAsY0FBQSxHQUFBUSxDQUFBO0lBQUFSLGNBQUEsR0FBQUMsQ0FBQTtJQUFBLE9BQUFGLGFBQUEsQ0FBQVUsV0FBVztFQUFBO0FBQUE7QUFDcEIsSUFBQUMsYUFBQTtBQUFBO0FBQUEsQ0FBQVYsY0FBQSxHQUFBQyxDQUFBLE9BQUFDLE9BQUE7QUFBNEM7QUFBQUYsY0FBQSxHQUFBQyxDQUFBO0FBQW5DRSxNQUFBLENBQUFDLGNBQUEsQ0FBQUMsT0FBQTtFQUFBQyxVQUFBO0VBQUFDLEdBQUEsV0FBQUEsQ0FBQTtJQUFBO0lBQUFQLGNBQUEsR0FBQVEsQ0FBQTtJQUFBUixjQUFBLEdBQUFDLENBQUE7SUFBQSxPQUFBUyxhQUFBLENBQUFDLFdBQVc7RUFBQTtBQUFBIiwiaWdub3JlTGlzdCI6W119

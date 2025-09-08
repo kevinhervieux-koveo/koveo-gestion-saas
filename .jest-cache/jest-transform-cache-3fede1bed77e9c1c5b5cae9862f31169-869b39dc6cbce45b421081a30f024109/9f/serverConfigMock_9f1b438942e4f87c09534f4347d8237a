@@ -1,0 +1,31 @@
+324cfc1bf93f59751ef9283a399a1714
+/**
+ * Mock for server config to fix database configuration issues in tests
+ */
+const mockConfig = {
+    server: {
+        nodeEnv: 'test',
+        isProduction: false,
+        port: 5000,
+        domain: 'localhost'
+    },
+    database: {
+        url: 'postgresql://test:test@localhost:5432/test',
+        getRuntimeDatabaseUrl: jest.fn().mockReturnValue('postgresql://test:test@localhost:5432/test'),
+        isDevelopment: true,
+        isProduction: false
+    },
+    session: {
+        secret: 'test-session-secret',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    },
+    email: {
+        sendgridApiKey: 'test-sendgrid-key',
+        fromEmail: 'test@example.com'
+    }
+};
+module.exports = {
+    config: mockConfig,
+    default: mockConfig
+};
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS90ZXN0cy9tb2Nrcy9zZXJ2ZXJDb25maWdNb2NrLmpzIiwibWFwcGluZ3MiOiJBQUFBOztHQUVHO0FBRUgsTUFBTSxVQUFVLEdBQUc7SUFDakIsTUFBTSxFQUFFO1FBQ04sT0FBTyxFQUFFLE1BQU07UUFDZixZQUFZLEVBQUUsS0FBSztRQUNuQixJQUFJLEVBQUUsSUFBSTtRQUNWLE1BQU0sRUFBRSxXQUFXO0tBQ3BCO0lBQ0QsUUFBUSxFQUFFO1FBQ1IsR0FBRyxFQUFFLDRDQUE0QztRQUNqRCxxQkFBcUIsRUFBRSxJQUFJLENBQUMsRUFBRSxFQUFFLENBQUMsZUFBZSxDQUFDLDRDQUE0QyxDQUFDO1FBQzlGLGFBQWEsRUFBRSxJQUFJO1FBQ25CLFlBQVksRUFBRSxLQUFLO0tBQ3BCO0lBQ0QsT0FBTyxFQUFFO1FBQ1AsTUFBTSxFQUFFLHFCQUFxQjtRQUM3QixNQUFNLEVBQUUsRUFBRSxHQUFHLEVBQUUsR0FBRyxFQUFFLEdBQUcsSUFBSSxDQUFDLFdBQVc7S0FDeEM7SUFDRCxLQUFLLEVBQUU7UUFDTCxjQUFjLEVBQUUsbUJBQW1CO1FBQ25DLFNBQVMsRUFBRSxrQkFBa0I7S0FDOUI7Q0FDRixDQUFDO0FBRUYsTUFBTSxDQUFDLE9BQU8sR0FBRztJQUNmLE1BQU0sRUFBRSxVQUFVO0lBQ2xCLE9BQU8sRUFBRSxVQUFVO0NBQ3BCLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS90ZXN0cy9tb2Nrcy9zZXJ2ZXJDb25maWdNb2NrLmpzIl0sInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogTW9jayBmb3Igc2VydmVyIGNvbmZpZyB0byBmaXggZGF0YWJhc2UgY29uZmlndXJhdGlvbiBpc3N1ZXMgaW4gdGVzdHNcbiAqL1xuXG5jb25zdCBtb2NrQ29uZmlnID0ge1xuICBzZXJ2ZXI6IHtcbiAgICBub2RlRW52OiAndGVzdCcsXG4gICAgaXNQcm9kdWN0aW9uOiBmYWxzZSxcbiAgICBwb3J0OiA1MDAwLFxuICAgIGRvbWFpbjogJ2xvY2FsaG9zdCdcbiAgfSxcbiAgZGF0YWJhc2U6IHtcbiAgICB1cmw6ICdwb3N0Z3Jlc3FsOi8vdGVzdDp0ZXN0QGxvY2FsaG9zdDo1NDMyL3Rlc3QnLFxuICAgIGdldFJ1bnRpbWVEYXRhYmFzZVVybDogamVzdC5mbigpLm1vY2tSZXR1cm5WYWx1ZSgncG9zdGdyZXNxbDovL3Rlc3Q6dGVzdEBsb2NhbGhvc3Q6NTQzMi90ZXN0JyksXG4gICAgaXNEZXZlbG9wbWVudDogdHJ1ZSxcbiAgICBpc1Byb2R1Y3Rpb246IGZhbHNlXG4gIH0sXG4gIHNlc3Npb246IHtcbiAgICBzZWNyZXQ6ICd0ZXN0LXNlc3Npb24tc2VjcmV0JyxcbiAgICBtYXhBZ2U6IDI0ICogNjAgKiA2MCAqIDEwMDAgLy8gMjQgaG91cnNcbiAgfSxcbiAgZW1haWw6IHtcbiAgICBzZW5kZ3JpZEFwaUtleTogJ3Rlc3Qtc2VuZGdyaWQta2V5JyxcbiAgICBmcm9tRW1haWw6ICd0ZXN0QGV4YW1wbGUuY29tJ1xuICB9XG59O1xuXG5tb2R1bGUuZXhwb3J0cyA9IHtcbiAgY29uZmlnOiBtb2NrQ29uZmlnLFxuICBkZWZhdWx0OiBtb2NrQ29uZmlnXG59OyJdLCJ2ZXJzaW9uIjozfQ==

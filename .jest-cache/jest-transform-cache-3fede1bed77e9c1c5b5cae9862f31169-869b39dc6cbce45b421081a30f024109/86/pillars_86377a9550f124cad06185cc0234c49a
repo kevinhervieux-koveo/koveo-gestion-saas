@@ -1,0 +1,206 @@
+bd7a98a4ba0d11ebb0999911216a46a0
+"use strict";
+
+/* istanbul ignore next */
+function cov_2p3mdfqvr6() {
+  var path = "/home/runner/workspace/client/src/pages/admin/pillars.tsx";
+  var hash = "454781d924747d2267b9c229a4da93d00d56249d";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/pages/admin/pillars.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 2,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 0
+        },
+        end: {
+          line: 3,
+          column: 26
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 50
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 17
+        },
+        end: {
+          line: 5,
+          column: 54
+        }
+      },
+      "4": {
+        start: {
+          line: 6,
+          column: 27
+        },
+        end: {
+          line: 6,
+          column: 77
+        }
+      },
+      "5": {
+        start: {
+          line: 7,
+          column: 23
+        },
+        end: {
+          line: 7,
+          column: 46
+        }
+      },
+      "6": {
+        start: {
+          line: 12,
+          column: 4
+        },
+        end: {
+          line: 12,
+          column: 1032
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "Pillars",
+        decl: {
+          start: {
+            line: 11,
+            column: 9
+          },
+          end: {
+            line: 11,
+            column: 16
+          }
+        },
+        loc: {
+          start: {
+            line: 11,
+            column: 19
+          },
+          end: {
+            line: 13,
+            column: 1
+          }
+        },
+        line: 11
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/pages/admin/pillars.tsx",
+      mappings: ";;AAOA,0BAyBC;;AAhCD,uDAAoD;AACpD,8EAA0E;AAC1E,+CAAwC;AAExC;;GAEG;AACH,SAAwB,OAAO;IAC7B,OAAO,CACL,iCAAK,SAAS,EAAC,sCAAsC,aACnD,uBAAC,eAAM,IAAC,KAAK,EAAC,kBAAkB,EAAC,QAAQ,EAAC,uCAAuC,GAAG,EAGpF,gCAAK,SAAS,EAAC,+BAA+B,YAC5C,gCAAK,SAAS,EAAC,mBAAmB,YAChC,iCAAK,SAAS,EAAC,+CAA+C,aAC5D,uBAAC,uBAAQ,IAAC,SAAS,EAAC,SAAS,GAAG,EAChC,iCAAM,SAAS,EAAC,aAAa,iCAAwB,EACrD,iCAAM,SAAS,EAAC,iDAAiD,qCAE1D,IACH,GACF,GACF,EAEN,gCAAK,SAAS,EAAC,0BAA0B,YACvC,gCAAK,SAAS,EAAC,mBAAmB,YAChC,uBAAC,kCAAe,KAAG,GACf,GACF,IACF,CACP,CAAC;AACJ,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/pages/admin/pillars.tsx"],
+      sourcesContent: ["import { Header } from '@/components/layout/header';\nimport { PillarFramework } from '@/components/dashboard/pillar-framework';\nimport { Terminal } from 'lucide-react';\n\n/**\n *\n */\nexport default function Pillars() {\n  return (\n    <div className='flex-1 flex flex-col overflow-hidden'>\n      <Header title='Pillar Framework' subtitle='Development framework and methodology' />\n\n      {/* Refresh Command */}\n      <div className='border-b bg-gray-50 px-6 py-3'>\n        <div className='max-w-7xl mx-auto'>\n          <div className='flex items-center gap-2 text-sm text-gray-600'>\n            <Terminal className='h-4 w-4' />\n            <span className='font-medium'>Refresh Command:</span>\n            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>\n              npm run validate:all\n            </code>\n          </div>\n        </div>\n      </div>\n\n      <div className='flex-1 overflow-auto p-6'>\n        <div className='max-w-7xl mx-auto'>\n          <PillarFramework />\n        </div>\n      </div>\n    </div>\n  );\n}\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "454781d924747d2267b9c229a4da93d00d56249d"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_2p3mdfqvr6 = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_2p3mdfqvr6();
+cov_2p3mdfqvr6().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_2p3mdfqvr6().s[1]++;
+exports.default = Pillars;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_2p3mdfqvr6().s[2]++, require("react/jsx-runtime"));
+const header_1 =
+/* istanbul ignore next */
+(cov_2p3mdfqvr6().s[3]++, require("@/components/layout/header"));
+const pillar_framework_1 =
+/* istanbul ignore next */
+(cov_2p3mdfqvr6().s[4]++, require("@/components/dashboard/pillar-framework"));
+const lucide_react_1 =
+/* istanbul ignore next */
+(cov_2p3mdfqvr6().s[5]++, require("lucide-react"));
+/**
+ *
+ */
+function Pillars() {
+  /* istanbul ignore next */
+  cov_2p3mdfqvr6().f[0]++;
+  cov_2p3mdfqvr6().s[6]++;
+  return (0, jsx_runtime_1.jsxs)("div", {
+    className: 'flex-1 flex flex-col overflow-hidden',
+    children: [(0, jsx_runtime_1.jsx)(header_1.Header, {
+      title: 'Pillar Framework',
+      subtitle: 'Development framework and methodology'
+    }), (0, jsx_runtime_1.jsx)("div", {
+      className: 'border-b bg-gray-50 px-6 py-3',
+      children: (0, jsx_runtime_1.jsx)("div", {
+        className: 'max-w-7xl mx-auto',
+        children: (0, jsx_runtime_1.jsxs)("div", {
+          className: 'flex items-center gap-2 text-sm text-gray-600',
+          children: [(0, jsx_runtime_1.jsx)(lucide_react_1.Terminal, {
+            className: 'h-4 w-4'
+          }), (0, jsx_runtime_1.jsx)("span", {
+            className: 'font-medium',
+            children: "Refresh Command:"
+          }), (0, jsx_runtime_1.jsx)("code", {
+            className: 'bg-gray-100 px-2 py-1 rounded text-xs font-mono',
+            children: "npm run validate:all"
+          })]
+        })
+      })
+    }), (0, jsx_runtime_1.jsx)("div", {
+      className: 'flex-1 overflow-auto p-6',
+      children: (0, jsx_runtime_1.jsx)("div", {
+        className: 'max-w-7xl mx-auto',
+        children: (0, jsx_runtime_1.jsx)(pillar_framework_1.PillarFramework, {})
+      })
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJleHBvcnRzIiwiZGVmYXVsdCIsIlBpbGxhcnMiLCJoZWFkZXJfMSIsImNvdl8ycDNtZGZxdnI2IiwicyIsInJlcXVpcmUiLCJwaWxsYXJfZnJhbWV3b3JrXzEiLCJsdWNpZGVfcmVhY3RfMSIsImYiLCJqc3hfcnVudGltZV8xIiwianN4cyIsImNsYXNzTmFtZSIsImNoaWxkcmVuIiwianN4IiwiSGVhZGVyIiwidGl0bGUiLCJzdWJ0aXRsZSIsIlRlcm1pbmFsIiwiUGlsbGFyRnJhbWV3b3JrIl0sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL3BhZ2VzL2FkbWluL3BpbGxhcnMudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEhlYWRlciB9IGZyb20gJ0AvY29tcG9uZW50cy9sYXlvdXQvaGVhZGVyJztcbmltcG9ydCB7IFBpbGxhckZyYW1ld29yayB9IGZyb20gJ0AvY29tcG9uZW50cy9kYXNoYm9hcmQvcGlsbGFyLWZyYW1ld29yayc7XG5pbXBvcnQgeyBUZXJtaW5hbCB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7XG5cbi8qKlxuICpcbiAqL1xuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gUGlsbGFycygpIHtcbiAgcmV0dXJuIChcbiAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleC0xIGZsZXggZmxleC1jb2wgb3ZlcmZsb3ctaGlkZGVuJz5cbiAgICAgIDxIZWFkZXIgdGl0bGU9J1BpbGxhciBGcmFtZXdvcmsnIHN1YnRpdGxlPSdEZXZlbG9wbWVudCBmcmFtZXdvcmsgYW5kIG1ldGhvZG9sb2d5JyAvPlxuXG4gICAgICB7LyogUmVmcmVzaCBDb21tYW5kICovfVxuICAgICAgPGRpdiBjbGFzc05hbWU9J2JvcmRlci1iIGJnLWdyYXktNTAgcHgtNiBweS0zJz5cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9J21heC13LTd4bCBteC1hdXRvJz5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC1zbSB0ZXh0LWdyYXktNjAwJz5cbiAgICAgICAgICAgIDxUZXJtaW5hbCBjbGFzc05hbWU9J2gtNCB3LTQnIC8+XG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9J2ZvbnQtbWVkaXVtJz5SZWZyZXNoIENvbW1hbmQ6PC9zcGFuPlxuICAgICAgICAgICAgPGNvZGUgY2xhc3NOYW1lPSdiZy1ncmF5LTEwMCBweC0yIHB5LTEgcm91bmRlZCB0ZXh0LXhzIGZvbnQtbW9ubyc+XG4gICAgICAgICAgICAgIG5wbSBydW4gdmFsaWRhdGU6YWxsXG4gICAgICAgICAgICA8L2NvZGU+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG5cbiAgICAgIDxkaXYgY2xhc3NOYW1lPSdmbGV4LTEgb3ZlcmZsb3ctYXV0byBwLTYnPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT0nbWF4LXctN3hsIG14LWF1dG8nPlxuICAgICAgICAgIDxQaWxsYXJGcmFtZXdvcmsgLz5cbiAgICAgICAgPC9kaXY+XG4gICAgICA8L2Rpdj5cbiAgICA8L2Rpdj5cbiAgKTtcbn1cbiJdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBT0FBLE9BQUEsQ0FBQUMsT0FBQSxHQUFBQyxPQUFBOzs7O0FBUEEsTUFBQUMsUUFBQTtBQUFBO0FBQUEsQ0FBQUMsY0FBQSxHQUFBQyxDQUFBLE9BQUFDLE9BQUE7QUFDQSxNQUFBQyxrQkFBQTtBQUFBO0FBQUEsQ0FBQUgsY0FBQSxHQUFBQyxDQUFBLE9BQUFDLE9BQUE7QUFDQSxNQUFBRSxjQUFBO0FBQUE7QUFBQSxDQUFBSixjQUFBLEdBQUFDLENBQUEsT0FBQUMsT0FBQTtBQUVBOzs7QUFHQSxTQUF3QkosT0FBT0EsQ0FBQTtFQUFBO0VBQUFFLGNBQUEsR0FBQUssQ0FBQTtFQUFBTCxjQUFBLEdBQUFDLENBQUE7RUFDN0IsT0FDRSxJQUFBSyxhQUFBLENBQUFDLElBQUE7SUFBS0MsU0FBUyxFQUFDLHNDQUFzQztJQUFBQyxRQUFBLEdBQ25ELElBQUFILGFBQUEsQ0FBQUksR0FBQSxFQUFDWCxRQUFBLENBQUFZLE1BQU07TUFBQ0MsS0FBSyxFQUFDLGtCQUFrQjtNQUFDQyxRQUFRLEVBQUM7SUFBdUMsRUFBRyxFQUdwRixJQUFBUCxhQUFBLENBQUFJLEdBQUE7TUFBS0YsU0FBUyxFQUFDLCtCQUErQjtNQUFBQyxRQUFBLEVBQzVDLElBQUFILGFBQUEsQ0FBQUksR0FBQTtRQUFLRixTQUFTLEVBQUMsbUJBQW1CO1FBQUFDLFFBQUEsRUFDaEMsSUFBQUgsYUFBQSxDQUFBQyxJQUFBO1VBQUtDLFNBQVMsRUFBQywrQ0FBK0M7VUFBQUMsUUFBQSxHQUM1RCxJQUFBSCxhQUFBLENBQUFJLEdBQUEsRUFBQ04sY0FBQSxDQUFBVSxRQUFRO1lBQUNOLFNBQVMsRUFBQztVQUFTLEVBQUcsRUFDaEMsSUFBQUYsYUFBQSxDQUFBSSxHQUFBO1lBQU1GLFNBQVMsRUFBQyxhQUFhO1lBQUFDLFFBQUE7VUFBQSxFQUF3QixFQUNyRCxJQUFBSCxhQUFBLENBQUFJLEdBQUE7WUFBTUYsU0FBUyxFQUFDLGlEQUFpRDtZQUFBQyxRQUFBO1VBQUEsRUFFMUQ7UUFBQTtNQUNIO0lBQ0YsRUFDRixFQUVOLElBQUFILGFBQUEsQ0FBQUksR0FBQTtNQUFLRixTQUFTLEVBQUMsMEJBQTBCO01BQUFDLFFBQUEsRUFDdkMsSUFBQUgsYUFBQSxDQUFBSSxHQUFBO1FBQUtGLFNBQVMsRUFBQyxtQkFBbUI7UUFBQUMsUUFBQSxFQUNoQyxJQUFBSCxhQUFBLENBQUFJLEdBQUEsRUFBQ1Asa0JBQUEsQ0FBQVksZUFBZTtNQUFHO0lBQ2YsRUFDRjtFQUFBLEVBQ0Y7QUFFViIsImlnbm9yZUxpc3QiOltdfQ==

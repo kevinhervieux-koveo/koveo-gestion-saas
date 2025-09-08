@@ -1,0 +1,373 @@
+a7d1449ba904a3ccab0b6d94df3688a5
+"use strict";
+
+/* istanbul ignore next */
+function cov_2pc2qyjkhf() {
+  var path = "/home/runner/workspace/client/src/pages/admin/organizations.tsx";
+  var hash = "351b7c2ce184a0bc0d0728a1a2b3de571ea03a19";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/pages/admin/organizations.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 1
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 4
+        },
+        end: {
+          line: 3,
+          column: 62
+        }
+      },
+      "2": {
+        start: {
+          line: 5,
+          column: 0
+        },
+        end: {
+          line: 5,
+          column: 62
+        }
+      },
+      "3": {
+        start: {
+          line: 6,
+          column: 0
+        },
+        end: {
+          line: 6,
+          column: 32
+        }
+      },
+      "4": {
+        start: {
+          line: 7,
+          column: 22
+        },
+        end: {
+          line: 7,
+          column: 50
+        }
+      },
+      "5": {
+        start: {
+          line: 8,
+          column: 16
+        },
+        end: {
+          line: 8,
+          column: 49
+        }
+      },
+      "6": {
+        start: {
+          line: 9,
+          column: 17
+        },
+        end: {
+          line: 9,
+          column: 54
+        }
+      },
+      "7": {
+        start: {
+          line: 10,
+          column: 29
+        },
+        end: {
+          line: 10,
+          column: 77
+        }
+      },
+      "8": {
+        start: {
+          line: 16,
+          column: 4
+        },
+        end: {
+          line: 16,
+          column: 491
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 2,
+            column: 56
+          },
+          end: {
+            line: 2,
+            column: 57
+          }
+        },
+        loc: {
+          start: {
+            line: 2,
+            column: 71
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        },
+        line: 2
+      },
+      "1": {
+        name: "Organizations",
+        decl: {
+          start: {
+            line: 15,
+            column: 9
+          },
+          end: {
+            line: 15,
+            column: 22
+          }
+        },
+        loc: {
+          start: {
+            line: 15,
+            column: 25
+          },
+          end: {
+            line: 17,
+            column: 1
+          }
+        },
+        line: 15
+      }
+    },
+    branchMap: {
+      "0": {
+        loc: {
+          start: {
+            line: 2,
+            column: 22
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        },
+        type: "binary-expr",
+        locations: [{
+          start: {
+            line: 2,
+            column: 23
+          },
+          end: {
+            line: 2,
+            column: 27
+          }
+        }, {
+          start: {
+            line: 2,
+            column: 31
+          },
+          end: {
+            line: 2,
+            column: 51
+          }
+        }, {
+          start: {
+            line: 2,
+            column: 56
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        }],
+        line: 2
+      },
+      "1": {
+        loc: {
+          start: {
+            line: 3,
+            column: 11
+          },
+          end: {
+            line: 3,
+            column: 61
+          }
+        },
+        type: "cond-expr",
+        locations: [{
+          start: {
+            line: 3,
+            column: 37
+          },
+          end: {
+            line: 3,
+            column: 40
+          }
+        }, {
+          start: {
+            line: 3,
+            column: 43
+          },
+          end: {
+            line: 3,
+            column: 61
+          }
+        }],
+        line: 3
+      },
+      "2": {
+        loc: {
+          start: {
+            line: 3,
+            column: 12
+          },
+          end: {
+            line: 3,
+            column: 33
+          }
+        },
+        type: "binary-expr",
+        locations: [{
+          start: {
+            line: 3,
+            column: 12
+          },
+          end: {
+            line: 3,
+            column: 15
+          }
+        }, {
+          start: {
+            line: 3,
+            column: 19
+          },
+          end: {
+            line: 3,
+            column: 33
+          }
+        }],
+        line: 3
+      }
+    },
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0
+    },
+    b: {
+      "0": [0, 0, 0],
+      "1": [0, 0],
+      "2": [0, 0]
+    },
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/pages/admin/organizations.tsx",
+      mappings: ";;;;;AAQA,gCAeC;;AAvBD,kDAA0B;AAC1B,uDAAoD;AACpD,8EAA0E;AAE1E;;;GAGG;AACH,SAAwB,aAAa;IACnC,OAAO,CACL,iCAAK,SAAS,EAAC,sCAAsC,aACnD,uBAAC,eAAM,IACL,KAAK,EAAC,0BAA0B,EAChC,QAAQ,EAAC,2DAA2D,GACpE,EAEF,gCAAK,SAAS,EAAC,0BAA0B,YACvC,gCAAK,SAAS,EAAC,mBAAmB,YAChC,uBAAC,sCAAiB,KAAG,GACjB,GACF,IACF,CACP,CAAC;AACJ,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/pages/admin/organizations.tsx"],
+      sourcesContent: ["import React from 'react';\nimport { Header } from '@/components/layout/header';\nimport { OrganizationsCard } from '@/components/admin/organizations-card';\n\n/**\n * Admin Organizations Management Page\n * Complete CRUD interface for managing organizations.\n */\nexport default function Organizations() {\n  return (\n    <div className='flex-1 flex flex-col overflow-hidden'>\n      <Header\n        title='Organizations Management'\n        subtitle='Create, view, edit and delete organizations in the system'\n      />\n\n      <div className='flex-1 overflow-auto p-6'>\n        <div className='max-w-7xl mx-auto'>\n          <OrganizationsCard />\n        </div>\n      </div>\n    </div>\n  );\n}\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "351b7c2ce184a0bc0d0728a1a2b3de571ea03a19"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_2pc2qyjkhf = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_2pc2qyjkhf();
+var __importDefault =
+/* istanbul ignore next */
+(cov_2pc2qyjkhf().s[0]++,
+/* istanbul ignore next */
+(cov_2pc2qyjkhf().b[0][0]++, this) &&
+/* istanbul ignore next */
+(cov_2pc2qyjkhf().b[0][1]++, this.__importDefault) ||
+/* istanbul ignore next */
+(cov_2pc2qyjkhf().b[0][2]++, function (mod) {
+  /* istanbul ignore next */
+  cov_2pc2qyjkhf().f[0]++;
+  cov_2pc2qyjkhf().s[1]++;
+  return /* istanbul ignore next */(cov_2pc2qyjkhf().b[2][0]++, mod) &&
+  /* istanbul ignore next */
+  (cov_2pc2qyjkhf().b[2][1]++, mod.__esModule) ?
+  /* istanbul ignore next */
+  (cov_2pc2qyjkhf().b[1][0]++, mod) :
+  /* istanbul ignore next */
+  (cov_2pc2qyjkhf().b[1][1]++, {
+    "default": mod
+  });
+}));
+/* istanbul ignore next */
+cov_2pc2qyjkhf().s[2]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_2pc2qyjkhf().s[3]++;
+exports.default = Organizations;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_2pc2qyjkhf().s[4]++, require("react/jsx-runtime"));
+const react_1 =
+/* istanbul ignore next */
+(cov_2pc2qyjkhf().s[5]++, __importDefault(require("react")));
+const header_1 =
+/* istanbul ignore next */
+(cov_2pc2qyjkhf().s[6]++, require("@/components/layout/header"));
+const organizations_card_1 =
+/* istanbul ignore next */
+(cov_2pc2qyjkhf().s[7]++, require("@/components/admin/organizations-card"));
+/**
+ * Admin Organizations Management Page
+ * Complete CRUD interface for managing organizations.
+ */
+function Organizations() {
+  /* istanbul ignore next */
+  cov_2pc2qyjkhf().f[1]++;
+  cov_2pc2qyjkhf().s[8]++;
+  return (0, jsx_runtime_1.jsxs)("div", {
+    className: 'flex-1 flex flex-col overflow-hidden',
+    children: [(0, jsx_runtime_1.jsx)(header_1.Header, {
+      title: 'Organizations Management',
+      subtitle: 'Create, view, edit and delete organizations in the system'
+    }), (0, jsx_runtime_1.jsx)("div", {
+      className: 'flex-1 overflow-auto p-6',
+      children: (0, jsx_runtime_1.jsx)("div", {
+        className: 'max-w-7xl mx-auto',
+        children: (0, jsx_runtime_1.jsx)(organizations_card_1.OrganizationsCard, {})
+      })
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfMnBjMnF5amtoZiIsImFjdHVhbENvdmVyYWdlIiwiZXhwb3J0cyIsImRlZmF1bHQiLCJPcmdhbml6YXRpb25zIiwicmVhY3RfMSIsInMiLCJfX2ltcG9ydERlZmF1bHQiLCJyZXF1aXJlIiwiaGVhZGVyXzEiLCJvcmdhbml6YXRpb25zX2NhcmRfMSIsImYiLCJqc3hfcnVudGltZV8xIiwianN4cyIsImNsYXNzTmFtZSIsImNoaWxkcmVuIiwianN4IiwiSGVhZGVyIiwidGl0bGUiLCJzdWJ0aXRsZSIsIk9yZ2FuaXphdGlvbnNDYXJkIl0sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL3BhZ2VzL2FkbWluL29yZ2FuaXphdGlvbnMudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCc7XG5pbXBvcnQgeyBIZWFkZXIgfSBmcm9tICdAL2NvbXBvbmVudHMvbGF5b3V0L2hlYWRlcic7XG5pbXBvcnQgeyBPcmdhbml6YXRpb25zQ2FyZCB9IGZyb20gJ0AvY29tcG9uZW50cy9hZG1pbi9vcmdhbml6YXRpb25zLWNhcmQnO1xuXG4vKipcbiAqIEFkbWluIE9yZ2FuaXphdGlvbnMgTWFuYWdlbWVudCBQYWdlXG4gKiBDb21wbGV0ZSBDUlVEIGludGVyZmFjZSBmb3IgbWFuYWdpbmcgb3JnYW5pemF0aW9ucy5cbiAqL1xuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gT3JnYW5pemF0aW9ucygpIHtcbiAgcmV0dXJuIChcbiAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleC0xIGZsZXggZmxleC1jb2wgb3ZlcmZsb3ctaGlkZGVuJz5cbiAgICAgIDxIZWFkZXJcbiAgICAgICAgdGl0bGU9J09yZ2FuaXphdGlvbnMgTWFuYWdlbWVudCdcbiAgICAgICAgc3VidGl0bGU9J0NyZWF0ZSwgdmlldywgZWRpdCBhbmQgZGVsZXRlIG9yZ2FuaXphdGlvbnMgaW4gdGhlIHN5c3RlbSdcbiAgICAgIC8+XG5cbiAgICAgIDxkaXYgY2xhc3NOYW1lPSdmbGV4LTEgb3ZlcmZsb3ctYXV0byBwLTYnPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT0nbWF4LXctN3hsIG14LWF1dG8nPlxuICAgICAgICAgIDxPcmdhbml6YXRpb25zQ2FyZCAvPlxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuICAgIDwvZGl2PlxuICApO1xufVxuIl0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztJQVVJO0lBQUFBLGNBQUEsWUFBQUEsQ0FBQTtNQUFBLE9BQUFDLGNBQUE7SUFBQTtFQUFBO0VBQUEsT0FBQUEsY0FBQTtBQUFBO0FBQUFELGNBQUE7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQUZKRSxPQUFBLENBQUFDLE9BQUEsR0FBQUMsYUFBQTs7OztBQVJBLE1BQUFDLE9BQUE7QUFBQTtBQUFBLENBQUFMLGNBQUEsR0FBQU0sQ0FBQSxPQUFBQyxlQUFBLENBQUFDLE9BQUE7QUFDQSxNQUFBQyxRQUFBO0FBQUE7QUFBQSxDQUFBVCxjQUFBLEdBQUFNLENBQUEsT0FBQUUsT0FBQTtBQUNBLE1BQUFFLG9CQUFBO0FBQUE7QUFBQSxDQUFBVixjQUFBLEdBQUFNLENBQUEsT0FBQUUsT0FBQTtBQUVBOzs7O0FBSUEsU0FBd0JKLGFBQWFBLENBQUE7RUFBQTtFQUFBSixjQUFBLEdBQUFXLENBQUE7RUFBQVgsY0FBQSxHQUFBTSxDQUFBO0VBQ25DLE9BQ0UsSUFBQU0sYUFBQSxDQUFBQyxJQUFBO0lBQUtDLFNBQVMsRUFBQyxzQ0FBc0M7SUFBQUMsUUFBQSxHQUNuRCxJQUFBSCxhQUFBLENBQUFJLEdBQUEsRUFBQ1AsUUFBQSxDQUFBUSxNQUFNO01BQ0xDLEtBQUssRUFBQywwQkFBMEI7TUFDaENDLFFBQVEsRUFBQztJQUEyRCxFQUNwRSxFQUVGLElBQUFQLGFBQUEsQ0FBQUksR0FBQTtNQUFLRixTQUFTLEVBQUMsMEJBQTBCO01BQUFDLFFBQUEsRUFDdkMsSUFBQUgsYUFBQSxDQUFBSSxHQUFBO1FBQUtGLFNBQVMsRUFBQyxtQkFBbUI7UUFBQUMsUUFBQSxFQUNoQyxJQUFBSCxhQUFBLENBQUFJLEdBQUEsRUFBQ04sb0JBQUEsQ0FBQVUsaUJBQWlCO01BQUc7SUFDakIsRUFDRjtFQUFBLEVBQ0Y7QUFFViIsImlnbm9yZUxpc3QiOltdfQ==

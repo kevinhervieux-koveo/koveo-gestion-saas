@@ -1,0 +1,665 @@
+0b653ac29ddad51426e0ea2891b5e715
+"use strict";
+
+/* istanbul ignore next */
+function cov_vefh9jywv() {
+  var path = "/home/runner/workspace/client/src/pages/terms-of-service.tsx";
+  var hash = "189926a82b4aaf42292727b2791c7f3fca9bdab0";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/pages/terms-of-service.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 1
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 4
+        },
+        end: {
+          line: 3,
+          column: 62
+        }
+      },
+      "2": {
+        start: {
+          line: 5,
+          column: 0
+        },
+        end: {
+          line: 5,
+          column: 62
+        }
+      },
+      "3": {
+        start: {
+          line: 6,
+          column: 0
+        },
+        end: {
+          line: 6,
+          column: 37
+        }
+      },
+      "4": {
+        start: {
+          line: 7,
+          column: 22
+        },
+        end: {
+          line: 7,
+          column: 50
+        }
+      },
+      "5": {
+        start: {
+          line: 8,
+          column: 27
+        },
+        end: {
+          line: 8,
+          column: 74
+        }
+      },
+      "6": {
+        start: {
+          line: 9,
+          column: 25
+        },
+        end: {
+          line: 9,
+          column: 76
+        }
+      },
+      "7": {
+        start: {
+          line: 10,
+          column: 23
+        },
+        end: {
+          line: 10,
+          column: 46
+        }
+      },
+      "8": {
+        start: {
+          line: 11,
+          column: 17
+        },
+        end: {
+          line: 11,
+          column: 34
+        }
+      },
+      "9": {
+        start: {
+          line: 12,
+          column: 23
+        },
+        end: {
+          line: 12,
+          column: 54
+        }
+      },
+      "10": {
+        start: {
+          line: 13,
+          column: 19
+        },
+        end: {
+          line: 13,
+          column: 46
+        }
+      },
+      "11": {
+        start: {
+          line: 19,
+          column: 28
+        },
+        end: {
+          line: 19,
+          column: 55
+        }
+      },
+      "12": {
+        start: {
+          line: 20,
+          column: 18
+        },
+        end: {
+          line: 20,
+          column: 51
+        }
+      },
+      "13": {
+        start: {
+          line: 21,
+          column: 32
+        },
+        end: {
+          line: 21,
+          column: 57
+        }
+      },
+      "14": {
+        start: {
+          line: 22,
+          column: 4
+        },
+        end: {
+          line: 22,
+          column: 10804
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 2,
+            column: 56
+          },
+          end: {
+            line: 2,
+            column: 57
+          }
+        },
+        loc: {
+          start: {
+            line: 2,
+            column: 71
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        },
+        line: 2
+      },
+      "1": {
+        name: "TermsOfServicePage",
+        decl: {
+          start: {
+            line: 18,
+            column: 9
+          },
+          end: {
+            line: 18,
+            column: 27
+          }
+        },
+        loc: {
+          start: {
+            line: 18,
+            column: 30
+          },
+          end: {
+            line: 23,
+            column: 1
+          }
+        },
+        line: 18
+      }
+    },
+    branchMap: {
+      "0": {
+        loc: {
+          start: {
+            line: 2,
+            column: 22
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        },
+        type: "binary-expr",
+        locations: [{
+          start: {
+            line: 2,
+            column: 23
+          },
+          end: {
+            line: 2,
+            column: 27
+          }
+        }, {
+          start: {
+            line: 2,
+            column: 31
+          },
+          end: {
+            line: 2,
+            column: 51
+          }
+        }, {
+          start: {
+            line: 2,
+            column: 56
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        }],
+        line: 2
+      },
+      "1": {
+        loc: {
+          start: {
+            line: 3,
+            column: 11
+          },
+          end: {
+            line: 3,
+            column: 61
+          }
+        },
+        type: "cond-expr",
+        locations: [{
+          start: {
+            line: 3,
+            column: 37
+          },
+          end: {
+            line: 3,
+            column: 40
+          }
+        }, {
+          start: {
+            line: 3,
+            column: 43
+          },
+          end: {
+            line: 3,
+            column: 61
+          }
+        }],
+        line: 3
+      },
+      "2": {
+        loc: {
+          start: {
+            line: 3,
+            column: 12
+          },
+          end: {
+            line: 3,
+            column: 33
+          }
+        },
+        type: "binary-expr",
+        locations: [{
+          start: {
+            line: 3,
+            column: 12
+          },
+          end: {
+            line: 3,
+            column: 15
+          }
+        }, {
+          start: {
+            line: 3,
+            column: 19
+          },
+          end: {
+            line: 3,
+            column: 33
+          }
+        }],
+        line: 3
+      }
+    },
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0,
+      "9": 0,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0,
+      "14": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0
+    },
+    b: {
+      "0": [0, 0, 0],
+      "1": [0, 0],
+      "2": [0, 0]
+    },
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/pages/terms-of-service.tsx",
+      mappings: ";;;;;AAYA,qCAmMC;;AA9MD,2EAAwE;AACxE,6EAAgD;AAChD,+CAA2D;AAC3D,mCAA2C;AAC3C,uDAAmD;AACnD,+CAA2C;AAE3C;;;GAGG;AACH,SAMA,kBAAkB;IAChB,MAAM,CAAC,EAAE,WAAW,CAAC,GAAG,IAAA,oBAAW,GAAE,CAAC;IACtC,MAAM,EAAE,CAAC,EAAE,GAAG,IAAA,0BAAW,GAAE,CAAC;IAC5B,MAAM,EAAE,eAAe,EAAE,GAAG,IAAA,kBAAO,GAAE,CAAC;IAEtC,OAAO,CACL,iCAAK,SAAS,EAAC,yBAAyB,aAEtC,uBAAC,mCAAgB,KAAG,EAGpB,gCAAK,SAAS,EAAC,wCAAwC,YACrD,iCAAK,SAAS,EAAC,mCAAmC,aAChD,iCAAK,SAAS,EAAC,kCAAkC,aAC/C,uBAAC,uBAAQ,IAAC,SAAS,EAAC,uBAAuB,GAAG,EAC9C,+BAAI,SAAS,EAAC,kCAAkC,yCAA8B,IAC1E,EAEN,iCAAK,SAAS,EAAC,kBAAkB,aAC/B,+BAAG,SAAS,EAAC,oBAAoB,aAC/B,kFAAuC,qBACrC,EAEJ,8BAAG,SAAS,EAAC,oBAAoB,6NAI7B,EAEJ,+BAAI,SAAS,EAAC,2CAA2C,8CAEpD,EACL,8BAAG,SAAS,EAAC,oBAAoB,iQAI7B,EAEJ,+BAAI,SAAS,EAAC,2CAA2C,0CAA+B,EACxF,8BAAG,SAAS,EAAC,oBAAoB,8FAE7B,EACJ,gCAAI,SAAS,EAAC,mCAAmC,aAC/C,6FAA8C,EAC9C,oGAA0D,EAC1D,sFAAiD,EACjD,sFAAuC,EACvC,0GAAiD,IAC9C,EAEL,+BAAI,SAAS,EAAC,2CAA2C,uCAA4B,EACrF,8BAAG,SAAS,EAAC,oBAAoB,0DAA8C,EAC/E,gCAAI,SAAS,EAAC,mCAAmC,aAC/C,+GAAgE,EAChE,8GAA+D,EAC/D,mHAA+D,EAC/D,kHAAmE,EACnE,wGAA8D,IAC3D,EAEL,+BAAI,SAAS,EAAC,2CAA2C,0CAA+B,EACxF,8BAAG,SAAS,EAAC,oBAAoB,kDAAiC,EAClE,gCAAI,SAAS,EAAC,mCAAmC,aAC/C,uHAAmE,EACnE,qGAA2D,EAC3D,+FAAqD,EACrD,kHAAmE,EACnE,qGAAsD,EACtD,4FAAkD,IAC/C,EAEL,+BAAI,SAAS,EAAC,2CAA2C,sDAEpD,EACL,8BAAG,SAAS,EAAC,oBAAoB,wVAK7B,EAEJ,+BAAI,SAAS,EAAC,2CAA2C,wDAEpD,EACL,8BAAG,SAAS,EAAC,oBAAoB,iTAK7B,EAEJ,+BAAI,SAAS,EAAC,2CAA2C,4CAEpD,EACL,8BAAG,SAAS,EAAC,oBAAoB,yDAA6C,EAC9E,gCAAI,SAAS,EAAC,mCAAmC,aAC/C,+GAAqE,EACrE,6HAAyE,EACzE,qGAAgE,EAChE,0GAAgE,EAChE,0HAAgF,IAC7E,EAEL,+BAAI,SAAS,EAAC,2CAA2C,iDAEpD,EACL,8BAAG,SAAS,EAAC,oBAAoB,4OAI7B,EAEJ,+BAAI,SAAS,EAAC,2CAA2C,qDAEpD,EACL,8BAAG,SAAS,EAAC,oBAAoB,gRAI7B,EAEJ,+BAAI,SAAS,EAAC,2CAA2C,qCAAqB,EAC9E,8BAAG,SAAS,EAAC,oBAAoB,gJAG7B,EACJ,gCAAI,SAAS,EAAC,mCAAmC,aAC/C,uFAAkD,EAClD,wEAAmC,EACnC,wFAAyC,EACzC,kGAAwD,IACrD,EAEL,+BAAI,SAAS,EAAC,2CAA2C,qCAA0B,EACnF,8BAAG,SAAS,EAAC,oBAAoB,wLAG7B,EAEJ,+BAAI,SAAS,EAAC,2CAA2C,kCAAuB,EAChF,8BAAG,SAAS,EAAC,oBAAoB,sMAI7B,EAEJ,+BAAI,SAAS,EAAC,2CAA2C,4BAAiB,EAC1E,8BAAG,SAAS,EAAC,oBAAoB,8EAE7B,EACJ,gCAAK,SAAS,EAAC,2BAA2B,YACxC,+BAAG,SAAS,EAAC,eAAe,aAC1B,8EAA6C,EAC7C,gCAAM,uCAEN,gCAAM,0CAEN,gCAAM,oDAEJ,GACA,IACF,IACF,GACF,EAGN,mCAAQ,SAAS,EAAC,8BAA8B,YAC9C,gCAAK,SAAS,EAAC,wBAAwB,YACrC,iCAAK,SAAS,EAAC,wDAAwD,aACrE,gCAAK,SAAS,EAAC,gCAAgC,YAC7C,gCAAK,GAAG,EAAE,wBAAS,EAAE,GAAG,EAAC,eAAe,EAAC,SAAS,EAAC,6DAA6D,GAAG,GAC/G,EACN,iCAAK,SAAS,EAAC,mDAAmD,aAChE,uBAAC,qBAAM,IAAC,SAAS,EAAC,SAAS,GAAG,EAC9B,wFAA2C,EAC3C,sDAAc,EACd,yFAAuC,EACvC,sDAAc,EACd,uBAAC,aAAI,IAAC,IAAI,EAAC,iBAAiB,iBAAa,qBAAqB,YAC5D,iCAAM,SAAS,EAAC,iCAAiC,kDAE1C,GACF,IACH,IACF,GACF,GACC,IACL,CACP,CAAC;AACJ,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/pages/terms-of-service.tsx"],
+      sourcesContent: ["import { Button } from '@/components/ui/button';\nimport { TopNavigationBar } from '@/components/layout/TopNavigationBar';\nimport koveoLogo from '@/assets/koveo-logo.jpg';\nimport { Shield, ArrowLeft, FileText } from 'lucide-react';\nimport { Link, useLocation } from 'wouter';\nimport { useLanguage } from '@/hooks/use-language';\nimport { useAuth } from '@/hooks/use-auth';\n\n/**\n * Terms of Service page component for Koveo Gestion.\n * Comprehensive terms of service for Quebec property management platform.\n */\nexport default function /**\n * Terms of service page function.\n */ /**\n * Terms of service page function.\n */\n\nTermsOfServicePage() {\n  const [, setLocation] = useLocation();\n  const { t } = useLanguage();\n  const { isAuthenticated } = useAuth();\n\n  return (\n    <div className='min-h-screen bg-gray-50'>\n      {/* Navigation Header */}\n      <TopNavigationBar />\n\n      {/* Content */}\n      <div className='container mx-auto px-4 py-12 max-w-4xl'>\n        <div className='bg-white rounded-lg shadow-sm p-8'>\n          <div className='flex items-center space-x-3 mb-8'>\n            <FileText className='h-8 w-8 text-blue-600' />\n            <h1 className='text-3xl font-bold text-gray-900'>Conditions d'utilisation</h1>\n          </div>\n\n          <div className='prose max-w-none'>\n            <p className='text-gray-600 mb-6'>\n              <strong>Derni\xE8re mise \xE0 jour :</strong> Janvier 2025\n            </p>\n\n            <p className='text-gray-700 mb-8'>\n              Ces conditions d'utilisation r\xE9gissent votre acc\xE8s et votre utilisation de la\n              plateforme Koveo Gestion, un service de gestion immobili\xE8re con\xE7u pour le march\xE9\n              qu\xE9b\xE9cois.\n            </p>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>\n              1. Acceptation des conditions\n            </h2>\n            <p className='text-gray-700 mb-6'>\n              En acc\xE9dant ou en utilisant notre plateforme, vous acceptez d'\xEAtre li\xE9 par ces\n              conditions d'utilisation et notre politique de confidentialit\xE9. Si vous n'acceptez pas\n              ces conditions, veuillez ne pas utiliser nos services.\n            </p>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>2. Description du service</h2>\n            <p className='text-gray-700 mb-4'>\n              Koveo Gestion fournit une plateforme de gestion immobili\xE8re comprenant :\n            </p>\n            <ul className='list-disc pl-6 text-gray-700 mb-6'>\n              <li>Gestion de b\xE2timents et de r\xE9sidences</li>\n              <li>Portail r\xE9sident pour communications et paiements</li>\n              <li>Outils de suivi financier et de rapports</li>\n              <li>Gestion documentaire s\xE9curis\xE9e</li>\n              <li>Fonctionnalit\xE9s de conformit\xE9 qu\xE9b\xE9coise</li>\n            </ul>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>3. Comptes utilisateur</h2>\n            <p className='text-gray-700 mb-4'>Pour utiliser notre service, vous devez :</p>\n            <ul className='list-disc pl-6 text-gray-700 mb-6'>\n              <li>Cr\xE9er un compte avec des informations exactes et \xE0 jour</li>\n              <li>Maintenir la s\xE9curit\xE9 de vos identifiants de connexion</li>\n              <li>Nous informer imm\xE9diatement de tout acc\xE8s non autoris\xE9</li>\n              <li>\xCAtre responsable de toutes les activit\xE9s sous votre compte</li>\n              <li>Respecter les lois applicables du Qu\xE9bec et du Canada</li>\n            </ul>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>4. Utilisation acceptable</h2>\n            <p className='text-gray-700 mb-4'>Vous vous engagez \xE0 ne pas :</p>\n            <ul className='list-disc pl-6 text-gray-700 mb-6'>\n              <li>Utiliser le service \xE0 des fins ill\xE9gales ou non autoris\xE9es</li>\n              <li>Tenter d'acc\xE9der aux comptes d'autres utilisateurs</li>\n              <li>Interf\xE9rer avec le fonctionnement du service</li>\n              <li>T\xE9l\xE9charger ou transmettre des virus ou codes malveillants</li>\n              <li>Violer les droits de propri\xE9t\xE9 intellectuelle</li>\n              <li>Harceler ou nuire \xE0 d'autres utilisateurs</li>\n            </ul>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>\n              5. Propri\xE9t\xE9 intellectuelle\n            </h2>\n            <p className='text-gray-700 mb-6'>\n              Koveo Gestion et ses conc\xE9dants d\xE9tiennent tous les droits de propri\xE9t\xE9 intellectuelle\n              relatifs au service, y compris les logiciels, contenus, marques et designs. Vous\n              conservez la propri\xE9t\xE9 de vos donn\xE9es, mais nous accordez une licence d'utilisation\n              n\xE9cessaire pour fournir le service.\n            </p>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>\n              6. Confidentialit\xE9 et donn\xE9es\n            </h2>\n            <p className='text-gray-700 mb-6'>\n              Notre traitement de vos donn\xE9es personnelles est r\xE9gi par notre politique de\n              confidentialit\xE9, qui respecte la Loi 25 du Qu\xE9bec. Vous vous engagez \xE0 respecter la\n              confidentialit\xE9 des informations d'autres utilisateurs auxquelles vous pourriez avoir\n              acc\xE8s.\n            </p>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>\n              7. Paiements et facturation\n            </h2>\n            <p className='text-gray-700 mb-4'>Les conditions de paiement comprennent :</p>\n            <ul className='list-disc pl-6 text-gray-700 mb-6'>\n              <li>Les frais sont factur\xE9s selon votre plan d'abonnement choisi</li>\n              <li>Le paiement est d\xFB \xE0 l'avance pour chaque p\xE9riode de facturation</li>\n              <li>Les taxes applicables s'ajoutent aux frais d'abonnement</li>\n              <li>Le non-paiement peut entra\xEEner la suspension du service</li>\n              <li>Les remboursements sont accord\xE9s selon notre politique de remboursement</li>\n            </ul>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>\n              8. Disponibilit\xE9 du service\n            </h2>\n            <p className='text-gray-700 mb-6'>\n              Nous nous effor\xE7ons de maintenir une haute disponibilit\xE9 du service, mais ne\n              garantissons pas un acc\xE8s ininterrompu. Nous pouvons effectuer des maintenances\n              programm\xE9es avec pr\xE9avis raisonnable.\n            </p>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>\n              9. Limitation de responsabilit\xE9\n            </h2>\n            <p className='text-gray-700 mb-6'>\n              Dans les limites permises par la loi qu\xE9b\xE9coise, notre responsabilit\xE9 est limit\xE9e au\n              montant pay\xE9 pour le service au cours des 12 derniers mois. Nous ne sommes pas\n              responsables des dommages indirects, cons\xE9cutifs ou punitifs.\n            </p>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>10. R\xE9siliation</h2>\n            <p className='text-gray-700 mb-4'>\n              Vous pouvez r\xE9silier votre compte \xE0 tout moment. Nous pouvons suspendre ou r\xE9silier\n              votre acc\xE8s en cas de :\n            </p>\n            <ul className='list-disc pl-6 text-gray-700 mb-6'>\n              <li>Violation de ces conditions d'utilisation</li>\n              <li>Non-paiement des frais dus</li>\n              <li>Activit\xE9 frauduleuse ou ill\xE9gale</li>\n              <li>Cessation du service (avec pr\xE9avis de 30 jours)</li>\n            </ul>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>11. Droit applicable</h2>\n            <p className='text-gray-700 mb-6'>\n              Ces conditions sont r\xE9gies par les lois du Qu\xE9bec et du Canada. Tout diff\xE9rend sera\n              soumis \xE0 la juridiction exclusive des tribunaux du Qu\xE9bec.\n            </p>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>12. Modifications</h2>\n            <p className='text-gray-700 mb-6'>\n              Nous nous r\xE9servons le droit de modifier ces conditions occasionnellement. Les\n              modifications importantes seront communiqu\xE9es par courriel avec un pr\xE9avis de 30\n              jours.\n            </p>\n\n            <h2 className='text-2xl font-semibold text-gray-900 mb-4'>13. Contact</h2>\n            <p className='text-gray-700 mb-4'>\n              Pour toute question concernant ces conditions d'utilisation :\n            </p>\n            <div className='bg-blue-50 p-6 rounded-lg'>\n              <p className='text-gray-700'>\n                <strong>Service client Koveo Gestion</strong>\n                <br />\n                Courriel : info@koveo-gestion.com\n                <br />\n                T\xE9l\xE9phone : 1-514-712-8441\n                <br />\n                Adresse : Montr\xE9al, Qu\xE9bec, Canada\n              </p>\n            </div>\n          </div>\n        </div>\n      </div>\n\n      {/* Footer */}\n      <footer className='bg-gray-900 text-white py-12'>\n        <div className='container mx-auto px-4'>\n          <div className='flex flex-col md:flex-row items-center justify-between'>\n            <div className='flex items-center mb-4 md:mb-0'>\n              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />\n            </div>\n            <div className='flex items-center space-x-4 text-sm text-gray-400'>\n              <Shield className='h-4 w-4' />\n              <span>Conforme \xE0 la Loi 25 du Qu\xE9bec</span>\n              <span>\u2022</span>\n              <span>Vos donn\xE9es sont prot\xE9g\xE9es</span>\n              <span>\u2022</span>\n              <Link href='/privacy-policy' data-testid='footer-privacy-link'>\n                <span className='hover:text-white cursor-pointer'>\n                  Politique de confidentialit\xE9\n                </span>\n              </Link>\n            </div>\n          </div>\n        </div>\n      </footer>\n    </div>\n  );\n}\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "189926a82b4aaf42292727b2791c7f3fca9bdab0"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_vefh9jywv = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_vefh9jywv();
+var __importDefault =
+/* istanbul ignore next */
+(cov_vefh9jywv().s[0]++,
+/* istanbul ignore next */
+(cov_vefh9jywv().b[0][0]++, this) &&
+/* istanbul ignore next */
+(cov_vefh9jywv().b[0][1]++, this.__importDefault) ||
+/* istanbul ignore next */
+(cov_vefh9jywv().b[0][2]++, function (mod) {
+  /* istanbul ignore next */
+  cov_vefh9jywv().f[0]++;
+  cov_vefh9jywv().s[1]++;
+  return /* istanbul ignore next */(cov_vefh9jywv().b[2][0]++, mod) &&
+  /* istanbul ignore next */
+  (cov_vefh9jywv().b[2][1]++, mod.__esModule) ?
+  /* istanbul ignore next */
+  (cov_vefh9jywv().b[1][0]++, mod) :
+  /* istanbul ignore next */
+  (cov_vefh9jywv().b[1][1]++, {
+    "default": mod
+  });
+}));
+/* istanbul ignore next */
+cov_vefh9jywv().s[2]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_vefh9jywv().s[3]++;
+exports.default = TermsOfServicePage;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_vefh9jywv().s[4]++, require("react/jsx-runtime"));
+const TopNavigationBar_1 =
+/* istanbul ignore next */
+(cov_vefh9jywv().s[5]++, require("@/components/layout/TopNavigationBar"));
+const koveo_logo_jpg_1 =
+/* istanbul ignore next */
+(cov_vefh9jywv().s[6]++, __importDefault(require("@/assets/koveo-logo.jpg")));
+const lucide_react_1 =
+/* istanbul ignore next */
+(cov_vefh9jywv().s[7]++, require("lucide-react"));
+const wouter_1 =
+/* istanbul ignore next */
+(cov_vefh9jywv().s[8]++, require("wouter"));
+const use_language_1 =
+/* istanbul ignore next */
+(cov_vefh9jywv().s[9]++, require("@/hooks/use-language"));
+const use_auth_1 =
+/* istanbul ignore next */
+(cov_vefh9jywv().s[10]++, require("@/hooks/use-auth"));
+/**
+ * Terms of Service page component for Koveo Gestion.
+ * Comprehensive terms of service for Quebec property management platform.
+ */
+function TermsOfServicePage() {
+  /* istanbul ignore next */
+  cov_vefh9jywv().f[1]++;
+  const [, setLocation] =
+  /* istanbul ignore next */
+  (cov_vefh9jywv().s[11]++, (0, wouter_1.useLocation)());
+  const {
+    t
+  } =
+  /* istanbul ignore next */
+  (cov_vefh9jywv().s[12]++, (0, use_language_1.useLanguage)());
+  const {
+    isAuthenticated
+  } =
+  /* istanbul ignore next */
+  (cov_vefh9jywv().s[13]++, (0, use_auth_1.useAuth)());
+  /* istanbul ignore next */
+  cov_vefh9jywv().s[14]++;
+  return (0, jsx_runtime_1.jsxs)("div", {
+    className: 'min-h-screen bg-gray-50',
+    children: [(0, jsx_runtime_1.jsx)(TopNavigationBar_1.TopNavigationBar, {}), (0, jsx_runtime_1.jsx)("div", {
+      className: 'container mx-auto px-4 py-12 max-w-4xl',
+      children: (0, jsx_runtime_1.jsxs)("div", {
+        className: 'bg-white rounded-lg shadow-sm p-8',
+        children: [(0, jsx_runtime_1.jsxs)("div", {
+          className: 'flex items-center space-x-3 mb-8',
+          children: [(0, jsx_runtime_1.jsx)(lucide_react_1.FileText, {
+            className: 'h-8 w-8 text-blue-600'
+          }), (0, jsx_runtime_1.jsx)("h1", {
+            className: 'text-3xl font-bold text-gray-900',
+            children: "Conditions d'utilisation"
+          })]
+        }), (0, jsx_runtime_1.jsxs)("div", {
+          className: 'prose max-w-none',
+          children: [(0, jsx_runtime_1.jsxs)("p", {
+            className: 'text-gray-600 mb-6',
+            children: [(0, jsx_runtime_1.jsx)("strong", {
+              children: "Derni\u00E8re mise \u00E0 jour :"
+            }), " Janvier 2025"]
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-8',
+            children: "Ces conditions d'utilisation r\u00E9gissent votre acc\u00E8s et votre utilisation de la plateforme Koveo Gestion, un service de gestion immobili\u00E8re con\u00E7u pour le march\u00E9 qu\u00E9b\u00E9cois."
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "1. Acceptation des conditions"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-6',
+            children: "En acc\u00E9dant ou en utilisant notre plateforme, vous acceptez d'\u00EAtre li\u00E9 par ces conditions d'utilisation et notre politique de confidentialit\u00E9. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser nos services."
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "2. Description du service"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-4',
+            children: "Koveo Gestion fournit une plateforme de gestion immobili\u00E8re comprenant :"
+          }), (0, jsx_runtime_1.jsxs)("ul", {
+            className: 'list-disc pl-6 text-gray-700 mb-6',
+            children: [(0, jsx_runtime_1.jsx)("li", {
+              children: "Gestion de b\u00E2timents et de r\u00E9sidences"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Portail r\u00E9sident pour communications et paiements"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Outils de suivi financier et de rapports"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Gestion documentaire s\u00E9curis\u00E9e"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Fonctionnalit\u00E9s de conformit\u00E9 qu\u00E9b\u00E9coise"
+            })]
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "3. Comptes utilisateur"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-4',
+            children: "Pour utiliser notre service, vous devez :"
+          }), (0, jsx_runtime_1.jsxs)("ul", {
+            className: 'list-disc pl-6 text-gray-700 mb-6',
+            children: [(0, jsx_runtime_1.jsx)("li", {
+              children: "Cr\u00E9er un compte avec des informations exactes et \u00E0 jour"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Maintenir la s\u00E9curit\u00E9 de vos identifiants de connexion"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Nous informer imm\u00E9diatement de tout acc\u00E8s non autoris\u00E9"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "\u00CAtre responsable de toutes les activit\u00E9s sous votre compte"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Respecter les lois applicables du Qu\u00E9bec et du Canada"
+            })]
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "4. Utilisation acceptable"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-4',
+            children: "Vous vous engagez \u00E0 ne pas :"
+          }), (0, jsx_runtime_1.jsxs)("ul", {
+            className: 'list-disc pl-6 text-gray-700 mb-6',
+            children: [(0, jsx_runtime_1.jsx)("li", {
+              children: "Utiliser le service \u00E0 des fins ill\u00E9gales ou non autoris\u00E9es"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Tenter d'acc\u00E9der aux comptes d'autres utilisateurs"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Interf\u00E9rer avec le fonctionnement du service"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "T\u00E9l\u00E9charger ou transmettre des virus ou codes malveillants"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Violer les droits de propri\u00E9t\u00E9 intellectuelle"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Harceler ou nuire \u00E0 d'autres utilisateurs"
+            })]
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "5. Propri\u00E9t\u00E9 intellectuelle"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-6',
+            children: "Koveo Gestion et ses conc\u00E9dants d\u00E9tiennent tous les droits de propri\u00E9t\u00E9 intellectuelle relatifs au service, y compris les logiciels, contenus, marques et designs. Vous conservez la propri\u00E9t\u00E9 de vos donn\u00E9es, mais nous accordez une licence d'utilisation n\u00E9cessaire pour fournir le service."
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "6. Confidentialit\u00E9 et donn\u00E9es"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-6',
+            children: "Notre traitement de vos donn\u00E9es personnelles est r\u00E9gi par notre politique de confidentialit\u00E9, qui respecte la Loi 25 du Qu\u00E9bec. Vous vous engagez \u00E0 respecter la confidentialit\u00E9 des informations d'autres utilisateurs auxquelles vous pourriez avoir acc\u00E8s."
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "7. Paiements et facturation"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-4',
+            children: "Les conditions de paiement comprennent :"
+          }), (0, jsx_runtime_1.jsxs)("ul", {
+            className: 'list-disc pl-6 text-gray-700 mb-6',
+            children: [(0, jsx_runtime_1.jsx)("li", {
+              children: "Les frais sont factur\u00E9s selon votre plan d'abonnement choisi"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Le paiement est d\u00FB \u00E0 l'avance pour chaque p\u00E9riode de facturation"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Les taxes applicables s'ajoutent aux frais d'abonnement"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Le non-paiement peut entra\u00EEner la suspension du service"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Les remboursements sont accord\u00E9s selon notre politique de remboursement"
+            })]
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "8. Disponibilit\u00E9 du service"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-6',
+            children: "Nous nous effor\u00E7ons de maintenir une haute disponibilit\u00E9 du service, mais ne garantissons pas un acc\u00E8s ininterrompu. Nous pouvons effectuer des maintenances programm\u00E9es avec pr\u00E9avis raisonnable."
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "9. Limitation de responsabilit\u00E9"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-6',
+            children: "Dans les limites permises par la loi qu\u00E9b\u00E9coise, notre responsabilit\u00E9 est limit\u00E9e au montant pay\u00E9 pour le service au cours des 12 derniers mois. Nous ne sommes pas responsables des dommages indirects, cons\u00E9cutifs ou punitifs."
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "10. R\u00E9siliation"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-4',
+            children: "Vous pouvez r\u00E9silier votre compte \u00E0 tout moment. Nous pouvons suspendre ou r\u00E9silier votre acc\u00E8s en cas de :"
+          }), (0, jsx_runtime_1.jsxs)("ul", {
+            className: 'list-disc pl-6 text-gray-700 mb-6',
+            children: [(0, jsx_runtime_1.jsx)("li", {
+              children: "Violation de ces conditions d'utilisation"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Non-paiement des frais dus"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Activit\u00E9 frauduleuse ou ill\u00E9gale"
+            }), (0, jsx_runtime_1.jsx)("li", {
+              children: "Cessation du service (avec pr\u00E9avis de 30 jours)"
+            })]
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "11. Droit applicable"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-6',
+            children: "Ces conditions sont r\u00E9gies par les lois du Qu\u00E9bec et du Canada. Tout diff\u00E9rend sera soumis \u00E0 la juridiction exclusive des tribunaux du Qu\u00E9bec."
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "12. Modifications"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-6',
+            children: "Nous nous r\u00E9servons le droit de modifier ces conditions occasionnellement. Les modifications importantes seront communiqu\u00E9es par courriel avec un pr\u00E9avis de 30 jours."
+          }), (0, jsx_runtime_1.jsx)("h2", {
+            className: 'text-2xl font-semibold text-gray-900 mb-4',
+            children: "13. Contact"
+          }), (0, jsx_runtime_1.jsx)("p", {
+            className: 'text-gray-700 mb-4',
+            children: "Pour toute question concernant ces conditions d'utilisation :"
+          }), (0, jsx_runtime_1.jsx)("div", {
+            className: 'bg-blue-50 p-6 rounded-lg',
+            children: (0, jsx_runtime_1.jsxs)("p", {
+              className: 'text-gray-700',
+              children: [(0, jsx_runtime_1.jsx)("strong", {
+                children: "Service client Koveo Gestion"
+              }), (0, jsx_runtime_1.jsx)("br", {}), "Courriel : info@koveo-gestion.com", (0, jsx_runtime_1.jsx)("br", {}), "T\u00E9l\u00E9phone : 1-514-712-8441", (0, jsx_runtime_1.jsx)("br", {}), "Adresse : Montr\u00E9al, Qu\u00E9bec, Canada"]
+            })
+          })]
+        })]
+      })
+    }), (0, jsx_runtime_1.jsx)("footer", {
+      className: 'bg-gray-900 text-white py-12',
+      children: (0, jsx_runtime_1.jsx)("div", {
+        className: 'container mx-auto px-4',
+        children: (0, jsx_runtime_1.jsxs)("div", {
+          className: 'flex flex-col md:flex-row items-center justify-between',
+          children: [(0, jsx_runtime_1.jsx)("div", {
+            className: 'flex items-center mb-4 md:mb-0',
+            children: (0, jsx_runtime_1.jsx)("img", {
+              src: koveo_logo_jpg_1.default,
+              alt: 'Koveo Gestion',
+              className: 'h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm'
+            })
+          }), (0, jsx_runtime_1.jsxs)("div", {
+            className: 'flex items-center space-x-4 text-sm text-gray-400',
+            children: [(0, jsx_runtime_1.jsx)(lucide_react_1.Shield, {
+              className: 'h-4 w-4'
+            }), (0, jsx_runtime_1.jsx)("span", {
+              children: "Conforme \u00E0 la Loi 25 du Qu\u00E9bec"
+            }), (0, jsx_runtime_1.jsx)("span", {
+              children: "\u2022"
+            }), (0, jsx_runtime_1.jsx)("span", {
+              children: "Vos donn\u00E9es sont prot\u00E9g\u00E9es"
+            }), (0, jsx_runtime_1.jsx)("span", {
+              children: "\u2022"
+            }), (0, jsx_runtime_1.jsx)(wouter_1.Link, {
+              href: '/privacy-policy',
+              "data-testid": 'footer-privacy-link',
+              children: (0, jsx_runtime_1.jsx)("span", {
+                className: 'hover:text-white cursor-pointer',
+                children: "Politique de confidentialit\u00E9"
+              })
+            })]
+          })]
+        })
+      })
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJleHBvcnRzIiwiZGVmYXVsdCIsIlRlcm1zT2ZTZXJ2aWNlUGFnZSIsIlRvcE5hdmlnYXRpb25CYXJfMSIsImNvdl92ZWZoOWp5d3YiLCJzIiwicmVxdWlyZSIsImtvdmVvX2xvZ29fanBnXzEiLCJfX2ltcG9ydERlZmF1bHQiLCJsdWNpZGVfcmVhY3RfMSIsIndvdXRlcl8xIiwidXNlX2xhbmd1YWdlXzEiLCJ1c2VfYXV0aF8xIiwiZiIsInNldExvY2F0aW9uIiwidXNlTG9jYXRpb24iLCJ0IiwidXNlTGFuZ3VhZ2UiLCJpc0F1dGhlbnRpY2F0ZWQiLCJ1c2VBdXRoIiwianN4X3J1bnRpbWVfMSIsImpzeHMiLCJjbGFzc05hbWUiLCJjaGlsZHJlbiIsImpzeCIsIlRvcE5hdmlnYXRpb25CYXIiLCJGaWxlVGV4dCIsInNyYyIsImFsdCIsIlNoaWVsZCIsIkxpbmsiLCJocmVmIl0sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL3BhZ2VzL3Rlcm1zLW9mLXNlcnZpY2UudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEJ1dHRvbiB9IGZyb20gJ0AvY29tcG9uZW50cy91aS9idXR0b24nO1xuaW1wb3J0IHsgVG9wTmF2aWdhdGlvbkJhciB9IGZyb20gJ0AvY29tcG9uZW50cy9sYXlvdXQvVG9wTmF2aWdhdGlvbkJhcic7XG5pbXBvcnQga292ZW9Mb2dvIGZyb20gJ0AvYXNzZXRzL2tvdmVvLWxvZ28uanBnJztcbmltcG9ydCB7IFNoaWVsZCwgQXJyb3dMZWZ0LCBGaWxlVGV4dCB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7XG5pbXBvcnQgeyBMaW5rLCB1c2VMb2NhdGlvbiB9IGZyb20gJ3dvdXRlcic7XG5pbXBvcnQgeyB1c2VMYW5ndWFnZSB9IGZyb20gJ0AvaG9va3MvdXNlLWxhbmd1YWdlJztcbmltcG9ydCB7IHVzZUF1dGggfSBmcm9tICdAL2hvb2tzL3VzZS1hdXRoJztcblxuLyoqXG4gKiBUZXJtcyBvZiBTZXJ2aWNlIHBhZ2UgY29tcG9uZW50IGZvciBLb3ZlbyBHZXN0aW9uLlxuICogQ29tcHJlaGVuc2l2ZSB0ZXJtcyBvZiBzZXJ2aWNlIGZvciBRdWViZWMgcHJvcGVydHkgbWFuYWdlbWVudCBwbGF0Zm9ybS5cbiAqL1xuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gLyoqXG4gKiBUZXJtcyBvZiBzZXJ2aWNlIHBhZ2UgZnVuY3Rpb24uXG4gKi8gLyoqXG4gKiBUZXJtcyBvZiBzZXJ2aWNlIHBhZ2UgZnVuY3Rpb24uXG4gKi9cblxuVGVybXNPZlNlcnZpY2VQYWdlKCkge1xuICBjb25zdCBbLCBzZXRMb2NhdGlvbl0gPSB1c2VMb2NhdGlvbigpO1xuICBjb25zdCB7IHQgfSA9IHVzZUxhbmd1YWdlKCk7XG4gIGNvbnN0IHsgaXNBdXRoZW50aWNhdGVkIH0gPSB1c2VBdXRoKCk7XG5cbiAgcmV0dXJuIChcbiAgICA8ZGl2IGNsYXNzTmFtZT0nbWluLWgtc2NyZWVuIGJnLWdyYXktNTAnPlxuICAgICAgey8qIE5hdmlnYXRpb24gSGVhZGVyICovfVxuICAgICAgPFRvcE5hdmlnYXRpb25CYXIgLz5cblxuICAgICAgey8qIENvbnRlbnQgKi99XG4gICAgICA8ZGl2IGNsYXNzTmFtZT0nY29udGFpbmVyIG14LWF1dG8gcHgtNCBweS0xMiBtYXgtdy00eGwnPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT0nYmctd2hpdGUgcm91bmRlZC1sZyBzaGFkb3ctc20gcC04Jz5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleCBpdGVtcy1jZW50ZXIgc3BhY2UteC0zIG1iLTgnPlxuICAgICAgICAgICAgPEZpbGVUZXh0IGNsYXNzTmFtZT0naC04IHctOCB0ZXh0LWJsdWUtNjAwJyAvPlxuICAgICAgICAgICAgPGgxIGNsYXNzTmFtZT0ndGV4dC0zeGwgZm9udC1ib2xkIHRleHQtZ3JheS05MDAnPkNvbmRpdGlvbnMgZCd1dGlsaXNhdGlvbjwvaDE+XG4gICAgICAgICAgPC9kaXY+XG5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ncHJvc2UgbWF4LXctbm9uZSc+XG4gICAgICAgICAgICA8cCBjbGFzc05hbWU9J3RleHQtZ3JheS02MDAgbWItNic+XG4gICAgICAgICAgICAgIDxzdHJvbmc+RGVybmnDqHJlIG1pc2Ugw6Agam91ciA6PC9zdHJvbmc+IEphbnZpZXIgMjAyNVxuICAgICAgICAgICAgPC9wPlxuXG4gICAgICAgICAgICA8cCBjbGFzc05hbWU9J3RleHQtZ3JheS03MDAgbWItOCc+XG4gICAgICAgICAgICAgIENlcyBjb25kaXRpb25zIGQndXRpbGlzYXRpb24gcsOpZ2lzc2VudCB2b3RyZSBhY2PDqHMgZXQgdm90cmUgdXRpbGlzYXRpb24gZGUgbGFcbiAgICAgICAgICAgICAgcGxhdGVmb3JtZSBLb3ZlbyBHZXN0aW9uLCB1biBzZXJ2aWNlIGRlIGdlc3Rpb24gaW1tb2JpbGnDqHJlIGNvbsOndSBwb3VyIGxlIG1hcmNow6lcbiAgICAgICAgICAgICAgcXXDqWLDqWNvaXMuXG4gICAgICAgICAgICA8L3A+XG5cbiAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9J3RleHQtMnhsIGZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTkwMCBtYi00Jz5cbiAgICAgICAgICAgICAgMS4gQWNjZXB0YXRpb24gZGVzIGNvbmRpdGlvbnNcbiAgICAgICAgICAgIDwvaDI+XG4gICAgICAgICAgICA8cCBjbGFzc05hbWU9J3RleHQtZ3JheS03MDAgbWItNic+XG4gICAgICAgICAgICAgIEVuIGFjY8OpZGFudCBvdSBlbiB1dGlsaXNhbnQgbm90cmUgcGxhdGVmb3JtZSwgdm91cyBhY2NlcHRleiBkJ8OqdHJlIGxpw6kgcGFyIGNlc1xuICAgICAgICAgICAgICBjb25kaXRpb25zIGQndXRpbGlzYXRpb24gZXQgbm90cmUgcG9saXRpcXVlIGRlIGNvbmZpZGVudGlhbGl0w6kuIFNpIHZvdXMgbidhY2NlcHRleiBwYXNcbiAgICAgICAgICAgICAgY2VzIGNvbmRpdGlvbnMsIHZldWlsbGV6IG5lIHBhcyB1dGlsaXNlciBub3Mgc2VydmljZXMuXG4gICAgICAgICAgICA8L3A+XG5cbiAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9J3RleHQtMnhsIGZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTkwMCBtYi00Jz4yLiBEZXNjcmlwdGlvbiBkdSBzZXJ2aWNlPC9oMj5cbiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ndGV4dC1ncmF5LTcwMCBtYi00Jz5cbiAgICAgICAgICAgICAgS292ZW8gR2VzdGlvbiBmb3Vybml0IHVuZSBwbGF0ZWZvcm1lIGRlIGdlc3Rpb24gaW1tb2JpbGnDqHJlIGNvbXByZW5hbnQgOlxuICAgICAgICAgICAgPC9wPlxuICAgICAgICAgICAgPHVsIGNsYXNzTmFtZT0nbGlzdC1kaXNjIHBsLTYgdGV4dC1ncmF5LTcwMCBtYi02Jz5cbiAgICAgICAgICAgICAgPGxpPkdlc3Rpb24gZGUgYsOidGltZW50cyBldCBkZSByw6lzaWRlbmNlczwvbGk+XG4gICAgICAgICAgICAgIDxsaT5Qb3J0YWlsIHLDqXNpZGVudCBwb3VyIGNvbW11bmljYXRpb25zIGV0IHBhaWVtZW50czwvbGk+XG4gICAgICAgICAgICAgIDxsaT5PdXRpbHMgZGUgc3VpdmkgZmluYW5jaWVyIGV0IGRlIHJhcHBvcnRzPC9saT5cbiAgICAgICAgICAgICAgPGxpPkdlc3Rpb24gZG9jdW1lbnRhaXJlIHPDqWN1cmlzw6llPC9saT5cbiAgICAgICAgICAgICAgPGxpPkZvbmN0aW9ubmFsaXTDqXMgZGUgY29uZm9ybWl0w6kgcXXDqWLDqWNvaXNlPC9saT5cbiAgICAgICAgICAgIDwvdWw+XG5cbiAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9J3RleHQtMnhsIGZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTkwMCBtYi00Jz4zLiBDb21wdGVzIHV0aWxpc2F0ZXVyPC9oMj5cbiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ndGV4dC1ncmF5LTcwMCBtYi00Jz5Qb3VyIHV0aWxpc2VyIG5vdHJlIHNlcnZpY2UsIHZvdXMgZGV2ZXogOjwvcD5cbiAgICAgICAgICAgIDx1bCBjbGFzc05hbWU9J2xpc3QtZGlzYyBwbC02IHRleHQtZ3JheS03MDAgbWItNic+XG4gICAgICAgICAgICAgIDxsaT5DcsOpZXIgdW4gY29tcHRlIGF2ZWMgZGVzIGluZm9ybWF0aW9ucyBleGFjdGVzIGV0IMOgIGpvdXI8L2xpPlxuICAgICAgICAgICAgICA8bGk+TWFpbnRlbmlyIGxhIHPDqWN1cml0w6kgZGUgdm9zIGlkZW50aWZpYW50cyBkZSBjb25uZXhpb248L2xpPlxuICAgICAgICAgICAgICA8bGk+Tm91cyBpbmZvcm1lciBpbW3DqWRpYXRlbWVudCBkZSB0b3V0IGFjY8OocyBub24gYXV0b3Jpc8OpPC9saT5cbiAgICAgICAgICAgICAgPGxpPsOKdHJlIHJlc3BvbnNhYmxlIGRlIHRvdXRlcyBsZXMgYWN0aXZpdMOpcyBzb3VzIHZvdHJlIGNvbXB0ZTwvbGk+XG4gICAgICAgICAgICAgIDxsaT5SZXNwZWN0ZXIgbGVzIGxvaXMgYXBwbGljYWJsZXMgZHUgUXXDqWJlYyBldCBkdSBDYW5hZGE8L2xpPlxuICAgICAgICAgICAgPC91bD5cblxuICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT0ndGV4dC0yeGwgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktOTAwIG1iLTQnPjQuIFV0aWxpc2F0aW9uIGFjY2VwdGFibGU8L2gyPlxuICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSd0ZXh0LWdyYXktNzAwIG1iLTQnPlZvdXMgdm91cyBlbmdhZ2V6IMOgIG5lIHBhcyA6PC9wPlxuICAgICAgICAgICAgPHVsIGNsYXNzTmFtZT0nbGlzdC1kaXNjIHBsLTYgdGV4dC1ncmF5LTcwMCBtYi02Jz5cbiAgICAgICAgICAgICAgPGxpPlV0aWxpc2VyIGxlIHNlcnZpY2Ugw6AgZGVzIGZpbnMgaWxsw6lnYWxlcyBvdSBub24gYXV0b3Jpc8OpZXM8L2xpPlxuICAgICAgICAgICAgICA8bGk+VGVudGVyIGQnYWNjw6lkZXIgYXV4IGNvbXB0ZXMgZCdhdXRyZXMgdXRpbGlzYXRldXJzPC9saT5cbiAgICAgICAgICAgICAgPGxpPkludGVyZsOpcmVyIGF2ZWMgbGUgZm9uY3Rpb25uZW1lbnQgZHUgc2VydmljZTwvbGk+XG4gICAgICAgICAgICAgIDxsaT5Uw6lsw6ljaGFyZ2VyIG91IHRyYW5zbWV0dHJlIGRlcyB2aXJ1cyBvdSBjb2RlcyBtYWx2ZWlsbGFudHM8L2xpPlxuICAgICAgICAgICAgICA8bGk+VmlvbGVyIGxlcyBkcm9pdHMgZGUgcHJvcHJpw6l0w6kgaW50ZWxsZWN0dWVsbGU8L2xpPlxuICAgICAgICAgICAgICA8bGk+SGFyY2VsZXIgb3UgbnVpcmUgw6AgZCdhdXRyZXMgdXRpbGlzYXRldXJzPC9saT5cbiAgICAgICAgICAgIDwvdWw+XG5cbiAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9J3RleHQtMnhsIGZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTkwMCBtYi00Jz5cbiAgICAgICAgICAgICAgNS4gUHJvcHJpw6l0w6kgaW50ZWxsZWN0dWVsbGVcbiAgICAgICAgICAgIDwvaDI+XG4gICAgICAgICAgICA8cCBjbGFzc05hbWU9J3RleHQtZ3JheS03MDAgbWItNic+XG4gICAgICAgICAgICAgIEtvdmVvIEdlc3Rpb24gZXQgc2VzIGNvbmPDqWRhbnRzIGTDqXRpZW5uZW50IHRvdXMgbGVzIGRyb2l0cyBkZSBwcm9wcmnDqXTDqSBpbnRlbGxlY3R1ZWxsZVxuICAgICAgICAgICAgICByZWxhdGlmcyBhdSBzZXJ2aWNlLCB5IGNvbXByaXMgbGVzIGxvZ2ljaWVscywgY29udGVudXMsIG1hcnF1ZXMgZXQgZGVzaWducy4gVm91c1xuICAgICAgICAgICAgICBjb25zZXJ2ZXogbGEgcHJvcHJpw6l0w6kgZGUgdm9zIGRvbm7DqWVzLCBtYWlzIG5vdXMgYWNjb3JkZXogdW5lIGxpY2VuY2UgZCd1dGlsaXNhdGlvblxuICAgICAgICAgICAgICBuw6ljZXNzYWlyZSBwb3VyIGZvdXJuaXIgbGUgc2VydmljZS5cbiAgICAgICAgICAgIDwvcD5cblxuICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT0ndGV4dC0yeGwgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktOTAwIG1iLTQnPlxuICAgICAgICAgICAgICA2LiBDb25maWRlbnRpYWxpdMOpIGV0IGRvbm7DqWVzXG4gICAgICAgICAgICA8L2gyPlxuICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSd0ZXh0LWdyYXktNzAwIG1iLTYnPlxuICAgICAgICAgICAgICBOb3RyZSB0cmFpdGVtZW50IGRlIHZvcyBkb25uw6llcyBwZXJzb25uZWxsZXMgZXN0IHLDqWdpIHBhciBub3RyZSBwb2xpdGlxdWUgZGVcbiAgICAgICAgICAgICAgY29uZmlkZW50aWFsaXTDqSwgcXVpIHJlc3BlY3RlIGxhIExvaSAyNSBkdSBRdcOpYmVjLiBWb3VzIHZvdXMgZW5nYWdleiDDoCByZXNwZWN0ZXIgbGFcbiAgICAgICAgICAgICAgY29uZmlkZW50aWFsaXTDqSBkZXMgaW5mb3JtYXRpb25zIGQnYXV0cmVzIHV0aWxpc2F0ZXVycyBhdXhxdWVsbGVzIHZvdXMgcG91cnJpZXogYXZvaXJcbiAgICAgICAgICAgICAgYWNjw6hzLlxuICAgICAgICAgICAgPC9wPlxuXG4gICAgICAgICAgICA8aDIgY2xhc3NOYW1lPSd0ZXh0LTJ4bCBmb250LXNlbWlib2xkIHRleHQtZ3JheS05MDAgbWItNCc+XG4gICAgICAgICAgICAgIDcuIFBhaWVtZW50cyBldCBmYWN0dXJhdGlvblxuICAgICAgICAgICAgPC9oMj5cbiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ndGV4dC1ncmF5LTcwMCBtYi00Jz5MZXMgY29uZGl0aW9ucyBkZSBwYWllbWVudCBjb21wcmVubmVudCA6PC9wPlxuICAgICAgICAgICAgPHVsIGNsYXNzTmFtZT0nbGlzdC1kaXNjIHBsLTYgdGV4dC1ncmF5LTcwMCBtYi02Jz5cbiAgICAgICAgICAgICAgPGxpPkxlcyBmcmFpcyBzb250IGZhY3R1csOpcyBzZWxvbiB2b3RyZSBwbGFuIGQnYWJvbm5lbWVudCBjaG9pc2k8L2xpPlxuICAgICAgICAgICAgICA8bGk+TGUgcGFpZW1lbnQgZXN0IGTDuyDDoCBsJ2F2YW5jZSBwb3VyIGNoYXF1ZSBww6lyaW9kZSBkZSBmYWN0dXJhdGlvbjwvbGk+XG4gICAgICAgICAgICAgIDxsaT5MZXMgdGF4ZXMgYXBwbGljYWJsZXMgcydham91dGVudCBhdXggZnJhaXMgZCdhYm9ubmVtZW50PC9saT5cbiAgICAgICAgICAgICAgPGxpPkxlIG5vbi1wYWllbWVudCBwZXV0IGVudHJhw65uZXIgbGEgc3VzcGVuc2lvbiBkdSBzZXJ2aWNlPC9saT5cbiAgICAgICAgICAgICAgPGxpPkxlcyByZW1ib3Vyc2VtZW50cyBzb250IGFjY29yZMOpcyBzZWxvbiBub3RyZSBwb2xpdGlxdWUgZGUgcmVtYm91cnNlbWVudDwvbGk+XG4gICAgICAgICAgICA8L3VsPlxuXG4gICAgICAgICAgICA8aDIgY2xhc3NOYW1lPSd0ZXh0LTJ4bCBmb250LXNlbWlib2xkIHRleHQtZ3JheS05MDAgbWItNCc+XG4gICAgICAgICAgICAgIDguIERpc3BvbmliaWxpdMOpIGR1IHNlcnZpY2VcbiAgICAgICAgICAgIDwvaDI+XG4gICAgICAgICAgICA8cCBjbGFzc05hbWU9J3RleHQtZ3JheS03MDAgbWItNic+XG4gICAgICAgICAgICAgIE5vdXMgbm91cyBlZmZvcsOnb25zIGRlIG1haW50ZW5pciB1bmUgaGF1dGUgZGlzcG9uaWJpbGl0w6kgZHUgc2VydmljZSwgbWFpcyBuZVxuICAgICAgICAgICAgICBnYXJhbnRpc3NvbnMgcGFzIHVuIGFjY8OocyBpbmludGVycm9tcHUuIE5vdXMgcG91dm9ucyBlZmZlY3R1ZXIgZGVzIG1haW50ZW5hbmNlc1xuICAgICAgICAgICAgICBwcm9ncmFtbcOpZXMgYXZlYyBwcsOpYXZpcyByYWlzb25uYWJsZS5cbiAgICAgICAgICAgIDwvcD5cblxuICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT0ndGV4dC0yeGwgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktOTAwIG1iLTQnPlxuICAgICAgICAgICAgICA5LiBMaW1pdGF0aW9uIGRlIHJlc3BvbnNhYmlsaXTDqVxuICAgICAgICAgICAgPC9oMj5cbiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ndGV4dC1ncmF5LTcwMCBtYi02Jz5cbiAgICAgICAgICAgICAgRGFucyBsZXMgbGltaXRlcyBwZXJtaXNlcyBwYXIgbGEgbG9pIHF1w6liw6ljb2lzZSwgbm90cmUgcmVzcG9uc2FiaWxpdMOpIGVzdCBsaW1pdMOpZSBhdVxuICAgICAgICAgICAgICBtb250YW50IHBhecOpIHBvdXIgbGUgc2VydmljZSBhdSBjb3VycyBkZXMgMTIgZGVybmllcnMgbW9pcy4gTm91cyBuZSBzb21tZXMgcGFzXG4gICAgICAgICAgICAgIHJlc3BvbnNhYmxlcyBkZXMgZG9tbWFnZXMgaW5kaXJlY3RzLCBjb25zw6ljdXRpZnMgb3UgcHVuaXRpZnMuXG4gICAgICAgICAgICA8L3A+XG5cbiAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9J3RleHQtMnhsIGZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTkwMCBtYi00Jz4xMC4gUsOpc2lsaWF0aW9uPC9oMj5cbiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ndGV4dC1ncmF5LTcwMCBtYi00Jz5cbiAgICAgICAgICAgICAgVm91cyBwb3V2ZXogcsOpc2lsaWVyIHZvdHJlIGNvbXB0ZSDDoCB0b3V0IG1vbWVudC4gTm91cyBwb3V2b25zIHN1c3BlbmRyZSBvdSByw6lzaWxpZXJcbiAgICAgICAgICAgICAgdm90cmUgYWNjw6hzIGVuIGNhcyBkZSA6XG4gICAgICAgICAgICA8L3A+XG4gICAgICAgICAgICA8dWwgY2xhc3NOYW1lPSdsaXN0LWRpc2MgcGwtNiB0ZXh0LWdyYXktNzAwIG1iLTYnPlxuICAgICAgICAgICAgICA8bGk+VmlvbGF0aW9uIGRlIGNlcyBjb25kaXRpb25zIGQndXRpbGlzYXRpb248L2xpPlxuICAgICAgICAgICAgICA8bGk+Tm9uLXBhaWVtZW50IGRlcyBmcmFpcyBkdXM8L2xpPlxuICAgICAgICAgICAgICA8bGk+QWN0aXZpdMOpIGZyYXVkdWxldXNlIG91IGlsbMOpZ2FsZTwvbGk+XG4gICAgICAgICAgICAgIDxsaT5DZXNzYXRpb24gZHUgc2VydmljZSAoYXZlYyBwcsOpYXZpcyBkZSAzMCBqb3Vycyk8L2xpPlxuICAgICAgICAgICAgPC91bD5cblxuICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT0ndGV4dC0yeGwgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktOTAwIG1iLTQnPjExLiBEcm9pdCBhcHBsaWNhYmxlPC9oMj5cbiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ndGV4dC1ncmF5LTcwMCBtYi02Jz5cbiAgICAgICAgICAgICAgQ2VzIGNvbmRpdGlvbnMgc29udCByw6lnaWVzIHBhciBsZXMgbG9pcyBkdSBRdcOpYmVjIGV0IGR1IENhbmFkYS4gVG91dCBkaWZmw6lyZW5kIHNlcmFcbiAgICAgICAgICAgICAgc291bWlzIMOgIGxhIGp1cmlkaWN0aW9uIGV4Y2x1c2l2ZSBkZXMgdHJpYnVuYXV4IGR1IFF1w6liZWMuXG4gICAgICAgICAgICA8L3A+XG5cbiAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9J3RleHQtMnhsIGZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTkwMCBtYi00Jz4xMi4gTW9kaWZpY2F0aW9uczwvaDI+XG4gICAgICAgICAgICA8cCBjbGFzc05hbWU9J3RleHQtZ3JheS03MDAgbWItNic+XG4gICAgICAgICAgICAgIE5vdXMgbm91cyByw6lzZXJ2b25zIGxlIGRyb2l0IGRlIG1vZGlmaWVyIGNlcyBjb25kaXRpb25zIG9jY2FzaW9ubmVsbGVtZW50LiBMZXNcbiAgICAgICAgICAgICAgbW9kaWZpY2F0aW9ucyBpbXBvcnRhbnRlcyBzZXJvbnQgY29tbXVuaXF1w6llcyBwYXIgY291cnJpZWwgYXZlYyB1biBwcsOpYXZpcyBkZSAzMFxuICAgICAgICAgICAgICBqb3Vycy5cbiAgICAgICAgICAgIDwvcD5cblxuICAgICAgICAgICAgPGgyIGNsYXNzTmFtZT0ndGV4dC0yeGwgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktOTAwIG1iLTQnPjEzLiBDb250YWN0PC9oMj5cbiAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0ndGV4dC1ncmF5LTcwMCBtYi00Jz5cbiAgICAgICAgICAgICAgUG91ciB0b3V0ZSBxdWVzdGlvbiBjb25jZXJuYW50IGNlcyBjb25kaXRpb25zIGQndXRpbGlzYXRpb24gOlxuICAgICAgICAgICAgPC9wPlxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9J2JnLWJsdWUtNTAgcC02IHJvdW5kZWQtbGcnPlxuICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9J3RleHQtZ3JheS03MDAnPlxuICAgICAgICAgICAgICAgIDxzdHJvbmc+U2VydmljZSBjbGllbnQgS292ZW8gR2VzdGlvbjwvc3Ryb25nPlxuICAgICAgICAgICAgICAgIDxiciAvPlxuICAgICAgICAgICAgICAgIENvdXJyaWVsIDogaW5mb0Brb3Zlby1nZXN0aW9uLmNvbVxuICAgICAgICAgICAgICAgIDxiciAvPlxuICAgICAgICAgICAgICAgIFTDqWzDqXBob25lIDogMS01MTQtNzEyLTg0NDFcbiAgICAgICAgICAgICAgICA8YnIgLz5cbiAgICAgICAgICAgICAgICBBZHJlc3NlIDogTW9udHLDqWFsLCBRdcOpYmVjLCBDYW5hZGFcbiAgICAgICAgICAgICAgPC9wPlxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG5cbiAgICAgIHsvKiBGb290ZXIgKi99XG4gICAgICA8Zm9vdGVyIGNsYXNzTmFtZT0nYmctZ3JheS05MDAgdGV4dC13aGl0ZSBweS0xMic+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPSdjb250YWluZXIgbXgtYXV0byBweC00Jz5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleCBmbGV4LWNvbCBtZDpmbGV4LXJvdyBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuJz5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSdmbGV4IGl0ZW1zLWNlbnRlciBtYi00IG1kOm1iLTAnPlxuICAgICAgICAgICAgICA8aW1nIHNyYz17a292ZW9Mb2dvfSBhbHQ9J0tvdmVvIEdlc3Rpb24nIGNsYXNzTmFtZT0naC0xMCB3LTEwIHNtOmgtMTIgc206dy0xMiByb3VuZGVkLWxnIG9iamVjdC1jb3ZlciBzaGFkb3ctc20nIC8+XG4gICAgICAgICAgICA8L2Rpdj5cbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSdmbGV4IGl0ZW1zLWNlbnRlciBzcGFjZS14LTQgdGV4dC1zbSB0ZXh0LWdyYXktNDAwJz5cbiAgICAgICAgICAgICAgPFNoaWVsZCBjbGFzc05hbWU9J2gtNCB3LTQnIC8+XG4gICAgICAgICAgICAgIDxzcGFuPkNvbmZvcm1lIMOgIGxhIExvaSAyNSBkdSBRdcOpYmVjPC9zcGFuPlxuICAgICAgICAgICAgICA8c3Bhbj7igKI8L3NwYW4+XG4gICAgICAgICAgICAgIDxzcGFuPlZvcyBkb25uw6llcyBzb250IHByb3TDqWfDqWVzPC9zcGFuPlxuICAgICAgICAgICAgICA8c3Bhbj7igKI8L3NwYW4+XG4gICAgICAgICAgICAgIDxMaW5rIGhyZWY9Jy9wcml2YWN5LXBvbGljeScgZGF0YS10ZXN0aWQ9J2Zvb3Rlci1wcml2YWN5LWxpbmsnPlxuICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0naG92ZXI6dGV4dC13aGl0ZSBjdXJzb3ItcG9pbnRlcic+XG4gICAgICAgICAgICAgICAgICBQb2xpdGlxdWUgZGUgY29uZmlkZW50aWFsaXTDqVxuICAgICAgICAgICAgICAgIDwvc3Bhbj5cbiAgICAgICAgICAgICAgPC9MaW5rPlxuICAgICAgICAgICAgPC9kaXY+XG4gICAgICAgICAgPC9kaXY+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9mb290ZXI+XG4gICAgPC9kaXY+XG4gICk7XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7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

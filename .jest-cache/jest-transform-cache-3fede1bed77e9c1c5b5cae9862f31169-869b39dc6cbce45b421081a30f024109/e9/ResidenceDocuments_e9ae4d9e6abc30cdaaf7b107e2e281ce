@@ -1,0 +1,334 @@
+3c65ad44ca2cbaa622eaa137a23d3dc5
+"use strict";
+
+/* istanbul ignore next */
+function cov_14ho18a7u5() {
+  var path = "/home/runner/workspace/client/src/pages/residents/ResidenceDocuments.tsx";
+  var hash = "4d0e338088a49450e00dd2298cb1dbadcdd7cb1c";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/pages/residents/ResidenceDocuments.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 1
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 4
+        },
+        end: {
+          line: 3,
+          column: 62
+        }
+      },
+      "2": {
+        start: {
+          line: 5,
+          column: 0
+        },
+        end: {
+          line: 5,
+          column: 62
+        }
+      },
+      "3": {
+        start: {
+          line: 6,
+          column: 0
+        },
+        end: {
+          line: 6,
+          column: 37
+        }
+      },
+      "4": {
+        start: {
+          line: 7,
+          column: 22
+        },
+        end: {
+          line: 7,
+          column: 50
+        }
+      },
+      "5": {
+        start: {
+          line: 8,
+          column: 37
+        },
+        end: {
+          line: 8,
+          column: 111
+        }
+      },
+      "6": {
+        start: {
+          line: 10,
+          column: 4
+        },
+        end: {
+          line: 10,
+          column: 183
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 2,
+            column: 56
+          },
+          end: {
+            line: 2,
+            column: 57
+          }
+        },
+        loc: {
+          start: {
+            line: 2,
+            column: 71
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        },
+        line: 2
+      },
+      "1": {
+        name: "ResidenceDocuments",
+        decl: {
+          start: {
+            line: 9,
+            column: 9
+          },
+          end: {
+            line: 9,
+            column: 27
+          }
+        },
+        loc: {
+          start: {
+            line: 9,
+            column: 30
+          },
+          end: {
+            line: 11,
+            column: 1
+          }
+        },
+        line: 9
+      }
+    },
+    branchMap: {
+      "0": {
+        loc: {
+          start: {
+            line: 2,
+            column: 22
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        },
+        type: "binary-expr",
+        locations: [{
+          start: {
+            line: 2,
+            column: 23
+          },
+          end: {
+            line: 2,
+            column: 27
+          }
+        }, {
+          start: {
+            line: 2,
+            column: 31
+          },
+          end: {
+            line: 2,
+            column: 51
+          }
+        }, {
+          start: {
+            line: 2,
+            column: 56
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        }],
+        line: 2
+      },
+      "1": {
+        loc: {
+          start: {
+            line: 3,
+            column: 11
+          },
+          end: {
+            line: 3,
+            column: 61
+          }
+        },
+        type: "cond-expr",
+        locations: [{
+          start: {
+            line: 3,
+            column: 37
+          },
+          end: {
+            line: 3,
+            column: 40
+          }
+        }, {
+          start: {
+            line: 3,
+            column: 43
+          },
+          end: {
+            line: 3,
+            column: 61
+          }
+        }],
+        line: 3
+      },
+      "2": {
+        loc: {
+          start: {
+            line: 3,
+            column: 12
+          },
+          end: {
+            line: 3,
+            column: 33
+          }
+        },
+        type: "binary-expr",
+        locations: [{
+          start: {
+            line: 3,
+            column: 12
+          },
+          end: {
+            line: 3,
+            column: 15
+          }
+        }, {
+          start: {
+            line: 3,
+            column: 19
+          },
+          end: {
+            line: 3,
+            column: 33
+          }
+        }],
+        line: 3
+      }
+    },
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0
+    },
+    b: {
+      "0": [0, 0, 0],
+      "1": [0, 0],
+      "2": [0, 0]
+    },
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/pages/residents/ResidenceDocuments.tsx",
+      mappings: ";;;;;AAEA,qCASC;;AAXD,gHAAwF;AAExF,SAAwB,kBAAkB;IACxC,OAAO,CACL,uBAAC,oCAA0B,IACzB,IAAI,EAAC,WAAW,EAChB,QAAQ,EAAC,UAAU,EACnB,QAAQ,EAAC,sBAAsB,EAC/B,aAAa,EAAC,aAAa,GAC3B,CACH,CAAC;AACJ,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/pages/residents/ResidenceDocuments.tsx"],
+      sourcesContent: ["import ModularDocumentPageWrapper from '@/components/common/ModularDocumentPageWrapper';\n\nexport default function ResidenceDocuments() {\n  return (\n    <ModularDocumentPageWrapper\n      type=\"residence\"\n      userRole=\"resident\"\n      backPath=\"/residents/residence\"\n      entityIdParam=\"residenceId\"\n    />\n  );\n}\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "4d0e338088a49450e00dd2298cb1dbadcdd7cb1c"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_14ho18a7u5 = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_14ho18a7u5();
+var __importDefault =
+/* istanbul ignore next */
+(cov_14ho18a7u5().s[0]++,
+/* istanbul ignore next */
+(cov_14ho18a7u5().b[0][0]++, this) &&
+/* istanbul ignore next */
+(cov_14ho18a7u5().b[0][1]++, this.__importDefault) ||
+/* istanbul ignore next */
+(cov_14ho18a7u5().b[0][2]++, function (mod) {
+  /* istanbul ignore next */
+  cov_14ho18a7u5().f[0]++;
+  cov_14ho18a7u5().s[1]++;
+  return /* istanbul ignore next */(cov_14ho18a7u5().b[2][0]++, mod) &&
+  /* istanbul ignore next */
+  (cov_14ho18a7u5().b[2][1]++, mod.__esModule) ?
+  /* istanbul ignore next */
+  (cov_14ho18a7u5().b[1][0]++, mod) :
+  /* istanbul ignore next */
+  (cov_14ho18a7u5().b[1][1]++, {
+    "default": mod
+  });
+}));
+/* istanbul ignore next */
+cov_14ho18a7u5().s[2]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_14ho18a7u5().s[3]++;
+exports.default = ResidenceDocuments;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_14ho18a7u5().s[4]++, require("react/jsx-runtime"));
+const ModularDocumentPageWrapper_1 =
+/* istanbul ignore next */
+(cov_14ho18a7u5().s[5]++, __importDefault(require("@/components/common/ModularDocumentPageWrapper")));
+function ResidenceDocuments() {
+  /* istanbul ignore next */
+  cov_14ho18a7u5().f[1]++;
+  cov_14ho18a7u5().s[6]++;
+  return (0, jsx_runtime_1.jsx)(ModularDocumentPageWrapper_1.default, {
+    type: "residence",
+    userRole: "resident",
+    backPath: "/residents/residence",
+    entityIdParam: "residenceId"
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJleHBvcnRzIiwiZGVmYXVsdCIsIlJlc2lkZW5jZURvY3VtZW50cyIsIk1vZHVsYXJEb2N1bWVudFBhZ2VXcmFwcGVyXzEiLCJjb3ZfMTRobzE4YTd1NSIsInMiLCJfX2ltcG9ydERlZmF1bHQiLCJyZXF1aXJlIiwiZiIsImpzeF9ydW50aW1lXzEiLCJqc3giLCJ0eXBlIiwidXNlclJvbGUiLCJiYWNrUGF0aCIsImVudGl0eUlkUGFyYW0iXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL2NsaWVudC9zcmMvcGFnZXMvcmVzaWRlbnRzL1Jlc2lkZW5jZURvY3VtZW50cy50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IE1vZHVsYXJEb2N1bWVudFBhZ2VXcmFwcGVyIGZyb20gJ0AvY29tcG9uZW50cy9jb21tb24vTW9kdWxhckRvY3VtZW50UGFnZVdyYXBwZXInO1xuXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBSZXNpZGVuY2VEb2N1bWVudHMoKSB7XG4gIHJldHVybiAoXG4gICAgPE1vZHVsYXJEb2N1bWVudFBhZ2VXcmFwcGVyXG4gICAgICB0eXBlPVwicmVzaWRlbmNlXCJcbiAgICAgIHVzZXJSb2xlPVwicmVzaWRlbnRcIlxuICAgICAgYmFja1BhdGg9XCIvcmVzaWRlbnRzL3Jlc2lkZW5jZVwiXG4gICAgICBlbnRpdHlJZFBhcmFtPVwicmVzaWRlbmNlSWRcIlxuICAgIC8+XG4gICk7XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBRUFBLE9BQUEsQ0FBQUMsT0FBQSxHQUFBQyxrQkFBQTs7OztBQUZBLE1BQUFDLDRCQUFBO0FBQUE7QUFBQSxDQUFBQyxjQUFBLEdBQUFDLENBQUEsT0FBQUMsZUFBQSxDQUFBQyxPQUFBO0FBRUEsU0FBd0JMLGtCQUFrQkEsQ0FBQTtFQUFBO0VBQUFFLGNBQUEsR0FBQUksQ0FBQTtFQUFBSixjQUFBLEdBQUFDLENBQUE7RUFDeEMsT0FDRSxJQUFBSSxhQUFBLENBQUFDLEdBQUEsRUFBQ1AsNEJBQUEsQ0FBQUYsT0FBMEI7SUFDekJVLElBQUksRUFBQyxXQUFXO0lBQ2hCQyxRQUFRLEVBQUMsVUFBVTtJQUNuQkMsUUFBUSxFQUFDLHNCQUFzQjtJQUMvQkMsYUFBYSxFQUFDO0VBQWEsRUFDM0I7QUFFTiIsImlnbm9yZUxpc3QiOltdfQ==

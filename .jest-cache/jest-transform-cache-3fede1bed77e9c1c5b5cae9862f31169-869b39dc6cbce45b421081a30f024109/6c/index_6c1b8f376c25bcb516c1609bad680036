@@ -1,0 +1,234 @@
+e572d3378e91b7d90a902d8557768ddb
+"use strict";
+
+/**
+ * Centralized forms directory for reusable form components.
+ *
+ * This directory contains all form-related components to ensure:
+ * - Easy reusability across the application
+ * - Consistent form patterns and validation
+ * - Better maintainability and organization.
+ *
+ * Export all forms from this index file for clean imports.
+ */
+/* istanbul ignore next */
+function cov_1hg4esbpti() {
+  var path = "/home/runner/workspace/client/src/components/forms/index.ts";
+  var hash = "2d5970b509ee1d78f4d6fb1f4d84f57145899c46";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/components/forms/index.ts",
+    statementMap: {
+      "0": {
+        start: {
+          line: 12,
+          column: 0
+        },
+        end: {
+          line: 12,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 13,
+          column: 0
+        },
+        end: {
+          line: 13,
+          column: 56
+        }
+      },
+      "2": {
+        start: {
+          line: 14,
+          column: 21
+        },
+        end: {
+          line: 14,
+          column: 46
+        }
+      },
+      "3": {
+        start: {
+          line: 15,
+          column: 0
+        },
+        end: {
+          line: 15,
+          column: 125
+        }
+      },
+      "4": {
+        start: {
+          line: 15,
+          column: 85
+        },
+        end: {
+          line: 15,
+          column: 119
+        }
+      },
+      "5": {
+        start: {
+          line: 16,
+          column: 26
+        },
+        end: {
+          line: 16,
+          column: 56
+        }
+      },
+      "6": {
+        start: {
+          line: 17,
+          column: 0
+        },
+        end: {
+          line: 17,
+          column: 140
+        }
+      },
+      "7": {
+        start: {
+          line: 17,
+          column: 90
+        },
+        end: {
+          line: 17,
+          column: 134
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 15,
+            column: 71
+          },
+          end: {
+            line: 15,
+            column: 72
+          }
+        },
+        loc: {
+          start: {
+            line: 15,
+            column: 83
+          },
+          end: {
+            line: 15,
+            column: 121
+          }
+        },
+        line: 15
+      },
+      "1": {
+        name: "(anonymous_1)",
+        decl: {
+          start: {
+            line: 17,
+            column: 76
+          },
+          end: {
+            line: 17,
+            column: 77
+          }
+        },
+        loc: {
+          start: {
+            line: 17,
+            column: 88
+          },
+          end: {
+            line: 17,
+            column: 136
+          }
+        },
+        line: 17
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0
+    },
+    b: {},
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/components/forms/index.ts",
+      mappings: ";AAAA;;;;;;;;;GASG;;;AAEH,+CAA6C;AAApC,2GAAA,WAAW,OAAA;AACpB,yDAAuD;AAA9C,qHAAA,gBAAgB,OAAA;AAEzB,kCAAkC;AAClC,0CAA0C;AAC1C,kDAAkD;AAClD,0CAA0C",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/components/forms/index.ts"],
+      sourcesContent: ["/**\n * Centralized forms directory for reusable form components.\n *\n * This directory contains all form-related components to ensure:\n * - Easy reusability across the application\n * - Consistent form patterns and validation\n * - Better maintainability and organization.\n *\n * Export all forms from this index file for clean imports.\n */\n\nexport { FeatureForm } from './feature-form';\nexport { OrganizationForm } from './organization-form';\n\n// Future forms can be added here:\n// export { UserForm } from './user-form';\n// export { PropertyForm } from './property-form';\n// export { BillForm } from './bill-form';\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "2d5970b509ee1d78f4d6fb1f4d84f57145899c46"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_1hg4esbpti = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_1hg4esbpti();
+cov_1hg4esbpti().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_1hg4esbpti().s[1]++;
+exports.OrganizationForm = exports.FeatureForm = void 0;
+var feature_form_1 =
+/* istanbul ignore next */
+(cov_1hg4esbpti().s[2]++, require("./feature-form"));
+/* istanbul ignore next */
+cov_1hg4esbpti().s[3]++;
+Object.defineProperty(exports, "FeatureForm", {
+  enumerable: true,
+  get: function () {
+    /* istanbul ignore next */
+    cov_1hg4esbpti().f[0]++;
+    cov_1hg4esbpti().s[4]++;
+    return feature_form_1.FeatureForm;
+  }
+});
+var organization_form_1 =
+/* istanbul ignore next */
+(cov_1hg4esbpti().s[5]++, require("./organization-form"));
+/* istanbul ignore next */
+cov_1hg4esbpti().s[6]++;
+Object.defineProperty(exports, "OrganizationForm", {
+  enumerable: true,
+  get: function () {
+    /* istanbul ignore next */
+    cov_1hg4esbpti().f[1]++;
+    cov_1hg4esbpti().s[7]++;
+    return organization_form_1.OrganizationForm;
+  }
+});
+// Future forms can be added here:
+// export { UserForm } from './user-form';
+// export { PropertyForm } from './property-form';
+// export { BillForm } from './bill-form';
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfMWhnNGVzYnB0aSIsInBhdGgiLCJoYXNoIiwiZ2xvYmFsIiwiRnVuY3Rpb24iLCJnY3YiLCJjb3ZlcmFnZURhdGEiLCJzdGF0ZW1lbnRNYXAiLCJzdGFydCIsImxpbmUiLCJjb2x1bW4iLCJlbmQiLCJmbk1hcCIsIm5hbWUiLCJkZWNsIiwibG9jIiwiYnJhbmNoTWFwIiwicyIsImYiLCJiIiwiaW5wdXRTb3VyY2VNYXAiLCJmaWxlIiwibWFwcGluZ3MiLCJuYW1lcyIsInNvdXJjZXMiLCJzb3VyY2VzQ29udGVudCIsInZlcnNpb24iLCJfY292ZXJhZ2VTY2hlbWEiLCJjb3ZlcmFnZSIsImFjdHVhbENvdmVyYWdlIiwiZmVhdHVyZV9mb3JtXzEiLCJyZXF1aXJlIiwiT2JqZWN0IiwiZGVmaW5lUHJvcGVydHkiLCJleHBvcnRzIiwiZW51bWVyYWJsZSIsImdldCIsIkZlYXR1cmVGb3JtIiwib3JnYW5pemF0aW9uX2Zvcm1fMSIsIk9yZ2FuaXphdGlvbkZvcm0iXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL2NsaWVudC9zcmMvY29tcG9uZW50cy9mb3Jtcy9pbmRleC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIENlbnRyYWxpemVkIGZvcm1zIGRpcmVjdG9yeSBmb3IgcmV1c2FibGUgZm9ybSBjb21wb25lbnRzLlxuICpcbiAqIFRoaXMgZGlyZWN0b3J5IGNvbnRhaW5zIGFsbCBmb3JtLXJlbGF0ZWQgY29tcG9uZW50cyB0byBlbnN1cmU6XG4gKiAtIEVhc3kgcmV1c2FiaWxpdHkgYWNyb3NzIHRoZSBhcHBsaWNhdGlvblxuICogLSBDb25zaXN0ZW50IGZvcm0gcGF0dGVybnMgYW5kIHZhbGlkYXRpb25cbiAqIC0gQmV0dGVyIG1haW50YWluYWJpbGl0eSBhbmQgb3JnYW5pemF0aW9uLlxuICpcbiAqIEV4cG9ydCBhbGwgZm9ybXMgZnJvbSB0aGlzIGluZGV4IGZpbGUgZm9yIGNsZWFuIGltcG9ydHMuXG4gKi9cblxuZXhwb3J0IHsgRmVhdHVyZUZvcm0gfSBmcm9tICcuL2ZlYXR1cmUtZm9ybSc7XG5leHBvcnQgeyBPcmdhbml6YXRpb25Gb3JtIH0gZnJvbSAnLi9vcmdhbml6YXRpb24tZm9ybSc7XG5cbi8vIEZ1dHVyZSBmb3JtcyBjYW4gYmUgYWRkZWQgaGVyZTpcbi8vIGV4cG9ydCB7IFVzZXJGb3JtIH0gZnJvbSAnLi91c2VyLWZvcm0nO1xuLy8gZXhwb3J0IHsgUHJvcGVydHlGb3JtIH0gZnJvbSAnLi9wcm9wZXJ0eS1mb3JtJztcbi8vIGV4cG9ydCB7IEJpbGxGb3JtIH0gZnJvbSAnLi9iaWxsLWZvcm0nO1xuIl0sIm1hcHBpbmdzIjoiOztBQUFBOzs7Ozs7Ozs7O0FBQUE7QUFBQSxTQUFBQSxlQUFBO0VBQUEsSUFBQUMsSUFBQTtFQUFBLElBQUFDLElBQUE7RUFBQSxJQUFBQyxNQUFBLE9BQUFDLFFBQUE7RUFBQSxJQUFBQyxHQUFBO0VBQUEsSUFBQUMsWUFBQTtJQUFBTCxJQUFBO0lBQUFNLFlBQUE7TUFBQTtRQUFBQyxLQUFBO1VBQUFDLElBQUE7VUFBQUMsTUFBQTtRQUFBO1FBQUFDLEdBQUE7VUFBQUYsSUFBQTtVQUFBQyxNQUFBO1FBQUE7TUFBQTtNQUFBO1FBQUFGLEtBQUE7VUFBQUMsSUFBQTtVQUFBQyxNQUFBO1FBQUE7UUFBQUMsR0FBQTtVQUFBRixJQUFBO1VBQUFDLE1BQUE7UUFBQTtNQUFBO01BQUE7UUFBQUYsS0FBQTtVQUFBQyxJQUFBO1VBQUFDLE1BQUE7UUFBQTtRQUFBQyxHQUFBO1VBQUFGLElBQUE7VUFBQUMsTUFBQTtRQUFBO01BQUE7TUFBQTtRQUFBRixLQUFBO1VBQUFDLElBQUE7VUFBQUMsTUFBQTtRQUFBO1FBQUFDLEdBQUE7VUFBQUYsSUFBQTtVQUFBQyxNQUFBO1FBQUE7TUFBQTtNQUFBO1FBQUFGLEtBQUE7VUFBQUMsSUFBQTtVQUFBQyxNQUFBO1FBQUE7UUFBQUMsR0FBQTtVQUFBRixJQUFBO1VBQUFDLE1BQUE7UUFBQTtNQUFBO01BQUE7UUFBQUYsS0FBQTtVQUFBQyxJQUFBO1VBQUFDLE1BQUE7UUFBQTtRQUFBQyxHQUFBO1VBQUFGLElBQUE7VUFBQUMsTUFBQTtRQUFBO01BQUE7TUFBQTtRQUFBRixLQUFBO1VBQUFDLElBQUE7VUFBQUMsTUFBQTtRQUFBO1FBQUFDLEdBQUE7VUFBQUYsSUFBQTtVQUFBQyxNQUFBO1FBQUE7TUFBQTtNQUFBO1FBQUFGLEtBQUE7VUFBQUMsSUFBQTtVQUFBQyxNQUFBO1FBQUE7UUFBQUMsR0FBQTtVQUFBRixJQUFBO1VBQUFDLE1BQUE7UUFBQTtNQUFBO0lBQUE7SUFBQUUsS0FBQTtNQUFBO1FBQUFDLElBQUE7UUFBQUMsSUFBQTtVQUFBTixLQUFBO1lBQUFDLElBQUE7WUFBQUMsTUFBQTtVQUFBO1VBQUFDLEdBQUE7WUFBQUYsSUFBQTtZQUFBQyxNQUFBO1VBQUE7UUFBQTtRQUFBSyxHQUFBO1VBQUFQLEtBQUE7WUFBQUMsSUFBQTtZQUFBQyxNQUFBO1VBQUE7VUFBQUMsR0FBQTtZQUFBRixJQUFBO1lBQUFDLE1BQUE7VUFBQTtRQUFBO1FBQUFELElBQUE7TUFBQTtNQUFBO1FBQUFJLElBQUE7UUFBQUMsSUFBQTtVQUFBTixLQUFBO1lBQUFDLElBQUE7WUFBQUMsTUFBQTtVQUFBO1VBQUFDLEdBQUE7WUFBQUYsSUFBQTtZQUFBQyxNQUFBO1VBQUE7UUFBQTtRQUFBSyxHQUFBO1VBQUFQLEtBQUE7WUFBQUMsSUFBQTtZQUFBQyxNQUFBO1VBQUE7VUFBQUMsR0FBQTtZQUFBRixJQUFBO1lBQUFDLE1BQUE7VUFBQTtRQUFBO1FBQUFELElBQUE7TUFBQTtJQUFBO0lBQUFPLFNBQUE7SUFBQUMsQ0FBQTtNQUFBO01BQUE7TUFBQTtNQUFBO01BQUE7TUFBQTtNQUFBO01BQUE7SUFBQTtJQUFBQyxDQUFBO01BQUE7TUFBQTtJQUFBO0lBQUFDLENBQUE7SUFBQUMsY0FBQTtNQUFBQyxJQUFBO01BQUFDLFFBQUE7TUFBQUMsS0FBQTtNQUFBQyxPQUFBO01BQUFDLGNBQUE7TUFBQUMsT0FBQTtJQUFBO0lBQUFDLGVBQUE7SUFBQXpCLElBQUE7RUFBQTtFQUFBLElBQUEwQixRQUFBLEdBQUF6QixNQUFBLENBQUFFLEdBQUEsTUFBQUYsTUFBQSxDQUFBRSxHQUFBO0VBQUEsS0FBQXVCLFFBQUEsQ0FBQTNCLElBQUEsS0FBQTJCLFFBQUEsQ0FBQTNCLElBQUEsRUFBQUMsSUFBQSxLQUFBQSxJQUFBO0lBQUEwQixRQUFBLENBQUEzQixJQUFBLElBQUFLLFlBQUE7RUFBQTtFQUFBLElBQUF1QixjQUFBLEdBQUFELFFBQUEsQ0FBQTNCLElBQUE7RUFBQTtJQVlBO0lBQUFELGNBQUEsWUFBQUEsQ0FBQTtNQUFBLE9BQUE2QixjQUFBO0lBQUE7RUFBQTtFQUFBLE9BQUFBLGNBQUE7QUFBQTtBQUFBN0IsY0FBQTtBQUFBQSxjQUFBLEdBQUFpQixDQUFBOzs7Ozs7O0FBREEsSUFBQWEsY0FBQTtBQUFBO0FBQUEsQ0FBQTlCLGNBQUEsR0FBQWlCLENBQUEsT0FBQWMsT0FBQTtBQUE2QztBQUFBL0IsY0FBQSxHQUFBaUIsQ0FBQTtBQUFwQ2UsTUFBQSxDQUFBQyxjQUFBLENBQUFDLE9BQUE7RUFBQUMsVUFBQTtFQUFBQyxHQUFBLFdBQUFBLENBQUE7SUFBQTtJQUFBcEMsY0FBQSxHQUFBa0IsQ0FBQTtJQUFBbEIsY0FBQSxHQUFBaUIsQ0FBQTtJQUFBLE9BQUFhLGNBQUEsQ0FBQU8sV0FBVztFQUFBO0FBQUE7QUFDcEIsSUFBQUMsbUJBQUE7QUFBQTtBQUFBLENBQUF0QyxjQUFBLEdBQUFpQixDQUFBLE9BQUFjLE9BQUE7QUFBdUQ7QUFBQS9CLGNBQUEsR0FBQWlCLENBQUE7QUFBOUNlLE1BQUEsQ0FBQUMsY0FBQSxDQUFBQyxPQUFBO0VBQUFDLFVBQUE7RUFBQUMsR0FBQSxXQUFBQSxDQUFBO0lBQUE7SUFBQXBDLGNBQUEsR0FBQWtCLENBQUE7SUFBQWxCLGNBQUEsR0FBQWlCLENBQUE7SUFBQSxPQUFBcUIsbUJBQUEsQ0FBQUMsZ0JBQWdCO0VBQUE7QUFBQTtBQUV6QjtBQUNBO0FBQ0E7QUFDQSIsImlnbm9yZUxpc3QiOltdfQ==

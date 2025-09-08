@@ -1,0 +1,319 @@
+5e8b8713b7b0b12fda3d2485c6b7f84c
+"use strict";
+
+/* istanbul ignore next */
+function cov_xh89bkkih() {
+  var path = "/home/runner/workspace/shared/schemas/infrastructure.ts";
+  var hash = "36db5997b804d04170a1c694568ddccfff4f37b7";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/shared/schemas/infrastructure.ts",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 2,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 0
+        },
+        end: {
+          line: 3,
+          column: 143
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 44
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 18
+        },
+        end: {
+          line: 5,
+          column: 48
+        }
+      },
+      "4": {
+        start: {
+          line: 6,
+          column: 14
+        },
+        end: {
+          line: 6,
+          column: 28
+        }
+      },
+      "5": {
+        start: {
+          line: 7,
+          column: 15
+        },
+        end: {
+          line: 7,
+          column: 32
+        }
+      },
+      "6": {
+        start: {
+          line: 9,
+          column: 0
+        },
+        end: {
+          line: 15,
+          column: 3
+        }
+      },
+      "7": {
+        start: {
+          line: 21,
+          column: 0
+        },
+        end: {
+          line: 51,
+          column: 3
+        }
+      },
+      "8": {
+        start: {
+          line: 48,
+          column: 26
+        },
+        end: {
+          line: 48,
+          column: 41
+        }
+      },
+      "9": {
+        start: {
+          line: 57,
+          column: 0
+        },
+        end: {
+          line: 61,
+          column: 3
+        }
+      },
+      "10": {
+        start: {
+          line: 63,
+          column: 0
+        },
+        end: {
+          line: 81,
+          column: 3
+        }
+      },
+      "11": {
+        start: {
+          line: 84,
+          column: 0
+        },
+        end: {
+          line: 88,
+          column: 3
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 48,
+            column: 20
+          },
+          end: {
+            line: 48,
+            column: 21
+          }
+        },
+        loc: {
+          start: {
+            line: 48,
+            column: 26
+          },
+          end: {
+            line: 48,
+            column: 41
+          }
+        },
+        line: 48
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0,
+      "9": 0,
+      "10": 0,
+      "11": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    inputSourceMap: {
+      file: "/home/runner/workspace/shared/schemas/infrastructure.ts",
+      mappings: "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",
+      names: [],
+      sources: ["/home/runner/workspace/shared/schemas/infrastructure.ts"],
+      sourcesContent: ["import { sql } from 'drizzle-orm';\nimport { pgTable, text, timestamp, uuid, pgEnum, boolean, integer, varchar, json } from 'drizzle-orm/pg-core';\nimport { createInsertSchema } from 'drizzle-zod';\nimport { z } from 'zod';\nimport { relations } from 'drizzle-orm';\nimport { users } from './core';\n\n// Infrastructure enums\nexport const sslStatusEnum = pgEnum('ssl_status', [\n  'active',\n  'pending',\n  'expired',\n  'revoked',\n  'failed',\n]);\n\n// Infrastructure tables\n/**\n * SSL certificates table for managing domain SSL certificates.\n * Supports automated certificate management and renewal tracking.\n */\nexport const sslCertificates = pgTable('ssl_certificates', {\n  id: uuid('id')\n    .primaryKey()\n    .default(sql`gen_random_uuid()`),\n  domain: text('domain').notNull().unique(),\n  certificateData: text('certificate_data').notNull(),\n  privateKey: text('private_key').notNull(),\n  issuer: text('issuer').notNull(),\n  subject: text('subject').notNull(),\n  serialNumber: text('serial_number').notNull(),\n  fingerprint: text('fingerprint').notNull(),\n  validFrom: timestamp('valid_from').notNull(),\n  validTo: timestamp('valid_to').notNull(),\n  status: sslStatusEnum('status').notNull().default('pending'),\n  autoRenew: boolean('auto_renew').notNull().default(true),\n  renewalAttempts: integer('renewal_attempts').notNull().default(0),\n  maxRenewalAttempts: integer('max_renewal_attempts').notNull().default(3),\n  dnsProvider: text('dns_provider'),\n  lastRenewalAttempt: timestamp('last_renewal_attempt'),\n  nextRenewalDate: timestamp('next_renewal_date'),\n  // Additional SSL management fields\n  certificateChain: text('certificate_chain'),\n  renewalError: text('renewal_error'),\n  dnsCredentials: text('dns_credentials'),\n  notificationEmails: text('notification_emails'),\n  createdBy: varchar('created_by')\n    .notNull()\n    .references(() => users.id),\n  createdAt: timestamp('created_at').defaultNow(),\n  updatedAt: timestamp('updated_at').defaultNow(),\n});\n\n/**\n * Session table for PostgreSQL session store.\n * This table stores user session data for authentication.\n * CRITICAL: This table must never be deleted as it's required for user sessions.\n */\nexport const sessions = pgTable('session', {\n  sid: varchar('sid').primaryKey().notNull(),\n  sess: json('sess').notNull(),\n  expire: timestamp('expire', { precision: 6 }).notNull(),\n});\n\n// Insert schemas\nexport const insertSslCertificateSchema = z.object({\n  domain: z.string(),\n  certificateData: z.string(),\n  privateKey: z.string(),\n  issuer: z.string(),\n  subject: z.string(),\n  serialNumber: z.string(),\n  fingerprint: z.string(),\n  validFrom: z.date(),\n  validTo: z.date(),\n  status: z.string().default('pending'),\n  autoRenew: z.boolean().default(true),\n  renewalAttempts: z.number().int().default(0),\n  maxRenewalAttempts: z.number().int().default(3),\n  dnsProvider: z.string().optional(),\n  lastRenewalAttempt: z.date().optional(),\n  nextRenewalDate: z.date().optional(),\n  createdBy: z.string().uuid(),\n});\n\n// Types\n// Session table schema (no insert schema needed - managed by connect-pg-simple)\nexport const insertSessionSchema = z.object({\n  sid: z.string(),\n  sess: z.any(), // JSON data\n  expire: z.date(),\n});\n\n// Types\nexport type InsertSslCertificate = z.infer<typeof insertSslCertificateSchema>;\nexport type SslCertificate = typeof sslCertificates.$inferSelect;\nexport type InsertSession = z.infer<typeof insertSessionSchema>;\nexport type Session = typeof sessions.$inferSelect;\n\n// Relations - temporarily commented out due to drizzle-orm version compatibility\n// export const sslCertificatesRelations = relations(sslCertificates, ({ one }) => ({\n//   createdBy: one(users, {\n//     fields: [sslCertificates.createdBy],\n//     references: [users.id],\n//   }),\n// }));\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "36db5997b804d04170a1c694568ddccfff4f37b7"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_xh89bkkih = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_xh89bkkih();
+cov_xh89bkkih().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_xh89bkkih().s[1]++;
+exports.insertSessionSchema = exports.insertSslCertificateSchema = exports.sessions = exports.sslCertificates = exports.sslStatusEnum = void 0;
+const drizzle_orm_1 =
+/* istanbul ignore next */
+(cov_xh89bkkih().s[2]++, require("drizzle-orm"));
+const pg_core_1 =
+/* istanbul ignore next */
+(cov_xh89bkkih().s[3]++, require("drizzle-orm/pg-core"));
+const zod_1 =
+/* istanbul ignore next */
+(cov_xh89bkkih().s[4]++, require("zod"));
+const core_1 =
+/* istanbul ignore next */
+(cov_xh89bkkih().s[5]++, require("./core"));
+// Infrastructure enums
+/* istanbul ignore next */
+cov_xh89bkkih().s[6]++;
+exports.sslStatusEnum = (0, pg_core_1.pgEnum)('ssl_status', ['active', 'pending', 'expired', 'revoked', 'failed']);
+// Infrastructure tables
+/**
+ * SSL certificates table for managing domain SSL certificates.
+ * Supports automated certificate management and renewal tracking.
+ */
+/* istanbul ignore next */
+cov_xh89bkkih().s[7]++;
+exports.sslCertificates = (0, pg_core_1.pgTable)('ssl_certificates', {
+  id: (0, pg_core_1.uuid)('id').primaryKey().default((0, drizzle_orm_1.sql)`gen_random_uuid()`),
+  domain: (0, pg_core_1.text)('domain').notNull().unique(),
+  certificateData: (0, pg_core_1.text)('certificate_data').notNull(),
+  privateKey: (0, pg_core_1.text)('private_key').notNull(),
+  issuer: (0, pg_core_1.text)('issuer').notNull(),
+  subject: (0, pg_core_1.text)('subject').notNull(),
+  serialNumber: (0, pg_core_1.text)('serial_number').notNull(),
+  fingerprint: (0, pg_core_1.text)('fingerprint').notNull(),
+  validFrom: (0, pg_core_1.timestamp)('valid_from').notNull(),
+  validTo: (0, pg_core_1.timestamp)('valid_to').notNull(),
+  status: (0, exports.sslStatusEnum)('status').notNull().default('pending'),
+  autoRenew: (0, pg_core_1.boolean)('auto_renew').notNull().default(true),
+  renewalAttempts: (0, pg_core_1.integer)('renewal_attempts').notNull().default(0),
+  maxRenewalAttempts: (0, pg_core_1.integer)('max_renewal_attempts').notNull().default(3),
+  dnsProvider: (0, pg_core_1.text)('dns_provider'),
+  lastRenewalAttempt: (0, pg_core_1.timestamp)('last_renewal_attempt'),
+  nextRenewalDate: (0, pg_core_1.timestamp)('next_renewal_date'),
+  // Additional SSL management fields
+  certificateChain: (0, pg_core_1.text)('certificate_chain'),
+  renewalError: (0, pg_core_1.text)('renewal_error'),
+  dnsCredentials: (0, pg_core_1.text)('dns_credentials'),
+  notificationEmails: (0, pg_core_1.text)('notification_emails'),
+  createdBy: (0, pg_core_1.varchar)('created_by').notNull().references(() => {
+    /* istanbul ignore next */
+    cov_xh89bkkih().f[0]++;
+    cov_xh89bkkih().s[8]++;
+    return core_1.users.id;
+  }),
+  createdAt: (0, pg_core_1.timestamp)('created_at').defaultNow(),
+  updatedAt: (0, pg_core_1.timestamp)('updated_at').defaultNow()
+});
+/**
+ * Session table for PostgreSQL session store.
+ * This table stores user session data for authentication.
+ * CRITICAL: This table must never be deleted as it's required for user sessions.
+ */
+/* istanbul ignore next */
+cov_xh89bkkih().s[9]++;
+exports.sessions = (0, pg_core_1.pgTable)('session', {
+  sid: (0, pg_core_1.varchar)('sid').primaryKey().notNull(),
+  sess: (0, pg_core_1.json)('sess').notNull(),
+  expire: (0, pg_core_1.timestamp)('expire', {
+    precision: 6
+  }).notNull()
+});
+// Insert schemas
+/* istanbul ignore next */
+cov_xh89bkkih().s[10]++;
+exports.insertSslCertificateSchema = zod_1.z.object({
+  domain: zod_1.z.string(),
+  certificateData: zod_1.z.string(),
+  privateKey: zod_1.z.string(),
+  issuer: zod_1.z.string(),
+  subject: zod_1.z.string(),
+  serialNumber: zod_1.z.string(),
+  fingerprint: zod_1.z.string(),
+  validFrom: zod_1.z.date(),
+  validTo: zod_1.z.date(),
+  status: zod_1.z.string().default('pending'),
+  autoRenew: zod_1.z.boolean().default(true),
+  renewalAttempts: zod_1.z.number().int().default(0),
+  maxRenewalAttempts: zod_1.z.number().int().default(3),
+  dnsProvider: zod_1.z.string().optional(),
+  lastRenewalAttempt: zod_1.z.date().optional(),
+  nextRenewalDate: zod_1.z.date().optional(),
+  createdBy: zod_1.z.string().uuid()
+});
+// Types
+// Session table schema (no insert schema needed - managed by connect-pg-simple)
+/* istanbul ignore next */
+cov_xh89bkkih().s[11]++;
+exports.insertSessionSchema = zod_1.z.object({
+  sid: zod_1.z.string(),
+  sess: zod_1.z.any(),
+  // JSON data
+  expire: zod_1.z.date()
+});
+// Relations - temporarily commented out due to drizzle-orm version compatibility
+// export const sslCertificatesRelations = relations(sslCertificates, ({ one }) => ({
+//   createdBy: one(users, {
+//     fields: [sslCertificates.createdBy],
+//     references: [users.id],
+//   }),
+// }));
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfeGg4OWJra2loIiwiYWN0dWFsQ292ZXJhZ2UiLCJzIiwiZHJpenpsZV9vcm1fMSIsInJlcXVpcmUiLCJwZ19jb3JlXzEiLCJ6b2RfMSIsImNvcmVfMSIsImV4cG9ydHMiLCJzc2xTdGF0dXNFbnVtIiwicGdFbnVtIiwic3NsQ2VydGlmaWNhdGVzIiwicGdUYWJsZSIsImlkIiwidXVpZCIsInByaW1hcnlLZXkiLCJkZWZhdWx0Iiwic3FsIiwiZG9tYWluIiwidGV4dCIsIm5vdE51bGwiLCJ1bmlxdWUiLCJjZXJ0aWZpY2F0ZURhdGEiLCJwcml2YXRlS2V5IiwiaXNzdWVyIiwic3ViamVjdCIsInNlcmlhbE51bWJlciIsImZpbmdlcnByaW50IiwidmFsaWRGcm9tIiwidGltZXN0YW1wIiwidmFsaWRUbyIsInN0YXR1cyIsImF1dG9SZW5ldyIsImJvb2xlYW4iLCJyZW5ld2FsQXR0ZW1wdHMiLCJpbnRlZ2VyIiwibWF4UmVuZXdhbEF0dGVtcHRzIiwiZG5zUHJvdmlkZXIiLCJsYXN0UmVuZXdhbEF0dGVtcHQiLCJuZXh0UmVuZXdhbERhdGUiLCJjZXJ0aWZpY2F0ZUNoYWluIiwicmVuZXdhbEVycm9yIiwiZG5zQ3JlZGVudGlhbHMiLCJub3RpZmljYXRpb25FbWFpbHMiLCJjcmVhdGVkQnkiLCJ2YXJjaGFyIiwicmVmZXJlbmNlcyIsImYiLCJ1c2VycyIsImNyZWF0ZWRBdCIsImRlZmF1bHROb3ciLCJ1cGRhdGVkQXQiLCJzZXNzaW9ucyIsInNpZCIsInNlc3MiLCJqc29uIiwiZXhwaXJlIiwicHJlY2lzaW9uIiwiaW5zZXJ0U3NsQ2VydGlmaWNhdGVTY2hlbWEiLCJ6Iiwib2JqZWN0Iiwic3RyaW5nIiwiZGF0ZSIsIm51bWJlciIsImludCIsIm9wdGlvbmFsIiwiaW5zZXJ0U2Vzc2lvblNjaGVtYSIsImFueSJdLCJzb3VyY2VzIjpbIi9ob21lL3J1bm5lci93b3Jrc3BhY2Uvc2hhcmVkL3NjaGVtYXMvaW5mcmFzdHJ1Y3R1cmUudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgc3FsIH0gZnJvbSAnZHJpenpsZS1vcm0nO1xuaW1wb3J0IHsgcGdUYWJsZSwgdGV4dCwgdGltZXN0YW1wLCB1dWlkLCBwZ0VudW0sIGJvb2xlYW4sIGludGVnZXIsIHZhcmNoYXIsIGpzb24gfSBmcm9tICdkcml6emxlLW9ybS9wZy1jb3JlJztcbmltcG9ydCB7IGNyZWF0ZUluc2VydFNjaGVtYSB9IGZyb20gJ2RyaXp6bGUtem9kJztcbmltcG9ydCB7IHogfSBmcm9tICd6b2QnO1xuaW1wb3J0IHsgcmVsYXRpb25zIH0gZnJvbSAnZHJpenpsZS1vcm0nO1xuaW1wb3J0IHsgdXNlcnMgfSBmcm9tICcuL2NvcmUnO1xuXG4vLyBJbmZyYXN0cnVjdHVyZSBlbnVtc1xuZXhwb3J0IGNvbnN0IHNzbFN0YXR1c0VudW0gPSBwZ0VudW0oJ3NzbF9zdGF0dXMnLCBbXG4gICdhY3RpdmUnLFxuICAncGVuZGluZycsXG4gICdleHBpcmVkJyxcbiAgJ3Jldm9rZWQnLFxuICAnZmFpbGVkJyxcbl0pO1xuXG4vLyBJbmZyYXN0cnVjdHVyZSB0YWJsZXNcbi8qKlxuICogU1NMIGNlcnRpZmljYXRlcyB0YWJsZSBmb3IgbWFuYWdpbmcgZG9tYWluIFNTTCBjZXJ0aWZpY2F0ZXMuXG4gKiBTdXBwb3J0cyBhdXRvbWF0ZWQgY2VydGlmaWNhdGUgbWFuYWdlbWVudCBhbmQgcmVuZXdhbCB0cmFja2luZy5cbiAqL1xuZXhwb3J0IGNvbnN0IHNzbENlcnRpZmljYXRlcyA9IHBnVGFibGUoJ3NzbF9jZXJ0aWZpY2F0ZXMnLCB7XG4gIGlkOiB1dWlkKCdpZCcpXG4gICAgLnByaW1hcnlLZXkoKVxuICAgIC5kZWZhdWx0KHNxbGBnZW5fcmFuZG9tX3V1aWQoKWApLFxuICBkb21haW46IHRleHQoJ2RvbWFpbicpLm5vdE51bGwoKS51bmlxdWUoKSxcbiAgY2VydGlmaWNhdGVEYXRhOiB0ZXh0KCdjZXJ0aWZpY2F0ZV9kYXRhJykubm90TnVsbCgpLFxuICBwcml2YXRlS2V5OiB0ZXh0KCdwcml2YXRlX2tleScpLm5vdE51bGwoKSxcbiAgaXNzdWVyOiB0ZXh0KCdpc3N1ZXInKS5ub3ROdWxsKCksXG4gIHN1YmplY3Q6IHRleHQoJ3N1YmplY3QnKS5ub3ROdWxsKCksXG4gIHNlcmlhbE51bWJlcjogdGV4dCgnc2VyaWFsX251bWJlcicpLm5vdE51bGwoKSxcbiAgZmluZ2VycHJpbnQ6IHRleHQoJ2ZpbmdlcnByaW50Jykubm90TnVsbCgpLFxuICB2YWxpZEZyb206IHRpbWVzdGFtcCgndmFsaWRfZnJvbScpLm5vdE51bGwoKSxcbiAgdmFsaWRUbzogdGltZXN0YW1wKCd2YWxpZF90bycpLm5vdE51bGwoKSxcbiAgc3RhdHVzOiBzc2xTdGF0dXNFbnVtKCdzdGF0dXMnKS5ub3ROdWxsKCkuZGVmYXVsdCgncGVuZGluZycpLFxuICBhdXRvUmVuZXc6IGJvb2xlYW4oJ2F1dG9fcmVuZXcnKS5ub3ROdWxsKCkuZGVmYXVsdCh0cnVlKSxcbiAgcmVuZXdhbEF0dGVtcHRzOiBpbnRlZ2VyKCdyZW5ld2FsX2F0dGVtcHRzJykubm90TnVsbCgpLmRlZmF1bHQoMCksXG4gIG1heFJlbmV3YWxBdHRlbXB0czogaW50ZWdlcignbWF4X3JlbmV3YWxfYXR0ZW1wdHMnKS5ub3ROdWxsKCkuZGVmYXVsdCgzKSxcbiAgZG5zUHJvdmlkZXI6IHRleHQoJ2Ruc19wcm92aWRlcicpLFxuICBsYXN0UmVuZXdhbEF0dGVtcHQ6IHRpbWVzdGFtcCgnbGFzdF9yZW5ld2FsX2F0dGVtcHQnKSxcbiAgbmV4dFJlbmV3YWxEYXRlOiB0aW1lc3RhbXAoJ25leHRfcmVuZXdhbF9kYXRlJyksXG4gIC8vIEFkZGl0aW9uYWwgU1NMIG1hbmFnZW1lbnQgZmllbGRzXG4gIGNlcnRpZmljYXRlQ2hhaW46IHRleHQoJ2NlcnRpZmljYXRlX2NoYWluJyksXG4gIHJlbmV3YWxFcnJvcjogdGV4dCgncmVuZXdhbF9lcnJvcicpLFxuICBkbnNDcmVkZW50aWFsczogdGV4dCgnZG5zX2NyZWRlbnRpYWxzJyksXG4gIG5vdGlmaWNhdGlvbkVtYWlsczogdGV4dCgnbm90aWZpY2F0aW9uX2VtYWlscycpLFxuICBjcmVhdGVkQnk6IHZhcmNoYXIoJ2NyZWF0ZWRfYnknKVxuICAgIC5ub3ROdWxsKClcbiAgICAucmVmZXJlbmNlcygoKSA9PiB1c2Vycy5pZCksXG4gIGNyZWF0ZWRBdDogdGltZXN0YW1wKCdjcmVhdGVkX2F0JykuZGVmYXVsdE5vdygpLFxuICB1cGRhdGVkQXQ6IHRpbWVzdGFtcCgndXBkYXRlZF9hdCcpLmRlZmF1bHROb3coKSxcbn0pO1xuXG4vKipcbiAqIFNlc3Npb24gdGFibGUgZm9yIFBvc3RncmVTUUwgc2Vzc2lvbiBzdG9yZS5cbiAqIFRoaXMgdGFibGUgc3RvcmVzIHVzZXIgc2Vzc2lvbiBkYXRhIGZvciBhdXRoZW50aWNhdGlvbi5cbiAqIENSSVRJQ0FMOiBUaGlzIHRhYmxlIG11c3QgbmV2ZXIgYmUgZGVsZXRlZCBhcyBpdCdzIHJlcXVpcmVkIGZvciB1c2VyIHNlc3Npb25zLlxuICovXG5leHBvcnQgY29uc3Qgc2Vzc2lvbnMgPSBwZ1RhYmxlKCdzZXNzaW9uJywge1xuICBzaWQ6IHZhcmNoYXIoJ3NpZCcpLnByaW1hcnlLZXkoKS5ub3ROdWxsKCksXG4gIHNlc3M6IGpzb24oJ3Nlc3MnKS5ub3ROdWxsKCksXG4gIGV4cGlyZTogdGltZXN0YW1wKCdleHBpcmUnLCB7IHByZWNpc2lvbjogNiB9KS5ub3ROdWxsKCksXG59KTtcblxuLy8gSW5zZXJ0IHNjaGVtYXNcbmV4cG9ydCBjb25zdCBpbnNlcnRTc2xDZXJ0aWZpY2F0ZVNjaGVtYSA9IHoub2JqZWN0KHtcbiAgZG9tYWluOiB6LnN0cmluZygpLFxuICBjZXJ0aWZpY2F0ZURhdGE6IHouc3RyaW5nKCksXG4gIHByaXZhdGVLZXk6IHouc3RyaW5nKCksXG4gIGlzc3Vlcjogei5zdHJpbmcoKSxcbiAgc3ViamVjdDogei5zdHJpbmcoKSxcbiAgc2VyaWFsTnVtYmVyOiB6LnN0cmluZygpLFxuICBmaW5nZXJwcmludDogei5zdHJpbmcoKSxcbiAgdmFsaWRGcm9tOiB6LmRhdGUoKSxcbiAgdmFsaWRUbzogei5kYXRlKCksXG4gIHN0YXR1czogei5zdHJpbmcoKS5kZWZhdWx0KCdwZW5kaW5nJyksXG4gIGF1dG9SZW5ldzogei5ib29sZWFuKCkuZGVmYXVsdCh0cnVlKSxcbiAgcmVuZXdhbEF0dGVtcHRzOiB6Lm51bWJlcigpLmludCgpLmRlZmF1bHQoMCksXG4gIG1heFJlbmV3YWxBdHRlbXB0czogei5udW1iZXIoKS5pbnQoKS5kZWZhdWx0KDMpLFxuICBkbnNQcm92aWRlcjogei5zdHJpbmcoKS5vcHRpb25hbCgpLFxuICBsYXN0UmVuZXdhbEF0dGVtcHQ6IHouZGF0ZSgpLm9wdGlvbmFsKCksXG4gIG5leHRSZW5ld2FsRGF0ZTogei5kYXRlKCkub3B0aW9uYWwoKSxcbiAgY3JlYXRlZEJ5OiB6LnN0cmluZygpLnV1aWQoKSxcbn0pO1xuXG4vLyBUeXBlc1xuLy8gU2Vzc2lvbiB0YWJsZSBzY2hlbWEgKG5vIGluc2VydCBzY2hlbWEgbmVlZGVkIC0gbWFuYWdlZCBieSBjb25uZWN0LXBnLXNpbXBsZSlcbmV4cG9ydCBjb25zdCBpbnNlcnRTZXNzaW9uU2NoZW1hID0gei5vYmplY3Qoe1xuICBzaWQ6IHouc3RyaW5nKCksXG4gIHNlc3M6IHouYW55KCksIC8vIEpTT04gZGF0YVxuICBleHBpcmU6IHouZGF0ZSgpLFxufSk7XG5cbi8vIFR5cGVzXG5leHBvcnQgdHlwZSBJbnNlcnRTc2xDZXJ0aWZpY2F0ZSA9IHouaW5mZXI8dHlwZW9mIGluc2VydFNzbENlcnRpZmljYXRlU2NoZW1hPjtcbmV4cG9ydCB0eXBlIFNzbENlcnRpZmljYXRlID0gdHlwZW9mIHNzbENlcnRpZmljYXRlcy4kaW5mZXJTZWxlY3Q7XG5leHBvcnQgdHlwZSBJbnNlcnRTZXNzaW9uID0gei5pbmZlcjx0eXBlb2YgaW5zZXJ0U2Vzc2lvblNjaGVtYT47XG5leHBvcnQgdHlwZSBTZXNzaW9uID0gdHlwZW9mIHNlc3Npb25zLiRpbmZlclNlbGVjdDtcblxuLy8gUmVsYXRpb25zIC0gdGVtcG9yYXJpbHkgY29tbWVudGVkIG91dCBkdWUgdG8gZHJpenpsZS1vcm0gdmVyc2lvbiBjb21wYXRpYmlsaXR5XG4vLyBleHBvcnQgY29uc3Qgc3NsQ2VydGlmaWNhdGVzUmVsYXRpb25zID0gcmVsYXRpb25zKHNzbENlcnRpZmljYXRlcywgKHsgb25lIH0pID0+ICh7XG4vLyAgIGNyZWF0ZWRCeTogb25lKHVzZXJzLCB7XG4vLyAgICAgZmllbGRzOiBbc3NsQ2VydGlmaWNhdGVzLmNyZWF0ZWRCeV0sXG4vLyAgICAgcmVmZXJlbmNlczogW3VzZXJzLmlkXSxcbi8vICAgfSksXG4vLyB9KSk7XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0lBZ0JBO0lBQUFBLGFBQUEsWUFBQUEsQ0FBQTtNQUFBLE9BQUFDLGNBQUE7SUFBQTtFQUFBO0VBQUEsT0FBQUEsY0FBQTtBQUFBO0FBQUFELGFBQUE7QUFBQUEsYUFBQSxHQUFBRSxDQUFBOzs7Ozs7O0FBaEJBLE1BQUFDLGFBQUE7QUFBQTtBQUFBLENBQUFILGFBQUEsR0FBQUUsQ0FBQSxPQUFBRSxPQUFBO0FBQ0EsTUFBQUMsU0FBQTtBQUFBO0FBQUEsQ0FBQUwsYUFBQSxHQUFBRSxDQUFBLE9BQUFFLE9BQUE7QUFFQSxNQUFBRSxLQUFBO0FBQUE7QUFBQSxDQUFBTixhQUFBLEdBQUFFLENBQUEsT0FBQUUsT0FBQTtBQUVBLE1BQUFHLE1BQUE7QUFBQTtBQUFBLENBQUFQLGFBQUEsR0FBQUUsQ0FBQSxPQUFBRSxPQUFBO0FBRUE7QUFBQTtBQUFBSixhQUFBLEdBQUFFLENBQUE7QUFDYU0sT0FBQSxDQUFBQyxhQUFhLEdBQUcsSUFBQUosU0FBQSxDQUFBSyxNQUFNLEVBQUMsWUFBWSxFQUFFLENBQ2hELFFBQVEsRUFDUixTQUFTLEVBQ1QsU0FBUyxFQUNULFNBQVMsRUFDVCxRQUFRLENBQ1QsQ0FBQztBQUVGO0FBQ0E7Ozs7QUFBQTtBQUFBVixhQUFBLEdBQUFFLENBQUE7QUFJYU0sT0FBQSxDQUFBRyxlQUFlLEdBQUcsSUFBQU4sU0FBQSxDQUFBTyxPQUFPLEVBQUMsa0JBQWtCLEVBQUU7RUFDekRDLEVBQUUsRUFBRSxJQUFBUixTQUFBLENBQUFTLElBQUksRUFBQyxJQUFJLENBQUMsQ0FDWEMsVUFBVSxFQUFFLENBQ1pDLE9BQU8sQ0FBQyxJQUFBYixhQUFBLENBQUFjLEdBQUcsb0JBQW1CLENBQUM7RUFDbENDLE1BQU0sRUFBRSxJQUFBYixTQUFBLENBQUFjLElBQUksRUFBQyxRQUFRLENBQUMsQ0FBQ0MsT0FBTyxFQUFFLENBQUNDLE1BQU0sRUFBRTtFQUN6Q0MsZUFBZSxFQUFFLElBQUFqQixTQUFBLENBQUFjLElBQUksRUFBQyxrQkFBa0IsQ0FBQyxDQUFDQyxPQUFPLEVBQUU7RUFDbkRHLFVBQVUsRUFBRSxJQUFBbEIsU0FBQSxDQUFBYyxJQUFJLEVBQUMsYUFBYSxDQUFDLENBQUNDLE9BQU8sRUFBRTtFQUN6Q0ksTUFBTSxFQUFFLElBQUFuQixTQUFBLENBQUFjLElBQUksRUFBQyxRQUFRLENBQUMsQ0FBQ0MsT0FBTyxFQUFFO0VBQ2hDSyxPQUFPLEVBQUUsSUFBQXBCLFNBQUEsQ0FBQWMsSUFBSSxFQUFDLFNBQVMsQ0FBQyxDQUFDQyxPQUFPLEVBQUU7RUFDbENNLFlBQVksRUFBRSxJQUFBckIsU0FBQSxDQUFBYyxJQUFJLEVBQUMsZUFBZSxDQUFDLENBQUNDLE9BQU8sRUFBRTtFQUM3Q08sV0FBVyxFQUFFLElBQUF0QixTQUFBLENBQUFjLElBQUksRUFBQyxhQUFhLENBQUMsQ0FBQ0MsT0FBTyxFQUFFO0VBQzFDUSxTQUFTLEVBQUUsSUFBQXZCLFNBQUEsQ0FBQXdCLFNBQVMsRUFBQyxZQUFZLENBQUMsQ0FBQ1QsT0FBTyxFQUFFO0VBQzVDVSxPQUFPLEVBQUUsSUFBQXpCLFNBQUEsQ0FBQXdCLFNBQVMsRUFBQyxVQUFVLENBQUMsQ0FBQ1QsT0FBTyxFQUFFO0VBQ3hDVyxNQUFNLEVBQUUsSUFBQXZCLE9BQUEsQ0FBQUMsYUFBYSxFQUFDLFFBQVEsQ0FBQyxDQUFDVyxPQUFPLEVBQUUsQ0FBQ0osT0FBTyxDQUFDLFNBQVMsQ0FBQztFQUM1RGdCLFNBQVMsRUFBRSxJQUFBM0IsU0FBQSxDQUFBNEIsT0FBTyxFQUFDLFlBQVksQ0FBQyxDQUFDYixPQUFPLEVBQUUsQ0FBQ0osT0FBTyxDQUFDLElBQUksQ0FBQztFQUN4RGtCLGVBQWUsRUFBRSxJQUFBN0IsU0FBQSxDQUFBOEIsT0FBTyxFQUFDLGtCQUFrQixDQUFDLENBQUNmLE9BQU8sRUFBRSxDQUFDSixPQUFPLENBQUMsQ0FBQyxDQUFDO0VBQ2pFb0Isa0JBQWtCLEVBQUUsSUFBQS9CLFNBQUEsQ0FBQThCLE9BQU8sRUFBQyxzQkFBc0IsQ0FBQyxDQUFDZixPQUFPLEVBQUUsQ0FBQ0osT0FBTyxDQUFDLENBQUMsQ0FBQztFQUN4RXFCLFdBQVcsRUFBRSxJQUFBaEMsU0FBQSxDQUFBYyxJQUFJLEVBQUMsY0FBYyxDQUFDO0VBQ2pDbUIsa0JBQWtCLEVBQUUsSUFBQWpDLFNBQUEsQ0FBQXdCLFNBQVMsRUFBQyxzQkFBc0IsQ0FBQztFQUNyRFUsZUFBZSxFQUFFLElBQUFsQyxTQUFBLENBQUF3QixTQUFTLEVBQUMsbUJBQW1CLENBQUM7RUFDL0M7RUFDQVcsZ0JBQWdCLEVBQUUsSUFBQW5DLFNBQUEsQ0FBQWMsSUFBSSxFQUFDLG1CQUFtQixDQUFDO0VBQzNDc0IsWUFBWSxFQUFFLElBQUFwQyxTQUFBLENBQUFjLElBQUksRUFBQyxlQUFlLENBQUM7RUFDbkN1QixjQUFjLEVBQUUsSUFBQXJDLFNBQUEsQ0FBQWMsSUFBSSxFQUFDLGlCQUFpQixDQUFDO0VBQ3ZDd0Isa0JBQWtCLEVBQUUsSUFBQXRDLFNBQUEsQ0FBQWMsSUFBSSxFQUFDLHFCQUFxQixDQUFDO0VBQy9DeUIsU0FBUyxFQUFFLElBQUF2QyxTQUFBLENBQUF3QyxPQUFPLEVBQUMsWUFBWSxDQUFDLENBQzdCekIsT0FBTyxFQUFFLENBQ1QwQixVQUFVLENBQUMsTUFBTTtJQUFBO0lBQUE5QyxhQUFBLEdBQUErQyxDQUFBO0lBQUEvQyxhQUFBLEdBQUFFLENBQUE7SUFBQSxPQUFBSyxNQUFBLENBQUF5QyxLQUFLLENBQUNuQyxFQUFFO0VBQUYsQ0FBRSxDQUFDO0VBQzdCb0MsU0FBUyxFQUFFLElBQUE1QyxTQUFBLENBQUF3QixTQUFTLEVBQUMsWUFBWSxDQUFDLENBQUNxQixVQUFVLEVBQUU7RUFDL0NDLFNBQVMsRUFBRSxJQUFBOUMsU0FBQSxDQUFBd0IsU0FBUyxFQUFDLFlBQVksQ0FBQyxDQUFDcUIsVUFBVTtDQUM5QyxDQUFDO0FBRUY7Ozs7O0FBQUE7QUFBQWxELGFBQUEsR0FBQUUsQ0FBQTtBQUthTSxPQUFBLENBQUE0QyxRQUFRLEdBQUcsSUFBQS9DLFNBQUEsQ0FBQU8sT0FBTyxFQUFDLFNBQVMsRUFBRTtFQUN6Q3lDLEdBQUcsRUFBRSxJQUFBaEQsU0FBQSxDQUFBd0MsT0FBTyxFQUFDLEtBQUssQ0FBQyxDQUFDOUIsVUFBVSxFQUFFLENBQUNLLE9BQU8sRUFBRTtFQUMxQ2tDLElBQUksRUFBRSxJQUFBakQsU0FBQSxDQUFBa0QsSUFBSSxFQUFDLE1BQU0sQ0FBQyxDQUFDbkMsT0FBTyxFQUFFO0VBQzVCb0MsTUFBTSxFQUFFLElBQUFuRCxTQUFBLENBQUF3QixTQUFTLEVBQUMsUUFBUSxFQUFFO0lBQUU0QixTQUFTLEVBQUU7RUFBQyxDQUFFLENBQUMsQ0FBQ3JDLE9BQU87Q0FDdEQsQ0FBQztBQUVGO0FBQUE7QUFBQXBCLGFBQUEsR0FBQUUsQ0FBQTtBQUNhTSxPQUFBLENBQUFrRCwwQkFBMEIsR0FBR3BELEtBQUEsQ0FBQXFELENBQUMsQ0FBQ0MsTUFBTSxDQUFDO0VBQ2pEMUMsTUFBTSxFQUFFWixLQUFBLENBQUFxRCxDQUFDLENBQUNFLE1BQU0sRUFBRTtFQUNsQnZDLGVBQWUsRUFBRWhCLEtBQUEsQ0FBQXFELENBQUMsQ0FBQ0UsTUFBTSxFQUFFO0VBQzNCdEMsVUFBVSxFQUFFakIsS0FBQSxDQUFBcUQsQ0FBQyxDQUFDRSxNQUFNLEVBQUU7RUFDdEJyQyxNQUFNLEVBQUVsQixLQUFBLENBQUFxRCxDQUFDLENBQUNFLE1BQU0sRUFBRTtFQUNsQnBDLE9BQU8sRUFBRW5CLEtBQUEsQ0FBQXFELENBQUMsQ0FBQ0UsTUFBTSxFQUFFO0VBQ25CbkMsWUFBWSxFQUFFcEIsS0FBQSxDQUFBcUQsQ0FBQyxDQUFDRSxNQUFNLEVBQUU7RUFDeEJsQyxXQUFXLEVBQUVyQixLQUFBLENBQUFxRCxDQUFDLENBQUNFLE1BQU0sRUFBRTtFQUN2QmpDLFNBQVMsRUFBRXRCLEtBQUEsQ0FBQXFELENBQUMsQ0FBQ0csSUFBSSxFQUFFO0VBQ25CaEMsT0FBTyxFQUFFeEIsS0FBQSxDQUFBcUQsQ0FBQyxDQUFDRyxJQUFJLEVBQUU7RUFDakIvQixNQUFNLEVBQUV6QixLQUFBLENBQUFxRCxDQUFDLENBQUNFLE1BQU0sRUFBRSxDQUFDN0MsT0FBTyxDQUFDLFNBQVMsQ0FBQztFQUNyQ2dCLFNBQVMsRUFBRTFCLEtBQUEsQ0FBQXFELENBQUMsQ0FBQzFCLE9BQU8sRUFBRSxDQUFDakIsT0FBTyxDQUFDLElBQUksQ0FBQztFQUNwQ2tCLGVBQWUsRUFBRTVCLEtBQUEsQ0FBQXFELENBQUMsQ0FBQ0ksTUFBTSxFQUFFLENBQUNDLEdBQUcsRUFBRSxDQUFDaEQsT0FBTyxDQUFDLENBQUMsQ0FBQztFQUM1Q29CLGtCQUFrQixFQUFFOUIsS0FBQSxDQUFBcUQsQ0FBQyxDQUFDSSxNQUFNLEVBQUUsQ0FBQ0MsR0FBRyxFQUFFLENBQUNoRCxPQUFPLENBQUMsQ0FBQyxDQUFDO0VBQy9DcUIsV0FBVyxFQUFFL0IsS0FBQSxDQUFBcUQsQ0FBQyxDQUFDRSxNQUFNLEVBQUUsQ0FBQ0ksUUFBUSxFQUFFO0VBQ2xDM0Isa0JBQWtCLEVBQUVoQyxLQUFBLENBQUFxRCxDQUFDLENBQUNHLElBQUksRUFBRSxDQUFDRyxRQUFRLEVBQUU7RUFDdkMxQixlQUFlLEVBQUVqQyxLQUFBLENBQUFxRCxDQUFDLENBQUNHLElBQUksRUFBRSxDQUFDRyxRQUFRLEVBQUU7RUFDcENyQixTQUFTLEVBQUV0QyxLQUFBLENBQUFxRCxDQUFDLENBQUNFLE1BQU0sRUFBRSxDQUFDL0MsSUFBSTtDQUMzQixDQUFDO0FBRUY7QUFDQTtBQUFBO0FBQUFkLGFBQUEsR0FBQUUsQ0FBQTtBQUNhTSxPQUFBLENBQUEwRCxtQkFBbUIsR0FBRzVELEtBQUEsQ0FBQXFELENBQUMsQ0FBQ0MsTUFBTSxDQUFDO0VBQzFDUCxHQUFHLEVBQUUvQyxLQUFBLENBQUFxRCxDQUFDLENBQUNFLE1BQU0sRUFBRTtFQUNmUCxJQUFJLEVBQUVoRCxLQUFBLENBQUFxRCxDQUFDLENBQUNRLEdBQUcsRUFBRTtFQUFFO0VBQ2ZYLE1BQU0sRUFBRWxELEtBQUEsQ0FBQXFELENBQUMsQ0FBQ0csSUFBSTtDQUNmLENBQUM7QUFRRjtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQSIsImlnbm9yZUxpc3QiOltdfQ==
