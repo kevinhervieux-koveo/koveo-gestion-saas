@@ -255,9 +255,9 @@ export function withHierarchicalSelection<T extends object>(
           
           {/* Back to Organization Navigation - only show if user has multiple organizations */}
           {config.hierarchy.includes('organization') && organizations.length > 1 && (
-            <div className="p-6 pb-0">
+            <div className="px-6 pt-6 pb-0">
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={handleBack}
                 className="flex items-center gap-2"
                 data-testid="button-back-to-organization"
@@ -298,9 +298,9 @@ export function withHierarchicalSelection<T extends object>(
           
           {/* Back to Building Navigation - only show if user has multiple buildings */}
           {showBackToBuilding && (
-            <div className="p-6 pb-0">
+            <div className="px-6 pt-6 pb-0">
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={handleBack}
                 className="flex items-center gap-2"
                 data-testid="button-back-to-building"

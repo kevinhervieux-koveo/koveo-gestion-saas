@@ -756,8 +756,8 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
 
       {/* Back Navigation */}
       {showBackButton && onBack && (
-        <div className="p-6 pb-0">
-          <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
+        <div className="px-6 pt-6 pb-0">
+          <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
             {backButtonLabel}
           </Button>

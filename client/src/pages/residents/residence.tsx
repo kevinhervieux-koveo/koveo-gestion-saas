@@ -384,8 +384,8 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
         <div className='max-w-7xl mx-auto space-y-6'>
           {/* Back Navigation */}
           {showBackButton && onBack && (
-            <div>
-              <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
+            <div className="mb-6">
+              <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
                 <ArrowLeft className="w-4 h-4" />
                 {backButtonLabel}
               </Button>
