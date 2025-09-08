@@ -1062,7 +1062,7 @@ export function registerDocumentRoutes(app: Express): void {
       logDocumentOperation('getUserOrganizations_SUCCESS', {
         count: organizations.length,
         executionTime: `${organizationsTime.toFixed(2)}ms`,
-        organizations: organizations.map(org => ({ id: org.organizationId, role: org.organizationRole }))
+        organizations: organizations.map((org: any) => ({ id: org.organizationId, role: org.organizationRole }))
       }, 'DEBUG');
       
       logDocumentOperation('CALL_getUserResidences', { userId }, 'DEBUG');
@@ -1072,7 +1072,7 @@ export function registerDocumentRoutes(app: Express): void {
       logDocumentOperation('getUserResidences_SUCCESS', {
         count: userResidences.length,
         executionTime: `${residencesTime.toFixed(2)}ms`,
-        residenceIds: userResidences.map(ur => ur.residenceId || ur.userResidence?.residenceId).filter(Boolean)
+        residenceIds: userResidences.map((ur: any) => ur.residenceId).filter(Boolean)
       }, 'DEBUG');
       
       logDocumentOperation('CALL_getBuildings', {}, 'DEBUG');
@@ -2087,7 +2087,7 @@ export function registerDocumentRoutes(app: Express): void {
       const documentId = req.params.id;
 
       // Get existing document first to check permissions and get current file path
-      const existingDocument = await storage.getDocuments({ documentId }).then(docs => docs[0]);
+      const existingDocument = await storage.getDocuments().then(docs => docs.find(doc => doc.id === documentId));
       
       if (!existingDocument) {
         console.log(`❌ [DOCUMENT UPDATE] Document not found: ${documentId}`);
