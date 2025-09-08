@@ -3,7 +3,7 @@
  * Tests the create-demo-environment.ts script functionality
  */
 
-import { promises as fs } from 'fs';
+import fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 

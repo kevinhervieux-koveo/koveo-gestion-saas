@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import * as fs from 'fs';
+import fs from 'fs';
 
 describe('Translation Function Error Detection', () => {
   it('should verify buildings page no longer has undefined t function error', () => {

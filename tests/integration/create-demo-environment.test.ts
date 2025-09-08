@@ -31,8 +31,8 @@ describe('create-demo-environment.ts', () => {
     // We can't easily test the CLI parsing without mocking process.argv
     // But we can ensure the script structure is intact
     
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -46,8 +46,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should have comprehensive database schema imports and Unicode fixes', async () => {
     // Ensure all required schema imports are present
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -68,8 +68,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should have main seeding functions defined', async () => {
     // Verify that all major seeding functions exist
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -87,8 +87,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should have Quebec-specific data generation', async () => {
     // Ensure Quebec compliance and localization
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -103,8 +103,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should have proper role-based user creation logic', async () => {
     // Verify demo vs production role handling
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -119,8 +119,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should have comprehensive error handling', async () => {
     // Ensure proper error handling throughout
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -134,8 +134,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should have proper database connection management', async () => {
     // Verify database connection setup and cleanup
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -149,8 +149,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should have realistic data generation with proper categories and file paths', async () => {
     // Ensure realistic data categories are defined
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -178,8 +178,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should comply with Law 25 (no admin role creation)', async () => {
     // Ensure the script doesn't create admin users
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -194,8 +194,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should have proper configuration constants', async () => {
     // Verify configuration constants are defined
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -212,8 +212,8 @@ describe('create-demo-environment.ts', () => {
 
   test('should have comprehensive logging and progress tracking', async () => {
     // Ensure good user feedback through logging
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -231,8 +231,8 @@ describe('create-demo-environment.ts', () => {
 // Additional tests for specific functionality improvements
 describe('create-demo-environment.ts - Functionality Tests', () => {
   test('should ensure manager organization associations', async () => {
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -244,8 +244,8 @@ describe('create-demo-environment.ts - Functionality Tests', () => {
   });
 
   test('should separate bill documents from financial documents', async () => {
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
@@ -264,8 +264,8 @@ describe('create-demo-environment.ts - Functionality Tests', () => {
   });
 
   test('should use ASCII-safe characters in all generated content', async () => {
-    const fs = await import('fs');
-    const path = await import('path');
+    const fs = require('fs');
+    const path = require('path');
     
     const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
     const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
