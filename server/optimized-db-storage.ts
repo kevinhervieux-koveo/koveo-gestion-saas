@@ -2451,6 +2451,8 @@ export class OptimizedDatabaseStorage implements IStorage {
     buildingId?: string;
     residenceId?: string;
     documentType?: string;
+    attachedToType?: string;
+    attachedToId?: string;
     userId?: string;
     userRole?: string;
   }): Promise<Document[]> {
@@ -2494,6 +2496,20 @@ export class OptimizedDatabaseStorage implements IStorage {
           this.logStorageOperation('getDocuments_FILTER_TYPE', {
             operationId,
             documentType: filters.documentType
+          }, 'DEBUG');
+        }
+        if (filters?.attachedToType) {
+          conditions.push(eq(schema.documents.attachedToType, filters.attachedToType));
+          this.logStorageOperation('getDocuments_FILTER_ATTACHED_TYPE', {
+            operationId,
+            attachedToType: filters.attachedToType
+          }, 'DEBUG');
+        }
+        if (filters?.attachedToId) {
+          conditions.push(eq(schema.documents.attachedToId, filters.attachedToId));
+          this.logStorageOperation('getDocuments_FILTER_ATTACHED_ID', {
+            operationId,
+            attachedToId: filters.attachedToId
           }, 'DEBUG');
         }
 
