@@ -75,7 +75,6 @@ export function withHierarchicalSelection<T extends object>(
     // Determine current selection level
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
     
-    // Removed debug logging
     
     
     // Navigate to update URL parameters
@@ -177,7 +176,6 @@ export function withHierarchicalSelection<T extends object>(
       
       if (currentLevel === 'building' && buildings.length === 1 && !buildingId) {
         // Auto-forward if only one building (preserve organization)  
-        console.log('🔄 Auto-forwarding to single building:', buildings[0].name);
         navigate({ organization: organizationId, building: buildings[0].id });
         return;
       }
@@ -351,7 +349,6 @@ export function withHierarchicalSelection<T extends object>(
           showBackButton: true,
           backButtonLabel: 'Building',
           onBack: () => {
-            console.log('🔄 Back to building clicked for multi-level hierarchy');
             navigate({ building: null, residence: null });
           }
         };
