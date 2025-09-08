@@ -6,11 +6,12 @@
 import { promises as fs } from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { jest } from '@jest/globals';
 
 const execAsync = promisify(exec);
 
 // Mock database connection for testing
-jest.mock('../server/db', () => ({
+jest.mock('../../server/storage', () => ({
   db: {
     select: jest.fn(),
     insert: jest.fn(),
@@ -23,7 +24,7 @@ jest.mock('../server/db', () => ({
 }));
 
 // Mock schema imports
-jest.mock('../shared/schema', () => ({
+jest.mock('../../shared/schema', () => ({
   organizations: {
     id: 'id',
     name: 'name',
@@ -56,7 +57,7 @@ describe('Demo Creation Script', () => {
       const stats = await fs.stat(scriptPath);
       expect(stats.isFile()).toBe(true);
     } catch (error) {
-      fail(`Demo script file does not exist at ${scriptPath}`);
+      throw new Error(`Demo script file does not exist at ${scriptPath}`);
     }
   });
 
@@ -83,7 +84,7 @@ describe('Demo Creation Script', () => {
         console.warn('TypeScript warnings:', stderr);
       }
     } catch (error: any) {
-      fail(`Script compilation failed: ${error.message}`);
+      throw new Error(`Script compilation failed: ${error.message}`);
     }
   });
 

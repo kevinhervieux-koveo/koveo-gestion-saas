@@ -2809,7 +2809,6 @@ export const translations: Record<Language, Translations> = {
     residentPortalDesc: 'Portail libre-service pour les résidents et locataires',
     financialReporting: 'Rapports financiers',
     financialReportingDesc: 'Suivi et rapports financiers complets',
-    quebecCompliance: 'Conformité québécoise',
     quebecCompliance: 'Conformité complète à la Loi 25 du Québec et aux réglementations',
     whyChooseKoveo: 'Pourquoi choisir Koveo?',
     quebecLaw25Compliant: 'Conforme à la Loi 25 du Québec',
