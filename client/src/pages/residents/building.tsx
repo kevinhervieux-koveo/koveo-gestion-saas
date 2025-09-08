@@ -306,6 +306,4 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
 // Export the component wrapped with hierarchical selection
 export default withHierarchicalSelection(MyBuilding, {
   hierarchy: ['building'],
-  title: 'Select Building',
-  subtitle: 'Choose a building to view details',
 });
