@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 07FC-2024-06-CLEANING-2
+Title: Cleaning (2) - Macejkovic and Sons
+Vendor: Kuhlman, Tillman and Schiller
+Category: Cleaning
+Total Amount: $3931.32
+Description: Monthly cleaning service for March 2024 - Invoice 2
+
+Payment Amount: $3931.32
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-M3OEEN2Z
+
+This payment has been processed successfully.
+Building Management Office

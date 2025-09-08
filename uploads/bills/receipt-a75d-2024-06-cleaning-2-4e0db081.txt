@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A75D-2024-06-CLEANING-2
+Title: Cleaning (2) - Wiza LLC
+Vendor: Goyette Group
+Category: Cleaning
+Total Amount: $4253.46
+Description: Monthly cleaning service for November 2024 - Invoice 2
+
+Payment Amount: $4253.46
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-THEZ2LAT
+
+This payment has been processed successfully.
+Building Management Office

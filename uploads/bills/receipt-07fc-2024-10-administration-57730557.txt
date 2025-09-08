@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 07FC-2024-10-ADMINISTRATION
+Title: Administration  - Stiedemann - Weimann
+Vendor: Carter, Wiegand and Tromp
+Category: Administration
+Total Amount: $2399.51
+Description: Monthly administration service for July 2024
+
+Payment Amount: $2399.51
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-NB9IPI9G
+
+This payment has been processed successfully.
+Building Management Office

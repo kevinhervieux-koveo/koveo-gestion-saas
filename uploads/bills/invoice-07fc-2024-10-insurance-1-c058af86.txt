@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 07FC-2024-10-INSURANCE-1
+Title: Insurance (1) - Rau - Ziemann
+Vendor: Rau and Sons
+Category: Insurance
+Total Amount: $326.02
+Description: Monthly insurance service for February 2024 - Invoice 1
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 5/15/2026
+
+Service Details:
+- Titulus delibero vae.
+- Velit vulgus stabilis atavus.
+
+Thank you for your business!
+Rau and Sons

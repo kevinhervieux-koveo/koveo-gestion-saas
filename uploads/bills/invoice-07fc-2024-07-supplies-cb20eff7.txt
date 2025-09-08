@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 07FC-2024-07-SUPPLIES
+Title: Supplies  - Hansen - Goodwin
+Vendor: Hamill - Dach
+Category: Supplies
+Total Amount: $4512.44
+Description: Monthly supplies service for April 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 9/11/2025
+
+Service Details:
+- Vesco caries viriliter deporto ago ducimus eligendi praesentium comminor demo.
+- Valetudo acquiro credo admiratio occaecati verto explicabo acies.
+
+Thank you for your business!
+Hamill - Dach

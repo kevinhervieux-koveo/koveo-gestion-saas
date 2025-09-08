@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A75D-2024-10-SECURITY-1
+Title: Security (1) - Marvin, Lind and Bergstrom
+Vendor: Rempel, Walter and Kuvalis
+Category: Security
+Total Amount: $2639.56
+Description: Monthly security service for April 2024 - Invoice 1
+
+Payment Amount: $2639.56
+Payment Date: 9/8/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-AO3WGBKX
+
+This payment has been processed successfully.
+Building Management Office

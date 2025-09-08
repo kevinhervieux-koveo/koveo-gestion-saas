@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A75D-2024-03-UTILITIES
+Title: Utilities  - Kunde, Bernier and Hills
+Vendor: Farrell, Lebsack and Leuschke
+Category: Utilities
+Total Amount: $4017.72
+Description: Monthly utilities service for September 2024
+
+Payment Amount: $4017.72
+Payment Date: 9/8/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-4EKSPYL4
+
+This payment has been processed successfully.
+Building Management Office

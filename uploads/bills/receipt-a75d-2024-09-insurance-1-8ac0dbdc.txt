@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A75D-2024-09-INSURANCE-1
+Title: Insurance (1) - Predovic Inc
+Vendor: Fay Inc
+Category: Insurance
+Total Amount: $4939.84
+Description: Monthly insurance service for June 2024 - Invoice 1
+
+Payment Amount: $4939.84
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-N9X7UXGY
+
+This payment has been processed successfully.
+Building Management Office

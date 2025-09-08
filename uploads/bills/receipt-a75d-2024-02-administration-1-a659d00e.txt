@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A75D-2024-02-ADMINISTRATION-1
+Title: Administration (1) - Kris - O'Keefe
+Vendor: Hills - Botsford
+Category: Administration
+Total Amount: $1267.32
+Description: Monthly administration service for January 2024 - Invoice 1
+
+Payment Amount: $1267.32
+Payment Date: 9/8/2025
+Payment Method: Check
+Reference Number: PAY-USV8ZBNZ
+
+This payment has been processed successfully.
+Building Management Office

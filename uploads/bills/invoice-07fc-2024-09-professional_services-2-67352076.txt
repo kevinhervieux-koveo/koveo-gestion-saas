@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 07FC-2024-09-PROFESSIONAL_SERVICES-2
+Title: Professional_services (2) - Lynch Inc
+Vendor: Raynor, Volkman and Lubowitz
+Category: Professional_services
+Total Amount: $3544.65
+Description: Monthly professional_services service for September 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 4/26/2026
+
+Service Details:
+- Velit demo acceptus astrum reprehenderit arguo aveho atque damnatio.
+- Maxime aestivus dicta aestus magni trado considero vita.
+
+Thank you for your business!
+Raynor, Volkman and Lubowitz

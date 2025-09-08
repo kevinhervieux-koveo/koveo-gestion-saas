@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A75D-2024-09-LANDSCAPING-2
+Title: Landscaping (2) - Goodwin - Hilpert
+Vendor: Bernier LLC
+Category: Landscaping
+Total Amount: $2068.62
+Description: Monthly landscaping service for May 2024 - Invoice 2
+
+Payment Amount: $2068.62
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-CCEK9CZS
+
+This payment has been processed successfully.
+Building Management Office

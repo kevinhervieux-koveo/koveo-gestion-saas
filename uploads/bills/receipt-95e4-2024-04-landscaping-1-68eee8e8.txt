@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 95E4-2024-04-LANDSCAPING-1
+Title: Landscaping (1) - Dietrich - Mueller
+Vendor: Bahringer - Mueller
+Category: Landscaping
+Total Amount: $913.39
+Description: Monthly landscaping service for February 2024 - Invoice 1
+
+Payment Amount: $913.39
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-UT3QJEYP
+
+This payment has been processed successfully.
+Building Management Office

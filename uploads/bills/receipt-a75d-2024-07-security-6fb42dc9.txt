@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A75D-2024-07-SECURITY
+Title: Security  - Mann, Little and Gutkowski
+Vendor: Collier, Schneider and Larkin
+Category: Security
+Total Amount: $1915.56
+Description: Monthly security service for September 2024
+
+Payment Amount: $1915.56
+Payment Date: 9/7/2025
+Payment Method: Check
+Reference Number: PAY-56287ARH
+
+This payment has been processed successfully.
+Building Management Office

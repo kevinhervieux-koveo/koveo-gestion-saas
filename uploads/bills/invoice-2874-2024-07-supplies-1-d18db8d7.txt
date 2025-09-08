@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 2874-2024-07-SUPPLIES-1
+Title: Supplies (1) - Harber - Murphy
+Vendor: Trantow - Jakubowski
+Category: Supplies
+Total Amount: $2039.76
+Description: Monthly supplies service for July 2024 - Invoice 1
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 4/17/2026
+
+Service Details:
+- Viridis fuga vulticulus nobis delectatio curia vomica dolores amita.
+- Talus culpo consuasor aspicio varius usque abeo tempora vereor tempus.
+
+Thank you for your business!
+Trantow - Jakubowski

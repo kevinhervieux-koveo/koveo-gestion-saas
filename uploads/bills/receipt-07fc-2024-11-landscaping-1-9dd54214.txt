@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 07FC-2024-11-LANDSCAPING-1
+Title: Landscaping (1) - Upton Group
+Vendor: Blick Inc
+Category: Landscaping
+Total Amount: $3644.45
+Description: Monthly landscaping service for July 2024 - Invoice 1
+
+Payment Amount: $3644.45
+Payment Date: 9/7/2025
+Payment Method: Check
+Reference Number: PAY-QGUYIZ4C
+
+This payment has been processed successfully.
+Building Management Office

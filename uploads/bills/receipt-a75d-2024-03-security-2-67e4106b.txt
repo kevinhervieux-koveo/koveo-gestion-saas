@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A75D-2024-03-SECURITY-2
+Title: Security (2) - Kunde, Dooley and Franey
+Vendor: Flatley - Grady
+Category: Security
+Total Amount: $573.34
+Description: Monthly security service for February 2024 - Invoice 2
+
+Payment Amount: $573.34
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-SRATCSOU
+
+This payment has been processed successfully.
+Building Management Office

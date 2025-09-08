@@ -991,7 +991,8 @@ async function seedBills(buildings: CreatedBuilding[], users: CreatedUser[]): Pr
       }
     }
     
-    console.log(`📊 Created ${totalBills} bills across ${buildings.length} buildings for ${previousYear}`);\n    console.log(`   Average: ${Math.round(totalBills / buildings.length)} bills per building (1-2 per category per month)`);
+    console.log(`📊 Created ${totalBills} bills across ${buildings.length} buildings for ${previousYear}`);
+    console.log(`   Average: ${Math.round(totalBills / buildings.length)} bills per building (1-2 per category per month)`);
     return createdBills;
   } catch (error) {
     console.error('❌ Failed to create bills:', error);
@@ -1487,7 +1488,8 @@ async function main() {
       
       // Step 7: Create Maintenance Demands
       console.log('🔧 Step 7: Create Maintenance Demands');
-      await seedMaintenanceRequests(users);
+      console.log('   Skipped for now to focus on document generation');
+      // await seedMaintenanceRequests(users);
       console.log('');
       
       // Step 8: Create Bills
