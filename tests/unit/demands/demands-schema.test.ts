@@ -9,7 +9,7 @@ import {
   insertDemandCommentSchema,
   demandTypeEnum,
   demandStatusEnum,
-} from '../../../shared/schema';
+} from '../../../shared/schemas/operations';
 
 describe('Demands Schema Validation Tests', () => {
   describe('insertDemandSchema', () => {
