@@ -807,18 +807,35 @@ function BillDetail({
   const { data: billDocuments = [], isLoading: documentsLoading } = useQuery({
     queryKey: ['/api/documents', 'bill', bill.id],
     queryFn: async () => {
+      console.log('[BILL DOCS] Fetching documents for bill:', bill.id);
       const response = await fetch(`/api/documents?attachedToType=bill&attachedToId=${bill.id}`, {
         credentials: 'include',
       });
+      console.log('[BILL DOCS] Response status:', response.status);
       if (!response.ok) {
+        console.error('[BILL DOCS] Request failed:', response.status, response.statusText);
         throw new Error('Failed to fetch bill documents');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('[BILL DOCS] Documents received:', data);
+      console.log('[BILL DOCS] Documents count:', data?.length || 0);
+      return data;
     },
   });
 
   // Use fresh bill data if available, fallback to props bill data
   const currentBill = freshBill || bill;
+  
+  // Debug logging for documents display
+  console.log('[BILL DOCS] Debug info:', {
+    billId: bill.id,
+    billNumber: currentBill.billNumber,
+    billDocuments: billDocuments,
+    documentsCount: billDocuments?.length || 0,
+    documentsLoading,
+    hasFilePath: !!currentBill.filePath,
+    shouldShowDocuments: (currentBill.filePath || billDocuments.length > 0)
+  });
   
   const [endDate, setEndDate] = useState(currentBill.endDate || '');
 
