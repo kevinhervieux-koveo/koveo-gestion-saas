@@ -1,0 +1,57 @@
+**Title:** Comprehensive Plan: Implement a Hierarchical, Card-Based Selection Flow
+
+**Overall Goal:**
+The primary objective is to replace traditional filter dropdowns for Organizations, Buildings, and Residences with a guided, card-based selection wizard. This will be implemented across the application to streamline user navigation and create a more intuitive experience. The system will use URL query parameters for state management and will intelligently auto-forward the user if only one selection option is available at any level.
+
+**Detailed Execution Plan:**
+
+**Step 1: Create the Core UI Component (`SelectionGrid.tsx`)**
+-   **File Location:** `src/components/common/SelectionGrid.tsx`
+-   **Description:** This will be a reusable React component for displaying a grid of selectable cards.
+-   **Props:**
+    -   `title: string`: A title to display above the grid (e.g., "Select an Organization").
+    -   `items: Array<{ id: string; name: string; details: string; type: 'organization' | 'building' | 'residence' }>`: Data for the cards. `details` will show secondary information like an address.
+    -   `onSelectItem: (id: string) => void`: Callback function for when a user clicks the selection button on a card.
+    -   `onBack: (() => void) | null`: Optional callback for a "Back" button. The button should not render if this prop is not provided.
+    -   `isLoading: boolean`: A flag to show a loading state.
+-   **UI & Behavior:**
+    -   Use the existing `Card` component from `@/components/ui/card`.
+    -   Each card should display the `item.name`, `item.details`, and a relevant icon from `lucide-react` based on the `item.type`.
+    -   Each card must have a `Button` labeled "Select" which triggers `onSelectItem`.
+    -   A "Back" button with a left-arrow icon should be present at the top right if `onBack` is provided.
+    -   Display a `LoadingSpinner` when `isLoading` is true.
+    -   Display the `NoDataCard` component if `items` is empty and `isLoading` is false.
+
+**Step 2: Create the Central Logic Handler (HOC: `withHierarchicalSelection.tsx`)**
+-   **File Location:** `src/components/hoc/withHierarchicalSelection.tsx`
+-   **Description:** This Higher-Order Component will contain the core logic for the selection flow. It will wrap page components.
+-   **Logic:**
+    -   Use `wouter` for routing and `@tanstack/react-query` for asynchronous data fetching.
+    -   The HOC must be configurable, accepting the page component and a configuration object defining the selection hierarchy (e.g., `{ hierarchy: ['organization', 'building'] }`).
+    -   **State Management:** Use URL query parameters (`organizationId`, `buildingId`, `residenceId`) to manage the state of the selection.
+    -   **Conditional Fetching & Rendering:**
+        1.  Check for `organizationId` in the URL. If absent, fetch the user's organizations from `/api/users/me/organizations`.
+        2.  **Auto-Forwarding:** If the API returns only **one** organization, automatically redirect by adding its ID to the URL query parameters.
+        3.  If multiple organizations are returned, render the `SelectionGrid` component to let the user choose.
+        4.  Once `organizationId` is present, repeat the process for `buildingId`, fetching from `/api/organizations/${organizationId}/buildings`.
+        5.  Continue this pattern for any subsequent levels defined in the `hierarchy` config.
+    -   **Final Render:** When all required IDs from the hierarchy are present in the URL, render the `WrappedComponent`, passing the IDs as props.
+    -   **Back Navigation:** The `onBack` function passed to `SelectionGrid` should navigate the user to the previous state by removing the last-added query parameter from the URL.
+
+**Step 3: Create a Necessary and Secure API Endpoint**
+-   **Endpoint:** `GET /api/organizations/:organizationId/buildings`
+-   **Description:** Create this new API endpoint to retrieve the buildings associated with a specific organization.
+-   **Security Requirements (Crucial):**
+    -   The endpoint MUST be protected and require an authenticated user.
+    -   The logic MUST perform an authorization check to ensure the authenticated user has permission to view the specified `organizationId` and its buildings. Return a 403 Forbidden error if they do not.
+    -   The query should only return buildings that the user is explicitly linked to.
+-   **Response Format:** Return a JSON array of building objects, each containing at least `{ id, name, address }`.
+
+**Step 4: Integrate and Refactor the Bills Page (`bills.tsx`)**
+-   **File Location:** `src/pages/manager/bills.tsx`
+-   **Description:** Refactor this page to serve as the first implementation of the new selection flow.
+-   **Implementation:**
+    1.  Import and wrap the `BillsPage` component with the `withHierarchicalSelection` HOC in the export statement: `export default withHierarchicalSelection(BillsPage, { hierarchy: ['organization', 'building'] });`
+    2.  Modify the `BillsPage` component to accept `organizationId` and `buildingId` as props.
+    3.  Update the `useQuery` hook inside `BillsPage` to use the `buildingId` prop for fetching filtered bill data: `GET /api/bills?buildingId=${buildingId}`.
+    4.  Remove the now-redundant "Bâtiment" filter UI from the page's JSX to avoid duplication. The other filters ("Catégorie", "Année", "Mois") should remain.
