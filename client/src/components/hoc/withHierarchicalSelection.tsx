@@ -184,16 +184,16 @@ export function withHierarchicalSelection<T extends object>(
       }
       
       if (currentLevel === 'building' && buildings.length === 1 && !buildingId) {
-        // Auto-forward if only one building
+        // Auto-forward if only one building (preserve organization)
         console.log('⚡ [HIERARCHY DEBUG] Auto-forwarding to building:', buildings[0].id);
-        navigate({ building: buildings[0].id });
+        navigate({ organization: organizationId, building: buildings[0].id });
         return;
       }
       
       if (currentLevel === 'residence' && residences.length === 1 && !residenceId) {
-        // Auto-forward if only one residence
+        // Auto-forward if only one residence (preserve organization and building)
         console.log('⚡ [HIERARCHY DEBUG] Auto-forwarding to residence:', residences[0].id);
-        navigate({ residence: residences[0].id });
+        navigate({ organization: organizationId, building: buildingId, residence: residences[0].id });
         return;
       }
     }, [organizations, buildings, residences, currentLevel, organizationId, buildingId, residenceId]);
@@ -207,10 +207,12 @@ export function withHierarchicalSelection<T extends object>(
         navigate({ organization: id });
       } else if (currentLevel === 'building') {
         console.log('✅ [HIERARCHY DEBUG] Selecting building:', id);
-        navigate({ building: id });
+        // Preserve organization when selecting building
+        navigate({ organization: organizationId, building: id });
       } else if (currentLevel === 'residence') {
         console.log('✅ [HIERARCHY DEBUG] Selecting residence:', id);
-        navigate({ residence: id });
+        // Preserve organization and building when selecting residence
+        navigate({ organization: organizationId, building: buildingId, residence: id });
       }
     };
 
