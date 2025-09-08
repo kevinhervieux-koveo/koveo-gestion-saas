@@ -943,27 +943,15 @@ function BillDetail({
                     size='sm'
                     onClick={async () => {
                       try {
-                        // Use fetch with credentials to ensure authentication
-                        const response = await fetch(`/api/documents/${doc.id}/file`, {
-                          method: 'GET',
-                          credentials: 'include', // Include authentication cookies
-                        });
-
-                        if (!response.ok) {
-                          throw new Error(`View failed: ${response.status} ${response.statusText}`);
+                        // Fixed: Direct window.open to API endpoint to respect Content-Disposition: inline
+                        const documentUrl = `/api/documents/${doc.id}/file`;
+                        const newWindow = window.open(documentUrl, '_blank');
+                        
+                        if (!newWindow) {
+                          // Fallback: if popup blocked, show error message
+                          console.error('Popup blocked - please allow popups for this site to view documents');
+                          // Could add toast notification here if desired
                         }
-
-                        // Convert response to blob and open in new tab
-                        const blob = await response.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        
-                        // Open in new tab
-                        window.open(url, '_blank');
-                        
-                        // Clean up the URL after a delay to allow the tab to load
-                        setTimeout(() => {
-                          window.URL.revokeObjectURL(url);
-                        }, 1000);
                         
                       } catch (error) {
                         console.error('View failed:', error);
