@@ -33,6 +33,7 @@ import {
   Bed,
   Bath,
   FileText,
+  ArrowLeft,
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
@@ -73,10 +74,15 @@ interface Residence {
 }
 
 
-/**
- *
- */
-function ManagerResidences() {
+interface ManagerResidencesProps {
+  organizationId?: string;
+  buildingId?: string;
+  showBackButton?: boolean;
+  backButtonLabel?: string;
+  onBack?: () => void;
+}
+
+function ManagerResidences({ organizationId, buildingId, showBackButton, backButtonLabel, onBack }: ManagerResidencesProps) {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -92,7 +98,7 @@ function ManagerResidences() {
     isLoading: residencesLoading,
     refetch,
   } = useQuery({
-    queryKey: ['/api/residences', searchTerm, selectedFloor],
+    queryKey: ['/api/residences', searchTerm, selectedFloor, buildingId],
     queryFn: async () => {
       const params = new URLSearchParams(); /**
        * If function.
@@ -104,21 +110,12 @@ function ManagerResidences() {
 
       if (searchTerm) {
         params.append('search', searchTerm);
-      } /**
-       * If function.
-       * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
-       */ /**
-       * If function.
-       * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
-       */
-
-      /**
-       * If function.
-       * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
-       */ /**
-       * If function.
-       * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
-       */
+      }
+      
+      // Filter by the selected building from hierarchy
+      if (buildingId) {
+        params.append('buildingId', buildingId);
+      }
 
       if (selectedFloor && selectedFloor !== 'all') {
         params.append('floor', selectedFloor);
@@ -198,6 +195,23 @@ function ManagerResidences() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title={t('residencesManagement')} subtitle={t('manageResidences')} />
+      
+      {showBackButton && onBack && (
+        <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+          <div className='flex items-center px-6 py-4'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={onBack}
+              className='flex items-center gap-2'
+              data-testid='button-back-to-selection'
+            >
+              <ArrowLeft className='w-4 h-4' />
+              {backButtonLabel || t('back')}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
