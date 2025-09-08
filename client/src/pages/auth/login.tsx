@@ -271,6 +271,7 @@ export default function LoginPage() {
         title: language === 'fr' ? 'Demo Mode Activé' : 'Demo Mode Activated',
         description:
           language === 'fr' ? `Connecté(e) en tant que ${userName}` : `Logged in as ${userName}`,
+        duration: 3000,
       });
     } catch (_error: unknown) {
       const errorMessage = (_error as Error).message || 'Demo login failed';
