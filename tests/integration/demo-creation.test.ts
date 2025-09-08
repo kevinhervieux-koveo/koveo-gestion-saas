@@ -258,7 +258,7 @@ describe('Demo Creation Script', () => {
     const content = await fs.readFile(scriptPath, 'utf-8');
     
     // Check for environment validation
-    expect(content).toContain('DATABASE_URL') || expect(content).toContain('process.env');
+    expect(content).toMatch(/(DATABASE_URL|process\.env)/);
   });
 
   test('script includes data seeding summary', async () => {
@@ -266,7 +266,7 @@ describe('Demo Creation Script', () => {
     const content = await fs.readFile(scriptPath, 'utf-8');
     
     // Check for summary/reporting
-    expect(content).toContain('total') || expect(content).toContain('summary') || expect(content).toContain('created');
+    expect(content).toMatch(/(total|summary|created)/);
   });
 
   test('script can run without breaking existing data', async () => {
@@ -274,7 +274,7 @@ describe('Demo Creation Script', () => {
     const content = await fs.readFile(scriptPath, 'utf-8');
     
     // Check for safe execution patterns
-    expect(content).toContain('exists') || expect(content).toContain('findFirst') || expect(content).toContain('upsert');
+    expect(content).toMatch(/(exists|findFirst|upsert)/);
   });
 });
 
@@ -365,8 +365,8 @@ describe('Demo Data Validation', () => {
     const endDate = new Date('2024-12-31');
     const testDate = new Date('2024-06-15');
     
-    expect(testDate).toBeGreaterThanOrEqual(startDate);
-    expect(testDate).toBeLessThanOrEqual(endDate);
+    expect(testDate.getTime()).toBeGreaterThanOrEqual(startDate.getTime());
+    expect(testDate.getTime()).toBeLessThanOrEqual(endDate.getTime());
   });
 
   test('file paths use direct user directories', () => {
