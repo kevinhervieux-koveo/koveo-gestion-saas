@@ -234,10 +234,39 @@ export function DocumentEditForm({
     setTextContent(textContent);
   };
 
-  const handleViewDocument = () => {
+  const handleViewDocument = async () => {
     if (document.filePath) {
-      // Open document in new tab for viewing
-      window.open(`/api/documents/${document.id}/file`, '_blank');
+      try {
+        // Use fetch with credentials to ensure authentication
+        const response = await fetch(`/api/documents/${document.id}/file`, {
+          method: 'GET',
+          credentials: 'include', // Include authentication cookies
+        });
+
+        if (!response.ok) {
+          throw new Error(`View failed: ${response.status} ${response.statusText}`);
+        }
+
+        // Convert response to blob and open in new tab
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        // Open in new tab
+        window.open(url, '_blank');
+        
+        // Clean up the URL after a delay to allow the tab to load
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 1000);
+        
+      } catch (error) {
+        console.error('View failed:', error);
+        toast({
+          title: 'View failed',
+          description: 'Failed to open document. Please try again.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 

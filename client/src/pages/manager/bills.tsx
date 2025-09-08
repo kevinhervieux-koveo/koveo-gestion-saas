@@ -1019,9 +1019,33 @@ function BillDetail({
                   <Button
                     variant='outline'
                     size='sm'
-                    onClick={() => {
-                      // View the document (open in new tab)
-                      window.open(`/api/documents/${doc.id}/file`, '_blank');
+                    onClick={async () => {
+                      try {
+                        // Use fetch with credentials to ensure authentication
+                        const response = await fetch(`/api/documents/${doc.id}/file`, {
+                          method: 'GET',
+                          credentials: 'include', // Include authentication cookies
+                        });
+
+                        if (!response.ok) {
+                          throw new Error(`View failed: ${response.status} ${response.statusText}`);
+                        }
+
+                        // Convert response to blob and open in new tab
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        
+                        // Open in new tab
+                        window.open(url, '_blank');
+                        
+                        // Clean up the URL after a delay to allow the tab to load
+                        setTimeout(() => {
+                          window.URL.revokeObjectURL(url);
+                        }, 1000);
+                        
+                      } catch (error) {
+                        console.error('View failed:', error);
+                      }
                     }}
                     className='flex items-center gap-1'
                     data-testid={`button-view-document-${doc.id}`}
@@ -1032,14 +1056,35 @@ function BillDetail({
                   <Button
                     variant='outline'
                     size='sm'
-                    onClick={() => {
-                      // Download the document
-                      const link = document.createElement('a');
-                      link.href = `/api/documents/${doc.id}/file?download=true`;
-                      link.download = doc.fileName || doc.name;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
+                    onClick={async () => {
+                      try {
+                        // Use fetch with credentials to ensure authentication
+                        const response = await fetch(`/api/documents/${doc.id}/file?download=true`, {
+                          method: 'GET',
+                          credentials: 'include', // Include authentication cookies
+                        });
+
+                        if (!response.ok) {
+                          throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+                        }
+
+                        // Convert response to blob and create download
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = doc.fileName || doc.name || 'document';
+                        document.body.appendChild(link);
+                        link.click();
+                        
+                        // Clean up
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                        
+                      } catch (error) {
+                        console.error('Download failed:', error);
+                      }
                     }}
                     className='flex items-center gap-1'
                     data-testid={`button-download-document-${doc.id}`}

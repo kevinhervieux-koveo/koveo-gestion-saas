@@ -90,10 +90,35 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
     }
   };
 
-  const handleView = () => {
+  const handleView = async () => {
     if (document?.filePath) {
-      // Open document in new tab for viewing
-      window.open(`/api/documents/${documentId}/file`, '_blank');
+      try {
+        // Use fetch with credentials to ensure authentication
+        const response = await fetch(`/api/documents/${documentId}/file`, {
+          method: 'GET',
+          credentials: 'include', // Include authentication cookies
+        });
+
+        if (!response.ok) {
+          throw new Error(`View failed: ${response.status} ${response.statusText}`);
+        }
+
+        // Convert response to blob and open in new tab
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        // Open in new tab
+        window.open(url, '_blank');
+        
+        // Clean up the URL after a delay to allow the tab to load
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 1000);
+        
+      } catch (error) {
+        console.error('View failed:', error);
+        // Show error notification if available
+      }
     }
   };
 
