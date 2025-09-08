@@ -187,8 +187,8 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
-  // Use buildingId from hierarchy if available, otherwise use local state for backward compatibility
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string>(buildingId || '');
+  // Always use buildingId from hierarchy
+  const selectedBuildingId = buildingId || '';
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
   const [restrictionDialogOpen, setRestrictionDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
@@ -239,12 +239,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
     navigate(`/manager/common-spaces-stats?organization=${organizationId}`);
   };
 
-  // Update selectedBuildingId when buildingId prop changes
-  useEffect(() => {
-    if (buildingId && buildingId !== selectedBuildingId) {
-      setSelectedBuildingId(buildingId);
-    }
-  }, [buildingId, selectedBuildingId]);
+  // Remove effect since we're always using buildingId directly
 
   // Fetch buildings accessible to the manager (filtered by organization if provided)
   const { data: buildingsResponse, isLoading: buildingsLoading } = useQuery<{
@@ -905,30 +900,23 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div className='space-y-2'>
-                <label className='text-sm font-medium' data-testid='building-select-label'>
-                  {language === 'fr' ? 'Bâtiment' : 'Building'}
-                </label>
-                <Select value={selectedBuildingId} onValueChange={setSelectedBuildingId}>
-                  <SelectTrigger data-testid='building-select'>
-                    <SelectValue
-                      placeholder={
-                        language === 'fr' ? 'Sélectionnez un bâtiment' : 'Select a building'
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {buildings.map((building) => (
-                      <SelectItem key={building.id} value={building.id}>
-                        {building.name} - {building.address}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {/* Show selected building (read-only) */}
+            {selectedBuildingId && (
+              <div className='mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg'>
+                <div className='text-sm font-medium text-blue-800 mb-1'>
+                  {language === 'fr' ? 'Bâtiment sélectionné' : 'Selected Building'}
+                </div>
+                <div className='text-blue-700'>
+                  {buildings.find(b => b.id === selectedBuildingId)?.name || 'Loading...'}
+                  {buildings.find(b => b.id === selectedBuildingId)?.address && 
+                    ` - ${buildings.find(b => b.id === selectedBuildingId)?.address}`
+                  }
+                </div>
               </div>
-
-              <div className='space-y-2'>
+            )}
+            
+            {/* Common Space Selection */}
+            <div className='space-y-2'>
                 <label className='text-sm font-medium' data-testid='space-select-label'>
                   {language === 'fr' ? 'Espace commun' : 'Common Space'}
                 </label>
@@ -955,7 +943,6 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
             </div>
           </CardContent>
         </Card>
