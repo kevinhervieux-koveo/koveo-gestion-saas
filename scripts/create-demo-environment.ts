@@ -1175,12 +1175,26 @@ Building Management Office`;
       const filePath = `bills/${docType}-${bill.billNumber.toLowerCase()}-${bill.id.slice(0, 8)}.txt`;
       const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
       
+      // Map bill category to appropriate document type
+      const documentTypeMapping: { [key: string]: string } = {
+        'utilities': 'utilities',
+        'maintenance': 'maintenance', 
+        'insurance': 'insurance',
+        'cleaning': 'maintenance',
+        'security': 'other',
+        'landscaping': 'maintenance',
+        'professional_services': 'other',
+        'administration': 'other',
+        'supplies': 'other'
+      };
+      const billDocumentType = documentTypeMapping[bill.category] || 'other';
+
       await db
         .insert(schema.documents)
         .values({
           name: `${isInvoice ? 'Invoice' : 'Receipt'} - ${bill.billNumber}`,
           description: `${isInvoice ? 'Invoice' : 'Payment receipt'} for ${bill.title}`,
-          documentType: 'financial',
+          documentType: billDocumentType,
           filePath,
           fileName: `${docType}-${bill.billNumber}.txt`,
           fileSize,
