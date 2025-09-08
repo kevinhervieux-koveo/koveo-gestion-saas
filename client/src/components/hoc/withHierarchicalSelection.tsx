@@ -55,9 +55,9 @@ export function withHierarchicalSelection<T extends object>(
     
     // Parse URL query parameters
     const urlParams = new URLSearchParams(location.split('?')[1] || '');
-    const organizationId = urlParams.get('organizationId');
-    const buildingId = urlParams.get('buildingId');
-    const residenceId = urlParams.get('residenceId');
+    const organizationId = urlParams.get('organization');
+    const buildingId = urlParams.get('building');
+    const residenceId = urlParams.get('residence');
 
     // Determine current selection level
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
@@ -110,19 +110,19 @@ export function withHierarchicalSelection<T extends object>(
     React.useEffect(() => {
       if (currentLevel === 'organization' && organizations.length === 1 && !organizationId) {
         // Auto-forward if only one organization
-        navigate({ organizationId: organizations[0].id });
+        navigate({ organization: organizations[0].id });
         return;
       }
       
       if (currentLevel === 'building' && buildings.length === 1 && !buildingId) {
         // Auto-forward if only one building
-        navigate({ buildingId: buildings[0].id });
+        navigate({ building: buildings[0].id });
         return;
       }
       
       if (currentLevel === 'residence' && residences.length === 1 && !residenceId) {
         // Auto-forward if only one residence
-        navigate({ residenceId: residences[0].id });
+        navigate({ residence: residences[0].id });
         return;
       }
     }, [organizations, buildings, residences, currentLevel, organizationId, buildingId, residenceId]);
@@ -130,20 +130,20 @@ export function withHierarchicalSelection<T extends object>(
     // Handle selection
     const handleSelection = (id: string) => {
       if (currentLevel === 'organization') {
-        navigate({ organizationId: id });
+        navigate({ organization: id });
       } else if (currentLevel === 'building') {
-        navigate({ buildingId: id });
+        navigate({ building: id });
       } else if (currentLevel === 'residence') {
-        navigate({ residenceId: id });
+        navigate({ residence: id });
       }
     };
 
     // Handle back navigation
     const handleBack = () => {
       if (currentLevel === 'building') {
-        navigate({ organizationId: null, buildingId: null, residenceId: null });
+        navigate({ organization: null, building: null, residence: null });
       } else if (currentLevel === 'residence') {
-        navigate({ buildingId: null, residenceId: null });
+        navigate({ building: null, residence: null });
       }
     };
 
