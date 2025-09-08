@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+SERVICE CONTRACT (1)
+
+Building: 19587 Danial Springs Building 2
+Organization: 1d81905d-e1f0-454c-b128-35c99c7fa4ff
+Document Date: 9/7/2025
+Document 1 of 2
+
+SERVICE CONTRACT
+
+Contract Number: CON-DAGILRAE
+Service Provider: Turcotte and Sons
+Service Type: Maintenance
+Contract Period: 5/13/2025 to 3/3/2026
+Monthly Cost: $2810
+
+Service Details:
+Aedificium clam super conturbo tutamen credo. Subnecto tergum tardus. Viscus succedo articulus suppono creo cenaculum.
+
+Contact Information:
+Manager: Tiffany Weimann
+Phone: (438) 690-9243
+Emergency Contact: (873) 905-1965
+
+Terms and Conditions:
+- Vos veniam at advenio concido denuo corporis carpo.
+- Adipiscor aveho conservo cornu dedico depraedor.

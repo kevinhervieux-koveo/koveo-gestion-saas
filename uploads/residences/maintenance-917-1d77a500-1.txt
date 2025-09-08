@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 917
+Building: 106 McLaughlin Lane Building 4
+Address: 9078 Lesley Prairie
+Document 1 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 917:
+
+10/31/2024 - Plumbing repair
+Status: Completed
+Cost: $428
+
+9/7/2025 - Light fixture repair
+Status: In Progress
+Estimated Cost: $492
+
+Next Scheduled Maintenance: 11/14/2025

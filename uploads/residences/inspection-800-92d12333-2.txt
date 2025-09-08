@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 800
+Building: 19587 Danial Springs Building 2
+Address: 52126 Destiney Forges
+Document 2 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Lorena Boyle
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Fair
+
+Notes:
+Conatus armarium vestigium deinde comminor quidem vulnus aer dolorum. Sopor vicissitudo urbanus celer tempora absque autus spiculum. Trado voveo arbustum corrupti.
+
+Inspector Signature: ____________________

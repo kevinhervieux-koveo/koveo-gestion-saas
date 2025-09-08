@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 294
+Building: 6380 A Street Building 5
+Address: 30636 Coronation Road
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 294
+- Lease Start Date: 3/26/2025
+- Lease End Date: 1/12/2026
+- Monthly Rent: $1335
+- Security Deposit: $1952
+
+Terms and Conditions:
+- Causa aeternus utique blandior territo censura arbustum.
+- Delectus defessus custodia deduco testimonium error articulus volutabrum clementia benigne.
+
+Landlord: 6380 A Street Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

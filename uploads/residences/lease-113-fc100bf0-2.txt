@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 113
+Building: 77484 Rosalind Park Building 3
+Address: 3853 Chadd Street
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 113
+- Lease Start Date: 5/15/2025
+- Lease End Date: 2/18/2026
+- Monthly Rent: $810
+- Security Deposit: $866
+
+Terms and Conditions:
+- Sono trucido trans facere vitium tunc appositus vomer corporis.
+- Currus conturbo nesciunt calamitas cimentarius tamquam bellum tenax asperiores ipsum.
+
+Landlord: 77484 Rosalind Park Building 3 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

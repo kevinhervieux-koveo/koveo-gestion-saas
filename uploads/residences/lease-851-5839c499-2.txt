@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 851
+Building: 19587 Danial Springs Building 2
+Address: 1203 Kovacek Cliff
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 851
+- Lease Start Date: 3/27/2025
+- Lease End Date: 12/16/2025
+- Monthly Rent: $2115
+- Security Deposit: $1644
+
+Terms and Conditions:
+- Tersus delego delibero reiciendis crustulum patruus coaegresco.
+- Conqueror traho sollicito libero tutamen.
+
+Landlord: 19587 Danial Springs Building 2 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 500
+Building: 77484 Rosalind Park Building 3
+Address: 355 Washington Road
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 500
+- Lease Start Date: 4/17/2025
+- Lease End Date: 4/30/2026
+- Monthly Rent: $1664
+- Security Deposit: $1481
+
+Terms and Conditions:
+- Denuo utilis validus voveo.
+- Surgo tumultus aurum vita substantia abundans degusto truculenter adamo subvenio.
+
+Landlord: 77484 Rosalind Park Building 3 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

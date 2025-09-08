@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 12BE-2024-06-INSURANCE
+Title: Insurance  - Bechtelar, Pollich and Hoppe
+Vendor: Baumbach - Rau
+Category: Insurance
+Total Amount: $4292.67
+Description: Monthly insurance service for May 2024
+
+Payment Amount: $4292.67
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-02YI7DIU
+
+This payment has been processed successfully.
+Building Management Office

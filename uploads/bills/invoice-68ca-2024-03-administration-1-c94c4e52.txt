@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 68CA-2024-03-ADMINISTRATION-1
+Title: Administration (1) - Moen, Cummerata and Kutch
+Vendor: Ledner - Hane
+Category: Administration
+Total Amount: $2383.39
+Description: Monthly administration service for September 2024 - Invoice 1
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 11/30/2025
+
+Service Details:
+- Vox sint admitto verto ademptio.
+- Ara brevis conspergo crustulum averto animadverto sequi tergo.
+
+Thank you for your business!
+Ledner - Hane

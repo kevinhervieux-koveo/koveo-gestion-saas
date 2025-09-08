@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 732
+Building: 77484 Rosalind Park Building 3
+Address: 721 N Railroad Street
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 732
+- Lease Start Date: 12/9/2024
+- Lease End Date: 7/30/2026
+- Monthly Rent: $1652
+- Security Deposit: $2044
+
+Terms and Conditions:
+- Sumo terra caries tolero aut.
+- Decens aestivus defaeco volubilis depopulo denuncio depulso.
+
+Landlord: 77484 Rosalind Park Building 3 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

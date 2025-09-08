@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 12BE-2024-09-PROFESSIONAL_SERVICES-2
+Title: Professional_services (2) - Skiles, Reinger and Heathcote
+Vendor: Kirlin, Mills and Bernhard
+Category: Professional_services
+Total Amount: $1563.93
+Description: Monthly professional_services service for February 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 5/5/2026
+
+Service Details:
+- Asperiores sperno theologus virtus pecto optio et.
+- Sumptus distinctio considero cursim vapulus aliquid adnuo defendo.
+
+Thank you for your business!
+Kirlin, Mills and Bernhard

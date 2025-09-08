@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 12BE-2024-12-ADMINISTRATION-2
+Title: Administration (2) - Kshlerin LLC
+Vendor: Bernier Group
+Category: Administration
+Total Amount: $943.54
+Description: Monthly administration service for January 2024 - Invoice 2
+
+Payment Amount: $943.54
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-4RJM3Q0F
+
+This payment has been processed successfully.
+Building Management Office

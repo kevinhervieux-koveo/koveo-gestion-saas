@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 12BE-2024-02-UTILITIES-1
+Title: Utilities (1) - Kreiger, Crist and Mitchell
+Vendor: Pollich Inc
+Category: Utilities
+Total Amount: $3921.43
+Description: Monthly utilities service for March 2024 - Invoice 1
+
+Payment Amount: $3921.43
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-L0BQLWDJ
+
+This payment has been processed successfully.
+Building Management Office

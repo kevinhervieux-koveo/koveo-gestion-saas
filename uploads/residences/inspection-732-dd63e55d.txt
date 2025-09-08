@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 732
+Building: 77484 Rosalind Park Building 3
+Address: 1697 Schoen Gardens
+Document 1 of 1
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Esther Buckridge
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Good
+
+Notes:
+Coaegresco apto cogito aperiam antiquus reiciendis theatrum iure. Corrigo sapiente utpote a quam virtus deprimo ab cribro. Deprimo bos audeo suscipit cunabula caste adaugeo cetera vel.
+
+Inspector Signature: ____________________
