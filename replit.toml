@@ -1,0 +1,18 @@
+# The command that runs when the "Run" button is clicked.
+run = "npm run dev:force"
+
+# The entry point of your application.
+entrypoint = "server/index.ts"
+
+# Language configuration
+language = "nodejs"
+
+# Configuration for the Replit environment
+[env]
+NODE_ENV = "development"
+
+# Add pre-deployment validation and testing scripts here
+[deployment]
+run = ["npm install", "npm run build"]
+# You can add a pre-deployment hook to run tests
+# before_deploy = ["npm test"]
