@@ -357,9 +357,6 @@ export function registerBuildingRoutes(app: Express): void {
       // Check for organizationId filter parameter
       const organizationIdFilter = req.query.organizationId as string;
       
-      console.log(
-        `📊 Fetching buildings${organizationIdFilter ? ` for organization ${organizationIdFilter}` : ' (all)'} by user ${req.session?.userId} with role ${req.session?.user?.role || req.user?.role}`
-      );
       
       // Use session data directly for now
       let currentUser = req.user || req.session?.user;
@@ -617,9 +614,6 @@ export function registerBuildingRoutes(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
-      console.log(
-        `✅ Found ${buildingsWithStats.length} buildings for user ${currentUser.id}${organizationIdFilter ? ` in organization ${organizationIdFilter}` : ''}`
-      );
 
       res.json({
         buildings: buildingsWithStats,
