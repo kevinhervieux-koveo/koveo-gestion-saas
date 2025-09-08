@@ -609,7 +609,7 @@ async function seedUsers(
     console.log('👥 Creating users with role-based assignments...');
     
     const users: CreatedUser[] = [];
-    const hashedPassword = await bcrypt.hash('Password123!', 10);
+    const hashedPassword = await bcrypt.hash('demo123456', 10);
     
     // Create managers (1-2 per building) with residence and building assignments
     console.log('   Creating managers...');
