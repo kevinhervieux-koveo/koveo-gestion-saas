@@ -93,6 +93,14 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
   const handleView = async () => {
     if (document?.filePath) {
       try {
+        console.log('[VIEW] Starting view for document:', documentId);
+        
+        // Open a new tab immediately to avoid popup blocking
+        const newTab = window.open('about:blank', '_blank');
+        if (!newTab) {
+          throw new Error('Popup blocked - please allow popups for this site');
+        }
+        
         // Use fetch with credentials to ensure authentication
         const response = await fetch(`/api/documents/${documentId}/file`, {
           method: 'GET',
@@ -100,24 +108,28 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
         });
 
         if (!response.ok) {
+          newTab.close();
           throw new Error(`View failed: ${response.status} ${response.statusText}`);
         }
 
-        // Convert response to blob and open in new tab
+        // Convert response to blob and set it as the new tab's location
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         
-        // Open in new tab
-        window.open(url, '_blank');
+        // Set the blob URL to the opened tab
+        newTab.location.href = url;
         
         // Clean up the URL after a delay to allow the tab to load
         setTimeout(() => {
           window.URL.revokeObjectURL(url);
-        }, 1000);
+        }, 3000);
+        
+        console.log('[VIEW] View completed successfully');
         
       } catch (error) {
-        console.error('View failed:', error);
+        console.error('[VIEW] View failed:', error);
         // Show error notification if available
+        alert(`Failed to open document: ${error.message}`);
       }
     }
   };
