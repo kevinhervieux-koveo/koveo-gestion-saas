@@ -776,8 +776,6 @@ function BillDetail({
     console.log('[BILL DOCS] Found documents:', billDocuments.length, 'for bill:', currentBill.billNumber);
   }
   
-  const [endDate, setEndDate] = useState(currentBill.endDate || '');
-
   const updateBillMutation = useMutation({
     mutationFn: async (updates: Partial<Bill>) => {
       const response = await fetch(`/api/bills/${bill.id}`, {
@@ -801,11 +799,6 @@ function BillDetail({
     },
   });
 
-  const handleSetEndDate = () => {
-    if (endDate) {
-      updateBillMutation.mutate({ endDate });
-    }
-  };
 
 
   return (
@@ -865,26 +858,6 @@ function BillDetail({
         </div>
       )}
 
-      {/* End Date Management for Recurrent Bills */}
-      {currentBill.paymentType === 'recurrent' && (
-        <div className='border-t pt-4'>
-          <Label className='text-sm font-medium'>Recurrence End Date</Label>
-          <div className='flex items-center gap-2 mt-2'>
-            <Input
-              type='date'
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className='w-48'
-            />
-            <Button onClick={handleSetEndDate} disabled={updateBillMutation.isPending} size='sm'>
-              {updateBillMutation.isPending ? 'Setting...' : 'Set End Date'}
-            </Button>
-          </div>
-          <p className='text-xs text-gray-500 mt-1'>
-            Setting an end date will stop auto-generation of future bills after this date.
-          </p>
-        </div>
-      )}
 
       {/* Costs Breakdown */}
       {currentBill.costs && currentBill.costs.length > 1 && (

@@ -637,6 +637,24 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 )}
               />
 
+              {/* End Date for Recurrent Bills */}
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Recurrence End Date (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Setting an end date will stop auto-generation of future bills after this date.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {schedulePayment === 'custom' && (
                 <Card>
                   <CardHeader>
