@@ -842,20 +842,41 @@ async function seedMaintenanceRequests(users: CreatedUser[]): Promise<void> {
     let totalDemands = 0;
     
     for (const resident of residents) {
-      for (let i = 0; i < DEMANDS_PER_RESIDENT; i++) {
+      // Create 2-3 demands per resident randomly
+      const demandsToCreate = Math.floor(Math.random() * 2) + 2; // Random 2-3
+      
+      for (let i = 0; i < demandsToCreate; i++) {
         const category = MAINTENANCE_CATEGORIES[Math.floor(Math.random() * MAINTENANCE_CATEGORIES.length)];
         const priority = ['low', 'medium', 'high'][Math.floor(Math.random() * 3)];
+        const demandType = ['maintenance', 'complaint', 'information'][Math.floor(Math.random() * 3)];
         
-        await db
+        // Insert the demand
+        const [demand] = await db
           .insert(schema.demands)
           .values({
             submitterId: resident.id,
-            type: 'maintenance',
+            type: demandType as any,
             description: `${category} issue: ${faker.lorem.sentence()}. ${faker.lorem.sentences(2)}`,
             buildingId: resident.buildingId!,
             residenceId: resident.residenceId,
             status: ['submitted', 'under_review', 'in_progress', 'completed'][Math.floor(Math.random() * 4)] as any
-          });
+          })
+          .returning();
+        
+        // Add a comment to the demand
+        const managers = users.filter(user => user.role.includes('manager') && user.buildingId === resident.buildingId);
+        const randomManager = managers.length > 0 ? managers[Math.floor(Math.random() * managers.length)] : users.find(u => u.role.includes('manager'));
+        
+        if (randomManager) {
+          await db
+            .insert(schema.demandsComments)
+            .values({
+              demandId: demand.id,
+              authorId: randomManager.id,
+              content: `Thank you for reporting this ${demandType}. We have received your request and will address it accordingly. ${faker.lorem.sentence()}`,
+              createdAt: new Date(Date.now() + Math.random() * 86400000) // Random time within 24 hours
+            });
+        }
         
         totalDemands++;
       }
