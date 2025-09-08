@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 9125-2024-02-ADMINISTRATION-1
+Title: Administration (1) - Ritchie - Bogisich
+Vendor: Kozey - Price
+Category: Administration
+Total Amount: $2567.55
+Description: Monthly administration service for August 2024 - Invoice 1
+
+Payment Amount: $2567.55
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-TF0YSUZY
+
+This payment has been processed successfully.
+Building Management Office
