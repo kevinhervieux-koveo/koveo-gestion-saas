@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 4CDE-2024-04-001
+Title: Administration - Stark LLC
+Vendor: Donnelly - Stoltenberg
+Category: Administration
+Total Amount: $736.35
+Description: Monthly administration service for December 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 10/14/2025
+
+Service Details:
+- Canonicus urbs tardus eligendi usitas terga speculum pecco consequuntur causa.
+- Terror deporto vigilo perspiciatis exercitationem terra contra consequuntur utroque arguo.
+
+Thank you for your business!
+Donnelly - Stoltenberg

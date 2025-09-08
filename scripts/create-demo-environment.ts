@@ -312,7 +312,7 @@ async function seedBuildings(organizationId: string): Promise<{ buildings: Creat
   try {
     console.log(`🔍 Checking buildings for organization ID: ${organizationId}`);
     
-    // Check for existing buildings in this organization
+    // Check for existing ACTIVE buildings in this organization
     const existingBuildings = await db
       .select({
         id: schema.buildings.id,
@@ -320,7 +320,12 @@ async function seedBuildings(organizationId: string): Promise<{ buildings: Creat
         organizationId: schema.buildings.organizationId
       })
       .from(schema.buildings)
-      .where(eq(schema.buildings.organizationId, organizationId));
+      .where(
+        and(
+          eq(schema.buildings.organizationId, organizationId),
+          eq(schema.buildings.isActive, true)
+        )
+      );
     
     const maxBuildings = 5; // Maximum buildings per organization
     const buildingsToCreate = Math.max(0, maxBuildings - existingBuildings.length);
@@ -408,13 +413,30 @@ async function seedResidences(buildings: CreatedBuilding[], newBuildingsOnly: bo
       // Check if this building already has residences (if we only want new buildings)
       if (newBuildingsOnly) {
         const existingResidences = await db
-          .select({ id: schema.residences.id })
+          .select({
+            id: schema.residences.id,
+            unitNumber: schema.residences.unitNumber,
+            buildingId: schema.residences.buildingId
+          })
           .from(schema.residences)
-          .where(eq(schema.residences.buildingId, building.id))
-          .limit(1);
+          .where(
+            and(
+              eq(schema.residences.buildingId, building.id),
+              eq(schema.residences.isActive, true)
+            )
+          );
         
         if (existingResidences.length > 0) {
-          console.log(`   Building ${building.name} already has residences, skipping...`);
+          console.log(`   Building ${building.name} already has residences, adding ${existingResidences.length} existing residences...`);
+          // Add existing residences to the array
+          for (const residence of existingResidences) {
+            residences.push({
+              id: residence.id,
+              unitNumber: residence.unitNumber,
+              buildingId: residence.buildingId,
+              buildingName: building.name
+            });
+          }
           continue;
         }
       }
@@ -1430,6 +1452,9 @@ async function main() {
     console.log('');
     
     // Only create additional data if we have new buildings or this is the first run
+    let users: CreatedUser[] = [];
+    let bills: any[] = [];
+    
     if (newBuildingsCreated > 0 || buildings.length <= 5) {
       // Step 4: Create Common Spaces
       console.log('🏛️ Step 4: Create Common Spaces');
@@ -1438,7 +1463,7 @@ async function main() {
       
       // Step 5: Create Users
       console.log('👥 Step 5: Create Users');
-      const users = await seedUsers(args.type, organization.id, buildings, residences);
+      users = await seedUsers(args.type, organization.id, buildings, residences);
       console.log('');
       
       // Step 6: Create Bookings
@@ -1453,7 +1478,7 @@ async function main() {
       
       // Step 8: Create Bills
       console.log('💰 Step 8: Create Bills');
-      const bills = await seedBills(buildings, users);
+      bills = await seedBills(buildings, users);
       console.log('');
       
       // Step 9: Create Documents

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 1370-2024-10-002
+Title: Maintenance - Stoltenberg and Sons
+Vendor: Kuhlman, Mueller and Wintheiser
+Category: Maintenance
+Total Amount: $634.23
+Description: Monthly maintenance service for August 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 3/7/2026
+
+Service Details:
+- A coerceo audio xiphias hic cado supplanto statim.
+- Commemoro apud vacuus civitas corrupti sperno tener vero textus tollo.
+
+Thank you for your business!
+Kuhlman, Mueller and Wintheiser
