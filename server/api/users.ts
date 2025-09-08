@@ -1237,49 +1237,99 @@ export function registerUserRoutes(app: Express): void {
       // For residents and tenants, get buildings through their residences  
       if (req.user.role === 'resident' || req.user.role === 'tenant' || 
           req.user.role === 'demo_resident' || req.user.role === 'demo_tenant') {
-        const residencesQuery = `
-          SELECT DISTINCT b.id, b.name, b.address, b.city, b.state, b.postal_code, b.organization_id
-          FROM user_residences ur
-          JOIN residences r ON ur.residence_id = r.id
-          JOIN buildings b ON r.building_id = b.id
-          WHERE ur.user_id = $1
-          ORDER BY b.name
-        `;
-
-        const result = await req.db.query(residencesQuery, [userId]);
-        console.log(`✅ [BUILDINGS] Found ${result.rows.length} accessible buildings for user ${userId}`);
         
-        return res.json(result.rows);
+        // Get user's residences with building information using Drizzle
+        const userResidences = await db
+          .select({
+            residenceId: schema.userResidences.residenceId,
+            buildingId: schema.residences.buildingId,
+          })
+          .from(schema.userResidences)
+          .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+          .where(and(
+            eq(schema.userResidences.userId, userId),
+            eq(schema.userResidences.isActive, true),
+            eq(schema.residences.isActive, true)
+          ));
+        
+        if (!userResidences || userResidences.length === 0) {
+          console.log(`⚠️ [BUILDINGS] No residences found for user ${userId}`);
+          return res.json([]);
+        }
+
+        // Get unique building IDs from user's residences
+        const buildingIds = [...new Set(userResidences.map(ur => ur.buildingId).filter(Boolean))];
+        
+        if (buildingIds.length === 0) {
+          console.log(`⚠️ [BUILDINGS] No buildings found for user ${userId}`);
+          return res.json([]);
+        }
+
+        // Fetch building details
+        const buildingDetails = await db
+          .select({
+            id: schema.buildings.id,
+            name: schema.buildings.name,
+            address: schema.buildings.address,
+            city: schema.buildings.city,
+            state: schema.buildings.province, // Map province to state for consistency
+            postal_code: schema.buildings.postalCode,
+            organization_id: schema.buildings.organizationId,
+          })
+          .from(schema.buildings)
+          .where(and(
+            inArray(schema.buildings.id, buildingIds),
+            eq(schema.buildings.isActive, true)
+          ))
+          .orderBy(schema.buildings.name);
+
+        console.log(`✅ [BUILDINGS] Found ${buildingDetails.length} accessible buildings for user ${userId}`);
+        return res.json(buildingDetails);
       }
 
       // For managers and admins, get all buildings they manage/admin
-      const userOrgsQuery = `
-        SELECT DISTINCT organization_id 
-        FROM user_organizations 
-        WHERE user_id = $1
-      `;
-      const orgResult = await req.db.query(userOrgsQuery, [userId]);
-      const orgIds = orgResult.rows.map(row => row.organization_id);
+      const userOrgs = await db
+        .select({ organizationId: schema.userOrganizations.organizationId })
+        .from(schema.userOrganizations)
+        .where(eq(schema.userOrganizations.userId, userId));
+
+      const orgIds = userOrgs.map(org => org.organizationId);
 
       if (orgIds.length === 0) {
         console.log(`⚠️ [BUILDINGS] No organizations found for user ${userId}`);
         return res.json([]);
       }
 
-      const buildingsQuery = `
-        SELECT DISTINCT b.id, b.name, b.address, b.city, b.state, b.postal_code, b.organization_id,
-               COUNT(r.id) as residence_count
-        FROM buildings b
-        LEFT JOIN residences r ON b.id = r.building_id
-        WHERE b.organization_id = ANY($1)
-        GROUP BY b.id, b.name, b.address, b.city, b.state, b.postal_code, b.organization_id
-        ORDER BY b.name
-      `;
+      const buildingDetails = await db
+        .select({
+          id: schema.buildings.id,
+          name: schema.buildings.name,
+          address: schema.buildings.address,
+          city: schema.buildings.city,
+          state: schema.buildings.province,
+          postal_code: schema.buildings.postalCode,
+          organization_id: schema.buildings.organizationId,
+          residence_count: count(schema.residences.id),
+        })
+        .from(schema.buildings)
+        .leftJoin(schema.residences, eq(schema.buildings.id, schema.residences.buildingId))
+        .where(and(
+          inArray(schema.buildings.organizationId, orgIds),
+          eq(schema.buildings.isActive, true)
+        ))
+        .groupBy(
+          schema.buildings.id,
+          schema.buildings.name,
+          schema.buildings.address,
+          schema.buildings.city,
+          schema.buildings.province,
+          schema.buildings.postalCode,
+          schema.buildings.organizationId
+        )
+        .orderBy(schema.buildings.name);
 
-      const result = await req.db.query(buildingsQuery, [orgIds]);
-      console.log(`✅ [BUILDINGS] Found ${result.rows.length} buildings for user ${userId} in ${orgIds.length} organizations`);
-      
-      res.json(result.rows);
+      console.log(`✅ [BUILDINGS] Found ${buildingDetails.length} buildings for user ${userId} in ${orgIds.length} organizations`);
+      res.json(buildingDetails);
 
     } catch (error) {
       console.error('❌ [BUILDINGS] Error fetching user buildings:', error);
