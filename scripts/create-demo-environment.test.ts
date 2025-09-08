@@ -44,7 +44,7 @@ describe('create-demo-environment.ts', () => {
     expect(scriptContent).toContain('production');
   });
 
-  test('should have comprehensive database schema imports', async () => {
+  test('should have comprehensive database schema imports and Unicode fixes', async () => {
     // Ensure all required schema imports are present
     const fs = await import('fs');
     const path = await import('path');
@@ -58,6 +58,12 @@ describe('create-demo-environment.ts', () => {
     expect(scriptContent).toContain("from '../shared/schema'");
     expect(scriptContent).toContain('@faker-js/faker');
     expect(scriptContent).toContain('bcryptjs');
+    
+    // Check for Unicode encoding fixes
+    expect(scriptContent).not.toContain('✓'); // No Unicode checkmarks
+    expect(scriptContent).not.toContain('⚠️'); // No Unicode warning symbols
+    expect(scriptContent).toContain('+ Electrical systems'); // ASCII alternatives
+    expect(scriptContent).toContain('================================================================'); // ASCII separators
   });
 
   test('should have main seeding functions defined', async () => {
@@ -141,7 +147,7 @@ describe('create-demo-environment.ts', () => {
     expect(scriptContent).toContain('pool.end()');
   });
 
-  test('should have realistic data generation with proper categories', async () => {
+  test('should have realistic data generation with proper categories and file paths', async () => {
     // Ensure realistic data categories are defined
     const fs = await import('fs');
     const path = await import('path');
@@ -161,6 +167,13 @@ describe('create-demo-environment.ts', () => {
     expect(scriptContent).toContain('HVAC');
     expect(scriptContent).toContain('insurance');
     expect(scriptContent).toContain('maintenance');
+    
+    // Check for proper file path structure (no uploads prefix)
+    expect(scriptContent).toContain('writeDocumentFile(filePath');
+    expect(scriptContent).not.toContain('writeDocumentFile(`uploads/${filePath}`');
+    expect(scriptContent).toContain('bills/');
+    expect(scriptContent).toContain('residences/');
+    expect(scriptContent).toContain('buildings/');
   });
 
   test('should comply with Law 25 (no admin role creation)', async () => {
@@ -215,24 +228,59 @@ describe('create-demo-environment.ts', () => {
   });
 });
 
-// Additional tests for specific functionality (these would require database mocking)
+// Additional tests for specific functionality improvements
 describe('create-demo-environment.ts - Functionality Tests', () => {
-  test('should validate CLI arguments correctly', () => {
-    // This test would require mocking process.argv and testing the parseArguments function
-    // For now, we just ensure the structure is present
-    expect(true).toBe(true); // Placeholder - would implement with proper mocking
+  test('should ensure manager organization associations', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
+    const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
+    
+    // Check for manager organization association logic
+    expect(scriptContent).toContain('critical for manager building access');
+    expect(scriptContent).toContain('userOrganizations');
+    expect(scriptContent).toContain('organizationId');
   });
 
-  test('should generate Quebec-specific postal codes', () => {
-    // This would test the generateQuebecPostalCode function
-    // Would require importing and testing the function directly
-    expect(true).toBe(true); // Placeholder - would implement with proper function testing
+  test('should separate bill documents from financial documents', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
+    const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
+    
+    // Check for proper document categorization
+    expect(scriptContent).toContain('documentTypeMapping');
+    expect(scriptContent).toContain('utilities');
+    expect(scriptContent).toContain('maintenance');
+    expect(scriptContent).toContain('loan');
+    expect(scriptContent).toContain('bank_statement');
+    expect(scriptContent).toContain('financial_report');
+    
+    // Bills should be attached to bills, financial docs to buildings/residences
+    expect(scriptContent).toContain('attachedToType: \'bill\'');
+    expect(scriptContent).toContain('buildingId:');
   });
 
-  test('should generate realistic building and residence data', () => {
-    // This would test the faker.js integration
-    // Would require mocking the database and testing data generation
-    expect(true).toBe(true); // Placeholder - would implement with database mocking
+  test('should use ASCII-safe characters in all generated content', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    const scriptPath = path.join(__dirname, 'create-demo-environment.ts');
+    const scriptContent = fs.readFileSync(scriptPath, 'utf-8');
+    
+    // Check that problematic Unicode characters are replaced
+    const unicodeCheckmarks = /✓/g.test(scriptContent);
+    const unicodeWarnings = /⚠️/g.test(scriptContent);
+    
+    expect(unicodeCheckmarks).toBe(false);
+    expect(unicodeWarnings).toBe(false);
+    
+    // Should use ASCII alternatives instead
+    expect(scriptContent).toContain('+ Electrical systems');
+    expect(scriptContent).toContain('* Minor paint touch-up');
+    expect(scriptContent).toContain('- On Time');
   });
 });
 
