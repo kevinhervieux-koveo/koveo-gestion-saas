@@ -71,15 +71,6 @@ export function withHierarchicalSelection<T extends object>(
     // Determine current selection level
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
     
-    // Debug logging for hierarchy
-    console.log('🔍 [HIERARCHY] Debug info:', {
-      location,
-      search,
-      urlParams: { organizationId, buildingId, residenceId },
-      configHierarchy: config.hierarchy,
-      currentLevel,
-      hierarchyLength: config.hierarchy.length
-    });
     
     // Navigate to update URL parameters
     const navigate = (updates: Record<string, string | null>) => {
@@ -151,15 +142,11 @@ export function withHierarchicalSelection<T extends object>(
         const url = organizationId 
           ? `/api/organizations/${organizationId}/buildings`
           : '/api/users/me/buildings';
-        console.log('🔍 [HIERARCHY] Fetching buildings from:', url);
         const response = await fetch(url);
         if (!response.ok) {
-          console.error('❌ [HIERARCHY] Failed to fetch buildings:', response.status, response.statusText);
           throw new Error('Failed to fetch buildings');
         }
-        const data = await response.json();
-        console.log('✅ [HIERARCHY] Buildings fetched:', data.length, 'buildings');
-        return data;
+        return response.json();
       },
       enabled: currentLevel === 'building' && (!!organizationId || config.hierarchy.length === 1)
     });

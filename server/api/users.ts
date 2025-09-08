@@ -1232,7 +1232,6 @@ export function registerUserRoutes(app: Express): void {
     try {
       const userId = req.user.id;
       
-      console.log(`🔍 [BUILDINGS] Fetching buildings for current user ${userId} with role ${req.user.role}`);
 
       // For residents and tenants, get buildings through their residences  
       if (req.user.role === 'resident' || req.user.role === 'tenant' || 
@@ -1253,7 +1252,6 @@ export function registerUserRoutes(app: Express): void {
           ));
         
         if (!userResidences || userResidences.length === 0) {
-          console.log(`⚠️ [BUILDINGS] No residences found for user ${userId}`);
           return res.json([]);
         }
 
@@ -1261,7 +1259,6 @@ export function registerUserRoutes(app: Express): void {
         const buildingIds = [...new Set(userResidences.map(ur => ur.buildingId).filter(Boolean))];
         
         if (buildingIds.length === 0) {
-          console.log(`⚠️ [BUILDINGS] No buildings found for user ${userId}`);
           return res.json([]);
         }
 
@@ -1283,7 +1280,6 @@ export function registerUserRoutes(app: Express): void {
           ))
           .orderBy(schema.buildings.name);
 
-        console.log(`✅ [BUILDINGS] Found ${buildingDetails.length} accessible buildings for user ${userId}`);
         return res.json(buildingDetails);
       }
 
@@ -1296,7 +1292,6 @@ export function registerUserRoutes(app: Express): void {
       const orgIds = userOrgs.map(org => org.organizationId);
 
       if (orgIds.length === 0) {
-        console.log(`⚠️ [BUILDINGS] No organizations found for user ${userId}`);
         return res.json([]);
       }
 
@@ -1328,11 +1323,10 @@ export function registerUserRoutes(app: Express): void {
         )
         .orderBy(schema.buildings.name);
 
-      console.log(`✅ [BUILDINGS] Found ${buildingDetails.length} buildings for user ${userId} in ${orgIds.length} organizations`);
       res.json(buildingDetails);
 
     } catch (error) {
-      console.error('❌ [BUILDINGS] Error fetching user buildings:', error);
+      console.error('Error fetching user buildings:', error);
       res.status(500).json({ 
         error: 'Failed to fetch user buildings',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
