@@ -73,14 +73,14 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = url;
       link.download = fileName;
-      document.body.appendChild(link);
+      window.document.body.appendChild(link);
       link.click();
       
       // Clean up
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
       console.log('[DOWNLOAD] Download completed successfully');
