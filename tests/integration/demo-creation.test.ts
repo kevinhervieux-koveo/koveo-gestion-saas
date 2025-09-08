@@ -66,9 +66,9 @@ describe('Demo Creation Script', () => {
     const content = await fs.readFile(scriptPath, 'utf-8');
     
     // Check for essential imports
-    expect(content).toContain('import { db }');
     expect(content).toContain('import * as schema');
-    expect(content).toContain('createDemoEnvironment');
+    expect(content).toContain('initializeDatabase');
+    expect(content).toContain('faker');
     
     // Check for main functionality
     expect(content).toContain('Demo 123');
