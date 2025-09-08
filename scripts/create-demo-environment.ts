@@ -1185,7 +1185,7 @@ Building Management Office`;
           fileName: `${docType}-${bill.billNumber}.txt`,
           fileSize,
           mimeType: 'text/plain',
-          isVisibleToTenants: !isInvoice, // Receipts visible to tenants, invoices not
+          isVisibleToTenants: false, // Will be configured later based on tenant assignments
           buildingId: bill.buildingId,
           uploadedById: billCreator.id,
           attachedToType: 'bill',
@@ -1290,7 +1290,7 @@ Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
               fileName,
               fileSize,
               mimeType: 'text/plain',
-              isVisibleToTenants: docType.type === 'lease',
+              isVisibleToTenants: false, // Will be configured later based on tenant assignments
               residenceId: residence.id,
               buildingId: residence.buildingId,
               uploadedById: manager.id
@@ -1434,7 +1434,7 @@ Terms and Conditions:
               fileName,
               fileSize,
               mimeType: 'text/plain',
-              isVisibleToTenants: docType.type === 'meeting_minutes',
+              isVisibleToTenants: false, // Will be configured later based on tenant assignments
               buildingId: building.id,
               uploadedById: manager.id
             })
@@ -1453,6 +1453,113 @@ Terms and Conditions:
     
   } catch (error) {
     console.error('❌ Failed to create documents:', error);
+    throw error;
+  }
+}
+
+/**
+ * Configure document access for tenants - only for buildings/residences that actually have tenants
+ */
+async function configureTenantDocumentAccess(users: CreatedUser[]) {
+  try {
+    console.log('   Making select documents accessible to tenants...');
+    
+    // Find all tenants
+    const tenants = users.filter(user => user.role === 'demo_tenant');
+    console.log(`   Found ${tenants.length} tenant users to configure access for`);
+    
+    if (tenants.length === 0) {
+      console.log('   No tenants found - skipping tenant document access configuration');
+      return;
+    }
+    
+    // Get buildings and residences that have tenants
+    const tenantBuildingIds = new Set<string>();
+    const tenantResidenceIds = new Set<string>();
+    
+    for (const tenant of tenants) {
+      // Get tenant's residence assignments
+      const tenantResidences = await db
+        .select({
+          residenceId: schema.userResidences.residenceId
+        })
+        .from(schema.userResidences)
+        .where(eq(schema.userResidences.userId, tenant.id));
+      
+      for (const ur of tenantResidences) {
+        tenantResidenceIds.add(ur.residenceId);
+        
+        // Get the building ID for this residence
+        const residence = await db
+          .select({
+            buildingId: schema.residences.buildingId
+          })
+          .from(schema.residences)
+          .where(eq(schema.residences.id, ur.residenceId))
+          .limit(1);
+        
+        if (residence[0]) {
+          tenantBuildingIds.add(residence[0].buildingId);
+        }
+      }
+    }
+    
+    console.log(`   Buildings with tenants: ${tenantBuildingIds.size}`);
+    console.log(`   Residences with tenants: ${tenantResidenceIds.size}`);
+    
+    // Update documents to be visible to tenants in buildings/residences with tenants
+    let updatedCount = 0;
+    
+    // Building-level documents that tenants should see
+    const buildingDocTypes = ['meeting_minutes', 'permits'];
+    for (const buildingId of tenantBuildingIds) {
+      const result = await db
+        .update(schema.documents)
+        .set({ isVisibleToTenants: true })
+        .where(
+          and(
+            eq(schema.documents.buildingId, buildingId),
+            schema.documents.documentType ? sql`${schema.documents.documentType} = ANY(${buildingDocTypes})` : sql`1=0`
+          )
+        );
+      updatedCount += result.rowCount || 0;
+    }
+    
+    // Residence-level documents that tenants should see
+    const residenceDocTypes = ['lease', 'inspection'];
+    for (const residenceId of tenantResidenceIds) {
+      const result = await db
+        .update(schema.documents)
+        .set({ isVisibleToTenants: true })
+        .where(
+          and(
+            eq(schema.documents.residenceId, residenceId),
+            schema.documents.documentType ? sql`${schema.documents.documentType} = ANY(${residenceDocTypes})` : sql`1=0`
+          )
+        );
+      updatedCount += result.rowCount || 0;
+    }
+    
+    // Bill receipts (but not invoices) for buildings with tenants
+    for (const buildingId of tenantBuildingIds) {
+      const result = await db
+        .update(schema.documents)
+        .set({ isVisibleToTenants: true })
+        .where(
+          and(
+            eq(schema.documents.buildingId, buildingId),
+            eq(schema.documents.attachedToType, 'bill'),
+            schema.documents.name ? sql`${schema.documents.name} LIKE 'Receipt%'` : sql`1=0`
+          )
+        );
+      updatedCount += result.rowCount || 0;
+    }
+    
+    console.log(`   ✅ Updated ${updatedCount} documents to be visible to tenants`);
+    console.log(`   📄 Document types accessible to tenants: meeting minutes, permits, leases, inspections, receipts`);
+    
+  } catch (error) {
+    console.error('❌ Failed to configure tenant document access:', error);
     throw error;
   }
 }
@@ -1527,6 +1634,11 @@ async function main() {
       // Step 9: Create Documents
       console.log('📄 Step 9: Create Documents');
       await seedDocuments(bills, buildings, residences, users);
+      console.log('');
+      
+      // Step 10: Make documents accessible to tenants in buildings/residences with tenants
+      console.log('📋 Step 10: Configure Tenant Document Access');
+      await configureTenantDocumentAccess(users);
       console.log('');
     } else {
       console.log('🏢 Organization already has complete buildings and data. Skipping additional data creation.');
