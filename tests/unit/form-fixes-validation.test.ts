@@ -79,7 +79,7 @@ describe('Form Fixes Validation', () => {
       };
       
       Object.values(syntaxFixes).forEach(fix => {
-        expect(fix).toContain('resolved' || 'fixed');
+        expect(fix).toMatch(/(resolved|fixed)/);
       });
     });
     

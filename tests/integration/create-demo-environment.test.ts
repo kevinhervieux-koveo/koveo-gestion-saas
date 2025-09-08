@@ -16,7 +16,7 @@ describe('create-demo-environment.ts', () => {
     
     try {
       // Dynamic import to avoid executing the script during testing
-      const scriptModule = await import('./create-demo-environment.js');
+      const scriptModule = await import('../../scripts/create-demo-environment.ts');
       expect(scriptModule).toBeDefined();
       expect(typeof scriptModule.default).toBe('function');
     } catch (error) {
