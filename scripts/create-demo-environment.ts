@@ -1214,7 +1214,8 @@ Building Management Office`;
     const residenceDocumentTypes = [
       { type: 'lease', name: 'Lease Agreement', description: 'Rental lease agreement' },
       { type: 'inspection', name: 'Inspection Report', description: 'Unit inspection report' },
-      { type: 'maintenance', name: 'Maintenance Log', description: 'Maintenance history log' }
+      { type: 'maintenance', name: 'Maintenance Log', description: 'Maintenance history log' },
+      { type: 'financial', name: 'Financial Document', description: 'Tenant financial record or payment history' }
     ];
     
     // Create 1-2 documents per category for EACH residence
@@ -1274,6 +1275,72 @@ Notes:
 ${faker.lorem.paragraph()}
 
 Inspector Signature: ____________________`;
+          } else if (docType.type === 'financial') {
+            const financialType = faker.helpers.arrayElement(['payment_history', 'deposit_record', 'tenant_financial']);
+            
+            if (financialType === 'payment_history') {
+              documentContent += `TENANT PAYMENT HISTORY
+
+Unit: ${residence.unitNumber}
+Tenant: ${faker.person.fullName()}
+Account Period: ${faker.date.past({ years: 1 }).toLocaleDateString()} to Present
+
+Payment Summary:
+Monthly Rent: $${faker.number.int({ min: 1200, max: 2500 })}
+Security Deposit: $${faker.number.int({ min: 1200, max: 2500 })}
+Payment Method: ${faker.helpers.arrayElement(['Electronic Transfer', 'Check', 'Online Payment'])}
+
+Recent Payments:
+- ${faker.date.recent().toLocaleDateString()}: Rent Payment - $${faker.number.int({ min: 1200, max: 2500 })} ✓ On Time
+- ${faker.date.recent({ days: 30 }).toLocaleDateString()}: Rent Payment - $${faker.number.int({ min: 1200, max: 2500 })} ✓ On Time
+- ${faker.date.recent({ days: 60 }).toLocaleDateString()}: Rent Payment - $${faker.number.int({ min: 1200, max: 2500 })} ✓ On Time
+
+Payment Status: Current
+Outstanding Balance: $0.00
+Credit Score: ${faker.number.int({ min: 650, max: 850 })}`;
+            } else if (financialType === 'deposit_record') {
+              documentContent += `SECURITY DEPOSIT RECORD
+
+Unit: ${residence.unitNumber}
+Tenant: ${faker.person.fullName()}
+Deposit Date: ${faker.date.past().toLocaleDateString()}
+
+Deposit Details:
+Security Deposit Amount: $${faker.number.int({ min: 1200, max: 2500 })}
+Pet Deposit: $${faker.number.int({ min: 0, max: 500 })}
+Key Deposit: $${faker.number.int({ min: 50, max: 150 })}
+Total Deposit: $${faker.number.int({ min: 1250, max: 3150 })}
+
+Bank Information:
+Held at: ${faker.company.name()} Bank
+Account Number: DEP-${faker.string.alphanumeric(8).toUpperCase()}
+Interest Rate: ${faker.number.float({ min: 0.5, max: 2.5, fractionDigits: 2 })}%
+
+Deposit Status: Held in Trust Account
+Expected Return Date: End of Lease Term`;
+            } else {
+              documentContent += `TENANT FINANCIAL VERIFICATION
+
+Unit: ${residence.unitNumber}
+Tenant: ${faker.person.fullName()}
+Verification Date: ${faker.date.recent().toLocaleDateString()}
+
+Income Verification:
+Monthly Income: $${faker.number.int({ min: 4000, max: 8000 })}
+Employment: ${faker.company.name()}
+Position: ${faker.person.jobTitle()}
+Employment Duration: ${faker.number.int({ min: 6, max: 60 })} months
+
+References:
+Previous Landlord: ${faker.person.fullName()}
+Contact: ${generateQuebecPhone()}
+Reference Status: Positive
+
+Credit Information:
+Credit Score: ${faker.number.int({ min: 650, max: 850 })}
+Debt-to-Income Ratio: ${faker.number.int({ min: 15, max: 35 })}%
+Rental History: Excellent`;
+            }
           } else {
             documentContent += `MAINTENANCE LOG
 
@@ -1323,7 +1390,8 @@ Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
       { type: 'insurance', name: 'Insurance Certificate', description: 'Building insurance certificate' },
       { type: 'permits', name: 'Building Permit', description: 'Construction/renovation permit' },
       { type: 'meeting_minutes', name: 'Board Meeting Minutes', description: 'Monthly board meeting minutes' },
-      { type: 'contracts', name: 'Service Contract', description: 'Maintenance service contract' }
+      { type: 'contracts', name: 'Service Contract', description: 'Maintenance service contract' },
+      { type: 'financial', name: 'Financial Document', description: 'Loan agreement, bank statement, or financial report' }
     ];
     
     // Create 1-2 documents per category for EACH building
@@ -1412,6 +1480,74 @@ Action Items:
 - ${faker.lorem.sentence()}
 
 Next Meeting: ${faker.date.future().toLocaleDateString()}`;
+        } else if (docType.type === 'financial') {
+          const financialDocType = faker.helpers.arrayElement(['loan', 'bank_statement', 'financial_report']);
+          
+          if (financialDocType === 'loan') {
+            documentContent += `BUILDING LOAN AGREEMENT
+
+Loan ID: LOAN-${faker.string.alphanumeric(10).toUpperCase()}
+Lender: ${faker.company.name()} Bank
+Borrower: ${building.name} Building Corporation
+Loan Amount: $${faker.number.int({ min: 500000, max: 2500000 }).toLocaleString()}
+Interest Rate: ${faker.number.float({ min: 3.5, max: 6.5, fractionDigits: 2 })}%
+Loan Term: ${faker.number.int({ min: 15, max: 30 })} years
+Monthly Payment: $${faker.number.int({ min: 3000, max: 8500 }).toLocaleString()}
+
+Loan Purpose: Building acquisition and capital improvements
+Collateral: Building property and improvements
+Loan Date: ${faker.date.past({ years: 2 }).toLocaleDateString()}
+
+Financial Terms:
+- Fixed rate mortgage
+- No prepayment penalties
+- Annual financial reporting required
+- Minimum debt service coverage ratio: 1.2x
+
+Lender Representative: ${faker.person.fullName()}
+Borrower Representative: ${faker.person.fullName()}`;
+          } else if (financialDocType === 'bank_statement') {
+            documentContent += `BANK STATEMENT
+
+Account Holder: ${building.name} Building Corporation
+Bank: ${faker.company.name()} Bank
+Account Number: ****${faker.string.numeric(4)}
+Statement Period: ${faker.date.recent({ days: 30 }).toLocaleDateString()} to ${faker.date.recent().toLocaleDateString()}
+
+Beginning Balance: $${faker.number.int({ min: 25000, max: 150000 }).toLocaleString()}
+Total Deposits: $${faker.number.int({ min: 15000, max: 45000 }).toLocaleString()}
+Total Withdrawals: $${faker.number.int({ min: 12000, max: 35000 }).toLocaleString()}
+Ending Balance: $${faker.number.int({ min: 30000, max: 160000 }).toLocaleString()}
+
+Recent Transactions:
+- ${faker.date.recent().toLocaleDateString()}: Maintenance Reserve Transfer - $${faker.number.int({ min: 2000, max: 8000 }).toLocaleString()}
+- ${faker.date.recent().toLocaleDateString()}: Monthly Fees Collection - +$${faker.number.int({ min: 8000, max: 25000 }).toLocaleString()}
+- ${faker.date.recent().toLocaleDateString()}: Insurance Premium - $${faker.number.int({ min: 1500, max: 4500 }).toLocaleString()}
+
+Contact: ${generateQuebecPhone()}`;
+          } else {
+            documentContent += `ANNUAL FINANCIAL REPORT
+
+Building: ${building.name}
+Report Period: ${faker.date.past({ years: 1 }).getFullYear()}
+Prepared by: ${faker.person.fullName()}, Property Manager
+
+Financial Summary:
+Total Revenue: $${faker.number.int({ min: 180000, max: 450000 }).toLocaleString()}
+- Monthly Fees: $${faker.number.int({ min: 150000, max: 380000 }).toLocaleString()}
+- Special Assessments: $${faker.number.int({ min: 10000, max: 50000 }).toLocaleString()}
+- Other Income: $${faker.number.int({ min: 5000, max: 20000 }).toLocaleString()}
+
+Total Expenses: $${faker.number.int({ min: 120000, max: 300000 }).toLocaleString()}
+- Maintenance: $${faker.number.int({ min: 40000, max: 100000 }).toLocaleString()}
+- Insurance: $${faker.number.int({ min: 20000, max: 50000 }).toLocaleString()}
+- Utilities: $${faker.number.int({ min: 25000, max: 60000 }).toLocaleString()}
+- Professional Services: $${faker.number.int({ min: 15000, max: 35000 }).toLocaleString()}
+- Administrative: $${faker.number.int({ min: 10000, max: 25000 }).toLocaleString()}
+
+Net Income: $${faker.number.int({ min: 50000, max: 150000 }).toLocaleString()}
+Reserve Fund Balance: $${faker.number.int({ min: 75000, max: 200000 }).toLocaleString()}`;
+          }
         } else {
           documentContent += `SERVICE CONTRACT
 
