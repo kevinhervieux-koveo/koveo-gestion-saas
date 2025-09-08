@@ -58,10 +58,17 @@ import { Link, useLocation } from 'wouter';
 // Form schema for creating/editing buildings
 // Schema will be created inside component with translations
 
-/**
- *
- */
-type BuildingFormData = z.infer<typeof buildingFormSchema>;
+// Define the building form schema type (will be defined inside component)
+type BuildingFormData = {
+  name: string;
+  address: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  buildingType: string;
+  totalUnits: number;
+  organizationId: string;
+};
 
 /**
  *
@@ -625,7 +632,7 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('buildingsManagement')} subtitle={t('buildingsSubtitle')} />
+      <Header title={t('buildingsManagement')} subtitle={t('manageBuildings')} />
       
       {/* Back to Organization Navigation */}
       {organizationId && (
