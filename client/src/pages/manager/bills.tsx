@@ -30,6 +30,7 @@ import {
   Calendar,
   Tag,
   ChevronDown,
+  ArrowLeft,
 } from 'lucide-react';
 import ModularBillForm from '@/components/bill-management/ModularBillForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -37,6 +38,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import { useLocation } from 'wouter';
 import type { Bill } from '@shared/schema';
 
 const BILL_CATEGORIES = [
@@ -110,8 +112,18 @@ interface BillsProps {
 /**
  * Bills management component
  */
-function BillsPage({ buildingId }: BillsProps) {
+function BillsPage({ buildingId, organizationId }: BillsProps) {
   const { t } = useLanguage();
+  const [, navigate] = useLocation();
+
+  const handleBackToBuilding = () => {
+    // Navigate back to building selection, removing buildingId from URL
+    if (organizationId) {
+      navigate(`/manager/bills?organization=${organizationId}`);
+    } else {
+      navigate('/manager/bills');
+    }
+  };
   const [filters, setFilters] = useState<BillFilters>({
     category: '',
     year: new Date().getFullYear().toString(),
@@ -316,6 +328,21 @@ function BillsPage({ buildingId }: BillsProps) {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
+      
+      {/* Back to Building Navigation */}
+      {buildingId && (
+        <div className="p-4 border-b border-gray-200">
+          <Button
+            variant="outline"
+            onClick={handleBackToBuilding}
+            className="flex items-center gap-2"
+            data-testid="button-back-to-building"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t('building')}
+          </Button>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
