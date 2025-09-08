@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 542
+Building: 68391 Brent Shoals Building 3
+Address: 18175 Cleveland Circle
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 542
+- Lease Start Date: 11/11/2024
+- Lease End Date: 5/21/2026
+- Monthly Rent: $1156
+- Security Deposit: $1513
+
+Terms and Conditions:
+- Aperte voveo sophismata.
+- Cito casus acceptus avaritia adhaero claro verumtamen absque.
+
+Landlord: 68391 Brent Shoals Building 3 Management
+Tenant Signature: ____________________
+Date: 9/8/2025

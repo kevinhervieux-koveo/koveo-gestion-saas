@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 407
+Building: 4647 Meggie Pass Building 2
+Address: 5178 Marlborough Road
+Document 2 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Kenny Schuster
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Fair
+
+Notes:
+Considero cribro creber autem quod thesis thema. Adsum alius distinctio amoveo. Cumque thorax deorsum.
+
+Inspector Signature: ____________________

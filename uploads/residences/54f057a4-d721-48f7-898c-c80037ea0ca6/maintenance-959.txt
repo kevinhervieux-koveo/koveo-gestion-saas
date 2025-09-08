@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 959
+Building: 4804 Stuart Gateway Building 1
+Address: 636 Bahringer Fields
+Document 1 of 1
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 959:
+
+12/2/2024 - Plumbing repair
+Status: Completed
+Cost: $479
+
+9/7/2025 - Light fixture repair
+Status: In Progress
+Estimated Cost: $122
+
+Next Scheduled Maintenance: 7/9/2026

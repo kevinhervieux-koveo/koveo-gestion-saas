@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BUILDING PERMIT (2)
+
+Building: 4647 Meggie Pass Building 2
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 2 of 2
+
+BUILDING PERMIT
+
+Permit Number: PER-JKJ4URB1
+Permit Type: HVAC Installation
+Issue Date: 12/7/2024
+Expiry Date: 10/17/2025
+Contractor: Runolfsdottir - Hilpert
+
+Work Description:
+Cauda harum vetus velociter terror abbas laborum coruscus explicabo consuasor. Blandior officiis astrum qui temeritas vomer deduco cras vir. Adduco verbum autem vomica subnecto virtus usque.
+
+Inspection Schedule:
+- Initial Inspection: 9/7/2025
+- Progress Inspection: 9/8/2025
+- Final Inspection: 1/2/2026
+
+Approved by: City Planning Department
+Permit Fee: $313

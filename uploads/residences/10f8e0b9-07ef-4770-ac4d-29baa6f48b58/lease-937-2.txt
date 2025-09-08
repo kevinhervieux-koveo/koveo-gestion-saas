@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 937
+Building: 64671 Green Close Building 4
+Address: 5407 Grant Street
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 937
+- Lease Start Date: 1/12/2025
+- Lease End Date: 8/19/2026
+- Monthly Rent: $1114
+- Security Deposit: $2202
+
+Terms and Conditions:
+- Tamquam cunctatio undique ambitus voco clamo coadunatio crapula.
+- Tredecim cilicium omnis denuncio arbitro cibus adstringo stipes.
+
+Landlord: 64671 Green Close Building 4 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

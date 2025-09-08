@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 614
+Building: 4804 Stuart Gateway Building 1
+Address: 124 Mraz Way
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 614
+- Lease Start Date: 5/21/2025
+- Lease End Date: 11/12/2025
+- Monthly Rent: $1046
+- Security Deposit: $1484
+
+Terms and Conditions:
+- Tabernus villa cultura.
+- Custodia terra cribro adfero capitulus.
+
+Landlord: 4804 Stuart Gateway Building 1 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

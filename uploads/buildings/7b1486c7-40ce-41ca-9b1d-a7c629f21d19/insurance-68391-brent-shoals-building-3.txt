@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSURANCE CERTIFICATE
+
+Building: 68391 Brent Shoals Building 3
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 1 of 1
+
+INSURANCE CERTIFICATE
+
+Policy Number: INS-MO023F30YD
+Insurance Company: Greenfelder LLC Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $2,420,549
+Policy Period: 10/3/2024 to 9/29/2025
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: Audrey Cronin
+Phone: (873) 054-7279
+Email: Bella_Conroy79@gmail.com

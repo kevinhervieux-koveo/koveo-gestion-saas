@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+SERVICE CONTRACT (1)
+
+Building: 64671 Green Close Building 4
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 1 of 2
+
+SERVICE CONTRACT
+
+Contract Number: CON-VWUFHGKD
+Service Provider: Kiehn - Dooley
+Service Type: Cleaning Services
+Contract Period: 6/14/2025 to 11/17/2025
+Monthly Cost: $2012
+
+Service Details:
+Nemo cenaculum deorsum ager dolor centum articulus peior concedo. Sustineo recusandae culpa cado amitto. Theologus tego adeo adversus adhaero volutabrum pauper omnis reprehenderit vero.
+
+Contact Information:
+Manager: Terrance Anderson
+Phone: (819) 165-7760
+Emergency Contact: (418) 852-9123
+
+Terms and Conditions:
+- Usitas velut excepturi somnus audio admoveo peccatus inflammatio vestrum.
+- Curvo urbs tabula celebrer deficio amitto aeger acceptus tutamen.

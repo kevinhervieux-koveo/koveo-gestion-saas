@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+SERVICE CONTRACT (2)
+
+Building: 64671 Green Close Building 4
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 2 of 2
+
+SERVICE CONTRACT
+
+Contract Number: CON-M5EEFTWK
+Service Provider: Kirlin, Wisozk and Daniel
+Service Type: Cleaning Services
+Contract Period: 5/30/2025 to 9/28/2025
+Monthly Cost: $1526
+
+Service Details:
+Studio vinco attero temporibus vestigium soleo deputo civis. Crur anser ambitus acerbitas statim. Ventosus iure cupiditas beneficium.
+
+Contact Information:
+Manager: Randal Simonis MD
+Phone: (450) 746-2687
+Emergency Contact: (579) 848-4566
+
+Terms and Conditions:
+- Aegre perferendis uredo voluptatibus vilicus calamitas taceo crastinus.
+- Voluptas canto speculum temeritas velum aduro degusto tot.

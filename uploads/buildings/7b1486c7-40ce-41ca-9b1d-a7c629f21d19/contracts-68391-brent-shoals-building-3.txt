@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+SERVICE CONTRACT
+
+Building: 68391 Brent Shoals Building 3
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/8/2025
+Document 1 of 1
+
+SERVICE CONTRACT
+
+Contract Number: CON-J9V6RQLK
+Service Provider: Bartell Inc
+Service Type: Cleaning Services
+Contract Period: 5/8/2025 to 3/1/2026
+Monthly Cost: $2149
+
+Service Details:
+Culpo adflicto coepi ratione cui stillicidium. Vesper audacia tam viscus averto vorax. Decretum eaque doloribus.
+
+Contact Information:
+Manager: Heidi Huel
+Phone: (819) 587-2742
+Emergency Contact: (438) 193-3968
+
+Terms and Conditions:
+- Tempore voluptatibus corrupti arcus una caelestis abundans laudantium.
+- Averto speculum virga crebro decretum.

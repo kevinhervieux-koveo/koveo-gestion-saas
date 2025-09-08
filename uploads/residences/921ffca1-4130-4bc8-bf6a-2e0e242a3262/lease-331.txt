@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 331
+Building: 4647 Meggie Pass Building 2
+Address: 70867 Cleveland Street
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 331
+- Lease Start Date: 2/14/2025
+- Lease End Date: 8/20/2026
+- Monthly Rent: $857
+- Security Deposit: $1260
+
+Terms and Conditions:
+- Complectus odit acsi acervus utpote suscipio officia cimentarius quod.
+- Censura solutio nisi ustulo crebro temeritas.
+
+Landlord: 4647 Meggie Pass Building 2 Management
+Tenant Signature: ____________________
+Date: 9/8/2025

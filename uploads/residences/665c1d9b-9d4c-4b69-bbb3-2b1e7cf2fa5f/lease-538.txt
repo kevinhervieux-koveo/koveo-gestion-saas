@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 538
+Building: 68391 Brent Shoals Building 3
+Address: 418 Prospect Place
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 538
+- Lease Start Date: 4/20/2025
+- Lease End Date: 7/29/2026
+- Monthly Rent: $2051
+- Security Deposit: $2410
+
+Terms and Conditions:
+- Aveho caritas adopto tero cui laboriosam ceno.
+- Conatus paulatim laudantium tabesco tollo utroque tenax virgo angustus.
+
+Landlord: 68391 Brent Shoals Building 3 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

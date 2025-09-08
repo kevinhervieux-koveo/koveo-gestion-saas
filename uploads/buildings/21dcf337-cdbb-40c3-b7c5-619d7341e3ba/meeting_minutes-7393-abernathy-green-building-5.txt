@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 7393 Abernathy Green Building 5
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 18:00
+Location: 7393 Abernathy Green Building 5 Community Room
+
+Attendees:
+- Mrs. Mindy Ryan (Board President)
+- Roland Sanford (Treasurer)  
+- Van Stroman (Secretary)
+- Olga Koss (Property Manager)
+
+Agenda Items:
+1. Budget Review - Templum minima decretum.
+2. Maintenance Updates - Tabesco uterque cubicularis urbanus adficio creator adsidue.
+3. New Policies - Ullus bardus tertius incidunt apparatus spero vitiosus adversus adsidue.
+
+Action Items:
+- Statua corporis campana ante.
+- Uterque damno textilis adulatio ultio summopere vulariter.
+
+Next Meeting: 1/14/2026

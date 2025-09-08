@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: C421-2024-03-PROFESSIONAL_SERVICES-2
+Title: Professional_services (2) - Brekke, Rippin and Mann
+Vendor: Bechtelar - Bartell
+Category: Professional_services
+Total Amount: $3560.72
+Description: Monthly professional_services service for January 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 10/5/2025
+
+Service Details:
+- Adversus atavus defluo.
+- Reprehenderit caecus quia cervus vos recusandae adstringo beatus.
+
+Thank you for your business!
+Bechtelar - Bartell

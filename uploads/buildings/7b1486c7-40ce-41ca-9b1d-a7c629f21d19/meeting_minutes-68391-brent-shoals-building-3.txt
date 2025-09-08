@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 68391 Brent Shoals Building 3
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 19:00
+Location: 68391 Brent Shoals Building 3 Community Room
+
+Attendees:
+- Myra Anderson (Board President)
+- Craig Beahan-Beer (Treasurer)  
+- Mr. Harold Christiansen-Howe (Secretary)
+- Gregory Effertz (Property Manager)
+
+Agenda Items:
+1. Budget Review - Balbus demens ancilla tendo ipsum alias dedico utpote cuius bonus.
+2. Maintenance Updates - Summa aut minima.
+3. New Policies - Ventito succedo tubineus.
+
+Action Items:
+- Argumentum vinco absorbeo tabernus perferendis vilicus rem adeptio inventore.
+- Absum tergiversatio carmen.
+
+Next Meeting: 8/18/2026

@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 21DC-2024-03-MAINTENANCE-1
+Title: Maintenance (1) - Dickens and Sons
+Vendor: Deckow LLC
+Category: Maintenance
+Total Amount: $493.04
+Description: Monthly maintenance service for March 2024 - Invoice 1
+
+Payment Amount: $493.04
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-2TP81DE5
+
+This payment has been processed successfully.
+Building Management Office

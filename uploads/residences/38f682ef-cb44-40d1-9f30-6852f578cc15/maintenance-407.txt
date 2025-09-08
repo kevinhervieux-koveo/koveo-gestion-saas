@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 407
+Building: 4647 Meggie Pass Building 2
+Address: 496 Homenick Inlet
+Document 1 of 1
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 407:
+
+6/3/2025 - Electrical work
+Status: Completed
+Cost: $101
+
+9/8/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $112
+
+Next Scheduled Maintenance: 2/16/2026

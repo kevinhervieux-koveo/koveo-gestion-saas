@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 64671 Green Close Building 4
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 18:00
+Location: 64671 Green Close Building 4 Community Room
+
+Attendees:
+- Bertha Haag-Abernathy (Board President)
+- Fredrick Renner (Treasurer)  
+- Ms. Michele Runolfsson (Secretary)
+- Ada Yost (Property Manager)
+
+Agenda Items:
+1. Budget Review - Ver textus tego casus cetera compello sopor tumultus.
+2. Maintenance Updates - Sunt mollitia tristis spes.
+3. New Policies - Volup venio laborum adficio accusamus aestas cado aperte.
+
+Action Items:
+- Cras vitium angulus.
+- Voluptate tristis eum utrimque considero demens adopto defaeco ustilo allatus.
+
+Next Meeting: 2/28/2026

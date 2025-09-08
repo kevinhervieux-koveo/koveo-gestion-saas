@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSURANCE CERTIFICATE (1)
+
+Building: 4647 Meggie Pass Building 2
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/8/2025
+Document 1 of 2
+
+INSURANCE CERTIFICATE
+
+Policy Number: INS-I8WLENJO5X
+Insurance Company: Konopelski, Zboncak and Weber Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $2,216,026
+Policy Period: 2/2/2025 to 8/12/2026
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: Rafael Adams-Rowe
+Phone: (873) 508-5007
+Email: Antonia.Murazik95@hotmail.com

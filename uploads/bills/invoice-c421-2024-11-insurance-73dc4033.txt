@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: C421-2024-11-INSURANCE
+Title: Insurance  - Steuber, Stiedemann and Satterfield
+Vendor: Trantow, Koss and Kohler
+Category: Insurance
+Total Amount: $3079.15
+Description: Monthly insurance service for January 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 1/22/2026
+
+Service Details:
+- Doloribus deserunt numquam audio celer crapula cibo considero amplitudo.
+- Sit magnam eaque totus congregatio tertius spectaculum cohaero volup.
+
+Thank you for your business!
+Trantow, Koss and Kohler

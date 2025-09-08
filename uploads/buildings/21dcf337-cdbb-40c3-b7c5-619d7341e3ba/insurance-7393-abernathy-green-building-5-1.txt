@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSURANCE CERTIFICATE (1)
+
+Building: 7393 Abernathy Green Building 5
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 1 of 2
+
+INSURANCE CERTIFICATE
+
+Policy Number: INS-TPWH6Z8XWM
+Insurance Company: McClure Group Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $4,278,184
+Policy Period: 8/23/2025 to 5/15/2026
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: Lila Streich
+Phone: (873) 712-2221
+Email: Rebeca.Parisian57@hotmail.com

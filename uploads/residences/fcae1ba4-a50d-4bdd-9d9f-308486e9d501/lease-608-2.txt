@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 608
+Building: 64671 Green Close Building 4
+Address: 5739 Weimann Greens
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 608
+- Lease Start Date: 6/18/2025
+- Lease End Date: 6/26/2026
+- Monthly Rent: $1658
+- Security Deposit: $855
+
+Terms and Conditions:
+- Voluptate ocer id deludo.
+- Desino tabella veritatis terror.
+
+Landlord: 64671 Green Close Building 4 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

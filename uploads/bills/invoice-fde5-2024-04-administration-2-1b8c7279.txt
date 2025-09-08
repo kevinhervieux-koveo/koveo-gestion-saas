@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: FDE5-2024-04-ADMINISTRATION-2
+Title: Administration (2) - Buckridge and Sons
+Vendor: Feeney, Cummings and Wintheiser
+Category: Administration
+Total Amount: $2961.47
+Description: Monthly administration service for May 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 4/17/2026
+
+Service Details:
+- Termes est cogito ab nemo vobis ademptio.
+- Assentator aveho quod.
+
+Thank you for your business!
+Feeney, Cummings and Wintheiser

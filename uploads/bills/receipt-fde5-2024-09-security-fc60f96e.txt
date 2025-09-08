@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: FDE5-2024-09-SECURITY
+Title: Security  - Hand - Stoltenberg
+Vendor: Satterfield, Swift and McLaughlin
+Category: Security
+Total Amount: $3118.71
+Description: Monthly security service for September 2024
+
+Payment Amount: $3118.71
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-0M494VXP
+
+This payment has been processed successfully.
+Building Management Office

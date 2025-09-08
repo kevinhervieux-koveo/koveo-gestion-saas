@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSURANCE CERTIFICATE (2)
+
+Building: 4804 Stuart Gateway Building 1
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 2 of 2
+
+INSURANCE CERTIFICATE
+
+Policy Number: INS-GFSELFP7ET
+Insurance Company: Runolfsson - Emmerich Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $2,937,393
+Policy Period: 11/22/2024 to 2/21/2026
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: Omar Mueller
+Phone: (581) 211-7372
+Email: Birdie75@gmail.com

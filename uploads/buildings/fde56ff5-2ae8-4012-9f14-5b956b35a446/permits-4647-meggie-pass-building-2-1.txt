@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BUILDING PERMIT (1)
+
+Building: 4647 Meggie Pass Building 2
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 1 of 2
+
+BUILDING PERMIT
+
+Permit Number: PER-TOT9QJUM
+Permit Type: HVAC Installation
+Issue Date: 3/11/2025
+Expiry Date: 1/24/2026
+Contractor: Schultz - Barrows
+
+Work Description:
+Numquam cetera adeo sursum adicio clibanus excepturi. Sed amiculum vigor video vociferor sordeo vulariter id. Confido volaticus patrocinor absque civitas amoveo.
+
+Inspection Schedule:
+- Initial Inspection: 9/7/2025
+- Progress Inspection: 9/8/2025
+- Final Inspection: 12/17/2025
+
+Approved by: City Planning Department
+Permit Fee: $289

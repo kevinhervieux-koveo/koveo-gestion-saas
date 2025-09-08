@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+SERVICE CONTRACT
+
+Building: 4804 Stuart Gateway Building 1
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/8/2025
+Document 1 of 1
+
+SERVICE CONTRACT
+
+Contract Number: CON-VF6QYHKV
+Service Provider: Auer Inc
+Service Type: Maintenance
+Contract Period: 4/6/2025 to 12/22/2025
+Monthly Cost: $1023
+
+Service Details:
+Ustilo aeneus ulterius dens attonbitus vobis corona. Sequi usque sopor. Varietas absum corroboro depereo tracto aptus spectaculum solus vorax benevolentia.
+
+Contact Information:
+Manager: Deanna Stamm
+Phone: (438) 500-5334
+Emergency Contact: (418) 583-7909
+
+Terms and Conditions:
+- Veritatis rerum aranea admitto turpis aqua denuncio crastinus.
+- Verto clarus attero stultus delego.

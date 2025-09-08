@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSURANCE CERTIFICATE (2)
+
+Building: 4647 Meggie Pass Building 2
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 2 of 2
+
+INSURANCE CERTIFICATE
+
+Policy Number: INS-DBKYXP1NCZ
+Insurance Company: Dare, Daugherty and Kozey Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $1,752,015
+Policy Period: 2/28/2025 to 8/18/2026
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: Max McKenzie
+Phone: (819) 793-8965
+Email: Eldridge_Bode55@hotmail.com
