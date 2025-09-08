@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, useSearch } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { SelectionGrid, SelectionGridItem } from '@/components/common/SelectionGrid';
+import { Header } from '@/components/layout/header';
 import { useLanguage } from '@/hooks/use-language';
 
 /**
@@ -244,13 +245,18 @@ export function withHierarchicalSelection<T extends object>(
       });
 
       return (
-        <SelectionGrid
-          title={t('selectOrganization' as any)}
-          items={items}
-          onSelectItem={handleSelection}
-          onBack={null}
-          isLoading={isLoadingOrganizations || isLoadingBuildingCounts}
-        />
+        <div className='flex-1 flex flex-col overflow-hidden'>
+          <Header title={t('selectOrganization' as any)} subtitle={t('chooseOrganizationSubtitle' as any)} />
+          <div className='flex-1 overflow-auto p-6'>
+            <SelectionGrid
+              title={t('selectOrganization' as any)}
+              items={items}
+              onSelectItem={handleSelection}
+              onBack={null}
+              isLoading={isLoadingOrganizations || isLoadingBuildingCounts}
+            />
+          </div>
+        </div>
       );
     }
 
@@ -263,13 +269,19 @@ export function withHierarchicalSelection<T extends object>(
       }));
 
       return (
-        <SelectionGrid
-          title={t('selectBuilding' as any)}
-          items={items}
-          onSelectItem={handleSelection}
-          onBack={config.hierarchy.includes('organization') ? handleBack : null}
-          isLoading={isLoadingBuildings}
-        />
+        <div className='flex-1 flex flex-col overflow-hidden'>
+          <Header title={t('selectBuilding' as any)} subtitle={t('chooseBuildingSubtitle' as any)} />
+          <div className='flex-1 overflow-auto p-6'>
+            <SelectionGrid
+              title={t('selectBuilding' as any)}
+              items={items}
+              onSelectItem={handleSelection}
+              onBack={config.hierarchy.includes('organization') ? handleBack : null}
+              backButtonText={t('organization' as any)}
+              isLoading={isLoadingBuildings}
+            />
+          </div>
+        </div>
       );
     }
 

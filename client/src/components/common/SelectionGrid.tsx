@@ -42,6 +42,11 @@ interface SelectionGridProps {
   onBack: (() => void) | null;
   
   /**
+   * Custom text for back button (defaults to 'back')
+   */
+  backButtonText?: string;
+  
+  /**
    * Loading state flag
    */
   isLoading: boolean;
@@ -72,6 +77,7 @@ export function SelectionGrid({
   items, 
   onSelectItem, 
   onBack, 
+  backButtonText = 'back',
   isLoading 
 }: SelectionGridProps) {
   const { t } = useLanguage();
@@ -97,7 +103,7 @@ export function SelectionGrid({
               data-testid="button-back"
             >
               <ArrowLeft className="w-4 h-4" />
-              {t('back' as any)}
+              {backButtonText}
             </Button>
           </div>
         )}
@@ -129,7 +135,7 @@ export function SelectionGrid({
             data-testid="button-back"
           >
             <ArrowLeft className="w-4 h-4" />
-            {t('back' as any)}
+            {backButtonText}
           </Button>
         )}
       </div>
