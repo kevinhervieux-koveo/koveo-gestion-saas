@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BUILDING PERMIT (2)
+
+Building: 531 Lilla Terrace Building 5
+Organization: f34160d0-ee92-4f36-8d54-179fa0d30d02
+Document Date: 9/7/2025
+Document 2 of 2
+
+BUILDING PERMIT
+
+Permit Number: PER-JHWRFIPF
+Permit Type: Electrical Work
+Issue Date: 2/4/2025
+Expiry Date: 3/29/2026
+Contractor: Balistreri LLC
+
+Work Description:
+Laboriosam cogito termes aro caveo amiculum cicuta cernuus. Solutio vinum nisi tunc vinitor blanditiis addo alias. Tui veritatis theca combibo depopulo.
+
+Inspection Schedule:
+- Initial Inspection: 9/7/2025
+- Progress Inspection: 9/8/2025
+- Final Inspection: 7/27/2026
+
+Approved by: City Planning Department
+Permit Fee: $382

@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSURANCE CERTIFICATE
+
+Building: 531 Lilla Terrace Building 5
+Organization: f34160d0-ee92-4f36-8d54-179fa0d30d02
+Document Date: 9/7/2025
+Document 1 of 1
+
+INSURANCE CERTIFICATE
+
+Policy Number: INS-VNRM5GBVKL
+Insurance Company: Schimmel - Yost Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $1,343,680
+Policy Period: 5/13/2025 to 8/28/2026
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: Woodrow Reilly
+Phone: (514) 148-9128
+Email: Lyda.Murphy5@gmail.com

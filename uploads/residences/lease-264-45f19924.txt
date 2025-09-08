@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 264
+Building: 77929 Romaguera Greens Building 1
+Address: 194 Ash Road
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 264
+- Lease Start Date: 4/18/2025
+- Lease End Date: 9/8/2025
+- Monthly Rent: $1612
+- Security Deposit: $1376
+
+Terms and Conditions:
+- Ulterius vulgus terror curriculum allatus villa cubo iusto sto tredecim.
+- Aqua spiculum solio consequatur cupiditas ambulo non despecto viridis.
+
+Landlord: 77929 Romaguera Greens Building 1 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

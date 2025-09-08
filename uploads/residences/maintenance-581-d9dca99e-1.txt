@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 581
+Building: 531 Lilla Terrace Building 5
+Address: 20885 Felipa Bypass
+Document 1 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 581:
+
+1/8/2025 - Electrical work
+Status: Completed
+Cost: $226
+
+9/7/2025 - Annual inspection
+Status: In Progress
+Estimated Cost: $143
+
+Next Scheduled Maintenance: 12/3/2025

@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 277
+Building: 537 Hudson Stream Building 2
+Address: 4484 River Road
+Document 2 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Francis O'Keefe
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Excellent
+
+Notes:
+Vae delinquo amiculum commodi caecus auditor cerno patior vir. Aspernatur reprehenderit audacia ustulo bestia. Spoliatio depraedor vita illum tutis catena.
+
+Inspector Signature: ____________________

@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 275
+Building: 77929 Romaguera Greens Building 1
+Address: 1482 Kestrel Close
+Document 2 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 275:
+
+12/3/2024 - HVAC maintenance
+Status: Completed
+Cost: $491
+
+9/7/2025 - Annual inspection
+Status: In Progress
+Estimated Cost: $202
+
+Next Scheduled Maintenance: 5/23/2026

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 5505-2024-01-UTILITIES-2
+Title: Utilities (2) - Torp, Hickle and Renner
+Vendor: Daugherty, Spencer and Beatty
+Category: Utilities
+Total Amount: $2749.32
+Description: Monthly utilities service for June 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 7/29/2026
+
+Service Details:
+- Error bibo libero deorsum beatus desolo.
+- Quo optio ater amor adeptio aestus turpis tabula.
+
+Thank you for your business!
+Daugherty, Spencer and Beatty

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 8480-2024-12-SUPPLIES
+Title: Supplies  - Renner, Abbott and Corkery
+Vendor: Crooks - Borer
+Category: Supplies
+Total Amount: $1486.68
+Description: Monthly supplies service for July 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 3/17/2026
+
+Service Details:
+- Odit copiose cultura acceptus temperantia adeptio desparatus suscipit suus peior.
+- Tempus subvenio spargo canonicus creator.
+
+Thank you for your business!
+Crooks - Borer

@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSURANCE CERTIFICATE
+
+Building: 77929 Romaguera Greens Building 1
+Organization: f34160d0-ee92-4f36-8d54-179fa0d30d02
+Document Date: 9/7/2025
+Document 1 of 1
+
+INSURANCE CERTIFICATE
+
+Policy Number: INS-8HU2AGXJDJ
+Insurance Company: Hintz - Kihn Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $3,417,642
+Policy Period: 6/14/2025 to 11/29/2025
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: Gilbert Funk
+Phone: (579) 967-7940
+Email: Marlon.Nader@hotmail.com

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 5505-2024-04-ADMINISTRATION
+Title: Administration  - Friesen, Block and Schmeler
+Vendor: Pollich, Kutch and Wisozk
+Category: Administration
+Total Amount: $2356.49
+Description: Monthly administration service for July 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 9/3/2026
+
+Service Details:
+- Vis usque dicta cognatus culpo depraedor templum.
+- Deserunt molestias degero curatio ventus officiis victoria approbo caste talus.
+
+Thank you for your business!
+Pollich, Kutch and Wisozk

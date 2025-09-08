@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 3940 Theo Dam Building 4
+Organization: f34160d0-ee92-4f36-8d54-179fa0d30d02
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 19:00
+Location: 3940 Theo Dam Building 4 Community Room
+
+Attendees:
+- Traci McLaughlin (Board President)
+- Lydia Schuppe (Treasurer)  
+- Simon Wisozk PhD (Secretary)
+- Miranda Stiedemann (Property Manager)
+
+Agenda Items:
+1. Budget Review - Suasoria atqui damnatio adfectus deorsum adopto appositus.
+2. Maintenance Updates - Custodia mollitia sit tutamen vorax corrigo.
+3. New Policies - Volubilis benevolentia abundans amita deputo tempus voro repellendus.
+
+Action Items:
+- Desidero sono ait.
+- Admoneo solio taedium error umquam.
+
+Next Meeting: 12/28/2025

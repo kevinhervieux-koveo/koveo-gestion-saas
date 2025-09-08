@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 7505-2024-04-INSURANCE-2
+Title: Insurance (2) - Witting - Feest
+Vendor: Reilly, Gusikowski and White
+Category: Insurance
+Total Amount: $713.20
+Description: Monthly insurance service for May 2024 - Invoice 2
+
+Payment Amount: $713.20
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-PEBQHHBF
+
+This payment has been processed successfully.
+Building Management Office

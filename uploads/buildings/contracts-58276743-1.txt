@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+SERVICE CONTRACT (1)
+
+Building: 537 Hudson Stream Building 2
+Organization: f34160d0-ee92-4f36-8d54-179fa0d30d02
+Document Date: 9/7/2025
+Document 1 of 2
+
+SERVICE CONTRACT
+
+Contract Number: CON-NNG6RSHD
+Service Provider: Bernier - Mitchell
+Service Type: Landscaping
+Contract Period: 2/21/2025 to 1/26/2026
+Monthly Cost: $909
+
+Service Details:
+Victus cruentus tenus consectetur venustas bestia. Caelum ascisco dedecor. Stillicidium texo culpo alter tamdiu terebro.
+
+Contact Information:
+Manager: Lillian Schuppe
+Phone: (450) 383-5342
+Emergency Contact: (581) 274-3320
+
+Terms and Conditions:
+- Vulgus averto conforto bene ultio.
+- Calculus cauda utroque adstringo vitium veritas angelus blanditiis cum aro.

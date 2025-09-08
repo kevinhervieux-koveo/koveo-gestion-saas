@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 5CE5-2024-11-INSURANCE
+Title: Insurance  - Bergnaum - Prohaska
+Vendor: McCullough, Adams and Hickle
+Category: Insurance
+Total Amount: $4310.35
+Description: Monthly insurance service for April 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 10/31/2025
+
+Service Details:
+- Vociferor bonus pauper velum claro.
+- Ait vitium socius adamo subseco tondeo spiculum amplus vindico terminatio.
+
+Thank you for your business!
+McCullough, Adams and Hickle

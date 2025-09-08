@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 8480-2024-04-MAINTENANCE-1
+Title: Maintenance (1) - Predovic and Sons
+Vendor: Satterfield, Schultz and Ebert
+Category: Maintenance
+Total Amount: $3283.31
+Description: Monthly maintenance service for June 2024 - Invoice 1
+
+Payment Amount: $3283.31
+Payment Date: 9/7/2025
+Payment Method: Check
+Reference Number: PAY-ILZGL5NA
+
+This payment has been processed successfully.
+Building Management Office

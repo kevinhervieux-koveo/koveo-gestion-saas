@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 277
+Building: 537 Hudson Stream Building 2
+Address: 4474 Nedra Point
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 277
+- Lease Start Date: 12/28/2024
+- Lease End Date: 12/26/2025
+- Monthly Rent: $1238
+- Security Deposit: $1535
+
+Terms and Conditions:
+- Adhuc culpo optio admiratio.
+- Assentator clibanus vespillo culpo templum commodo capillus absens coma.
+
+Landlord: 537 Hudson Stream Building 2 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 517
+Building: 531 Lilla Terrace Building 5
+Address: 40882 Leuschke Mission
+Document 2 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/8/2025
+Inspector: Erika Balistreri
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Excellent
+
+Notes:
+Alienus quod carcer uberrime audio ustulo utroque aggredior. Decens temptatio angelus vitae sum tam. Nulla vinitor molestiae aperio cavus provident testimonium atqui.
+
+Inspector Signature: ____________________

@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 16792 Wolff Highway Building 3
+Organization: f34160d0-ee92-4f36-8d54-179fa0d30d02
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 19:00
+Location: 16792 Wolff Highway Building 3 Community Room
+
+Attendees:
+- Sadie Swaniawski (Board President)
+- Dr. Shaun Flatley (Treasurer)  
+- Ricky Hand (Secretary)
+- Mrs. Viola Satterfield (Property Manager)
+
+Agenda Items:
+1. Budget Review - Alveus comes sperno decet attonbitus somnus ascisco.
+2. Maintenance Updates - Conicio suffoco amita ter desolo tam.
+3. New Policies - Candidus circumvenio appello tui pecco contabesco culpa calculus deleo perspiciatis.
+
+Action Items:
+- Causa quia deprimo.
+- Campana alveus voluntarius tumultus verto alo desidero.
+
+Next Meeting: 11/26/2025

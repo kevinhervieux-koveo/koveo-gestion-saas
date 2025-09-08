@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 314
+Building: 16792 Wolff Highway Building 3
+Address: 24063 Hillary Hollow
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 314
+- Lease Start Date: 6/16/2025
+- Lease End Date: 2/8/2026
+- Monthly Rent: $1444
+- Security Deposit: $2108
+
+Terms and Conditions:
+- Vero quas articulus earum vespillo cultura congregatio quod audax.
+- Uxor crepusculum cometes.
+
+Landlord: 16792 Wolff Highway Building 3 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

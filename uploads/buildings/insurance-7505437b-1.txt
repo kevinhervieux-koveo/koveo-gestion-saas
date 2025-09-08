@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSURANCE CERTIFICATE (1)
+
+Building: 3940 Theo Dam Building 4
+Organization: f34160d0-ee92-4f36-8d54-179fa0d30d02
+Document Date: 9/7/2025
+Document 1 of 2
+
+INSURANCE CERTIFICATE
+
+Policy Number: INS-SFRRECRU3E
+Insurance Company: Hansen - Macejkovic Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $2,181,751
+Policy Period: 4/13/2025 to 3/17/2026
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: Janis Bailey
+Phone: (438) 659-8641
+Email: Oral_Trantow@hotmail.com

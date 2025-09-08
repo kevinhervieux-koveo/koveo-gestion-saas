@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BUILDING PERMIT (1)
+
+Building: 531 Lilla Terrace Building 5
+Organization: f34160d0-ee92-4f36-8d54-179fa0d30d02
+Document Date: 9/7/2025
+Document 1 of 2
+
+BUILDING PERMIT
+
+Permit Number: PER-3DRYA97K
+Permit Type: HVAC Installation
+Issue Date: 6/7/2025
+Expiry Date: 3/6/2026
+Contractor: Upton - Lindgren
+
+Work Description:
+Viscus vomito defleo auxilium tersus laborum venia. Cupiditate conforto turbo abstergo. Venio crur avaritia veritatis peccatus.
+
+Inspection Schedule:
+- Initial Inspection: 9/7/2025
+- Progress Inspection: 9/8/2025
+- Final Inspection: 8/22/2026
+
+Approved by: City Planning Department
+Permit Fee: $734
