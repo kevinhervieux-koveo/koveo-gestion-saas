@@ -1276,7 +1276,8 @@ Estimated Cost: $${faker.number.int({ min: 50, max: 500 })}
 Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
           }
           
-          const filePath = `residences/${docType.type}-${residence.unitNumber.toLowerCase()}-${residence.id.slice(0, 8)}${docSuffix}.txt`;
+          const fileName = `${docType.type}-${residence.unitNumber.toLowerCase()}${docSuffix}.txt`;
+          const filePath = `residences/${residence.id}/${fileName}`;
           const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
           
           const [createdResidenceDoc] = await db
@@ -1286,7 +1287,7 @@ Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
               description: `${docType.description} for unit ${residence.unitNumber}`,
               documentType: docType.type,
               filePath,
-              fileName: `${docType.type}-${residence.unitNumber}${docSuffix}.txt`,
+              fileName,
               fileSize,
               mimeType: 'text/plain',
               isVisibleToTenants: docType.type === 'lease',
@@ -1419,7 +1420,8 @@ Terms and Conditions:
 - ${faker.lorem.sentence()}`;
           }
           
-          const filePath = `buildings/${docType.type}-${building.id.slice(0, 8)}${docSuffix}.txt`;
+          const fileName = `${docType.type}-${building.name.replace(/\s+/g, '-').toLowerCase()}${docSuffix}.txt`;
+          const filePath = `buildings/${building.id}/${fileName}`;
           const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
           
           const [createdBuildingDoc] = await db
@@ -1429,7 +1431,7 @@ Terms and Conditions:
               description: `${docType.description} for ${building.name}${docSuffix ? ` (Document ${docIndex + 1})` : ''}`,
               documentType: docType.type,
               filePath,
-              fileName: `${docType.type}-${building.name.replace(/\s+/g, '-').toLowerCase()}${docSuffix}.txt`,
+              fileName,
               fileSize,
               mimeType: 'text/plain',
               isVisibleToTenants: docType.type === 'meeting_minutes',
