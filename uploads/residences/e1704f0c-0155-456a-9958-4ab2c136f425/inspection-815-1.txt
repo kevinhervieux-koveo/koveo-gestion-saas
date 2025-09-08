@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 815
+Building: 1762 Oberbrunner Port Building 2
+Address: 59100 Green Street
+Document 1 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Dewey O'Reilly
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Excellent
+
+Notes:
+Adsidue vorago maiores sit deinde subnecto succedo. Sapiente acies iure vehemens color hic totus audax surgo. Tamquam alveus clam cupressus victus culpa nemo ultio.
+
+Inspector Signature: ____________________

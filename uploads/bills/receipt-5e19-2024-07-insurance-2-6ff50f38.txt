@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 5E19-2024-07-INSURANCE-2
+Title: Insurance (2) - Fritsch, Feil and Spencer
+Vendor: Kuphal, Hammes and Vandervort
+Category: Insurance
+Total Amount: $1714.54
+Description: Monthly insurance service for May 2024 - Invoice 2
+
+Payment Amount: $1714.54
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-NJO6UJEY
+
+This payment has been processed successfully.
+Building Management Office

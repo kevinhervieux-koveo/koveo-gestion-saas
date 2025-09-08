@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 8087 Ryan Crest Building 3
+Organization: 8dd611e7-ca33-4b7c-ad38-d2cfd596f741
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 20:00
+Location: 8087 Ryan Crest Building 3 Community Room
+
+Attendees:
+- Edna Spencer (Board President)
+- Rolando Beier (Treasurer)  
+- Loretta Goyette (Secretary)
+- Willie Stanton (Property Manager)
+
+Agenda Items:
+1. Budget Review - Incidunt thema arbitro commodo apud cohibeo.
+2. Maintenance Updates - Velum utilis bellicus alo supplanto tumultus impedit.
+3. New Policies - Quisquam pectus cur versus strenuus decumbo desparatus.
+
+Action Items:
+- Sumptus ut tredecim defetiscor supplanto crinis.
+- Tergum tenus utilis.
+
+Next Meeting: 6/29/2026

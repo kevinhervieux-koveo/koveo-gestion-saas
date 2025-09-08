@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 126
+Building: 711 Walnut Close Building 5
+Address: 273 Sally Port
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 126
+- Lease Start Date: 6/2/2025
+- Lease End Date: 10/12/2025
+- Monthly Rent: $1593
+- Security Deposit: $1776
+
+Terms and Conditions:
+- Debitis advoco patruus.
+- Agnosco cetera crebro curatio denuo altus textilis crepusculum tempus.
+
+Landlord: 711 Walnut Close Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

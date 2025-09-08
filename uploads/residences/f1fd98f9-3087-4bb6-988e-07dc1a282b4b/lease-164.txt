@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 164
+Building: 30641 The Hawthorns Building 4
+Address: 27465 Aurelie Turnpike
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 164
+- Lease Start Date: 11/25/2024
+- Lease End Date: 6/27/2026
+- Monthly Rent: $1053
+- Security Deposit: $1148
+
+Terms and Conditions:
+- Currus ager casso appositus decretum patior debitis temeritas.
+- Defendo aggero tredecim considero calco conscendo aliqua surgo atque tabgo.
+
+Landlord: 30641 The Hawthorns Building 4 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

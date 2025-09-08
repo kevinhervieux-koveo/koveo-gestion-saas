@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 5E19-2024-12-UTILITIES-2
+Title: Utilities (2) - King - Conroy
+Vendor: Hirthe Group
+Category: Utilities
+Total Amount: $790.52
+Description: Monthly utilities service for August 2024 - Invoice 2
+
+Payment Amount: $790.52
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-DWP5SFC6
+
+This payment has been processed successfully.
+Building Management Office

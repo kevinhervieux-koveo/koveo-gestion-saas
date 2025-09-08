@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: B911-2024-11-PROFESSIONAL_SERVICES
+Title: Professional_services  - Gerhold, Jacobson and Adams
+Vendor: Crist - Huel
+Category: Professional_services
+Total Amount: $2590.07
+Description: Monthly professional_services service for July 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 6/11/2026
+
+Service Details:
+- Molestias quas virga deludo terga adimpleo tolero velum antiquus absorbeo.
+- Crur sulum vestigium talus cumque addo calcar vilis.
+
+Thank you for your business!
+Crist - Huel

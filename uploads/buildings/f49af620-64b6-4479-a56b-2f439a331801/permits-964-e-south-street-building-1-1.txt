@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BUILDING PERMIT (1)
+
+Building: 964 E South Street Building 1
+Organization: 8dd611e7-ca33-4b7c-ad38-d2cfd596f741
+Document Date: 9/7/2025
+Document 1 of 2
+
+BUILDING PERMIT
+
+Permit Number: PER-8ILXJSOR
+Permit Type: Renovation
+Issue Date: 4/8/2025
+Expiry Date: 11/12/2025
+Contractor: Runolfsson - O'Reilly
+
+Work Description:
+Virgo trucido coma trepide doloribus dedico capillus carus complectus ab. Damno inventore usque crur adversus adfero labore coma carmen comburo. Atqui ustilo crapula caveo error claustrum ago conspergo temporibus acquiro.
+
+Inspection Schedule:
+- Initial Inspection: 9/7/2025
+- Progress Inspection: 9/9/2025
+- Final Inspection: 12/3/2025
+
+Approved by: City Planning Department
+Permit Fee: $197

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: CDB1-2024-08-PROFESSIONAL_SERVICES
+Title: Professional_services  - Kohler, Ferry and O'Reilly
+Vendor: Wolff and Sons
+Category: Professional_services
+Total Amount: $2265.91
+Description: Monthly professional_services service for October 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 3/13/2026
+
+Service Details:
+- Ascit cito arca cedo accommodo.
+- Quaerat fugit uredo delinquo tyrannus.
+
+Thank you for your business!
+Wolff and Sons

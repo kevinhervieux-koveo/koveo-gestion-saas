@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: B911-2024-03-ADMINISTRATION-2
+Title: Administration (2) - Baumbach, Fay and Kihn
+Vendor: Crist, Kreiger and White
+Category: Administration
+Total Amount: $331.95
+Description: Monthly administration service for June 2024 - Invoice 2
+
+Payment Amount: $331.95
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-2BOIH620
+
+This payment has been processed successfully.
+Building Management Office

@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 593
+Building: 964 E South Street Building 1
+Address: 79491 Birch Road
+Document 2 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Grace Mertz
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Excellent
+
+Notes:
+Defluo denuo charisma tamen infit. Assentator deinde adnuo desolo tabesco aequitas repudiandae. Ipsum eaque careo deorsum corroboro auditor.
+
+Inspector Signature: ____________________

@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: F49A-2024-04-LANDSCAPING-2
+Title: Landscaping (2) - Johnston Inc
+Vendor: Stanton - Heaney
+Category: Landscaping
+Total Amount: $2022.29
+Description: Monthly landscaping service for December 2024 - Invoice 2
+
+Payment Amount: $2022.29
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-TWNJLE71
+
+This payment has been processed successfully.
+Building Management Office

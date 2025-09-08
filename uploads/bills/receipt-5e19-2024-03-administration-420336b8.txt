@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 5E19-2024-03-ADMINISTRATION
+Title: Administration  - Feest and Sons
+Vendor: Lemke Group
+Category: Administration
+Total Amount: $1846.31
+Description: Monthly administration service for October 2024
+
+Payment Amount: $1846.31
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-1OVYIVFN
+
+This payment has been processed successfully.
+Building Management Office

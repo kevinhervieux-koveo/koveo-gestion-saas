@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BUILDING PERMIT
+
+Building: 30641 The Hawthorns Building 4
+Organization: 8dd611e7-ca33-4b7c-ad38-d2cfd596f741
+Document Date: 9/7/2025
+Document 1 of 1
+
+BUILDING PERMIT
+
+Permit Number: PER-1ZHZVAQV
+Permit Type: Electrical Work
+Issue Date: 3/19/2025
+Expiry Date: 1/18/2026
+Contractor: Bernier and Sons
+
+Work Description:
+Utrum defessus nulla numquam hic cur audeo baiulus aliquam. Defetiscor explicabo vos crastinus dedico advoco eaque at. Paulatim adeptio supplanto patior aro brevis conduco.
+
+Inspection Schedule:
+- Initial Inspection: 9/7/2025
+- Progress Inspection: 9/9/2025
+- Final Inspection: 9/12/2025
+
+Approved by: City Planning Department
+Permit Fee: $159

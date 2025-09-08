@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: B068-2024-04-ADMINISTRATION
+Title: Administration  - Gusikowski - Cassin
+Vendor: Walker - Thiel
+Category: Administration
+Total Amount: $1634.69
+Description: Monthly administration service for June 2024
+
+Payment Amount: $1634.69
+Payment Date: 9/7/2025
+Payment Method: Check
+Reference Number: PAY-9XPQB4JB
+
+This payment has been processed successfully.
+Building Management Office

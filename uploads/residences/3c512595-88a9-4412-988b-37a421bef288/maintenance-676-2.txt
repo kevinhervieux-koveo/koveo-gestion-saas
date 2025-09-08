@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 676
+Building: 8087 Ryan Crest Building 3
+Address: 733 Antwan Ridges
+Document 2 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 676:
+
+12/29/2024 - HVAC maintenance
+Status: Completed
+Cost: $352
+
+9/7/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $221
+
+Next Scheduled Maintenance: 2/6/2026

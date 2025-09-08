@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 725
+Building: 711 Walnut Close Building 5
+Address: 6900 Weber Pass
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 725
+- Lease Start Date: 3/12/2025
+- Lease End Date: 4/1/2026
+- Monthly Rent: $1581
+- Security Deposit: $1911
+
+Terms and Conditions:
+- Creta varius tero minima tamen deripio absum denuncio.
+- Nemo tamquam tego numquam combibo voco delego.
+
+Landlord: 711 Walnut Close Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

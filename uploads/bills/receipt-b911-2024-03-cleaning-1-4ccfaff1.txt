@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: B911-2024-03-CLEANING-1
+Title: Cleaning (1) - Schimmel, Gutmann and White
+Vendor: Ryan, Flatley and Torp
+Category: Cleaning
+Total Amount: $1656.95
+Description: Monthly cleaning service for February 2024 - Invoice 1
+
+Payment Amount: $1656.95
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-LXTZA0QO
+
+This payment has been processed successfully.
+Building Management Office

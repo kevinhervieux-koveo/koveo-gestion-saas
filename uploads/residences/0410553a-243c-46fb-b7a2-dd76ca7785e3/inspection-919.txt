@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 919
+Building: 964 E South Street Building 1
+Address: 12774 Johnson Creek
+Document 1 of 1
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Sheldon Wintheiser
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Excellent
+
+Notes:
+Sum strenuus cuppedia. Tam vinum quibusdam inventore doloribus acervus volo vester. Timor validus celer deripio caries autem alii.
+
+Inspector Signature: ____________________

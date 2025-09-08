@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 5E19-2024-07-CLEANING
+Title: Cleaning  - Stroman, Gutmann and Rohan
+Vendor: D'Amore, Stoltenberg and Adams
+Category: Cleaning
+Total Amount: $1650.21
+Description: Monthly cleaning service for May 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 11/15/2025
+
+Service Details:
+- Vulariter ambulo ullam bestia temperantia tumultus nulla.
+- Cerno cibus aliqua veritas valde subseco statim animus surgo.
+
+Thank you for your business!
+D'Amore, Stoltenberg and Adams

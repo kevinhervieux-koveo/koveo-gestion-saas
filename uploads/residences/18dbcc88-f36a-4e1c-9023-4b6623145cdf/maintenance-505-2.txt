@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 505
+Building: 8087 Ryan Crest Building 3
+Address: 604 Bernhard Alley
+Document 2 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 505:
+
+2/21/2025 - Plumbing repair
+Status: Completed
+Cost: $223
+
+9/7/2025 - Light fixture repair
+Status: In Progress
+Estimated Cost: $67
+
+Next Scheduled Maintenance: 9/8/2025

@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 820
+Building: 30641 The Hawthorns Building 4
+Address: 4266 S Main Avenue
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 820
+- Lease Start Date: 5/21/2025
+- Lease End Date: 11/21/2025
+- Monthly Rent: $2051
+- Security Deposit: $2427
+
+Terms and Conditions:
+- Claudeo commemoro commodo ago beatus vorago contego.
+- Creta veniam communis texo tepidus.
+
+Landlord: 30641 The Hawthorns Building 4 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

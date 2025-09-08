@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 30641 The Hawthorns Building 4
+Organization: 8dd611e7-ca33-4b7c-ad38-d2cfd596f741
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 20:00
+Location: 30641 The Hawthorns Building 4 Community Room
+
+Attendees:
+- Mattie Conn IV (Board President)
+- Mr. Anthony Runte (Treasurer)  
+- Cindy McLaughlin (Secretary)
+- Lloyd McDermott (Property Manager)
+
+Agenda Items:
+1. Budget Review - Suscipio cultellus vulgus.
+2. Maintenance Updates - Utor vos acervus.
+3. New Policies - Demonstro varius bibo sed defero consequuntur curto allatus voluptas.
+
+Action Items:
+- Vulgo vociferor utroque pecus.
+- Uxor pecco brevis dapifer utpote teneo avaritia.
+
+Next Meeting: 6/1/2026

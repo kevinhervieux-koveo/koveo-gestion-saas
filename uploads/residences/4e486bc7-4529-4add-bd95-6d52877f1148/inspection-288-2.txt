@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 288
+Building: 1762 Oberbrunner Port Building 2
+Address: 8943 Waters Curve
+Document 2 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Mae Jaskolski
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Fair
+
+Notes:
+Bardus subiungo vociferor vomer vito accusator concido ullus voluptatum strues. Valde voluptatibus verecundia tum ventosus adsidue vulpes deserunt thorax. Neque ocer sollicito vel vulnus substantia repudiandae tutis suppellex conicio.
+
+Inspector Signature: ____________________
