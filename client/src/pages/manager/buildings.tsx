@@ -49,9 +49,11 @@ import {
   Mail,
   Calendar,
   Users,
+  ArrowLeft,
 } from 'lucide-react';
 import { Header } from '@/components/layout/header';
-import { Link } from 'wouter';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import { Link, useLocation } from 'wouter';
 
 // Form schema for creating/editing buildings
 // Schema will be created inside component with translations
@@ -387,10 +389,16 @@ function BuildingForm({
 /**
  *
  */
-export default function Buildings() {
+function BuildingsInner({ organizationId }: { organizationId?: string }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const [, navigate] = useLocation();
+
+  const handleBackToOrganization = () => {
+    // Navigate back to organization selection
+    navigate('/manager/buildings');
+  };
 
   // Create schema with translations
   const buildingFormSchema = z.object({
@@ -430,18 +438,20 @@ export default function Buildings() {
     },
   });
 
-  // Fetch buildings using the working manager endpoint
+  // Fetch buildings for the selected organization
   const {
     data: buildingsData,
     isLoading,
     error: _error,
   } = useQuery({
-    queryKey: ['/api/manager/buildings'],
+    queryKey: ['/api/manager/buildings', organizationId],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/manager/buildings');
+      const url = organizationId ? `/api/manager/buildings?organizationId=${organizationId}` : '/api/manager/buildings';
+      const response = await apiRequest('GET', url);
       const data = await response.json();
       return data;
     },
+    enabled: !!organizationId, // Only fetch when we have an organizationId
   });
 
   // Extract buildings array from the wrapped response
@@ -615,10 +625,22 @@ export default function Buildings() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header
-        title={t('buildings')}
-        subtitle={t('manageBuildings')}
-      />
+      <Header title={t('buildingsManagement')} subtitle={t('buildingsSubtitle')} />
+      
+      {/* Back to Organization Navigation */}
+      {organizationId && (
+        <div className="p-4 border-b border-gray-200">
+          <Button
+            variant="outline"
+            onClick={handleBackToOrganization}
+            className="flex items-center gap-2"
+            data-testid="button-back-to-organization"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t('organization')}
+          </Button>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-6xl mx-auto space-y-6'>
@@ -721,3 +743,10 @@ export default function Buildings() {
     </div>
   );
 }
+
+// Wrap with hierarchical selection HOC using 2-level hierarchy (organization → building)
+const Buildings = withHierarchicalSelection(BuildingsInner, {
+  hierarchy: ['organization']
+});
+
+export default Buildings;
