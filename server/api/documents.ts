@@ -2800,15 +2800,6 @@ export function registerDocumentRoutes(app: Express): void {
         }
       } else if (userRole === 'resident' || userRole === 'demo_resident') {
         // Resident has access to building files they are assigned to
-        console.log('🔍 RESIDENT ACCESS DEBUG:', {
-          documentBuildingId: document.buildingId,
-          userBuildingIds,
-          buildingMatch: document.buildingId && userBuildingIds.includes(document.buildingId),
-          documentResidenceId: document.residenceId,
-          userResidenceIds,
-          residenceMatch: document.residenceId && userResidenceIds.includes(document.residenceId)
-        });
-        
         if (document.buildingId && userBuildingIds.includes(document.buildingId)) {
           hasAccess = true;
           accessReason = 'Resident has access to assigned building documents';
