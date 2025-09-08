@@ -1,0 +1,159 @@
+55dceea308bc382c2711c066f71adb71
+"use strict";
+
+/* istanbul ignore next */
+function cov_tdbznw92u() {
+  var path = "/home/runner/workspace/client/src/components/ui/skeleton.tsx";
+  var hash = "2d86086273b0334b491ecf8cd2b3afe3bb6ea6bf";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/components/ui/skeleton.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 2,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 0
+        },
+        end: {
+          line: 3,
+          column: 28
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 50
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 16
+        },
+        end: {
+          line: 5,
+          column: 38
+        }
+      },
+      "4": {
+        start: {
+          line: 14,
+          column: 4
+        },
+        end: {
+          line: 14,
+          column: 131
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "Skeleton",
+        decl: {
+          start: {
+            line: 13,
+            column: 9
+          },
+          end: {
+            line: 13,
+            column: 17
+          }
+        },
+        loc: {
+          start: {
+            line: 13,
+            column: 43
+          },
+          end: {
+            line: 15,
+            column: 1
+          }
+        },
+        line: 13
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/components/ui/skeleton.tsx",
+      mappings: ";;AAwBS,4BAAQ;;AAxBjB,uCAAiC;AAEjC;;;;;;GAMG;AAEH,SAUA,QAAQ,CAAC,EAAE,SAAS,EAAE,GAAG,KAAK,EAAwC;IACpE,OAAO,gCAAK,SAAS,EAAE,IAAA,UAAE,EAAC,mCAAmC,EAAE,SAAS,CAAC,KAAM,KAAK,GAAI,CAAC;AAC3F,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/components/ui/skeleton.tsx"],
+      sourcesContent: ["import { cn } from '@/lib/utils';\n\n/**\n\n * Skeleton function\n\n * @returns Function result\n\n */\n\nfunction /**\n * Skeleton function.\n * @param { className - { className parameter.\n * @param ...props } - ...props } parameter.\n */ /**\n * Skeleton function.\n * @param { className - { className parameter.\n * @param ...props } - ...props } parameter.\n */\n\nSkeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {\n  return <div className={cn('animate-pulse rounded-md bg-muted', className)} {...props} />;\n}\n\nexport { Skeleton };\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "2d86086273b0334b491ecf8cd2b3afe3bb6ea6bf"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_tdbznw92u = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_tdbznw92u();
+cov_tdbznw92u().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_tdbznw92u().s[1]++;
+exports.Skeleton = Skeleton;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_tdbznw92u().s[2]++, require("react/jsx-runtime"));
+const utils_1 =
+/* istanbul ignore next */
+(cov_tdbznw92u().s[3]++, require("@/lib/utils"));
+/**
+
+ * Skeleton function
+
+ * @returns Function result
+
+ */
+function Skeleton({
+  className,
+  ...props
+}) {
+  /* istanbul ignore next */
+  cov_tdbznw92u().f[0]++;
+  cov_tdbznw92u().s[4]++;
+  return (0, jsx_runtime_1.jsx)("div", {
+    className: (0, utils_1.cn)('animate-pulse rounded-md bg-muted', className),
+    ...props
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJleHBvcnRzIiwiU2tlbGV0b24iLCJ1dGlsc18xIiwiY292X3RkYnpudzkydSIsInMiLCJyZXF1aXJlIiwiY2xhc3NOYW1lIiwicHJvcHMiLCJmIiwianN4X3J1bnRpbWVfMSIsImpzeCIsImNuIl0sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2NvbXBvbmVudHMvdWkvc2tlbGV0b24udHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IGNuIH0gZnJvbSAnQC9saWIvdXRpbHMnO1xuXG4vKipcblxuICogU2tlbGV0b24gZnVuY3Rpb25cblxuICogQHJldHVybnMgRnVuY3Rpb24gcmVzdWx0XG5cbiAqL1xuXG5mdW5jdGlvbiAvKipcbiAqIFNrZWxldG9uIGZ1bmN0aW9uLlxuICogQHBhcmFtIHsgY2xhc3NOYW1lIC0geyBjbGFzc05hbWUgcGFyYW1ldGVyLlxuICogQHBhcmFtIC4uLnByb3BzIH0gLSAuLi5wcm9wcyB9IHBhcmFtZXRlci5cbiAqLyAvKipcbiAqIFNrZWxldG9uIGZ1bmN0aW9uLlxuICogQHBhcmFtIHsgY2xhc3NOYW1lIC0geyBjbGFzc05hbWUgcGFyYW1ldGVyLlxuICogQHBhcmFtIC4uLnByb3BzIH0gLSAuLi5wcm9wcyB9IHBhcmFtZXRlci5cbiAqL1xuXG5Ta2VsZXRvbih7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfTogUmVhY3QuSFRNTEF0dHJpYnV0ZXM8SFRNTERpdkVsZW1lbnQ+KSB7XG4gIHJldHVybiA8ZGl2IGNsYXNzTmFtZT17Y24oJ2FuaW1hdGUtcHVsc2Ugcm91bmRlZC1tZCBiZy1tdXRlZCcsIGNsYXNzTmFtZSl9IHsuLi5wcm9wc30gLz47XG59XG5cbmV4cG9ydCB7IFNrZWxldG9uIH07XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBd0JTQSxPQUFBLENBQUFDLFFBQUEsR0FBQUEsUUFBQTs7OztBQXhCVCxNQUFBQyxPQUFBO0FBQUE7QUFBQSxDQUFBQyxhQUFBLEdBQUFDLENBQUEsT0FBQUMsT0FBQTtBQUVBOzs7Ozs7O0FBUUEsU0FVQUosUUFBUUEsQ0FBQztFQUFFSyxTQUFTO0VBQUUsR0FBR0M7QUFBSyxDQUF3QztFQUFBO0VBQUFKLGFBQUEsR0FBQUssQ0FBQTtFQUFBTCxhQUFBLEdBQUFDLENBQUE7RUFDcEUsT0FBTyxJQUFBSyxhQUFBLENBQUFDLEdBQUE7SUFBS0osU0FBUyxFQUFFLElBQUFKLE9BQUEsQ0FBQVMsRUFBRSxFQUFDLG1DQUFtQyxFQUFFTCxTQUFTLENBQUM7SUFBQSxHQUFNQztFQUFLLEVBQUk7QUFDMUYiLCJpZ25vcmVMaXN0IjpbXX0=

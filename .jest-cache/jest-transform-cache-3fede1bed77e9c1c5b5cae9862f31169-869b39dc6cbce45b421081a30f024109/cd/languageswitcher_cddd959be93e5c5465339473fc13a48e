@@ -1,0 +1,356 @@
+b2e9cca530fad27ad35b19edaff3acbb
+"use strict";
+
+/* istanbul ignore next */
+function cov_y025j2kfl() {
+  var path = "/home/runner/workspace/client/src/components/ui/language-switcher.tsx";
+  var hash = "3c66f92d5bdb81ef92fd6324c4f0ea997a88eb32";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/components/ui/language-switcher.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 2,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 0
+        },
+        end: {
+          line: 3,
+          column: 44
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 50
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 23
+        },
+        end: {
+          line: 5,
+          column: 54
+        }
+      },
+      "4": {
+        start: {
+          line: 26,
+          column: 38
+        },
+        end: {
+          line: 26,
+          column: 71
+        }
+      },
+      "5": {
+        start: {
+          line: 27,
+          column: 4
+        },
+        end: {
+          line: 27,
+          column: 692
+        }
+      },
+      "6": {
+        start: {
+          line: 27,
+          column: 189
+        },
+        end: {
+          line: 27,
+          column: 206
+        }
+      },
+      "7": {
+        start: {
+          line: 27,
+          column: 482
+        },
+        end: {
+          line: 27,
+          column: 499
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "LanguageSwitcher",
+        decl: {
+          start: {
+            line: 25,
+            column: 9
+          },
+          end: {
+            line: 25,
+            column: 25
+          }
+        },
+        loc: {
+          start: {
+            line: 25,
+            column: 28
+          },
+          end: {
+            line: 28,
+            column: 1
+          }
+        },
+        line: 25
+      },
+      "1": {
+        name: "(anonymous_1)",
+        decl: {
+          start: {
+            line: 27,
+            column: 183
+          },
+          end: {
+            line: 27,
+            column: 184
+          }
+        },
+        loc: {
+          start: {
+            line: 27,
+            column: 189
+          },
+          end: {
+            line: 27,
+            column: 206
+          }
+        },
+        line: 27
+      },
+      "2": {
+        name: "(anonymous_2)",
+        decl: {
+          start: {
+            line: 27,
+            column: 476
+          },
+          end: {
+            line: 27,
+            column: 477
+          }
+        },
+        loc: {
+          start: {
+            line: 27,
+            column: 482
+          },
+          end: {
+            line: 27,
+            column: 499
+          }
+        },
+        line: 27
+      }
+    },
+    branchMap: {
+      "0": {
+        loc: {
+          start: {
+            line: 27,
+            column: 288
+          },
+          end: {
+            line: 27,
+            column: 372
+          }
+        },
+        type: "cond-expr",
+        locations: [{
+          start: {
+            line: 27,
+            column: 308
+          },
+          end: {
+            line: 27,
+            column: 334
+          }
+        }, {
+          start: {
+            line: 27,
+            column: 337
+          },
+          end: {
+            line: 27,
+            column: 372
+          }
+        }],
+        line: 27
+      },
+      "1": {
+        loc: {
+          start: {
+            line: 27,
+            column: 581
+          },
+          end: {
+            line: 27,
+            column: 665
+          }
+        },
+        type: "cond-expr",
+        locations: [{
+          start: {
+            line: 27,
+            column: 601
+          },
+          end: {
+            line: 27,
+            column: 627
+          }
+        }, {
+          start: {
+            line: 27,
+            column: 630
+          },
+          end: {
+            line: 27,
+            column: 665
+          }
+        }],
+        line: 27
+      }
+    },
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0,
+      "2": 0
+    },
+    b: {
+      "0": [0, 0],
+      "1": [0, 0]
+    },
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/components/ui/language-switcher.tsx",
+      mappings: ";;AAsBA,4CAyBC;;AA/CD,uDAAmD;AAGnD;;;;;;;;;;;;;;;;;;GAkBG;AACH,SAAgB,gBAAgB;IAC9B,MAAM,EAAE,QAAQ,EAAE,WAAW,EAAE,GAAG,IAAA,0BAAW,GAAE,CAAC;IAEhD,OAAO,CACL,iCAAK,SAAS,EAAC,iCAAiC,aAC9C,kDACc,oBAAoB,EAChC,OAAO,EAAE,GAAG,EAAE,CAAC,WAAW,CAAC,IAAI,CAAC,EAChC,SAAS,EAAE,qEACT,QAAQ,KAAK,IAAI,CAAC,CAAC,CAAC,0BAA0B,CAAC,CAAC,CAAC,mCACnD,EAAE,mBAGK,EACT,kDACc,oBAAoB,EAChC,OAAO,EAAE,GAAG,EAAE,CAAC,WAAW,CAAC,IAAI,CAAC,EAChC,SAAS,EAAE,qEACT,QAAQ,KAAK,IAAI,CAAC,CAAC,CAAC,0BAA0B,CAAC,CAAC,CAAC,mCACnD,EAAE,mBAGK,IACL,CACP,CAAC;AACJ,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/components/ui/language-switcher.tsx"],
+      sourcesContent: ["import { useLanguage } from '@/hooks/use-language';\nimport { Language } from '@/lib/i18n';\n\n/**\n * Language toggle component for switching between English and French.\n * Provides bilingual support as required by Quebec property management regulations.\n *\n * @returns {JSX.Element} Toggle buttons for English/French language selection.\n * @example\n * ```typescript\n * function AppHeader() {\n *   return (\n *     <header>\n *       <div className=\"flex items-center gap-4\">\n *         <h1>Koveo Gestion</h1>\n *         <LanguageSwitcher />\n *       </div>\n *     </header>\n *   );\n * }\n * ```\n */\nexport function LanguageSwitcher() {\n  const { language, setLanguage } = useLanguage();\n\n  return (\n    <div className='flex bg-gray-100 rounded-lg p-1'>\n      <button\n        data-testid='button-language-en'\n        onClick={() => setLanguage('en')}\n        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${\n          language === 'en' ? 'bg-koveo-navy text-white' : 'text-koveo-navy hover:bg-gray-200'\n        }`}\n      >\n        EN\n      </button>\n      <button\n        data-testid='button-language-fr'\n        onClick={() => setLanguage('fr')}\n        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${\n          language === 'fr' ? 'bg-koveo-navy text-white' : 'text-koveo-navy hover:bg-gray-200'\n        }`}\n      >\n        FR\n      </button>\n    </div>\n  );\n}\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "3c66f92d5bdb81ef92fd6324c4f0ea997a88eb32"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_y025j2kfl = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_y025j2kfl();
+cov_y025j2kfl().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_y025j2kfl().s[1]++;
+exports.LanguageSwitcher = LanguageSwitcher;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_y025j2kfl().s[2]++, require("react/jsx-runtime"));
+const use_language_1 =
+/* istanbul ignore next */
+(cov_y025j2kfl().s[3]++, require("@/hooks/use-language"));
+/**
+ * Language toggle component for switching between English and French.
+ * Provides bilingual support as required by Quebec property management regulations.
+ *
+ * @returns {JSX.Element} Toggle buttons for English/French language selection.
+ * @example
+ * ```typescript
+ * function AppHeader() {
+ *   return (
+ *     <header>
+ *       <div className="flex items-center gap-4">
+ *         <h1>Koveo Gestion</h1>
+ *         <LanguageSwitcher />
+ *       </div>
+ *     </header>
+ *   );
+ * }
+ * ```
+ */
+function LanguageSwitcher() {
+  /* istanbul ignore next */
+  cov_y025j2kfl().f[0]++;
+  const {
+    language,
+    setLanguage
+  } =
+  /* istanbul ignore next */
+  (cov_y025j2kfl().s[4]++, (0, use_language_1.useLanguage)());
+  /* istanbul ignore next */
+  cov_y025j2kfl().s[5]++;
+  return (0, jsx_runtime_1.jsxs)("div", {
+    className: 'flex bg-gray-100 rounded-lg p-1',
+    children: [(0, jsx_runtime_1.jsx)("button", {
+      "data-testid": 'button-language-en',
+      onClick: () => {
+        /* istanbul ignore next */
+        cov_y025j2kfl().f[1]++;
+        cov_y025j2kfl().s[6]++;
+        return setLanguage('en');
+      },
+      className: `flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${language === 'en' ?
+      /* istanbul ignore next */
+      (cov_y025j2kfl().b[0][0]++, 'bg-koveo-navy text-white') :
+      /* istanbul ignore next */
+      (cov_y025j2kfl().b[0][1]++, 'text-koveo-navy hover:bg-gray-200')}`,
+      children: "EN"
+    }), (0, jsx_runtime_1.jsx)("button", {
+      "data-testid": 'button-language-fr',
+      onClick: () => {
+        /* istanbul ignore next */
+        cov_y025j2kfl().f[2]++;
+        cov_y025j2kfl().s[7]++;
+        return setLanguage('fr');
+      },
+      className: `flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${language === 'fr' ?
+      /* istanbul ignore next */
+      (cov_y025j2kfl().b[1][0]++, 'bg-koveo-navy text-white') :
+      /* istanbul ignore next */
+      (cov_y025j2kfl().b[1][1]++, 'text-koveo-navy hover:bg-gray-200')}`,
+      children: "FR"
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJleHBvcnRzIiwiTGFuZ3VhZ2VTd2l0Y2hlciIsInVzZV9sYW5ndWFnZV8xIiwiY292X3kwMjVqMmtmbCIsInMiLCJyZXF1aXJlIiwiZiIsImxhbmd1YWdlIiwic2V0TGFuZ3VhZ2UiLCJ1c2VMYW5ndWFnZSIsImpzeF9ydW50aW1lXzEiLCJqc3hzIiwiY2xhc3NOYW1lIiwiY2hpbGRyZW4iLCJqc3giLCJvbkNsaWNrIiwiYiJdLCJzb3VyY2VzIjpbIi9ob21lL3J1bm5lci93b3Jrc3BhY2UvY2xpZW50L3NyYy9jb21wb25lbnRzL3VpL2xhbmd1YWdlLXN3aXRjaGVyLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyB1c2VMYW5ndWFnZSB9IGZyb20gJ0AvaG9va3MvdXNlLWxhbmd1YWdlJztcbmltcG9ydCB7IExhbmd1YWdlIH0gZnJvbSAnQC9saWIvaTE4bic7XG5cbi8qKlxuICogTGFuZ3VhZ2UgdG9nZ2xlIGNvbXBvbmVudCBmb3Igc3dpdGNoaW5nIGJldHdlZW4gRW5nbGlzaCBhbmQgRnJlbmNoLlxuICogUHJvdmlkZXMgYmlsaW5ndWFsIHN1cHBvcnQgYXMgcmVxdWlyZWQgYnkgUXVlYmVjIHByb3BlcnR5IG1hbmFnZW1lbnQgcmVndWxhdGlvbnMuXG4gKlxuICogQHJldHVybnMge0pTWC5FbGVtZW50fSBUb2dnbGUgYnV0dG9ucyBmb3IgRW5nbGlzaC9GcmVuY2ggbGFuZ3VhZ2Ugc2VsZWN0aW9uLlxuICogQGV4YW1wbGVcbiAqIGBgYHR5cGVzY3JpcHRcbiAqIGZ1bmN0aW9uIEFwcEhlYWRlcigpIHtcbiAqICAgcmV0dXJuIChcbiAqICAgICA8aGVhZGVyPlxuICogICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtNFwiPlxuICogICAgICAgICA8aDE+S292ZW8gR2VzdGlvbjwvaDE+XG4gKiAgICAgICAgIDxMYW5ndWFnZVN3aXRjaGVyIC8+XG4gKiAgICAgICA8L2Rpdj5cbiAqICAgICA8L2hlYWRlcj5cbiAqICAgKTtcbiAqIH1cbiAqIGBgYFxuICovXG5leHBvcnQgZnVuY3Rpb24gTGFuZ3VhZ2VTd2l0Y2hlcigpIHtcbiAgY29uc3QgeyBsYW5ndWFnZSwgc2V0TGFuZ3VhZ2UgfSA9IHVzZUxhbmd1YWdlKCk7XG5cbiAgcmV0dXJuIChcbiAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleCBiZy1ncmF5LTEwMCByb3VuZGVkLWxnIHAtMSc+XG4gICAgICA8YnV0dG9uXG4gICAgICAgIGRhdGEtdGVzdGlkPSdidXR0b24tbGFuZ3VhZ2UtZW4nXG4gICAgICAgIG9uQ2xpY2s9eygpID0+IHNldExhbmd1YWdlKCdlbicpfVxuICAgICAgICBjbGFzc05hbWU9e2BmbGV4LTEgcHktMiBweC0zIHJvdW5kZWQtbWQgdGV4dC1zbSBmb250LW1lZGl1bSB0cmFuc2l0aW9uLWNvbG9ycyAke1xuICAgICAgICAgIGxhbmd1YWdlID09PSAnZW4nID8gJ2JnLWtvdmVvLW5hdnkgdGV4dC13aGl0ZScgOiAndGV4dC1rb3Zlby1uYXZ5IGhvdmVyOmJnLWdyYXktMjAwJ1xuICAgICAgICB9YH1cbiAgICAgID5cbiAgICAgICAgRU5cbiAgICAgIDwvYnV0dG9uPlxuICAgICAgPGJ1dHRvblxuICAgICAgICBkYXRhLXRlc3RpZD0nYnV0dG9uLWxhbmd1YWdlLWZyJ1xuICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRMYW5ndWFnZSgnZnInKX1cbiAgICAgICAgY2xhc3NOYW1lPXtgZmxleC0xIHB5LTIgcHgtMyByb3VuZGVkLW1kIHRleHQtc20gZm9udC1tZWRpdW0gdHJhbnNpdGlvbi1jb2xvcnMgJHtcbiAgICAgICAgICBsYW5ndWFnZSA9PT0gJ2ZyJyA/ICdiZy1rb3Zlby1uYXZ5IHRleHQtd2hpdGUnIDogJ3RleHQta292ZW8tbmF2eSBob3ZlcjpiZy1ncmF5LTIwMCdcbiAgICAgICAgfWB9XG4gICAgICA+XG4gICAgICAgIEZSXG4gICAgICA8L2J1dHRvbj5cbiAgICA8L2Rpdj5cbiAgKTtcbn1cbiJdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFzQkFBLE9BQUEsQ0FBQUMsZ0JBQUEsR0FBQUEsZ0JBQUE7Ozs7QUF0QkEsTUFBQUMsY0FBQTtBQUFBO0FBQUEsQ0FBQUMsYUFBQSxHQUFBQyxDQUFBLE9BQUFDLE9BQUE7QUFHQTs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQW1CQSxTQUFnQkosZ0JBQWdCQSxDQUFBO0VBQUE7RUFBQUUsYUFBQSxHQUFBRyxDQUFBO0VBQzlCLE1BQU07SUFBRUMsUUFBUTtJQUFFQztFQUFXLENBQUU7RUFBQTtFQUFBLENBQUFMLGFBQUEsR0FBQUMsQ0FBQSxPQUFHLElBQUFGLGNBQUEsQ0FBQU8sV0FBVyxHQUFFO0VBQUM7RUFBQU4sYUFBQSxHQUFBQyxDQUFBO0VBRWhELE9BQ0UsSUFBQU0sYUFBQSxDQUFBQyxJQUFBO0lBQUtDLFNBQVMsRUFBQyxpQ0FBaUM7SUFBQUMsUUFBQSxHQUM5QyxJQUFBSCxhQUFBLENBQUFJLEdBQUE7TUFBQSxlQUNjLG9CQUFvQjtNQUNoQ0MsT0FBTyxFQUFFQSxDQUFBLEtBQU07UUFBQTtRQUFBWixhQUFBLEdBQUFHLENBQUE7UUFBQUgsYUFBQSxHQUFBQyxDQUFBO1FBQUEsT0FBQUksV0FBVyxDQUFDLElBQUksQ0FBQztNQUFELENBQUM7TUFDaENJLFNBQVMsRUFBRSxxRUFDVEwsUUFBUSxLQUFLLElBQUk7TUFBQTtNQUFBLENBQUFKLGFBQUEsR0FBQWEsQ0FBQSxVQUFHLDBCQUEwQjtNQUFBO01BQUEsQ0FBQWIsYUFBQSxHQUFBYSxDQUFBLFVBQUcsbUNBQ25ELEdBQUU7TUFBQUgsUUFBQTtJQUFBLEVBR0ssRUFDVCxJQUFBSCxhQUFBLENBQUFJLEdBQUE7TUFBQSxlQUNjLG9CQUFvQjtNQUNoQ0MsT0FBTyxFQUFFQSxDQUFBLEtBQU07UUFBQTtRQUFBWixhQUFBLEdBQUFHLENBQUE7UUFBQUgsYUFBQSxHQUFBQyxDQUFBO1FBQUEsT0FBQUksV0FBVyxDQUFDLElBQUksQ0FBQztNQUFELENBQUM7TUFDaENJLFNBQVMsRUFBRSxxRUFDVEwsUUFBUSxLQUFLLElBQUk7TUFBQTtNQUFBLENBQUFKLGFBQUEsR0FBQWEsQ0FBQSxVQUFHLDBCQUEwQjtNQUFBO01BQUEsQ0FBQWIsYUFBQSxHQUFBYSxDQUFBLFVBQUcsbUNBQ25ELEdBQUU7TUFBQUgsUUFBQTtJQUFBLEVBR0s7RUFBQSxFQUNMO0FBRVYiLCJpZ25vcmVMaXN0IjpbXX0=

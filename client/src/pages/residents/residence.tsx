@@ -50,6 +50,7 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  ArrowLeft,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,10 +58,12 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import { useAuth } from '@/hooks/use-auth';
 
 /**
- *
+ * Residence data structure
  */
 interface Residence {
   id: string;
@@ -85,7 +88,7 @@ interface Residence {
 }
 
 /**
- *
+ * Contact data structure
  */
 interface Contact {
   id: string;
@@ -105,25 +108,37 @@ const contactFormSchema = z.object({
   type: z.enum(['primary', 'emergency', 'other']),
 });
 
-/**
- *
- */
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
 /**
- *
+ * Props for the residence page inner component
  */
-export default function Residence() {
+interface ResidenceProps {
+  buildingId?: string;
+  showBackButton?: boolean;
+  backButtonLabel?: string;
+  onBack?: () => void;
+}
+
+/**
+ * Residence page component for residents.
+ */
+function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBack }: ResidenceProps) {
+  const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string>('');
   const [selectedResidenceId, setSelectedResidenceId] = useState<string>('');
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const handleBackToBuilding = () => {
+    navigate('/residents/residence');
+  };
 
   // Form for contact management
   const contactForm = useForm<ContactFormData>({
@@ -137,40 +152,41 @@ export default function Residence() {
     },
   });
 
-  // Fetch current user
-  const { data: user } = useQuery({
-    queryKey: ['/api/auth/user'],
-    queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
-  });
-
-  // All users see only their assigned residences
+  // Fetch residences for the selected building
   const {
     data: accessibleResidences = [],
     isLoading,
     error: residencesError,
     refetch: refetchResidences,
   } = useQuery({
-    queryKey: ['/api/users/residences', user?.id],
+    queryKey: ['/api/users/residences', user?.id, buildingId],
     queryFn: async () => {
       if (!user?.id) {
         return [];
       }
 
-      // All users (including admin/manager) see only their assigned residences
-      const url = `/api/users/${user.id}/residences`;
-
-      const response = await fetch(url, {
+      // Get all user's residences first
+      const response = await fetch(`/api/users/${user.id}/residences`, {
         credentials: 'include',
         headers: {
           'Cache-Control': 'no-cache',
         },
       });
+      
       if (!response.ok) {
         throw new Error('Failed to fetch residences');
       }
-      return response.json();
+      
+      const allResidences = await response.json();
+      
+      // Filter by building if buildingId is provided
+      if (buildingId) {
+        return allResidences.filter((residence: Residence) => residence.buildingId === buildingId);
+      }
+      
+      return allResidences;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!buildingId,
     refetchOnMount: true,
     staleTime: 0,
   });
@@ -178,27 +194,8 @@ export default function Residence() {
   // Ensure accessibleResidences is always an array
   const safeAccessibleResidences = Array.isArray(accessibleResidences) ? accessibleResidences : [];
 
-  // Extract buildings from user's residences for filtering
-  const buildings = useMemo(() => {
-    const buildingMap = new Map();
-    safeAccessibleResidences.forEach((residence) => {
-      if (residence.building && !buildingMap.has(residence.building.id)) {
-        buildingMap.set(residence.building.id, residence.building);
-      }
-    });
-    return Array.from(buildingMap.values());
-  }, [safeAccessibleResidences]);
-
-  // Filter residences based on selected building (if multiple residences exist)
-  const filteredResidences = useMemo(() => {
-    // If no building filter is selected, return all residences
-    if (!selectedBuildingId) {
-      return safeAccessibleResidences;
-    }
-
-    // Filter by selected building
-    return safeAccessibleResidences.filter((r) => r.buildingId === selectedBuildingId);
-  }, [safeAccessibleResidences, selectedBuildingId]);
+  // Show all residences for the selected building
+  const filteredResidences = safeAccessibleResidences;
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredResidences.length / itemsPerPage);
@@ -218,11 +215,6 @@ export default function Residence() {
     setCurrentPage(page);
   };
 
-  // Reset pagination when filters change
-  const resetToFirstPage = () => {
-    setCurrentPage(1);
-  };
-
   // Select first residence by default
   const selectedResidence = useMemo(() => {
     if (!selectedResidenceId && filteredResidences.length > 0) {
@@ -239,98 +231,83 @@ export default function Residence() {
       if (!selectedResidenceId) {
         return [];
       }
-      const response = await apiRequest(
-        'GET',
-        `/api/contacts?entity=residence&entityId=${selectedResidenceId}`
-      );
-      return Array.isArray(response) ? response : [];
+      const response = await fetch(`/api/residences/${selectedResidenceId}/contacts`);
+      if (!response.ok) {
+        return [];
+      }
+      return response.json();
     },
     enabled: !!selectedResidenceId,
   });
 
-  // Fetch building contacts (read-only for residents)
-  const { data: buildingContacts = [], isLoading: buildingContactsLoading } = useQuery({
-    queryKey: ['/api/contacts', 'building', selectedResidence?.buildingId],
-    queryFn: async () => {
-      if (!selectedResidence?.buildingId) {
-        return [];
-      }
-      const response = await apiRequest(
-        'GET',
-        `/api/contacts?entity=building&entityId=${selectedResidence.buildingId}`
-      );
-      return Array.isArray(response) ? response : [];
-    },
-    enabled: !!selectedResidence?.buildingId,
-  });
-
   // Mutations for contact management
   const addContactMutation = useMutation({
-    mutationFn: (data: ContactFormData) =>
-      apiRequest('POST', '/api/contacts', {
-        ...data,
-        residenceId: selectedResidenceId,
-      }),
+    mutationFn: async (contactData: ContactFormData) => {
+      return apiRequest('POST', `/api/residences/${selectedResidenceId}/contacts`, contactData);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/contacts', selectedResidenceId] });
-      setIsContactDialogOpen(false);
-      setEditingContact(null);
-      contactForm.reset();
       toast({
-        title: 'Contact added successfully',
-        description: 'The new contact has been added to this residence.',
+        title: t('success'),
+        description: t('contactAddedSuccessfully'),
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+      setIsContactDialogOpen(false);
+      contactForm.reset();
+      setEditingContact(null);
     },
     onError: (error: any) => {
       toast({
-        title: 'Failed to add contact',
-        description: error.message || 'Something went wrong',
+        title: t('error'),
+        description: error?.message || t('failedToAddContact'),
         variant: 'destructive',
       });
     },
   });
 
   const updateContactMutation = useMutation({
-    mutationFn: (data: ContactFormData) =>
-      apiRequest('PATCH', `/api/contacts/${editingContact?.id}`, data),
+    mutationFn: async (contactData: ContactFormData) => {
+      return apiRequest('PUT', `/api/contacts/${editingContact?.id}`, contactData);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/contacts', selectedResidenceId] });
-      setIsContactDialogOpen(false);
-      setEditingContact(null);
-      contactForm.reset();
       toast({
-        title: 'Contact updated successfully',
-        description: 'The contact information has been updated.',
+        title: t('success'),
+        description: t('contactUpdatedSuccessfully'),
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+      setIsContactDialogOpen(false);
+      contactForm.reset();
+      setEditingContact(null);
     },
     onError: (error: any) => {
       toast({
-        title: 'Failed to update contact',
-        description: error.message || 'Something went wrong',
+        title: t('error'),
+        description: error?.message || t('failedToUpdateContact'),
         variant: 'destructive',
       });
     },
   });
 
   const deleteContactMutation = useMutation({
-    mutationFn: (contactId: string) => apiRequest('DELETE', `/api/contacts/${contactId}`),
+    mutationFn: async (contactId: string) => {
+      return apiRequest('DELETE', `/api/contacts/${contactId}`);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/contacts', selectedResidenceId] });
       toast({
-        title: 'Contact deleted successfully',
-        description: 'The contact has been removed.',
+        title: t('success'),
+        description: t('contactDeletedSuccessfully'),
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
     },
     onError: (error: any) => {
       toast({
-        title: 'Failed to delete contact',
-        description: error.message || 'Something went wrong',
+        title: t('error'),
+        description: error?.message || t('failedToDeleteContact'),
         variant: 'destructive',
       });
     },
   });
 
-  const handleAddContact = (data: ContactFormData) => {
+  const handleSubmitContact = (data: ContactFormData) => {
     if (editingContact) {
       updateContactMutation.mutate(data);
     } else {
@@ -405,8 +382,18 @@ export default function Residence() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Building and Residence Filters */}
-          {(buildings.length > 1 || filteredResidences.length > 1) && (
+          {/* Back Navigation */}
+          {showBackButton && onBack && (
+            <div className="mb-6">
+              <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                {backButtonLabel}
+              </Button>
+            </div>
+          )}
+
+          {/* Residence Selection */}
+          {filteredResidences.length > 1 && (
             <Card>
               <CardHeader>
                 <CardTitle className='flex items-center gap-2'>
@@ -416,52 +403,23 @@ export default function Residence() {
               </CardHeader>
               <CardContent>
                 <div className='flex flex-col md:flex-row gap-4'>
-                  {/* Building Filter (if user has multiple buildings) */}
-                  {buildings.length > 1 && (
-                    <div className='flex-1'>
-                      <Label className='text-sm font-medium mb-2 block'>{t('building2')}</Label>
-                      <Select
-                        value={selectedBuildingId}
-                        onValueChange={(value) => {
-                          setSelectedBuildingId(value);
-                          setSelectedResidenceId(''); // Reset residence selection when building changes
-                        }}
-                      >
-                        <SelectTrigger className='w-full'>
-                          <SelectValue placeholder={t('selectABuilding')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">{t('allBuildings')}</SelectItem>
-                          {buildings.map((building: any) => (
-                            <SelectItem key={building.id} value={building.id}>
-                              {building.name} - {building.address}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Residence Filter */}
-                  {filteredResidences.length > 1 && (
-                    <div className='flex-1'>
-                      <Label className='text-sm font-medium mb-2 block'>
-                        {t('selectResidence')}
-                      </Label>
-                      <Select value={selectedResidenceId} onValueChange={setSelectedResidenceId}>
-                        <SelectTrigger className='w-full'>
-                          <SelectValue placeholder={t('selectAResidence')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {filteredResidences.map((residence) => (
-                            <SelectItem key={residence.id} value={residence.id}>
-                              {t('unit')} {residence.unitNumber} - {residence.building?.name || 'N/A'}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                  <div className='flex-1'>
+                    <Label className='text-sm font-medium mb-2 block'>
+                      {t('selectResidence')}
+                    </Label>
+                    <Select value={selectedResidenceId} onValueChange={setSelectedResidenceId}>
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder={t('selectAResidence')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredResidences.map((residence) => (
+                          <SelectItem key={residence.id} value={residence.id}>
+                            {t('unit')} {residence.unitNumber} - {residence.building?.name || 'N/A'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -502,70 +460,83 @@ export default function Residence() {
                             <p className='text-sm text-gray-700'>{residence.floor}</p>
                           </div>
                         )}
+
                         {residence.squareFootage && (
                           <div>
-                            <Label className='text-xs font-medium text-gray-500'>{t('sqFt')}</Label>
+                            <Label className='text-xs font-medium text-gray-500'>{t('squareFootage')}</Label>
                             <p className='text-sm text-gray-700'>{residence.squareFootage}</p>
                           </div>
                         )}
+
                         {residence.bedrooms && (
                           <div>
                             <Label className='text-xs font-medium text-gray-500'>{t('bedrooms')}</Label>
-                            <div className='flex items-center gap-1'>
-                              <Bed className='w-3 h-3' />
-                              <span className='text-sm text-gray-700'>{residence.bedrooms}</span>
-                            </div>
+                            <p className='text-sm text-gray-700 flex items-center gap-1'>
+                              <Bed className='w-4 h-4' />
+                              {residence.bedrooms}
+                            </p>
                           </div>
                         )}
+
                         {residence.bathrooms && (
                           <div>
                             <Label className='text-xs font-medium text-gray-500'>{t('bathrooms')}</Label>
-                            <div className='flex items-center gap-1'>
-                              <Bath className='w-3 h-3' />
-                              <span className='text-sm text-gray-700'>{residence.bathrooms}</span>
-                            </div>
+                            <p className='text-sm text-gray-700 flex items-center gap-1'>
+                              <Bath className='w-4 h-4' />
+                              {residence.bathrooms}
+                            </p>
                           </div>
                         )}
                       </div>
 
-                      {residence.parkingSpaceNumbers &&
-                        residence.parkingSpaceNumbers.length > 0 && (
-                          <div>
-                            <Label className='text-xs font-medium text-gray-500'>{t('parking')}</Label>
-                            <div className='flex items-center gap-1'>
-                              <Car className='w-3 h-3' />
-                              <span className='text-sm text-gray-700'>
-                                {residence.parkingSpaceNumbers.join(', ')}
-                              </span>
-                            </div>
-                          </div>
-                        )}
+                      {residence.balcony && (
+                        <div className='flex items-center gap-2'>
+                          <Badge variant='secondary' className='text-xs'>
+                            {t('balcony')}
+                          </Badge>
+                        </div>
+                      )}
 
-                      {residence.storageSpaceNumbers &&
-                        residence.storageSpaceNumbers.length > 0 && (
-                          <div>
-                            <Label className='text-xs font-medium text-gray-500'>{t('storage')}</Label>
-                            <div className='flex items-center gap-1'>
-                              <Package className='w-3 h-3' />
-                              <span className='text-sm text-gray-700'>
-                                {residence.storageSpaceNumbers.join(', ')}
-                              </span>
-                            </div>
+                      {residence.parkingSpaceNumbers && residence.parkingSpaceNumbers.length > 0 && (
+                        <div>
+                          <Label className='text-xs font-medium text-gray-500'>{t('parking')}</Label>
+                          <div className='flex flex-wrap gap-1 mt-1'>
+                            {residence.parkingSpaceNumbers.map((space, index) => (
+                              <Badge key={index} variant='outline' className='text-xs flex items-center gap-1'>
+                                <Car className='w-3 h-3' />
+                                {space}
+                              </Badge>
+                            ))}
                           </div>
-                        )}
+                        </div>
+                      )}
+
+                      {residence.storageSpaceNumbers && residence.storageSpaceNumbers.length > 0 && (
+                        <div>
+                          <Label className='text-xs font-medium text-gray-500'>{t('storage')}</Label>
+                          <div className='flex flex-wrap gap-1 mt-1'>
+                            {residence.storageSpaceNumbers.map((space, index) => (
+                              <Badge key={index} variant='outline' className='text-xs flex items-center gap-1'>
+                                <Package className='w-3 h-3' />
+                                {space}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <div className='flex flex-col gap-2 pt-4 border-t'>
+                    <div className='pt-3 border-t space-y-2'>
                       <Link href={`/residents/residences/${residence.id}/documents`}>
                         <Button variant='outline' size='sm' className='w-full justify-start'>
                           <FileText className='w-4 h-4 mr-2' />
-                          {t('residenceDocumentsButton')}
+                          {t('documents')}
                         </Button>
                       </Link>
                       <Link href={`/residents/buildings/${residence.buildingId}/documents`}>
                         <Button variant='outline' size='sm' className='w-full justify-start'>
                           <Building className='w-4 h-4 mr-2' />
-                          {t('buildingDocumentsButton')}
+                          {t('buildingDocuments')}
                         </Button>
                       </Link>
                     </div>
@@ -577,7 +548,7 @@ export default function Residence() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className='flex items-center justify-center gap-2 mt-8'>
+            <div className='flex justify-center items-center space-x-2'>
               <Button
                 variant='outline'
                 size='sm'
@@ -588,8 +559,8 @@ export default function Residence() {
                 {t('previous')}
               </Button>
 
-              <div className='flex gap-1'>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              <div className='flex items-center space-x-1'>
+                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                   let pageNum;
                   if (totalPages <= 5) {
                     pageNum = i + 1;
@@ -638,3 +609,10 @@ export default function Residence() {
     </div>
   );
 }
+
+// Wrap with hierarchical selection HOC using organization and building hierarchy (residents only see buildings they have residences in)
+const ResidencePage = withHierarchicalSelection(ResidencePageInner, {
+  hierarchy: ['organization', 'building']
+});
+
+export default ResidencePage;

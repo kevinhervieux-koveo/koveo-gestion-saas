@@ -105,7 +105,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (isDemoMode && !demoUsers) {
       setLoadingDemoUsers(true);
-      fetch('/api/demo/users')
+      fetch(`/api/demo/users?t=${Date.now()}`)
         .then(res => res.json())
         .then(data => {
           if (data.success) {

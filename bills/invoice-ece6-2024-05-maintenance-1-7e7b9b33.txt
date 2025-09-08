@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+INVOICE DOCUMENT
+
+Bill Number: ECE6-2024-05-MAINTENANCE-1
+Title: Maintenance (1) - Steuber, Klein and Rice
+Vendor: Pagac - Turcotte
+Category: Maintenance
+Total Amount: $4969.25
+Description: Monthly maintenance service for December 2024 - Invoice 1
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 10/22/2025
+
+Service Details:
+- Exercitationem custodia sophismata illum tepesco adsuesco arguo spero dolore.
+- Super demergo vere vulticulus sordeo utor vapulus ascit in cultellus.
+
+Thank you for your business!
+Pagac - Turcotte

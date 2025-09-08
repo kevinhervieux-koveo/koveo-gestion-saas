@@ -358,8 +358,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       }
 
       const { building_id } = queryValidation.data;
-
-
+      
       // Get accessible building IDs
       const accessibleBuildingIds = await getAccessibleBuildingIds(user);
 

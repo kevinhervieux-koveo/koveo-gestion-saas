@@ -1,0 +1,372 @@
+552ada0d312dbd213d7f2771b9d406e5
+"use strict";
+
+/* istanbul ignore next */
+function cov_2886vt0ers() {
+  var path = "/home/runner/workspace/client/src/components/ui/no-data-card.tsx";
+  var hash = "1e60f7829ce87c0fb69c59d08a3b42c9fd982903";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/components/ui/no-data-card.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 2,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 0
+        },
+        end: {
+          line: 3,
+          column: 32
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 50
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 15
+        },
+        end: {
+          line: 5,
+          column: 46
+        }
+      },
+      "4": {
+        start: {
+          line: 6,
+          column: 16
+        },
+        end: {
+          line: 6,
+          column: 48
+        }
+      },
+      "5": {
+        start: {
+          line: 7,
+          column: 23
+        },
+        end: {
+          line: 7,
+          column: 54
+        }
+      },
+      "6": {
+        start: {
+          line: 24,
+          column: 18
+        },
+        end: {
+          line: 24,
+          column: 51
+        }
+      },
+      "7": {
+        start: {
+          line: 25,
+          column: 24
+        },
+        end: {
+          line: 25,
+          column: 80
+        }
+      },
+      "8": {
+        start: {
+          line: 26,
+          column: 4
+        },
+        end: {
+          line: 26,
+          column: 704
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "NoDataCard",
+        decl: {
+          start: {
+            line: 23,
+            column: 9
+          },
+          end: {
+            line: 23,
+            column: 19
+          }
+        },
+        loc: {
+          start: {
+            line: 23,
+            column: 144
+          },
+          end: {
+            line: 27,
+            column: 1
+          }
+        },
+        line: 23
+      }
+    },
+    branchMap: {
+      "0": {
+        loc: {
+          start: {
+            line: 23,
+            column: 80
+          },
+          end: {
+            line: 23,
+            column: 94
+          }
+        },
+        type: "default-arg",
+        locations: [{
+          start: {
+            line: 23,
+            column: 92
+          },
+          end: {
+            line: 23,
+            column: 94
+          }
+        }],
+        line: 23
+      },
+      "1": {
+        loc: {
+          start: {
+            line: 23,
+            column: 96
+          },
+          end: {
+            line: 23,
+            column: 117
+          }
+        },
+        type: "default-arg",
+        locations: [{
+          start: {
+            line: 23,
+            column: 115
+          },
+          end: {
+            line: 23,
+            column: 117
+          }
+        }],
+        line: 23
+      },
+      "2": {
+        loc: {
+          start: {
+            line: 23,
+            column: 127
+          },
+          end: {
+            line: 23,
+            column: 140
+          }
+        },
+        type: "default-arg",
+        locations: [{
+          start: {
+            line: 23,
+            column: 138
+          },
+          end: {
+            line: 23,
+            column: 140
+          }
+        }],
+        line: 23
+      },
+      "3": {
+        loc: {
+          start: {
+            line: 26,
+            column: 551
+          },
+          end: {
+            line: 26,
+            column: 685
+          }
+        },
+        type: "binary-expr",
+        locations: [{
+          start: {
+            line: 26,
+            column: 551
+          },
+          end: {
+            line: 26,
+            column: 559
+          }
+        }, {
+          start: {
+            line: 26,
+            column: 564
+          },
+          end: {
+            line: 26,
+            column: 684
+          }
+        }],
+        line: 26
+      }
+    },
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {
+      "0": [0],
+      "1": [0],
+      "2": [0],
+      "3": [0, 0]
+    },
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/components/ui/no-data-card.tsx",
+      mappings: ";;AAoEA,gCAkCC;;AApGD,+CAAyD;AACzD,iDAA8C;AAC9C,uDAAmD;AAiDnD;;;;;;;;;;;;;;GAcG;AACH,SAAgB,UAAU,CAAC,EACzB,IAAI,EAAE,IAAI,EACV,QAAQ,EACR,cAAc,EACd,QAAQ,EACR,QAAQ,EACR,SAAS,GAAG,EAAE,EACd,gBAAgB,GAAG,EAAE,EACrB,MAAM,EACN,QAAQ,GAAG,EAAE,EACG;IAChB,MAAM,EAAE,CAAC,EAAE,GAAG,IAAA,0BAAW,GAAE,CAAC;IAE5B,MAAM,WAAW,GAAG,KAAK,QAAQ,MAAM,QAAQ,6BAA6B,CAAC;IAE7E,OAAO,CACL,uBAAC,WAAI,IAAC,SAAS,EAAE,SAAS,iBAAe,MAAM,YAC7C,wBAAC,kBAAW,IAAC,SAAS,EAAE,mBAAmB,gBAAgB,EAAE,aAC3D,uBAAC,IAAI,IAAC,SAAS,EAAE,WAAW,GAAI,EAChC,+BAAI,SAAS,EAAC,0CAA0C,iBAAc,GAAG,MAAM,QAAQ,YACpF,CAAC,CAAC,QAAe,CAAC,GAChB,EACL,8BAAG,SAAS,EAAC,oBAAoB,iBAAc,GAAG,MAAM,cAAc,YACnE,CAAC,CAAC,cAAqB,CAAC,GACvB,EACH,QAAQ,IAAI,CACX,uBAAC,aAAK,IAAC,OAAO,EAAC,WAAW,iBAAc,GAAG,MAAM,QAAQ,YACtD,CAAC,CAAC,QAAe,CAAC,GACb,CACT,EACA,QAAQ,IACG,GACT,CACR,CAAC;AACJ,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/components/ui/no-data-card.tsx"],
+      sourcesContent: ["import { ReactNode } from 'react';\nimport { LucideIcon } from 'lucide-react';\nimport { Card, CardContent } from '@/components/ui/card';\nimport { Badge } from '@/components/ui/badge';\nimport { useLanguage } from '@/hooks/use-language';\n\ninterface NoDataCardProps {\n  /**\n   * The Lucide icon component to display\n   */\n  icon: LucideIcon;\n  \n  /**\n   * Translation key for the title/heading\n   */\n  titleKey: string;\n  \n  /**\n   * Translation key for the description text\n   */\n  descriptionKey: string;\n  \n  /**\n   * Optional translation key for badge text (e.g., \"noData\")\n   */\n  badgeKey?: string;\n  \n  /**\n   * Optional custom content to render below the standard content\n   */\n  children?: ReactNode;\n  \n  /**\n   * Additional CSS classes for the card\n   */\n  className?: string;\n  \n  /**\n   * Additional CSS classes for the content area\n   */\n  contentClassName?: string;\n  \n  /**\n   * Test ID for testing purposes\n   */\n  testId?: string;\n  \n  /**\n   * Icon size (default: 16 = w-16 h-16)\n   */\n  iconSize?: number;\n}\n\n/**\n * Reusable NoDataCard component for consistent \"no data available\" states across the application.\n * Supports both English and French translations automatically based on language context.\n * \n * @example\n * ```tsx\n * <NoDataCard\n *   icon={Building}\n *   titleKey=\"noBuildingsFound\"\n *   descriptionKey=\"noBuildingsMessage\"\n *   badgeKey=\"noData\"\n *   testId=\"no-buildings-message\"\n * />\n * ```\n */\nexport function NoDataCard({\n  icon: Icon,\n  titleKey,\n  descriptionKey,\n  badgeKey,\n  children,\n  className = '',\n  contentClassName = '',\n  testId,\n  iconSize = 16\n}: NoDataCardProps) {\n  const { t } = useLanguage();\n  \n  const iconClasses = `w-${iconSize} h-${iconSize} mx-auto text-gray-400 mb-4`;\n  \n  return (\n    <Card className={className} data-testid={testId}>\n      <CardContent className={`p-8 text-center ${contentClassName}`}>\n        <Icon className={iconClasses} />\n        <h3 className='text-lg font-semibold text-gray-600 mb-2' data-testid={`${testId}-title`}>\n          {t(titleKey as any)}\n        </h3>\n        <p className='text-gray-500 mb-4' data-testid={`${testId}-description`}>\n          {t(descriptionKey as any)}\n        </p>\n        {badgeKey && (\n          <Badge variant='secondary' data-testid={`${testId}-badge`}>\n            {t(badgeKey as any)}\n          </Badge>\n        )}\n        {children}\n      </CardContent>\n    </Card>\n  );\n}"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "1e60f7829ce87c0fb69c59d08a3b42c9fd982903"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_2886vt0ers = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_2886vt0ers();
+cov_2886vt0ers().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_2886vt0ers().s[1]++;
+exports.NoDataCard = NoDataCard;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_2886vt0ers().s[2]++, require("react/jsx-runtime"));
+const card_1 =
+/* istanbul ignore next */
+(cov_2886vt0ers().s[3]++, require("@/components/ui/card"));
+const badge_1 =
+/* istanbul ignore next */
+(cov_2886vt0ers().s[4]++, require("@/components/ui/badge"));
+const use_language_1 =
+/* istanbul ignore next */
+(cov_2886vt0ers().s[5]++, require("@/hooks/use-language"));
+/**
+ * Reusable NoDataCard component for consistent "no data available" states across the application.
+ * Supports both English and French translations automatically based on language context.
+ *
+ * @example
+ * ```tsx
+ * <NoDataCard
+ *   icon={Building}
+ *   titleKey="noBuildingsFound"
+ *   descriptionKey="noBuildingsMessage"
+ *   badgeKey="noData"
+ *   testId="no-buildings-message"
+ * />
+ * ```
+ */
+function NoDataCard({
+  icon: Icon,
+  titleKey,
+  descriptionKey,
+  badgeKey,
+  children,
+  className =
+  /* istanbul ignore next */
+  (cov_2886vt0ers().b[0][0]++, ''),
+  contentClassName =
+  /* istanbul ignore next */
+  (cov_2886vt0ers().b[1][0]++, ''),
+  testId,
+  iconSize =
+  /* istanbul ignore next */
+  (cov_2886vt0ers().b[2][0]++, 16)
+}) {
+  /* istanbul ignore next */
+  cov_2886vt0ers().f[0]++;
+  const {
+    t
+  } =
+  /* istanbul ignore next */
+  (cov_2886vt0ers().s[6]++, (0, use_language_1.useLanguage)());
+  const iconClasses =
+  /* istanbul ignore next */
+  (cov_2886vt0ers().s[7]++, `w-${iconSize} h-${iconSize} mx-auto text-gray-400 mb-4`);
+  /* istanbul ignore next */
+  cov_2886vt0ers().s[8]++;
+  return (0, jsx_runtime_1.jsx)(card_1.Card, {
+    className: className,
+    "data-testid": testId,
+    children: (0, jsx_runtime_1.jsxs)(card_1.CardContent, {
+      className: `p-8 text-center ${contentClassName}`,
+      children: [(0, jsx_runtime_1.jsx)(Icon, {
+        className: iconClasses
+      }), (0, jsx_runtime_1.jsx)("h3", {
+        className: 'text-lg font-semibold text-gray-600 mb-2',
+        "data-testid": `${testId}-title`,
+        children: t(titleKey)
+      }), (0, jsx_runtime_1.jsx)("p", {
+        className: 'text-gray-500 mb-4',
+        "data-testid": `${testId}-description`,
+        children: t(descriptionKey)
+      }),
+      /* istanbul ignore next */
+      (cov_2886vt0ers().b[3][0]++, badgeKey) &&
+      /* istanbul ignore next */
+      (cov_2886vt0ers().b[3][1]++, (0, jsx_runtime_1.jsx)(badge_1.Badge, {
+        variant: 'secondary',
+        "data-testid": `${testId}-badge`,
+        children: t(badgeKey)
+      })), children]
+    })
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJleHBvcnRzIiwiTm9EYXRhQ2FyZCIsImNhcmRfMSIsImNvdl8yODg2dnQwZXJzIiwicyIsInJlcXVpcmUiLCJiYWRnZV8xIiwidXNlX2xhbmd1YWdlXzEiLCJpY29uIiwiSWNvbiIsInRpdGxlS2V5IiwiZGVzY3JpcHRpb25LZXkiLCJiYWRnZUtleSIsImNoaWxkcmVuIiwiY2xhc3NOYW1lIiwiYiIsImNvbnRlbnRDbGFzc05hbWUiLCJ0ZXN0SWQiLCJpY29uU2l6ZSIsImYiLCJ0IiwidXNlTGFuZ3VhZ2UiLCJpY29uQ2xhc3NlcyIsImpzeF9ydW50aW1lXzEiLCJqc3giLCJDYXJkIiwianN4cyIsIkNhcmRDb250ZW50IiwiQmFkZ2UiLCJ2YXJpYW50Il0sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2NvbXBvbmVudHMvdWkvbm8tZGF0YS1jYXJkLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBSZWFjdE5vZGUgfSBmcm9tICdyZWFjdCc7XG5pbXBvcnQgeyBMdWNpZGVJY29uIH0gZnJvbSAnbHVjaWRlLXJlYWN0JztcbmltcG9ydCB7IENhcmQsIENhcmRDb250ZW50IH0gZnJvbSAnQC9jb21wb25lbnRzL3VpL2NhcmQnO1xuaW1wb3J0IHsgQmFkZ2UgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvYmFkZ2UnO1xuaW1wb3J0IHsgdXNlTGFuZ3VhZ2UgfSBmcm9tICdAL2hvb2tzL3VzZS1sYW5ndWFnZSc7XG5cbmludGVyZmFjZSBOb0RhdGFDYXJkUHJvcHMge1xuICAvKipcbiAgICogVGhlIEx1Y2lkZSBpY29uIGNvbXBvbmVudCB0byBkaXNwbGF5XG4gICAqL1xuICBpY29uOiBMdWNpZGVJY29uO1xuICBcbiAgLyoqXG4gICAqIFRyYW5zbGF0aW9uIGtleSBmb3IgdGhlIHRpdGxlL2hlYWRpbmdcbiAgICovXG4gIHRpdGxlS2V5OiBzdHJpbmc7XG4gIFxuICAvKipcbiAgICogVHJhbnNsYXRpb24ga2V5IGZvciB0aGUgZGVzY3JpcHRpb24gdGV4dFxuICAgKi9cbiAgZGVzY3JpcHRpb25LZXk6IHN0cmluZztcbiAgXG4gIC8qKlxuICAgKiBPcHRpb25hbCB0cmFuc2xhdGlvbiBrZXkgZm9yIGJhZGdlIHRleHQgKGUuZy4sIFwibm9EYXRhXCIpXG4gICAqL1xuICBiYWRnZUtleT86IHN0cmluZztcbiAgXG4gIC8qKlxuICAgKiBPcHRpb25hbCBjdXN0b20gY29udGVudCB0byByZW5kZXIgYmVsb3cgdGhlIHN0YW5kYXJkIGNvbnRlbnRcbiAgICovXG4gIGNoaWxkcmVuPzogUmVhY3ROb2RlO1xuICBcbiAgLyoqXG4gICAqIEFkZGl0aW9uYWwgQ1NTIGNsYXNzZXMgZm9yIHRoZSBjYXJkXG4gICAqL1xuICBjbGFzc05hbWU/OiBzdHJpbmc7XG4gIFxuICAvKipcbiAgICogQWRkaXRpb25hbCBDU1MgY2xhc3NlcyBmb3IgdGhlIGNvbnRlbnQgYXJlYVxuICAgKi9cbiAgY29udGVudENsYXNzTmFtZT86IHN0cmluZztcbiAgXG4gIC8qKlxuICAgKiBUZXN0IElEIGZvciB0ZXN0aW5nIHB1cnBvc2VzXG4gICAqL1xuICB0ZXN0SWQ/OiBzdHJpbmc7XG4gIFxuICAvKipcbiAgICogSWNvbiBzaXplIChkZWZhdWx0OiAxNiA9IHctMTYgaC0xNilcbiAgICovXG4gIGljb25TaXplPzogbnVtYmVyO1xufVxuXG4vKipcbiAqIFJldXNhYmxlIE5vRGF0YUNhcmQgY29tcG9uZW50IGZvciBjb25zaXN0ZW50IFwibm8gZGF0YSBhdmFpbGFibGVcIiBzdGF0ZXMgYWNyb3NzIHRoZSBhcHBsaWNhdGlvbi5cbiAqIFN1cHBvcnRzIGJvdGggRW5nbGlzaCBhbmQgRnJlbmNoIHRyYW5zbGF0aW9ucyBhdXRvbWF0aWNhbGx5IGJhc2VkIG9uIGxhbmd1YWdlIGNvbnRleHQuXG4gKiBcbiAqIEBleGFtcGxlXG4gKiBgYGB0c3hcbiAqIDxOb0RhdGFDYXJkXG4gKiAgIGljb249e0J1aWxkaW5nfVxuICogICB0aXRsZUtleT1cIm5vQnVpbGRpbmdzRm91bmRcIlxuICogICBkZXNjcmlwdGlvbktleT1cIm5vQnVpbGRpbmdzTWVzc2FnZVwiXG4gKiAgIGJhZGdlS2V5PVwibm9EYXRhXCJcbiAqICAgdGVzdElkPVwibm8tYnVpbGRpbmdzLW1lc3NhZ2VcIlxuICogLz5cbiAqIGBgYFxuICovXG5leHBvcnQgZnVuY3Rpb24gTm9EYXRhQ2FyZCh7XG4gIGljb246IEljb24sXG4gIHRpdGxlS2V5LFxuICBkZXNjcmlwdGlvbktleSxcbiAgYmFkZ2VLZXksXG4gIGNoaWxkcmVuLFxuICBjbGFzc05hbWUgPSAnJyxcbiAgY29udGVudENsYXNzTmFtZSA9ICcnLFxuICB0ZXN0SWQsXG4gIGljb25TaXplID0gMTZcbn06IE5vRGF0YUNhcmRQcm9wcykge1xuICBjb25zdCB7IHQgfSA9IHVzZUxhbmd1YWdlKCk7XG4gIFxuICBjb25zdCBpY29uQ2xhc3NlcyA9IGB3LSR7aWNvblNpemV9IGgtJHtpY29uU2l6ZX0gbXgtYXV0byB0ZXh0LWdyYXktNDAwIG1iLTRgO1xuICBcbiAgcmV0dXJuIChcbiAgICA8Q2FyZCBjbGFzc05hbWU9e2NsYXNzTmFtZX0gZGF0YS10ZXN0aWQ9e3Rlc3RJZH0+XG4gICAgICA8Q2FyZENvbnRlbnQgY2xhc3NOYW1lPXtgcC04IHRleHQtY2VudGVyICR7Y29udGVudENsYXNzTmFtZX1gfT5cbiAgICAgICAgPEljb24gY2xhc3NOYW1lPXtpY29uQ2xhc3Nlc30gLz5cbiAgICAgICAgPGgzIGNsYXNzTmFtZT0ndGV4dC1sZyBmb250LXNlbWlib2xkIHRleHQtZ3JheS02MDAgbWItMicgZGF0YS10ZXN0aWQ9e2Ake3Rlc3RJZH0tdGl0bGVgfT5cbiAgICAgICAgICB7dCh0aXRsZUtleSBhcyBhbnkpfVxuICAgICAgICA8L2gzPlxuICAgICAgICA8cCBjbGFzc05hbWU9J3RleHQtZ3JheS01MDAgbWItNCcgZGF0YS10ZXN0aWQ9e2Ake3Rlc3RJZH0tZGVzY3JpcHRpb25gfT5cbiAgICAgICAgICB7dChkZXNjcmlwdGlvbktleSBhcyBhbnkpfVxuICAgICAgICA8L3A+XG4gICAgICAgIHtiYWRnZUtleSAmJiAoXG4gICAgICAgICAgPEJhZGdlIHZhcmlhbnQ9J3NlY29uZGFyeScgZGF0YS10ZXN0aWQ9e2Ake3Rlc3RJZH0tYmFkZ2VgfT5cbiAgICAgICAgICAgIHt0KGJhZGdlS2V5IGFzIGFueSl9XG4gICAgICAgICAgPC9CYWRnZT5cbiAgICAgICAgKX1cbiAgICAgICAge2NoaWxkcmVufVxuICAgICAgPC9DYXJkQ29udGVudD5cbiAgICA8L0NhcmQ+XG4gICk7XG59Il0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBb0VBQSxPQUFBLENBQUFDLFVBQUEsR0FBQUEsVUFBQTs7OztBQWxFQSxNQUFBQyxNQUFBO0FBQUE7QUFBQSxDQUFBQyxjQUFBLEdBQUFDLENBQUEsT0FBQUMsT0FBQTtBQUNBLE1BQUFDLE9BQUE7QUFBQTtBQUFBLENBQUFILGNBQUEsR0FBQUMsQ0FBQSxPQUFBQyxPQUFBO0FBQ0EsTUFBQUUsY0FBQTtBQUFBO0FBQUEsQ0FBQUosY0FBQSxHQUFBQyxDQUFBLE9BQUFDLE9BQUE7QUFpREE7Ozs7Ozs7Ozs7Ozs7OztBQWVBLFNBQWdCSixVQUFVQSxDQUFDO0VBQ3pCTyxJQUFJLEVBQUVDLElBQUk7RUFDVkMsUUFBUTtFQUNSQyxjQUFjO0VBQ2RDLFFBQVE7RUFDUkMsUUFBUTtFQUNSQyxTQUFTO0VBQUE7RUFBQSxDQUFBWCxjQUFBLEdBQUFZLENBQUEsVUFBRyxFQUFFO0VBQ2RDLGdCQUFnQjtFQUFBO0VBQUEsQ0FBQWIsY0FBQSxHQUFBWSxDQUFBLFVBQUcsRUFBRTtFQUNyQkUsTUFBTTtFQUNOQyxRQUFRO0VBQUE7RUFBQSxDQUFBZixjQUFBLEdBQUFZLENBQUEsVUFBRyxFQUFFO0FBQUEsQ0FDRztFQUFBO0VBQUFaLGNBQUEsR0FBQWdCLENBQUE7RUFDaEIsTUFBTTtJQUFFQztFQUFDLENBQUU7RUFBQTtFQUFBLENBQUFqQixjQUFBLEdBQUFDLENBQUEsT0FBRyxJQUFBRyxjQUFBLENBQUFjLFdBQVcsR0FBRTtFQUUzQixNQUFNQyxXQUFXO0VBQUE7RUFBQSxDQUFBbkIsY0FBQSxHQUFBQyxDQUFBLE9BQUcsS0FBS2MsUUFBUSxNQUFNQSxRQUFRLDZCQUE2QjtFQUFDO0VBQUFmLGNBQUEsR0FBQUMsQ0FBQTtFQUU3RSxPQUNFLElBQUFtQixhQUFBLENBQUFDLEdBQUEsRUFBQ3RCLE1BQUEsQ0FBQXVCLElBQUk7SUFBQ1gsU0FBUyxFQUFFQSxTQUFTO0lBQUEsZUFBZUcsTUFBTTtJQUFBSixRQUFBLEVBQzdDLElBQUFVLGFBQUEsQ0FBQUcsSUFBQSxFQUFDeEIsTUFBQSxDQUFBeUIsV0FBVztNQUFDYixTQUFTLEVBQUUsbUJBQW1CRSxnQkFBZ0IsRUFBRTtNQUFBSCxRQUFBLEdBQzNELElBQUFVLGFBQUEsQ0FBQUMsR0FBQSxFQUFDZixJQUFJO1FBQUNLLFNBQVMsRUFBRVE7TUFBVyxFQUFJLEVBQ2hDLElBQUFDLGFBQUEsQ0FBQUMsR0FBQTtRQUFJVixTQUFTLEVBQUMsMENBQTBDO1FBQUEsZUFBYyxHQUFHRyxNQUFNLFFBQVE7UUFBQUosUUFBQSxFQUNwRk8sQ0FBQyxDQUFDVixRQUFlO01BQUMsRUFDaEIsRUFDTCxJQUFBYSxhQUFBLENBQUFDLEdBQUE7UUFBR1YsU0FBUyxFQUFDLG9CQUFvQjtRQUFBLGVBQWMsR0FBR0csTUFBTSxjQUFjO1FBQUFKLFFBQUEsRUFDbkVPLENBQUMsQ0FBQ1QsY0FBcUI7TUFBQyxFQUN2QjtNQUNIO01BQUEsQ0FBQVIsY0FBQSxHQUFBWSxDQUFBLFVBQUFILFFBQVE7TUFBQTtNQUFBLENBQUFULGNBQUEsR0FBQVksQ0FBQSxVQUNQLElBQUFRLGFBQUEsQ0FBQUMsR0FBQSxFQUFDbEIsT0FBQSxDQUFBc0IsS0FBSztRQUFDQyxPQUFPLEVBQUMsV0FBVztRQUFBLGVBQWMsR0FBR1osTUFBTSxRQUFRO1FBQUFKLFFBQUEsRUFDdERPLENBQUMsQ0FBQ1IsUUFBZTtNQUFDLEVBQ2IsQ0FDVCxFQUNBQyxRQUFRO0lBQUE7RUFDRyxFQUNUO0FBRVgiLCJpZ25vcmVMaXN0IjpbXX0=

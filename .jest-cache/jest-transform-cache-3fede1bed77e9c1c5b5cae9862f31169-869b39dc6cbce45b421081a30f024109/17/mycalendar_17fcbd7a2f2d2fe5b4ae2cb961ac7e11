@@ -1,0 +1,475 @@
+d7f954719890a7cc5502c8d3eece6345
+"use strict";
+
+/* istanbul ignore next */
+function cov_1jijoeer67() {
+  var path = "/home/runner/workspace/client/src/pages/residents/my-calendar.tsx";
+  var hash = "eef80f6cc899ea8d97cb1802a5f1d62298bed916";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/pages/residents/my-calendar.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 1
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 4
+        },
+        end: {
+          line: 3,
+          column: 62
+        }
+      },
+      "2": {
+        start: {
+          line: 5,
+          column: 0
+        },
+        end: {
+          line: 5,
+          column: 62
+        }
+      },
+      "3": {
+        start: {
+          line: 6,
+          column: 0
+        },
+        end: {
+          line: 6,
+          column: 33
+        }
+      },
+      "4": {
+        start: {
+          line: 7,
+          column: 22
+        },
+        end: {
+          line: 7,
+          column: 50
+        }
+      },
+      "5": {
+        start: {
+          line: 8,
+          column: 16
+        },
+        end: {
+          line: 8,
+          column: 49
+        }
+      },
+      "6": {
+        start: {
+          line: 9,
+          column: 24
+        },
+        end: {
+          line: 9,
+          column: 75
+        }
+      },
+      "7": {
+        start: {
+          line: 10,
+          column: 23
+        },
+        end: {
+          line: 10,
+          column: 54
+        }
+      },
+      "8": {
+        start: {
+          line: 15,
+          column: 25
+        },
+        end: {
+          line: 15,
+          column: 58
+        }
+      },
+      "9": {
+        start: {
+          line: 16,
+          column: 4
+        },
+        end: {
+          line: 18,
+          column: 317
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "(anonymous_0)",
+        decl: {
+          start: {
+            line: 2,
+            column: 56
+          },
+          end: {
+            line: 2,
+            column: 57
+          }
+        },
+        loc: {
+          start: {
+            line: 2,
+            column: 71
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        },
+        line: 2
+      },
+      "1": {
+        name: "MyCalendarPage",
+        decl: {
+          start: {
+            line: 14,
+            column: 9
+          },
+          end: {
+            line: 14,
+            column: 23
+          }
+        },
+        loc: {
+          start: {
+            line: 14,
+            column: 26
+          },
+          end: {
+            line: 19,
+            column: 1
+          }
+        },
+        line: 14
+      }
+    },
+    branchMap: {
+      "0": {
+        loc: {
+          start: {
+            line: 2,
+            column: 22
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        },
+        type: "binary-expr",
+        locations: [{
+          start: {
+            line: 2,
+            column: 23
+          },
+          end: {
+            line: 2,
+            column: 27
+          }
+        }, {
+          start: {
+            line: 2,
+            column: 31
+          },
+          end: {
+            line: 2,
+            column: 51
+          }
+        }, {
+          start: {
+            line: 2,
+            column: 56
+          },
+          end: {
+            line: 4,
+            column: 1
+          }
+        }],
+        line: 2
+      },
+      "1": {
+        loc: {
+          start: {
+            line: 3,
+            column: 11
+          },
+          end: {
+            line: 3,
+            column: 61
+          }
+        },
+        type: "cond-expr",
+        locations: [{
+          start: {
+            line: 3,
+            column: 37
+          },
+          end: {
+            line: 3,
+            column: 40
+          }
+        }, {
+          start: {
+            line: 3,
+            column: 43
+          },
+          end: {
+            line: 3,
+            column: 61
+          }
+        }],
+        line: 3
+      },
+      "2": {
+        loc: {
+          start: {
+            line: 3,
+            column: 12
+          },
+          end: {
+            line: 3,
+            column: 33
+          }
+        },
+        type: "binary-expr",
+        locations: [{
+          start: {
+            line: 3,
+            column: 12
+          },
+          end: {
+            line: 3,
+            column: 15
+          }
+        }, {
+          start: {
+            line: 3,
+            column: 19
+          },
+          end: {
+            line: 3,
+            column: 33
+          }
+        }],
+        line: 3
+      },
+      "3": {
+        loc: {
+          start: {
+            line: 16,
+            column: 405
+          },
+          end: {
+            line: 16,
+            column: 457
+          }
+        },
+        type: "cond-expr",
+        locations: [{
+          start: {
+            line: 16,
+            column: 425
+          },
+          end: {
+            line: 16,
+            column: 441
+          }
+        }, {
+          start: {
+            line: 16,
+            column: 444
+          },
+          end: {
+            line: 16,
+            column: 457
+          }
+        }],
+        line: 16
+      },
+      "4": {
+        loc: {
+          start: {
+            line: 16,
+            column: 543
+          },
+          end: {
+            line: 18,
+            column: 82
+          }
+        },
+        type: "cond-expr",
+        locations: [{
+          start: {
+            line: 17,
+            column: 34
+          },
+          end: {
+            line: 17,
+            column: 96
+          }
+        }, {
+          start: {
+            line: 18,
+            column: 34
+          },
+          end: {
+            line: 18,
+            column: 82
+          }
+        }],
+        line: 16
+      }
+    },
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0,
+      "9": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0
+    },
+    b: {
+      "0": [0, 0, 0],
+      "1": [0, 0],
+      "2": [0, 0],
+      "3": [0, 0],
+      "4": [0, 0]
+    },
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/pages/residents/my-calendar.tsx",
+      mappings: ";;;;;AAOA,iCAyBC;;AAhCD,kDAA0B;AAC1B,4EAAwE;AACxE,uDAAmD;AAEnD;;GAEG;AACH,SAAwB,cAAc;IACpC,MAAM,EAAE,QAAQ,EAAE,GAAG,IAAA,0BAAW,GAAE,CAAC;IAEnC,OAAO,CACL,iCAAK,SAAS,EAAC,sCAAsC,iBAAa,kBAAkB,aAClF,mCAAQ,SAAS,EAAC,6BAA6B,YAC7C,iCAAK,SAAS,EAAC,6BAA6B,aAC1C,+BAAI,SAAS,EAAC,oCAAoC,YAC/C,QAAQ,KAAK,IAAI,CAAC,CAAC,CAAC,gBAAgB,CAAC,CAAC,CAAC,aAAa,GAClD,EACL,8BAAG,SAAS,EAAC,4BAA4B,YACtC,QAAQ,KAAK,IAAI;gCAChB,CAAC,CAAC,8DAA8D;gCAChE,CAAC,CAAC,gDAAgD,GAClD,IACA,GACC,EAET,gCAAK,SAAS,EAAC,0BAA0B,YACvC,gCAAK,SAAS,EAAC,mBAAmB,YAChC,uBAAC,4BAAY,KAAG,GACZ,GACF,IACF,CACP,CAAC;AACJ,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/pages/residents/my-calendar.tsx"],
+      sourcesContent: ["import React from 'react';\nimport { UserCalendar } from '@/components/common-spaces/user-calendar';\nimport { useLanguage } from '@/hooks/use-language';\n\n/**\n *\n */\nexport default function MyCalendarPage() {\n  const { language } = useLanguage();\n\n  return (\n    <div className='flex-1 flex flex-col overflow-hidden' data-testid='my-calendar-page'>\n      <header className='bg-white shadow-sm border-b'>\n        <div className='container mx-auto px-4 py-6'>\n          <h1 className='text-3xl font-bold text-koveo-navy'>\n            {language === 'fr' ? 'Mon Calendrier' : 'My Calendar'}\n          </h1>\n          <p className='text-muted-foreground mt-2'>\n            {language === 'fr'\n              ? \"Consultez et g\xE9rez toutes vos r\xE9servations d'espaces communs\"\n              : 'View and manage all your common space bookings'}\n          </p>\n        </div>\n      </header>\n\n      <div className='flex-1 overflow-auto p-6'>\n        <div className='max-w-7xl mx-auto'>\n          <UserCalendar />\n        </div>\n      </div>\n    </div>\n  );\n}\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "eef80f6cc899ea8d97cb1802a5f1d62298bed916"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_1jijoeer67 = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_1jijoeer67();
+var __importDefault =
+/* istanbul ignore next */
+(cov_1jijoeer67().s[0]++,
+/* istanbul ignore next */
+(cov_1jijoeer67().b[0][0]++, this) &&
+/* istanbul ignore next */
+(cov_1jijoeer67().b[0][1]++, this.__importDefault) ||
+/* istanbul ignore next */
+(cov_1jijoeer67().b[0][2]++, function (mod) {
+  /* istanbul ignore next */
+  cov_1jijoeer67().f[0]++;
+  cov_1jijoeer67().s[1]++;
+  return /* istanbul ignore next */(cov_1jijoeer67().b[2][0]++, mod) &&
+  /* istanbul ignore next */
+  (cov_1jijoeer67().b[2][1]++, mod.__esModule) ?
+  /* istanbul ignore next */
+  (cov_1jijoeer67().b[1][0]++, mod) :
+  /* istanbul ignore next */
+  (cov_1jijoeer67().b[1][1]++, {
+    "default": mod
+  });
+}));
+/* istanbul ignore next */
+cov_1jijoeer67().s[2]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_1jijoeer67().s[3]++;
+exports.default = MyCalendarPage;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_1jijoeer67().s[4]++, require("react/jsx-runtime"));
+const react_1 =
+/* istanbul ignore next */
+(cov_1jijoeer67().s[5]++, __importDefault(require("react")));
+const user_calendar_1 =
+/* istanbul ignore next */
+(cov_1jijoeer67().s[6]++, require("@/components/common-spaces/user-calendar"));
+const use_language_1 =
+/* istanbul ignore next */
+(cov_1jijoeer67().s[7]++, require("@/hooks/use-language"));
+/**
+ *
+ */
+function MyCalendarPage() {
+  /* istanbul ignore next */
+  cov_1jijoeer67().f[1]++;
+  const {
+    language
+  } =
+  /* istanbul ignore next */
+  (cov_1jijoeer67().s[8]++, (0, use_language_1.useLanguage)());
+  /* istanbul ignore next */
+  cov_1jijoeer67().s[9]++;
+  return (0, jsx_runtime_1.jsxs)("div", {
+    className: 'flex-1 flex flex-col overflow-hidden',
+    "data-testid": 'my-calendar-page',
+    children: [(0, jsx_runtime_1.jsx)("header", {
+      className: 'bg-white shadow-sm border-b',
+      children: (0, jsx_runtime_1.jsxs)("div", {
+        className: 'container mx-auto px-4 py-6',
+        children: [(0, jsx_runtime_1.jsx)("h1", {
+          className: 'text-3xl font-bold text-koveo-navy',
+          children: language === 'fr' ?
+          /* istanbul ignore next */
+          (cov_1jijoeer67().b[3][0]++, 'Mon Calendrier') :
+          /* istanbul ignore next */
+          (cov_1jijoeer67().b[3][1]++, 'My Calendar')
+        }), (0, jsx_runtime_1.jsx)("p", {
+          className: 'text-muted-foreground mt-2',
+          children: language === 'fr' ?
+          /* istanbul ignore next */
+          (cov_1jijoeer67().b[4][0]++, "Consultez et gérez toutes vos réservations d'espaces communs") :
+          /* istanbul ignore next */
+          (cov_1jijoeer67().b[4][1]++, 'View and manage all your common space bookings')
+        })]
+      })
+    }), (0, jsx_runtime_1.jsx)("div", {
+      className: 'flex-1 overflow-auto p-6',
+      children: (0, jsx_runtime_1.jsx)("div", {
+        className: 'max-w-7xl mx-auto',
+        children: (0, jsx_runtime_1.jsx)(user_calendar_1.UserCalendar, {})
+      })
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfMWppam9lZXI2NyIsImFjdHVhbENvdmVyYWdlIiwiZXhwb3J0cyIsImRlZmF1bHQiLCJNeUNhbGVuZGFyUGFnZSIsInJlYWN0XzEiLCJzIiwiX19pbXBvcnREZWZhdWx0IiwicmVxdWlyZSIsInVzZXJfY2FsZW5kYXJfMSIsInVzZV9sYW5ndWFnZV8xIiwiZiIsImxhbmd1YWdlIiwidXNlTGFuZ3VhZ2UiLCJqc3hfcnVudGltZV8xIiwianN4cyIsImNsYXNzTmFtZSIsImNoaWxkcmVuIiwianN4IiwiYiIsIlVzZXJDYWxlbmRhciJdLCJzb3VyY2VzIjpbIi9ob21lL3J1bm5lci93b3Jrc3BhY2UvY2xpZW50L3NyYy9wYWdlcy9yZXNpZGVudHMvbXktY2FsZW5kYXIudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCc7XG5pbXBvcnQgeyBVc2VyQ2FsZW5kYXIgfSBmcm9tICdAL2NvbXBvbmVudHMvY29tbW9uLXNwYWNlcy91c2VyLWNhbGVuZGFyJztcbmltcG9ydCB7IHVzZUxhbmd1YWdlIH0gZnJvbSAnQC9ob29rcy91c2UtbGFuZ3VhZ2UnO1xuXG4vKipcbiAqXG4gKi9cbmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIE15Q2FsZW5kYXJQYWdlKCkge1xuICBjb25zdCB7IGxhbmd1YWdlIH0gPSB1c2VMYW5ndWFnZSgpO1xuXG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9J2ZsZXgtMSBmbGV4IGZsZXgtY29sIG92ZXJmbG93LWhpZGRlbicgZGF0YS10ZXN0aWQ9J215LWNhbGVuZGFyLXBhZ2UnPlxuICAgICAgPGhlYWRlciBjbGFzc05hbWU9J2JnLXdoaXRlIHNoYWRvdy1zbSBib3JkZXItYic+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPSdjb250YWluZXIgbXgtYXV0byBweC00IHB5LTYnPlxuICAgICAgICAgIDxoMSBjbGFzc05hbWU9J3RleHQtM3hsIGZvbnQtYm9sZCB0ZXh0LWtvdmVvLW5hdnknPlxuICAgICAgICAgICAge2xhbmd1YWdlID09PSAnZnInID8gJ01vbiBDYWxlbmRyaWVyJyA6ICdNeSBDYWxlbmRhcid9XG4gICAgICAgICAgPC9oMT5cbiAgICAgICAgICA8cCBjbGFzc05hbWU9J3RleHQtbXV0ZWQtZm9yZWdyb3VuZCBtdC0yJz5cbiAgICAgICAgICAgIHtsYW5ndWFnZSA9PT0gJ2ZyJ1xuICAgICAgICAgICAgICA/IFwiQ29uc3VsdGV6IGV0IGfDqXJleiB0b3V0ZXMgdm9zIHLDqXNlcnZhdGlvbnMgZCdlc3BhY2VzIGNvbW11bnNcIlxuICAgICAgICAgICAgICA6ICdWaWV3IGFuZCBtYW5hZ2UgYWxsIHlvdXIgY29tbW9uIHNwYWNlIGJvb2tpbmdzJ31cbiAgICAgICAgICA8L3A+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9oZWFkZXI+XG5cbiAgICAgIDxkaXYgY2xhc3NOYW1lPSdmbGV4LTEgb3ZlcmZsb3ctYXV0byBwLTYnPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT0nbWF4LXctN3hsIG14LWF1dG8nPlxuICAgICAgICAgIDxVc2VyQ2FsZW5kYXIgLz5cbiAgICAgICAgPC9kaXY+XG4gICAgICA8L2Rpdj5cbiAgICA8L2Rpdj5cbiAgKTtcbn1cbiJdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0lBV0k7SUFBQUEsY0FBQSxZQUFBQSxDQUFBO01BQUEsT0FBQUMsY0FBQTtJQUFBO0VBQUE7RUFBQSxPQUFBQSxjQUFBO0FBQUE7QUFBQUQsY0FBQTs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBSkpFLE9BQUEsQ0FBQUMsT0FBQSxHQUFBQyxjQUFBOzs7O0FBUEEsTUFBQUMsT0FBQTtBQUFBO0FBQUEsQ0FBQUwsY0FBQSxHQUFBTSxDQUFBLE9BQUFDLGVBQUEsQ0FBQUMsT0FBQTtBQUNBLE1BQUFDLGVBQUE7QUFBQTtBQUFBLENBQUFULGNBQUEsR0FBQU0sQ0FBQSxPQUFBRSxPQUFBO0FBQ0EsTUFBQUUsY0FBQTtBQUFBO0FBQUEsQ0FBQVYsY0FBQSxHQUFBTSxDQUFBLE9BQUFFLE9BQUE7QUFFQTs7O0FBR0EsU0FBd0JKLGNBQWNBLENBQUE7RUFBQTtFQUFBSixjQUFBLEdBQUFXLENBQUE7RUFDcEMsTUFBTTtJQUFFQztFQUFRLENBQUU7RUFBQTtFQUFBLENBQUFaLGNBQUEsR0FBQU0sQ0FBQSxPQUFHLElBQUFJLGNBQUEsQ0FBQUcsV0FBVyxHQUFFO0VBQUM7RUFBQWIsY0FBQSxHQUFBTSxDQUFBO0VBRW5DLE9BQ0UsSUFBQVEsYUFBQSxDQUFBQyxJQUFBO0lBQUtDLFNBQVMsRUFBQyxzQ0FBc0M7SUFBQSxlQUFhLGtCQUFrQjtJQUFBQyxRQUFBLEdBQ2xGLElBQUFILGFBQUEsQ0FBQUksR0FBQTtNQUFRRixTQUFTLEVBQUMsNkJBQTZCO01BQUFDLFFBQUEsRUFDN0MsSUFBQUgsYUFBQSxDQUFBQyxJQUFBO1FBQUtDLFNBQVMsRUFBQyw2QkFBNkI7UUFBQUMsUUFBQSxHQUMxQyxJQUFBSCxhQUFBLENBQUFJLEdBQUE7VUFBSUYsU0FBUyxFQUFDLG9DQUFvQztVQUFBQyxRQUFBLEVBQy9DTCxRQUFRLEtBQUssSUFBSTtVQUFBO1VBQUEsQ0FBQVosY0FBQSxHQUFBbUIsQ0FBQSxVQUFHLGdCQUFnQjtVQUFBO1VBQUEsQ0FBQW5CLGNBQUEsR0FBQW1CLENBQUEsVUFBRyxhQUFhO1FBQUEsRUFDbEQsRUFDTCxJQUFBTCxhQUFBLENBQUFJLEdBQUE7VUFBR0YsU0FBUyxFQUFDLDRCQUE0QjtVQUFBQyxRQUFBLEVBQ3RDTCxRQUFRLEtBQUssSUFBSTtVQUFBO1VBQUEsQ0FBQVosY0FBQSxHQUFBbUIsQ0FBQSxVQUNkLDhEQUE4RDtVQUFBO1VBQUEsQ0FBQW5CLGNBQUEsR0FBQW1CLENBQUEsVUFDOUQsZ0RBQWdEO1FBQUEsRUFDbEQ7TUFBQTtJQUNBLEVBQ0MsRUFFVCxJQUFBTCxhQUFBLENBQUFJLEdBQUE7TUFBS0YsU0FBUyxFQUFDLDBCQUEwQjtNQUFBQyxRQUFBLEVBQ3ZDLElBQUFILGFBQUEsQ0FBQUksR0FBQTtRQUFLRixTQUFTLEVBQUMsbUJBQW1CO1FBQUFDLFFBQUEsRUFDaEMsSUFBQUgsYUFBQSxDQUFBSSxHQUFBLEVBQUNULGVBQUEsQ0FBQVcsWUFBWTtNQUFHO0lBQ1osRUFDRjtFQUFBLEVBQ0Y7QUFFViIsImlnbm9yZUxpc3QiOltdfQ==

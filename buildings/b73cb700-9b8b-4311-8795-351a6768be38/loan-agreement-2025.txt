@@ -1,0 +1,33 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+
+===============================================================
+
+BUILDING LOAN AGREEMENT
+
+Building: test
+Property ID: b73cb700-9b8b-4311-8795-351a6768be38
+Document Type: Financial Agreement
+
+Loan Details:
+- Loan Amount: $1073128
+- Interest Rate: 4.1%
+- Loan Term: 30 years
+- Monthly Payment: $5673
+
+Lender: Demo Bank Financial Services
+Borrower: test Building Corporation
+Loan Date: 01/26/2025
+
+This loan agreement covers the financing for building operations,
+capital improvements, and maintenance reserves.
+
+Financial Terms:
+- Fixed rate mortgage
+- No prepayment penalties
+- Annual financial reporting required
+
+Lender Representative: ____________________
+Borrower Representative: ____________________

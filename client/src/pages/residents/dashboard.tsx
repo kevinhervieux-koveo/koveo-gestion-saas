@@ -32,9 +32,34 @@ export default function ResidentsDashboard() {
     queryFn: () => apiRequest('GET', '/api/documents?limit=3'),
   });
 
-  const handleDocumentView = (documentId: string) => {
-    // Simple solution: open document in new tab
-    window.open(`/api/documents/${documentId}/download`, '_blank');
+  const handleDocumentView = async (documentId: string) => {
+    try {
+      // Use fetch with credentials to ensure authentication
+      const response = await fetch(`/api/documents/${documentId}/file`, {
+        method: 'GET',
+        credentials: 'include', // Include authentication cookies
+      });
+
+      if (!response.ok) {
+        throw new Error(`View failed: ${response.status} ${response.statusText}`);
+      }
+
+      // Convert response to blob and open in new tab
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Open in new tab
+      window.open(url, '_blank');
+      
+      // Clean up the URL after a delay to allow the tab to load
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+      
+    } catch (error) {
+      console.error('View failed:', error);
+      // Could add toast notification here if needed
+    }
   };
 
   return (

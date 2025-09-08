@@ -1,0 +1,35 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+BUILDING PERMIT (2)
+
+Building: 4804 Stuart Gateway Building 1
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 2 of 2
+
+BUILDING PERMIT
+
+Permit Number: PER-LC6ZIXRD
+Permit Type: Renovation
+Issue Date: 12/1/2024
+Expiry Date: 3/18/2026
+Contractor: Mraz - Watsica
+
+Work Description:
+Stultus nam acies thymbra uxor. Est voluptates caste vesica vestigium cornu velociter colligo. Sunt deduco acidus atrocitas amet nisi.
+
+Inspection Schedule:
+- Initial Inspection: 9/7/2025
+- Progress Inspection: 9/8/2025
+- Final Inspection: 11/19/2025
+
+Approved by: City Planning Department
+Permit Fee: $173

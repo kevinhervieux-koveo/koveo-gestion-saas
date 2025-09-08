@@ -1,0 +1,33 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+LEASE AGREEMENT
+
+Unit: 805
+Building: 7393 Abernathy Green Building 5
+Address: 58967 First Avenue
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 805
+- Lease Start Date: 7/12/2025
+- Lease End Date: 2/6/2026
+- Monthly Rent: $1136
+- Security Deposit: $2169
+
+Terms and Conditions:
+- Apto vestigium dolore vorago depromo triduana accendo canto.
+- Adflicto traho atqui ultra.
+
+Landlord: 7393 Abernathy Green Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

@@ -73,27 +73,64 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = url;
       link.download = fileName;
-      document.body.appendChild(link);
+      window.document.body.appendChild(link);
       link.click();
       
       // Clean up
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
       console.log('[DOWNLOAD] Download completed successfully');
     } catch (error) {
       console.error('[DOWNLOAD] Download failed:', error);
-      // You might want to show a toast notification here
+      alert(`Download failed: ${error.message || 'Unknown error'}`);
     }
   };
 
-  const handleView = () => {
+  const handleView = async () => {
     if (document?.filePath) {
-      // Open document in new tab for viewing
-      window.open(`/api/documents/${documentId}/file`, '_blank');
+      try {
+        console.log('[VIEW] Starting view for document:', documentId);
+        
+        // Open a new tab immediately to avoid popup blocking
+        const newTab = window.open('about:blank', '_blank');
+        if (!newTab) {
+          throw new Error('Popup blocked - please allow popups for this site');
+        }
+        
+        // Use fetch with credentials to ensure authentication
+        const response = await fetch(`/api/documents/${documentId}/file`, {
+          method: 'GET',
+          credentials: 'include', // Include authentication cookies
+        });
+
+        if (!response.ok) {
+          newTab.close();
+          throw new Error(`View failed: ${response.status} ${response.statusText}`);
+        }
+
+        // Convert response to blob and set it as the new tab's location
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        // Set the blob URL to the opened tab
+        newTab.location.href = url;
+        
+        // Clean up the URL after a delay to allow the tab to load
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+        }, 3000);
+        
+        console.log('[VIEW] View completed successfully');
+        
+      } catch (error) {
+        console.error('[VIEW] View failed:', error);
+        // Show error notification if available
+        alert(`Failed to open document: ${error.message}`);
+      }
     }
   };
 

@@ -1,0 +1,197 @@
+import { Building, Home, Users, ArrowLeft } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { NoDataCard } from '@/components/ui/no-data-card';
+import { useLanguage } from '@/hooks/use-language';
+
+/**
+ * Item type for selection grid
+ */
+export interface SelectionGridItem {
+  id: string;
+  name: string;
+  details: string;
+  type: 'organization' | 'building' | 'residence';
+  disabled?: boolean;
+  disabledReason?: string;
+}
+
+/**
+ * Props for SelectionGrid component
+ */
+interface SelectionGridProps {
+  /**
+   * Title to display above the grid
+   */
+  title: string;
+  
+  /**
+   * Array of items to display as cards
+   */
+  items: SelectionGridItem[];
+  
+  /**
+   * Callback when an item is selected
+   */
+  onSelectItem: (id: string) => void;
+  
+  /**
+   * Optional callback for back navigation
+   */
+  onBack: (() => void) | null;
+  
+  /**
+   * Custom text for back button (defaults to 'back')
+   */
+  backButtonText?: string;
+  
+  /**
+   * Loading state flag
+   */
+  isLoading: boolean;
+}
+
+/**
+ * Get appropriate icon for item type
+ */
+function getIconForType(type: SelectionGridItem['type']) {
+  switch (type) {
+    case 'organization':
+      return Users;
+    case 'building':
+      return Building;
+    case 'residence':
+      return Home;
+    default:
+      return Building;
+  }
+}
+
+/**
+ * SelectionGrid component - displays a grid of selectable cards for hierarchical navigation
+ * Used for Organization → Building → Residence selection flows
+ */
+export function SelectionGrid({ 
+  title, 
+  items, 
+  onSelectItem, 
+  onBack, 
+  backButtonText = 'back',
+  isLoading 
+}: SelectionGridProps) {
+  const { t } = useLanguage();
+
+  // Show loading state
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  // Show no data state
+  if (items.length === 0) {
+    return (
+      <div className="flex flex-col h-full">
+        {onBack && (
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900" data-testid="selection-title">
+              {title}
+            </h2>
+            <Button
+              variant="outline"
+              onClick={onBack}
+              className="flex items-center gap-2"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {backButtonText}
+            </Button>
+          </div>
+        )}
+        
+        <NoDataCard
+          icon={Building}
+          titleKey="noItemsFound"
+          descriptionKey="noItemsMessage"
+          badgeKey="noData"
+          testId="no-items-message"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header with title and optional back button - only show if title exists or back button is needed */}
+      {(title && title.trim() !== '') || onBack ? (
+        <div className="flex justify-between items-center mb-6">
+          {title && title.trim() !== '' && (
+            <h2 className="text-2xl font-bold text-gray-900" data-testid="selection-title">
+              {title}
+            </h2>
+          )}
+          
+          {onBack && (
+            <Button
+              variant="outline"
+              onClick={onBack}
+              className="flex items-center gap-2"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {backButtonText}
+            </Button>
+          )}
+        </div>
+      ) : null}
+
+      {/* Grid of selection cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {items.map((item) => {
+          const Icon = getIconForType(item.type);
+          const isDisabled = item.disabled || false;
+          
+          return (
+            <Card 
+              key={item.id} 
+              className={`transition-shadow ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-md cursor-pointer'}`}
+              data-testid={`card-${item.type}-${item.id}`}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <Icon className={`w-5 h-5 ${isDisabled ? 'text-gray-400' : 'text-blue-600'}`} />
+                  <CardTitle className={`text-lg ${isDisabled ? 'text-gray-500' : ''}`} data-testid={`text-name-${item.id}`}>
+                    {item.name}
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <p 
+                  className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`}
+                  data-testid={`text-details-${item.id}`}
+                >
+                  {item.details}
+                </p>
+                
+                <Button
+                  onClick={() => {
+                    if (!isDisabled) {
+                      console.log('🎯 [SELECTION GRID DEBUG] Button clicked:', { itemId: item.id, itemName: item.name });
+                      onSelectItem(item.id);
+                    }
+                  }}
+                  disabled={isDisabled}
+                  className="w-full"
+                  variant={isDisabled ? "secondary" : "default"}
+                  data-testid={`button-select-${item.id}`}
+                >
+                  {isDisabled && item.disabledReason ? item.disabledReason : t('select' as any)}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

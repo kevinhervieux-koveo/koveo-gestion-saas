@@ -26,7 +26,7 @@ jest.mock('@google/genai', () => ({
   })),
 }));
 
-// Mock drizzle-orm functions
+// Mock drizzle-orm functions FIRST before anything else
 jest.mock('drizzle-orm', () => ({
   eq: jest.fn(() => 'mock-eq-condition'),
   and: jest.fn(() => 'mock-and-condition'),
@@ -48,6 +48,11 @@ jest.mock('drizzle-orm', () => ({
   min: jest.fn(() => 'mock-min'),
   max: jest.fn(() => 'mock-max'),
   relations: jest.fn(() => ({})),
+  gt: jest.fn(() => 'mock-gt'),
+  lt: jest.fn(() => 'mock-lt'),
+  gte: jest.fn(() => 'mock-gte'),
+  lte: jest.fn(() => 'mock-lte'),
+  ne: jest.fn(() => 'mock-ne'),
 }));
 
 // Mock server config to prevent runtime errors
@@ -102,27 +107,52 @@ jest.mock('./server/config/index', () => ({
   },
 }));
 
-// Comprehensive mock for Neon and Drizzle to prevent ANY real database connections
-jest.mock('@neondatabase/serverless', () => ({
-  Pool: jest.fn().mockImplementation(() => ({
+// PRIORITY: Mock Neon serverless BEFORE everything else to prevent import errors
+jest.mock('@neondatabase/serverless', () => {
+  // Create a mock SQL function that can be called as a template literal
+  const mockSql = jest.fn().mockImplementation(async (strings, ...values) => {
+    if (strings && strings[0] && strings[0].includes('SELECT version()')) {
+      return [{ version: 'PostgreSQL 15.0 (Mock Version)' }];
+    }
+    return [];
+  });
+
+  // Add properties that might be accessed
+  mockSql.query = jest.fn().mockResolvedValue({ rows: [] });
+  mockSql.end = jest.fn().mockResolvedValue(undefined);
+  mockSql.arrayMode = false;
+  mockSql.fullResults = false;
+
+  // Mock Pool class
+  const MockPool = jest.fn().mockImplementation(() => ({
     query: jest.fn().mockResolvedValue({ rows: [] }),
     end: jest.fn().mockResolvedValue(undefined),
     connect: jest.fn().mockResolvedValue(undefined),
-  })),
-  neon: jest.fn().mockImplementation(() => ({
-    query: jest.fn().mockResolvedValue({ rows: [] }),
-    end: jest.fn().mockResolvedValue(undefined),
-  })),
-}));
+  }));
+
+  // Mock neon function that returns the mockSql
+  const mockNeon = jest.fn().mockImplementation(() => mockSql);
+
+  return {
+    __esModule: true,
+    neon: mockNeon,
+    Pool: MockPool,
+    default: mockNeon,
+  };
+});
 
 // Query builder creation is now handled by unified mock
 
 // Query builder creation is now handled by unified mock
 
-// Now mock drizzle with the proper mockDb
-jest.mock('drizzle-orm/neon-serverless', () => ({
-  drizzle: jest.fn().mockImplementation(() => mockDb),
-}));
+// Mock drizzle-orm/neon-serverless for serverless database connections
+jest.mock('drizzle-orm/neon-serverless', () => {
+  const { mockDb } = require('./tests/mocks/unified-database-mock');
+  return {
+    __esModule: true,
+    drizzle: jest.fn().mockImplementation(() => mockDb),
+  };
+});
 
 // Mock the database module completely
 jest.mock('./server/db', () => {
@@ -312,67 +342,18 @@ jest.mock('@/lib/queryClient', () => {
   };
 });
 
-// Performance: Mock Neon database for faster unit tests
-jest.mock('@neondatabase/serverless', () => ({
-  neon: jest.fn(() => {
-    const mockSql = jest.fn().mockResolvedValue([{ version: 'Mock PostgreSQL 16.0' }]);
-    // Add all the properties that might be accessed during testing
-    (mockSql as any).setTypeParser = jest.fn();
-    (mockSql as any).arrayMode = false;
-    (mockSql as any).fullResults = false;
-    return mockSql;
-  }),
-  Pool: jest.fn().mockImplementation(() => ({
-    connect: jest.fn().mockResolvedValue({
-      query: jest.fn().mockResolvedValue({ rows: [] }),
-      release: jest.fn(),
-    }),
-    end: jest.fn().mockResolvedValue(undefined),
-  }))
-}));
+// Remove duplicate Neon mock - already handled above
 
-// Mock drizzle-orm completely to prevent any database operations
-jest.mock('drizzle-orm/neon-http', () => ({
-  drizzle: jest.fn(() => ({
-    query: jest.fn().mockResolvedValue([]),
-    insert: jest.fn().mockImplementation(() => ({
-      values: jest.fn().mockImplementation(() => ({
-        returning: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
-      }))
-    })),
-    select: jest.fn().mockImplementation(() => ({
-      from: jest.fn().mockImplementation(() => ({
-        where: jest.fn().mockResolvedValue([]),
-        leftJoin: jest.fn().mockImplementation(() => ({
-          where: jest.fn().mockResolvedValue([])
-        })),
-        innerJoin: jest.fn().mockImplementation(() => ({
-          where: jest.fn().mockResolvedValue([])
-        }))
-      }))
-    })),
-    update: jest.fn().mockImplementation(() => ({
-      set: jest.fn().mockImplementation(() => ({
-        where: jest.fn().mockResolvedValue({ affectedRows: 0 })
-      }))
-    })),
-    delete: jest.fn().mockImplementation(() => ({
-      where: jest.fn().mockResolvedValue({ affectedRows: 0 })
-    }))
-  }))
-}));
+// Mock drizzle-orm/neon-http for HTTP database connections
+jest.mock('drizzle-orm/neon-http', () => {
+  const { mockDb } = require('./tests/mocks/unified-database-mock');
+  return {
+    __esModule: true,
+    drizzle: jest.fn().mockImplementation(() => mockDb),
+  };
+});
 
-// Mock drizzle-orm main functions
-jest.mock('drizzle-orm', () => ({
-  eq: jest.fn(),
-  and: jest.fn(),
-  or: jest.fn(),
-  gt: jest.fn(),
-  lt: jest.fn(),
-  sql: jest.fn(),
-  desc: jest.fn(),
-  asc: jest.fn()
-}));
+// Remove duplicate drizzle-orm mock - already handled above
 
 // Mock drizzle-zod to prevent schema creation issues
 jest.mock('drizzle-zod', () => ({

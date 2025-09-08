@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+INVOICE DOCUMENT
+
+Bill Number: ECE6-2024-01-ADMINISTRATION-1
+Title: Administration (1) - Zieme LLC
+Vendor: Gutkowski, Reynolds and Roob
+Category: Administration
+Total Amount: $441.77
+Description: Monthly administration service for October 2024 - Invoice 1
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 6/10/2026
+
+Service Details:
+- Adflicto cura aestus casus caelum incidunt contego taedium subvenio adnuo.
+- Coadunatio curatio administratio antiquus aureus universe sursum eveniet explicabo complectus.
+
+Thank you for your business!
+Gutkowski, Reynolds and Roob

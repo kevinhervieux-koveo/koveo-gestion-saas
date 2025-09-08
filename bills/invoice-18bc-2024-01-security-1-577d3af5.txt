@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+INVOICE DOCUMENT
+
+Bill Number: 18BC-2024-01-SECURITY-1
+Title: Security (1) - Jakubowski and Sons
+Vendor: Jast Group
+Category: Security
+Total Amount: $4350.41
+Description: Monthly security service for July 2024 - Invoice 1
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 3/13/2026
+
+Service Details:
+- Alter non decipio.
+- Celebrer unde totam turbo torrens corporis animi.
+
+Thank you for your business!
+Jast Group

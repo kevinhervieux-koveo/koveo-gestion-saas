@@ -1,0 +1,33 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+
+===============================================================
+
+BUILDING LOAN AGREEMENT
+
+Building: Démo Appartement
+Property ID: fbc1bb8b-a63c-4712-8d1e-c03f32c5c586
+Document Type: Financial Agreement
+
+Loan Details:
+- Loan Amount: $1128880
+- Interest Rate: 3.9%
+- Loan Term: 26 years
+- Monthly Payment: $3685
+
+Lender: Demo Bank Financial Services
+Borrower: Démo Appartement Building Corporation
+Loan Date: 03/09/2025
+
+This loan agreement covers the financing for building operations,
+capital improvements, and maintenance reserves.
+
+Financial Terms:
+- Fixed rate mortgage
+- No prepayment penalties
+- Annual financial reporting required
+
+Lender Representative: ____________________
+Borrower Representative: ____________________

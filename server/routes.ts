@@ -90,6 +90,7 @@ export async function registerRoutes(app: Express) {
   registerBuildingRoutes(app);
   registerDocumentRoutes(app);
   registerBugRoutes(app);
+
   registerBillRoutes(app);
   registerResidenceRoutes(app);
   registerDemandRoutes(app);

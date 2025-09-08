@@ -1,0 +1,29 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+
+===============================================================
+
+BUILDING LOAN AGREEMENT
+
+Building: 4804 Stuart Gateway Building 1
+Loan Amount: $1,250,000
+Interest Rate: 4.75%
+Loan Term: 20 years
+Monthly Payment: $8,150
+
+Lender: Quebec Property Finance Bank
+Borrower: 4804 Stuart Gateway Building 1 Building Corporation
+Loan Date: 01/15/2023
+
+Financial Terms:
+- Fixed rate mortgage
+- No prepayment penalties  
+- Annual financial reporting required
+- Minimum debt service coverage ratio: 1.25x
+
+This loan covers building acquisition and capital improvements.
+
+Lender Representative: Marie-Claire Dubois
+Borrower Representative: Jean-Paul Martin

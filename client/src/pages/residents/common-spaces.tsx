@@ -23,6 +23,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import { useLocation } from 'wouter';
 import {
   Select,
   SelectContent,
@@ -66,6 +68,7 @@ import {
   ChevronUp,
   ChevronLeft,
   ChevronRight,
+  ArrowLeft,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -441,14 +444,23 @@ function generateICS(bookings: Booking[], allSpaces?: boolean): string {
   return [icsHeader, ...icsEvents, icsFooter].join('\r\n');
 }
 
+interface CommonSpacesProps {
+  buildingId?: string;
+  showBackButton?: boolean;
+  backButtonLabel?: string;
+  onBack?: () => void;
+}
+
 /**
  * Common Spaces page component for residents.
  */
-export default function CommonSpacesPage() {
+function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, onBack }: CommonSpacesProps) {
   const { user } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
+
 
   const [selectedSpace, setSelectedSpace] = useState<CommonSpace | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -466,10 +478,20 @@ export default function CommonSpacesPage() {
     },
   });
 
-  // Fetch common spaces in user's buildings
+  // Back navigation is now handled by the HOC
+
+  // Fetch common spaces in user's buildings (filtered by building if provided)
   const { data: commonSpaces = [], isLoading: spacesLoading } = useQuery<CommonSpace[]>({
-    queryKey: ['/api/common-spaces'],
-    enabled: !!user,
+    queryKey: ['/api/common-spaces', buildingId],
+    queryFn: async () => {
+      const url = buildingId ? `/api/common-spaces?building_id=${buildingId}` : '/api/common-spaces';
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch common spaces');
+      }
+      return response.json();
+    },
+    enabled: !!user && !!buildingId,
   });
 
   // Fetch bookings for selected space
@@ -731,6 +753,16 @@ export default function CommonSpacesPage() {
         title={language === 'fr' ? 'Espaces Communs' : 'Common Spaces'}
         subtitle={language === 'fr' ? 'Réservez vos espaces communs' : 'Book your common spaces'}
       />
+
+      {/* Back Navigation */}
+      {showBackButton && onBack && (
+        <div className="px-6 pt-6 pb-0">
+          <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            {backButtonLabel}
+          </Button>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -1172,3 +1204,10 @@ export default function CommonSpacesPage() {
     </div>
   );
 }
+
+// Wrap with hierarchical selection HOC using organization and building hierarchy (residents only see buildings they have residences in)
+const CommonSpacesPage = withHierarchicalSelection(CommonSpacesPageInner, {
+  hierarchy: ['organization', 'building']
+});
+
+export default CommonSpacesPage;

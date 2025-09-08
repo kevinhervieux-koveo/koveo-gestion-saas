@@ -28,17 +28,18 @@ import {
   Upload,
   Filter,
   Calendar,
-  Building as BuildingIcon,
   Tag,
   ChevronDown,
+  ArrowLeft,
 } from 'lucide-react';
-import { BuildingSelectionGrid } from '@/components/BuildingSelectionGrid';
 import ModularBillForm from '@/components/bill-management/ModularBillForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
-import type { Building, Bill } from '@shared/schema';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import { useLocation } from 'wouter';
+import type { Bill } from '@shared/schema';
 
 const BILL_CATEGORIES = [
   'insurance',
@@ -92,28 +93,38 @@ const getCategoryLabel = (category: string, t: (key: string) => string) => {
 };
 
 /**
- *
+ * Filters for bills (excluding buildingId which comes from hierarchical selection)
  */
 interface BillFilters {
-  buildingId: string;
   category: string;
   year: string;
   months: string[];
 }
 
 /**
- *
+ * Props received from withHierarchicalSelection HOC
  */
-export default function /**
- * Bills function.
- */ /**
- * Bills function.
- */
+interface BillsProps {
+  organizationId?: string;
+  buildingId?: string;
+}
 
-Bills() {
+/**
+ * Bills management component
+ */
+function BillsPage({ buildingId, organizationId }: BillsProps) {
   const { t } = useLanguage();
+  const [, navigate] = useLocation();
+
+  const handleBackToBuilding = () => {
+    // Navigate back to building selection, removing buildingId from URL
+    if (organizationId) {
+      navigate(`/manager/bills?organization=${organizationId}`);
+    } else {
+      navigate('/manager/bills');
+    }
+  };
   const [filters, setFilters] = useState<BillFilters>({
-    buildingId: '',
     category: '',
     year: new Date().getFullYear().toString(),
     months: [],
@@ -122,22 +133,9 @@ Bills() {
   const [showAllYears, setShowAllYears] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch buildings for filter dropdown
-  const {
-    data: buildings = [],
-    isLoading: buildingsLoading,
-    error: buildingsError,
-  } = useQuery<Building[]>({
-    queryKey: ['/api/buildings'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/buildings');
-      return await response.json();
-    },
-  });
-
   // Fetch bills based on filters
   const { data: bills = [], isLoading } = useQuery<Bill[]>({
-    queryKey: ['/api/bills', filters],
+    queryKey: ['/api/bills', buildingId, filters],
     queryFn: async () => {
       const params = new URLSearchParams(); /**
        * If function.
@@ -147,8 +145,8 @@ Bills() {
        * @param filters.buildingId - Filters.buildingId parameter.
        */
 
-      if (filters.buildingId) {
-        params.set('buildingId', filters.buildingId);
+      if (buildingId) {
+        params.set('buildingId', buildingId);
       } /**
        * If function.
        * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
@@ -221,6 +219,7 @@ Bills() {
 
       return response.json();
     },
+    enabled: !!buildingId, // Only fetch when buildingId is available
   });
 
   // Group bills by category
@@ -297,11 +296,7 @@ Bills() {
     return `${filters.months.length} months`;
   };
 
-  // Get building construction year for minimum year calculation
-  const selectedBuilding = Array.isArray(buildings)
-    ? buildings.find((b) => b.id === filters.buildingId)
-    : undefined;
-  const buildingConstructionYear = selectedBuilding?.yearBuilt || new Date().getFullYear();
+  // Get current year for year calculation
   const currentYear = new Date().getFullYear();
 
   // Generate year options based on show all years state
@@ -315,8 +310,8 @@ Bills() {
      */
 
     if (showAllYears) {
-      // Show all years from building construction year to 25 years forward
-      const startYear = buildingConstructionYear;
+      // Show years from 2000 to 25 years forward
+      const startYear = 2000;
       const endYear = currentYear + 25;
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
@@ -329,44 +324,25 @@ Bills() {
     }
   };
 
-  // Show loading state while buildings are loading
-  if (buildingsLoading) {
-    return (
-      <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
-        <div className='flex-1 flex items-center justify-center'>
-          <div className='text-center'>
-            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4'></div>
-            <p className='text-gray-500'>{t('loadingBuildings')}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state if buildings failed to load
-  if (buildingsError) {
-    return (
-      <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
-        <div className='flex-1 flex items-center justify-center'>
-          <div className='text-center'>
-            <p className='text-red-500 mb-4'>{t('failedToLoadBuildings')}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
-            >
-              {t('retry')}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
+      
+      {/* Back to Building Navigation */}
+      {buildingId && (
+        <div className="p-4 border-b border-gray-200">
+          <Button
+            variant="outline"
+            onClick={handleBackToBuilding}
+            className="flex items-center gap-2"
+            data-testid="button-back-to-building"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t('building')}
+          </Button>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -379,29 +355,7 @@ Bills() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-5 gap-4'>
-                <div className='space-y-2'>
-                  <Label htmlFor='building-filter' className='flex items-center gap-2'>
-                    <BuildingIcon className='w-4 h-4' />
-                    {t('building')}
-                  </Label>
-                  <Select
-                    value={filters.buildingId}
-                    onValueChange={(value) => handleFilterChange('buildingId', value)}
-                  >
-                    <SelectTrigger id='building-filter'>
-                      <SelectValue placeholder={t('selectBuilding')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.isArray(buildings) &&
-                        buildings.map((building: Building) => (
-                          <SelectItem key={building.id} value={building.id}>
-                            {building.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
 
                 <div className='space-y-2'>
                   <Label htmlFor='category-filter' className='flex items-center gap-2'>
@@ -456,7 +410,7 @@ Bills() {
                               className='w-full text-left justify-start text-xs'
                               onClick={() => setShowAllYears(true)}
                             >
-                              Show more years ({buildingConstructionYear} - {currentYear + 25})
+                              Show more years (2000 - {currentYear + 25})
                             </Button>
                           </div>
                         )}
@@ -536,7 +490,7 @@ Bills() {
                   <Label className='invisible'>Actions</Label>
                   <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                     <DialogTrigger asChild>
-                      <Button className='w-full' disabled={!filters.buildingId}>
+                      <Button className='w-full' disabled={!buildingId}>
                         {t('createBill')}
                       </Button>
                     </DialogTrigger>
@@ -546,7 +500,7 @@ Bills() {
                       </DialogHeader>
                       <ModularBillForm
                         mode="create"
-                        buildingId={filters.buildingId}
+                        buildingId={buildingId}
                         onCancel={() => setShowCreateDialog(false)}
                         onSuccess={() => {
                           setShowCreateDialog(false);
@@ -561,12 +515,7 @@ Bills() {
           </Card>
 
           {/* Bills Display */}
-          {!filters.buildingId ? (
-            <BuildingSelectionGrid
-              buildings={Array.isArray(buildings) ? buildings : []}
-              onBuildingSelect={(buildingId) => handleFilterChange('buildingId', buildingId)}
-            />
-          ) : isLoading ? (
+          {isLoading ? (
             <Card>
               <CardContent className='p-8 text-center'>
                 <div className='animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4'></div>
@@ -803,11 +752,30 @@ function BillDetail({
     },
   });
 
+  // Fetch documents attached to this bill
+  const { data: billDocuments = [], isLoading: documentsLoading } = useQuery({
+    queryKey: ['/api/documents', 'bill', bill.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/documents?attachedToType=bill&attachedToId=${bill.id}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        console.error('[BILL DOCS] Failed to fetch documents:', response.status, response.statusText);
+        throw new Error('Failed to fetch bill documents');
+      }
+      const data = await response.json();
+      return data.documents || [];
+    },
+  });
+
   // Use fresh bill data if available, fallback to props bill data
   const currentBill = freshBill || bill;
   
-  const [endDate, setEndDate] = useState(currentBill.endDate || '');
-
+  // Keep basic logging for bills
+  if (billDocuments.length > 0) {
+    console.log('[BILL DOCS] Found documents:', billDocuments.length, 'for bill:', currentBill.billNumber);
+  }
+  
   const updateBillMutation = useMutation({
     mutationFn: async (updates: Partial<Bill>) => {
       const response = await fetch(`/api/bills/${bill.id}`, {
@@ -831,11 +799,6 @@ function BillDetail({
     },
   });
 
-  const handleSetEndDate = () => {
-    if (endDate) {
-      updateBillMutation.mutate({ endDate });
-    }
-  };
 
 
   return (
@@ -895,26 +858,6 @@ function BillDetail({
         </div>
       )}
 
-      {/* End Date Management for Recurrent Bills */}
-      {currentBill.paymentType === 'recurrent' && (
-        <div className='border-t pt-4'>
-          <Label className='text-sm font-medium'>Recurrence End Date</Label>
-          <div className='flex items-center gap-2 mt-2'>
-            <Input
-              type='date'
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className='w-48'
-            />
-            <Button onClick={handleSetEndDate} disabled={updateBillMutation.isPending} size='sm'>
-              {updateBillMutation.isPending ? 'Setting...' : 'Set End Date'}
-            </Button>
-          </div>
-          <p className='text-xs text-gray-500 mt-1'>
-            Setting an end date will stop auto-generation of future bills after this date.
-          </p>
-        </div>
-      )}
 
       {/* Costs Breakdown */}
       {currentBill.costs && currentBill.costs.length > 1 && (
@@ -931,66 +874,159 @@ function BillDetail({
         </div>
       )}
 
-      {/* Document Section - Only show if document exists */}
-      {currentBill.filePath && (
+      {/* Uploaded Documents Section */}
+      {(currentBill.filePath || billDocuments.length > 0) && (
         <div className='border-t pt-4'>
-          <Label className='text-sm font-medium'>Uploaded Document</Label>
-          <div className='mt-2'>
-            <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
-              <div className='flex items-center gap-2'>
-                <FileText className='w-4 h-4 text-blue-600' />
-                <span className='text-sm'>{currentBill.fileName}</span>
-                {currentBill.isAiAnalyzed && (
-                  <Badge variant='outline' className='text-xs'>
-                    AI Analyzed
-                  </Badge>
-                )}
+          <Label className='text-sm font-medium'>Uploaded Documents</Label>
+          <div className='mt-2 space-y-2'>
+            {/* Direct bill upload */}
+            {currentBill.filePath && (
+              <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
+                <div className='flex items-center gap-2'>
+                  <FileText className='w-4 h-4 text-blue-600' />
+                  <span className='text-sm'>{currentBill.fileName}</span>
+                  {currentBill.isAiAnalyzed && (
+                    <Badge variant='outline' className='text-xs'>
+                      AI Analyzed
+                    </Badge>
+                  )}
+                </div>
+                <div className='flex items-center gap-2'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => {
+                      // View the document (open in new tab)
+                      window.open(`/api/bills/${currentBill.id}/download-document`, '_blank');
+                    }}
+                    className='flex items-center gap-1'
+                    data-testid={`button-view-document-${currentBill.id}`}
+                  >
+                    <FileText className='w-3 h-3' />
+                    View
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => {
+                      // Download the document
+                      const link = document.createElement('a');
+                      link.href = `/api/bills/${currentBill.id}/download-document`;
+                      link.download = currentBill.fileName || 'bill-document';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className='flex items-center gap-1'
+                    data-testid={`button-download-document-${currentBill.id}`}
+                  >
+                    <FileText className='w-3 h-3' />
+                    Download
+                  </Button>
+                </div>
               </div>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => {
-                  console.log('[DOWNLOAD] Starting download for bill:', currentBill.id);
-                  console.log('[DOWNLOAD] Document name:', currentBill.fileName);
-                  console.log('[DOWNLOAD] Document path:', currentBill.filePath);
-                  
-                  // Download the document
-                  const link = document.createElement('a');
-                  link.href = `/api/bills/${currentBill.id}/download-document`;
-                  link.download = currentBill.fileName || 'bill-document';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  
-                  console.log('[DOWNLOAD] Download link clicked');
-                }}
-                className='flex items-center gap-1'
-                data-testid={`button-download-document-${currentBill.id}`}
-              >
-                <FileText className='w-3 h-3' />
-                Download
-              </Button>
-            </div>
+            )}
+            
+            {/* Attached documents from documents table */}
+            {billDocuments.map((doc: any) => (
+              <div key={doc.id} className='flex items-center justify-between p-3 bg-blue-50 rounded-lg'>
+                <div className='flex items-center gap-2'>
+                  <FileText className='w-4 h-4 text-blue-600' />
+                  <span className='text-sm'>{doc.name}</span>
+                  <Badge variant='outline' className='text-xs'>
+                    {doc.documentType || 'Document'}
+                  </Badge>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={async () => {
+                      try {
+                        // Fixed: Direct window.open to API endpoint to respect Content-Disposition: inline
+                        const documentUrl = `/api/documents/${doc.id}/file`;
+                        const newWindow = window.open(documentUrl, '_blank');
+                        
+                        if (!newWindow) {
+                          // Fallback: if popup blocked, show error message
+                          console.error('Popup blocked - please allow popups for this site to view documents');
+                          // Could add toast notification here if desired
+                        }
+                        
+                      } catch (error) {
+                        console.error('View failed:', error);
+                      }
+                    }}
+                    className='flex items-center gap-1'
+                    data-testid={`button-view-document-${doc.id}`}
+                  >
+                    <FileText className='w-3 h-3' />
+                    View
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={async () => {
+                      try {
+                        // Use fetch with credentials to ensure authentication
+                        const response = await fetch(`/api/documents/${doc.id}/file?download=true`, {
+                          method: 'GET',
+                          credentials: 'include', // Include authentication cookies
+                        });
+
+                        if (!response.ok) {
+                          throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+                        }
+
+                        // Convert response to blob and create download
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = doc.fileName || doc.name || 'document';
+                        document.body.appendChild(link);
+                        link.click();
+                        
+                        // Clean up
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                        
+                      } catch (error) {
+                        console.error('Download failed:', error);
+                      }
+                    }}
+                    className='flex items-center gap-1'
+                    data-testid={`button-download-document-${doc.id}`}
+                  >
+                    <FileText className='w-3 h-3' />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Edit Mode Toggle */}
-      <div className='border-t pt-4'>
-        <div className='flex items-center justify-between'>
-          <Label className='text-sm font-medium'>Actions</Label>
-          <Button onClick={onEditBill} variant='outline' size='sm'>
-            Edit Bill
-          </Button>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className='flex justify-end gap-2 pt-4 border-t'>
-        <Button variant='outline' onClick={onCancel}>
+      {/* Action Buttons */}
+      <div className='flex justify-between items-center pt-4 border-t'>
+        <Button
+          onClick={onEditBill}
+          className='flex items-center gap-1'
+          data-testid={`button-edit-bill-${bill.id}`}
+        >
+          Edit Bill
+        </Button>
+        <Button variant='outline' onClick={onCancel} data-testid={`button-close-bill-modal-${bill.id}`}>
           Close
         </Button>
       </div>
     </div>
   );
 }
+
+// Export with hierarchical selection HOC - Manager buildings page uses 2-level hierarchy
+export default withHierarchicalSelection(BillsPage, {
+  hierarchy: ['organization', 'building']
+});

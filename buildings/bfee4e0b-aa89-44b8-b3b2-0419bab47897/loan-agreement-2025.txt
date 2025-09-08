@@ -1,0 +1,33 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+
+===============================================================
+
+BUILDING LOAN AGREEMENT
+
+Building: 4647 Meggie Pass Building 2
+Property ID: bfee4e0b-aa89-44b8-b3b2-0419bab47897
+Document Type: Financial Agreement
+
+Loan Details:
+- Loan Amount: $1434735
+- Interest Rate: 6.3%
+- Loan Term: 16 years
+- Monthly Payment: $6310
+
+Lender: Demo Bank Financial Services
+Borrower: 4647 Meggie Pass Building 2 Building Corporation
+Loan Date: 03/20/2023
+
+This loan agreement covers the financing for building operations,
+capital improvements, and maintenance reserves.
+
+Financial Terms:
+- Fixed rate mortgage
+- No prepayment penalties
+- Annual financial reporting required
+
+Lender Representative: ____________________
+Borrower Representative: ____________________

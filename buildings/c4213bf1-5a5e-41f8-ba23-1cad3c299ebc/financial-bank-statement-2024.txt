@@ -1,0 +1,28 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+
+===============================================================
+
+QUARTERLY BANK STATEMENT
+
+Building: 4804 Stuart Gateway Building 1
+Bank: Banque Nationale du Quebec
+Account: ****7892
+Statement Period: Q4 2024
+
+Beginning Balance: $125,750
+Total Deposits: $234,500
+Total Withdrawals: $198,250
+Ending Balance: $162,000
+
+Major Transactions:
+- Monthly Fee Collection: +$45,000
+- Insurance Premium: -$12,500
+- Maintenance Reserve: +$25,000
+- Property Tax: -$18,750
+- Loan Payment: -$8,150
+
+Account Manager: Sophie Tremblay
+Contact: (514) 555-0189

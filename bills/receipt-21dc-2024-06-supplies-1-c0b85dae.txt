@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: 21DC-2024-06-SUPPLIES-1
+Title: Supplies (1) - Ward, Lehner and Barton
+Vendor: Lubowitz - Lang
+Category: Supplies
+Total Amount: $3539.33
+Description: Monthly supplies service for July 2024 - Invoice 1
+
+Payment Amount: $3539.33
+Payment Date: 9/8/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-XMOAQDTY
+
+This payment has been processed successfully.
+Building Management Office

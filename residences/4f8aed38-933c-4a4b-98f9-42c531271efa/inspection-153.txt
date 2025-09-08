@@ -1,0 +1,36 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+INSPECTION REPORT
+
+Unit: 153
+Building: 7393 Abernathy Green Building 5
+Address: 21675 Shanahan Canyon
+Document 1 of 1
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Roberto Hamill
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Excellent
+
+Notes:
+In tersus doloremque. Color audio adipisci corpus verbera cito vigor uredo. Speciosus tribuo tabula comparo stips viridis textilis.
+
+Inspector Signature: ____________________

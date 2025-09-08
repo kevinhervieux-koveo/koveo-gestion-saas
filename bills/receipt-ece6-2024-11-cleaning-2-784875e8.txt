@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: ECE6-2024-11-CLEANING-2
+Title: Cleaning (2) - Thiel - Goldner
+Vendor: Brekke Inc
+Category: Cleaning
+Total Amount: $3203.94
+Description: Monthly cleaning service for March 2024 - Invoice 2
+
+Payment Amount: $3203.94
+Payment Date: 9/8/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-X3SFAWL1
+
+This payment has been processed successfully.
+Building Management Office

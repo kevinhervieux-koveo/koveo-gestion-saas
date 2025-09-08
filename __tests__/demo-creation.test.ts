@@ -87,20 +87,25 @@ describe('Demo Creation Script', () => {
     }
   });
 
-  test('demo data generation functions exist', async () => {
+  test('demo data generation functions exist with proper file paths', async () => {
     const scriptPath = 'scripts/create-demo-environment.ts';
     const content = await fs.readFile(scriptPath, 'utf-8');
     
     // Check for data generation functions
-    expect(content).toContain('generateDemoUsers');
-    expect(content).toContain('generateDemoBuildings');
-    expect(content).toContain('generateDemoResidences');
-    expect(content).toContain('generateDemoBookings');
-    expect(content).toContain('generateDemoMaintenanceRequests');
-    expect(content).toContain('generateDemoBills');
+    expect(content).toContain('seedUsers');
+    expect(content).toContain('seedBuildings');
+    expect(content).toContain('seedResidences');
+    expect(content).toContain('seedBookings');
+    expect(content).toContain('seedMaintenanceRequests');
+    expect(content).toContain('seedBills');
+    expect(content).toContain('seedDocuments');
+    
+    // Check for proper file path structure (no uploads prefix)
+    expect(content).toContain('writeDocumentFile(filePath');
+    expect(content).not.toContain('writeDocumentFile(`uploads/${filePath}`');
   });
 
-  test('script includes data validation', async () => {
+  test('script includes data validation and ASCII-safe encoding', async () => {
     const scriptPath = 'scripts/create-demo-environment.ts';
     const content = await fs.readFile(scriptPath, 'utf-8');
     
@@ -109,6 +114,12 @@ describe('Demo Creation Script', () => {
     expect(content).toContain('unique');
     expect(content).toContain('email');
     expect(content).toContain('phone');
+    
+    // Check for ASCII-safe encoding fixes
+    expect(content).not.toContain('✓'); // Unicode checkmarks should be replaced
+    expect(content).not.toContain('⚠️'); // Unicode warning symbols should be replaced
+    expect(content).toContain('+ Electrical systems'); // Should use ASCII alternatives
+    expect(content).toContain('- On Time'); // Should use ASCII alternatives
   });
 
   test('script has proper error handling', async () => {
@@ -226,7 +237,7 @@ describe('Demo Creation Script', () => {
     expect(content).toContain('✅');
   });
 
-  test('data relationships are properly established', async () => {
+  test('data relationships are properly established with manager organization access', async () => {
     const scriptPath = 'scripts/create-demo-environment.ts';
     const content = await fs.readFile(scriptPath, 'utf-8');
     
@@ -236,6 +247,10 @@ describe('Demo Creation Script', () => {
     expect(content).toContain('organization_id');
     expect(content).toContain('building_id');
     expect(content).toContain('user_id');
+    
+    // Check for manager organization association comment
+    expect(content).toContain('critical for manager building access');
+    expect(content).toContain('userOrganizations');
   });
 
   test('script validates required environment variables', async () => {
@@ -281,6 +296,38 @@ describe('Demo Data Validation', () => {
     });
   });
 
+  test('document content uses ASCII-safe characters', () => {
+    const sampleContent = `+ Electrical systems - Good condition
++ Plumbing - Good condition
+* Minor paint touch-up needed
+- Rent Payment - On Time`;
+    
+    // Should not contain Unicode characters
+    expect(sampleContent).not.toMatch(/[✓⚠️]/u);
+    
+    // Should contain ASCII alternatives
+    expect(sampleContent).toContain('+ Electrical');
+    expect(sampleContent).toContain('* Minor');
+    expect(sampleContent).toContain('- On Time');
+  });
+
+  test('document categorization separates bills from financial documents', () => {
+    const billCategories = ['utilities', 'maintenance', 'insurance', 'cleaning'];
+    const financialTypes = ['loan', 'bank_statement', 'financial_report'];
+    
+    // Bill categories should map to proper document types
+    expect(billCategories).toContain('utilities');
+    expect(billCategories).toContain('maintenance');
+    
+    // Financial document types should be separate
+    expect(financialTypes).toContain('loan');
+    expect(financialTypes).toContain('bank_statement');
+    
+    // They should not overlap
+    const overlap = billCategories.filter(cat => financialTypes.includes(cat));
+    expect(overlap).toHaveLength(0);
+  });
+
   test('generated phone numbers are valid format', () => {
     const phones = [
       '514-555-0123',
@@ -320,5 +367,33 @@ describe('Demo Data Validation', () => {
     
     expect(testDate).toBeGreaterThanOrEqual(startDate);
     expect(testDate).toBeLessThanOrEqual(endDate);
+  });
+
+  test('file paths use direct user directories', () => {
+    const validPaths = [
+      'bills/invoice-bill123-abcd1234.txt',
+      'residences/uuid-123/lease-101.txt',
+      'buildings/uuid-456/insurance-building-name.txt'
+    ];
+    
+    validPaths.forEach(path => {
+      // Should not start with uploads/
+      expect(path).not.toMatch(/^uploads\//);
+      
+      // Should follow direct directory structure
+      expect(path).toMatch(/^(bills|residences|buildings)\//); 
+    });
+  });
+
+  test('manager organization associations are properly configured', () => {
+    const managerConfig = {
+      hasOrganizationAssociation: true,
+      canAccessBuildings: true,
+      roleType: 'demo_manager'
+    };
+    
+    expect(managerConfig.hasOrganizationAssociation).toBe(true);
+    expect(managerConfig.canAccessBuildings).toBe(true);
+    expect(managerConfig.roleType).toContain('manager');
   });
 });

@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+INVOICE DOCUMENT
+
+Bill Number: ECE6-2024-04-LANDSCAPING
+Title: Landscaping  - Wolf, Dibbert and Herman
+Vendor: Koss and Sons
+Category: Landscaping
+Total Amount: $3340.70
+Description: Monthly landscaping service for January 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 11/30/2025
+
+Service Details:
+- Depereo certe audacia dolores ipsa circumvenio ipsum nam adulatio.
+- Cibo sed sollicito claro vestrum quis collum decimus cedo.
+
+Thank you for your business!
+Koss and Sons

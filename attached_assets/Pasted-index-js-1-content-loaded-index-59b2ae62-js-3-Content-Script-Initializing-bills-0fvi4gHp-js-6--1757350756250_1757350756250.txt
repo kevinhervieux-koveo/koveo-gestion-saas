@@ -1,0 +1,139 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Current location: /manager/bills
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Search params: organization=da67894c-fbbe-4f0f-b686-ee1d1cb13891
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] URL params: {organizationId: 'da67894c-fbbe-4f0f-b686-ee1d1cb13891', buildingId: null, residenceId: null, hierarchy: Array(2)}
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Current level: building
+bills-0fvi4gHp.js:6 📍 [HIERARCHY DEBUG] Location changed: /manager/bills
+bills-0fvi4gHp.js:6 📍 [HIERARCHY DEBUG] Search changed: organization=da67894c-fbbe-4f0f-b686-ee1d1cb13891
+bills-0fvi4gHp.js:6 ⚡ [HIERARCHY DEBUG] Auto-forward check: {currentLevel: 'building', organizationsCount: 0, buildingsCount: 0, residencesCount: 0, organizationId: 'da67894c-fbbe-4f0f-b686-ee1d1cb13891', …}
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Current location: /manager/bills
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Search params: organization=da67894c-fbbe-4f0f-b686-ee1d1cb13891
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] URL params: {organizationId: 'da67894c-fbbe-4f0f-b686-ee1d1cb13891', buildingId: null, residenceId: null, hierarchy: Array(2)}
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Current level: building
+bills-0fvi4gHp.js:6 ⚡ [HIERARCHY DEBUG] Auto-forward check: {currentLevel: 'building', organizationsCount: 0, buildingsCount: 5, residencesCount: 0, organizationId: 'da67894c-fbbe-4f0f-b686-ee1d1cb13891', …}
+bills-0fvi4gHp.js:6 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'fde56ff5-2ae8-4012-9f14-5b956b35a446', itemName: '4647 Meggie Pass Building 2'}
+bills-0fvi4gHp.js:6 ✅ [HIERARCHY DEBUG] handleSelection called: {id: 'fde56ff5-2ae8-4012-9f14-5b956b35a446', currentLevel: 'building'}
+bills-0fvi4gHp.js:6 ✅ [HIERARCHY DEBUG] Selecting building: fde56ff5-2ae8-4012-9f14-5b956b35a446
+bills-0fvi4gHp.js:6 🚀 [HIERARCHY DEBUG] Navigate called with updates: {organization: 'da67894c-fbbe-4f0f-b686-ee1d1cb13891', building: 'fde56ff5-2ae8-4012-9f14-5b956b35a446'}
+bills-0fvi4gHp.js:6 🚀 [HIERARCHY DEBUG] Current searchParams: 
+bills-0fvi4gHp.js:6 🚀 [HIERARCHY DEBUG] Navigating from: /manager/bills
+bills-0fvi4gHp.js:6 🚀 [HIERARCHY DEBUG] Navigating to: /manager/bills?organization=da67894c-fbbe-4f0f-b686-ee1d1cb13891&building=fde56ff5-2ae8-4012-9f14-5b956b35a446
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Current location: /manager/bills
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Search params: organization=da67894c-fbbe-4f0f-b686-ee1d1cb13891&building=fde56ff5-2ae8-4012-9f14-5b956b35a446
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] URL params: {organizationId: 'da67894c-fbbe-4f0f-b686-ee1d1cb13891', buildingId: 'fde56ff5-2ae8-4012-9f14-5b956b35a446', residenceId: null, hierarchy: Array(2)}
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Current level: complete
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Current location: /manager/bills
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Search params: organization=da67894c-fbbe-4f0f-b686-ee1d1cb13891&building=fde56ff5-2ae8-4012-9f14-5b956b35a446
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] URL params: {organizationId: 'da67894c-fbbe-4f0f-b686-ee1d1cb13891', buildingId: 'fde56ff5-2ae8-4012-9f14-5b956b35a446', residenceId: null, hierarchy: Array(2)}
+bills-0fvi4gHp.js:6 🔍 [HIERARCHY DEBUG] Current level: complete
+index-BwzM3gQ_.js:136 ReferenceError: BuildingSelectionGrid is not defined
+    at Ae (bills-0fvi4gHp.js:6:24489)
+    at Object.react_stack_bottom_frame (index-BwzM3gQ_.js:229:12448)
+    at oc (index-BwzM3gQ_.js:120:804)
+    at kc (index-BwzM3gQ_.js:141:5839)
+    at Yc (index-BwzM3gQ_.js:150:10147)
+    at j (index-BwzM3gQ_.js:45:108)
+    at Kh (index-BwzM3gQ_.js:163:29810)
+    at Jh (index-BwzM3gQ_.js:163:28479)
+    at Wc (index-BwzM3gQ_.js:163:28312)
+    at Ih (index-BwzM3gQ_.js:163:24807)
+
+The above error occurred in the <Ae> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, lR.
+
+overrideMethod @ hook.js:608
+oh @ index-BwzM3gQ_.js:136
+lh @ index-BwzM3gQ_.js:141
+j @ index-BwzM3gQ_.js:45
+l.componentDidCatch.e.callback @ index-BwzM3gQ_.js:141
+Dp @ index-BwzM3gQ_.js:107
+Ep @ index-BwzM3gQ_.js:107
+j @ index-BwzM3gQ_.js:45
+Dh @ index-BwzM3gQ_.js:163
+Mh @ index-BwzM3gQ_.js:163
+Qn @ index-BwzM3gQ_.js:163
+Mh @ index-BwzM3gQ_.js:163
+Qn @ index-BwzM3gQ_.js:163
+Mh @ index-BwzM3gQ_.js:163
+Qn @ index-BwzM3gQ_.js:163
+Mh @ index-BwzM3gQ_.js:163
+Qn @ index-BwzM3gQ_.js:163
+Mh @ index-BwzM3gQ_.js:163
+Qn @ index-BwzM3gQ_.js:163
+Mh @ index-BwzM3gQ_.js:163
+Qn @ index-BwzM3gQ_.js:163
+Mh @ index-BwzM3gQ_.js:163
+ng @ index-BwzM3gQ_.js:163
+ed @ index-BwzM3gQ_.js:163
+Xh @ index-BwzM3gQ_.js:163
+Ih @ index-BwzM3gQ_.js:163
+mg @ index-BwzM3gQ_.js:185
+ml @ index-BwzM3gQ_.js:185
+ad @ index-BwzM3gQ_.js:185
+(anonymous) @ index-BwzM3gQ_.js:185
+<Ae>
+du.jsxDEV @ index-BwzM3gQ_.js:15
+(anonymous) @ bills-0fvi4gHp.js:6
+react_stack_bottom_frame @ index-BwzM3gQ_.js:229
+oc @ index-BwzM3gQ_.js:120
+kc @ index-BwzM3gQ_.js:141
+Yc @ index-BwzM3gQ_.js:150
+j @ index-BwzM3gQ_.js:45
+Kh @ index-BwzM3gQ_.js:163
+Jh @ index-BwzM3gQ_.js:163
+Wc @ index-BwzM3gQ_.js:163
+Ih @ index-BwzM3gQ_.js:163
+mg @ index-BwzM3gQ_.js:185
+ml @ index-BwzM3gQ_.js:185
+ad @ index-BwzM3gQ_.js:185
+(anonymous) @ index-BwzM3gQ_.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Yb @ index-BwzM3gQ_.js:240
+q @ index-BwzM3gQ_.js:240
+react_stack_bottom_frame @ index-BwzM3gQ_.js:229
+oc @ index-BwzM3gQ_.js:120
+kc @ index-BwzM3gQ_.js:141
+Yc @ index-BwzM3gQ_.js:150
+j @ index-BwzM3gQ_.js:45
+Kh @ index-BwzM3gQ_.js:163
+FS @ index-BwzM3gQ_.js:163
+$S @ index-BwzM3gQ_.js:163
+Ih @ index-BwzM3gQ_.js:163
+fg @ index-BwzM3gQ_.js:185
+d @ index-BwzM3gQ_.js:23
+<q>
+du.jsxDEV @ index-BwzM3gQ_.js:15
+qR @ index-BwzM3gQ_.js:364
+react_stack_bottom_frame @ index-BwzM3gQ_.js:229
+oc @ index-BwzM3gQ_.js:120
+kc @ index-BwzM3gQ_.js:141
+Yc @ index-BwzM3gQ_.js:150
+j @ index-BwzM3gQ_.js:45
+Kh @ index-BwzM3gQ_.js:163
+Jh @ index-BwzM3gQ_.js:163
+Wc @ index-BwzM3gQ_.js:163
+Ih @ index-BwzM3gQ_.js:163
+mg @ index-BwzM3gQ_.js:185
+ml @ index-BwzM3gQ_.js:185
+ad @ index-BwzM3gQ_.js:185
+(anonymous) @ index-BwzM3gQ_.js:185
+<qR>
+du.jsxDEV @ index-BwzM3gQ_.js:15
+YR @ index-BwzM3gQ_.js:364
+react_stack_bottom_frame @ index-BwzM3gQ_.js:229
+oc @ index-BwzM3gQ_.js:120
+kc @ index-BwzM3gQ_.js:141
+Yc @ index-BwzM3gQ_.js:150
+j @ index-BwzM3gQ_.js:45
+Kh @ index-BwzM3gQ_.js:163
+Jh @ index-BwzM3gQ_.js:163
+Wc @ index-BwzM3gQ_.js:163
+Ih @ index-BwzM3gQ_.js:163
+fg @ index-BwzM3gQ_.js:185
+d @ index-BwzM3gQ_.js:23
+<YR>
+du.jsxDEV @ index-BwzM3gQ_.js:15
+(anonymous) @ index-BwzM3gQ_.js:364

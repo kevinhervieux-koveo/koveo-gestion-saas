@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: ECE6-2024-12-SUPPLIES
+Title: Supplies  - Reichert LLC
+Vendor: Lowe LLC
+Category: Supplies
+Total Amount: $1158.35
+Description: Monthly supplies service for January 2024
+
+Payment Amount: $1158.35
+Payment Date: 9/8/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-PHHCVKK9
+
+This payment has been processed successfully.
+Building Management Office

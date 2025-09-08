@@ -1,0 +1,218 @@
+e984c4f7f0157dc6ee87947ca0a77ce5
+"use strict";
+
+/* istanbul ignore next */
+function cov_cx4y6w9mm() {
+  var path = "/home/runner/workspace/client/src/pages/admin/compliance.tsx";
+  var hash = "dcc27e4b678f044420d44370685daa2a03d4d80c";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/pages/admin/compliance.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 2,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 0
+        },
+        end: {
+          line: 3,
+          column: 29
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 50
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 17
+        },
+        end: {
+          line: 5,
+          column: 54
+        }
+      },
+      "4": {
+        start: {
+          line: 6,
+          column: 27
+        },
+        end: {
+          line: 6,
+          column: 77
+        }
+      },
+      "5": {
+        start: {
+          line: 7,
+          column: 23
+        },
+        end: {
+          line: 7,
+          column: 46
+        }
+      },
+      "6": {
+        start: {
+          line: 13,
+          column: 4
+        },
+        end: {
+          line: 13,
+          column: 1460
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "Compliance",
+        decl: {
+          start: {
+            line: 12,
+            column: 9
+          },
+          end: {
+            line: 12,
+            column: 19
+          }
+        },
+        loc: {
+          start: {
+            line: 12,
+            column: 22
+          },
+          end: {
+            line: 14,
+            column: 1
+          }
+        },
+        line: 12
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/pages/admin/compliance.tsx",
+      mappings: ";;AAQA,6BAkCC;;AA1CD,uDAAoD;AACpD,8EAA0E;AAC1E,+CAAgD;AAEhD;;;GAGG;AACH,SAAwB,UAAU;IAChC,OAAO,CACL,iCAAK,SAAS,EAAC,sCAAsC,aACnD,uBAAC,eAAM,IACL,KAAK,EAAC,0BAA0B,EAChC,QAAQ,EAAC,sDAAsD,GAC/D,EAGF,gCAAK,SAAS,EAAC,+BAA+B,YAC5C,gCAAK,SAAS,EAAC,mBAAmB,YAChC,iCAAK,SAAS,EAAC,+CAA+C,aAC5D,uBAAC,uBAAQ,IAAC,SAAS,EAAC,SAAS,GAAG,EAChC,iCAAM,SAAS,EAAC,aAAa,8BAAqB,EAClD,iCAAM,SAAS,EAAC,iDAAiD,sCAE1D,EACP,iCAAM,SAAS,EAAC,oBAAoB,uBAAS,EAC7C,uBAAC,qBAAM,IAAC,SAAS,EAAC,SAAS,GAAG,EAC9B,iCAAM,SAAS,EAAC,aAAa,6BAAoB,EACjD,iCAAM,SAAS,EAAC,iDAAiD,oDAE1D,IACH,GACF,GACF,EAEN,gCAAK,SAAS,EAAC,0BAA0B,YACvC,gCAAK,SAAS,EAAC,6BAA6B,YAC1C,uBAAC,kCAAe,KAAG,GACf,GACF,IACF,CACP,CAAC;AACJ,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/pages/admin/compliance.tsx"],
+      sourcesContent: ["import { Header } from '@/components/layout/header';\nimport { Law25Compliance } from '@/components/dashboard/law25-compliance';\nimport { Terminal, Shield } from 'lucide-react';\n\n/**\n * Quebec Law 25 compliance dashboard page for administrators.\n * Provides comprehensive overview of privacy compliance status and violations.\n */\nexport default function Compliance() {\n  return (\n    <div className='flex-1 flex flex-col overflow-hidden'>\n      <Header\n        title='Quebec Law 25 Compliance'\n        subtitle='Privacy compliance monitoring and violation tracking'\n      />\n\n      {/* Refresh Command */}\n      <div className='border-b bg-blue-50 px-6 py-3'>\n        <div className='max-w-7xl mx-auto'>\n          <div className='flex items-center gap-2 text-sm text-blue-700'>\n            <Terminal className='h-4 w-4' />\n            <span className='font-medium'>Scan Command:</span>\n            <code className='bg-blue-100 px-2 py-1 rounded text-xs font-mono'>\n              npm run quality:check\n            </code>\n            <span className='text-blue-600 ml-4'>\u2022</span>\n            <Shield className='h-4 w-4' />\n            <span className='font-medium'>Semgrep CLI:</span>\n            <code className='bg-blue-100 px-2 py-1 rounded text-xs font-mono'>\n              npx semgrep --config=.semgrep.yml .\n            </code>\n          </div>\n        </div>\n      </div>\n\n      <div className='flex-1 overflow-auto p-6'>\n        <div className='max-w-7xl mx-auto space-y-8'>\n          <Law25Compliance />\n        </div>\n      </div>\n    </div>\n  );\n}\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "dcc27e4b678f044420d44370685daa2a03d4d80c"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_cx4y6w9mm = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_cx4y6w9mm();
+cov_cx4y6w9mm().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_cx4y6w9mm().s[1]++;
+exports.default = Compliance;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_cx4y6w9mm().s[2]++, require("react/jsx-runtime"));
+const header_1 =
+/* istanbul ignore next */
+(cov_cx4y6w9mm().s[3]++, require("@/components/layout/header"));
+const law25_compliance_1 =
+/* istanbul ignore next */
+(cov_cx4y6w9mm().s[4]++, require("@/components/dashboard/law25-compliance"));
+const lucide_react_1 =
+/* istanbul ignore next */
+(cov_cx4y6w9mm().s[5]++, require("lucide-react"));
+/**
+ * Quebec Law 25 compliance dashboard page for administrators.
+ * Provides comprehensive overview of privacy compliance status and violations.
+ */
+function Compliance() {
+  /* istanbul ignore next */
+  cov_cx4y6w9mm().f[0]++;
+  cov_cx4y6w9mm().s[6]++;
+  return (0, jsx_runtime_1.jsxs)("div", {
+    className: 'flex-1 flex flex-col overflow-hidden',
+    children: [(0, jsx_runtime_1.jsx)(header_1.Header, {
+      title: 'Quebec Law 25 Compliance',
+      subtitle: 'Privacy compliance monitoring and violation tracking'
+    }), (0, jsx_runtime_1.jsx)("div", {
+      className: 'border-b bg-blue-50 px-6 py-3',
+      children: (0, jsx_runtime_1.jsx)("div", {
+        className: 'max-w-7xl mx-auto',
+        children: (0, jsx_runtime_1.jsxs)("div", {
+          className: 'flex items-center gap-2 text-sm text-blue-700',
+          children: [(0, jsx_runtime_1.jsx)(lucide_react_1.Terminal, {
+            className: 'h-4 w-4'
+          }), (0, jsx_runtime_1.jsx)("span", {
+            className: 'font-medium',
+            children: "Scan Command:"
+          }), (0, jsx_runtime_1.jsx)("code", {
+            className: 'bg-blue-100 px-2 py-1 rounded text-xs font-mono',
+            children: "npm run quality:check"
+          }), (0, jsx_runtime_1.jsx)("span", {
+            className: 'text-blue-600 ml-4',
+            children: "\u2022"
+          }), (0, jsx_runtime_1.jsx)(lucide_react_1.Shield, {
+            className: 'h-4 w-4'
+          }), (0, jsx_runtime_1.jsx)("span", {
+            className: 'font-medium',
+            children: "Semgrep CLI:"
+          }), (0, jsx_runtime_1.jsx)("code", {
+            className: 'bg-blue-100 px-2 py-1 rounded text-xs font-mono',
+            children: "npx semgrep --config=.semgrep.yml ."
+          })]
+        })
+      })
+    }), (0, jsx_runtime_1.jsx)("div", {
+      className: 'flex-1 overflow-auto p-6',
+      children: (0, jsx_runtime_1.jsx)("div", {
+        className: 'max-w-7xl mx-auto space-y-8',
+        children: (0, jsx_runtime_1.jsx)(law25_compliance_1.Law25Compliance, {})
+      })
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJleHBvcnRzIiwiZGVmYXVsdCIsIkNvbXBsaWFuY2UiLCJoZWFkZXJfMSIsImNvdl9jeDR5Nnc5bW0iLCJzIiwicmVxdWlyZSIsImxhdzI1X2NvbXBsaWFuY2VfMSIsImx1Y2lkZV9yZWFjdF8xIiwiZiIsImpzeF9ydW50aW1lXzEiLCJqc3hzIiwiY2xhc3NOYW1lIiwiY2hpbGRyZW4iLCJqc3giLCJIZWFkZXIiLCJ0aXRsZSIsInN1YnRpdGxlIiwiVGVybWluYWwiLCJTaGllbGQiLCJMYXcyNUNvbXBsaWFuY2UiXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL2NsaWVudC9zcmMvcGFnZXMvYWRtaW4vY29tcGxpYW5jZS50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgSGVhZGVyIH0gZnJvbSAnQC9jb21wb25lbnRzL2xheW91dC9oZWFkZXInO1xuaW1wb3J0IHsgTGF3MjVDb21wbGlhbmNlIH0gZnJvbSAnQC9jb21wb25lbnRzL2Rhc2hib2FyZC9sYXcyNS1jb21wbGlhbmNlJztcbmltcG9ydCB7IFRlcm1pbmFsLCBTaGllbGQgfSBmcm9tICdsdWNpZGUtcmVhY3QnO1xuXG4vKipcbiAqIFF1ZWJlYyBMYXcgMjUgY29tcGxpYW5jZSBkYXNoYm9hcmQgcGFnZSBmb3IgYWRtaW5pc3RyYXRvcnMuXG4gKiBQcm92aWRlcyBjb21wcmVoZW5zaXZlIG92ZXJ2aWV3IG9mIHByaXZhY3kgY29tcGxpYW5jZSBzdGF0dXMgYW5kIHZpb2xhdGlvbnMuXG4gKi9cbmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIENvbXBsaWFuY2UoKSB7XG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9J2ZsZXgtMSBmbGV4IGZsZXgtY29sIG92ZXJmbG93LWhpZGRlbic+XG4gICAgICA8SGVhZGVyXG4gICAgICAgIHRpdGxlPSdRdWViZWMgTGF3IDI1IENvbXBsaWFuY2UnXG4gICAgICAgIHN1YnRpdGxlPSdQcml2YWN5IGNvbXBsaWFuY2UgbW9uaXRvcmluZyBhbmQgdmlvbGF0aW9uIHRyYWNraW5nJ1xuICAgICAgLz5cblxuICAgICAgey8qIFJlZnJlc2ggQ29tbWFuZCAqL31cbiAgICAgIDxkaXYgY2xhc3NOYW1lPSdib3JkZXItYiBiZy1ibHVlLTUwIHB4LTYgcHktMyc+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPSdtYXgtdy03eGwgbXgtYXV0byc+XG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9J2ZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHRleHQtc20gdGV4dC1ibHVlLTcwMCc+XG4gICAgICAgICAgICA8VGVybWluYWwgY2xhc3NOYW1lPSdoLTQgdy00JyAvPlxuICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSdmb250LW1lZGl1bSc+U2NhbiBDb21tYW5kOjwvc3Bhbj5cbiAgICAgICAgICAgIDxjb2RlIGNsYXNzTmFtZT0nYmctYmx1ZS0xMDAgcHgtMiBweS0xIHJvdW5kZWQgdGV4dC14cyBmb250LW1vbm8nPlxuICAgICAgICAgICAgICBucG0gcnVuIHF1YWxpdHk6Y2hlY2tcbiAgICAgICAgICAgIDwvY29kZT5cbiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0ndGV4dC1ibHVlLTYwMCBtbC00Jz7igKI8L3NwYW4+XG4gICAgICAgICAgICA8U2hpZWxkIGNsYXNzTmFtZT0naC00IHctNCcgLz5cbiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0nZm9udC1tZWRpdW0nPlNlbWdyZXAgQ0xJOjwvc3Bhbj5cbiAgICAgICAgICAgIDxjb2RlIGNsYXNzTmFtZT0nYmctYmx1ZS0xMDAgcHgtMiBweS0xIHJvdW5kZWQgdGV4dC14cyBmb250LW1vbm8nPlxuICAgICAgICAgICAgICBucHggc2VtZ3JlcCAtLWNvbmZpZz0uc2VtZ3JlcC55bWwgLlxuICAgICAgICAgICAgPC9jb2RlPlxuICAgICAgICAgIDwvZGl2PlxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuXG4gICAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleC0xIG92ZXJmbG93LWF1dG8gcC02Jz5cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9J21heC13LTd4bCBteC1hdXRvIHNwYWNlLXktOCc+XG4gICAgICAgICAgPExhdzI1Q29tcGxpYW5jZSAvPlxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuICAgIDwvZGl2PlxuICApO1xufVxuIl0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFRQUEsT0FBQSxDQUFBQyxPQUFBLEdBQUFDLFVBQUE7Ozs7QUFSQSxNQUFBQyxRQUFBO0FBQUE7QUFBQSxDQUFBQyxhQUFBLEdBQUFDLENBQUEsT0FBQUMsT0FBQTtBQUNBLE1BQUFDLGtCQUFBO0FBQUE7QUFBQSxDQUFBSCxhQUFBLEdBQUFDLENBQUEsT0FBQUMsT0FBQTtBQUNBLE1BQUFFLGNBQUE7QUFBQTtBQUFBLENBQUFKLGFBQUEsR0FBQUMsQ0FBQSxPQUFBQyxPQUFBO0FBRUE7Ozs7QUFJQSxTQUF3QkosVUFBVUEsQ0FBQTtFQUFBO0VBQUFFLGFBQUEsR0FBQUssQ0FBQTtFQUFBTCxhQUFBLEdBQUFDLENBQUE7RUFDaEMsT0FDRSxJQUFBSyxhQUFBLENBQUFDLElBQUE7SUFBS0MsU0FBUyxFQUFDLHNDQUFzQztJQUFBQyxRQUFBLEdBQ25ELElBQUFILGFBQUEsQ0FBQUksR0FBQSxFQUFDWCxRQUFBLENBQUFZLE1BQU07TUFDTEMsS0FBSyxFQUFDLDBCQUEwQjtNQUNoQ0MsUUFBUSxFQUFDO0lBQXNELEVBQy9ELEVBR0YsSUFBQVAsYUFBQSxDQUFBSSxHQUFBO01BQUtGLFNBQVMsRUFBQywrQkFBK0I7TUFBQUMsUUFBQSxFQUM1QyxJQUFBSCxhQUFBLENBQUFJLEdBQUE7UUFBS0YsU0FBUyxFQUFDLG1CQUFtQjtRQUFBQyxRQUFBLEVBQ2hDLElBQUFILGFBQUEsQ0FBQUMsSUFBQTtVQUFLQyxTQUFTLEVBQUMsK0NBQStDO1VBQUFDLFFBQUEsR0FDNUQsSUFBQUgsYUFBQSxDQUFBSSxHQUFBLEVBQUNOLGNBQUEsQ0FBQVUsUUFBUTtZQUFDTixTQUFTLEVBQUM7VUFBUyxFQUFHLEVBQ2hDLElBQUFGLGFBQUEsQ0FBQUksR0FBQTtZQUFNRixTQUFTLEVBQUMsYUFBYTtZQUFBQyxRQUFBO1VBQUEsRUFBcUIsRUFDbEQsSUFBQUgsYUFBQSxDQUFBSSxHQUFBO1lBQU1GLFNBQVMsRUFBQyxpREFBaUQ7WUFBQUMsUUFBQTtVQUFBLEVBRTFELEVBQ1AsSUFBQUgsYUFBQSxDQUFBSSxHQUFBO1lBQU1GLFNBQVMsRUFBQyxvQkFBb0I7WUFBQUMsUUFBQTtVQUFBLEVBQVMsRUFDN0MsSUFBQUgsYUFBQSxDQUFBSSxHQUFBLEVBQUNOLGNBQUEsQ0FBQVcsTUFBTTtZQUFDUCxTQUFTLEVBQUM7VUFBUyxFQUFHLEVBQzlCLElBQUFGLGFBQUEsQ0FBQUksR0FBQTtZQUFNRixTQUFTLEVBQUMsYUFBYTtZQUFBQyxRQUFBO1VBQUEsRUFBb0IsRUFDakQsSUFBQUgsYUFBQSxDQUFBSSxHQUFBO1lBQU1GLFNBQVMsRUFBQyxpREFBaUQ7WUFBQUMsUUFBQTtVQUFBLEVBRTFEO1FBQUE7TUFDSDtJQUNGLEVBQ0YsRUFFTixJQUFBSCxhQUFBLENBQUFJLEdBQUE7TUFBS0YsU0FBUyxFQUFDLDBCQUEwQjtNQUFBQyxRQUFBLEVBQ3ZDLElBQUFILGFBQUEsQ0FBQUksR0FBQTtRQUFLRixTQUFTLEVBQUMsNkJBQTZCO1FBQUFDLFFBQUEsRUFDMUMsSUFBQUgsYUFBQSxDQUFBSSxHQUFBLEVBQUNQLGtCQUFBLENBQUFhLGVBQWU7TUFBRztJQUNmLEVBQ0Y7RUFBQSxFQUNGO0FBRVYiLCJpZ25vcmVMaXN0IjpbXX0=

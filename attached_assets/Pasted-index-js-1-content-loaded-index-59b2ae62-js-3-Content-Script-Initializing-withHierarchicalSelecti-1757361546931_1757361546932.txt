@@ -1,0 +1,45 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current location: /manager/buildings
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Search params: organization=da67894c-fbbe-4f0f-b686-ee1d1cb13891
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] URL params: {organizationId: 'da67894c-fbbe-4f0f-b686-ee1d1cb13891', buildingId: null, residenceId: null, hierarchy: Array(1)}
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current level: complete
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Should show wrapped component: true
+withHierarchicalSelection-BDJ2MuZp.js:1 📍 [HIERARCHY DEBUG] Location changed: /manager/buildings
+withHierarchicalSelection-BDJ2MuZp.js:1 📍 [HIERARCHY DEBUG] Search changed: organization=da67894c-fbbe-4f0f-b686-ee1d1cb13891
+withHierarchicalSelection-BDJ2MuZp.js:1 ⚡ [HIERARCHY DEBUG] Auto-forward check: {currentLevel: 'complete', organizationsCount: 0, buildingsCount: 0, residencesCount: 0, organizationId: 'da67894c-fbbe-4f0f-b686-ee1d1cb13891', …}
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current location: /manager/buildings
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Search params: 
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] URL params: {organizationId: null, buildingId: null, residenceId: null, hierarchy: Array(1)}
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current level: organization
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Should show wrapped component: false
+withHierarchicalSelection-BDJ2MuZp.js:1 📍 [HIERARCHY DEBUG] Location changed: /manager/buildings
+withHierarchicalSelection-BDJ2MuZp.js:1 📍 [HIERARCHY DEBUG] Search changed: 
+withHierarchicalSelection-BDJ2MuZp.js:1 ⚡ [HIERARCHY DEBUG] Auto-forward check: {currentLevel: 'organization', organizationsCount: 0, buildingsCount: 0, residencesCount: 0, organizationId: null, …}
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current location: /manager/buildings
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Search params: 
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] URL params: {organizationId: null, buildingId: null, residenceId: null, hierarchy: Array(1)}
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current level: organization
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Should show wrapped component: false
+withHierarchicalSelection-BDJ2MuZp.js:1 ⚡ [HIERARCHY DEBUG] Auto-forward check: {currentLevel: 'organization', organizationsCount: 3, buildingsCount: 0, residencesCount: 0, organizationId: null, …}
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current location: /manager/buildings
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Search params: 
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] URL params: {organizationId: null, buildingId: null, residenceId: null, hierarchy: Array(1)}
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current level: organization
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Should show wrapped component: false
+withHierarchicalSelection-BDJ2MuZp.js:1 ⚡ [HIERARCHY DEBUG] Auto-forward check: {currentLevel: 'organization', organizationsCount: 3, buildingsCount: 0, residencesCount: 0, organizationId: null, …}
+withHierarchicalSelection-BDJ2MuZp.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', itemName: 'Demo 123'}
+withHierarchicalSelection-BDJ2MuZp.js:1 ✅ [HIERARCHY DEBUG] handleSelection called: {id: 'e9bb7862-4ba5-4822-848f-f3692e826e73', currentLevel: 'organization'}
+withHierarchicalSelection-BDJ2MuZp.js:1 ✅ [HIERARCHY DEBUG] Selecting organization: e9bb7862-4ba5-4822-848f-f3692e826e73
+withHierarchicalSelection-BDJ2MuZp.js:1 🚀 [HIERARCHY DEBUG] Navigate called with updates: {organization: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+withHierarchicalSelection-BDJ2MuZp.js:1 🚀 [HIERARCHY DEBUG] Current searchParams: 
+withHierarchicalSelection-BDJ2MuZp.js:1 🚀 [HIERARCHY DEBUG] Navigating from: /manager/buildings
+withHierarchicalSelection-BDJ2MuZp.js:1 🚀 [HIERARCHY DEBUG] Navigating to: /manager/buildings?organization=e9bb7862-4ba5-4822-848f-f3692e826e73
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current location: /manager/buildings
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Search params: organization=e9bb7862-4ba5-4822-848f-f3692e826e73
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] URL params: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: null, residenceId: null, hierarchy: Array(1)}
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Current level: complete
+withHierarchicalSelection-BDJ2MuZp.js:1 🔍 [HIERARCHY DEBUG] Should show wrapped component: true
+withHierarchicalSelection-BDJ2MuZp.js:1 📍 [HIERARCHY DEBUG] Location changed: /manager/buildings
+withHierarchicalSelection-BDJ2MuZp.js:1 📍 [HIERARCHY DEBUG] Search changed: organization=e9bb7862-4ba5-4822-848f-f3692e826e73
+withHierarchicalSelection-BDJ2MuZp.js:1 ⚡ [HIERARCHY DEBUG] Auto-forward check: {currentLevel: 'complete', organizationsCount: 3, buildingsCount: 0, residencesCount: 0, organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', …}

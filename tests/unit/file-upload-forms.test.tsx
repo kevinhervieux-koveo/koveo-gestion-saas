@@ -24,6 +24,13 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+// Import components for testing
+import BugReports from '../../client/src/pages/settings/bug-reports';
+import IdeaBox from '../../client/src/pages/settings/idea-box';
+import DemandDetailsPopup from '../../client/src/components/demands/demand-details-popup';
+import ModularBillForm from '../../client/src/components/bill-management/ModularBillForm';
+import ModularBuildingDocuments from '../../client/src/pages/manager/ModularBuildingDocuments';
+
 // Test utilities - using shared test-utils wrapper
 
 // Mock API request function
@@ -292,7 +299,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/maximum.*size/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -475,13 +482,7 @@ describe('File Upload Forms Test Suite', () => {
     it('should validate document file types', async () => {
       render(
         <>
-          <DocumentManager 
-            config={{
-              type: 'building',
-              entityId: 'building-123',
-              userRole: 'manager'
-            }} 
-          />
+          <ModularBuildingDocuments />
         </>
       );
 
@@ -510,7 +511,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/unsupported.*format/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -534,6 +535,8 @@ describe('File Upload Forms Test Suite', () => {
         isOpen: true,
         onClose: jest.fn(),
         onSubmit: jest.fn(),
+        onSuccess: jest.fn(),
+        buildingId: 'building-123',
         buildings: [],
         residences: []
       };
@@ -605,7 +608,7 @@ describe('File Upload Forms Test Suite', () => {
 
       render(
         <>
-          <BillForm {...mockProps} />
+          <ModularBillForm mode="create" onCancel={mockProps.onClose} onSuccess={jest.fn()} buildingId="building-123" />
         </>
       );
 
@@ -632,7 +635,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/only.*pdf.*jpg.*png/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -893,7 +896,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/maximum.*file.*size/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -940,7 +943,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/file.*limit.*exceeded/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -979,7 +982,7 @@ describe('File Upload Forms Test Suite', () => {
                                 screen.queryByText(/only.*images.*pdf.*documents/i);
             
             if (errorMessage) {
-              expect(errorMessage).toBeInTheDocument();
+              expect(errorMessage).toBeTruthy();
             }
           });
         }
@@ -1025,7 +1028,7 @@ describe('File Upload Forms Test Suite', () => {
                               screen.queryByTestId('file-preview-0');
             
             if (pastedFile) {
-              expect(pastedFile).toBeInTheDocument();
+              expect(pastedFile).toBeTruthy();
             }
           });
         }
@@ -1081,7 +1084,7 @@ describe('File Upload Forms Test Suite', () => {
                                     screen.queryByText(/failed.*attach/i);
                 
                 if (errorMessage) {
-                  expect(errorMessage).toBeInTheDocument();
+                  expect(errorMessage).toBeTruthy();
                 }
               });
             }
@@ -1187,7 +1190,7 @@ describe('File Upload Forms Test Suite', () => {
                           screen.queryByText(/view/i);
         
         if (viewButton) {
-          expect(viewButton).toBeInTheDocument();
+          expect(viewButton).toBeTruthy();
         }
       });
 
@@ -1236,7 +1239,7 @@ describe('File Upload Forms Test Suite', () => {
       // Should NOT show file attachment section
       await waitFor(() => {
         const attachmentSection = screen.queryByText(/file attachment/i);
-        expect(attachmentSection).not.toBeInTheDocument();
+        expect(attachmentSection).toBeNull();
       });
     });
   });
@@ -1351,7 +1354,7 @@ describe('File Upload Forms Test Suite', () => {
       // Mock XMLHttpRequest for progress tracking
       const mockXHR = {
         upload: {
-          addEventListener: jest.fn((event, callback) => {
+          addEventListener: jest.fn((event: string, callback: (progress: { loaded: number; total: number }) => void) => {
             if (event === 'progress') {
               // Simulate progress updates
               // Use immediate callbacks instead of setTimeout to prevent hanging

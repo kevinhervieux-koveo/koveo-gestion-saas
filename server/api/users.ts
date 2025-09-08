@@ -8,7 +8,7 @@ import * as bcrypt from 'bcryptjs';
 // Database-based permissions - no config imports needed
 import { db } from '../db';
 import * as schema from '../../shared/schema';
-import { eq, and, inArray, sql, lt } from 'drizzle-orm';
+import { eq, and, inArray, sql, lt, count } from 'drizzle-orm';
 import {
   sanitizeString,
   sanitizeName,
@@ -1221,6 +1221,115 @@ export function registerUserRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user residences',
+      });
+    }
+  });
+
+  /**
+   * GET /api/users/me/buildings - Get current user's accessible buildings based on their residences.
+   */
+  app.get('/api/users/me/buildings', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+
+      // For residents and tenants, get buildings through their residences  
+      if (req.user.role === 'resident' || req.user.role === 'tenant' || 
+          req.user.role === 'demo_resident' || req.user.role === 'demo_tenant') {
+        
+        // Get user's residences with building information using Drizzle
+        const userResidences = await db
+          .select({
+            residenceId: schema.userResidences.residenceId,
+            buildingId: schema.residences.buildingId,
+          })
+          .from(schema.userResidences)
+          .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+          .where(and(
+            eq(schema.userResidences.userId, userId),
+            eq(schema.userResidences.isActive, true),
+            eq(schema.residences.isActive, true)
+          ));
+        
+        if (!userResidences || userResidences.length === 0) {
+          return res.json([]);
+        }
+
+        // Get unique building IDs from user's residences
+        const buildingIds = [...new Set(userResidences.map(ur => ur.buildingId).filter(Boolean))];
+        
+        if (buildingIds.length === 0) {
+          return res.json([]);
+        }
+
+        // Fetch building details
+        const buildingDetails = await db
+          .select({
+            id: schema.buildings.id,
+            name: schema.buildings.name,
+            address: schema.buildings.address,
+            city: schema.buildings.city,
+            state: schema.buildings.province, // Map province to state for consistency
+            postal_code: schema.buildings.postalCode,
+            organization_id: schema.buildings.organizationId,
+          })
+          .from(schema.buildings)
+          .where(and(
+            inArray(schema.buildings.id, buildingIds),
+            eq(schema.buildings.isActive, true)
+          ))
+          .orderBy(schema.buildings.name);
+
+        return res.json(buildingDetails);
+      }
+
+      // For managers and admins, get all buildings they manage/admin
+      const userOrgs = await db
+        .select({ organizationId: schema.userOrganizations.organizationId })
+        .from(schema.userOrganizations)
+        .where(eq(schema.userOrganizations.userId, userId));
+
+      const orgIds = userOrgs.map(org => org.organizationId);
+
+      if (orgIds.length === 0) {
+        return res.json([]);
+      }
+
+      const buildingDetails = await db
+        .select({
+          id: schema.buildings.id,
+          name: schema.buildings.name,
+          address: schema.buildings.address,
+          city: schema.buildings.city,
+          state: schema.buildings.province,
+          postal_code: schema.buildings.postalCode,
+          organization_id: schema.buildings.organizationId,
+          residence_count: count(schema.residences.id),
+        })
+        .from(schema.buildings)
+        .leftJoin(schema.residences, eq(schema.buildings.id, schema.residences.buildingId))
+        .where(and(
+          inArray(schema.buildings.organizationId, orgIds),
+          eq(schema.buildings.isActive, true)
+        ))
+        .groupBy(
+          schema.buildings.id,
+          schema.buildings.name,
+          schema.buildings.address,
+          schema.buildings.city,
+          schema.buildings.province,
+          schema.buildings.postalCode,
+          schema.buildings.organizationId
+        )
+        .orderBy(schema.buildings.name);
+
+      res.json(buildingDetails);
+
+    } catch (error) {
+      console.error('Error fetching user buildings:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch user buildings',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   });

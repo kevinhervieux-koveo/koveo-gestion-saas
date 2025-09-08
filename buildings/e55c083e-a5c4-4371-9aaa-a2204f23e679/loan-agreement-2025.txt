@@ -1,0 +1,33 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+
+===============================================================
+
+BUILDING LOAN AGREEMENT
+
+Building: Demo Condo
+Property ID: e55c083e-a5c4-4371-9aaa-a2204f23e679
+Document Type: Financial Agreement
+
+Loan Details:
+- Loan Amount: $633107
+- Interest Rate: 4.4%
+- Loan Term: 22 years
+- Monthly Payment: $3866
+
+Lender: Demo Bank Financial Services
+Borrower: Demo Condo Building Corporation
+Loan Date: 11/06/2024
+
+This loan agreement covers the financing for building operations,
+capital improvements, and maintenance reserves.
+
+Financial Terms:
+- Fixed rate mortgage
+- No prepayment penalties
+- Annual financial reporting required
+
+Lender Representative: ____________________
+Borrower Representative: ____________________

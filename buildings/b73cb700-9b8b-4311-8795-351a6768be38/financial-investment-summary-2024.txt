@@ -1,0 +1,34 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+
+===============================================================
+
+INVESTMENT PORTFOLIO SUMMARY
+
+Building: test
+Portfolio Manager: Desjardins Asset Management
+Review Period: Q4 2024
+
+RESERVE FUND INVESTMENTS:
+Total Portfolio Value: $150,000
+
+Asset Allocation:
+- Government Bonds (60%): $90,000
+- Corporate Bonds (25%): $37,500  
+- Money Market (15%): $22,500
+
+Performance Summary:
+- Annual Return: 4.2%
+- Benchmark: 4.0%
+- Total Gain: $6,300
+
+Investment Objectives:
+- Capital Preservation: Primary
+- Liquidity Requirements: 6-month expenses
+- Risk Tolerance: Conservative
+
+Next Review: April 2025
+Portfolio Manager: Alexandre Dubois
+Contact: (514) 555-0234

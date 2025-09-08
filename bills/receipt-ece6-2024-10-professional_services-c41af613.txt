@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: ECE6-2024-10-PROFESSIONAL_SERVICES
+Title: Professional_services  - Dibbert, Zemlak and MacGyver
+Vendor: Crona - Smith
+Category: Professional_services
+Total Amount: $537.97
+Description: Monthly professional_services service for January 2024
+
+Payment Amount: $537.97
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-UCNOVPXK
+
+This payment has been processed successfully.
+Building Management Office

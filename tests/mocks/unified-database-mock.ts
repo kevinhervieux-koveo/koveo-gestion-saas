@@ -41,7 +41,7 @@ const createQueryBuilder = (defaultResult: any = []) => {
   });
   
   // Make the builder thenable (promise-like)
-  builder.then = jest.fn().mockImplementation((resolve) => {
+  builder.then = jest.fn().mockImplementation((resolve: any) => {
     let result = defaultResult;
     
     // If this is an insert operation with data, return mock records
@@ -69,10 +69,133 @@ const createQueryBuilder = (defaultResult: any = []) => {
     return Promise.resolve(result).then(resolve);
   });
   
-  builder.catch = jest.fn().mockImplementation((reject) => {
+  builder.catch = jest.fn().mockImplementation((reject: any) => {
     return Promise.resolve(defaultResult).catch(reject);
   });
   
-  builder.finally = jest.fn().mockImplementation((finallyFn) => {
+  builder.finally = jest.fn().mockImplementation((finallyFn: any) => {
     return Promise.resolve(defaultResult).finally(finallyFn);
-  });\n\n  return builder;\n};\n\n// Main mock database object\nexport const mockDb = {\n  // Core database operations\n  query: jest.fn().mockImplementation(async (sql: string) => {\n    if (sql.includes('SELECT version()')) {\n      return [{ version: 'PostgreSQL 15.0 (Mock)' }];\n    }\n    return [];\n  }),\n  \n  // Insert operations\n  insert: jest.fn().mockImplementation((table: any) => {\n    return createQueryBuilder([{ id: generateMockId() }]);\n  }),\n  \n  // Select operations\n  select: jest.fn().mockImplementation((fields?: any) => {\n    return createQueryBuilder([]);\n  }),\n  \n  // Update operations\n  update: jest.fn().mockImplementation((table: any) => {\n    return createQueryBuilder({ affectedRows: 1 });\n  }),\n  \n  // Delete operations\n  delete: jest.fn().mockImplementation((table: any) => {\n    return createQueryBuilder({ affectedRows: 1 });\n  }),\n  \n  // Transaction support\n  transaction: jest.fn().mockImplementation(async (callback) => {\n    return await callback(mockDb);\n  }),\n  \n  // Batch operations\n  batch: jest.fn().mockImplementation(async (queries) => {\n    return queries.map(() => ({ affectedRows: 1 }));\n  }),\n  \n  // With clause support\n  $with: jest.fn().mockImplementation(() => createQueryBuilder([])),\n  \n  // Raw SQL support\n  execute: jest.fn().mockImplementation(async () => ({ rows: [] })),\n  \n  // Connection management (for integration tests)\n  end: jest.fn().mockResolvedValue(undefined),\n  connect: jest.fn().mockResolvedValue(undefined)\n};\n\n// Mock schema tables for type safety\nconst createMockTable = (tableName: string) => ({\n  _: {\n    name: tableName,\n    schema: undefined,\n    columns: {},\n    baseName: tableName\n  },\n  // Common column mocks\n  id: { name: 'id' },\n  email: { name: 'email' },\n  name: { name: 'name' },\n  role: { name: 'role' },\n  userId: { name: 'userId' },\n  organizationId: { name: 'organizationId' },\n  buildingId: { name: 'buildingId' },\n  residenceId: { name: 'residenceId' },\n  status: { name: 'status' },\n  createdAt: { name: 'createdAt' },\n  updatedAt: { name: 'updatedAt' }\n});\n\n// Export mock schema for tests to import\nexport const mockSchema = {\n  // Core tables\n  users: createMockTable('users'),\n  organizations: createMockTable('organizations'),\n  userOrganizations: createMockTable('userOrganizations'),\n  invitations: createMockTable('invitations'),\n  passwordResetTokens: createMockTable('passwordResetTokens'),\n  \n  // Property tables  \n  buildings: createMockTable('buildings'),\n  residences: createMockTable('residences'),\n  userResidences: createMockTable('userResidences'),\n  \n  // Document tables\n  documents: createMockTable('documents'),\n  \n  // Financial tables\n  bills: createMockTable('bills'),\n  budgets: createMockTable('budgets'),\n  monthlyBudgets: createMockTable('monthlyBudgets'),\n  \n  // Operations tables\n  maintenanceRequests: createMockTable('maintenanceRequests'),\n  commonSpaces: createMockTable('commonSpaces'),\n  \n  // System tables\n  permissions: createMockTable('permissions'),\n  userPermissions: createMockTable('userPermissions'),\n  rolePermissions: createMockTable('rolePermissions'),\n  demands: createMockTable('demands')\n};\n\n// Export test utilities\nexport const testUtils = {\n  clearMockData,\n  generateMockId,\n  getMockData: () => mockDataStore,\n  resetMocks: () => {\n    clearMockData();\n    jest.clearAllMocks();\n  }\n};\n\n// Default export for convenience\nexport default mockDb;\n
+  });
+
+  return builder;
+};
+
+// Main mock database object
+export const mockDb = {
+  // Core database operations
+  query: jest.fn().mockImplementation(async (sql: string) => {
+    if (sql.includes('SELECT version()')) {
+      return [{ version: 'PostgreSQL 15.0 (Mock)' }];
+    }
+    return [];
+  }),
+  
+  // Insert operations
+  insert: jest.fn().mockImplementation((table: any) => {
+    return createQueryBuilder([{ id: generateMockId() }]);
+  }),
+  
+  // Select operations
+  select: jest.fn().mockImplementation((fields?: any) => {
+    return createQueryBuilder([]);
+  }),
+  
+  // Update operations
+  update: jest.fn().mockImplementation((table: any) => {
+    return createQueryBuilder({ affectedRows: 1 });
+  }),
+  
+  // Delete operations
+  delete: jest.fn().mockImplementation((table: any) => {
+    return createQueryBuilder({ affectedRows: 1 });
+  }),
+  
+  // Transaction support
+  transaction: jest.fn().mockImplementation(async (callback) => {
+    return await callback(mockDb);
+  }),
+  
+  // Batch operations
+  batch: jest.fn().mockImplementation(async (queries) => {
+    return queries.map(() => ({ affectedRows: 1 }));
+  }),
+  
+  // With clause support
+  $with: jest.fn().mockImplementation(() => createQueryBuilder([])),
+  
+  // Raw SQL support
+  execute: jest.fn().mockImplementation(async () => ({ rows: [] })),
+  
+  // Connection management (for integration tests)
+  end: jest.fn().mockResolvedValue(undefined),
+  connect: jest.fn().mockResolvedValue(undefined)
+};
+
+// Mock schema tables for type safety
+const createMockTable = (tableName: string) => ({
+  _: {
+    name: tableName,
+    schema: undefined,
+    columns: {},
+    baseName: tableName
+  },
+  // Common column mocks
+  id: { name: 'id' },
+  email: { name: 'email' },
+  name: { name: 'name' },
+  role: { name: 'role' },
+  userId: { name: 'userId' },
+  organizationId: { name: 'organizationId' },
+  buildingId: { name: 'buildingId' },
+  residenceId: { name: 'residenceId' },
+  status: { name: 'status' },
+  createdAt: { name: 'createdAt' },
+  updatedAt: { name: 'updatedAt' }
+});
+
+// Export mock schema for tests to import
+export const mockSchema = {
+  // Core tables
+  users: createMockTable('users'),
+  organizations: createMockTable('organizations'),
+  userOrganizations: createMockTable('userOrganizations'),
+  invitations: createMockTable('invitations'),
+  passwordResetTokens: createMockTable('passwordResetTokens'),
+  
+  // Property tables  
+  buildings: createMockTable('buildings'),
+  residences: createMockTable('residences'),
+  userResidences: createMockTable('userResidences'),
+  
+  // Document tables
+  documents: createMockTable('documents'),
+  
+  // Financial tables
+  bills: createMockTable('bills'),
+  budgets: createMockTable('budgets'),
+  monthlyBudgets: createMockTable('monthlyBudgets'),
+  
+  // Operations tables
+  maintenanceRequests: createMockTable('maintenanceRequests'),
+  commonSpaces: createMockTable('commonSpaces'),
+  
+  // System tables
+  permissions: createMockTable('permissions'),
+  userPermissions: createMockTable('userPermissions'),
+  rolePermissions: createMockTable('rolePermissions'),
+  demands: createMockTable('demands')
+};
+
+// Export test utilities
+export const testUtils = {
+  clearMockData,
+  generateMockId,
+  getMockData: () => mockDataStore,
+  resetMocks: () => {
+    clearMockData();
+    jest.clearAllMocks();
+  }
+};
+
+// Default export for convenience
+export default mockDb;

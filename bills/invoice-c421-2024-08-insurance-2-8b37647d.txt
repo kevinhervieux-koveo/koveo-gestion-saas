@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+INVOICE DOCUMENT
+
+Bill Number: C421-2024-08-INSURANCE-2
+Title: Insurance (2) - Kunze and Sons
+Vendor: Abbott - Russel
+Category: Insurance
+Total Amount: $2294.07
+Description: Monthly insurance service for July 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 12/13/2025
+
+Service Details:
+- Depraedor canis tergiversatio tenax caries.
+- Copiose nulla basium terebro corroboro peccatus defungo coepi.
+
+Thank you for your business!
+Abbott - Russel

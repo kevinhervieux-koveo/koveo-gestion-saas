@@ -179,7 +179,7 @@ export function registerDocumentRoutes(app: Express): void {
   // Error tracking for production debugging
   const errorLog: Array<{timestamp: string, error: any, endpoint: string, user?: any}> = [];
   
-  // Security audit logging function
+  // Enhanced security audit logging function with debug levels
   const logSecurityEvent = (action: string, user: any, success: boolean, documentId?: string, details?: any) => {
     const event = {
       timestamp: new Date().toISOString(),
@@ -196,6 +196,27 @@ export function registerDocumentRoutes(app: Express): void {
     
     console.log(`[SECURITY AUDIT] ${action}:`, event);
     return event;
+  };
+
+  // Enhanced debug logging function for document operations
+  const logDocumentOperation = (operation: string, data: any, level: 'INFO' | 'ERROR' | 'DEBUG' | 'WARN' = 'INFO') => {
+    const timestamp = new Date().toISOString();
+    const logEntry = {
+      timestamp,
+      operation,
+      level,
+      data: typeof data === 'object' ? JSON.stringify(data, null, 2) : data
+    };
+    
+    const emoji = {
+      INFO: '📋',
+      ERROR: '❌', 
+      DEBUG: '🔍',
+      WARN: '⚠️'
+    }[level];
+    
+    console.log(`[${timestamp}] ${emoji} [DOCUMENT ${operation.toUpperCase()}] ${level}:`, data);
+    return logEntry;
   };
 
   // Database connection testing functions
@@ -986,50 +1007,83 @@ export function registerDocumentRoutes(app: Express): void {
   // Get all documents for the authenticated user
   app.get('/api/documents', requireAuth, async (req: any, res) => {
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] 📄 GET /api/documents - Starting request`, {
+    logDocumentOperation('LIST_REQUEST', {
       userId: req.user?.id,
       userRole: req.user?.role,
       query: req.query,
       url: req.url,
-      method: req.method
-    });
+      method: req.method,
+      headers: {
+        contentType: req.headers['content-type'],
+        userAgent: req.headers['user-agent'],
+        referer: req.headers.referer
+      }
+    }, 'INFO');
     
     try {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
       
-      // Production debugging: Log the request details
-      console.log(`[${timestamp}] 🔍 User data extracted:`, {
+      // Enhanced user data logging
+      logDocumentOperation('USER_VALIDATION', {
         userId,
         userRole,
-        hasValidUser: !!user
-      });
+        hasValidUser: !!user,
+        sessionInfo: {
+          sessionExists: !!req.session,
+          isAuthenticated: !!req.user
+        }
+      }, 'DEBUG');
       
-      // Critical: Check if storage object exists and is properly initialized
-      console.log(`[${timestamp}] 💾 Storage check:`, {
+      // Critical storage validation with enhanced debugging
+      logDocumentOperation('STORAGE_VALIDATION', {
         storageExists: !!storage,
         storageType: storage?.constructor?.name,
-        storageMethod: typeof storage?.getDocuments
-      });
+        storageMethod: typeof storage?.getDocuments,
+        databaseConnection: {
+          hasDb: !!db,
+          connectionString: process.env.DATABASE_URL?.substring(0, 30) + '...'
+        }
+      }, 'DEBUG');
       const documentType = req.query.type as string; // 'building', 'resident', or undefined for both
       const specificResidenceId = req.query.residenceId as string; // Filter by specific residence
       const specificBuildingId = req.query.buildingId as string; // Filter by specific building
+      const attachedToType = req.query.attachedToType as string; // Filter by attached entity type
+      const attachedToId = req.query.attachedToId as string; // Filter by attached entity ID
 
       // Get user's organization and residences for filtering
-      console.log(`[${timestamp}] 🔍 Fetching user data from storage...`);
+      logDocumentOperation('USER_DATA_FETCH_START', { userId }, 'DEBUG');
       
-      console.log(`[${timestamp}] 📋 Calling getUserOrganizations(${userId})...`);
+      logDocumentOperation('CALL_getUserOrganizations', { userId }, 'DEBUG');
+      const organizationsStart = performance.now();
       const organizations = await storage.getUserOrganizations(userId);
-      console.log(`[${timestamp}] ✅ getUserOrganizations SUCCESS - Found ${organizations.length} organizations`);
+      const organizationsTime = performance.now() - organizationsStart;
+      logDocumentOperation('getUserOrganizations_SUCCESS', {
+        count: organizations.length,
+        executionTime: `${organizationsTime.toFixed(2)}ms`,
+        organizations: organizations.map((org: any) => ({ id: org.organizationId, role: org.organizationRole }))
+      }, 'DEBUG');
       
-      console.log(`[${timestamp}] 📋 Calling getUserResidences(${userId})...`);
+      logDocumentOperation('CALL_getUserResidences', { userId }, 'DEBUG');
+      const residencesStart = performance.now();
       const userResidences = await storage.getUserResidences(userId);
-      console.log(`[${timestamp}] ✅ getUserResidences SUCCESS - Found ${userResidences.length} user residences`);
+      const residencesTime = performance.now() - residencesStart;
+      logDocumentOperation('getUserResidences_SUCCESS', {
+        count: userResidences.length,
+        executionTime: `${residencesTime.toFixed(2)}ms`,
+        residenceIds: userResidences.map((ur: any) => ur.residenceId).filter(Boolean)
+      }, 'DEBUG');
       
-      console.log(`[${timestamp}] 📋 Calling getBuildings()...`);
+      logDocumentOperation('CALL_getBuildings', {}, 'DEBUG');
+      const buildingsStart = performance.now();
       const buildings = await storage.getBuildings();
-      console.log(`[${timestamp}] ✅ getBuildings SUCCESS - Found ${buildings.length} buildings`);
+      const buildingsTime = performance.now() - buildingsStart;
+      logDocumentOperation('getBuildings_SUCCESS', {
+        count: buildings.length,
+        executionTime: `${buildingsTime.toFixed(2)}ms`,
+        buildingIds: buildings.map(b => b.id)
+      }, 'DEBUG');
 
       const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
       console.log(`[${timestamp}] 🏢 Organization ID determined:`, organizationId);
@@ -1102,10 +1156,20 @@ export function registerDocumentRoutes(app: Express): void {
       // Filter by specific building if provided
       if (specificBuildingId) {
         filters.buildingId = specificBuildingId;
-      } else if (documentType === 'building') {
+      }
+
+      // Filter by attached entity (e.g., bill attachments)
+      if (attachedToType) {
+        filters.attachedToType = attachedToType;
+      }
+      if (attachedToId) {
+        filters.attachedToId = attachedToId;
+      }
+
+      if (documentType === 'building') {
         // For building documents, search in buildings user has access to
         if (buildingIds.length > 0) {
-          // Get all documents for buildings, will filter later
+          // Get all documents for buildings, will filter later to show only building-level documents
         }
       } else if (documentType === 'resident') {
         // For resident documents, search in residences user has access to
@@ -1114,39 +1178,89 @@ export function registerDocumentRoutes(app: Express): void {
         }
       }
 
-      // CRITICAL DEBUG POINT: This is where 500 errors likely occur
-      console.log(`[${timestamp}] 🎯 CRITICAL: About to call storage.getDocuments with filters:`, filters);
-      console.log(`[${timestamp}] 🔧 Storage instance:`, storage.constructor.name);
-      console.log(`[${timestamp}] 📊 Filters being passed:`, JSON.stringify(filters, null, 2));
+      // CRITICAL: Enhanced document fetching with performance tracking
+      logDocumentOperation('STORAGE_getDocuments_CALL', {
+        filters,
+        storageInstance: storage.constructor.name,
+        filtersStringified: JSON.stringify(filters, null, 2)
+      }, 'DEBUG');
       
-      const documents = await storage.getDocuments(filters);
+      const documentsStart = performance.now();
+      let documents;
+      try {
+        documents = await storage.getDocuments(filters);
+        const documentsTime = performance.now() - documentsStart;
+        logDocumentOperation('STORAGE_getDocuments_SUCCESS', {
+          documentCount: documents?.length || 0,
+          executionTime: `${documentsTime.toFixed(2)}ms`,
+          filters: filters
+        }, 'DEBUG');
+      } catch (documentsError) {
+        const documentsTime = performance.now() - documentsStart;
+        logDocumentOperation('STORAGE_getDocuments_ERROR', {
+          error: documentsError.message,
+          stack: documentsError.stack?.substring(0, 200),
+          executionTime: `${documentsTime.toFixed(2)}ms`,
+          filters: filters
+        }, 'ERROR');
+        throw documentsError;
+      }
 
-      // CRITICAL: Log successful database response
-      console.log(`[${timestamp}] ✅ CRITICAL: storage.getDocuments SUCCESS - returned ${documents?.length || 0} documents`);
-      console.log(`[${timestamp}] 📋 Document preview:`, documents?.slice(0, 3)?.map(d => ({ 
-        id: d.id, 
-        name: d.name, 
-        uploadedById: d.uploadedById,
-        buildingId: d.buildingId,
-        residenceId: d.residenceId 
-      })));
+      // Enhanced document response logging
+      logDocumentOperation('DOCUMENTS_RESPONSE_ANALYSIS', {
+        totalDocuments: documents?.length || 0,
+        documentPreview: documents?.slice(0, 3)?.map(d => ({
+          id: d.id,
+          name: d.name,
+          documentType: d.documentType,
+          uploadedById: d.uploadedById,
+          buildingId: d.buildingId,
+          residenceId: d.residenceId,
+          filePath: d.filePath,
+          isVisibleToTenants: d.isVisibleToTenants,
+          createdAt: d.createdAt
+        })),
+        documentTypes: documents?.reduce((acc, doc) => {
+          acc[doc.documentType] = (acc[doc.documentType] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
+      }, 'DEBUG');
 
       // Debug logging
       console.log('🔍 [DOCUMENTS API DEBUG]:', {
         filters,
         documentsFound: documents?.length || 0,
         specificResidenceId,
+        attachedToType,
+        attachedToId,
         userRole,
         userId,
       });
 
       // Apply role-based filtering with tenant visibility rules
       const filteredDocumentRecords = documents.filter((doc) => {
+        // If filtering by attached entity, only show documents attached to that entity
+        if (attachedToType && attachedToId) {
+          if (doc.attachedToType !== attachedToType || doc.attachedToId !== attachedToId) {
+            return false;
+          }
+        }
+
         // If filtering by specific building, only show documents for that building
         if (specificBuildingId) {
           if (doc.buildingId !== specificBuildingId) {
             return false;
           }
+          
+          // When viewing Building Documents, only show building-level documents (not residence-level)
+          if (documentType === 'building' && doc.filePath && doc.filePath.includes('residences/')) {
+            return false;
+          }
+        }
+
+        // When viewing Building Documents (documentType === 'building'), filter out residence-level documents
+        if (documentType === 'building' && doc.filePath && doc.filePath.includes('residences/')) {
+          return false;
         }
 
         // Admin can see all documents
@@ -1154,8 +1268,8 @@ export function registerDocumentRoutes(app: Express): void {
           return true;
         }
 
-        // Manager can see all documents in their organization
-        if (userRole === 'manager' && organizationId) {
+        // Manager (including demo_manager) can see all documents in their organization
+        if ((userRole === 'manager' || userRole === 'demo_manager') && organizationId) {
           if (doc.buildingId && buildingIds.includes(doc.buildingId)) {
             return true;
           }
@@ -1164,8 +1278,8 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        // Resident access rules
-        if (userRole === 'resident') {
+        // Resident (including demo_resident) access rules
+        if (userRole === 'resident' || userRole === 'demo_resident') {
           // Residents can see documents in their residence
           if (doc.residenceId && residenceIds.includes(doc.residenceId)) {
             return true;
@@ -1180,8 +1294,8 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        // Tenant access rules - more restrictive
-        if (userRole === 'tenant') {
+        // Tenant (including demo_tenant) access rules - more restrictive
+        if (userRole === 'tenant' || userRole === 'demo_tenant') {
           // Tenants can only see documents marked as visible to tenants
           if (!doc.isVisibleToTenants) {
             return false;
@@ -1236,6 +1350,11 @@ export function registerDocumentRoutes(app: Express): void {
         documentsReturned: allDocumentRecords.length,
         filters: { documentType, specificResidenceId, specificBuildingId }
       });
+      
+      // Keep useful logging for bill documents
+      if (attachedToType === 'bill' && enhancedDocumentRecords.length > 0) {
+        console.log(`[${timestamp}] 📄 Bill documents found:`, enhancedDocumentRecords.length);
+      }
       
       res.json(response);
     } catch (_error: any) {
@@ -1338,8 +1457,15 @@ export function registerDocumentRoutes(app: Express): void {
 
   // Create a new document (supports both file upload and text-only documents)
   app.post('/api/documents', requireAuth, upload.single('file'), async (req: any, res) => {
-    console.log(`📄 [DOCUMENTS UPLOAD] Starting document upload/creation`);
-    console.log(`📄 [DOCUMENTS UPLOAD] User: ${req.user.id} (${req.user.role})`);
+    const operationId = crypto.randomUUID();
+    const startTime = performance.now();
+    
+    logDocumentOperation('UPLOAD_START', {
+      operationId,
+      userId: req.user.id,
+      userRole: req.user.role,
+      endpoint: 'POST /api/documents'
+    }, 'INFO');
     
     try {
       const user = req.user;
@@ -1347,19 +1473,29 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const { documentType, buildingId, residenceId, textContent, type, ...otherData } = req.body;
       
-      // Enhanced debug logging with context information
-      console.log(`📄 [DOCUMENTS UPLOAD] Request details:`, {
-        documentType,
-        type,
-        buildingId, 
-        residenceId,
-        hasFile: !!req.file,
-        hasTextContent: !!textContent,
-        otherDataKeys: Object.keys(otherData),
-        fileName: req.file?.originalname,
-        fileSize: req.file?.size,
-        mimeType: req.file?.mimetype
-      });
+      // Enhanced request analysis
+      logDocumentOperation('UPLOAD_REQUEST_ANALYSIS', {
+        operationId,
+        requestDetails: {
+          documentType,
+          type,
+          buildingId, 
+          residenceId,
+          hasFile: !!req.file,
+          hasTextContent: !!textContent,
+          textContentLength: textContent?.length,
+          otherDataKeys: Object.keys(otherData),
+          contentType: req.headers['content-type']
+        },
+        fileDetails: req.file ? {
+          originalname: req.file.originalname,
+          mimetype: req.file.mimetype,
+          size: req.file.size,
+          encoding: req.file.encoding,
+          fieldname: req.file.fieldname,
+          tempPath: req.file.path
+        } : null
+      }, 'DEBUG');
 
       if (req.file) {
         console.log(`📄 [DOCUMENTS UPLOAD] File details:`, {
@@ -1371,41 +1507,94 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
 
-      // Enhanced rate limiting check
-      console.log(`📄 [DOCUMENTS UPLOAD] Checking rate limit for user ${userId}`);
+      // Enhanced rate limiting with detailed tracking
+      logDocumentOperation('RATE_LIMIT_CHECK', {
+        operationId,
+        userId,
+        currentUploads: uploadRateTracker.get(userId)?.length || 0,
+        maxAllowed: SECURITY_CONFIG.MAX_FILES_PER_USER_PER_HOUR
+      }, 'DEBUG');
+      
       const rateLimitCheck = checkUploadRateLimit(userId);
       if (!rateLimitCheck.allowed) {
-        console.log(`❌ [DOCUMENTS UPLOAD] Rate limit exceeded for user ${userId}: ${rateLimitCheck.error}`);
-        logSecurityEvent('UPLOAD_RATE_LIMIT_EXCEEDED', user, false, undefined, { error: rateLimitCheck.error });
+        logDocumentOperation('RATE_LIMIT_EXCEEDED', {
+          operationId,
+          userId,
+          error: rateLimitCheck.error,
+          currentCount: uploadRateTracker.get(userId)?.length || 0
+        }, 'WARN');
+        logSecurityEvent('UPLOAD_RATE_LIMIT_EXCEEDED', user, false, undefined, { operationId, error: rateLimitCheck.error });
         return res.status(429).json({ message: rateLimitCheck.error });
       }
-      console.log(`✅ [DOCUMENTS UPLOAD] Rate limit check passed for user ${userId}`);
       
-      // Validate permissions - only admin, manager, and resident can create documents
-      console.log(`📄 [DOCUMENTS UPLOAD] Checking permissions for role: ${userRole}`);
+      logDocumentOperation('RATE_LIMIT_PASSED', {
+        operationId,
+        userId,
+        remainingUploads: SECURITY_CONFIG.MAX_FILES_PER_USER_PER_HOUR - (uploadRateTracker.get(userId)?.length || 0)
+      }, 'DEBUG');
+      
+      // Enhanced permission validation
+      logDocumentOperation('PERMISSION_CHECK', {
+        operationId,
+        userRole,
+        allowedRoles: ['admin', 'manager', 'resident'],
+        isAuthorized: ['admin', 'manager', 'resident'].includes(userRole)
+      }, 'DEBUG');
+      
       if (!['admin', 'manager', 'resident'].includes(userRole)) {
-        console.log(`❌ [DOCUMENTS UPLOAD] Insufficient permissions for role: ${userRole}`);
-        logSecurityEvent('UNAUTHORIZED_UPLOAD_ATTEMPT', user, false, undefined, { requiredRoles: ['admin', 'manager', 'resident'] });
+        logDocumentOperation('PERMISSION_DENIED', {
+          operationId,
+          userRole,
+          requiredRoles: ['admin', 'manager', 'resident'],
+          userId
+        }, 'WARN');
+        logSecurityEvent('UNAUTHORIZED_UPLOAD_ATTEMPT', user, false, undefined, { 
+          operationId, 
+          requiredRoles: ['admin', 'manager', 'resident'] 
+        });
         return res.status(403).json({ message: 'Insufficient permissions to create documents' });
       }
-      console.log(`✅ [DOCUMENTS UPLOAD] Permission check passed for role: ${userRole}`);
+      
+      logDocumentOperation('PERMISSION_GRANTED', {
+        operationId,
+        userRole,
+        userId
+      }, 'DEBUG');
 
-      // Check if this is a text-only document, file upload, or metadata-only document
+      // Enhanced document type classification
       const isTextDocumentRecord = !req.file && textContent;
       const isFileDocumentRecord = !!req.file;
       const isMetadataDocumentRecord = !req.file && !textContent && (otherData.title || otherData.name);
 
-      console.log(`📄 [DOCUMENTS UPLOAD] Document type determination:`, {
-        isTextDocument: isTextDocumentRecord,
-        isFileDocument: isFileDocumentRecord,
-        isMetadataDocument: isMetadataDocumentRecord,
-        hasTitle: !!otherData.title,
-        hasName: !!otherData.name,
-        hasTextContent: !!textContent
-      });
+      logDocumentOperation('DOCUMENT_TYPE_CLASSIFICATION', {
+        operationId,
+        classification: {
+          isTextDocument: isTextDocumentRecord,
+          isFileDocument: isFileDocumentRecord,
+          isMetadataDocument: isMetadataDocumentRecord
+        },
+        analysisDetails: {
+          hasFile: !!req.file,
+          hasTextContent: !!textContent,
+          textContentLength: textContent?.length,
+          hasTitle: !!otherData.title,
+          hasName: !!otherData.name,
+          fileSize: req.file?.size,
+          fileName: req.file?.originalname
+        }
+      }, 'DEBUG');
 
       if (!isTextDocumentRecord && !isFileDocumentRecord && !isMetadataDocumentRecord) {
-        console.log(`❌ [DOCUMENTS UPLOAD] Invalid document request - no file, text, or metadata provided`);
+        logDocumentOperation('INVALID_DOCUMENT_REQUEST', {
+          operationId,
+          reason: 'No file, text content, or metadata provided',
+          providedData: {
+            hasFile: !!req.file,
+            hasTextContent: !!textContent,
+            hasTitle: !!otherData.title,
+            hasName: !!otherData.name
+          }
+        }, 'ERROR');
         return res.status(400).json({ message: 'Either a file, text content, or document title/name is required' });
       }
 
@@ -1908,7 +2097,7 @@ export function registerDocumentRoutes(app: Express): void {
       const documentId = req.params.id;
 
       // Get existing document first to check permissions and get current file path
-      const existingDocument = await storage.getDocuments({ documentId }).then(docs => docs[0]);
+      const existingDocument = await storage.getDocuments().then(docs => docs.find(doc => doc.id === documentId));
       
       if (!existingDocument) {
         console.log(`❌ [DOCUMENT UPDATE] Document not found: ${documentId}`);
@@ -2472,7 +2661,8 @@ export function registerDocumentRoutes(app: Express): void {
   // Serve document files
   // Serve document files with proper role-based access control
   app.get('/api/documents/:id/file', requireAuth, async (req: any, res) => {
-    // File download request
+    const operationId = crypto.randomUUID();
+    const startTime = performance.now();
     
     try {
       const user = req.user;
@@ -2481,29 +2671,72 @@ export function registerDocumentRoutes(app: Express): void {
       const documentId = req.params.id;
       const isDownload = req.query.download === 'true';
 
-      // Processing download request
+      logDocumentOperation('FILE_SERVE_REQUEST', {
+        operationId,
+        documentId,
+        userId,
+        userRole,
+        isDownload,
+        requestInfo: {
+          url: req.url,
+          method: req.method,
+          userAgent: req.headers['user-agent'],
+          referer: req.headers.referer,
+          clientIP: req.ip || req.connection.remoteAddress
+        }
+      }, 'INFO');
 
-      // Get user's organization and residences for permission checking
+      // Enhanced permission data loading with timing
+      const permissionLoadStart = performance.now();
       const organizations = await storage.getUserOrganizations(userId);
       const residences = await storage.getUserResidences(userId);
       const buildings = await storage.getBuildings();
+      const permissionLoadTime = performance.now() - permissionLoadStart;
+      
+      logDocumentOperation('PERMISSION_DATA_LOADED', {
+        operationId,
+        loadTime: `${permissionLoadTime.toFixed(2)}ms`,
+        dataStats: {
+          organizationsCount: organizations.length,
+          residencesCount: residences.length,
+          buildingsCount: buildings.length
+        }
+      }, 'DEBUG');
 
-      // User permissions loaded
-
-      // Log access attempt for security auditing
+      // Enhanced security audit for file access
       logSecurityEvent('DOCUMENT_FILE_ACCESS_ATTEMPT', user, false, documentId, {
+        operationId,
         userRole,
         documentId,
-        isDownload
+        isDownload,
+        requestContext: {
+          timestamp: new Date().toISOString(),
+          clientIP: req.ip || req.connection.remoteAddress,
+          userAgent: req.headers['user-agent']
+        }
       });
 
-      // Find the document directly from database without filtering by user
+      // Enhanced document lookup with performance tracking
+      const documentLookupStart = performance.now();
       const allDocuments = await storage.getDocuments({});
       const document = allDocuments.find((doc) => doc.id === documentId);
+      const documentLookupTime = performance.now() - documentLookupStart;
+      
+      logDocumentOperation('DOCUMENT_LOOKUP', {
+        operationId,
+        documentId,
+        lookupTime: `${documentLookupTime.toFixed(2)}ms`,
+        totalDocumentsSearched: allDocuments.length,
+        documentFound: !!document
+      }, 'DEBUG');
 
       if (!document) {
-        // Document not found
-        logSecurityEvent('DOCUMENT_FILE_ACCESS_NOT_FOUND', user, false, documentId);
+        logDocumentOperation('DOCUMENT_NOT_FOUND', {
+          operationId,
+          documentId,
+          totalDocumentsInDatabase: allDocuments.length
+        }, 'WARN');
+        logSecurityEvent('DOCUMENT_FILE_ACCESS_NOT_FOUND', user, false, documentId, { operationId });
         return res.status(404).json({ message: 'Document not found' });
       }
 
@@ -2538,7 +2771,7 @@ export function registerDocumentRoutes(app: Express): void {
         hasAccess = true;
         accessReason = 'Admin has global access';
         // Admin access granted
-      } else if (userRole === 'manager') {
+      } else if (userRole === 'manager' || userRole === 'demo_manager') {
         // Checking manager permissions
         
         // Manager should have access to buildings they are assigned to
@@ -2575,7 +2808,7 @@ export function registerDocumentRoutes(app: Express): void {
             }
           }
         }
-      } else if (userRole === 'resident') {
+      } else if (userRole === 'resident' || userRole === 'demo_resident') {
         // Resident has access to building files they are assigned to
         if (document.buildingId && userBuildingIds.includes(document.buildingId)) {
           hasAccess = true;
@@ -2587,7 +2820,7 @@ export function registerDocumentRoutes(app: Express): void {
           hasAccess = true;
           accessReason = 'Resident has access to assigned residence documents';
         }
-      } else if (userRole === 'tenant') {
+      } else if (userRole === 'tenant' || userRole === 'demo_tenant') {
         // Tenants can only access documents marked as visible to tenants
         if (document.isVisibleToTenants) {
           // Tenant has access to building files they are assigned to and marked for tenant
@@ -2605,8 +2838,23 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       if (!hasAccess) {
-        // Access denied
+        logDocumentOperation('FILE_ACCESS_DENIED', {
+          operationId,
+          documentId,
+          userId,
+          userRole,
+          accessAnalysis: {
+            documentBuildingId: document.buildingId,
+            documentResidenceId: document.residenceId,
+            userBuildingIds,
+            userResidenceIds,
+            isVisibleToTenants: document.isVisibleToTenants,
+            documentType: document.documentType
+          }
+        }, 'WARN');
+        
         logSecurityEvent('DOCUMENT_FILE_ACCESS_DENIED', user, false, documentId, {
+          operationId,
           userRole,
           documentBuildingId: document.buildingId,
           documentResidenceId: document.residenceId,
@@ -2617,10 +2865,23 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      // Access granted
+      logDocumentOperation('FILE_ACCESS_GRANTED', {
+        operationId,
+        documentId,
+        userId,
+        userRole,
+        accessReason,
+        documentInfo: {
+          name: document.name,
+          documentType: document.documentType,
+          filePath: document.filePath,
+          buildingId: document.buildingId,
+          residenceId: document.residenceId
+        }
+      }, 'INFO');
 
-      // Log successful access
       logSecurityEvent('DOCUMENT_FILE_ACCESS_GRANTED', user, true, documentId, {
+        operationId,
         accessReason,
         userRole,
         documentType: document.documentType
@@ -2645,13 +2906,15 @@ export function registerDocumentRoutes(app: Express): void {
             document.filePath.includes('residences/') ||
             document.filePath.includes('buildings/') ||
             document.filePath.includes('text-documents/') ||
-            document.filePath.includes('general/')
+            document.filePath.includes('general/') ||
+            document.filePath.includes('bills/')
           ) {
             // Checking common file locations
             
             // For development, try to find the file in common upload directories
             const possiblePaths = [
-              path.join(process.cwd(), 'uploads', document.filePath), // Main fallback location
+              path.join(process.cwd(), document.filePath), // Direct path (PRIORITY - user directory structure)
+              path.join(process.cwd(), 'uploads', document.filePath), // Fallback location
               `/tmp/uploads/${document.filePath}`,
               `/uploads/${document.filePath}`,
               `./uploads/${document.filePath}`,
@@ -2734,13 +2997,37 @@ export function registerDocumentRoutes(app: Express): void {
               });
             }
 
-            console.log(`✅ [DOCUMENT DOWNLOAD] Serving file: ${filePathToServe} as ${fileName}`);
-            return res.sendFile(path.resolve(filePathToServe));
+            const totalTime = performance.now() - startTime;
+          logDocumentOperation('FILE_SERVE_SUCCESS', {
+            operationId,
+            documentId,
+            filePath: filePathToServe,
+            fileName,
+            totalRequestTime: `${totalTime.toFixed(2)}ms`,
+            isDownload,
+            fileDetails: {
+              exists: true,
+              resolvedPath: path.resolve(filePathToServe)
+            }
+          }, 'INFO');
+          
+          return res.sendFile(path.resolve(filePathToServe));
           }
 
-          // If file not found locally, log for debugging
-          console.log(`❌ [DOCUMENT DOWNLOAD] File not found at filePath: ${document.filePath}`);
-          console.log(`❌ [DOCUMENT DOWNLOAD] Tried filePath: ${filePathToServe}`);
+          const totalTime = performance.now() - startTime;
+          logDocumentOperation('FILE_NOT_FOUND_ON_DISK', {
+            operationId,
+            documentId,
+            originalFilePath: document.filePath,
+            attemptedFilePath: filePathToServe,
+            totalRequestTime: `${totalTime.toFixed(2)}ms`,
+            searchedPaths: [
+              path.join(process.cwd(), 'uploads', document.filePath),
+              path.join(process.cwd(), document.filePath),
+              `/tmp/uploads/${document.filePath}`
+            ]
+          }, 'ERROR');
+          
           return res.status(404).json({ message: 'File not found on server' });
         } catch (fileError: any) {
           console.error('❌ [DOCUMENT DOWNLOAD] Error serving file:', fileError);

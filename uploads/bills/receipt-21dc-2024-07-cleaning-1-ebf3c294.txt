@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: 21DC-2024-07-CLEANING-1
+Title: Cleaning (1) - Franey, Bayer and Aufderhar
+Vendor: Hilll Group
+Category: Cleaning
+Total Amount: $2814.58
+Description: Monthly cleaning service for July 2024 - Invoice 1
+
+Payment Amount: $2814.58
+Payment Date: 9/8/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-HX0EWDFF
+
+This payment has been processed successfully.
+Building Management Office

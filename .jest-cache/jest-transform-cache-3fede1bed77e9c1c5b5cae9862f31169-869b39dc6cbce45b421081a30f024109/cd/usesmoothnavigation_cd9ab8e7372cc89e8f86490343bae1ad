@@ -1,0 +1,402 @@
+851a5ec569c7f98ff2de1e326f3df17b
+"use strict";
+
+/* istanbul ignore next */
+function cov_j8b7pr75b() {
+  var path = "/home/runner/workspace/client/src/hooks/use-smooth-navigation.tsx";
+  var hash = "ebcae6302c5c08d43d65bad3185988883349d31c";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/hooks/use-smooth-navigation.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 2,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 0
+        },
+        end: {
+          line: 3,
+          column: 50
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 0
+        },
+        end: {
+          line: 4,
+          column: 58
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 17
+        },
+        end: {
+          line: 5,
+          column: 34
+        }
+      },
+      "4": {
+        start: {
+          line: 6,
+          column: 16
+        },
+        end: {
+          line: 6,
+          column: 32
+        }
+      },
+      "5": {
+        start: {
+          line: 12,
+          column: 23
+        },
+        end: {
+          line: 12,
+          column: 50
+        }
+      },
+      "6": {
+        start: {
+          line: 13,
+          column: 4
+        },
+        end: {
+          line: 20,
+          column: 19
+        }
+      },
+      "7": {
+        start: {
+          line: 15,
+          column: 8
+        },
+        end: {
+          line: 19,
+          column: 11
+        }
+      },
+      "8": {
+        start: {
+          line: 27,
+          column: 36
+        },
+        end: {
+          line: 27,
+          column: 63
+        }
+      },
+      "9": {
+        start: {
+          line: 28,
+          column: 24
+        },
+        end: {
+          line: 39,
+          column: 5
+        }
+      },
+      "10": {
+        start: {
+          line: 30,
+          column: 8
+        },
+        end: {
+          line: 34,
+          column: 11
+        }
+      },
+      "11": {
+        start: {
+          line: 36,
+          column: 8
+        },
+        end: {
+          line: 38,
+          column: 15
+        }
+      },
+      "12": {
+        start: {
+          line: 37,
+          column: 12
+        },
+        end: {
+          line: 37,
+          column: 38
+        }
+      },
+      "13": {
+        start: {
+          line: 40,
+          column: 4
+        },
+        end: {
+          line: 40,
+          column: 23
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "useSmoothNavigation",
+        decl: {
+          start: {
+            line: 11,
+            column: 9
+          },
+          end: {
+            line: 11,
+            column: 28
+          }
+        },
+        loc: {
+          start: {
+            line: 11,
+            column: 31
+          },
+          end: {
+            line: 21,
+            column: 1
+          }
+        },
+        line: 11
+      },
+      "1": {
+        name: "(anonymous_1)",
+        decl: {
+          start: {
+            line: 13,
+            column: 27
+          },
+          end: {
+            line: 13,
+            column: 28
+          }
+        },
+        loc: {
+          start: {
+            line: 13,
+            column: 33
+          },
+          end: {
+            line: 20,
+            column: 5
+          }
+        },
+        line: 13
+      },
+      "2": {
+        name: "useSmoothLocationSetter",
+        decl: {
+          start: {
+            line: 26,
+            column: 9
+          },
+          end: {
+            line: 26,
+            column: 32
+          }
+        },
+        loc: {
+          start: {
+            line: 26,
+            column: 35
+          },
+          end: {
+            line: 41,
+            column: 1
+          }
+        },
+        line: 26
+      },
+      "3": {
+        name: "(anonymous_3)",
+        decl: {
+          start: {
+            line: 28,
+            column: 24
+          },
+          end: {
+            line: 28,
+            column: 25
+          }
+        },
+        loc: {
+          start: {
+            line: 28,
+            column: 34
+          },
+          end: {
+            line: 39,
+            column: 5
+          }
+        },
+        line: 28
+      },
+      "4": {
+        name: "(anonymous_4)",
+        decl: {
+          start: {
+            line: 36,
+            column: 19
+          },
+          end: {
+            line: 36,
+            column: 20
+          }
+        },
+        loc: {
+          start: {
+            line: 36,
+            column: 25
+          },
+          end: {
+            line: 38,
+            column: 9
+          }
+        },
+        line: 36
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0,
+      "7": 0,
+      "8": 0,
+      "9": 0,
+      "10": 0,
+      "11": 0,
+      "12": 0,
+      "13": 0
+    },
+    f: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0
+    },
+    b: {},
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/hooks/use-smooth-navigation.tsx",
+      mappings: ";;AAOA,kDAWC;AAMD,0DAkBC;AA1CD,mCAAqC;AACrC,iCAAkC;AAElC;;;GAGG;AACH,SAAgB,mBAAmB;IACjC,MAAM,CAAC,QAAQ,CAAC,GAAG,IAAA,oBAAW,GAAE,CAAC;IAEjC,IAAA,iBAAS,EAAC,GAAG,EAAE;QACb,6CAA6C;QAC7C,MAAM,CAAC,QAAQ,CAAC;YACd,GAAG,EAAE,CAAC;YACN,IAAI,EAAE,CAAC;YACP,QAAQ,EAAE,QAAQ;SACnB,CAAC,CAAC;IACL,CAAC,EAAE,CAAC,QAAQ,CAAC,CAAC,CAAC;AACjB,CAAC;AAED;;;GAGG;AACH,SAAgB,uBAAuB;IACrC,MAAM,CAAC,EAAE,mBAAmB,CAAC,GAAG,IAAA,oBAAW,GAAE,CAAC;IAE9C,MAAM,WAAW,GAAG,CAAC,IAAY,EAAE,EAAE;QACnC,+BAA+B;QAC/B,MAAM,CAAC,QAAQ,CAAC;YACd,GAAG,EAAE,CAAC;YACN,IAAI,EAAE,CAAC;YACP,QAAQ,EAAE,QAAQ;SACnB,CAAC,CAAC;QAEH,+DAA+D;QAC/D,UAAU,CAAC,GAAG,EAAE;YACd,mBAAmB,CAAC,IAAI,CAAC,CAAC;QAC5B,CAAC,EAAE,EAAE,CAAC,CAAC;IACT,CAAC,CAAC;IAEF,OAAO,WAAW,CAAC;AACrB,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/hooks/use-smooth-navigation.tsx"],
+      sourcesContent: ["import { useLocation } from 'wouter';\nimport { useEffect } from 'react';\n\n/**\n * Custom hook that provides smooth scroll-to-top behavior on page navigation.\n * Automatically scrolls to the top of the page whenever the route changes.\n */\nexport function useSmoothNavigation() {\n  const [location] = useLocation();\n\n  useEffect(() => {\n    // Smooth scroll to top when location changes\n    window.scrollTo({\n      top: 0,\n      left: 0,\n      behavior: 'smooth'\n    });\n  }, [location]);\n}\n\n/**\n * Enhanced setLocation function that provides smooth scroll-to-top behavior\n * when navigating to a new page.\n */\nexport function useSmoothLocationSetter() {\n  const [, setLocationOriginal] = useLocation();\n  \n  const setLocation = (path: string) => {\n    // First scroll to top smoothly\n    window.scrollTo({\n      top: 0,\n      left: 0,\n      behavior: 'smooth'\n    });\n    \n    // Small delay to let the scroll animation start, then navigate\n    setTimeout(() => {\n      setLocationOriginal(path);\n    }, 50);\n  };\n\n  return setLocation;\n}"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "ebcae6302c5c08d43d65bad3185988883349d31c"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_j8b7pr75b = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_j8b7pr75b();
+cov_j8b7pr75b().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_j8b7pr75b().s[1]++;
+exports.useSmoothNavigation = useSmoothNavigation;
+/* istanbul ignore next */
+cov_j8b7pr75b().s[2]++;
+exports.useSmoothLocationSetter = useSmoothLocationSetter;
+const wouter_1 =
+/* istanbul ignore next */
+(cov_j8b7pr75b().s[3]++, require("wouter"));
+const react_1 =
+/* istanbul ignore next */
+(cov_j8b7pr75b().s[4]++, require("react"));
+/**
+ * Custom hook that provides smooth scroll-to-top behavior on page navigation.
+ * Automatically scrolls to the top of the page whenever the route changes.
+ */
+function useSmoothNavigation() {
+  /* istanbul ignore next */
+  cov_j8b7pr75b().f[0]++;
+  const [location] =
+  /* istanbul ignore next */
+  (cov_j8b7pr75b().s[5]++, (0, wouter_1.useLocation)());
+  /* istanbul ignore next */
+  cov_j8b7pr75b().s[6]++;
+  (0, react_1.useEffect)(() => {
+    /* istanbul ignore next */
+    cov_j8b7pr75b().f[1]++;
+    cov_j8b7pr75b().s[7]++;
+    // Smooth scroll to top when location changes
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth'
+    });
+  }, [location]);
+}
+/**
+ * Enhanced setLocation function that provides smooth scroll-to-top behavior
+ * when navigating to a new page.
+ */
+function useSmoothLocationSetter() {
+  /* istanbul ignore next */
+  cov_j8b7pr75b().f[2]++;
+  const [, setLocationOriginal] =
+  /* istanbul ignore next */
+  (cov_j8b7pr75b().s[8]++, (0, wouter_1.useLocation)());
+  /* istanbul ignore next */
+  cov_j8b7pr75b().s[9]++;
+  const setLocation = path => {
+    /* istanbul ignore next */
+    cov_j8b7pr75b().f[3]++;
+    cov_j8b7pr75b().s[10]++;
+    // First scroll to top smoothly
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth'
+    });
+    // Small delay to let the scroll animation start, then navigate
+    /* istanbul ignore next */
+    cov_j8b7pr75b().s[11]++;
+    setTimeout(() => {
+      /* istanbul ignore next */
+      cov_j8b7pr75b().f[4]++;
+      cov_j8b7pr75b().s[12]++;
+      setLocationOriginal(path);
+    }, 50);
+  };
+  /* istanbul ignore next */
+  cov_j8b7pr75b().s[13]++;
+  return setLocation;
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJjb3ZfajhiN3ByNzViIiwiYWN0dWFsQ292ZXJhZ2UiLCJzIiwiZXhwb3J0cyIsInVzZVNtb290aE5hdmlnYXRpb24iLCJ1c2VTbW9vdGhMb2NhdGlvblNldHRlciIsIndvdXRlcl8xIiwicmVxdWlyZSIsInJlYWN0XzEiLCJmIiwibG9jYXRpb24iLCJ1c2VMb2NhdGlvbiIsInVzZUVmZmVjdCIsIndpbmRvdyIsInNjcm9sbFRvIiwidG9wIiwibGVmdCIsImJlaGF2aW9yIiwic2V0TG9jYXRpb25PcmlnaW5hbCIsInNldExvY2F0aW9uIiwicGF0aCIsInNldFRpbWVvdXQiXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL2NsaWVudC9zcmMvaG9va3MvdXNlLXNtb290aC1uYXZpZ2F0aW9uLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyB1c2VMb2NhdGlvbiB9IGZyb20gJ3dvdXRlcic7XG5pbXBvcnQgeyB1c2VFZmZlY3QgfSBmcm9tICdyZWFjdCc7XG5cbi8qKlxuICogQ3VzdG9tIGhvb2sgdGhhdCBwcm92aWRlcyBzbW9vdGggc2Nyb2xsLXRvLXRvcCBiZWhhdmlvciBvbiBwYWdlIG5hdmlnYXRpb24uXG4gKiBBdXRvbWF0aWNhbGx5IHNjcm9sbHMgdG8gdGhlIHRvcCBvZiB0aGUgcGFnZSB3aGVuZXZlciB0aGUgcm91dGUgY2hhbmdlcy5cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIHVzZVNtb290aE5hdmlnYXRpb24oKSB7XG4gIGNvbnN0IFtsb2NhdGlvbl0gPSB1c2VMb2NhdGlvbigpO1xuXG4gIHVzZUVmZmVjdCgoKSA9PiB7XG4gICAgLy8gU21vb3RoIHNjcm9sbCB0byB0b3Agd2hlbiBsb2NhdGlvbiBjaGFuZ2VzXG4gICAgd2luZG93LnNjcm9sbFRvKHtcbiAgICAgIHRvcDogMCxcbiAgICAgIGxlZnQ6IDAsXG4gICAgICBiZWhhdmlvcjogJ3Ntb290aCdcbiAgICB9KTtcbiAgfSwgW2xvY2F0aW9uXSk7XG59XG5cbi8qKlxuICogRW5oYW5jZWQgc2V0TG9jYXRpb24gZnVuY3Rpb24gdGhhdCBwcm92aWRlcyBzbW9vdGggc2Nyb2xsLXRvLXRvcCBiZWhhdmlvclxuICogd2hlbiBuYXZpZ2F0aW5nIHRvIGEgbmV3IHBhZ2UuXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiB1c2VTbW9vdGhMb2NhdGlvblNldHRlcigpIHtcbiAgY29uc3QgWywgc2V0TG9jYXRpb25PcmlnaW5hbF0gPSB1c2VMb2NhdGlvbigpO1xuICBcbiAgY29uc3Qgc2V0TG9jYXRpb24gPSAocGF0aDogc3RyaW5nKSA9PiB7XG4gICAgLy8gRmlyc3Qgc2Nyb2xsIHRvIHRvcCBzbW9vdGhseVxuICAgIHdpbmRvdy5zY3JvbGxUbyh7XG4gICAgICB0b3A6IDAsXG4gICAgICBsZWZ0OiAwLFxuICAgICAgYmVoYXZpb3I6ICdzbW9vdGgnXG4gICAgfSk7XG4gICAgXG4gICAgLy8gU21hbGwgZGVsYXkgdG8gbGV0IHRoZSBzY3JvbGwgYW5pbWF0aW9uIHN0YXJ0LCB0aGVuIG5hdmlnYXRlXG4gICAgc2V0VGltZW91dCgoKSA9PiB7XG4gICAgICBzZXRMb2NhdGlvbk9yaWdpbmFsKHBhdGgpO1xuICAgIH0sIDUwKTtcbiAgfTtcblxuICByZXR1cm4gc2V0TG9jYXRpb247XG59Il0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0lBYU07SUFBQUEsYUFBQSxZQUFBQSxDQUFBO01BQUEsT0FBQUMsY0FBQTtJQUFBO0VBQUE7RUFBQSxPQUFBQSxjQUFBO0FBQUE7QUFBQUQsYUFBQTtBQUFBQSxhQUFBLEdBQUFFLENBQUE7Ozs7OztBQU5OQyxPQUFBLENBQUFDLG1CQUFBLEdBQUFBLG1CQUFBO0FBV0M7QUFBQUosYUFBQSxHQUFBRSxDQUFBO0FBTURDLE9BQUEsQ0FBQUUsdUJBQUEsR0FBQUEsdUJBQUE7QUF4QkEsTUFBQUMsUUFBQTtBQUFBO0FBQUEsQ0FBQU4sYUFBQSxHQUFBRSxDQUFBLE9BQUFLLE9BQUE7QUFDQSxNQUFBQyxPQUFBO0FBQUE7QUFBQSxDQUFBUixhQUFBLEdBQUFFLENBQUEsT0FBQUssT0FBQTtBQUVBOzs7O0FBSUEsU0FBZ0JILG1CQUFtQkEsQ0FBQTtFQUFBO0VBQUFKLGFBQUEsR0FBQVMsQ0FBQTtFQUNqQyxNQUFNLENBQUNDLFFBQVEsQ0FBQztFQUFBO0VBQUEsQ0FBQVYsYUFBQSxHQUFBRSxDQUFBLE9BQUcsSUFBQUksUUFBQSxDQUFBSyxXQUFXLEdBQUU7RUFBQztFQUFBWCxhQUFBLEdBQUFFLENBQUE7RUFFakMsSUFBQU0sT0FBQSxDQUFBSSxTQUFTLEVBQUMsTUFBSztJQUFBO0lBQUFaLGFBQUEsR0FBQVMsQ0FBQTtJQUFBVCxhQUFBLEdBQUFFLENBQUE7SUFDYjtJQUNBVyxNQUFNLENBQUNDLFFBQVEsQ0FBQztNQUNkQyxHQUFHLEVBQUUsQ0FBQztNQUNOQyxJQUFJLEVBQUUsQ0FBQztNQUNQQyxRQUFRLEVBQUU7S0FDWCxDQUFDO0VBQ0osQ0FBQyxFQUFFLENBQUNQLFFBQVEsQ0FBQyxDQUFDO0FBQ2hCO0FBRUE7Ozs7QUFJQSxTQUFnQkwsdUJBQXVCQSxDQUFBO0VBQUE7RUFBQUwsYUFBQSxHQUFBUyxDQUFBO0VBQ3JDLE1BQU0sR0FBR1MsbUJBQW1CLENBQUM7RUFBQTtFQUFBLENBQUFsQixhQUFBLEdBQUFFLENBQUEsT0FBRyxJQUFBSSxRQUFBLENBQUFLLFdBQVcsR0FBRTtFQUFDO0VBQUFYLGFBQUEsR0FBQUUsQ0FBQTtFQUU5QyxNQUFNaUIsV0FBVyxHQUFJQyxJQUFZLElBQUk7SUFBQTtJQUFBcEIsYUFBQSxHQUFBUyxDQUFBO0lBQUFULGFBQUEsR0FBQUUsQ0FBQTtJQUNuQztJQUNBVyxNQUFNLENBQUNDLFFBQVEsQ0FBQztNQUNkQyxHQUFHLEVBQUUsQ0FBQztNQUNOQyxJQUFJLEVBQUUsQ0FBQztNQUNQQyxRQUFRLEVBQUU7S0FDWCxDQUFDO0lBRUY7SUFBQTtJQUFBakIsYUFBQSxHQUFBRSxDQUFBO0lBQ0FtQixVQUFVLENBQUMsTUFBSztNQUFBO01BQUFyQixhQUFBLEdBQUFTLENBQUE7TUFBQVQsYUFBQSxHQUFBRSxDQUFBO01BQ2RnQixtQkFBbUIsQ0FBQ0UsSUFBSSxDQUFDO0lBQzNCLENBQUMsRUFBRSxFQUFFLENBQUM7RUFDUixDQUFDO0VBQUM7RUFBQXBCLGFBQUEsR0FBQUUsQ0FBQTtFQUVGLE9BQU9pQixXQUFXO0FBQ3BCIiwiaWdub3JlTGlzdCI6W119

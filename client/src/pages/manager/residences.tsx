@@ -33,9 +33,11 @@ import {
   Bed,
   Bath,
   FileText,
+  ArrowLeft,
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 
 /**
  *
@@ -71,42 +73,24 @@ interface Residence {
   }>;
 }
 
-/**
- *
- */
-interface Building {
-  id: string;
-  name: string;
-  totalFloors: number;
+
+interface ManagerResidencesProps {
+  organizationId?: string;
+  buildingId?: string;
+  showBackButton?: boolean;
+  backButtonLabel?: string;
+  onBack?: () => void;
 }
 
-/**
- *
- */
-export default function /**
- * Residences function.
- */ /**
- * Residences function.
- */
-
-Residences() {
+function ManagerResidences({ organizationId, buildingId, showBackButton, backButtonLabel, onBack }: ManagerResidencesProps) {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
   const [selectedFloor, setSelectedFloor] = useState<string>('all');
   const [editingResidence, setEditingResidence] = useState<Residence | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Check for URL parameters and set building filter
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const buildingIdFromUrl = urlParams.get('buildingId');
-    if (buildingIdFromUrl && buildingIdFromUrl !== selectedBuilding) {
-      setSelectedBuilding(buildingIdFromUrl);
-    }
-  }, [selectedBuilding]);
 
   // Fetch residences with search and filters
   const {
@@ -114,7 +98,7 @@ Residences() {
     isLoading: residencesLoading,
     refetch,
   } = useQuery({
-    queryKey: ['/api/residences', searchTerm, selectedBuilding, selectedFloor],
+    queryKey: ['/api/residences', searchTerm, selectedFloor, buildingId],
     queryFn: async () => {
       const params = new URLSearchParams(); /**
        * If function.
@@ -126,23 +110,12 @@ Residences() {
 
       if (searchTerm) {
         params.append('search', searchTerm);
-      } /**
-       * If function.
-       * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
-       */ /**
-       * If function.
-       * @param selectedBuilding && selectedBuilding !== 'all' - selectedBuilding && selectedBuilding !== 'all' parameter.
-       */
-
-      if (selectedBuilding && selectedBuilding !== 'all') {
-        params.append('buildingId', selectedBuilding);
-      } /**
-       * If function.
-       * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
-       */ /**
-       * If function.
-       * @param selectedFloor && selectedFloor !== 'all' - selectedFloor && selectedFloor !== 'all' parameter.
-       */
+      }
+      
+      // Filter by the selected building from hierarchy
+      if (buildingId) {
+        params.append('buildingId', buildingId);
+      }
 
       if (selectedFloor && selectedFloor !== 'all') {
         params.append('floor', selectedFloor);
@@ -180,20 +153,6 @@ Residences() {
     },
   });
 
-  // Fetch buildings for filter dropdown - use manager endpoint for proper permissions
-  const { data: buildingsData } = useQuery({
-    queryKey: ['/api/manager/buildings'],
-    queryFn: async () => {
-      const response = await fetch('/api/manager/buildings');
-      if (!response.ok) {
-        throw new Error('Failed to fetch buildings');
-      }
-      return response.json();
-    },
-  });
-
-  // Extract buildings array from the response
-  const buildings = buildingsData?.buildings || [];
 
   // Fetch all residences to get complete floor list for filter (without search/filter params)
   const { data: allResidences } = useQuery({
@@ -215,10 +174,6 @@ Residences() {
     : [];
 
   // Reset page when filters change
-  const handleBuildingChange = (value: string) => {
-    setSelectedBuilding(value);
-    setCurrentPage(1);
-  };
 
   const handleFloorChange = (value: string) => {
     setSelectedFloor(value);
@@ -240,6 +195,23 @@ Residences() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title={t('residencesManagement')} subtitle={t('manageResidences')} />
+      
+      {showBackButton && onBack && (
+        <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+          <div className='flex items-center px-6 py-4'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={onBack}
+              className='flex items-center gap-2'
+              data-testid='button-back-to-selection'
+            >
+              <ArrowLeft className='w-4 h-4' />
+              {backButtonLabel || t('backToResidences')}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -252,7 +224,7 @@ Residences() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                   <label className='text-sm font-medium'>{t('searchResidences')}</label>
                   <Input
@@ -261,23 +233,6 @@ Residences() {
                     onChange={(e) => handleSearchChange(e.target.value)}
                     className='w-full'
                   />
-                </div>
-
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium'>{t('buildingFilter')}</label>
-                  <Select value={selectedBuilding} onValueChange={handleBuildingChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('allBuildings')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value='all'>{t('allBuildings')}</SelectItem>
-                      {buildings?.map((building: any) => (
-                        <SelectItem key={building.id} value={building.id}>
-                          {building.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div className='space-y-2'>
@@ -516,3 +471,8 @@ Residences() {
     </div>
   );
 }
+
+// Export with hierarchical selection HOC - Manager residences page uses organization → building hierarchy
+export default withHierarchicalSelection(ManagerResidences, {
+  hierarchy: ['organization', 'building']
+});

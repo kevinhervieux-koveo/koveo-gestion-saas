@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+INVOICE DOCUMENT
+
+Bill Number: 18BC-2024-08-LANDSCAPING
+Title: Landscaping  - Abshire and Sons
+Vendor: Collier - Schultz
+Category: Landscaping
+Total Amount: $1527.54
+Description: Monthly landscaping service for July 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 3/1/2026
+
+Service Details:
+- Cernuus desidero degusto agnitio cibus.
+- Stella cohibeo quidem crudelis decens calculus.
+
+Thank you for your business!
+Collier - Schultz

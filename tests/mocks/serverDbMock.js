@@ -50,17 +50,20 @@ const createQueryBuilder = (defaultResult = []) => {
   
   const chainableMethods = [
     'from', 'where', 'leftJoin', 'innerJoin', 'rightJoin',
-    'select', 'set', 'values', 'returning', 'orderBy', 'limit',
+    'select', 'set', 'returning', 'orderBy', 'limit',
     'offset', 'groupBy', 'having', 'onConflictDoUpdate', 'onConflictDoNothing'
   ];
   
   chainableMethods.forEach(method => {
     builder[method] = jest.fn().mockImplementation((...args) => {
-      if (method === 'values') {
-        builder._insertData = args[0];
-      }
       return builder;
     });
+  });
+  
+  // Add values method specifically for insert operations
+  builder.values = jest.fn().mockImplementation((...args) => {
+    builder._insertData = args[0];
+    return builder;
   });
   
   // Make the builder thenable (promise-like)

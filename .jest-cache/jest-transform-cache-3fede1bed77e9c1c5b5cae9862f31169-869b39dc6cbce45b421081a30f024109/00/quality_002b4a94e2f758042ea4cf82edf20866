@@ -1,0 +1,206 @@
+e46110a9a5380e250417ec8ec390297e
+"use strict";
+
+/* istanbul ignore next */
+function cov_jcajp7vvk() {
+  var path = "/home/runner/workspace/client/src/pages/admin/quality.tsx";
+  var hash = "49f141c2e15bc3ba483dc9fe7c8930308aa9ab0a";
+  var global = new Function("return this")();
+  var gcv = "__coverage__";
+  var coverageData = {
+    path: "/home/runner/workspace/client/src/pages/admin/quality.tsx",
+    statementMap: {
+      "0": {
+        start: {
+          line: 2,
+          column: 0
+        },
+        end: {
+          line: 2,
+          column: 62
+        }
+      },
+      "1": {
+        start: {
+          line: 3,
+          column: 0
+        },
+        end: {
+          line: 3,
+          column: 26
+        }
+      },
+      "2": {
+        start: {
+          line: 4,
+          column: 22
+        },
+        end: {
+          line: 4,
+          column: 50
+        }
+      },
+      "3": {
+        start: {
+          line: 5,
+          column: 17
+        },
+        end: {
+          line: 5,
+          column: 54
+        }
+      },
+      "4": {
+        start: {
+          line: 6,
+          column: 26
+        },
+        end: {
+          line: 6,
+          column: 75
+        }
+      },
+      "5": {
+        start: {
+          line: 7,
+          column: 23
+        },
+        end: {
+          line: 7,
+          column: 46
+        }
+      },
+      "6": {
+        start: {
+          line: 12,
+          column: 4
+        },
+        end: {
+          line: 12,
+          column: 1043
+        }
+      }
+    },
+    fnMap: {
+      "0": {
+        name: "Quality",
+        decl: {
+          start: {
+            line: 11,
+            column: 9
+          },
+          end: {
+            line: 11,
+            column: 16
+          }
+        },
+        loc: {
+          start: {
+            line: 11,
+            column: 19
+          },
+          end: {
+            line: 13,
+            column: 1
+          }
+        },
+        line: 11
+      }
+    },
+    branchMap: {},
+    s: {
+      "0": 0,
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 0,
+      "6": 0
+    },
+    f: {
+      "0": 0
+    },
+    b: {},
+    inputSourceMap: {
+      file: "/home/runner/workspace/client/src/pages/admin/quality.tsx",
+      mappings: ";;AAOA,0BAyBC;;AAhCD,uDAAoD;AACpD,4EAAwE;AACxE,+CAAwC;AAExC;;GAEG;AACH,SAAwB,OAAO;IAC7B,OAAO,CACL,iCAAK,SAAS,EAAC,sCAAsC,aACnD,uBAAC,eAAM,IAAC,KAAK,EAAC,mBAAmB,EAAC,QAAQ,EAAC,wCAAwC,GAAG,EAGtF,gCAAK,SAAS,EAAC,+BAA+B,YAC5C,gCAAK,SAAS,EAAC,mBAAmB,YAChC,iCAAK,SAAS,EAAC,+CAA+C,aAC5D,uBAAC,uBAAQ,IAAC,SAAS,EAAC,SAAS,GAAG,EAChC,iCAAM,SAAS,EAAC,aAAa,iCAAwB,EACrD,iCAAM,SAAS,EAAC,iDAAiD,sCAE1D,IACH,GACF,GACF,EAEN,gCAAK,SAAS,EAAC,0BAA0B,YACvC,gCAAK,SAAS,EAAC,6BAA6B,YAC1C,uBAAC,gCAAc,KAAG,GACd,GACF,IACF,CACP,CAAC;AACJ,CAAC",
+      names: [],
+      sources: ["/home/runner/workspace/client/src/pages/admin/quality.tsx"],
+      sourcesContent: ["import { Header } from '@/components/layout/header';\nimport { QualityMetrics } from '@/components/dashboard/quality-metrics';\nimport { Terminal } from 'lucide-react';\n\n/**\n *\n */\nexport default function Quality() {\n  return (\n    <div className='flex-1 flex flex-col overflow-hidden'>\n      <Header title='Quality Assurance' subtitle='Quality metrics and assurance tracking' />\n\n      {/* Refresh Command */}\n      <div className='border-b bg-gray-50 px-6 py-3'>\n        <div className='max-w-7xl mx-auto'>\n          <div className='flex items-center gap-2 text-sm text-gray-600'>\n            <Terminal className='h-4 w-4' />\n            <span className='font-medium'>Refresh Command:</span>\n            <code className='bg-gray-100 px-2 py-1 rounded text-xs font-mono'>\n              npm run quality:check\n            </code>\n          </div>\n        </div>\n      </div>\n\n      <div className='flex-1 overflow-auto p-6'>\n        <div className='max-w-7xl mx-auto space-y-8'>\n          <QualityMetrics />\n        </div>\n      </div>\n    </div>\n  );\n}\n"],
+      version: 3
+    },
+    _coverageSchema: "1a1c01bbd47fc00a2c39e90264f33305004495a9",
+    hash: "49f141c2e15bc3ba483dc9fe7c8930308aa9ab0a"
+  };
+  var coverage = global[gcv] || (global[gcv] = {});
+  if (!coverage[path] || coverage[path].hash !== hash) {
+    coverage[path] = coverageData;
+  }
+  var actualCoverage = coverage[path];
+  {
+    // @ts-ignore
+    cov_jcajp7vvk = function () {
+      return actualCoverage;
+    };
+  }
+  return actualCoverage;
+}
+cov_jcajp7vvk();
+cov_jcajp7vvk().s[0]++;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+/* istanbul ignore next */
+cov_jcajp7vvk().s[1]++;
+exports.default = Quality;
+const jsx_runtime_1 =
+/* istanbul ignore next */
+(cov_jcajp7vvk().s[2]++, require("react/jsx-runtime"));
+const header_1 =
+/* istanbul ignore next */
+(cov_jcajp7vvk().s[3]++, require("@/components/layout/header"));
+const quality_metrics_1 =
+/* istanbul ignore next */
+(cov_jcajp7vvk().s[4]++, require("@/components/dashboard/quality-metrics"));
+const lucide_react_1 =
+/* istanbul ignore next */
+(cov_jcajp7vvk().s[5]++, require("lucide-react"));
+/**
+ *
+ */
+function Quality() {
+  /* istanbul ignore next */
+  cov_jcajp7vvk().f[0]++;
+  cov_jcajp7vvk().s[6]++;
+  return (0, jsx_runtime_1.jsxs)("div", {
+    className: 'flex-1 flex flex-col overflow-hidden',
+    children: [(0, jsx_runtime_1.jsx)(header_1.Header, {
+      title: 'Quality Assurance',
+      subtitle: 'Quality metrics and assurance tracking'
+    }), (0, jsx_runtime_1.jsx)("div", {
+      className: 'border-b bg-gray-50 px-6 py-3',
+      children: (0, jsx_runtime_1.jsx)("div", {
+        className: 'max-w-7xl mx-auto',
+        children: (0, jsx_runtime_1.jsxs)("div", {
+          className: 'flex items-center gap-2 text-sm text-gray-600',
+          children: [(0, jsx_runtime_1.jsx)(lucide_react_1.Terminal, {
+            className: 'h-4 w-4'
+          }), (0, jsx_runtime_1.jsx)("span", {
+            className: 'font-medium',
+            children: "Refresh Command:"
+          }), (0, jsx_runtime_1.jsx)("code", {
+            className: 'bg-gray-100 px-2 py-1 rounded text-xs font-mono',
+            children: "npm run quality:check"
+          })]
+        })
+      })
+    }), (0, jsx_runtime_1.jsx)("div", {
+      className: 'flex-1 overflow-auto p-6',
+      children: (0, jsx_runtime_1.jsx)("div", {
+        className: 'max-w-7xl mx-auto space-y-8',
+        children: (0, jsx_runtime_1.jsx)(quality_metrics_1.QualityMetrics, {})
+      })
+    })]
+  });
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJuYW1lcyI6WyJleHBvcnRzIiwiZGVmYXVsdCIsIlF1YWxpdHkiLCJoZWFkZXJfMSIsImNvdl9qY2FqcDd2dmsiLCJzIiwicmVxdWlyZSIsInF1YWxpdHlfbWV0cmljc18xIiwibHVjaWRlX3JlYWN0XzEiLCJmIiwianN4X3J1bnRpbWVfMSIsImpzeHMiLCJjbGFzc05hbWUiLCJjaGlsZHJlbiIsImpzeCIsIkhlYWRlciIsInRpdGxlIiwic3VidGl0bGUiLCJUZXJtaW5hbCIsIlF1YWxpdHlNZXRyaWNzIl0sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL3BhZ2VzL2FkbWluL3F1YWxpdHkudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7IEhlYWRlciB9IGZyb20gJ0AvY29tcG9uZW50cy9sYXlvdXQvaGVhZGVyJztcbmltcG9ydCB7IFF1YWxpdHlNZXRyaWNzIH0gZnJvbSAnQC9jb21wb25lbnRzL2Rhc2hib2FyZC9xdWFsaXR5LW1ldHJpY3MnO1xuaW1wb3J0IHsgVGVybWluYWwgfSBmcm9tICdsdWNpZGUtcmVhY3QnO1xuXG4vKipcbiAqXG4gKi9cbmV4cG9ydCBkZWZhdWx0IGZ1bmN0aW9uIFF1YWxpdHkoKSB7XG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9J2ZsZXgtMSBmbGV4IGZsZXgtY29sIG92ZXJmbG93LWhpZGRlbic+XG4gICAgICA8SGVhZGVyIHRpdGxlPSdRdWFsaXR5IEFzc3VyYW5jZScgc3VidGl0bGU9J1F1YWxpdHkgbWV0cmljcyBhbmQgYXNzdXJhbmNlIHRyYWNraW5nJyAvPlxuXG4gICAgICB7LyogUmVmcmVzaCBDb21tYW5kICovfVxuICAgICAgPGRpdiBjbGFzc05hbWU9J2JvcmRlci1iIGJnLWdyYXktNTAgcHgtNiBweS0zJz5cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9J21heC13LTd4bCBteC1hdXRvJz5cbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC1zbSB0ZXh0LWdyYXktNjAwJz5cbiAgICAgICAgICAgIDxUZXJtaW5hbCBjbGFzc05hbWU9J2gtNCB3LTQnIC8+XG4gICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9J2ZvbnQtbWVkaXVtJz5SZWZyZXNoIENvbW1hbmQ6PC9zcGFuPlxuICAgICAgICAgICAgPGNvZGUgY2xhc3NOYW1lPSdiZy1ncmF5LTEwMCBweC0yIHB5LTEgcm91bmRlZCB0ZXh0LXhzIGZvbnQtbW9ubyc+XG4gICAgICAgICAgICAgIG5wbSBydW4gcXVhbGl0eTpjaGVja1xuICAgICAgICAgICAgPC9jb2RlPlxuICAgICAgICAgIDwvZGl2PlxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuXG4gICAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleC0xIG92ZXJmbG93LWF1dG8gcC02Jz5cbiAgICAgICAgPGRpdiBjbGFzc05hbWU9J21heC13LTd4bCBteC1hdXRvIHNwYWNlLXktOCc+XG4gICAgICAgICAgPFF1YWxpdHlNZXRyaWNzIC8+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG4gICAgPC9kaXY+XG4gICk7XG59XG4iXSwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7OztBQU9BQSxPQUFBLENBQUFDLE9BQUEsR0FBQUMsT0FBQTs7OztBQVBBLE1BQUFDLFFBQUE7QUFBQTtBQUFBLENBQUFDLGFBQUEsR0FBQUMsQ0FBQSxPQUFBQyxPQUFBO0FBQ0EsTUFBQUMsaUJBQUE7QUFBQTtBQUFBLENBQUFILGFBQUEsR0FBQUMsQ0FBQSxPQUFBQyxPQUFBO0FBQ0EsTUFBQUUsY0FBQTtBQUFBO0FBQUEsQ0FBQUosYUFBQSxHQUFBQyxDQUFBLE9BQUFDLE9BQUE7QUFFQTs7O0FBR0EsU0FBd0JKLE9BQU9BLENBQUE7RUFBQTtFQUFBRSxhQUFBLEdBQUFLLENBQUE7RUFBQUwsYUFBQSxHQUFBQyxDQUFBO0VBQzdCLE9BQ0UsSUFBQUssYUFBQSxDQUFBQyxJQUFBO0lBQUtDLFNBQVMsRUFBQyxzQ0FBc0M7SUFBQUMsUUFBQSxHQUNuRCxJQUFBSCxhQUFBLENBQUFJLEdBQUEsRUFBQ1gsUUFBQSxDQUFBWSxNQUFNO01BQUNDLEtBQUssRUFBQyxtQkFBbUI7TUFBQ0MsUUFBUSxFQUFDO0lBQXdDLEVBQUcsRUFHdEYsSUFBQVAsYUFBQSxDQUFBSSxHQUFBO01BQUtGLFNBQVMsRUFBQywrQkFBK0I7TUFBQUMsUUFBQSxFQUM1QyxJQUFBSCxhQUFBLENBQUFJLEdBQUE7UUFBS0YsU0FBUyxFQUFDLG1CQUFtQjtRQUFBQyxRQUFBLEVBQ2hDLElBQUFILGFBQUEsQ0FBQUMsSUFBQTtVQUFLQyxTQUFTLEVBQUMsK0NBQStDO1VBQUFDLFFBQUEsR0FDNUQsSUFBQUgsYUFBQSxDQUFBSSxHQUFBLEVBQUNOLGNBQUEsQ0FBQVUsUUFBUTtZQUFDTixTQUFTLEVBQUM7VUFBUyxFQUFHLEVBQ2hDLElBQUFGLGFBQUEsQ0FBQUksR0FBQTtZQUFNRixTQUFTLEVBQUMsYUFBYTtZQUFBQyxRQUFBO1VBQUEsRUFBd0IsRUFDckQsSUFBQUgsYUFBQSxDQUFBSSxHQUFBO1lBQU1GLFNBQVMsRUFBQyxpREFBaUQ7WUFBQUMsUUFBQTtVQUFBLEVBRTFEO1FBQUE7TUFDSDtJQUNGLEVBQ0YsRUFFTixJQUFBSCxhQUFBLENBQUFJLEdBQUE7TUFBS0YsU0FBUyxFQUFDLDBCQUEwQjtNQUFBQyxRQUFBLEVBQ3ZDLElBQUFILGFBQUEsQ0FBQUksR0FBQTtRQUFLRixTQUFTLEVBQUMsNkJBQTZCO1FBQUFDLFFBQUEsRUFDMUMsSUFBQUgsYUFBQSxDQUFBSSxHQUFBLEVBQUNQLGlCQUFBLENBQUFZLGNBQWM7TUFBRztJQUNkLEVBQ0Y7RUFBQSxFQUNGO0FBRVYiLCJpZ25vcmVMaXN0IjpbXX0=

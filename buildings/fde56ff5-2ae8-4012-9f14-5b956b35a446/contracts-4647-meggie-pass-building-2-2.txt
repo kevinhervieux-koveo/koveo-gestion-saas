@@ -1,0 +1,36 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+SERVICE CONTRACT (2)
+
+Building: 4647 Meggie Pass Building 2
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 2 of 2
+
+SERVICE CONTRACT
+
+Contract Number: CON-ZUTATB7C
+Service Provider: Collins and Sons
+Service Type: Maintenance
+Contract Period: 7/23/2025 to 4/15/2026
+Monthly Cost: $1522
+
+Service Details:
+Certus color ventosus vel amitto cultellus. Defleo sollers crur infit. Complectus accommodo vacuus excepturi benevolentia.
+
+Contact Information:
+Manager: Kristine Ortiz
+Phone: (581) 925-0067
+Emergency Contact: (819) 066-5324
+
+Terms and Conditions:
+- Ventito modi valetudo illo audio suffoco acidus degusto apud.
+- Laborum culpo iste votum abeo alter cur.
