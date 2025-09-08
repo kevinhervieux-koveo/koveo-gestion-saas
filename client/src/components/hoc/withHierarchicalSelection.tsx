@@ -327,8 +327,18 @@ export function withHierarchicalSelection<T extends object>(
     // All required selections are complete - render the wrapped component
     // Determine back navigation props
     const getBackNavigationProps = () => {
+      console.log('🔍 Back navigation debug:', {
+        hierarchy: config.hierarchy,
+        buildingId,
+        organizationId,
+        buildingsLength: buildings.length,
+        organizationsLength: organizations.length,
+        currentLevel
+      });
+      
       // Check if we should show back to building
       if (config.hierarchy.includes('building') && buildings.length > 1 && buildingId) {
+        console.log('✅ Showing back to building');
         return {
           showBackButton: true,
           backButtonLabel: 'Building',
@@ -338,6 +348,7 @@ export function withHierarchicalSelection<T extends object>(
       
       // Check if we should show back to organization  
       if (config.hierarchy.includes('organization') && organizations.length > 1 && organizationId) {
+        console.log('✅ Showing back to organization');
         return {
           showBackButton: true,
           backButtonLabel: 'Organization',
@@ -345,6 +356,7 @@ export function withHierarchicalSelection<T extends object>(
         };
       }
       
+      console.log('❌ No back button shown');
       return {
         showBackButton: false,
         backButtonLabel: undefined,
