@@ -2,21 +2,54 @@ import { Header } from '@/components/layout/header';
 import { useLanguage } from '@/hooks/use-language';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import { useLocation } from 'wouter';
 import { 
   PieChart, 
   BarChart, 
   TrendingUp, 
   TrendingDown, 
   DollarSign,
-  Calculator
+  Calculator,
+  ArrowLeft
 } from 'lucide-react';
 
-export default function Budget() {
+interface BudgetProps {
+  organizationId?: string;
+  buildingId?: string;
+}
+
+function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const { t } = useLanguage();
+  const [, navigate] = useLocation();
+
+  const handleBackToOrganization = () => {
+    navigate('/manager/budget');
+  };
+
+  const handleBackToBuilding = () => {
+    navigate(`/manager/budget?organization=${organizationId}`);
+  };
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('budgetDashboard')} subtitle={t('budgetSubtitle')} />
+      <Header title={t('budgetManagement')} subtitle={t('budgetSubtitle')} />
+      
+      {/* Back Navigation */}
+      {(organizationId || buildingId) && (
+        <div className="p-4 border-b border-gray-200">
+          <Button
+            variant="outline"
+            onClick={buildingId ? handleBackToBuilding : handleBackToOrganization}
+            className="flex items-center gap-2"
+            data-testid={buildingId ? "button-back-to-building" : "button-back-to-organization"}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {buildingId ? t('building') : t('organization')}
+          </Button>
+        </div>
+      )}
       
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -133,3 +166,10 @@ export default function Budget() {
     </div>
   );
 }
+
+// Wrap with hierarchical selection HOC using 2-level hierarchy (organization → building)
+const Budget = withHierarchicalSelection(BudgetInner, {
+  hierarchy: ['organization', 'building']
+});
+
+export default Budget;
