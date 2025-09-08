@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A642-2024-01-SUPPLIES-1
+Title: Supplies (1) - Steuber Group
+Vendor: Weissnat - Dicki
+Category: Supplies
+Total Amount: $1839.24
+Description: Monthly supplies service for February 2024 - Invoice 1
+
+Payment Amount: $1839.24
+Payment Date: 9/8/2025
+Payment Method: Check
+Reference Number: PAY-U9QTC0YY
+
+This payment has been processed successfully.
+Building Management Office

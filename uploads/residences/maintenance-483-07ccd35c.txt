@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 483
+Building: 558 E Market Street Building 4
+Address: 7985 Kellie Valley
+Document 1 of 1
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 483:
+
+1/14/2025 - Electrical work
+Status: Completed
+Cost: $78
+
+9/7/2025 - Annual inspection
+Status: In Progress
+Estimated Cost: $488
+
+Next Scheduled Maintenance: 1/2/2026

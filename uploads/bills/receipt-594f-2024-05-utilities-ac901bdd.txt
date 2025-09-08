@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 594F-2024-05-UTILITIES
+Title: Utilities  - Pacocha Inc
+Vendor: VonRueden - Blick
+Category: Utilities
+Total Amount: $3805.19
+Description: Monthly utilities service for February 2024
+
+Payment Amount: $3805.19
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-YCN3A8U8
+
+This payment has been processed successfully.
+Building Management Office

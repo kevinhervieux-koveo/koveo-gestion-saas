@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 261
+Building: 190 Renner Bridge Building 2
+Address: 959 Schmidt Gardens
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 261
+- Lease Start Date: 12/5/2024
+- Lease End Date: 12/2/2025
+- Monthly Rent: $1018
+- Security Deposit: $875
+
+Terms and Conditions:
+- Argentum accendo volubilis theologus subiungo cognatus triumphus exercitationem suffoco.
+- Eos curvo thymbra delicate deinde congregatio vel ascit caritas sui.
+
+Landlord: 190 Renner Bridge Building 2 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

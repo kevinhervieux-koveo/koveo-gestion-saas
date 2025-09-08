@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: A5C3-2024-01-UTILITIES-2
+Title: Utilities (2) - Frami LLC
+Vendor: McGlynn - Grady
+Category: Utilities
+Total Amount: $4939.03
+Description: Monthly utilities service for December 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 8/5/2026
+
+Service Details:
+- Dolorum aegrus depromo.
+- Adiuvo succurro patria arbitro thesaurus solutio patrocinor.
+
+Thank you for your business!
+McGlynn - Grady

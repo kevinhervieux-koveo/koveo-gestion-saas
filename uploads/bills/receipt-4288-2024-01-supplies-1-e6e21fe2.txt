@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 4288-2024-01-SUPPLIES-1
+Title: Supplies (1) - Reynolds - Raynor
+Vendor: Langworth, Doyle and Schuppe
+Category: Supplies
+Total Amount: $130.50
+Description: Monthly supplies service for December 2024 - Invoice 1
+
+Payment Amount: $130.50
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-LJ6AKVK8
+
+This payment has been processed successfully.
+Building Management Office

@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 203
+Building: 7984 Selmer Freeway Building 1
+Address: 401 Littel Groves
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 203
+- Lease Start Date: 4/22/2025
+- Lease End Date: 3/2/2026
+- Monthly Rent: $1815
+- Security Deposit: $2095
+
+Terms and Conditions:
+- Adduco crur ager adinventitias atrox amicitia.
+- Desipio deleniti aro peccatus comis turba.
+
+Landlord: 7984 Selmer Freeway Building 1 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

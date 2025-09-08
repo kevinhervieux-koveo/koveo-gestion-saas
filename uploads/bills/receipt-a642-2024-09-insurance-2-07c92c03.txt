@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A642-2024-09-INSURANCE-2
+Title: Insurance (2) - Stanton - Cole
+Vendor: Dooley - Pouros
+Category: Insurance
+Total Amount: $3836.82
+Description: Monthly insurance service for November 2024 - Invoice 2
+
+Payment Amount: $3836.82
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-098GRNCA
+
+This payment has been processed successfully.
+Building Management Office

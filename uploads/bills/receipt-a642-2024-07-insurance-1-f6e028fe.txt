@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A642-2024-07-INSURANCE-1
+Title: Insurance (1) - Crona Group
+Vendor: Heathcote and Sons
+Category: Insurance
+Total Amount: $4756.16
+Description: Monthly insurance service for November 2024 - Invoice 1
+
+Payment Amount: $4756.16
+Payment Date: 9/8/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-UYOKB6YU
+
+This payment has been processed successfully.
+Building Management Office

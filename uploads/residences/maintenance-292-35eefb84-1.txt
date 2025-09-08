@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 292
+Building: 338 Raul Ramp Building 5
+Address: 87391 Harley Green
+Document 1 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 292:
+
+10/12/2024 - Plumbing repair
+Status: Completed
+Cost: $495
+
+9/7/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $57
+
+Next Scheduled Maintenance: 8/12/2026

@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 292
+Building: 338 Raul Ramp Building 5
+Address: 27771 Pagac Wall
+Document 2 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/8/2025
+Inspector: Brenda Tremblay
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Fair
+
+Notes:
+Suppellex quod bardus campana aperiam succurro abbas voluptatum. Addo conservo aiunt cernuus somnus capio tolero cui colligo. Ultio aggredior varius cresco vulgivagus aeger.
+
+Inspector Signature: ____________________

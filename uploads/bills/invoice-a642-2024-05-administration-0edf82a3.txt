@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: A642-2024-05-ADMINISTRATION
+Title: Administration  - Goyette, Hessel and Abbott
+Vendor: Robel Inc
+Category: Administration
+Total Amount: $2232.25
+Description: Monthly administration service for January 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 9/17/2025
+
+Service Details:
+- Derelinquo templum incidunt spero nobis accusator.
+- Compello audax vobis.
+
+Thank you for your business!
+Robel Inc

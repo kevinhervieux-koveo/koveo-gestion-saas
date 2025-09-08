@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 836
+Building: 558 E Market Street Building 4
+Address: 7783 Rectory Close
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 836
+- Lease Start Date: 6/30/2025
+- Lease End Date: 3/17/2026
+- Monthly Rent: $1206
+- Security Deposit: $1731
+
+Terms and Conditions:
+- Bellicus conscendo nobis.
+- Laudantium defendo crastinus tum quam conservo.
+
+Landlord: 558 E Market Street Building 4 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

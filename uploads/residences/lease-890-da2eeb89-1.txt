@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 890
+Building: 558 E Market Street Building 4
+Address: 414 Emile Knolls
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 890
+- Lease Start Date: 4/9/2025
+- Lease End Date: 2/13/2026
+- Monthly Rent: $2198
+- Security Deposit: $1676
+
+Terms and Conditions:
+- Dedecor timidus modi clam amo cado clam.
+- Virtus cribro demo thesaurus incidunt bellicus inventore.
+
+Landlord: 558 E Market Street Building 4 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

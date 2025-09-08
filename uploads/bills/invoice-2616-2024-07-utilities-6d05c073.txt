@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 2616-2024-07-UTILITIES
+Title: Utilities  - Smith - Treutel
+Vendor: Brown - Oberbrunner
+Category: Utilities
+Total Amount: $443.82
+Description: Monthly utilities service for April 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 10/14/2025
+
+Service Details:
+- Suppono depromo amplus barba timor tunc.
+- Cetera armarium succedo sol arcesso.
+
+Thank you for your business!
+Brown - Oberbrunner

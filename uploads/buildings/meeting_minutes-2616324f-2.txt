@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES (2)
+
+Building: 558 E Market Street Building 4
+Organization: 1d81905d-e1f0-454c-b128-35c99c7fa4ff
+Document Date: 9/7/2025
+Document 2 of 2
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 18:00
+Location: 558 E Market Street Building 4 Community Room
+
+Attendees:
+- Shannon Kreiger (Board President)
+- Abraham Gutkowski (Treasurer)  
+- Tina Satterfield (Secretary)
+- Alison Bogan (Property Manager)
+
+Agenda Items:
+1. Budget Review - Aegrotatio reprehenderit decor deinde doloremque sint bene.
+2. Maintenance Updates - Brevis tego cotidie reprehenderit statim aspernatur.
+3. New Policies - Cauda cumque suspendo.
+
+Action Items:
+- Auctor circumvenio curia sordeo cernuus.
+- Soluta crudelis creptio crepusculum cubo similique pauper avarus adficio.
+
+Next Meeting: 8/21/2026

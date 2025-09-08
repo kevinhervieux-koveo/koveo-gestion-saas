@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: A642-2024-12-LANDSCAPING-2
+Title: Landscaping (2) - Weimann Group
+Vendor: Roberts - Haley
+Category: Landscaping
+Total Amount: $4884.38
+Description: Monthly landscaping service for October 2024 - Invoice 2
+
+Payment Amount: $4884.38
+Payment Date: 9/7/2025
+Payment Method: Check
+Reference Number: PAY-X7B6UDB2
+
+This payment has been processed successfully.
+Building Management Office

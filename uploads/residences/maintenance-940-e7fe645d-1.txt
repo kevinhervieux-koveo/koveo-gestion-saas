@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 940
+Building: 745 Lesly Spring Building 3
+Address: 647 Lauryn Ranch
+Document 1 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 940:
+
+10/2/2024 - Electrical work
+Status: Completed
+Cost: $287
+
+9/7/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $342
+
+Next Scheduled Maintenance: 3/12/2026

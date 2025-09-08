@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 977
+Building: 7984 Selmer Freeway Building 1
+Address: 2283 Deron Center
+Document 1 of 1
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 977:
+
+5/6/2025 - Electrical work
+Status: Completed
+Cost: $73
+
+9/7/2025 - Light fixture repair
+Status: In Progress
+Estimated Cost: $153
+
+Next Scheduled Maintenance: 3/22/2026
