@@ -8,7 +8,7 @@ import * as bcrypt from 'bcryptjs';
 // Database-based permissions - no config imports needed
 import { db } from '../db';
 import * as schema from '../../shared/schema';
-import { eq, and, inArray, sql, lt } from 'drizzle-orm';
+import { eq, and, inArray, sql, lt, count } from 'drizzle-orm';
 import {
   sanitizeString,
   sanitizeName,
