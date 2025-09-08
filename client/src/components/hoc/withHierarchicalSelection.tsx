@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'wouter';
+import { useLocation, useSearch } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { SelectionGrid, SelectionGridItem } from '@/components/common/SelectionGrid';
 import { useLanguage } from '@/hooks/use-language';
@@ -51,17 +51,24 @@ export function withHierarchicalSelection<T extends object>(
 ) {
   return function HierarchicalSelectionWrapper(props: T) {
     const [location, setLocation] = useLocation();
+    const search = useSearch();
     const { t } = useLanguage();
     
-    // Parse URL query parameters
-    const searchParams = location.includes('?') ? location.split('?')[1] : '';
-    const urlParams = new URLSearchParams(searchParams);
+    // Force re-render when location changes
+    React.useEffect(() => {
+      console.log('📍 [HIERARCHY DEBUG] Location changed:', location);
+      console.log('📍 [HIERARCHY DEBUG] Search changed:', search);
+    }, [location, search]);
+    
+    // Parse URL query parameters using wouter's useSearch
+    const urlParams = new URLSearchParams(search);
     const organizationId = urlParams.get('organization');
     const buildingId = urlParams.get('building');
     const residenceId = urlParams.get('residence');
 
-    // DEBUG: Log current URL state
+    // DEBUG: Log current URL state  
     console.log('🔍 [HIERARCHY DEBUG] Current location:', location);
+    console.log('🔍 [HIERARCHY DEBUG] Search params:', search);
     console.log('🔍 [HIERARCHY DEBUG] URL params:', {
       organizationId,
       buildingId,
