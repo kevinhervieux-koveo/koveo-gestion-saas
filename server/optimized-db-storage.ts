@@ -335,8 +335,8 @@ export class OptimizedDatabaseStorage implements IStorage {
 
           // Demo-only filter for demo users
           if (filters.demoOnly === 'true') {
-            whereConditions.push("(u.role LIKE 'demo_%')");
-            countWhereConditions.push("(role LIKE 'demo_%')");
+            whereConditions.push("(u.role IN ('demo_manager', 'demo_tenant', 'demo_resident'))");
+            countWhereConditions.push("(role IN ('demo_manager', 'demo_tenant', 'demo_resident'))");
           }
 
           // Search filter for name/email
@@ -709,7 +709,13 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       // Demo-only filter for demo users
       if (filters.demoOnly === 'true') {
-        whereConditions.push(sql`${schema.users.role} LIKE 'demo_%'`);
+        whereConditions.push(
+          or(
+            eq(schema.users.role, 'demo_manager'),
+            eq(schema.users.role, 'demo_tenant'),
+            eq(schema.users.role, 'demo_resident')
+          )
+        );
       }
 
       // Search filter for name/email
