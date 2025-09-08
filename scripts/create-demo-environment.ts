@@ -1173,7 +1173,7 @@ Building Management Office`;
       }
 
       const filePath = `bills/${docType}-${bill.billNumber.toLowerCase()}-${bill.id.slice(0, 8)}.txt`;
-      const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
+      const { fileSize } = writeDocumentFile(filePath, documentContent);
       
       // Map bill category to appropriate document type
       const documentTypeMapping: { [key: string]: string } = {
@@ -1359,7 +1359,7 @@ Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
           
           const fileName = `${docType.type}-${residence.unitNumber.toLowerCase()}${docSuffix}.txt`;
           const filePath = `residences/${residence.id}/${fileName}`;
-          const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
+          const { fileSize } = writeDocumentFile(filePath, documentContent);
           
           const [createdResidenceDoc] = await db
             .insert(schema.documents)
@@ -1572,7 +1572,7 @@ Terms and Conditions:
           
           const fileName = `${docType.type}-${building.name.replace(/\s+/g, '-').toLowerCase()}${docSuffix}.txt`;
           const filePath = `buildings/${building.id}/${fileName}`;
-          const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
+          const { fileSize } = writeDocumentFile(filePath, documentContent);
           
           const [createdBuildingDoc] = await db
             .insert(schema.documents)
