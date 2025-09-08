@@ -28,17 +28,16 @@ import {
   Upload,
   Filter,
   Calendar,
-  Building as BuildingIcon,
   Tag,
   ChevronDown,
 } from 'lucide-react';
-import { BuildingSelectionGrid } from '@/components/BuildingSelectionGrid';
 import ModularBillForm from '@/components/bill-management/ModularBillForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
-import type { Building, Bill } from '@shared/schema';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import type { Bill } from '@shared/schema';
 
 const BILL_CATEGORIES = [
   'insurance',
@@ -92,28 +91,28 @@ const getCategoryLabel = (category: string, t: (key: string) => string) => {
 };
 
 /**
- *
+ * Filters for bills (excluding buildingId which comes from hierarchical selection)
  */
 interface BillFilters {
-  buildingId: string;
   category: string;
   year: string;
   months: string[];
 }
 
 /**
- *
+ * Props received from withHierarchicalSelection HOC
  */
-export default function /**
- * Bills function.
- */ /**
- * Bills function.
- */
+interface BillsProps {
+  organizationId?: string;
+  buildingId?: string;
+}
 
-Bills() {
+/**
+ * Bills management component
+ */
+function BillsPage({ buildingId }: BillsProps) {
   const { t } = useLanguage();
   const [filters, setFilters] = useState<BillFilters>({
-    buildingId: '',
     category: '',
     year: new Date().getFullYear().toString(),
     months: [],
@@ -122,22 +121,9 @@ Bills() {
   const [showAllYears, setShowAllYears] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch buildings for filter dropdown
-  const {
-    data: buildings = [],
-    isLoading: buildingsLoading,
-    error: buildingsError,
-  } = useQuery<Building[]>({
-    queryKey: ['/api/buildings'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/buildings');
-      return await response.json();
-    },
-  });
-
   // Fetch bills based on filters
   const { data: bills = [], isLoading } = useQuery<Bill[]>({
-    queryKey: ['/api/bills', filters],
+    queryKey: ['/api/bills', buildingId, filters],
     queryFn: async () => {
       const params = new URLSearchParams(); /**
        * If function.
@@ -147,8 +133,8 @@ Bills() {
        * @param filters.buildingId - Filters.buildingId parameter.
        */
 
-      if (filters.buildingId) {
-        params.set('buildingId', filters.buildingId);
+      if (buildingId) {
+        params.set('buildingId', buildingId);
       } /**
        * If function.
        * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
@@ -221,6 +207,7 @@ Bills() {
 
       return response.json();
     },
+    enabled: !!buildingId, // Only fetch when buildingId is available
   });
 
   // Group bills by category
@@ -297,11 +284,7 @@ Bills() {
     return `${filters.months.length} months`;
   };
 
-  // Get building construction year for minimum year calculation
-  const selectedBuilding = Array.isArray(buildings)
-    ? buildings.find((b) => b.id === filters.buildingId)
-    : undefined;
-  const buildingConstructionYear = selectedBuilding?.yearBuilt || new Date().getFullYear();
+  // Get current year for year calculation
   const currentYear = new Date().getFullYear();
 
   // Generate year options based on show all years state
@@ -315,8 +298,8 @@ Bills() {
      */
 
     if (showAllYears) {
-      // Show all years from building construction year to 25 years forward
-      const startYear = buildingConstructionYear;
+      // Show years from 2000 to 25 years forward
+      const startYear = 2000;
       const endYear = currentYear + 25;
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
@@ -329,40 +312,6 @@ Bills() {
     }
   };
 
-  // Show loading state while buildings are loading
-  if (buildingsLoading) {
-    return (
-      <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
-        <div className='flex-1 flex items-center justify-center'>
-          <div className='text-center'>
-            <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4'></div>
-            <p className='text-gray-500'>{t('loadingBuildings')}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state if buildings failed to load
-  if (buildingsError) {
-    return (
-      <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
-        <div className='flex-1 flex items-center justify-center'>
-          <div className='text-center'>
-            <p className='text-red-500 mb-4'>{t('failedToLoadBuildings')}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700'
-            >
-              {t('retry')}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
@@ -379,29 +328,7 @@ Bills() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-5 gap-4'>
-                <div className='space-y-2'>
-                  <Label htmlFor='building-filter' className='flex items-center gap-2'>
-                    <BuildingIcon className='w-4 h-4' />
-                    {t('building')}
-                  </Label>
-                  <Select
-                    value={filters.buildingId}
-                    onValueChange={(value) => handleFilterChange('buildingId', value)}
-                  >
-                    <SelectTrigger id='building-filter'>
-                      <SelectValue placeholder={t('selectBuilding')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.isArray(buildings) &&
-                        buildings.map((building: Building) => (
-                          <SelectItem key={building.id} value={building.id}>
-                            {building.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
 
                 <div className='space-y-2'>
                   <Label htmlFor='category-filter' className='flex items-center gap-2'>
@@ -456,7 +383,7 @@ Bills() {
                               className='w-full text-left justify-start text-xs'
                               onClick={() => setShowAllYears(true)}
                             >
-                              Show more years ({buildingConstructionYear} - {currentYear + 25})
+                              Show more years (2000 - {currentYear + 25})
                             </Button>
                           </div>
                         )}
@@ -536,7 +463,7 @@ Bills() {
                   <Label className='invisible'>Actions</Label>
                   <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                     <DialogTrigger asChild>
-                      <Button className='w-full' disabled={!filters.buildingId}>
+                      <Button className='w-full' disabled={!buildingId}>
                         {t('createBill')}
                       </Button>
                     </DialogTrigger>
@@ -1115,3 +1042,8 @@ function BillDetail({
     </div>
   );
 }
+
+// Export the component wrapped with hierarchical selection HOC
+export default withHierarchicalSelection(BillsPage, { 
+  hierarchy: ['organization', 'building'] 
+});
