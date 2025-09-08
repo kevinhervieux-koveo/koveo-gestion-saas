@@ -1226,6 +1226,71 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/users/me/buildings - Get current user's accessible buildings based on their residences.
+   */
+  app.get('/api/users/me/buildings', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      
+      console.log(`🔍 [BUILDINGS] Fetching buildings for current user ${userId} with role ${req.user.role}`);
+
+      // For residents and tenants, get buildings through their residences  
+      if (req.user.role === 'resident' || req.user.role === 'tenant' || 
+          req.user.role === 'demo_resident' || req.user.role === 'demo_tenant') {
+        const residencesQuery = `
+          SELECT DISTINCT b.id, b.name, b.address, b.city, b.state, b.postal_code, b.organization_id
+          FROM user_residences ur
+          JOIN residences r ON ur.residence_id = r.id
+          JOIN buildings b ON r.building_id = b.id
+          WHERE ur.user_id = $1
+          ORDER BY b.name
+        `;
+
+        const result = await req.db.query(residencesQuery, [userId]);
+        console.log(`✅ [BUILDINGS] Found ${result.rows.length} accessible buildings for user ${userId}`);
+        
+        return res.json(result.rows);
+      }
+
+      // For managers and admins, get all buildings they manage/admin
+      const userOrgsQuery = `
+        SELECT DISTINCT organization_id 
+        FROM user_organizations 
+        WHERE user_id = $1
+      `;
+      const orgResult = await req.db.query(userOrgsQuery, [userId]);
+      const orgIds = orgResult.rows.map(row => row.organization_id);
+
+      if (orgIds.length === 0) {
+        console.log(`⚠️ [BUILDINGS] No organizations found for user ${userId}`);
+        return res.json([]);
+      }
+
+      const buildingsQuery = `
+        SELECT DISTINCT b.id, b.name, b.address, b.city, b.state, b.postal_code, b.organization_id,
+               COUNT(r.id) as residence_count
+        FROM buildings b
+        LEFT JOIN residences r ON b.id = r.building_id
+        WHERE b.organization_id = ANY($1)
+        GROUP BY b.id, b.name, b.address, b.city, b.state, b.postal_code, b.organization_id
+        ORDER BY b.name
+      `;
+
+      const result = await req.db.query(buildingsQuery, [orgIds]);
+      console.log(`✅ [BUILDINGS] Found ${result.rows.length} buildings for user ${userId} in ${orgIds.length} organizations`);
+      
+      res.json(result.rows);
+
+    } catch (error) {
+      console.error('❌ [BUILDINGS] Error fetching user buildings:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch user buildings',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+  /**
    * GET /api/users/:id/buildings - Get user's accessible buildings based on their residences.
    */
   app.get('/api/users/:id/buildings', requireAuth, async (req: any, res) => {
