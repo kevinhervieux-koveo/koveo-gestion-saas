@@ -637,7 +637,7 @@ async function seedUsers(
           })
           .returning();
         
-        // Create user-organization relationship
+        // Create user-organization relationship - critical for manager building access
         await db
           .insert(schema.userOrganizations)
           .values({
@@ -1034,7 +1034,7 @@ All information shown is generated automatically for testing and demo purposes.
 
 This demo showcases the document management capabilities of Koveo Gestion.
 
-===============================================================
+================================================================
 
 `;
 }
@@ -1262,12 +1262,12 @@ Inspection Date: ${faker.date.recent().toLocaleDateString()}
 Inspector: ${faker.person.fullName()}
 
 Inspection Results:
-✓ Electrical systems - Good condition
-✓ Plumbing - Good condition  
-✓ Heating/Cooling - Good condition
-⚠ Minor paint touch-up needed in bedroom
-✓ Windows and doors - Good condition
-✓ Smoke detectors - Working properly
++ Electrical systems - Good condition
++ Plumbing - Good condition  
++ Heating/Cooling - Good condition
+* Minor paint touch-up needed in bedroom
++ Windows and doors - Good condition
++ Smoke detectors - Working properly
 
 Overall Rating: ${faker.helpers.arrayElement(['Excellent', 'Good', 'Fair'])}
 
@@ -1291,9 +1291,9 @@ Security Deposit: $${faker.number.int({ min: 1200, max: 2500 })}
 Payment Method: ${faker.helpers.arrayElement(['Electronic Transfer', 'Check', 'Online Payment'])}
 
 Recent Payments:
-- ${faker.date.recent().toLocaleDateString()}: Rent Payment - $${faker.number.int({ min: 1200, max: 2500 })} ✓ On Time
-- ${faker.date.recent({ days: 30 }).toLocaleDateString()}: Rent Payment - $${faker.number.int({ min: 1200, max: 2500 })} ✓ On Time
-- ${faker.date.recent({ days: 60 }).toLocaleDateString()}: Rent Payment - $${faker.number.int({ min: 1200, max: 2500 })} ✓ On Time
+- ${faker.date.recent().toLocaleDateString()}: Rent Payment - $${faker.number.int({ min: 1200, max: 2500 })} - On Time
+- ${faker.date.recent({ days: 30 }).toLocaleDateString()}: Rent Payment - $${faker.number.int({ min: 1200, max: 2500 })} - On Time
+- ${faker.date.recent({ days: 60 }).toLocaleDateString()}: Rent Payment - $${faker.number.int({ min: 1200, max: 2500 })} - On Time
 
 Payment Status: Current
 Outstanding Balance: $0.00
