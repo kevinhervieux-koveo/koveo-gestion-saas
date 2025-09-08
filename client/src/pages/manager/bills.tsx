@@ -818,8 +818,8 @@ function BillDetail({
       }
       const data = await response.json();
       console.log('[BILL DOCS] Documents received:', data);
-      console.log('[BILL DOCS] Documents count:', data?.length || 0);
-      return data;
+      console.log('[BILL DOCS] Documents count:', data?.documents?.length || 0);
+      return data.documents || [];
     },
   });
 
@@ -962,10 +962,10 @@ function BillDetail({
         </div>
       )}
 
-      {/* Document Section - Show both direct uploads and attached documents */}
+      {/* Uploaded Documents Section */}
       {(currentBill.filePath || billDocuments.length > 0) && (
         <div className='border-t pt-4'>
-          <Label className='text-sm font-medium'>Documents</Label>
+          <Label className='text-sm font-medium'>Uploaded Documents</Label>
           <div className='mt-2 space-y-2'>
             {/* Direct bill upload */}
             {currentBill.filePath && (
@@ -979,30 +979,45 @@ function BillDetail({
                     </Badge>
                   )}
                 </div>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => {
-                    console.log('[DOWNLOAD] Starting download for bill:', currentBill.id);
-                    console.log('[DOWNLOAD] Document name:', currentBill.fileName);
-                    console.log('[DOWNLOAD] Document path:', currentBill.filePath);
-                    
-                    // Download the document
-                    const link = document.createElement('a');
-                    link.href = `/api/bills/${currentBill.id}/download-document`;
-                    link.download = currentBill.fileName || 'bill-document';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    console.log('[DOWNLOAD] Download link clicked');
-                  }}
-                  className='flex items-center gap-1'
-                  data-testid={`button-download-document-${currentBill.id}`}
-                >
-                  <FileText className='w-3 h-3' />
-                  Download
-                </Button>
+                <div className='flex items-center gap-2'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => {
+                      // View the document (open in new tab)
+                      window.open(`/api/bills/${currentBill.id}/download-document`, '_blank');
+                    }}
+                    className='flex items-center gap-1'
+                    data-testid={`button-view-document-${currentBill.id}`}
+                  >
+                    <FileText className='w-3 h-3' />
+                    View
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => {
+                      console.log('[DOWNLOAD] Starting download for bill:', currentBill.id);
+                      console.log('[DOWNLOAD] Document name:', currentBill.fileName);
+                      console.log('[DOWNLOAD] Document path:', currentBill.filePath);
+                      
+                      // Download the document
+                      const link = document.createElement('a');
+                      link.href = `/api/bills/${currentBill.id}/download-document`;
+                      link.download = currentBill.fileName || 'bill-document';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      
+                      console.log('[DOWNLOAD] Download link clicked');
+                    }}
+                    className='flex items-center gap-1'
+                    data-testid={`button-download-document-${currentBill.id}`}
+                  >
+                    <FileText className='w-3 h-3' />
+                    Download
+                  </Button>
+                </div>
               </div>
             )}
             
@@ -1016,49 +1031,61 @@ function BillDetail({
                     {doc.documentType || 'Document'}
                   </Badge>
                 </div>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={() => {
-                    console.log('[DOWNLOAD] Starting download for document:', doc.id);
-                    console.log('[DOWNLOAD] Document name:', doc.name);
-                    console.log('[DOWNLOAD] Document path:', doc.filePath);
-                    
-                    // Download the document
-                    const link = document.createElement('a');
-                    link.href = `/api/documents/${doc.id}/download`;
-                    link.download = doc.fileName || doc.name;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    console.log('[DOWNLOAD] Download link clicked');
-                  }}
-                  className='flex items-center gap-1'
-                  data-testid={`button-download-document-${doc.id}`}
-                >
-                  <FileText className='w-3 h-3' />
-                  Download
-                </Button>
+                <div className='flex items-center gap-2'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => {
+                      // View the document (open in new tab)
+                      window.open(`/api/documents/${doc.id}/download`, '_blank');
+                    }}
+                    className='flex items-center gap-1'
+                    data-testid={`button-view-document-${doc.id}`}
+                  >
+                    <FileText className='w-3 h-3' />
+                    View
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={() => {
+                      console.log('[DOWNLOAD] Starting download for document:', doc.id);
+                      console.log('[DOWNLOAD] Document name:', doc.name);
+                      console.log('[DOWNLOAD] Document path:', doc.filePath);
+                      
+                      // Download the document
+                      const link = document.createElement('a');
+                      link.href = `/api/documents/${doc.id}/download`;
+                      link.download = doc.fileName || doc.name;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      
+                      console.log('[DOWNLOAD] Download link clicked');
+                    }}
+                    className='flex items-center gap-1'
+                    data-testid={`button-download-document-${doc.id}`}
+                  >
+                    <FileText className='w-3 h-3' />
+                    Download
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Edit Mode Toggle */}
-      <div className='border-t pt-4'>
-        <div className='flex items-center justify-between'>
-          <Label className='text-sm font-medium'>Actions</Label>
-          <Button onClick={onEditBill} variant='outline' size='sm'>
-            Edit Bill
-          </Button>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className='flex justify-end gap-2 pt-4 border-t'>
-        <Button variant='outline' onClick={onCancel}>
+      {/* Action Buttons */}
+      <div className='flex justify-between items-center pt-4 border-t'>
+        <Button
+          onClick={onEditBill}
+          className='flex items-center gap-1'
+          data-testid={`button-edit-bill-${bill.id}`}
+        >
+          Edit Bill
+        </Button>
+        <Button variant='outline' onClick={onCancel} data-testid={`button-close-bill-modal-${bill.id}`}>
           Close
         </Button>
       </div>
