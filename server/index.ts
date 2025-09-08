@@ -8,8 +8,14 @@ import helmet from 'helmet';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
 import { log } from './vite';
 import { registerRoutes } from './routes';
+import { debugLogger, logInfo, logDebug } from './utils/debug-logger';
 
-// Production debugging: Log server startup
+// Enhanced startup logging with debug support
+logInfo('SYSTEM', 'SERVER_STARTUP', { 
+  nodeEnv: process.env.NODE_ENV,
+  port: process.env.PORT || 5000,
+  timestamp: new Date().toISOString()
+});
 console.log('🚀 Server starting with enhanced debugging...');
 
 // Add global error handlers to prevent crashes
