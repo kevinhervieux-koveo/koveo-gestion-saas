@@ -438,12 +438,8 @@ export default function Buildings() {
   } = useQuery({
     queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
-      console.log('🔍 [Buildings API] Making request to /api/manager/buildings');
       const response = await apiRequest('GET', '/api/manager/buildings');
       const data = await response.json();
-      console.log('🔍 [Buildings API] Raw response:', data);
-      console.log('🔍 [Buildings API] Buildings array:', data.buildings);
-      console.log('🔍 [Buildings API] Buildings length:', data.buildings?.length);
       return data;
     },
   });
@@ -451,14 +447,6 @@ export default function Buildings() {
   // Extract buildings array from the wrapped response
   const buildings = (buildingsData as any)?.buildings || [];
   
-  // Debug what we're actually getting
-  console.log('🔍 [Buildings Frontend] Processing data:', {
-    buildingsData,
-    buildings,
-    buildingsLength: buildings.length,
-    isArray: Array.isArray(buildings),
-    firstBuilding: buildings[0]
-  });
 
   // Filter buildings based on search
   const filteredBuildings = useMemo(() => {

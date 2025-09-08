@@ -200,20 +200,11 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
-      console.log('🏢 [Buildings API] User accessing buildings:', {
-        id: user.id,
-        role: user.role,
-        organizations: user.organizations,
-        canAccessAllOrganizations: user.canAccessAllOrganizations,
-      });
 
       let buildingsQuery;
 
       // Admin users should always have access to all buildings, regardless of organization assignments
       if (user.role === 'admin') {
-        console.log(
-          `🏢 [BUILDINGS DEBUG] Admin user detected - granting access to ALL buildings`
-        );
         buildingsQuery = db
           .select({
             id: buildings.id,
@@ -380,9 +371,6 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
-      console.log(
-        `📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`
-      );
 
       const accessibleBuildings: any[] = [];
       const buildingIds = new Set<string>();
@@ -405,9 +393,6 @@ export function registerBuildingRoutes(app: Express): void {
         userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
-        console.log(
-          `🌟 Admin user or user with global access detected - granting access to ALL buildings`
-        );
 
         // Koveo users can see ALL buildings from ALL organizations
         const allBuildings = await db
@@ -592,7 +577,6 @@ export function registerBuildingRoutes(app: Express): void {
 
       // CRITICAL FIX: Skip statistics processing to avoid async errors
       // Just return buildings directly without complex statistics calculation
-      console.log(`🔍 [Buildings DEBUG] Found ${accessibleBuildings.length} accessible buildings, returning directly`);
       
       const buildingsWithStats = accessibleBuildings.map(building => ({
         ...building,
@@ -607,9 +591,6 @@ export function registerBuildingRoutes(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
-      console.log(
-        `✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`
-      );
 
       res.json({
         buildings: buildingsWithStats,
