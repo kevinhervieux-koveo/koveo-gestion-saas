@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+INVOICE DOCUMENT
+
+Bill Number: ECE6-2024-09-SUPPLIES-1
+Title: Supplies (1) - VonRueden - Kuhn
+Vendor: Zboncak - Gislason
+Category: Supplies
+Total Amount: $4802.46
+Description: Monthly supplies service for December 2024 - Invoice 1
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 8/14/2026
+
+Service Details:
+- Vorago capto exercitationem tripudio uxor eum.
+- Utpote sequi baiulus summa sopor nesciunt dignissimos suffragium cedo aperiam.
+
+Thank you for your business!
+Zboncak - Gislason

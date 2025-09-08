@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+INVOICE DOCUMENT
+
+Bill Number: 6665-2024-02-PROFESSIONAL_SERVICES
+Title: Professional_services  - Welch, Ledner and Powlowski
+Vendor: Hickle and Sons
+Category: Professional_services
+Total Amount: $666.59
+Description: Monthly professional_services service for May 2024
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 3/6/2026
+
+Service Details:
+- Vinitor adaugeo utpote auxilium maxime considero suppono verecundia.
+- Vilitas voro avarus alii sublime vulgo arcus vinco.
+
+Thank you for your business!
+Hickle and Sons

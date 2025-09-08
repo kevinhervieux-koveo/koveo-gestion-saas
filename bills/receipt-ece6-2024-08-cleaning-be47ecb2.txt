@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: ECE6-2024-08-CLEANING
+Title: Cleaning  - Dickens - Ward
+Vendor: Cummings, Ferry and Rolfson
+Category: Cleaning
+Total Amount: $2364.38
+Description: Monthly cleaning service for April 2024
+
+Payment Amount: $2364.38
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-L8QSBC8Q
+
+This payment has been processed successfully.
+Building Management Office

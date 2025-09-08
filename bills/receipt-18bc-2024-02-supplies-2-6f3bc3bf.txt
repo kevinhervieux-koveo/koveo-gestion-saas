@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+================================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: 18BC-2024-02-SUPPLIES-2
+Title: Supplies (2) - Sanford Inc
+Vendor: Mraz - Adams
+Category: Supplies
+Total Amount: $3424.11
+Description: Monthly supplies service for July 2024 - Invoice 2
+
+Payment Amount: $3424.11
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-F9TDLT3O
+
+This payment has been processed successfully.
+Building Management Office
