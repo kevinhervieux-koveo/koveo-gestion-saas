@@ -54,7 +54,8 @@ export function withHierarchicalSelection<T extends object>(
     const { t } = useLanguage();
     
     // Parse URL query parameters
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const searchParams = location.includes('?') ? location.split('?')[1] : '';
+    const urlParams = new URLSearchParams(searchParams);
     const organizationId = urlParams.get('organization');
     const buildingId = urlParams.get('building');
     const residenceId = urlParams.get('residence');
@@ -76,7 +77,9 @@ export function withHierarchicalSelection<T extends object>(
     const navigate = (updates: Record<string, string | null>) => {
       console.log('🚀 [HIERARCHY DEBUG] Navigate called with updates:', updates);
       
-      const newParams = new URLSearchParams(urlParams);
+      // Start with current URL params
+      const currentSearchParams = location.includes('?') ? location.split('?')[1] : '';
+      const newParams = new URLSearchParams(currentSearchParams);
       
       Object.entries(updates).forEach(([key, value]) => {
         if (value === null) {
@@ -90,6 +93,7 @@ export function withHierarchicalSelection<T extends object>(
       const basePath = location.split('?')[0];
       const newUrl = newSearch ? `${basePath}?${newSearch}` : basePath;
       
+      console.log('🚀 [HIERARCHY DEBUG] Current searchParams:', currentSearchParams);
       console.log('🚀 [HIERARCHY DEBUG] Navigating from:', location);
       console.log('🚀 [HIERARCHY DEBUG] Navigating to:', newUrl);
       
