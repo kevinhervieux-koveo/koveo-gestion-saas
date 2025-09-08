@@ -2903,8 +2903,8 @@ export function registerDocumentRoutes(app: Express): void {
             
             // For development, try to find the file in common upload directories
             const possiblePaths = [
-              path.join(process.cwd(), 'uploads', document.filePath), // Main fallback location
-              path.join(process.cwd(), document.filePath), // Direct path
+              path.join(process.cwd(), document.filePath), // Direct path (PRIORITY - user directory structure)
+              path.join(process.cwd(), 'uploads', document.filePath), // Fallback location
               `/tmp/uploads/${document.filePath}`,
               `/uploads/${document.filePath}`,
               `./uploads/${document.filePath}`,
