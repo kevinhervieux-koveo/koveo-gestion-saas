@@ -1015,6 +1015,8 @@ export function registerDocumentRoutes(app: Express): void {
       const documentType = req.query.type as string; // 'building', 'resident', or undefined for both
       const specificResidenceId = req.query.residenceId as string; // Filter by specific residence
       const specificBuildingId = req.query.buildingId as string; // Filter by specific building
+      const attachedToType = req.query.attachedToType as string; // Filter by attached entity type
+      const attachedToId = req.query.attachedToId as string; // Filter by attached entity ID
 
       // Get user's organization and residences for filtering
       console.log(`[${timestamp}] 🔍 Fetching user data from storage...`);
@@ -1136,12 +1138,21 @@ export function registerDocumentRoutes(app: Express): void {
         filters,
         documentsFound: documents?.length || 0,
         specificResidenceId,
+        attachedToType,
+        attachedToId,
         userRole,
         userId,
       });
 
       // Apply role-based filtering with tenant visibility rules
       const filteredDocumentRecords = documents.filter((doc) => {
+        // If filtering by attached entity, only show documents attached to that entity
+        if (attachedToType && attachedToId) {
+          if (doc.attachedToType !== attachedToType || doc.attachedToId !== attachedToId) {
+            return false;
+          }
+        }
+
         // If filtering by specific building, only show documents for that building
         if (specificBuildingId) {
           if (doc.buildingId !== specificBuildingId) {
