@@ -138,8 +138,18 @@ export function withHierarchicalSelection<T extends object>(
       data: buildings = [],
       isLoading: isLoadingBuildings
     } = useQuery<Building[]>({
-      queryKey: ['/api/organizations', organizationId, 'buildings'],
-      enabled: currentLevel === 'building' && !!organizationId
+      queryKey: organizationId ? ['/api/organizations', organizationId, 'buildings'] : ['/api/users/me/buildings'],
+      queryFn: async () => {
+        const url = organizationId 
+          ? `/api/organizations/${organizationId}/buildings`
+          : '/api/users/me/buildings';
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error('Failed to fetch buildings');
+        }
+        return response.json();
+      },
+      enabled: currentLevel === 'building' && (!!organizationId || config.hierarchy.length === 1)
     });
 
     // Fetch residences
