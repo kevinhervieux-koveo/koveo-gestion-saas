@@ -129,6 +129,21 @@ export class OptimizedDatabaseStorage implements IStorage {
     return result;
   }
 
+  /**
+   * Enhanced logging function for storage operations
+   */
+  private logStorageOperation(operation: string, data: any, level: 'INFO' | 'ERROR' | 'DEBUG' | 'WARN' = 'INFO') {
+    const timestamp = new Date().toISOString();
+    const emoji = {
+      INFO: '📊',
+      ERROR: '❌', 
+      DEBUG: '🔍',
+      WARN: '⚠️'
+    }[level];
+    
+    console.log(`[${timestamp}] ${emoji} [STORAGE ${operation.toUpperCase()}] ${level}:`, data);
+  }
+
   // User operations with optimization
 
   /**
@@ -2439,29 +2454,68 @@ export class OptimizedDatabaseStorage implements IStorage {
     userId?: string;
     userRole?: string;
   }): Promise<Document[]> {
+    const operationId = crypto.randomUUID();
+    
+    this.logStorageOperation('getDocuments_START', {
+      operationId,
+      filters: filters || {},
+      cacheKey: `documents:${JSON.stringify(filters)}`
+    }, 'DEBUG');
+
     return this.withOptimizations(
       'getDocuments',
       `documents:${JSON.stringify(filters)}`,
       'documents',
       async () => {
+        this.logStorageOperation('getDocuments_QUERY_BUILD', {
+          operationId,
+          filters: filters || {}
+        }, 'DEBUG');
+
         let query = db.select().from(schema.documents);
 
         const conditions = [];
         if (filters?.buildingId) {
           conditions.push(eq(schema.documents.buildingId, filters.buildingId));
+          this.logStorageOperation('getDocuments_FILTER_BUILDING', {
+            operationId,
+            buildingId: filters.buildingId
+          }, 'DEBUG');
         }
         if (filters?.residenceId) {
           conditions.push(eq(schema.documents.residenceId, filters.residenceId));
+          this.logStorageOperation('getDocuments_FILTER_RESIDENCE', {
+            operationId,
+            residenceId: filters.residenceId
+          }, 'DEBUG');
         }
         if (filters?.documentType) {
           conditions.push(eq(schema.documents.documentType, filters.documentType));
+          this.logStorageOperation('getDocuments_FILTER_TYPE', {
+            operationId,
+            documentType: filters.documentType
+          }, 'DEBUG');
         }
 
         if (conditions.length > 0) {
           query = query.where(and(...conditions));
+          this.logStorageOperation('getDocuments_CONDITIONS_APPLIED', {
+            operationId,
+            conditionCount: conditions.length
+          }, 'DEBUG');
         }
 
+        const dbStart = performance.now();
         const result = await query.orderBy(desc(schema.documents.createdAt));
+        const dbTime = performance.now() - dbStart;
+        
+        this.logStorageOperation('getDocuments_QUERY_EXECUTED', {
+          operationId,
+          resultCount: result?.length || 0,
+          dbExecutionTime: `${dbTime.toFixed(2)}ms`,
+          filters: filters || {}
+        }, 'DEBUG');
+
         return result || [];
       }
     );
@@ -2479,56 +2533,223 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   async createDocument(document: InsertDocument): Promise<Document> {
+    const operationId = crypto.randomUUID();
+    
+    this.logStorageOperation('createDocument_START', {
+      operationId,
+      documentData: {
+        name: document.name,
+        documentType: document.documentType,
+        buildingId: document.buildingId,
+        residenceId: document.residenceId,
+        uploadedById: document.uploadedById,
+        filePath: document.filePath,
+        isVisibleToTenants: document.isVisibleToTenants
+      }
+    }, 'INFO');
+
     return dbPerformanceMonitor.trackQuery('createDocument', async () => {
-      
-      const result = await db.insert(schema.documents).values(document).returning();
-      
+      try {
+        const dbStart = performance.now();
+        const result = await db.insert(schema.documents).values(document).returning();
+        const dbTime = performance.now() - dbStart;
+        
+        this.logStorageOperation('createDocument_SUCCESS', {
+          operationId,
+          documentId: result[0]?.id,
+          dbExecutionTime: `${dbTime.toFixed(2)}ms`,
+          insertedData: {
+            name: result[0]?.name,
+            documentType: result[0]?.documentType,
+            filePath: result[0]?.filePath
+          }
+        }, 'INFO');
 
-      // Invalidate related caches
-      if (document.buildingId) {
-        queryCache.invalidate('documents', `*buildingId*${document.buildingId}*`);
-      }
-      if (document.residenceId) {
-        queryCache.invalidate('documents', `*residenceId*${document.residenceId}*`);
-      }
+        // Cache invalidation with logging
+        if (document.buildingId) {
+          queryCache.invalidate('documents', `*buildingId*${document.buildingId}*`);
+          this.logStorageOperation('createDocument_CACHE_INVALIDATED', {
+            operationId,
+            cachePattern: `*buildingId*${document.buildingId}*`
+          }, 'DEBUG');
+        }
+        if (document.residenceId) {
+          queryCache.invalidate('documents', `*residenceId*${document.residenceId}*`);
+          this.logStorageOperation('createDocument_CACHE_INVALIDATED', {
+            operationId,
+            cachePattern: `*residenceId*${document.residenceId}*`
+          }, 'DEBUG');
+        }
 
-      return result[0];
+        return result[0];
+      } catch (error: any) {
+        this.logStorageOperation('createDocument_ERROR', {
+          operationId,
+          error: error.message,
+          errorCode: error.code,
+          documentData: {
+            name: document.name,
+            documentType: document.documentType,
+            buildingId: document.buildingId,
+            residenceId: document.residenceId
+          }
+        }, 'ERROR');
+        throw error;
+      }
     });
   }
 
   async updateDocument(id: string, updates: Partial<Document>): Promise<Document | undefined> {
-    return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
-      const result = await db
-        .update(schema.documents)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(schema.documents.id, id))
-        .returning();
-
-      if (result[0]) {
-        // Invalidate caches
-        queryCache.invalidate('documents', `document:${id}`);
-        queryCache.invalidate('documents', '*');
+    const operationId = crypto.randomUUID();
+    
+    this.logStorageOperation('updateDocument_START', {
+      operationId,
+      documentId: id,
+      updates: {
+        fieldsBeingUpdated: Object.keys(updates),
+        hasFilePathUpdate: !!updates.filePath,
+        hasNameUpdate: !!updates.name,
+        hasVisibilityUpdate: !!updates.isVisibleToTenants
       }
+    }, 'INFO');
 
-      return result[0];
+    return dbPerformanceMonitor.trackQuery('updateDocument', async () => {
+      try {
+        const dbStart = performance.now();
+        const result = await db
+          .update(schema.documents)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(schema.documents.id, id))
+          .returning();
+        const dbTime = performance.now() - dbStart;
+
+        if (result[0]) {
+          this.logStorageOperation('updateDocument_SUCCESS', {
+            operationId,
+            documentId: id,
+            dbExecutionTime: `${dbTime.toFixed(2)}ms`,
+            updatedFields: Object.keys(updates),
+            resultData: {
+              name: result[0].name,
+              documentType: result[0].documentType,
+              filePath: result[0].filePath,
+              updatedAt: result[0].updatedAt
+            }
+          }, 'INFO');
+
+          // Cache invalidation with logging
+          queryCache.invalidate('documents', `document:${id}`);
+          queryCache.invalidate('documents', '*');
+          
+          this.logStorageOperation('updateDocument_CACHE_INVALIDATED', {
+            operationId,
+            documentId: id,
+            cachePatterns: [`document:${id}`, '*']
+          }, 'DEBUG');
+        } else {
+          this.logStorageOperation('updateDocument_NOT_FOUND', {
+            operationId,
+            documentId: id,
+            dbExecutionTime: `${dbTime.toFixed(2)}ms`
+          }, 'WARN');
+        }
+
+        return result[0];
+      } catch (error: any) {
+        this.logStorageOperation('updateDocument_ERROR', {
+          operationId,
+          documentId: id,
+          error: error.message,
+          errorCode: error.code,
+          updates: Object.keys(updates)
+        }, 'ERROR');
+        throw error;
+      }
     });
   }
 
   async deleteDocument(id: string): Promise<boolean> {
+    const operationId = crypto.randomUUID();
+    
+    this.logStorageOperation('deleteDocument_START', {
+      operationId,
+      documentId: id
+    }, 'INFO');
+
     return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
-      const result = await db
-        .delete(schema.documents)
-        .where(eq(schema.documents.id, id))
-        .returning({ id: schema.documents.id });
+      try {
+        // First get document info for logging
+        const documentInfo = await db
+          .select({
+            id: schema.documents.id,
+            name: schema.documents.name,
+            documentType: schema.documents.documentType,
+            filePath: schema.documents.filePath,
+            buildingId: schema.documents.buildingId,
+            residenceId: schema.documents.residenceId
+          })
+          .from(schema.documents)
+          .where(eq(schema.documents.id, id))
+          .limit(1);
 
-      if (result.length > 0) {
-        // Invalidate caches
-        queryCache.invalidate('documents', `document:${id}`);
-        queryCache.invalidate('documents', '*');
-        return true;
+        if (documentInfo.length === 0) {
+          this.logStorageOperation('deleteDocument_NOT_FOUND', {
+            operationId,
+            documentId: id
+          }, 'WARN');
+          return false;
+        }
+
+        const dbStart = performance.now();
+        const result = await db
+          .delete(schema.documents)
+          .where(eq(schema.documents.id, id))
+          .returning({ id: schema.documents.id });
+        const dbTime = performance.now() - dbStart;
+
+        if (result.length > 0) {
+          this.logStorageOperation('deleteDocument_SUCCESS', {
+            operationId,
+            documentId: id,
+            dbExecutionTime: `${dbTime.toFixed(2)}ms`,
+            deletedDocument: {
+              name: documentInfo[0].name,
+              documentType: documentInfo[0].documentType,
+              filePath: documentInfo[0].filePath,
+              buildingId: documentInfo[0].buildingId,
+              residenceId: documentInfo[0].residenceId
+            }
+          }, 'INFO');
+
+          // Cache invalidation with logging
+          queryCache.invalidate('documents', `document:${id}`);
+          queryCache.invalidate('documents', '*');
+          
+          this.logStorageOperation('deleteDocument_CACHE_INVALIDATED', {
+            operationId,
+            documentId: id,
+            cachePatterns: [`document:${id}`, '*']
+          }, 'DEBUG');
+          
+          return true;
+        }
+
+        this.logStorageOperation('deleteDocument_FAILED', {
+          operationId,
+          documentId: id,
+          dbExecutionTime: `${dbTime.toFixed(2)}ms`
+        }, 'WARN');
+        
+        return false;
+      } catch (error: any) {
+        this.logStorageOperation('deleteDocument_ERROR', {
+          operationId,
+          documentId: id,
+          error: error.message,
+          errorCode: error.code
+        }, 'ERROR');
+        throw error;
       }
-
-      return false;
     });
   }
 
