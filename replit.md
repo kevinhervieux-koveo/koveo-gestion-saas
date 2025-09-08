@@ -52,6 +52,7 @@ Preferred communication style: Simple, everyday language.
 
 - **Core Principles**: Modular components for quality assurance, testing, and security.
 - **Hot Reload System**: Automated development server with file watching and rapid rebuild capabilities (1-3 second rebuilds). Supports selective restarts for frontend, backend, or full stack.
+- **Working Methodology**: **CRITICAL** - Always restart the "Start application" workflow after making code changes and before each checkpoint or testing phase. This ensures the hot reload system properly rebuilds and loads all changes, preventing issues with stale code or missing updates.
 - **Monitoring**: Real-time workspace status, automated quality metrics.
 - **Configuration**: Dynamic framework configuration.
 - **Progress Tracking**: Automated validation.
