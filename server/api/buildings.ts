@@ -1431,4 +1431,155 @@ export function registerBuildingRoutes(app: Express): void {
       });
     }
   });
+
+  /**
+   * GET /api/buildings/:buildingId/residences - Get residences within a specific building
+   * Returns residences that the authenticated user has access to within the specified building
+   */
+  app.get('/api/buildings/:buildingId/residences', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const { buildingId } = req.params;
+
+      console.log(
+        `📊 Fetching residences for building ${buildingId} by user ${currentUser.id} with role ${currentUser.role}`
+      );
+
+      // First, verify the user has access to this building
+      const userBuildingAccess = await db
+        .select({ 
+          id: buildings.id,
+          organizationId: buildings.organizationId 
+        })
+        .from(buildings)
+        .leftJoin(
+          userOrganizations,
+          and(
+            eq(userOrganizations.organizationId, buildings.organizationId),
+            eq(userOrganizations.userId, currentUser.id),
+            eq(userOrganizations.isActive, true)
+          )
+        )
+        .leftJoin(residences, eq(residences.buildingId, buildings.id))
+        .leftJoin(
+          userResidences,
+          and(
+            eq(userResidences.residenceId, residences.id),
+            eq(userResidences.userId, currentUser.id),
+            eq(userResidences.isActive, true)
+          )
+        )
+        .where(
+          and(
+            eq(buildings.id, buildingId),
+            eq(buildings.isActive, true),
+            or(
+              eq(currentUser.role, 'admin'), // Admin can access any building
+              eq(userOrganizations.userId, currentUser.id), // User linked to organization
+              eq(userResidences.userId, currentUser.id) // User has residence in building
+            )
+          )
+        )
+        .limit(1);
+
+      if (userBuildingAccess.length === 0) {
+        return res.status(403).json({
+          message: 'Access denied to this building',
+          code: 'BUILDING_ACCESS_DENIED',
+        });
+      }
+
+      // Get residences within the building that the user can access
+      let residencesQuery;
+
+      if (currentUser.role === 'admin') {
+        // Admin can see all residences in the building
+        residencesQuery = db
+          .select({
+            id: residences.id,
+            unitNumber: residences.unitNumber,
+            floor: residences.floor,
+            buildingId: residences.buildingId,
+          })
+          .from(residences)
+          .innerJoin(buildings, eq(buildings.id, residences.buildingId))
+          .where(
+            and(
+              eq(residences.buildingId, buildingId),
+              eq(residences.isActive, true)
+            )
+          )
+          .orderBy(residences.unitNumber);
+      } else {
+        // Non-admin users can only see residences they have access to
+        residencesQuery = db
+          .select({
+            id: residences.id,
+            unitNumber: residences.unitNumber,
+            floor: residences.floor,
+            buildingId: residences.buildingId,
+          })
+          .from(residences)
+          .innerJoin(buildings, eq(buildings.id, residences.buildingId))
+          .leftJoin(
+            userResidences,
+            and(
+              eq(userResidences.residenceId, residences.id),
+              eq(userResidences.userId, currentUser.id),
+              eq(userResidences.isActive, true)
+            )
+          )
+          .leftJoin(
+            userOrganizations,
+            and(
+              eq(userOrganizations.organizationId, buildings.organizationId),
+              eq(userOrganizations.userId, currentUser.id),
+              eq(userOrganizations.isActive, true)
+            )
+          )
+          .where(
+            and(
+              eq(residences.buildingId, buildingId),
+              eq(residences.isActive, true),
+              or(
+                eq(userResidences.userId, currentUser.id), // User has this residence
+                eq(userOrganizations.userId, currentUser.id) // User is linked to organization (managers can see all residences)
+              )
+            )
+          )
+          .orderBy(residences.unitNumber);
+      }
+
+      const residencesList = await residencesQuery;
+
+      // Add building name to each residence for better UX
+      const buildingInfo = await db
+        .select({ name: buildings.name })
+        .from(buildings)
+        .where(eq(buildings.id, buildingId))
+        .limit(1);
+
+      const residencesWithBuildingName = residencesList.map(residence => ({
+        ...residence,
+        buildingName: buildingInfo[0]?.name || 'Unknown Building'
+      }));
+
+      console.log(`✅ Found ${residencesList.length} residences for user ${currentUser.id} in building ${buildingId}`);
+
+      res.json(residencesWithBuildingName);
+    } catch (error: any) {
+      console.error('❌ Error fetching building residences:', error);
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to fetch residences for building',
+      });
+    }
+  });
 }

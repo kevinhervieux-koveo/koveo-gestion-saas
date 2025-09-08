@@ -600,4 +600,133 @@ export function registerOrganizationRoutes(app: Express): void {
       });
     }
   });
+
+  /**
+   * GET /api/organizations/:organizationId/buildings - Get buildings within a specific organization
+   * Returns buildings that the authenticated user has access to within the specified organization
+   */
+  app.get('/api/organizations/:organizationId/buildings', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const { organizationId } = req.params;
+
+      console.log(
+        `📊 Fetching buildings for organization ${organizationId} by user ${currentUser.id} with role ${currentUser.role}`
+      );
+
+      // First, verify the user has access to this organization
+      const userOrgAccess = await db
+        .select({ id: organizations.id })
+        .from(organizations)
+        .leftJoin(
+          userOrganizations,
+          and(
+            eq(userOrganizations.organizationId, organizations.id),
+            eq(userOrganizations.userId, currentUser.id),
+            eq(userOrganizations.isActive, true)
+          )
+        )
+        .where(
+          and(
+            eq(organizations.id, organizationId),
+            eq(organizations.isActive, true),
+            or(
+              eq(currentUser.role, 'admin'), // Admin can access any organization
+              eq(userOrganizations.userId, currentUser.id) // User must be linked to organization
+            )
+          )
+        )
+        .limit(1);
+
+      if (userOrgAccess.length === 0) {
+        return res.status(403).json({
+          message: 'Access denied to this organization',
+          code: 'ORGANIZATION_ACCESS_DENIED',
+        });
+      }
+
+      // Get buildings within the organization that the user can access
+      let buildingsQuery;
+
+      if (currentUser.role === 'admin') {
+        // Admin can see all buildings in the organization
+        buildingsQuery = db
+          .select({
+            id: buildings.id,
+            name: buildings.name,
+            address: buildings.address,
+            city: buildings.city,
+            province: buildings.province,
+            postalCode: buildings.postalCode,
+          })
+          .from(buildings)
+          .where(
+            and(
+              eq(buildings.organizationId, organizationId),
+              eq(buildings.isActive, true)
+            )
+          )
+          .orderBy(buildings.name);
+      } else {
+        // Non-admin users can only see buildings they have access to through their residences or direct organization access
+        buildingsQuery = db
+          .selectDistinct({
+            id: buildings.id,
+            name: buildings.name,
+            address: buildings.address,
+            city: buildings.city,
+            province: buildings.province,
+            postalCode: buildings.postalCode,
+          })
+          .from(buildings)
+          .leftJoin(residences, eq(residences.buildingId, buildings.id))
+          .leftJoin(
+            userResidences,
+            and(
+              eq(userResidences.residenceId, residences.id),
+              eq(userResidences.userId, currentUser.id),
+              eq(userResidences.isActive, true)
+            )
+          )
+          .leftJoin(
+            userOrganizations,
+            and(
+              eq(userOrganizations.organizationId, buildings.organizationId),
+              eq(userOrganizations.userId, currentUser.id),
+              eq(userOrganizations.isActive, true)
+            )
+          )
+          .where(
+            and(
+              eq(buildings.organizationId, organizationId),
+              eq(buildings.isActive, true),
+              or(
+                eq(userResidences.userId, currentUser.id), // User has a residence in the building
+                eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
+              )
+            )
+          )
+          .orderBy(buildings.name);
+      }
+
+      const buildingsList = await buildingsQuery;
+
+      console.log(`✅ Found ${buildingsList.length} buildings for user ${currentUser.id} in organization ${organizationId}`);
+
+      res.json(buildingsList);
+    } catch (error: any) {
+      console.error('❌ Error fetching organization buildings:', error);
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to fetch buildings for organization',
+      });
+    }
+  });
 }
