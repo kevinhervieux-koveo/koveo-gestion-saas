@@ -360,5 +360,6 @@ function getCurrentLevel(
     }
   }
 
+  // All required levels in the hierarchy have been satisfied
   return 'complete';
 }
