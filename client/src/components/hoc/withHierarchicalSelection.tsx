@@ -15,12 +15,16 @@ interface HierarchyConfig {
 }
 
 /**
- * Props passed to the wrapped component with selected IDs
+ * Props passed to the wrapped component with selected IDs and back navigation
  */
 interface HierarchyProps {
   organizationId?: string;
   buildingId?: string;
   residenceId?: string;
+  // Back navigation props
+  showBackButton?: boolean;
+  backButtonLabel?: string;
+  onBack?: () => void;
 }
 
 /**
@@ -321,12 +325,42 @@ export function withHierarchicalSelection<T extends object>(
     }
 
     // All required selections are complete - render the wrapped component
+    // Determine back navigation props
+    const getBackNavigationProps = () => {
+      // Check if we should show back to building
+      if (config.hierarchy.includes('building') && buildings.length > 1 && buildingId) {
+        return {
+          showBackButton: true,
+          backButtonLabel: 'Building',
+          onBack: () => navigate({ building: null, residence: null })
+        };
+      }
+      
+      // Check if we should show back to organization  
+      if (config.hierarchy.includes('organization') && organizations.length > 1 && organizationId) {
+        return {
+          showBackButton: true,
+          backButtonLabel: 'Organization',
+          onBack: () => navigate({ organization: null, building: null, residence: null })
+        };
+      }
+      
+      return {
+        showBackButton: false,
+        backButtonLabel: undefined,
+        onBack: undefined
+      };
+    };
+
+    const backNavProps = getBackNavigationProps();
+
     return (
       <WrappedComponent
         {...props}
         organizationId={organizationId || undefined}
         buildingId={buildingId || undefined}
         residenceId={residenceId || undefined}
+        {...backNavProps}
       />
     );
   };

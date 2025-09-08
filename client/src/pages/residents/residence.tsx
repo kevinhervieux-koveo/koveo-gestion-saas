@@ -115,12 +115,15 @@ type ContactFormData = z.infer<typeof contactFormSchema>;
  */
 interface ResidenceProps {
   buildingId?: string;
+  showBackButton?: boolean;
+  backButtonLabel?: string;
+  onBack?: () => void;
 }
 
 /**
  * Residence page component for residents.
  */
-function ResidencePageInner({ buildingId }: ResidenceProps) {
+function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBack }: ResidenceProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -379,7 +382,15 @@ function ResidencePageInner({ buildingId }: ResidenceProps) {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Back navigation is now handled automatically by the HOC */}
+          {/* Back Navigation */}
+          {showBackButton && onBack && (
+            <div>
+              <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                {backButtonLabel}
+              </Button>
+            </div>
+          )}
 
           {/* Residence Selection */}
           {filteredResidences.length > 1 && (

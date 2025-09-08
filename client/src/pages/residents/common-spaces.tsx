@@ -446,12 +446,15 @@ function generateICS(bookings: Booking[], allSpaces?: boolean): string {
 
 interface CommonSpacesProps {
   buildingId?: string;
+  showBackButton?: boolean;
+  backButtonLabel?: string;
+  onBack?: () => void;
 }
 
 /**
  * Common Spaces page component for residents.
  */
-function CommonSpacesPageInner({ buildingId }: CommonSpacesProps) {
+function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, onBack }: CommonSpacesProps) {
   const { user } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -751,7 +754,15 @@ function CommonSpacesPageInner({ buildingId }: CommonSpacesProps) {
         subtitle={language === 'fr' ? 'Réservez vos espaces communs' : 'Book your common spaces'}
       />
 
-      {/* Back navigation is now handled automatically by the HOC */}
+      {/* Back Navigation */}
+      {showBackButton && onBack && (
+        <div className="p-6 pb-0">
+          <Button variant="ghost" onClick={onBack} className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            {backButtonLabel}
+          </Button>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
