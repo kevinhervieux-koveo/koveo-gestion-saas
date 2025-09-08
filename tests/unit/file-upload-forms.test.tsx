@@ -24,6 +24,13 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+// Import components for testing
+import BugReportDialog from '../../client/src/components/bug-reports/bug-report-dialog';
+import IdeaBoxDialog from '../../client/src/components/idea-box/idea-box-dialog';
+import DemandDetailsPopup from '../../client/src/components/demands/demand-details-popup';
+import ModularBillForm from '../../client/src/components/bill-management/ModularBillForm';
+import ModularBuildingDocuments from '../../client/src/pages/manager/ModularBuildingDocuments';
+
 // Test utilities - using shared test-utils wrapper
 
 // Mock API request function
@@ -475,13 +482,7 @@ describe('File Upload Forms Test Suite', () => {
     it('should validate document file types', async () => {
       render(
         <>
-          <DocumentManager 
-            config={{
-              type: 'building',
-              entityId: 'building-123',
-              userRole: 'manager'
-            }} 
-          />
+          <ModularBuildingDocuments />
         </>
       );
 
@@ -605,7 +606,7 @@ describe('File Upload Forms Test Suite', () => {
 
       render(
         <>
-          <BillForm {...mockProps} />
+          <ModularBillForm mode="create" onCancel={mockProps.onClose} onSuccess={jest.fn()} buildingId="building-123" />
         </>
       );
 
