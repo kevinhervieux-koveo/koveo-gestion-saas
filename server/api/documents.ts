@@ -2678,13 +2678,15 @@ export function registerDocumentRoutes(app: Express): void {
             document.filePath.includes('residences/') ||
             document.filePath.includes('buildings/') ||
             document.filePath.includes('text-documents/') ||
-            document.filePath.includes('general/')
+            document.filePath.includes('general/') ||
+            document.filePath.includes('bills/')
           ) {
             // Checking common file locations
             
             // For development, try to find the file in common upload directories
             const possiblePaths = [
               path.join(process.cwd(), 'uploads', document.filePath), // Main fallback location
+              path.join(process.cwd(), document.filePath), // Direct path
               `/tmp/uploads/${document.filePath}`,
               `/uploads/${document.filePath}`,
               `./uploads/${document.filePath}`,
