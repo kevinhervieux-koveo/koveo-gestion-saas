@@ -444,14 +444,19 @@ function generateICS(bookings: Booking[], allSpaces?: boolean): string {
   return [icsHeader, ...icsEvents, icsFooter].join('\r\n');
 }
 
+interface CommonSpacesProps {
+  buildingId?: string;
+}
+
 /**
  * Common Spaces page component for residents.
  */
-export default function CommonSpacesPage() {
+function CommonSpacesPageInner({ buildingId }: CommonSpacesProps) {
   const { user } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   const [selectedSpace, setSelectedSpace] = useState<CommonSpace | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -469,10 +474,19 @@ export default function CommonSpacesPage() {
     },
   });
 
-  // Fetch common spaces in user's buildings
+  const handleBackToBuilding = () => {
+    navigate('/residents/common-spaces');
+  };
+
+  // Fetch common spaces in user's buildings (filtered by building if provided)
   const { data: commonSpaces = [], isLoading: spacesLoading } = useQuery<CommonSpace[]>({
-    queryKey: ['/api/common-spaces'],
-    enabled: !!user,
+    queryKey: ['/api/common-spaces', buildingId],
+    queryFn: async () => {
+      const url = buildingId ? `/api/common-spaces?building_id=${buildingId}` : '/api/common-spaces';
+      const response = await fetch(url);
+      return response.json();
+    },
+    enabled: !!user && !!buildingId,
   });
 
   // Fetch bookings for selected space
@@ -734,6 +748,21 @@ export default function CommonSpacesPage() {
         title={language === 'fr' ? 'Espaces Communs' : 'Common Spaces'}
         subtitle={language === 'fr' ? 'Réservez vos espaces communs' : 'Book your common spaces'}
       />
+
+      {/* Back Navigation */}
+      {buildingId && (
+        <div className="p-4 border-b border-gray-200">
+          <Button
+            variant="outline"
+            onClick={handleBackToBuilding}
+            className="flex items-center gap-2"
+            data-testid="button-back-to-building"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {language === 'fr' ? 'Bâtiment' : 'Building'}
+          </Button>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -1175,3 +1204,10 @@ export default function CommonSpacesPage() {
     </div>
   );
 }
+
+// Wrap with hierarchical selection HOC using building hierarchy (residents only see buildings they have residences in)
+const CommonSpacesPage = withHierarchicalSelection(CommonSpacesPageInner, {
+  hierarchy: ['building']
+});
+
+export default CommonSpacesPage;
