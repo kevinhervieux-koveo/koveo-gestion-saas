@@ -1026,7 +1026,7 @@ async function seedBills(buildings: CreatedBuilding[], users: CreatedUser[]): Pr
  * Create demo disclosure notice for all documents
  */
 function createDemoDisclosure(): string {
-  return `⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+  return `*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
 
 This document contains fictional data created for product demonstration.
 In a real environment, this would contain actual uploaded content from property managers.
@@ -1034,7 +1034,7 @@ All information shown is generated automatically for testing and demo purposes.
 
 This demo showcases the document management capabilities of Koveo Gestion.
 
-═══════════════════════════════════════════════════════════
+===============================================================
 
 `;
 }
