@@ -438,13 +438,24 @@ export default function Buildings() {
   } = useQuery({
     queryKey: ['/api/manager/buildings'],
     queryFn: async () => {
+      console.log('🔍 [Buildings Query] Executing API call', { user: user?.role, username: user?.username });
       const response = await apiRequest('GET', '/api/manager/buildings');
-      return await response.json();
+      const data = await response.json();
+      console.log('🔍 [Buildings Query] API Response', { data, hasBuildings: !!data.buildings, buildingsCount: data.buildings?.length });
+      return data;
     },
   });
 
   // Extract buildings array from the wrapped response
   const buildings = (buildingsData as any)?.buildings || [];
+  console.log('🔍 [Buildings Debug]', { 
+    user: user?.role, 
+    buildingsData, 
+    buildings, 
+    buildingsLength: buildings.length,
+    isLoading,
+    error: _error 
+  });
 
   // Filter buildings based on search
   const filteredBuildings = useMemo(() => {
