@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Header } from '@/components/layout/header';
@@ -7,26 +7,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import {
-  Building,
+  Building as BuildingIcon,
   MapPin,
   Calendar,
-  Users,
-  Phone,
-  Mail,
   FileText,
   Home,
   Car,
   Package,
-  ChevronLeft,
-  ChevronRight,
+  ArrowLeft,
 } from 'lucide-react';
-import { Building as BuildingType, Contact } from '@shared/schema';
-import { apiRequest } from '@/lib/queryClient';
+import { Building as BuildingType } from '@shared/schema';
 import { useLanguage } from '@/hooks/use-language';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 
-/**
- *
- */
 interface BuildingWithStats extends BuildingType {
   organizationName: string;
   organizationType: string;
@@ -36,69 +29,41 @@ interface BuildingWithStats extends BuildingType {
   vacantUnits: number;
 }
 
-/**
- *
- */
-export default function MyBuilding() {
+interface MyBuildingProps {
+  buildingId?: string;
+  showBackButton?: boolean;
+  backButtonLabel?: string;
+  onBack?: () => void;
+}
+
+function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyBuildingProps) {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
-  // Fetch current user
-  const { data: user } = useQuery({
-    queryKey: ['/api/auth/user'],
-    queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
-  });
-
-  // Fetch buildings accessible to the user based on their residences
+  // Fetch building details if buildingId is provided
   const {
-    data: buildingsData,
-    isLoading: isLoadingBuildings,
-    error: buildingsError,
-  } = useQuery<{
-    buildings: BuildingWithStats[];
-    meta?: any;
-  }>({
-    queryKey: ['/api/users/buildings', user?.id],
+    data: buildingData,
+    isLoading: isLoadingBuilding,
+  } = useQuery<BuildingWithStats>({
+    queryKey: ['/api/buildings', buildingId],
     queryFn: async () => {
-      if (!user?.id) {
-        return { buildings: [] };
+      const response = await fetch(`/api/buildings/${buildingId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch building details');
       }
-      const response = await apiRequest('GET', `/api/users/${user.id}/buildings`);
       return response.json();
     },
-    enabled: !!user?.id,
+    enabled: !!buildingId,
   });
 
-  const buildings: BuildingWithStats[] = buildingsData?.buildings || [];
-
-  // Pagination calculations
-  const totalPages = Math.ceil(buildings.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentBuildings = buildings.slice(startIndex, endIndex);
-
-  const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
+  const handleViewDocuments = (targetBuildingId: string) => {
+    navigate(`/residents/building/documents?buildingId=${targetBuildingId}`);
   };
 
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
-  };
-
-  const handlePageClick = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleViewDocuments = (buildingId: string) => {
-    navigate(`/residents/building/documents?buildingId=${buildingId}`);
-  };
-
-  if (isLoadingBuildings) {
+  if (isLoadingBuilding) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('myBuildings')} subtitle={t('viewBuildingsAccess')} />
+        <Header title='My Building' subtitle='View building information and documents' />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <div className='text-center py-8'>
@@ -111,19 +76,19 @@ export default function MyBuilding() {
     );
   }
 
-  if (buildings.length === 0) {
+  if (!buildingData) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('myBuildings')} subtitle={t('viewBuildingsAccess')} />
+        <Header title='My Building' subtitle='View building information and documents' />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto'>
             <Card>
               <CardContent className='p-8 text-center'>
-                <Building className='w-16 h-16 mx-auto text-gray-400 mb-4' />
+                <BuildingIcon className='w-16 h-16 mx-auto text-gray-400 mb-4' />
                 <h3 className='text-lg font-semibold text-gray-600 mb-2'>
-                  {t('noBuildingsFound')}
+                  Building Not Found
                 </h3>
-                <p className='text-gray-500'>You don't have access to any buildings yet.</p>
+                <p className='text-gray-500'>Unable to load building information.</p>
               </CardContent>
             </Card>
           </div>
@@ -134,253 +99,213 @@ export default function MyBuilding() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='My Buildings' subtitle='View buildings you have access to' />
+      <Header title='My Building' subtitle='View building information and documents' />
+
+      {showBackButton && onBack && (
+        <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+          <div className='flex items-center px-6 py-4'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={onBack}
+              className='flex items-center gap-2'
+              data-testid='button-back-to-building'
+            >
+              <ArrowLeft className='w-4 h-4' />
+              {backButtonLabel}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
-        <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Building Cards */}
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {currentBuildings.map((building) => (
-              <Card key={building.id} className='hover:shadow-lg transition-shadow'>
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2'>
-                    <Building className='w-5 h-5' />
-                    {building.name}
-                  </CardTitle>
-                  <div className='text-sm text-muted-foreground'>{building.organizationName}</div>
-                </CardHeader>
-                <CardContent className='space-y-4'>
-                  <div className='grid grid-cols-1 gap-3'>
+        <div className='max-w-4xl mx-auto space-y-6'>
+          {/* Building Details Card */}
+          <Card className='hover:shadow-lg transition-shadow'>
+            <CardHeader>
+              <CardTitle className='flex items-center gap-2'>
+                <BuildingIcon className='w-5 h-5' />
+                {buildingData.name}
+              </CardTitle>
+              {buildingData.organizationName && (
+                <div className='text-sm text-muted-foreground'>{buildingData.organizationName}</div>
+              )}
+            </CardHeader>
+            <CardContent className='space-y-6'>
+              {/* Address Section */}
+              <div className='space-y-3'>
+                <div>
+                  <Label className='text-xs font-medium text-gray-500'>{t('address')}</Label>
+                  <div className='flex items-start gap-2 mt-1'>
+                    <MapPin className='w-4 h-4 mt-0.5 text-muted-foreground' />
                     <div>
-                      <Label className='text-xs font-medium text-gray-500'>{t('address')}</Label>
-                      <div className='flex items-start gap-2'>
-                        <MapPin className='w-3 h-3 mt-0.5' />
-                        <div>
-                          <p className='text-sm text-gray-700'>{building.address}</p>
-                          <p className='text-sm text-gray-700'>
-                            {building.city}, {building.province} {building.postalCode}
-                          </p>
-                        </div>
-                      </div>
+                      <p className='text-sm text-gray-700'>{buildingData.address}</p>
+                      <p className='text-sm text-gray-700'>
+                        {buildingData.city}, {buildingData.province} {buildingData.postalCode}
+                      </p>
                     </div>
-
-                    <div className='grid grid-cols-2 gap-3'>
-                      <div>
-                        <Label className='text-xs font-medium text-gray-500'>
-                          {t('buildingType')}
-                        </Label>
-                        <p className='text-sm text-gray-700 capitalize'>{building.buildingType}</p>
-                      </div>
-                      {building.yearBuilt && (
-                        <div>
-                          <Label className='text-xs font-medium text-gray-500'>
-                            {t('yearBuilt')}
-                          </Label>
-                          <div className='flex items-center gap-1'>
-                            <Calendar className='w-3 h-3' />
-                            <span className='text-sm text-gray-700'>{building.yearBuilt}</span>
-                          </div>
-                        </div>
-                      )}
-                      <div>
-                        <Label className='text-xs font-medium text-gray-500'>
-                          {t('totalUnits')}
-                        </Label>
-                        <div className='flex items-center gap-1'>
-                          <Home className='w-3 h-3' />
-                          <span className='text-sm text-gray-700'>{building.totalUnits}</span>
-                        </div>
-                      </div>
-                      {building.totalFloors && (
-                        <div>
-                          <Label className='text-xs font-medium text-gray-500'>
-                            {t('totalFloors')}
-                          </Label>
-                          <p className='text-sm text-gray-700'>{building.totalFloors}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {(building.parkingSpaces || building.storageSpaces) && (
-                      <div className='grid grid-cols-2 gap-3'>
-                        {building.parkingSpaces && (
-                          <div>
-                            <Label className='text-xs font-medium text-gray-500'>{t('parking')}</Label>
-                            <div className='flex items-center gap-1'>
-                              <Car className='w-3 h-3' />
-                              <span className='text-sm text-gray-700'>
-                                {building.parkingSpaces}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        {building.storageSpaces && (
-                          <div>
-                            <Label className='text-xs font-medium text-gray-500'>{t('storage')}</Label>
-                            <div className='flex items-center gap-1'>
-                              <Package className='w-3 h-3' />
-                              <span className='text-sm text-gray-700'>
-                                {building.storageSpaces}
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {building.managementCompany && (
-                      <div>
-                        <Label className='text-xs font-medium text-gray-500'>
-                          {t('managementCompany')}
-                        </Label>
-                        <p className='text-sm text-gray-700'>{building.managementCompany}</p>
-                      </div>
-                    )}
-
-                    {/* Occupancy Stats */}
-                    <div>
-                      <Label className='text-xs font-medium text-gray-500'>{t('occupancy')}</Label>
-                      <div className='flex items-center gap-2 text-sm'>
-                        <Badge variant='outline' className='text-xs'>
-                          {building.occupiedUnits}/{building.totalUnits} {t('units')}
-                        </Badge>
-                        <Badge
-                          variant={
-                            building.occupancyRate >= 90
-                              ? 'default'
-                              : building.occupancyRate >= 70
-                                ? 'secondary'
-                                : 'destructive'
-                          }
-                          className='text-xs'
-                        >
-                          {Math.round(building.occupancyRate)}% {t('occupied')}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {building.amenities && (
-                      <div>
-                        <Label className='text-xs font-medium text-gray-500'>{t('amenities')}</Label>
-                        <div className='flex flex-wrap gap-1 mt-1'>
-                          {(() => {
-                            try {
-                              const amenities =
-                                typeof building.amenities === 'string'
-                                  ? JSON.parse(building.amenities)
-                                  : building.amenities;
-                              return Array.isArray(amenities)
-                                ? amenities.slice(0, 3).map((amenity: string, index: number) => (
-                                    <Badge key={index} variant='outline' className='text-xs'>
-                                      {amenity}
-                                    </Badge>
-                                  ))
-                                : null;
-                            } catch (_e) {
-                              return (
-                                <span className='text-xs text-muted-foreground'>
-                                  {t('unableToDisplayAmenities')}
-                                </span>
-                              );
-                            }
-                          })()}
-                          {(() => {
-                            try {
-                              const amenities =
-                                typeof building.amenities === 'string'
-                                  ? JSON.parse(building.amenities)
-                                  : building.amenities;
-                              if (Array.isArray(amenities) && amenities.length > 3) {
-                                return (
-                                  <Badge variant='outline' className='text-xs'>
-                                    +{amenities.length - 3} {t('moreAmenities')}
-                                  </Badge>
-                                );
-                              }
-                            } catch (_e) {
-                              // Ignore error
-                            }
-                            return null;
-                          })()}
-                        </div>
-                      </div>
-                    )}
                   </div>
-
-                  <div className='pt-4 border-t'>
-                    <Button
-                      onClick={() => handleViewDocuments(building.id)}
-                      variant='outline'
-                      size='sm'
-                      className='w-full justify-start'
-                    >
-                      <FileText className='w-4 h-4 mr-2' />
-                      {t('viewDocumentsButton')}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className='flex items-center justify-center gap-2 mt-8'>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className='h-4 w-4' />
-                {t('previous')}
-              </Button>
-
-              <div className='flex gap-1'>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? 'default' : 'outline'}
-                      size='sm'
-                      onClick={() => handlePageClick(pageNum)}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
+                </div>
               </div>
 
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-              >
-                {t('next')}
-                <ChevronRight className='h-4 w-4' />
-              </Button>
-            </div>
-          )}
+              {/* Building Details Grid */}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <div className='space-y-3'>
+                  <div>
+                    <Label className='text-xs font-medium text-gray-500'>
+                      {t('buildingType')}
+                    </Label>
+                    <p className='text-sm text-gray-700 capitalize'>{buildingData.buildingType}</p>
+                  </div>
+                  
+                  {buildingData.yearBuilt && (
+                    <div>
+                      <Label className='text-xs font-medium text-gray-500'>
+                        {t('yearBuilt')}
+                      </Label>
+                      <div className='flex items-center gap-2 mt-1'>
+                        <Calendar className='w-4 h-4 text-muted-foreground' />
+                        <span className='text-sm text-gray-700'>{buildingData.yearBuilt}</span>
+                      </div>
+                    </div>
+                  )}
 
-          {/* Page info */}
-          <div className='text-center text-sm text-muted-foreground mt-4'>
-            {t('showing')} {startIndex + 1} to {Math.min(endIndex, buildings.length)} of {buildings.length}{' '}
-            {t('buildings')}
-          </div>
+                  {buildingData.managementCompany && (
+                    <div>
+                      <Label className='text-xs font-medium text-gray-500'>
+                        {t('managementCompany')}
+                      </Label>
+                      <p className='text-sm text-gray-700'>{buildingData.managementCompany}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className='space-y-3'>
+                  <div>
+                    <Label className='text-xs font-medium text-gray-500'>
+                      {t('totalUnits')}
+                    </Label>
+                    <div className='flex items-center gap-2 mt-1'>
+                      <Home className='w-4 h-4 text-muted-foreground' />
+                      <span className='text-sm text-gray-700'>{buildingData.totalUnits}</span>
+                    </div>
+                  </div>
+
+                  {buildingData.totalFloors && (
+                    <div>
+                      <Label className='text-xs font-medium text-gray-500'>
+                        {t('totalFloors')}
+                      </Label>
+                      <p className='text-sm text-gray-700'>{buildingData.totalFloors}</p>
+                    </div>
+                  )}
+
+                  {/* Parking and Storage */}
+                  {(buildingData.parkingSpaces || buildingData.storageSpaces) && (
+                    <div className='space-y-2'>
+                      {buildingData.parkingSpaces && (
+                        <div>
+                          <Label className='text-xs font-medium text-gray-500'>{t('parking')}</Label>
+                          <div className='flex items-center gap-2 mt-1'>
+                            <Car className='w-4 h-4 text-muted-foreground' />
+                            <span className='text-sm text-gray-700'>
+                              {buildingData.parkingSpaces} spaces
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      {buildingData.storageSpaces && (
+                        <div>
+                          <Label className='text-xs font-medium text-gray-500'>{t('storage')}</Label>
+                          <div className='flex items-center gap-2 mt-1'>
+                            <Package className='w-4 h-4 text-muted-foreground' />
+                            <span className='text-sm text-gray-700'>
+                              {buildingData.storageSpaces} units
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Occupancy Stats */}
+              {buildingData.totalUnits && buildingData.occupiedUnits !== undefined && (
+                <div>
+                  <Label className='text-xs font-medium text-gray-500'>{t('occupancy')}</Label>
+                  <div className='flex items-center gap-2 mt-1'>
+                    <Badge variant='outline' className='text-xs'>
+                      {buildingData.occupiedUnits}/{buildingData.totalUnits} {t('units')}
+                    </Badge>
+                    <Badge
+                      variant={
+                        buildingData.occupancyRate >= 90
+                          ? 'default'
+                          : buildingData.occupancyRate >= 70
+                            ? 'secondary'
+                            : 'destructive'
+                      }
+                      className='text-xs'
+                    >
+                      {Math.round(buildingData.occupancyRate || 0)}% {t('occupied')}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+
+              {/* Amenities */}
+              {buildingData.amenities && (
+                <div>
+                  <Label className='text-xs font-medium text-gray-500'>{t('amenities')}</Label>
+                  <div className='flex flex-wrap gap-2 mt-1'>
+                    {(() => {
+                      try {
+                        const amenities =
+                          typeof buildingData.amenities === 'string'
+                            ? JSON.parse(buildingData.amenities)
+                            : buildingData.amenities;
+                        return Array.isArray(amenities)
+                          ? amenities.map((amenity: string, index: number) => (
+                              <Badge key={index} variant='outline' className='text-xs'>
+                                {amenity}
+                              </Badge>
+                            ))
+                          : null;
+                      } catch (_e) {
+                        return (
+                          <span className='text-xs text-muted-foreground'>
+                            {t('unableToDisplayAmenities')}
+                          </span>
+                        );
+                      }
+                    })()}
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className='pt-4 border-t'>
+                <Button
+                  onClick={() => handleViewDocuments(buildingData.id)}
+                  className='w-full justify-start'
+                  data-testid='button-view-documents'
+                >
+                  <FileText className='w-4 h-4 mr-2' />
+                  {t('viewDocumentsButton')}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
   );
 }
+
+// Export the component wrapped with hierarchical selection
+export default withHierarchicalSelection(MyBuilding, {
+  hierarchy: ['building'],
+  title: 'Select Building',
+  subtitle: 'Choose a building to view details',
+});
