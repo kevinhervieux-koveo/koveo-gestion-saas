@@ -1,0 +1,33 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+LEASE AGREEMENT
+
+Unit: 464
+Building: 4647 Meggie Pass Building 2
+Address: 51971 New Road
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 464
+- Lease Start Date: 4/1/2025
+- Lease End Date: 2/6/2026
+- Monthly Rent: $1887
+- Security Deposit: $1377
+
+Terms and Conditions:
+- Ipsa arbor deprimo.
+- Antea vindico quae.
+
+Landlord: 4647 Meggie Pass Building 2 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

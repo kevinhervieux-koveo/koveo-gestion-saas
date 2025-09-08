@@ -1,0 +1,33 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+LEASE AGREEMENT
+
+Unit: 811
+Building: 7393 Abernathy Green Building 5
+Address: 8687 Feest Spurs
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 811
+- Lease Start Date: 7/2/2025
+- Lease End Date: 1/5/2026
+- Monthly Rent: $1755
+- Security Deposit: $1449
+
+Terms and Conditions:
+- Atrocitas coniuratio adiuvo communis cruentus audax cito thesaurus.
+- Debeo vaco conventus debilito.
+
+Landlord: 7393 Abernathy Green Building 5 Management
+Tenant Signature: ____________________
+Date: 9/8/2025

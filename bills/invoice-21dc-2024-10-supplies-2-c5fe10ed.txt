@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+INVOICE DOCUMENT
+
+Bill Number: 21DC-2024-10-SUPPLIES-2
+Title: Supplies (2) - Hamill - Bartell
+Vendor: Wolff Group
+Category: Supplies
+Total Amount: $2794.52
+Description: Monthly supplies service for January 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 11/15/2025
+
+Service Details:
+- Vindico aegrus summa suppono varius facilis minus atqui id.
+- Delectatio suscipio degusto sollicito creta accusator bardus.
+
+Thank you for your business!
+Wolff Group
