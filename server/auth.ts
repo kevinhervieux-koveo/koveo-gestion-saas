@@ -92,16 +92,12 @@ const PostgreSqlStore = connectPg(session);
  * Uses centralized configuration to determine the appropriate database.
  */
 function getDatabaseUrl(requestDomain?: string): string {
-  // Use the centralized database configuration to ensure session store uses same DB as API
-  const selectedUrl = config.database.getRuntimeDatabaseUrl(requestDomain);
+  // CRITICAL: koveo-gestion.com MUST use DATABASE_URL_KOVEO exclusively
+  const finalUrl = config.database.getRuntimeDatabaseUrl(requestDomain);
   const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
   const isProduction = config.server.isProduction || isKoveoRequest;
   
-  // CRITICAL FIX: Ensure session store uses the SAME database as API queries
-  // In production, always use DATABASE_URL_KOVEO to match the API queries
-  const finalUrl = isProduction && process.env.DATABASE_URL_KOVEO ? process.env.DATABASE_URL_KOVEO : selectedUrl;
-  
-  console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} database: ${finalUrl?.substring(0, 50)}... (domain: ${requestDomain || 'unknown'})`);
+  console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)'} database: ${finalUrl?.substring(0, 50)}... (domain: ${requestDomain || 'unknown'})`);
   
   if (!finalUrl) {
     throw new Error('No database URL available for session store');

@@ -99,14 +99,21 @@ export const config = {
 
   // Database configuration
   database: {
-    // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
-    url: envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL,
+    // CRITICAL: koveo-gestion.com MUST use DATABASE_URL_KOVEO exclusively
+    url: envConfig.isProduction ? env.DATABASE_URL_KOVEO! : env.DATABASE_URL,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
     // Helper function to get database URL at runtime based on request
     getRuntimeDatabaseUrl: (requestDomain?: string) => {
-      // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
-      return envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL;
+      // CRITICAL: koveo-gestion.com MUST use DATABASE_URL_KOVEO exclusively  
+      const isKoveoProduction = requestDomain?.includes('koveo-gestion.com') || envConfig.isProduction;
+      if (isKoveoProduction) {
+        if (!env.DATABASE_URL_KOVEO) {
+          throw new Error('DATABASE_URL_KOVEO is required for production/koveo-gestion.com');
+        }
+        return env.DATABASE_URL_KOVEO;
+      }
+      return env.DATABASE_URL;
     },
   },
 
