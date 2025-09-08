@@ -30,16 +30,7 @@ async function findFinancialDocuments() {
 
     // Find documents in financial category with Receipt or invoice in name (case insensitive)
     const matchingDocs = await db
-      .select({
-        id: documents.id,
-        title: documents.title,
-        fileName: documents.fileName,
-        category: documents.category,
-        filePath: documents.filePath,
-        organizationId: documents.organizationId,
-        buildingId: documents.buildingId,
-        createdAt: documents.createdAt,
-      })
+      .select()
       .from(documents)
       .where(
         and(
@@ -51,8 +42,7 @@ async function findFinancialDocuments() {
             ilike(documents.fileName, '%invoice%')
           )
         )
-      )
-      .orderBy(documents.createdAt);
+      );
 
     return matchingDocs;
   } catch (error) {
