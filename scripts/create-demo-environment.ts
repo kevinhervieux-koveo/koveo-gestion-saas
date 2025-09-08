@@ -1279,7 +1279,7 @@ Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
           const filePath = `residences/${docType.type}-${residence.unitNumber.toLowerCase()}-${residence.id.slice(0, 8)}${docSuffix}.txt`;
           const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
           
-          await db
+          const [createdResidenceDoc] = await db
             .insert(schema.documents)
             .values({
               name: `${docType.name} - Unit ${residence.unitNumber}${docSuffix}`,
@@ -1293,8 +1293,10 @@ Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
               residenceId: residence.id,
               buildingId: residence.buildingId,
               uploadedById: manager.id
-            });
-          
+            })
+            .returning();
+
+          console.log(`     ✓ Created residence document: ${createdResidenceDoc.id} - ${createdResidenceDoc.name} (${createdResidenceDoc.filePath})`);
           totalDocuments++;
         }
       }
@@ -1420,7 +1422,7 @@ Terms and Conditions:
           const filePath = `buildings/${docType.type}-${building.id.slice(0, 8)}${docSuffix}.txt`;
           const { fileSize } = writeDocumentFile(`uploads/${filePath}`, documentContent);
           
-          await db
+          const [createdBuildingDoc] = await db
             .insert(schema.documents)
             .values({
               name: `${docType.name}${docSuffix} - ${building.name}`,
@@ -1433,8 +1435,10 @@ Terms and Conditions:
               isVisibleToTenants: docType.type === 'meeting_minutes',
               buildingId: building.id,
               uploadedById: manager.id
-            });
-          
+            })
+            .returning();
+
+          console.log(`     ✓ Created building document: ${createdBuildingDoc.id} - ${createdBuildingDoc.name} (${createdBuildingDoc.filePath})`);
           totalDocuments++;
         }
       }
