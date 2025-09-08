@@ -207,7 +207,7 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
               data-testid='button-back-to-selection'
             >
               <ArrowLeft className='w-4 h-4' />
-              {backButtonLabel || t('back')}
+              {backButtonLabel || t('goBack')}
             </Button>
           </div>
         </div>
