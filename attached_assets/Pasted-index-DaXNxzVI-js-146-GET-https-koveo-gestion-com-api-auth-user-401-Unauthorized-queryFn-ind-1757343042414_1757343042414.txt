@@ -1,0 +1,46 @@
+index-DaXNxzVI.js:146  GET https://koveo-gestion.com/api/auth/user 401 (Unauthorized)
+queryFn @ index-DaXNxzVI.js:146
+r @ vendor-query-C1E1HIr_.js:1
+y @ vendor-query-C1E1HIr_.js:1
+start @ vendor-query-C1E1HIr_.js:1
+fetch @ vendor-query-C1E1HIr_.js:1
+#l @ vendor-query-C1E1HIr_.js:1
+onSubscribe @ vendor-query-C1E1HIr_.js:1
+subscribe @ vendor-query-C1E1HIr_.js:1
+(anonymous) @ vendor-query-C1E1HIr_.js:1
+Wc @ index-DaXNxzVI.js:25
+nl @ index-DaXNxzVI.js:25
+vd @ index-DaXNxzVI.js:25
+At @ index-DaXNxzVI.js:25
+vd @ index-DaXNxzVI.js:25
+At @ index-DaXNxzVI.js:25
+vd @ index-DaXNxzVI.js:25
+At @ index-DaXNxzVI.js:25
+vd @ index-DaXNxzVI.js:25
+At @ index-DaXNxzVI.js:25
+vd @ index-DaXNxzVI.js:25
+At @ index-DaXNxzVI.js:25
+vd @ index-DaXNxzVI.js:25
+At @ index-DaXNxzVI.js:25
+vd @ index-DaXNxzVI.js:25
+At @ index-DaXNxzVI.js:25
+vd @ index-DaXNxzVI.js:25
+qd @ index-DaXNxzVI.js:25
+xi @ index-DaXNxzVI.js:25
+Gd @ index-DaXNxzVI.js:25
+rl @ index-DaXNxzVI.js:25
+Nd @ index-DaXNxzVI.js:25
+Od @ index-DaXNxzVI.js:25
+Md @ index-DaXNxzVI.js:25
+Td @ index-DaXNxzVI.js:25
+Qd @ index-DaXNxzVI.js:25
+Oa @ index-DaXNxzVI.js:10
+buildings-Gv4T4988.js:1 🔍 [Buildings Frontend] Processing data: {buildingsData: undefined, buildings: Array(0), buildingsLength: 0, isArray: true, firstBuilding: undefined}
+buildings-Gv4T4988.js:1 🔍 [Buildings API] Making request to /api/manager/buildings
+buildings-Gv4T4988.js:1 🔍 [Buildings Frontend] Processing data: {buildingsData: undefined, buildings: Array(0), buildingsLength: 0, isArray: true, firstBuilding: undefined}
+buildings-Gv4T4988.js:1 🔍 [Buildings API] Raw response: {buildings: Array(0), meta: {…}}
+buildings-Gv4T4988.js:1 🔍 [Buildings API] Buildings array: []
+buildings-Gv4T4988.js:1 🔍 [Buildings API] Buildings length: 0
+buildings-Gv4T4988.js:1 🔍 [Buildings Frontend] Processing data: {buildingsData: {…}, buildings: Array(0), buildingsLength: 0, isArray: true, firstBuilding: undefined}
+buildings-Gv4T4988.js:1 🔍 [Buildings Frontend] Processing data: {buildingsData: {…}, buildings: Array(0), buildingsLength: 0, isArray: true, firstBuilding: undefined}
+buildings-Gv4T4988.js:1 🔍 [Buildings Frontend] Processing data: {buildingsData: {…}, buildings: Array(0), buildingsLength: 0, isArray: true, firstBuilding: undefined}
