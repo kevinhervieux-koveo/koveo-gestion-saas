@@ -34,7 +34,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('budgetManagement')} subtitle={t('budgetSubtitle')} />
+      <Header title={t('budgetDashboard')} subtitle={t('budgetSubtitle')} />
       
       {/* Back Navigation */}
       {(organizationId || buildingId) && (
