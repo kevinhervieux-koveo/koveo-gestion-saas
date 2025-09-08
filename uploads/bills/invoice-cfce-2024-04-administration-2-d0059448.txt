@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: CFCE-2024-04-ADMINISTRATION-2
+Title: Administration (2) - Price, Wilkinson and Corwin
+Vendor: Dietrich Group
+Category: Administration
+Total Amount: $3861.68
+Description: Monthly administration service for August 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 2/3/2026
+
+Service Details:
+- Excepturi nam conscendo acervus trans.
+- Administratio crebro quaerat.
+
+Thank you for your business!
+Dietrich Group

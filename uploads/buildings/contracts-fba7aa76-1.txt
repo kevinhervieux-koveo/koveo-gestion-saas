@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+SERVICE CONTRACT (1)
+
+Building: 5532 Greta Fields Building 3
+Organization: 3cb9a95a-7a66-4841-9dcb-a980ad46151d
+Document Date: 9/7/2025
+Document 1 of 2
+
+SERVICE CONTRACT
+
+Contract Number: CON-SRPR0A76
+Service Provider: Erdman and Sons
+Service Type: Landscaping
+Contract Period: 12/20/2024 to 12/7/2025
+Monthly Cost: $1310
+
+Service Details:
+Odio antiquus laborum vilitas saepe degenero ea. Valeo bis mollitia repellendus ara valde corporis brevis numquam. Altus capio basium.
+
+Contact Information:
+Manager: Leslie Muller
+Phone: (579) 333-0125
+Emergency Contact: (438) 800-1799
+
+Terms and Conditions:
+- Vomito advoco aliquam possimus arbitro denuncio contra vigor.
+- Velociter omnis libero.

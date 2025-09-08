@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BUILDING PERMIT (1)
+
+Building: 826 Rebeca Neck Building 4
+Organization: 3cb9a95a-7a66-4841-9dcb-a980ad46151d
+Document Date: 9/7/2025
+Document 1 of 2
+
+BUILDING PERMIT
+
+Permit Number: PER-ZAHH7TRY
+Permit Type: HVAC Installation
+Issue Date: 11/4/2024
+Expiry Date: 6/23/2026
+Contractor: Flatley, Hilll and Gleason
+
+Work Description:
+Comedo cur venustas culpa officia tactus alioqui velociter tabernus ducimus. Venio cursim dedecor agnitio causa thesaurus numquam capio ventosus coniecto. Contra cerno adficio aliqua velut odit clarus calcar toties cattus.
+
+Inspection Schedule:
+- Initial Inspection: 9/7/2025
+- Progress Inspection: 9/8/2025
+- Final Inspection: 12/5/2025
+
+Approved by: City Planning Department
+Permit Fee: $704

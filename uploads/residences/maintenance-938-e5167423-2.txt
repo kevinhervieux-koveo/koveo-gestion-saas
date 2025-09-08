@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 938
+Building: 7481 Kay Lake Building 1
+Address: 35843 Dawn Underpass
+Document 2 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 938:
+
+1/14/2025 - HVAC maintenance
+Status: Completed
+Cost: $272
+
+9/7/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $258
+
+Next Scheduled Maintenance: 10/24/2025

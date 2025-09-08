@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 87856 Coty Views Building 5
+Organization: 3cb9a95a-7a66-4841-9dcb-a980ad46151d
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 19:00
+Location: 87856 Coty Views Building 5 Community Room
+
+Attendees:
+- Maureen Hills (Board President)
+- Sarah McGlynn-Cremin (Treasurer)  
+- Garry Green (Secretary)
+- Gordon Hammes (Property Manager)
+
+Agenda Items:
+1. Budget Review - Voluptates crapula officia adeptio patria quos creator solus.
+2. Maintenance Updates - Creator alias adnuo.
+3. New Policies - Beatus arbor velum desipio coepi theologus.
+
+Action Items:
+- Terreo crepusculum summisse decretum bellicus coaegresco utroque.
+- Adduco sophismata deorsum decimus textilis provident brevis velut degero sursum.
+
+Next Meeting: 8/11/2026

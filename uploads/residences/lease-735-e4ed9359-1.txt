@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 735
+Building: 87856 Coty Views Building 5
+Address: 823 Maudie Plain
+Document 1 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 735
+- Lease Start Date: 6/21/2025
+- Lease End Date: 1/18/2026
+- Monthly Rent: $1544
+- Security Deposit: $2282
+
+Terms and Conditions:
+- Vallum peccatus a dignissimos id vox.
+- Demum vesica careo labore deputo.
+
+Landlord: 87856 Coty Views Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

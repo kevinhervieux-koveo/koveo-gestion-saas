@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 5532 Greta Fields Building 3
+Organization: 3cb9a95a-7a66-4841-9dcb-a980ad46151d
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 19:00
+Location: 5532 Greta Fields Building 3 Community Room
+
+Attendees:
+- Tanya Larson (Board President)
+- Dr. Randolph Rolfson (Treasurer)  
+- Deborah Boyer IV (Secretary)
+- Willis Herzog (Property Manager)
+
+Agenda Items:
+1. Budget Review - Confero via arbor rerum tutamen arbustum aut decumbo una animadverto.
+2. Maintenance Updates - Timidus acquiro agnitio tum.
+3. New Policies - Amicitia abbas sopor argumentum iure summisse.
+
+Action Items:
+- Astrum ocer tabella arx tabula.
+- Absconditus conforto thesaurus aufero admoneo.
+
+Next Meeting: 2/25/2026

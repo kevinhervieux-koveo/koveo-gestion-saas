@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 612
+Building: 37090 Manor Close Building 2
+Address: 8221 Christy Rapid
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 612
+- Lease Start Date: 9/3/2025
+- Lease End Date: 2/28/2026
+- Monthly Rent: $1160
+- Security Deposit: $805
+
+Terms and Conditions:
+- Recusandae apparatus talis arceo copiose bis sapiente cerno.
+- Alter cubo studio articulus itaque aeneus fugiat modi.
+
+Landlord: 37090 Manor Close Building 2 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

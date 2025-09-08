@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: E2E2-2024-10-LANDSCAPING
+Title: Landscaping  - Green - Dietrich
+Vendor: Christiansen Group
+Category: Landscaping
+Total Amount: $2958.34
+Description: Monthly landscaping service for October 2024
+
+Payment Amount: $2958.34
+Payment Date: 9/7/2025
+Payment Method: Check
+Reference Number: PAY-E879JUDQ
+
+This payment has been processed successfully.
+Building Management Office

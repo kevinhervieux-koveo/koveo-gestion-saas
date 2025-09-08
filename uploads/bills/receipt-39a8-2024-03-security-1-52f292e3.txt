@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 39A8-2024-03-SECURITY-1
+Title: Security (1) - Weimann, Cruickshank and Schulist
+Vendor: Leuschke - Kuphal
+Category: Security
+Total Amount: $2584.83
+Description: Monthly security service for January 2024 - Invoice 1
+
+Payment Amount: $2584.83
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-B8ULUMIU
+
+This payment has been processed successfully.
+Building Management Office

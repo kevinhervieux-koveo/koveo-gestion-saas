@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSURANCE CERTIFICATE (1)
+
+Building: 5532 Greta Fields Building 3
+Organization: 3cb9a95a-7a66-4841-9dcb-a980ad46151d
+Document Date: 9/7/2025
+Document 1 of 2
+
+INSURANCE CERTIFICATE
+
+Policy Number: INS-LNZIRM8FIM
+Insurance Company: Little, Zboncak and Wuckert Insurance
+Coverage Type: Commercial Property Insurance
+Coverage Amount: $2,192,442
+Policy Period: 1/30/2025 to 8/29/2026
+
+Coverage Details:
+- Property Damage: Covered
+- Liability: Covered  
+- Natural Disasters: Covered
+- Equipment Breakdown: Covered
+
+Contact Information:
+Agent: Albert Rutherford
+Phone: (579) 018-5070
+Email: Terrell.Yost75@hotmail.com

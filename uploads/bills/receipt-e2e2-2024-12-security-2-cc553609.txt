@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: E2E2-2024-12-SECURITY-2
+Title: Security (2) - Sawayn - Abshire
+Vendor: Schuster - Dare
+Category: Security
+Total Amount: $912.72
+Description: Monthly security service for October 2024 - Invoice 2
+
+Payment Amount: $912.72
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-CHWJMPFW
+
+This payment has been processed successfully.
+Building Management Office

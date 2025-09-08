@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 735
+Building: 87856 Coty Views Building 5
+Address: 76744 Hodkiewicz Plains
+Document 1 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 735:
+
+9/6/2025 - HVAC maintenance
+Status: Completed
+Cost: $310
+
+9/7/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $202
+
+Next Scheduled Maintenance: 6/17/2026

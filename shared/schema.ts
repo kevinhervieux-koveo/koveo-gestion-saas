@@ -130,6 +130,8 @@ export {
   featureRequestUpvotes,
   maintenanceRequests,
   notifications,
+  demands,
+  demandComments,
 } from './schemas/operations';
 export {
   documents,

@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: FBA7-2024-08-MAINTENANCE-2
+Title: Maintenance (2) - Conn, Gislason and Miller
+Vendor: Cummerata, Ward and Bahringer
+Category: Maintenance
+Total Amount: $1115.18
+Description: Monthly maintenance service for January 2024 - Invoice 2
+
+Payment Amount: $1115.18
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-UTUV6YHR
+
+This payment has been processed successfully.
+Building Management Office

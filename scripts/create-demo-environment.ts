@@ -858,30 +858,50 @@ async function seedBookings(
  */
 async function seedMaintenanceRequests(users: CreatedUser[]): Promise<void> {
   try {
-    console.log('🔧 Creating maintenance demands...');
+    console.log('🔧 Creating maintenance demands (2-3 different categories per resident)...');
     
     const residents = users.filter(user => user.role.includes('resident') && user.residenceId);
     let totalDemands = 0;
     
     for (const resident of residents) {
-      // Create 2-3 demands per resident randomly
-      const demandsToCreate = Math.floor(Math.random() * 2) + 2; // Random 2-3
+      // Create 2-3 demands per resident with DIFFERENT categories
+      const demandsToCreate = faker.number.int({ min: 2, max: 3 });
+      
+      // Ensure different categories by shuffling and taking first N
+      const availableCategories = [...MAINTENANCE_CATEGORIES];
+      const selectedCategories = faker.helpers.arrayElements(availableCategories, demandsToCreate);
       
       for (let i = 0; i < demandsToCreate; i++) {
-        const category = MAINTENANCE_CATEGORIES[Math.floor(Math.random() * MAINTENANCE_CATEGORIES.length)];
-        const priority = ['low', 'medium', 'high'][Math.floor(Math.random() * 3)];
-        const demandType = ['maintenance', 'complaint', 'information'][Math.floor(Math.random() * 3)];
+        const category = selectedCategories[i];
+        const priority = faker.helpers.arrayElement(['low', 'medium', 'high', 'urgent']);
+        const demandType = faker.helpers.arrayElement(['maintenance', 'complaint', 'information']);
         
+        // Create detailed description based on category
+        let description = '';
+        if (category === 'Plumbing') {
+          description = `${faker.helpers.arrayElement(['Leaky faucet', 'Clogged drain', 'Low water pressure', 'Running toilet'])} in ${faker.helpers.arrayElement(['kitchen', 'bathroom', 'laundry room'])}. ${faker.lorem.sentences(2)}`;
+        } else if (category === 'Electrical') {
+          description = `${faker.helpers.arrayElement(['Outlet not working', 'Light fixture issue', 'Circuit breaker trips', 'Switch malfunction'])} in ${faker.helpers.arrayElement(['bedroom', 'living room', 'kitchen', 'hallway'])}. ${faker.lorem.sentences(2)}`;
+        } else if (category === 'HVAC') {
+          description = `${faker.helpers.arrayElement(['Heating not working', 'Air conditioning issue', 'Ventilation problem', 'Thermostat malfunction'])}. Temperature control issues. ${faker.lorem.sentences(2)}`;
+        } else if (category === 'Structural') {
+          description = `${faker.helpers.arrayElement(['Crack in wall', 'Door not closing properly', 'Window seal issue', 'Floor creaking'])}. Structural concern that needs attention. ${faker.lorem.sentences(2)}`;
+        } else if (category === 'Appliances') {
+          description = `${faker.helpers.arrayElement(['Refrigerator', 'Dishwasher', 'Washer/Dryer', 'Stove/Oven'])} ${faker.helpers.arrayElement(['not working properly', 'making unusual noise', 'not heating/cooling', 'leaking'])}. ${faker.lorem.sentences(2)}`;
+        } else {
+          description = `General maintenance issue: ${faker.lorem.sentence()}. ${faker.lorem.sentences(2)}`;
+        }
+
         // Insert the demand
         const [demand] = await db
           .insert(schema.demands)
           .values({
             submitterId: resident.id,
             type: demandType as any,
-            description: `${category} issue: ${faker.lorem.sentence()}. ${faker.lorem.sentences(2)}`,
+            description,
             buildingId: resident.buildingId!,
             residenceId: resident.residenceId,
-            status: ['submitted', 'under_review', 'in_progress', 'completed'][Math.floor(Math.random() * 4)] as any
+            status: faker.helpers.arrayElement(['submitted', 'under_review', 'in_progress', 'completed']) as any
           })
           .returning();
         
@@ -891,12 +911,13 @@ async function seedMaintenanceRequests(users: CreatedUser[]): Promise<void> {
         
         if (randomManager) {
           await db
-            .insert(schema.demandsComments)
+            .insert(schema.demandComments)
             .values({
               demandId: demand.id,
-              authorId: randomManager.id,
-              content: `Thank you for reporting this ${demandType}. We have received your request and will address it accordingly. ${faker.lorem.sentence()}`,
-              createdAt: new Date(Date.now() + Math.random() * 86400000) // Random time within 24 hours
+              commenterId: randomManager.id,
+              commentText: `Thank you for reporting this ${demandType}. We have received your request and will address it accordingly. ${faker.lorem.sentence()}`,
+              commentType: 'response',
+              isInternal: false
             });
         }
         
@@ -905,6 +926,7 @@ async function seedMaintenanceRequests(users: CreatedUser[]): Promise<void> {
     }
     
     console.log(`📊 Created ${totalDemands} maintenance demands for ${residents.length} residents`);
+    console.log(`   Average: ${Math.round(totalDemands / residents.length)} demands per resident (each with different categories)`);
   } catch (error) {
     console.error('❌ Failed to create maintenance demands:', error);
     throw error;
@@ -1488,8 +1510,7 @@ async function main() {
       
       // Step 7: Create Maintenance Demands
       console.log('🔧 Step 7: Create Maintenance Demands');
-      console.log('   Skipped for now to focus on document generation');
-      // await seedMaintenanceRequests(users);
+      await seedMaintenanceRequests(users);
       console.log('');
       
       // Step 8: Create Bills
@@ -1558,7 +1579,7 @@ async function main() {
     console.log(`✅ Residents: ${users.filter(u => u.role.includes('resident')).length}`);
     console.log(`✅ Bills: ${bills.length} (with attached invoice & receipt documents)`);
     console.log('✅ Documents: Comprehensive .txt documents with demo disclosures');
-    console.log('✅ Bookings, demands, and maintenance requests created successfully');
+    console.log('✅ Bookings and maintenance demands (2-3 different categories per resident) created successfully');
     console.log('');
     console.log(`🚀 Demo environment for "${args.name}" is ready for use!`);
     console.log('📋 All documents include demo disclosure notices for demonstration purposes');

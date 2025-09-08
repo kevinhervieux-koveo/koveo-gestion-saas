@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: E2E2-2024-11-CLEANING-2
+Title: Cleaning (2) - Robel LLC
+Vendor: Herman, Bradtke and Wyman
+Category: Cleaning
+Total Amount: $1661.81
+Description: Monthly cleaning service for May 2024 - Invoice 2
+
+Payment Amount: $1661.81
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-QMBURZIX
+
+This payment has been processed successfully.
+Building Management Office

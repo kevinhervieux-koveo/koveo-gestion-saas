@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 797
+Building: 7481 Kay Lake Building 1
+Address: 93667 Rath Ways
+Document 1 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 797:
+
+9/10/2024 - Electrical work
+Status: Completed
+Cost: $231
+
+9/7/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $169
+
+Next Scheduled Maintenance: 6/1/2026

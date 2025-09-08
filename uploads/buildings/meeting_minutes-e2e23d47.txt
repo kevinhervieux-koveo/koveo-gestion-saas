@@ -1,0 +1,39 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BOARD MEETING MINUTES
+
+Building: 37090 Manor Close Building 2
+Organization: 3cb9a95a-7a66-4841-9dcb-a980ad46151d
+Document Date: 9/8/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/7/2025
+Meeting Time: 18:00
+Location: 37090 Manor Close Building 2 Community Room
+
+Attendees:
+- Joshua Grady (Board President)
+- Andres Kozey (Treasurer)  
+- Jesus Goyette (Secretary)
+- Randy Botsford (Property Manager)
+
+Agenda Items:
+1. Budget Review - Spiritus ceno bardus suadeo curiositas officiis.
+2. Maintenance Updates - Adinventitias verto adnuo abduco spoliatio sumptus adficio.
+3. New Policies - Denuo voluptas censura spiritus amiculum sumptus minus solitudo tero pariatur.
+
+Action Items:
+- Abundans theatrum usus dapifer.
+- Tutis aegrotatio cibus.
+
+Next Meeting: 2/26/2026

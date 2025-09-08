@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: 38F9-2024-03-PROFESSIONAL_SERVICES-2
+Title: Professional_services (2) - Thiel, Jenkins and Bode
+Vendor: Turner and Sons
+Category: Professional_services
+Total Amount: $627.84
+Description: Monthly professional_services service for September 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 1/24/2026
+
+Service Details:
+- Aurum depopulo atrox vulgo accusator asper concedo cattus sophismata.
+- Vos quod ter subseco umquam ademptio deinde depulso candidus demo.
+
+Thank you for your business!
+Turner and Sons

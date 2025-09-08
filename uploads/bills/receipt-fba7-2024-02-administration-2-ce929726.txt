@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: FBA7-2024-02-ADMINISTRATION-2
+Title: Administration (2) - Nikolaus and Sons
+Vendor: Bashirian - Kemmer
+Category: Administration
+Total Amount: $2442.53
+Description: Monthly administration service for November 2024 - Invoice 2
+
+Payment Amount: $2442.53
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-1DFVHS8M
+
+This payment has been processed successfully.
+Building Management Office

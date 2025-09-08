@@ -1,0 +1,35 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+BUILDING PERMIT
+
+Building: 37090 Manor Close Building 2
+Organization: 3cb9a95a-7a66-4841-9dcb-a980ad46151d
+Document Date: 9/7/2025
+Document 1 of 1
+
+BUILDING PERMIT
+
+Permit Number: PER-OLZCEQEB
+Permit Type: Plumbing
+Issue Date: 9/3/2025
+Expiry Date: 12/19/2025
+Contractor: Kuhlman - Mayert
+
+Work Description:
+Aequitas aperte strues quaerat depereo tunc reprehenderit. Sollicito cur officia ambulo capto consectetur calamitas. Colo caelestis antepono adhaero corpus atrox contra.
+
+Inspection Schedule:
+- Initial Inspection: 9/8/2025
+- Progress Inspection: 9/8/2025
+- Final Inspection: 12/3/2025
+
+Approved by: City Planning Department
+Permit Fee: $380

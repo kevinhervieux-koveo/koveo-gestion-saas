@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 804
+Building: 87856 Coty Views Building 5
+Address: 9288 Ash Street
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 804
+- Lease Start Date: 12/30/2024
+- Lease End Date: 10/6/2025
+- Monthly Rent: $1559
+- Security Deposit: $2403
+
+Terms and Conditions:
+- Ulciscor alias cauda compono capitulus ulterius ciminatio nesciunt cultellus territo.
+- Ceno cervus carbo contabesco abduco ipsa dedecor defaeco.
+
+Landlord: 87856 Coty Views Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

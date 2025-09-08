@@ -1,0 +1,30 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+MAINTENANCE LOG
+
+Unit: 762
+Building: 826 Rebeca Neck Building 4
+Address: 9912 Mraz Forge
+Document 1 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 762:
+
+3/31/2025 - Electrical work
+Status: Completed
+Cost: $438
+
+9/7/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $401
+
+Next Scheduled Maintenance: 11/20/2025

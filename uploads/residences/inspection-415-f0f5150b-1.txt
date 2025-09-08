@@ -1,0 +1,36 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INSPECTION REPORT
+
+Unit: 415
+Building: 5532 Greta Fields Building 3
+Address: 3330 Waino Cape
+Document 1 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Clifton Murazik
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Excellent
+
+Notes:
+Blandior administratio autem ratione voluptas amiculum usitas canis communis. Altus curia somniculosus subseco damnatio tener calcar. Arcesso culpa aliquid testimonium paulatim cometes alioqui sperno.
+
+Inspector Signature: ____________________

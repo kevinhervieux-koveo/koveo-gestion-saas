@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 163
+Building: 87856 Coty Views Building 5
+Address: 70336 University Drive
+Document 2 of 2
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 163
+- Lease Start Date: 4/3/2025
+- Lease End Date: 1/23/2026
+- Monthly Rent: $1539
+- Security Deposit: $2026
+
+Terms and Conditions:
+- Velut quidem iste vulgivagus vigor.
+- Minima cogo vomer molestiae creber.
+
+Landlord: 87856 Coty Views Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

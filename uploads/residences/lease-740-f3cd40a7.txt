@@ -1,0 +1,33 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+LEASE AGREEMENT
+
+Unit: 740
+Building: 7481 Kay Lake Building 1
+Address: 4970 The Ridings
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 740
+- Lease Start Date: 9/16/2024
+- Lease End Date: 7/15/2026
+- Monthly Rent: $1898
+- Security Deposit: $1806
+
+Terms and Conditions:
+- Vigilo bos optio calamitas tutamen bestia cuppedia.
+- Adopto ullam coniuratio callide aetas alioqui solvo theca.
+
+Landlord: 7481 Kay Lake Building 1 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

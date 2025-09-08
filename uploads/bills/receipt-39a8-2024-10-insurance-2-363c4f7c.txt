@@ -1,0 +1,26 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+RECEIPT DOCUMENT
+
+Bill Number: 39A8-2024-10-INSURANCE-2
+Title: Insurance (2) - O'Reilly, Reinger and Jacobs
+Vendor: King, Waelchi and Denesik
+Category: Insurance
+Total Amount: $2172.91
+Description: Monthly insurance service for August 2024 - Invoice 2
+
+Payment Amount: $2172.91
+Payment Date: 9/7/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-SQEVGWSH
+
+This payment has been processed successfully.
+Building Management Office

@@ -1,0 +1,32 @@
+⚠️ DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ⚠️
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+═══════════════════════════════════════════════════════════
+
+INVOICE DOCUMENT
+
+Bill Number: FBA7-2024-01-INSURANCE-1
+Title: Insurance (1) - Nicolas - Strosin
+Vendor: Roberts, Flatley and Bins
+Category: Insurance
+Total Amount: $3103.32
+Description: Monthly insurance service for January 2024 - Invoice 1
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/7/2025
+Due Date: 7/7/2026
+
+Service Details:
+- Caput tergum coniuratio accommodo ars caecus aestas vesco pectus.
+- Armarium tam alo pauper solum torqueo magnam absum.
+
+Thank you for your business!
+Roberts, Flatley and Bins
