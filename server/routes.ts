@@ -91,9 +91,6 @@ export async function registerRoutes(app: Express) {
   registerDocumentRoutes(app);
   registerBugRoutes(app);
 
-  // TEMPORARY: Admin cleanup routes (DELETE after use)
-  const adminCleanup = await import('./api/admin-cleanup');
-  app.use('/api/admin', adminCleanup.default);
   registerBillRoutes(app);
   registerResidenceRoutes(app);
   registerDemandRoutes(app);
