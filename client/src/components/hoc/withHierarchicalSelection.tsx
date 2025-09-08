@@ -336,7 +336,10 @@ export function withHierarchicalSelection<T extends object>(
           backButtonLabel: 'Building',
           onBack: () => {
             console.log('🔄 Back button clicked - navigating to building selection');
-            navigate({ building: null, residence: null });
+            console.log('🔍 Current location:', location);
+            const basePath = location.split('?')[0];
+            console.log('🔍 Navigating to:', basePath);
+            setLocation(basePath);
           }
         };
       }
