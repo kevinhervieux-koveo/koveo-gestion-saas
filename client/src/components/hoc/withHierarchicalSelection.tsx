@@ -75,6 +75,15 @@ export function withHierarchicalSelection<T extends object>(
     // Determine current selection level
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
     
+    console.log('🔍 [CURRENT_LEVEL] Debug info:', {
+      location,
+      search,
+      urlParams: { organizationId, buildingId, residenceId },
+      configHierarchy: config.hierarchy,
+      currentLevel,
+      hierarchyLength: config.hierarchy.length
+    });
+    
     
     // Navigate to update URL parameters
     const navigate = (updates: Record<string, string | null>) => {
