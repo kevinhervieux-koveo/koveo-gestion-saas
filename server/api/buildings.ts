@@ -450,7 +450,7 @@ export function registerBuildingRoutes(app: Express): void {
         });
       } else {
         // Regular users: For Admin and Manager roles: Get buildings from their organizations only
-        if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+        if (currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
           if (userOrgs.length > 0) {
             const orgIds = userOrgs.map((uo) => uo.organizationId);
 
