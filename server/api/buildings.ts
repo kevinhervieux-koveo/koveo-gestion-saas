@@ -514,7 +514,12 @@ export function registerBuildingRoutes(app: Express): void {
       if (userResidenceRecords.length > 0) {
         const residenceIds = userResidenceRecords.map((ur) => ur.residenceId);
 
-        // Get buildings through residences
+        // Get buildings through residences (filtered by organizationId if specified)
+        const whereConditions = [inArray(residences.id, residenceIds), eq(buildings.isActive, true)];
+        if (organizationIdFilter) {
+          whereConditions.push(eq(buildings.organizationId, organizationIdFilter));
+        }
+        
         const residenceBuildings = await db
           .select({
             id: buildings.id,
@@ -544,7 +549,7 @@ export function registerBuildingRoutes(app: Express): void {
           .from(residences)
           .innerJoin(buildings, eq(residences.buildingId, buildings.id))
           .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-          .where(and(inArray(residences.id, residenceIds), eq(buildings.isActive, true)));
+          .where(and(...whereConditions));
 
         // Add residence-based buildings (avoid duplicates)
         residenceBuildings.forEach((building) => {
@@ -612,6 +617,9 @@ export function registerBuildingRoutes(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
+      console.log(
+        `✅ Found ${buildingsWithStats.length} buildings for user ${currentUser.id}${organizationIdFilter ? ` in organization ${organizationIdFilter}` : ''}`
+      );
 
       res.json({
         buildings: buildingsWithStats,
@@ -619,6 +627,7 @@ export function registerBuildingRoutes(app: Express): void {
           total: buildingsWithStats.length,
           userRole: currentUser.role,
           userId: currentUser.id,
+          organizationFilter: organizationIdFilter || null,
         },
       });
     } catch (error: any) {
