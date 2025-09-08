@@ -20,7 +20,7 @@
  * - Realistic bookings, demands, and financial data
  */
 
-import { eq, and, gte } from 'drizzle-orm';
+import { eq, and, gte, sql } from 'drizzle-orm';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcryptjs';
 import * as fs from 'fs';
