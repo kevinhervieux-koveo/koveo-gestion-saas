@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-07-SUPPLIES-2
+Title: Supplies (2) - Hintz Group
+Amount: $3834.73
+Created: 2025-09-08T02:56:34.396Z

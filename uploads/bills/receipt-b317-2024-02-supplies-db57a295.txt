@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-02-SUPPLIES
+Title: Supplies  - Steuber - Weissnat
+Amount: $3356.73
+Created: 2025-09-08T02:56:29.415Z

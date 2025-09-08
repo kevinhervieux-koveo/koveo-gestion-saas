@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-07-ADMINISTRATION
+Title: Administration  - Hamill, Kertzmann and McLaughlin
+Amount: $3204.01
+Created: 2025-09-08T02:56:34.304Z

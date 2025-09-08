@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-01-MAINTENANCE
+Title: Maintenance  - Thiel - Hayes
+Amount: $789.36
+Created: 2025-09-08T02:56:26.216Z

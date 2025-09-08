@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-03-UTILITIES-2
+Title: Utilities (2) - Gleichner and Sons
+Amount: $2668.05
+Created: 2025-09-08T02:56:27.719Z

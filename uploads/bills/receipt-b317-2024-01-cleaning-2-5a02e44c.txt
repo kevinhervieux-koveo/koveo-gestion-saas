@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-01-CLEANING-2
+Title: Cleaning (2) - Quigley and Sons
+Amount: $2735.39
+Created: 2025-09-08T02:56:26.501Z

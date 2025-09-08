@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-05-SUPPLIES
+Title: Supplies  - Monahan - Wolff
+Amount: $1403.90
+Created: 2025-09-08T02:56:31.269Z

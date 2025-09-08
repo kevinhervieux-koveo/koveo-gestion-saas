@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-02-UTILITIES
+Title: Utilities  - Greenfelder - Muller
+Amount: $3788.91
+Created: 2025-09-08T02:56:27.066Z

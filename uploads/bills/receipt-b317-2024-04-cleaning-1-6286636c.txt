@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-04-CLEANING-1
+Title: Cleaning (1) - Adams, Kub and Considine
+Amount: $164.59
+Created: 2025-09-08T02:56:30.252Z

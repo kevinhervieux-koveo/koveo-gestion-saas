@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-03-ADMINISTRATION-2
+Title: Administration (2) - Miller and Sons
+Amount: $4630.19
+Created: 2025-09-08T02:56:28.099Z

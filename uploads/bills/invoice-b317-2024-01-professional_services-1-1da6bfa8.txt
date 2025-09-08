@@ -1,0 +1,6 @@
+Demo Invoice
+
+Bill: B317-2024-01-PROFESSIONAL_SERVICES-1
+Title: Professional_services (1) - Huel, Luettgen and Kling
+Amount: $2002.58
+Created: 2025-09-08T02:56:26.780Z

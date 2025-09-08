@@ -1,0 +1,6 @@
+Demo Receipt
+
+Bill: B317-2024-03-INSURANCE-1
+Title: Insurance (1) - Emard and Sons
+Amount: $2512.31
+Created: 2025-09-08T02:56:27.532Z
