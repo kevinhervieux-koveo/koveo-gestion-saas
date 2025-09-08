@@ -1148,17 +1148,6 @@ export function registerDocumentRoutes(app: Express): void {
       const filteredDocumentRecords = documents.filter((doc) => {
         // If filtering by attached entity, only show documents attached to that entity
         if (attachedToType && attachedToId) {
-          console.log(`[${timestamp}] 🎯 DOCUMENT FILTER CHECK:`, {
-            docId: doc.id,
-            docName: doc.name,
-            docAttachedToType: doc.attachedToType,
-            docAttachedToId: doc.attachedToId,
-            requestedAttachedToType: attachedToType,
-            requestedAttachedToId: attachedToId,
-            typeMatch: doc.attachedToType === attachedToType,
-            idMatch: doc.attachedToId === attachedToId,
-            willInclude: doc.attachedToType === attachedToType && doc.attachedToId === attachedToId
-          });
           if (doc.attachedToType !== attachedToType || doc.attachedToId !== attachedToId) {
             return false;
           }
@@ -1259,16 +1248,10 @@ export function registerDocumentRoutes(app: Express): void {
         filters: { documentType, specificResidenceId, specificBuildingId }
       });
       
-      console.log(`[${timestamp}] 🎯 FINAL RESPONSE:`, {
-        documentsReturned: enhancedDocumentRecords.length,
-        responseType: Array.isArray(enhancedDocumentRecords) ? 'array' : typeof enhancedDocumentRecords,
-        firstDoc: enhancedDocumentRecords[0] ? {
-          id: enhancedDocumentRecords[0].id,
-          name: enhancedDocumentRecords[0].name,
-          attachedToType: enhancedDocumentRecords[0].attachedToType,
-          attachedToId: enhancedDocumentRecords[0].attachedToId
-        } : 'none'
-      });
+      // Keep useful logging for bill documents
+      if (attachedToType === 'bill' && enhancedDocumentRecords.length > 0) {
+        console.log(`[${timestamp}] 📄 Bill documents found:`, enhancedDocumentRecords.length);
+      }
       
       res.json(response);
     } catch (_error: any) {

@@ -807,18 +807,14 @@ function BillDetail({
   const { data: billDocuments = [], isLoading: documentsLoading } = useQuery({
     queryKey: ['/api/documents', 'bill', bill.id],
     queryFn: async () => {
-      console.log('[BILL DOCS] Fetching documents for bill:', bill.id);
       const response = await fetch(`/api/documents?attachedToType=bill&attachedToId=${bill.id}`, {
         credentials: 'include',
       });
-      console.log('[BILL DOCS] Response status:', response.status);
       if (!response.ok) {
-        console.error('[BILL DOCS] Request failed:', response.status, response.statusText);
+        console.error('[BILL DOCS] Failed to fetch documents:', response.status, response.statusText);
         throw new Error('Failed to fetch bill documents');
       }
       const data = await response.json();
-      console.log('[BILL DOCS] Documents received:', data);
-      console.log('[BILL DOCS] Documents count:', data?.documents?.length || 0);
       return data.documents || [];
     },
   });
@@ -826,16 +822,10 @@ function BillDetail({
   // Use fresh bill data if available, fallback to props bill data
   const currentBill = freshBill || bill;
   
-  // Debug logging for documents display
-  console.log('[BILL DOCS] Debug info:', {
-    billId: bill.id,
-    billNumber: currentBill.billNumber,
-    billDocuments: billDocuments,
-    documentsCount: billDocuments?.length || 0,
-    documentsLoading,
-    hasFilePath: !!currentBill.filePath,
-    shouldShowDocuments: (currentBill.filePath || billDocuments.length > 0)
-  });
+  // Keep basic logging for bills
+  if (billDocuments.length > 0) {
+    console.log('[BILL DOCS] Found documents:', billDocuments.length, 'for bill:', currentBill.billNumber);
+  }
   
   const [endDate, setEndDate] = useState(currentBill.endDate || '');
 
@@ -997,10 +987,6 @@ function BillDetail({
                     variant='outline'
                     size='sm'
                     onClick={() => {
-                      console.log('[DOWNLOAD] Starting download for bill:', currentBill.id);
-                      console.log('[DOWNLOAD] Document name:', currentBill.fileName);
-                      console.log('[DOWNLOAD] Document path:', currentBill.filePath);
-                      
                       // Download the document
                       const link = document.createElement('a');
                       link.href = `/api/bills/${currentBill.id}/download-document`;
@@ -1008,8 +994,6 @@ function BillDetail({
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
-                      
-                      console.log('[DOWNLOAD] Download link clicked');
                     }}
                     className='flex items-center gap-1'
                     data-testid={`button-download-document-${currentBill.id}`}
@@ -1049,10 +1033,6 @@ function BillDetail({
                     variant='outline'
                     size='sm'
                     onClick={() => {
-                      console.log('[DOWNLOAD] Starting download for document:', doc.id);
-                      console.log('[DOWNLOAD] Document name:', doc.name);
-                      console.log('[DOWNLOAD] Document path:', doc.filePath);
-                      
                       // Download the document
                       const link = document.createElement('a');
                       link.href = `/api/documents/${doc.id}/file?download=true`;
@@ -1060,8 +1040,6 @@ function BillDetail({
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
-                      
-                      console.log('[DOWNLOAD] Download link clicked');
                     }}
                     className='flex items-center gap-1'
                     data-testid={`button-download-document-${doc.id}`}
