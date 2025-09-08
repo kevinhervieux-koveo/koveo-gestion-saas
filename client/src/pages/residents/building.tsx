@@ -16,17 +16,26 @@ import {
   Package,
   ArrowLeft,
 } from 'lucide-react';
-import { Building as BuildingType } from '@shared/schema';
 import { useLanguage } from '@/hooks/use-language';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 
-interface BuildingWithStats extends BuildingType {
-  organizationName: string;
-  organizationType: string;
-  totalUnits: number;
-  occupiedUnits: number;
-  occupancyRate: number;
-  vacantUnits: number;
+interface BuildingData {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  state?: string;
+  postal_code: string;
+  organization_id: string;
+  province?: string;
+  postalCode?: string;
+  buildingType?: string;
+  yearBuilt?: number;
+  managementCompany?: string;
+  totalFloors?: number;
+  parkingSpaces?: number;
+  storageSpaces?: number;
+  amenities?: string | string[];
 }
 
 interface MyBuildingProps {
@@ -40,21 +49,35 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
   const [, navigate] = useLocation();
   const { t } = useLanguage();
 
-  // Fetch building details if buildingId is provided
+  // Fetch user's accessible buildings and find the specific one
   const {
-    data: buildingData,
+    data: userBuildings,
     isLoading: isLoadingBuilding,
-  } = useQuery<BuildingWithStats>({
-    queryKey: ['/api/buildings', buildingId],
+  } = useQuery({
+    queryKey: ['/api/users/me/buildings'],
     queryFn: async () => {
-      const response = await fetch(`/api/buildings/${buildingId}`);
+      const response = await fetch('/api/users/me/buildings');
       if (!response.ok) {
-        throw new Error('Failed to fetch building details');
+        throw new Error('Failed to fetch buildings');
       }
       return response.json();
     },
     enabled: !!buildingId,
   });
+
+  // Find the specific building from user's accessible buildings
+  const buildingData: BuildingData | null = React.useMemo(() => {
+    if (!userBuildings || !buildingId) return null;
+    const building = userBuildings.find((building: any) => building.id === buildingId);
+    if (!building) return null;
+    
+    // Map API response to our interface
+    return {
+      ...building,
+      province: building.state || building.province,
+      postalCode: building.postal_code || building.postalCode,
+    };
+  }, [userBuildings, buildingId]);
 
   const handleViewDocuments = (targetBuildingId: string) => {
     navigate(`/residents/building/documents?buildingId=${targetBuildingId}`);
@@ -127,9 +150,6 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
                 <BuildingIcon className='w-5 h-5' />
                 {buildingData.name}
               </CardTitle>
-              {buildingData.organizationName && (
-                <div className='text-sm text-muted-foreground'>{buildingData.organizationName}</div>
-              )}
             </CardHeader>
             <CardContent className='space-y-6'>
               {/* Address Section */}
@@ -141,7 +161,7 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
                     <div>
                       <p className='text-sm text-gray-700'>{buildingData.address}</p>
                       <p className='text-sm text-gray-700'>
-                        {buildingData.city}, {buildingData.province} {buildingData.postalCode}
+                        {buildingData.city}, {buildingData.province || buildingData.state} {buildingData.postalCode || buildingData.postal_code}
                       </p>
                     </div>
                   </div>
@@ -151,12 +171,14 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
               {/* Building Details Grid */}
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                 <div className='space-y-3'>
-                  <div>
-                    <Label className='text-xs font-medium text-gray-500'>
-                      {t('buildingType')}
-                    </Label>
-                    <p className='text-sm text-gray-700 capitalize'>{buildingData.buildingType}</p>
-                  </div>
+                  {buildingData.buildingType && (
+                    <div>
+                      <Label className='text-xs font-medium text-gray-500'>
+                        {t('buildingType')}
+                      </Label>
+                      <p className='text-sm text-gray-700 capitalize'>{buildingData.buildingType}</p>
+                    </div>
+                  )}
                   
                   {buildingData.yearBuilt && (
                     <div>
@@ -181,22 +203,15 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
                 </div>
 
                 <div className='space-y-3'>
-                  <div>
-                    <Label className='text-xs font-medium text-gray-500'>
-                      {t('totalUnits')}
-                    </Label>
-                    <div className='flex items-center gap-2 mt-1'>
-                      <Home className='w-4 h-4 text-muted-foreground' />
-                      <span className='text-sm text-gray-700'>{buildingData.totalUnits}</span>
-                    </div>
-                  </div>
-
                   {buildingData.totalFloors && (
                     <div>
                       <Label className='text-xs font-medium text-gray-500'>
                         {t('totalFloors')}
                       </Label>
-                      <p className='text-sm text-gray-700'>{buildingData.totalFloors}</p>
+                      <div className='flex items-center gap-2 mt-1'>
+                        <BuildingIcon className='w-4 h-4 text-muted-foreground' />
+                        <span className='text-sm text-gray-700'>{buildingData.totalFloors}</span>
+                      </div>
                     </div>
                   )}
 
@@ -209,7 +224,7 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
                           <div className='flex items-center gap-2 mt-1'>
                             <Car className='w-4 h-4 text-muted-foreground' />
                             <span className='text-sm text-gray-700'>
-                              {buildingData.parkingSpaces} spaces
+                              {buildingData.parkingSpaces} {t('spaces')}
                             </span>
                           </div>
                         </div>
@@ -220,7 +235,7 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
                           <div className='flex items-center gap-2 mt-1'>
                             <Package className='w-4 h-4 text-muted-foreground' />
                             <span className='text-sm text-gray-700'>
-                              {buildingData.storageSpaces} units
+                              {buildingData.storageSpaces} {t('units')}
                             </span>
                           </div>
                         </div>
@@ -230,29 +245,6 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
                 </div>
               </div>
 
-              {/* Occupancy Stats */}
-              {buildingData.totalUnits && buildingData.occupiedUnits !== undefined && (
-                <div>
-                  <Label className='text-xs font-medium text-gray-500'>{t('occupancy')}</Label>
-                  <div className='flex items-center gap-2 mt-1'>
-                    <Badge variant='outline' className='text-xs'>
-                      {buildingData.occupiedUnits}/{buildingData.totalUnits} {t('units')}
-                    </Badge>
-                    <Badge
-                      variant={
-                        buildingData.occupancyRate >= 90
-                          ? 'default'
-                          : buildingData.occupancyRate >= 70
-                            ? 'secondary'
-                            : 'destructive'
-                      }
-                      className='text-xs'
-                    >
-                      {Math.round(buildingData.occupancyRate || 0)}% {t('occupied')}
-                    </Badge>
-                  </div>
-                </div>
-              )}
 
               {/* Amenities */}
               {buildingData.amenities && (
