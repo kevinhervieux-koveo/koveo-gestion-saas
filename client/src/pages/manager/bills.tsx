@@ -473,7 +473,7 @@ function BillsPage({ buildingId }: BillsProps) {
                       </DialogHeader>
                       <ModularBillForm
                         mode="create"
-                        buildingId={filters.buildingId}
+                        buildingId={buildingId}
                         onCancel={() => setShowCreateDialog(false)}
                         onSuccess={() => {
                           setShowCreateDialog(false);
@@ -488,12 +488,7 @@ function BillsPage({ buildingId }: BillsProps) {
           </Card>
 
           {/* Bills Display */}
-          {!filters.buildingId ? (
-            <BuildingSelectionGrid
-              buildings={Array.isArray(buildings) ? buildings : []}
-              onBuildingSelect={(buildingId) => handleFilterChange('buildingId', buildingId)}
-            />
-          ) : isLoading ? (
+          {isLoading ? (
             <Card>
               <CardContent className='p-8 text-center'>
                 <div className='animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4'></div>
