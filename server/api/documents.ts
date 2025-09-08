@@ -1258,8 +1258,8 @@ export function registerDocumentRoutes(app: Express): void {
           return true;
         }
 
-        // Manager can see all documents in their organization
-        if (userRole === 'manager' && organizationId) {
+        // Manager (including demo_manager) can see all documents in their organization
+        if ((userRole === 'manager' || userRole === 'demo_manager') && organizationId) {
           if (doc.buildingId && buildingIds.includes(doc.buildingId)) {
             return true;
           }
@@ -1268,8 +1268,8 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        // Resident access rules
-        if (userRole === 'resident') {
+        // Resident (including demo_resident) access rules
+        if (userRole === 'resident' || userRole === 'demo_resident') {
           // Residents can see documents in their residence
           if (doc.residenceId && residenceIds.includes(doc.residenceId)) {
             return true;
@@ -1284,8 +1284,8 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        // Tenant access rules - more restrictive
-        if (userRole === 'tenant') {
+        // Tenant (including demo_tenant) access rules - more restrictive
+        if (userRole === 'tenant' || userRole === 'demo_tenant') {
           // Tenants can only see documents marked as visible to tenants
           if (!doc.isVisibleToTenants) {
             return false;
