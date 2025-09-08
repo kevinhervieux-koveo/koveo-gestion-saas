@@ -458,6 +458,8 @@ function CommonSpacesPageInner({ buildingId }: CommonSpacesProps) {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
+  console.log('🔍 [COMMON_SPACES_PAGE] Rendered with buildingId:', buildingId, 'user:', user?.username);
+
   const [selectedSpace, setSelectedSpace] = useState<CommonSpace | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
@@ -483,8 +485,15 @@ function CommonSpacesPageInner({ buildingId }: CommonSpacesProps) {
     queryKey: ['/api/common-spaces', buildingId],
     queryFn: async () => {
       const url = buildingId ? `/api/common-spaces?building_id=${buildingId}` : '/api/common-spaces';
+      console.log('🔍 [COMMON_SPACES] Fetching from:', url, 'with buildingId:', buildingId);
       const response = await fetch(url);
-      return response.json();
+      if (!response.ok) {
+        console.error('❌ [COMMON_SPACES] Failed to fetch:', response.status, response.statusText);
+        throw new Error('Failed to fetch common spaces');
+      }
+      const data = await response.json();
+      console.log('✅ [COMMON_SPACES] Fetched:', data.length, 'common spaces');
+      return data;
     },
     enabled: !!user && !!buildingId,
   });

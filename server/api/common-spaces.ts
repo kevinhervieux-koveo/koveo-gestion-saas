@@ -358,10 +358,13 @@ export function registerCommonSpacesRoutes(app: Express): void {
       }
 
       const { building_id } = queryValidation.data;
-
+      
+      console.log('🔍 [COMMON_SPACES_API] Request from user:', user.username, 'role:', user.role);
+      console.log('🔍 [COMMON_SPACES_API] Query params - building_id:', building_id);
 
       // Get accessible building IDs
       const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+      console.log('🔍 [COMMON_SPACES_API] Accessible building IDs:', accessibleBuildingIds);
 
       if (accessibleBuildingIds.length === 0) {
         return res.json([]);

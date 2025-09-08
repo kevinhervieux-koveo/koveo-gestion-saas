@@ -71,7 +71,15 @@ export function withHierarchicalSelection<T extends object>(
     // Determine current selection level
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
     
-    // Level detection complete
+    // Debug logging for hierarchy
+    console.log('🔍 [HIERARCHY] Debug info:', {
+      location,
+      search,
+      urlParams: { organizationId, buildingId, residenceId },
+      configHierarchy: config.hierarchy,
+      currentLevel,
+      hierarchyLength: config.hierarchy.length
+    });
     
     // Navigate to update URL parameters
     const navigate = (updates: Record<string, string | null>) => {
@@ -143,11 +151,15 @@ export function withHierarchicalSelection<T extends object>(
         const url = organizationId 
           ? `/api/organizations/${organizationId}/buildings`
           : '/api/users/me/buildings';
+        console.log('🔍 [HIERARCHY] Fetching buildings from:', url);
         const response = await fetch(url);
         if (!response.ok) {
+          console.error('❌ [HIERARCHY] Failed to fetch buildings:', response.status, response.statusText);
           throw new Error('Failed to fetch buildings');
         }
-        return response.json();
+        const data = await response.json();
+        console.log('✅ [HIERARCHY] Buildings fetched:', data.length, 'buildings');
+        return data;
       },
       enabled: currentLevel === 'building' && (!!organizationId || config.hierarchy.length === 1)
     });
@@ -326,11 +338,24 @@ function getCurrentLevel(
       return 'organization';
     }
     
-    if (level === 'building' && organizationId && !buildingId) {
+    // For building level, check if we need organization context
+    if (level === 'building' && !buildingId) {
+      // If organization is in hierarchy, we need organizationId first
+      if (hierarchy.includes('organization') && !organizationId) {
+        return 'organization';
+      }
+      // Otherwise, go directly to building selection
       return 'building';
     }
     
-    if (level === 'residence' && organizationId && buildingId && !residenceId) {
+    if (level === 'residence' && !residenceId) {
+      // Need both organization and building if they're in hierarchy
+      if (hierarchy.includes('organization') && !organizationId) {
+        return 'organization';
+      }
+      if (hierarchy.includes('building') && !buildingId) {
+        return 'building';
+      }
       return 'residence';
     }
   }
