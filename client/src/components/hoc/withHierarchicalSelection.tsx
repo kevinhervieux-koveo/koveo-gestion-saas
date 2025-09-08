@@ -333,7 +333,7 @@ export function withHierarchicalSelection<T extends object>(
     const getBackNavigationProps = () => {
       // For residents with building hierarchy, always show back button if they have a buildingId
       // This means they selected a building and should be able to go back
-      if (config.hierarchy.includes('building') && config.hierarchy.length === 1 && buildingId) {
+      if (config.hierarchy.includes('building') && config.hierarchy.length === 1 && buildingId && buildings.length > 1) {
         return {
           showBackButton: true,
           backButtonLabel: 'Building',
