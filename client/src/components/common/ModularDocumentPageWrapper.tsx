@@ -86,7 +86,7 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
       console.log('[DOWNLOAD] Download completed successfully');
     } catch (error) {
       console.error('[DOWNLOAD] Download failed:', error);
-      // You might want to show a toast notification here
+      alert(`Download failed: ${error.message || 'Unknown error'}`);
     }
   };
 
