@@ -57,7 +57,7 @@ describe('Document View Button Fix Validation', () => {
 
     // CORRECT: Fixed implementation that views inline
     const correctViewButtonLogic = `
-      // For view: Direct window.open to API endpoint (no blob creation)
+      // For view: Direct window.open to API endpoint
       window.open('/api/documents/123/file', '_blank');  // ✅ This respects Content-Disposition: inline
     `;
 
