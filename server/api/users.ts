@@ -80,10 +80,32 @@ export function registerUserRoutes(app: Express): void {
         // Admin can see all users - no additional filtering
         console.log('🔓 [ADMIN] No role-based filtering applied - admin can see all users');
       } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see other demo users
+        // Demo users can only see other demo users in their organizations
         if (!roleBasedFilters.role) {
           // If no role filter is applied, restrict to demo roles only
           roleBasedFilters.demoOnly = 'true';
+        }
+        
+        // Also restrict to users from their organizations (like regular managers)
+        console.log('🎭 [DEMO] Restricting to users from demo user\'s organizations');
+        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
+        console.log(`   → Demo user organizations: [${userOrgIds.join(', ')}]`);
+        if (userOrgIds.length > 0) {
+          roleBasedFilters.managerOrganizations = userOrgIds.join(',');
+          console.log('   → Added organization filter for demo user');
+        } else {
+          // Demo user has no organizations, return empty result
+          return res.json({
+            users: [],
+            pagination: {
+              page,
+              limit,
+              total: 0,
+              totalPages: 0,
+              hasNext: false,
+              hasPrev: false
+            }
+          });
         }
       } else {
         // Regular managers can only see users from their organizations
