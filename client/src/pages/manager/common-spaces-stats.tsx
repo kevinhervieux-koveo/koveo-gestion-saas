@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { NoDataCard } from '@/components/ui/no-data-card';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import { useLocation } from 'wouter';
 import {
   Select,
   SelectContent,
@@ -51,6 +53,7 @@ import {
   CalendarDays,
   Eye,
   Edit,
+  ArrowLeft,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -169,16 +172,23 @@ function withManagerAccess<P extends object>(Component: React.ComponentType<P>) 
   };
 }
 
+interface CommonSpacesStatsProps {
+  organizationId?: string;
+  buildingId?: string;
+}
+
 /**
  * Manager Common Spaces Statistics Page.
  */
-function CommonSpacesStatsPage() {
+function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpacesStatsProps) {
   const { user } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string>('');
+  // Use buildingId from hierarchy if available, otherwise use local state for backward compatibility
+  const [selectedBuildingId, setSelectedBuildingId] = useState<string>(buildingId || '');
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
   const [restrictionDialogOpen, setRestrictionDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
@@ -221,11 +231,31 @@ function CommonSpacesStatsPage() {
     common_space_id: '',
   });
 
-  // Fetch buildings accessible to the manager
+  const handleBackToOrganization = () => {
+    navigate('/manager/common-spaces-stats');
+  };
+
+  const handleBackToBuilding = () => {
+    navigate(`/manager/common-spaces-stats?organization=${organizationId}`);
+  };
+
+  // Update selectedBuildingId when buildingId prop changes
+  useEffect(() => {
+    if (buildingId && buildingId !== selectedBuildingId) {
+      setSelectedBuildingId(buildingId);
+    }
+  }, [buildingId, selectedBuildingId]);
+
+  // Fetch buildings accessible to the manager (filtered by organization if provided)
   const { data: buildingsResponse, isLoading: buildingsLoading } = useQuery<{
     buildings: Building[];
   }>({
-    queryKey: ['/api/manager/buildings'],
+    queryKey: ['/api/manager/buildings', organizationId],
+    queryFn: async () => {
+      const url = organizationId ? `/api/manager/buildings?organizationId=${organizationId}` : '/api/manager/buildings';
+      const response = await fetch(url);
+      return response.json();
+    },
     enabled: !!user,
   });
 
@@ -505,6 +535,21 @@ function CommonSpacesStatsPage() {
             : 'Statistics and user management'
         }
       />
+
+      {/* Back Navigation */}
+      {(organizationId || buildingId) && (
+        <div className="p-4 border-b border-gray-200">
+          <Button
+            variant="outline"
+            onClick={buildingId ? handleBackToBuilding : handleBackToOrganization}
+            className="flex items-center gap-2"
+            data-testid={buildingId ? "button-back-to-building" : "button-back-to-organization"}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {buildingId ? (language === 'fr' ? 'Bâtiment' : 'Building') : (language === 'fr' ? 'Organisation' : 'Organization')}
+          </Button>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
@@ -1403,4 +1448,9 @@ function CommonSpacesStatsPage() {
 }
 
 // Export the component wrapped with access control
-export default withManagerAccess(CommonSpacesStatsPage);
+// Wrap with hierarchical selection HOC using 2-level hierarchy (organization → building)
+const CommonSpacesStatsPageWithHierarchy = withHierarchicalSelection(CommonSpacesStatsPageInner, {
+  hierarchy: ['organization', 'building']
+});
+
+export default withManagerAccess(CommonSpacesStatsPageWithHierarchy);
