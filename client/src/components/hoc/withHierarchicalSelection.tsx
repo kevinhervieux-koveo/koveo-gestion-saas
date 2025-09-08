@@ -148,7 +148,7 @@ export function withHierarchicalSelection<T extends object>(
         }
         return response.json();
       },
-      enabled: currentLevel === 'building' && (!!organizationId || config.hierarchy.length === 1)
+      enabled: (currentLevel === 'building' || currentLevel === 'complete') && (!!organizationId || config.hierarchy.length === 1)
     });
 
     // Fetch residences
