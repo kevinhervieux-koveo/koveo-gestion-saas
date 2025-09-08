@@ -13,6 +13,8 @@ export interface SelectionGridItem {
   name: string;
   details: string;
   type: 'organization' | 'building' | 'residence';
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 /**
@@ -136,17 +138,18 @@ export function SelectionGrid({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((item) => {
           const Icon = getIconForType(item.type);
+          const isDisabled = item.disabled || false;
           
           return (
             <Card 
               key={item.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer"
+              className={`transition-shadow ${isDisabled ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-md cursor-pointer'}`}
               data-testid={`card-${item.type}-${item.id}`}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3">
-                  <Icon className="w-5 h-5 text-blue-600" />
-                  <CardTitle className="text-lg" data-testid={`text-name-${item.id}`}>
+                  <Icon className={`w-5 h-5 ${isDisabled ? 'text-gray-400' : 'text-blue-600'}`} />
+                  <CardTitle className={`text-lg ${isDisabled ? 'text-gray-500' : ''}`} data-testid={`text-name-${item.id}`}>
                     {item.name}
                   </CardTitle>
                 </div>
@@ -154,7 +157,7 @@ export function SelectionGrid({
               
               <CardContent className="space-y-4">
                 <p 
-                  className="text-sm text-gray-600" 
+                  className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-gray-600'}`}
                   data-testid={`text-details-${item.id}`}
                 >
                   {item.details}
@@ -162,13 +165,17 @@ export function SelectionGrid({
                 
                 <Button
                   onClick={() => {
-                    console.log('🎯 [SELECTION GRID DEBUG] Button clicked:', { itemId: item.id, itemName: item.name });
-                    onSelectItem(item.id);
+                    if (!isDisabled) {
+                      console.log('🎯 [SELECTION GRID DEBUG] Button clicked:', { itemId: item.id, itemName: item.name });
+                      onSelectItem(item.id);
+                    }
                   }}
+                  disabled={isDisabled}
                   className="w-full"
+                  variant={isDisabled ? "secondary" : "default"}
                   data-testid={`button-select-${item.id}`}
                 >
-                  {t('select' as any)}
+                  {isDisabled && item.disabledReason ? item.disabledReason : t('select' as any)}
                 </Button>
               </CardContent>
             </Card>

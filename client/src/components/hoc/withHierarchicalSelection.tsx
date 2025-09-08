@@ -116,6 +116,36 @@ export function withHierarchicalSelection<T extends object>(
       enabled: currentLevel === 'organization'
     });
 
+    // Fetch building counts for each organization when at organization level
+    const {
+      data: buildingCounts = {},
+      isLoading: isLoadingBuildingCounts
+    } = useQuery<Record<string, number>>({
+      queryKey: ['/api/organizations/building-counts'],
+      enabled: currentLevel === 'organization' && organizations.length > 0,
+      queryFn: async () => {
+        const counts: Record<string, number> = {};
+        
+        // Fetch building count for each organization
+        for (const org of organizations) {
+          try {
+            const response = await fetch(`/api/organizations/${org.id}/buildings`);
+            if (response.ok) {
+              const buildings = await response.json();
+              counts[org.id] = buildings.length;
+            } else {
+              counts[org.id] = 0;
+            }
+          } catch (error) {
+            console.error(`Failed to fetch building count for org ${org.id}:`, error);
+            counts[org.id] = 0;
+          }
+        }
+        
+        return counts;
+      }
+    });
+
     // Fetch buildings
     const {
       data: buildings = [],
@@ -195,12 +225,21 @@ export function withHierarchicalSelection<T extends object>(
 
     // Render selection screens
     if (currentLevel === 'organization') {
-      const items: SelectionGridItem[] = organizations.map(org => ({
-        id: org.id,
-        name: org.name,
-        details: org.description || t('organizationDescription' as any),
-        type: 'organization'
-      }));
+      const items: SelectionGridItem[] = organizations.map(org => {
+        const buildingCount = buildingCounts[org.id] ?? 0;
+        const hasBuildings = buildingCount > 0;
+        
+        return {
+          id: org.id,
+          name: org.name,
+          details: hasBuildings 
+            ? `${buildingCount} building${buildingCount !== 1 ? 's' : ''}` 
+            : 'No buildings available',
+          type: 'organization' as const,
+          disabled: !hasBuildings,
+          disabledReason: hasBuildings ? undefined : 'No Buildings'
+        };
+      });
 
       return (
         <SelectionGrid
@@ -208,7 +247,7 @@ export function withHierarchicalSelection<T extends object>(
           items={items}
           onSelectItem={handleSelection}
           onBack={null}
-          isLoading={isLoadingOrganizations}
+          isLoading={isLoadingOrganizations || isLoadingBuildingCounts}
         />
       );
     }
@@ -272,7 +311,7 @@ function getCurrentLevel(
 ): 'organization' | 'building' | 'residence' | 'complete' {
   const { organizationId, buildingId, residenceId } = ids;
 
-  // Check each level in the hierarchy
+  // Check each level in the hierarchy in order
   for (let i = 0; i < hierarchy.length; i++) {
     const level = hierarchy[i];
     
@@ -280,11 +319,11 @@ function getCurrentLevel(
       return 'organization';
     }
     
-    if (level === 'building' && !buildingId) {
+    if (level === 'building' && organizationId && !buildingId) {
       return 'building';
     }
     
-    if (level === 'residence' && !residenceId) {
+    if (level === 'residence' && organizationId && buildingId && !residenceId) {
       return 'residence';
     }
   }
