@@ -161,7 +161,10 @@ export function SelectionGrid({
                 </p>
                 
                 <Button
-                  onClick={() => onSelectItem(item.id)}
+                  onClick={() => {
+                    console.log('🎯 [SELECTION GRID DEBUG] Button clicked:', { itemId: item.id, itemName: item.name });
+                    onSelectItem(item.id);
+                  }}
                   className="w-full"
                   data-testid={`button-select-${item.id}`}
                 >

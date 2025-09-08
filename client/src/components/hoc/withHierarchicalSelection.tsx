@@ -59,11 +59,23 @@ export function withHierarchicalSelection<T extends object>(
     const buildingId = urlParams.get('building');
     const residenceId = urlParams.get('residence');
 
+    // DEBUG: Log current URL state
+    console.log('🔍 [HIERARCHY DEBUG] Current location:', location);
+    console.log('🔍 [HIERARCHY DEBUG] URL params:', {
+      organizationId,
+      buildingId,
+      residenceId,
+      hierarchy: config.hierarchy
+    });
+
     // Determine current selection level
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
+    console.log('🔍 [HIERARCHY DEBUG] Current level:', currentLevel);
     
     // Navigate to update URL parameters
     const navigate = (updates: Record<string, string | null>) => {
+      console.log('🚀 [HIERARCHY DEBUG] Navigate called with updates:', updates);
+      
       const newParams = new URLSearchParams(urlParams);
       
       Object.entries(updates).forEach(([key, value]) => {
@@ -76,7 +88,12 @@ export function withHierarchicalSelection<T extends object>(
 
       const newSearch = newParams.toString();
       const basePath = location.split('?')[0];
-      setLocation(newSearch ? `${basePath}?${newSearch}` : basePath);
+      const newUrl = newSearch ? `${basePath}?${newSearch}` : basePath;
+      
+      console.log('🚀 [HIERARCHY DEBUG] Navigating from:', location);
+      console.log('🚀 [HIERARCHY DEBUG] Navigating to:', newUrl);
+      
+      setLocation(newUrl);
     };
 
     // Fetch organizations
@@ -108,20 +125,33 @@ export function withHierarchicalSelection<T extends object>(
 
     // Auto-forwarding logic
     React.useEffect(() => {
+      console.log('⚡ [HIERARCHY DEBUG] Auto-forward check:', {
+        currentLevel,
+        organizationsCount: organizations.length,
+        buildingsCount: buildings.length,
+        residencesCount: residences.length,
+        organizationId,
+        buildingId,
+        residenceId
+      });
+      
       if (currentLevel === 'organization' && organizations.length === 1 && !organizationId) {
         // Auto-forward if only one organization
+        console.log('⚡ [HIERARCHY DEBUG] Auto-forwarding to organization:', organizations[0].id);
         navigate({ organization: organizations[0].id });
         return;
       }
       
       if (currentLevel === 'building' && buildings.length === 1 && !buildingId) {
         // Auto-forward if only one building
+        console.log('⚡ [HIERARCHY DEBUG] Auto-forwarding to building:', buildings[0].id);
         navigate({ building: buildings[0].id });
         return;
       }
       
       if (currentLevel === 'residence' && residences.length === 1 && !residenceId) {
         // Auto-forward if only one residence
+        console.log('⚡ [HIERARCHY DEBUG] Auto-forwarding to residence:', residences[0].id);
         navigate({ residence: residences[0].id });
         return;
       }
@@ -129,11 +159,16 @@ export function withHierarchicalSelection<T extends object>(
 
     // Handle selection
     const handleSelection = (id: string) => {
+      console.log('✅ [HIERARCHY DEBUG] handleSelection called:', { id, currentLevel });
+      
       if (currentLevel === 'organization') {
+        console.log('✅ [HIERARCHY DEBUG] Selecting organization:', id);
         navigate({ organization: id });
       } else if (currentLevel === 'building') {
+        console.log('✅ [HIERARCHY DEBUG] Selecting building:', id);
         navigate({ building: id });
       } else if (currentLevel === 'residence') {
+        console.log('✅ [HIERARCHY DEBUG] Selecting residence:', id);
         navigate({ residence: id });
       }
     };
