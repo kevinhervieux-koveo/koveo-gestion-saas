@@ -458,7 +458,6 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
       const data = await response.json();
       return data;
     },
-    enabled: !!organizationId, // Only fetch when we have an organizationId
   });
 
   // Extract buildings array from the wrapped response
