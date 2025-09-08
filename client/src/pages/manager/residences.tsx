@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
+import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 
 /**
  *
@@ -83,13 +84,7 @@ interface Building {
 /**
  *
  */
-export default function /**
- * Residences function.
- */ /**
- * Residences function.
- */
-
-Residences() {
+function ManagerResidences() {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -516,3 +511,8 @@ Residences() {
     </div>
   );
 }
+
+// Export with hierarchical selection HOC - Manager residences page uses organization → building hierarchy
+export default withHierarchicalSelection(ManagerResidences, {
+  hierarchy: ['organization', 'building']
+});
