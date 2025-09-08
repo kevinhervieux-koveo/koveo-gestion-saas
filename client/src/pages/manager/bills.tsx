@@ -1043,7 +1043,7 @@ function BillDetail({
   );
 }
 
-// Export the component wrapped with hierarchical selection HOC
-export default withHierarchicalSelection(BillsPage, { 
-  hierarchy: ['organization', 'building'] 
+// Export with hierarchical selection HOC - Manager buildings page uses 2-level hierarchy
+export default withHierarchicalSelection(BillsPage, {
+  hierarchy: ['organization', 'building']
 });
