@@ -1156,7 +1156,17 @@ export function registerDocumentRoutes(app: Express): void {
       // Filter by specific building if provided
       if (specificBuildingId) {
         filters.buildingId = specificBuildingId;
-      } else if (documentType === 'building') {
+      }
+
+      // Filter by attached entity (e.g., bill attachments)
+      if (attachedToType) {
+        filters.attachedToType = attachedToType;
+      }
+      if (attachedToId) {
+        filters.attachedToId = attachedToId;
+      }
+
+      if (documentType === 'building') {
         // For building documents, search in buildings user has access to
         if (buildingIds.length > 0) {
           // Get all documents for buildings, will filter later to show only building-level documents
