@@ -2761,7 +2761,7 @@ export function registerDocumentRoutes(app: Express): void {
         hasAccess = true;
         accessReason = 'Admin has global access';
         // Admin access granted
-      } else if (userRole === 'manager') {
+      } else if (userRole === 'manager' || userRole === 'demo_manager') {
         // Checking manager permissions
         
         // Manager should have access to buildings they are assigned to
@@ -2798,7 +2798,7 @@ export function registerDocumentRoutes(app: Express): void {
             }
           }
         }
-      } else if (userRole === 'resident') {
+      } else if (userRole === 'resident' || userRole === 'demo_resident') {
         // Resident has access to building files they are assigned to
         if (document.buildingId && userBuildingIds.includes(document.buildingId)) {
           hasAccess = true;
@@ -2810,7 +2810,7 @@ export function registerDocumentRoutes(app: Express): void {
           hasAccess = true;
           accessReason = 'Resident has access to assigned residence documents';
         }
-      } else if (userRole === 'tenant') {
+      } else if (userRole === 'tenant' || userRole === 'demo_tenant') {
         // Tenants can only access documents marked as visible to tenants
         if (document.isVisibleToTenants) {
           // Tenant has access to building files they are assigned to and marked for tenant
