@@ -20,7 +20,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { render } from '../utils/test-utils';
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -1354,7 +1354,7 @@ describe('File Upload Forms Test Suite', () => {
       // Mock XMLHttpRequest for progress tracking
       const mockXHR = {
         upload: {
-          addEventListener: jest.fn((event, callback) => {
+          addEventListener: jest.fn((event: string, callback: (progress: { loaded: number; total: number }) => void) => {
             if (event === 'progress') {
               // Simulate progress updates
               // Use immediate callbacks instead of setTimeout to prevent hanging
