@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-03-SECURITY-1
-Title: Security (1) - Harris, Beier and Schmeler
-Amount: $1313.75
-Created: 2025-09-08T02:56:27.811Z

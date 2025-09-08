@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-08-PROFESSIONAL_SERVICES-2
-Title: Professional_services (2) - Monahan - Funk
-Amount: $4408.06
-Created: 2025-09-08T02:56:35.158Z

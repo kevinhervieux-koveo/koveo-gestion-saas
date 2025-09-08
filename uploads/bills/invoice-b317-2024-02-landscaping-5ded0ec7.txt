@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-02-LANDSCAPING
-Title: Landscaping  - Howell, Dare and Roberts
-Amount: $4009.99
-Created: 2025-09-08T02:56:27.252Z

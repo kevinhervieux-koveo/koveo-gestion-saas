@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-01-CLEANING-1
-Title: Cleaning (1) - Schinner - Gibson
-Amount: $574.85
-Created: 2025-09-08T02:56:26.406Z

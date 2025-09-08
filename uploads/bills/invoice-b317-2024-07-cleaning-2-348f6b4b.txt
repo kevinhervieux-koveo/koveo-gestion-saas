@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-07-CLEANING-2
-Title: Cleaning (2) - Kihn LLC
-Amount: $3020.70
-Created: 2025-09-08T02:56:32.137Z

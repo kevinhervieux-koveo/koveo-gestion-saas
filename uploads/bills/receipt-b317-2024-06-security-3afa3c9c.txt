@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-06-SECURITY
-Title: Security  - Batz, Labadie and Fay
-Amount: $3673.82
-Created: 2025-09-08T02:56:33.556Z

@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-06-CLEANING
-Title: Cleaning  - Schinner, Corwin and Hane
-Amount: $4588.36
-Created: 2025-09-08T02:56:31.581Z

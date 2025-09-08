@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-03-UTILITIES-1
-Title: Utilities (1) - Emmerich, Bartell and O'Reilly
-Amount: $500.13
-Created: 2025-09-08T02:56:29.601Z

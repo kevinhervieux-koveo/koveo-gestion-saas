@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-05-MAINTENANCE-2
-Title: Maintenance (2) - Thompson Group
-Amount: $3405.27
-Created: 2025-09-08T02:56:32.899Z

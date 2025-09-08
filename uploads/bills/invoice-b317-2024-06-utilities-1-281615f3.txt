@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-06-UTILITIES-1
-Title: Utilities (1) - Olson, Aufderhar and Pacocha
-Amount: $989.82
-Created: 2025-09-08T02:56:31.477Z

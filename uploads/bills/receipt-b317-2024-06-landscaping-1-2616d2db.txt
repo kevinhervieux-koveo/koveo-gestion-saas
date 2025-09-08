@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-06-LANDSCAPING-1
-Title: Landscaping (1) - Kessler - Schiller
-Amount: $4273.75
-Created: 2025-09-08T02:56:31.674Z

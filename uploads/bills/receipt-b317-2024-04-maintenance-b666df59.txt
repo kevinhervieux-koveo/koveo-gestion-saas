@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-04-MAINTENANCE
-Title: Maintenance  - Fadel - Kemmer
-Amount: $3084.61
-Created: 2025-09-08T02:56:30.158Z

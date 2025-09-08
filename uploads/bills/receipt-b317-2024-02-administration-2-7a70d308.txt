@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-02-ADMINISTRATION-2
-Title: Administration (2) - Waters, Beahan and Bashirian
-Amount: $3000.15
-Created: 2025-09-08T02:56:27.440Z

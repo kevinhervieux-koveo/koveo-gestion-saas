@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-03-LANDSCAPING-1
-Title: Landscaping (1) - Bayer, Reichert and Cremin
-Amount: $2692.19
-Created: 2025-09-08T02:56:27.904Z

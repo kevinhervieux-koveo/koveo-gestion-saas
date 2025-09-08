@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-08-CLEANING-2
-Title: Cleaning (2) - Jast - Wiza
-Amount: $4397.06
-Created: 2025-09-08T02:56:34.785Z

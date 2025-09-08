@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-02-MAINTENANCE
-Title: Maintenance  - Towne Inc
-Amount: $433.99
-Created: 2025-09-08T02:56:28.940Z

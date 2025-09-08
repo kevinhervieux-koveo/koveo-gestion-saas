@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-02-SECURITY
-Title: Security  - Braun - Bashirian
-Amount: $4916.04
-Created: 2025-09-08T02:56:29.132Z

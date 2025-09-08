@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-07-MAINTENANCE-2
-Title: Maintenance (2) - Leannon, Macejkovic and Krajcik
-Amount: $4173.34
-Created: 2025-09-08T02:56:33.927Z

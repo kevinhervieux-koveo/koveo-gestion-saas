@@ -1,8 +1,0 @@
-Demo Insurance Bill Attachment
-This is a demo insurance bill attachment for demonstration purposes.
-
-Bill Details:
-- Number: 29CA-2024-11-INSURANCE-2
-- Vendor: Bins, Stroman and Blick
-- Amount: 95.85
-- Generated: Mon Sep  8 09:23:46 AM UTC 2025

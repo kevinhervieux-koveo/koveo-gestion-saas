@@ -1,4 +1,0 @@
-Demo Bill Attachment - 29ca-2024-02-insurance-c247ce07.txt
-This is a demo bill attachment created for testing purposes.
-Generated: Mon Sep  8 09:23:24 AM UTC 2025
-File: uploads/bills/29ca-2024-02-insurance-c247ce07.txt

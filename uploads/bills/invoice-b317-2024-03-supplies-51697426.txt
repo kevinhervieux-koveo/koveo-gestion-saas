@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-03-SUPPLIES
-Title: Supplies  - Kuhlman, Kessler and Mraz
-Amount: $543.44
-Created: 2025-09-08T02:56:30.065Z

@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-03-INSURANCE-2
-Title: Insurance (2) - Orn - Brown
-Amount: $3621.25
-Created: 2025-09-08T02:56:29.506Z

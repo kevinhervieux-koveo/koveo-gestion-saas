@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-08-LANDSCAPING-2
-Title: Landscaping (2) - Gutmann, Kshlerin and Hagenes
-Amount: $3074.54
-Created: 2025-09-08T02:56:35.065Z

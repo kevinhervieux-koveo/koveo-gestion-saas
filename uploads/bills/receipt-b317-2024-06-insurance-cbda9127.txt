@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-06-INSURANCE
-Title: Insurance  - Harber Inc
-Amount: $525.66
-Created: 2025-09-08T02:56:33.271Z

@@ -1,6 +1,0 @@
-Demo Invoice
-
-Bill: B317-2024-08-MAINTENANCE-1
-Title: Maintenance (1) - Renner, Monahan and Hand
-Amount: $3471.94
-Created: 2025-09-08T02:56:32.621Z

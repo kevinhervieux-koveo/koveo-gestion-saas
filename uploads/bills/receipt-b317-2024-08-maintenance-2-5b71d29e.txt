@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-08-MAINTENANCE-2
-Title: Maintenance (2) - Conn, Ziemann and Zboncak
-Amount: $1190.74
-Created: 2025-09-08T02:56:34.595Z

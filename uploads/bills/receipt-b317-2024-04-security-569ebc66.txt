@@ -1,6 +1,0 @@
-Demo Receipt
-
-Bill: B317-2024-04-SECURITY
-Title: Security  - Maggio - Jones
-Amount: $779.00
-Created: 2025-09-08T02:56:30.344Z
