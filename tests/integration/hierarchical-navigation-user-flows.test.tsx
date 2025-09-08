@@ -458,4 +458,180 @@ describe('Hierarchical Navigation User Flows', () => {
       expect(screen.getByTestId('buildings-grid')).toBeInTheDocument();
     });
   });
+
+  describe('Manager Residences Page Navigation Flow', () => {
+    // Mock Manager Residences page component with organization → building hierarchy
+    const MockManagerResidencesPage = withHierarchicalSelection(() => {
+      const { organizationId, buildingId, showBackButton, onBack } = useContext(HierarchyContext);
+      
+      return (
+        <div data-testid="manager-residences-screen">
+          <div data-testid="residences-title">Manager Residences</div>
+          <div data-testid="selected-organization-id">{organizationId || 'none'}</div>
+          <div data-testid="selected-building-id">{buildingId || 'none'}</div>
+          {showBackButton && (
+            <button data-testid="back-to-selection" onClick={onBack}>
+              Back to Selection
+            </button>
+          )}
+        </div>
+      );
+    }, {
+      hierarchy: ['organization', 'building']
+    });
+
+    test('should navigate through organization → building flow for manager residences', async () => {
+      // Mock API responses for organizations and buildings
+      const mockOrganizationsData = [
+        { id: 'org-1', name: 'Organization A' },
+        { id: 'org-2', name: 'Organization B' },
+      ];
+
+      const mockBuildingsData = [
+        { id: 'building-1', name: 'Building A', organizationId: 'org-1' },
+        { id: 'building-2', name: 'Building B', organizationId: 'org-1' },
+      ];
+
+      let apiCallCount = 0;
+      mockFetch.mockImplementation((url) => {
+        apiCallCount++;
+        if (url.includes('/api/organizations')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockOrganizationsData,
+          });
+        }
+        if (url.includes('/api/manager/buildings')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ buildings: mockBuildingsData }),
+          });
+        }
+        return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      });
+
+      renderWithProviders(<MockManagerResidencesPage />);
+
+      // 1. Should start with organization selection
+      await waitFor(() => {
+        expect(screen.getByTestId('organization-selection-screen')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('selection-title')).toHaveTextContent('Select Organization');
+      expect(screen.getByTestId('org-card-org-1')).toHaveTextContent('Organization A');
+      expect(screen.getByTestId('org-card-org-2')).toHaveTextContent('Organization B');
+
+      // 2. Select an organization
+      fireEvent.click(screen.getByTestId('org-card-org-1'));
+
+      // 3. Should move to building selection
+      await waitFor(() => {
+        expect(screen.getByTestId('building-selection-screen')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('selection-title')).toHaveTextContent('Select Building');
+      expect(screen.getByTestId('building-card-building-1')).toHaveTextContent('Building A');
+      expect(screen.getByTestId('building-card-building-2')).toHaveTextContent('Building B');
+
+      // 4. Select a building
+      fireEvent.click(screen.getByTestId('building-card-building-1'));
+
+      // 5. Should reach the manager residences screen
+      await waitFor(() => {
+        expect(screen.getByTestId('manager-residences-screen')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('residences-title')).toHaveTextContent('Manager Residences');
+      expect(screen.getByTestId('selected-organization-id')).toHaveTextContent('org-1');
+      expect(screen.getByTestId('selected-building-id')).toHaveTextContent('building-1');
+      expect(screen.getByTestId('back-to-selection')).toBeInTheDocument();
+    });
+
+    test('should auto-forward when manager has single building in organization', async () => {
+      // Mock single building response
+      const mockOrganizationsData = [
+        { id: 'org-1', name: 'Organization A' },
+      ];
+
+      const mockSingleBuildingData = [
+        { id: 'building-1', name: 'Single Building', organizationId: 'org-1' },
+      ];
+
+      mockFetch.mockImplementation((url) => {
+        if (url.includes('/api/organizations')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockOrganizationsData,
+          });
+        }
+        if (url.includes('/api/manager/buildings')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ buildings: mockSingleBuildingData }),
+          });
+        }
+        return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      });
+
+      // Start with organization already selected
+      mockCurrentSearch = '?organization=org-1';
+      
+      renderWithProviders(<MockManagerResidencesPage />);
+
+      // Should auto-forward through single building to final screen
+      await waitFor(() => {
+        expect(screen.getByTestId('manager-residences-screen')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('selected-organization-id')).toHaveTextContent('org-1');
+      expect(screen.getByTestId('selected-building-id')).toHaveTextContent('building-1');
+    });
+
+    test('should handle back navigation in manager residences hierarchy', async () => {
+      const mockOrganizationsData = [
+        { id: 'org-1', name: 'Organization A' },
+        { id: 'org-2', name: 'Organization B' },
+      ];
+
+      const mockBuildingsData = [
+        { id: 'building-1', name: 'Building A', organizationId: 'org-1' },
+        { id: 'building-2', name: 'Building B', organizationId: 'org-1' },
+      ];
+
+      mockFetch.mockImplementation((url) => {
+        if (url.includes('/api/organizations')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockOrganizationsData,
+          });
+        }
+        if (url.includes('/api/manager/buildings')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ buildings: mockBuildingsData }),
+          });
+        }
+        return Promise.reject(new Error(`Unexpected URL: ${url}`));
+      });
+
+      // Start with both organization and building selected
+      mockCurrentSearch = '?organization=org-1&building=building-1';
+      
+      renderWithProviders(<MockManagerResidencesPage />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('manager-residences-screen')).toBeInTheDocument();
+      });
+
+      // Click back button
+      fireEvent.click(screen.getByTestId('back-to-selection'));
+
+      // Should return to building selection
+      await waitFor(() => {
+        expect(screen.getByTestId('building-selection-screen')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('selection-title')).toHaveTextContent('Select Building');
+    });
+  });
 });

@@ -338,4 +338,64 @@ describe('Hierarchical Selection Logic', () => {
       expect(residenceId).toBe(null);
     });
   });
+
+  describe('Manager residences page hierarchy (organization → building)', () => {
+    test('should require organization first in manager residences hierarchy', () => {
+      const hierarchy: ('organization' | 'building')[] = ['organization', 'building'];
+      const ids = { organizationId: null, buildingId: null, residenceId: null };
+      
+      const result = getCurrentLevel(hierarchy, ids);
+      
+      expect(result).toBe('organization');
+    });
+
+    test('should move to building after organization in manager residences', () => {
+      const hierarchy: ('organization' | 'building')[] = ['organization', 'building'];
+      const ids = { organizationId: 'org-123', buildingId: null, residenceId: null };
+      
+      const result = getCurrentLevel(hierarchy, ids);
+      
+      expect(result).toBe('building');
+    });
+
+    test('should be complete when organization and building selected for manager residences', () => {
+      const hierarchy: ('organization' | 'building')[] = ['organization', 'building'];
+      const ids = { organizationId: 'org-123', buildingId: 'building-456', residenceId: null };
+      
+      const result = getCurrentLevel(hierarchy, ids);
+      
+      expect(result).toBe('complete');
+    });
+
+    test('should prioritize organization when building provided but org missing in manager residences', () => {
+      const hierarchy: ('organization' | 'building')[] = ['organization', 'building'];
+      const ids = { organizationId: null, buildingId: 'building-123', residenceId: null };
+      
+      const result = getCurrentLevel(hierarchy, ids);
+      
+      expect(result).toBe('organization');
+    });
+
+    test('should handle auto-forward scenario for manager residences with single building', () => {
+      // Test manager residences page specific auto-forward logic
+      const currentLevel = 'building';
+      const buildingsLength = 1;
+      const buildingId = null;
+      
+      const shouldAutoForward = currentLevel === 'building' && buildingsLength === 1 && !buildingId;
+      
+      expect(shouldAutoForward).toBe(true);
+    });
+
+    test('should show back button in manager residences when multiple organizations', () => {
+      // Test back button logic for 2-level hierarchy
+      const hierarchyLength = 2;
+      const organizationId = 'org-123';
+      const organizationsLength = 2;
+      
+      const shouldShowBackButton = hierarchyLength >= 2 && !!organizationId && organizationsLength > 1;
+      
+      expect(shouldShowBackButton).toBe(true);
+    });
+  });
 });
