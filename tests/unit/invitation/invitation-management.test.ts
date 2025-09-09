@@ -12,10 +12,10 @@ import { mockDb, testUtils, mockSchema } from '../../mocks/unified-database-mock
 
 // Mock request for API testing
 const mockRequest = {
-  post: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }),
-  get: jest.fn().mockResolvedValue({ status: 200, body: { data: [] } }),
-  put: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }),
-  delete: jest.fn().mockResolvedValue({ status: 200, body: { success: true } })
+  post: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }) as any,
+  get: jest.fn().mockResolvedValue({ status: 200, body: { data: [] } }) as any,
+  put: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }) as any,
+  delete: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }) as any
 };
 
 describe('Invitation Management API', () => {
@@ -69,7 +69,7 @@ describe('Invitation Management API', () => {
       language: 'en',
     }).returning() as any[];
 
-    const [manager] = await mockDb.insert(schema.users).values({
+    const [manager] = await mockDb.insert(mockSchema.users).values({
       username: 'manager@test.com',
       email: 'manager@test.com',
       password: hashedPassword,
@@ -79,7 +79,7 @@ describe('Invitation Management API', () => {
       language: 'en',
     }).returning() as any[];
 
-    const [tenant] = await mockDb.insert(schema.users).values({
+    const [tenant] = await mockDb.insert(mockSchema.users).values({
       username: 'tenant@test.com',
       email: 'tenant@test.com',
       password: hashedPassword,
@@ -105,7 +105,7 @@ describe('Invitation Management API', () => {
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 7); // 7 days from now
 
-    const [invitation1] = await mockDb.insert(schema.invitations).values({
+    const [invitation1] = await mockDb.insert(mockSchema.invitations).values({
       email: 'test1@example.com',
       token: 'test-token-1',
       tokenHash: 'hash1',
@@ -116,7 +116,7 @@ describe('Invitation Management API', () => {
       expiresAt: expirationDate,
     }).returning() as any[];
 
-    const [invitation2] = await mockDb.insert(schema.invitations).values({
+    const [invitation2] = await mockDb.insert(mockSchema.invitations).values({
       email: 'test2@example.com',
       token: 'test-token-2',
       tokenHash: 'hash2',
@@ -148,11 +148,8 @@ describe('Invitation Management API', () => {
   });
 
   afterEach(async () => {
-    // Clean up test data
-    await mockDb.delete(schema.invitations);
-    await mockDb.delete(schema.userOrganizations);
-    await mockDb.delete(schema.users);
-    await mockDb.delete(schema.organizations);
+    // Reset mock data and clear all mocks
+    testUtils.resetMocks();
   });
 
   describe('GET /api/invitations/pending', () => {
@@ -233,7 +230,7 @@ describe('Invitation Management API', () => {
       const remainingInvitations = await mockDb
         .select()
         .from(schema.invitations)
-        .where(eq(schema.invitations.id, testInvitation1.id));
+        .where(eq(schema.invitations.id, testInvitation1.id)) as any[];
       expect(remainingInvitations).toHaveLength(0);
     });
 
@@ -249,7 +246,7 @@ describe('Invitation Management API', () => {
       const remainingInvitations = await mockDb
         .select()
         .from(schema.invitations)
-        .where(eq(schema.invitations.id, testInvitation1.id));
+        .where(eq(schema.invitations.id, testInvitation1.id)) as any[];
       expect(remainingInvitations).toHaveLength(0);
     });
 
@@ -266,7 +263,7 @@ describe('Invitation Management API', () => {
       const remainingInvitations = await mockDb
         .select()
         .from(schema.invitations)
-        .where(eq(schema.invitations.id, testInvitation2.id));
+        .where(eq(schema.invitations.id, testInvitation2.id)) as any[];
       expect(remainingInvitations).toHaveLength(1);
     });
 
@@ -353,7 +350,7 @@ describe('Invitation Management API', () => {
   describe('Database Constraints and Data Integrity', () => {
     it('should handle invitations with null organization references', async () => {
       // Create invitation without organization
-      const [invitation] = await mockDb.insert(schema.invitations).values({
+      const [invitation] = await mockDb.insert(mockSchema.invitations).values({
         email: 'no-org@example.com',
         token: 'no-org-token',
         tokenHash: 'no-org-hash',
