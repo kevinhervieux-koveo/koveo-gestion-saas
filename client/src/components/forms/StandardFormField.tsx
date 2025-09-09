@@ -52,6 +52,8 @@ interface StandardFormFieldProps<T extends FieldValues> {
   min?: string | number;
   max?: string | number;
   step?: string | number;
+  maxLength?: number; // For text inputs and textareas
+  'data-testid'?: string; // Allow explicit test ID override
 }
 
 /**
@@ -78,9 +80,11 @@ export function StandardFormField<T extends FieldValues>({
   min,
   max,
   step,
+  maxLength,
+  'data-testid': explicitTestId,
 }: StandardFormFieldProps<T>) {
-  // Auto-generate test ID following standards
-  const testId = FormQuality.generateTestId(formName, name as string, 
+  // Auto-generate test ID following standards or use explicit override
+  const testId = explicitTestId || FormQuality.generateTestId(formName, name as string, 
     ['select'].includes(type) ? 'select' : 'input');
 
   // Render the appropriate input component based on type
@@ -106,6 +110,7 @@ export function StandardFormField<T extends FieldValues>({
           <Textarea
             {...baseProps}
             rows={rows}
+            maxLength={maxLength}
             className={cn(
               'min-h-[80px] resize-y',
               baseProps.className
@@ -173,6 +178,7 @@ export function StandardFormField<T extends FieldValues>({
             min={min}
             max={max}
             step={step}
+            maxLength={maxLength}
           />
         );
     }
