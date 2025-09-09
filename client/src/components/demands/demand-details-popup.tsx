@@ -386,17 +386,6 @@ export default function DemandDetailsPopup({
                   Edit
                 </Button>
               )}
-              {canDelete && (
-                <Button
-                  variant='outline'
-                  size='sm'
-                  onClick={handleDelete}
-                  disabled={deleteDemandMutation.isPending}
-                >
-                  <Trash2 className='h-4 w-4 mr-1' />
-                  Delete
-                </Button>
-              )}
               {canEscalate && (
                 <Button
                   variant='outline'
@@ -664,6 +653,22 @@ export default function DemandDetailsPopup({
               )}
             </div>
           </div>
+
+          {/* Delete button at bottom right */}
+          {canDelete && (
+            <div className='flex justify-end pt-4'>
+              <Button
+                variant='destructive'
+                size='sm'
+                onClick={handleDelete}
+                disabled={deleteDemandMutation.isPending}
+                data-testid='button-delete-demand'
+              >
+                <Trash2 className='h-4 w-4 mr-1' />
+                {deleteDemandMutation.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
