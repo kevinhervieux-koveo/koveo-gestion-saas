@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { UserWithAssignments, Residence, Building, Organization, User } from '@shared/schema';
 
 interface UserResidencesTabProps {
@@ -35,14 +36,8 @@ export function UserResidencesTab({
   }[]>([]);
 
   useEffect(() => {
-    if (user && user.residences) {
-      setSelectedResidences(
-        user.residences.map((residence: any) => ({
-          residenceId: residence.id,
-          relationshipType: residence.relationshipType || 'tenant'
-        }))
-      );
-    }
+    // Don't pre-check anything - start with empty selection
+    setSelectedResidences([]);
   }, [user]);
 
   const handleResidenceToggle = (residenceId: string) => {
@@ -77,10 +72,15 @@ export function UserResidencesTab({
 
   // Group residences by building and organization with filters
   const residencesByBuildingAndOrg = useMemo(() => {
+    // Only show residences from selected buildings (strict cascading)
+    if (selectedBuildingIds.length === 0) {
+      return []; // No buildings selected, no residences to show
+    }
+
     // Filter residences based on selected buildings and user access
     const availableResidences = residences.filter(residence => {
-      // Must be in a selected building (cascading filter)
-      if (selectedBuildingIds.length > 0 && !selectedBuildingIds.includes(residence.buildingId)) {
+      // Must be in a selected building (strict cascading filter)
+      if (!selectedBuildingIds.includes(residence.buildingId)) {
         return false;
       }
       
@@ -164,23 +164,23 @@ export function UserResidencesTab({
             <p className="text-sm text-muted-foreground">No residences available for the selected buildings.</p>
           ) : (
             residencesByBuildingAndOrg.map((orgGroup, orgIndex) => (
-              <div key={orgGroup.organization?.id || orgIndex}>
-                <div className="mb-3">
-                  <h3 className="text-sm font-semibold text-foreground">
+              <Collapsible key={orgGroup.organization?.id || orgIndex} defaultOpen>
+                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left hover:bg-muted rounded">
+                  <h3 className="text-sm font-semibold">
                     {orgGroup.organization?.name || 'Unknown Organization'}
                   </h3>
-                  <Separator className="mt-1" />
-                </div>
-                <div className="space-y-4 ml-2">
+                  <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:rotate-[-90deg]" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 ml-2 mt-2">
                   {orgGroup.buildings.map((buildingGroup, buildingIndex) => (
-                    <div key={buildingGroup.building.id || buildingIndex}>
-                      <div className="mb-2">
-                        <h4 className="text-sm font-medium text-muted-foreground">
+                    <Collapsible key={buildingGroup.building.id || buildingIndex} defaultOpen>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left hover:bg-muted rounded">
+                        <h4 className="text-sm font-medium">
                           {buildingGroup.building.name}
                         </h4>
-                        <Separator className="mt-1" />
-                      </div>
-                      <div className="space-y-2 ml-4">
+                        <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:rotate-[-90deg]" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-2 ml-4 mt-2">
                         {buildingGroup.residences.map((residence) => (
                           <div key={residence.id} className="flex items-center space-x-2 p-2 border rounded">
                             <Checkbox
@@ -219,11 +219,11 @@ export function UserResidencesTab({
                             )}
                           </div>
                         ))}
-                      </div>
-                    </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   ))}
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
             ))
           )}
         </div>

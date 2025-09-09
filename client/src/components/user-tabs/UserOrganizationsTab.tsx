@@ -26,12 +26,10 @@ export function UserOrganizationsTab({
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
 
   useEffect(() => {
-    if (user && user.organizations) {
-      const orgIds = user.organizations.map((org: any) => org.id);
-      setSelectedOrganizations(orgIds);
-      // Notify parent of initial selection for cascading filters
-      onSelectionChange?.(orgIds);
-    }
+    // Don't pre-check anything - start with empty selection
+    setSelectedOrganizations([]);
+    // Notify parent of initial empty selection for cascading filters
+    onSelectionChange?.([]);
   }, [user, onSelectionChange]);
 
   const handleOrganizationToggle = (organizationId: string) => {

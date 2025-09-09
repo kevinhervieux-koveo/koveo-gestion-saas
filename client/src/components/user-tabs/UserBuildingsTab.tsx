@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { UserWithAssignments, Building, Organization, User } from '@shared/schema';
 
 interface UserBuildingsTabProps {
@@ -31,12 +32,10 @@ export function UserBuildingsTab({
   const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
 
   useEffect(() => {
-    if (user && user.buildings) {
-      const buildingIds = user.buildings.map((building: any) => building.id);
-      setSelectedBuildings(buildingIds);
-      // Notify parent of initial selection for cascading filters
-      onSelectionChange?.(buildingIds);
-    }
+    // Don't pre-check anything - start with empty selection
+    setSelectedBuildings([]);
+    // Notify parent of initial empty selection for cascading filters
+    onSelectionChange?.([]);
   }, [user, onSelectionChange]);
 
   const handleBuildingToggle = (buildingId: string) => {
@@ -57,10 +56,15 @@ export function UserBuildingsTab({
 
   // Group buildings by organization and apply filters
   const buildingsByOrganization = useMemo(() => {
+    // Only show buildings from selected organizations (strict cascading)
+    if (selectedOrganizationIds.length === 0) {
+      return []; // No organizations selected, no buildings to show
+    }
+
     // Filter buildings based on selected organizations and user access
     const availableBuildings = buildings.filter(building => {
-      // Must be in a selected organization (cascading filter)
-      if (selectedOrganizationIds.length > 0 && !selectedOrganizationIds.includes(building.organizationId)) {
+      // Must be in a selected organization (strict cascading filter)
+      if (!selectedOrganizationIds.includes(building.organizationId)) {
         return false;
       }
       
@@ -115,14 +119,14 @@ export function UserBuildingsTab({
             <p className="text-sm text-muted-foreground">No buildings available for the selected organizations.</p>
           ) : (
             buildingsByOrganization.map((group, groupIndex) => (
-              <div key={group.organization?.id || groupIndex}>
-                <div className="mb-3">
-                  <h4 className="text-sm font-medium text-muted-foreground">
+              <Collapsible key={group.organization?.id || groupIndex} defaultOpen>
+                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left hover:bg-muted rounded">
+                  <h4 className="text-sm font-medium">
                     {group.organization?.name || 'Unknown Organization'}
                   </h4>
-                  <Separator className="mt-1" />
-                </div>
-                <div className="space-y-2 ml-4">
+                  <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:rotate-[-90deg]" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 ml-4 mt-2">
                   {group.buildings.map((building) => (
                     <div key={building.id} className="flex items-center space-x-2 p-2 border rounded">
                       <Checkbox
@@ -143,8 +147,8 @@ export function UserBuildingsTab({
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
             ))
           )}
         </div>
