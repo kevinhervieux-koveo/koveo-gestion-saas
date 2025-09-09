@@ -560,19 +560,71 @@ export default function UserManagement() {
       const response = await apiRequest('POST', `/api/users/${userId}/delete-account`, data);
       return response.json();
     },
+    onMutate: async ({ userId }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['/api/users'] });
+
+      // Snapshot the previous value
+      const previousUsers = queryClient.getQueryData(['/api/users', { 
+        page: currentPage, 
+        limit: usersPerPage,
+        roleFilter,
+        statusFilter,
+        organizationFilter,
+        orphanFilter,
+        search
+      }]);
+
+      // Optimistically update to remove the user from the cache
+      queryClient.setQueryData(['/api/users', { 
+        page: currentPage, 
+        limit: usersPerPage,
+        roleFilter,
+        statusFilter,
+        organizationFilter,
+        orphanFilter,
+        search
+      }], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          users: old.users.filter((user: any) => user.id !== userId),
+          pagination: {
+            ...old.pagination,
+            total: Math.max(0, old.pagination.total - 1)
+          }
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousUsers };
+    },
     onSuccess: () => {
       toast({
         title: t('accountDeleted'),
         description: t('accountDeletedDescription'),
       });
       setDeletingUser(null);
-      // Invalidate and refetch user data with broader scope
+      // Invalidate and refetch user data to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables, context) => {
+      // If the mutation fails, restore the previous data
+      if (context?.previousUsers) {
+        queryClient.setQueryData(['/api/users', { 
+          page: currentPage, 
+          limit: usersPerPage,
+          roleFilter,
+          statusFilter,
+          organizationFilter,
+          orphanFilter,
+          search
+        }], context.previousUsers);
+      }
+      
       toast({
         title: t('deletionFailed'),
         description: error.message || t('deletionFailedDescription'),
