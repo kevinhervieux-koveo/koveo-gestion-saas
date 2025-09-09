@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Building, Users, Mail, Phone, MapPin, MessageSquare, Send, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 
 interface TrialRequestFormData {
@@ -42,6 +43,7 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const [formData, setFormData] = useState<TrialRequestFormData>({
     firstName: '',
@@ -176,11 +178,10 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building className="h-5 w-5 text-koveo-navy" />
-            Demande d'essai gratuit
+            {t('trialRequestTitle')}
           </DialogTitle>
           <DialogDescription>
-            Découvrez Koveo Gestion avec un essai gratuit de 30 jours. Remplissez le formulaire ci-dessous et
-            notre équipe vous contactera rapidement.
+            {t('trialRequestDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -190,18 +191,18 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                Informations personnelles
+                {t('personalInformation')}
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">Prénom *</Label>
+                <Label htmlFor="firstName">{t('firstName')} *</Label>
                 <Input
                   id="firstName"
                   data-testid="input-first-name"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  placeholder="Votre prénom"
+                  placeholder={t('firstName')}
                 />
                 {errors.firstName && (
                   <p className="text-sm text-red-600" data-testid="error-first-name">
@@ -211,13 +212,13 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lastName">Nom *</Label>
+                <Label htmlFor="lastName">{t('lastName')} *</Label>
                 <Input
                   id="lastName"
                   data-testid="input-last-name"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  placeholder="Votre nom"
+                  placeholder={t('lastName')}
                 />
                 {errors.lastName && (
                   <p className="text-sm text-red-600" data-testid="error-last-name">
@@ -227,14 +228,14 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Adresse courriel *</Label>
+                <Label htmlFor="email">{t('email')} *</Label>
                 <Input
                   id="email"
                   type="email"
                   data-testid="input-email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="votre@courriel.com"
+                  placeholder="email@example.com"
                 />
                 {errors.email && (
                   <p className="text-sm text-red-600" data-testid="error-email">
@@ -244,7 +245,7 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">Téléphone *</Label>
+                <Label htmlFor="phone">{t('phone')} *</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -267,18 +268,18 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Building className="h-4 w-4" />
-                Informations sur l'entreprise
+                {t('companyInformation')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="company">Nom de l'entreprise *</Label>
+                <Label htmlFor="company">{t('company')} *</Label>
                 <Input
                   id="company"
                   data-testid="input-company"
                   value={formData.company}
                   onChange={(e) => handleInputChange('company', e.target.value)}
-                  placeholder="Nom de votre entreprise"
+                  placeholder={t('company')}
                 />
                 {errors.company && (
                   <p className="text-sm text-red-600" data-testid="error-company">
@@ -289,29 +290,29 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="address">Adresse</Label>
+                  <Label htmlFor="address">{t('address')}</Label>
                   <Input
                     id="address"
                     data-testid="input-address"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    placeholder="123 Rue Principale"
+                    placeholder="123 Main Street"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="city">Ville</Label>
+                  <Label htmlFor="city">{t('city')}</Label>
                   <Input
                     id="city"
                     data-testid="input-city"
                     value={formData.city}
                     onChange={(e) => handleInputChange('city', e.target.value)}
-                    placeholder="Montréal"
+                    placeholder="Montreal"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="province">Province</Label>
+                  <Label htmlFor="province">{t('province')}</Label>
                   <select
                     id="province"
                     data-testid="select-province"
@@ -328,7 +329,7 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="postalCode">Code postal</Label>
+                  <Label htmlFor="postalCode">{t('postalCode')}</Label>
                   <Input
                     id="postalCode"
                     data-testid="input-postal-code"
@@ -346,12 +347,12 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Informations sur les propriétés
+                {t('propertyInformation')}
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="numberOfBuildings">Nombre de bâtiments *</Label>
+                <Label htmlFor="numberOfBuildings">{t('numberOfBuildings')} *</Label>
                 <Input
                   id="numberOfBuildings"
                   type="number"
@@ -369,7 +370,7 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="numberOfResidences">Nombre total de résidences *</Label>
+                <Label htmlFor="numberOfResidences">{t('numberOfResidences')} *</Label>
                 <Input
                   id="numberOfResidences"
                   type="number"
@@ -393,18 +394,18 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
-                Informations supplémentaires
+                {t('additionalInformation')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Label htmlFor="message">Message (optionnel)</Label>
+                <Label htmlFor="message">{t('message')} ({t('optional')})</Label>
                 <Textarea
                   id="message"
                   data-testid="textarea-message"
                   value={formData.message}
                   onChange={(e) => handleInputChange('message', e.target.value)}
-                  placeholder="Décrivez vos besoins spécifiques ou posez-nous vos questions..."
+                  placeholder={`${t('message')}...`}
                   rows={4}
                 />
               </div>
@@ -419,7 +420,7 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
               onClick={() => setIsOpen(false)}
               data-testid="button-cancel"
             >
-              Annuler
+              {t('cancel')}
             </Button>
             <Button
               type="submit"
@@ -430,12 +431,12 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Envoi en cours...
+                  {t('submitting')}
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Envoyer la demande
+                  {t('submitRequest')}
                 </>
               )}
             </Button>

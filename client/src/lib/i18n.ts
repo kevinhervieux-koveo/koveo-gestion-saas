@@ -945,6 +945,30 @@ export interface Translations {
   getStarted: string;
   openMenu: string;
   closeMenu: string;
+  
+  // Trial Request Form
+  trialRequestTitle: string;
+  trialRequestDescription: string;
+  personalInformation: string;
+  companyInformation: string;
+  propertyInformation: string;
+  additionalInformation: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  company: string;
+  address: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  numberOfBuildings: string;
+  numberOfResidences: string;
+  message: string;
+  optional: string;
+  cancel: string;
+  submitRequest: string;
+  submitting: string;
   copyright: string;
   law25Compliant: string;
   pricing: string;
@@ -1941,6 +1965,30 @@ export const translations: Record<Language, Translations> = {
     getStarted: 'Get Started',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
+    
+    // Trial Request Form
+    trialRequestTitle: 'Free Trial Request',
+    trialRequestDescription: 'Discover Koveo Gestion with a free 30-day trial. Fill out the form below and our team will contact you quickly.',
+    personalInformation: 'Personal Information',
+    companyInformation: 'Company Information',
+    propertyInformation: 'Property Information',
+    additionalInformation: 'Additional Information',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    email: 'Email Address',
+    phone: 'Phone',
+    company: 'Company Name',
+    address: 'Address',
+    city: 'City',
+    province: 'Province',
+    postalCode: 'Postal Code',
+    numberOfBuildings: 'Number of Buildings',
+    numberOfResidences: 'Total Number of Residences',
+    message: 'Message',
+    optional: 'optional',
+    cancel: 'Cancel',
+    submitRequest: 'Submit Request',
+    submitting: 'Submitting...',
     copyright: '© 2025 Koveo Gestion',
     law25Compliant: 'Quebec Law 25 Compliant',
     pricing: 'Pricing',
@@ -2835,6 +2883,30 @@ export const translations: Record<Language, Translations> = {
     getStarted: 'Commencer',
     openMenu: 'Ouvrir le menu',
     closeMenu: 'Fermer le menu',
+    
+    // Trial Request Form
+    trialRequestTitle: 'Demande d\'essai gratuit',
+    trialRequestDescription: 'Découvrez Koveo Gestion avec un essai gratuit de 30 jours. Remplissez le formulaire ci-dessous et notre équipe vous contactera rapidement.',
+    personalInformation: 'Informations personnelles',
+    companyInformation: 'Informations sur l\'entreprise',
+    propertyInformation: 'Informations sur les propriétés',
+    additionalInformation: 'Informations supplémentaires',
+    firstName: 'Prénom',
+    lastName: 'Nom',
+    email: 'Adresse courriel',
+    phone: 'Téléphone',
+    company: 'Nom de l\'entreprise',
+    address: 'Adresse',
+    city: 'Ville',
+    province: 'Province',
+    postalCode: 'Code postal',
+    numberOfBuildings: 'Nombre de bâtiments',
+    numberOfResidences: 'Nombre total de résidences',
+    message: 'Message',
+    optional: 'optionnel',
+    cancel: 'Annuler',
+    submitRequest: 'Envoyer la demande',
+    submitting: 'Envoi en cours...',
     copyright: '© 2025 Koveo Gestion',
     law25Compliant: 'Conforme à la Loi 25 du Québec',
     pricing: 'Tarification',

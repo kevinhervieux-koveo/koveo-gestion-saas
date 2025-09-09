@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
+import { TrialRequestForm } from '@/components/ui/trial-request-form';
 import koveoLogo from '@/assets/koveo-logo.jpg';
 import {
   Check,
@@ -146,14 +147,15 @@ export default function PricingPage() {
                   <ArrowRight className='ml-2 h-5 w-5' />
                 </Button>
               ) : (
-                <Button
-                  className='w-full bg-koveo-navy hover:bg-koveo-navy/90 text-lg py-3'
-                  onClick={() => setLocation('/login')}
-                  data-testid='btn-get-started'
-                >
-                  {t('getStarted')}
-                  <ArrowRight className='ml-2 h-5 w-5' />
-                </Button>
+                <TrialRequestForm>
+                  <Button
+                    className='w-full bg-koveo-navy hover:bg-koveo-navy/90 text-lg py-3'
+                    data-testid='btn-get-started'
+                  >
+                    {t('getStarted')}
+                    <ArrowRight className='ml-2 h-5 w-5' />
+                  </Button>
+                </TrialRequestForm>
               )}
             </CardContent>
           </Card>
@@ -216,15 +218,16 @@ export default function PricingPage() {
               <ArrowRight className='ml-2 h-5 w-5' />
             </Button>
           ) : (
-            <Button
-              size='lg'
-              className='bg-white text-koveo-navy hover:bg-gray-100 text-lg px-8 py-3'
-              onClick={() => setLocation('/login')}
-              data-testid='cta-get-started'
-            >
-              {t('getStarted')}
-              <ArrowRight className='ml-2 h-5 w-5' />
-            </Button>
+            <TrialRequestForm>
+              <Button
+                size='lg'
+                className='bg-white text-koveo-navy hover:bg-gray-100 text-lg px-8 py-3'
+                data-testid='cta-get-started'
+              >
+                {t('getStarted')}
+                <ArrowRight className='ml-2 h-5 w-5' />
+              </Button>
+            </TrialRequestForm>
           )}
         </div>
       </section>
