@@ -206,10 +206,15 @@ describe('Form Validation Fixes', () => {
         demandSchema.parse(invalidData);
         fail('Should have thrown validation error');
       } catch (error: any) {
-        expect(error.errors).toBeDefined();
-        expect(error.errors.length).toBeGreaterThan(0);
+        // Zod errors have an 'issues' property, not 'errors'
+        expect(error.issues || error.errors).toBeDefined();
+        const issues = error.issues || error.errors || [];
+        expect(issues.length).toBeGreaterThan(0);
         // Should have specific error messages
-        const descriptionError = error.errors.find((e: any) => e.path.includes('description'));
+        const descriptionError = issues.find((e: any) => 
+          (e.path && e.path.includes('description')) || 
+          (e.code && e.message && e.message.includes('description'))
+        );
         expect(descriptionError).toBeDefined();
         expect(descriptionError.message).toContain('at least');
       }
