@@ -183,6 +183,14 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
         params.set('months', filters.months.join(','));
       }
 
+      if (filters.paymentType && filters.paymentType !== 'all') {
+        params.set('paymentType', filters.paymentType);
+      }
+
+      if (filters.status && filters.status !== 'all') {
+        params.set('status', filters.status);
+      }
+
       const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
       const response = await fetch(url, { credentials: 'include' }); /**
        * If function.
