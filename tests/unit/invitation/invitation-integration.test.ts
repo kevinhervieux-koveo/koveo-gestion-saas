@@ -138,7 +138,7 @@ describe('Invitation Table Integration Tests', () => {
           organizationId: organization1.id,
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
-        }).returning();
+        }).returning() as any[];
 
         expect(invitation.role).toBe(role);
       }
@@ -160,7 +160,7 @@ describe('Invitation Table Integration Tests', () => {
           organizationId: organization1.id,
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
-        }).returning();
+        }).returning() as any[];
 
         expect(invitation.status).toBe(status);
       }
@@ -173,7 +173,7 @@ describe('Invitation Table Integration Tests', () => {
       expirationDate.setDate(expirationDate.getDate() + 7);
 
       // Create test invitations
-      await mockDb.insert(schema.invitations).values([
+      await mockDb.insert(mockSchema.invitations).values([
         {
           email: 'pending1@example.com',
           token: 'token1',
@@ -315,7 +315,7 @@ describe('Invitation Table Integration Tests', () => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 7); // Next week
 
-      await mockDb.insert(schema.invitations).values([
+      await mockDb.insert(mockSchema.invitations).values([
         {
           email: 'expired@example.com',
           token: 'expired-token',
@@ -376,7 +376,7 @@ describe('Invitation Table Integration Tests', () => {
 
       // Try to create second invitation with same token
       await expect(async () => {
-        await mockDb.insert(schema.invitations).values({
+        await mockDb.insert(mockSchema.invitations).values({
           email: 'second@example.com',
           token: 'unique-token', // Same token
           tokenHash: 'hash2',
