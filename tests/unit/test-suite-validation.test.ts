@@ -162,11 +162,10 @@ describe('Test Suite Validation', () => {
       const initialMemory = process.memoryUsage().heapUsed;
       
       // Create and cleanup test data
-      let testData = new Array(1000).fill(0).map((_, i) => ({ id: i, data: 'test' }));
+      const testData: Array<{id: number, data: string}> = new Array(1000).fill(0).map((_, i) => ({ id: i, data: 'test' }));
       const processedData = testData.map(item => ({ ...item, processed: true }));
       
-      // Cleanup
-      testData = [];
+      // Memory cleanup handled by garbage collection
       
       const finalMemory = process.memoryUsage().heapUsed;
       const memoryDiff = finalMemory - initialMemory;
