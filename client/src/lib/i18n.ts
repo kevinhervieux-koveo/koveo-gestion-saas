@@ -346,6 +346,13 @@ export interface Translations {
   buildingDocuments: string;
   signIn: string;
   demoMode: string;
+  demoModeTitle: string;
+  demoModeMessage: string;
+  demoModeSuggestion: string;
+  demoModeContact: string;
+  demoFileUploadRestricted: string;
+  demoBulkOperationRestricted: string;
+  demoExportRestricted: string;
   firstName: string;
   lastName: string;
   confirmPassword: string;
@@ -1366,6 +1373,13 @@ export const translations: Record<Language, Translations> = {
     buildingDocuments: 'Building Documents',
     signIn: 'Sign In',
     demoMode: 'Demo Mode',
+    demoModeTitle: 'Demo Mode - View Only',
+    demoModeMessage: 'This is a demonstration account with view-only access. You can explore all features but cannot make changes to the data.',
+    demoModeSuggestion: 'To create, edit, or delete content, please contact us for a full account.',
+    demoModeContact: 'Contact our team to get started with your own property management workspace.',
+    demoFileUploadRestricted: 'File uploads are not available in demonstration mode. You can view existing documents but cannot upload new ones.',
+    demoBulkOperationRestricted: 'Bulk operations are not available in demonstration mode to protect the integrity of demo data.',
+    demoExportRestricted: 'Data export is not available in demonstration mode. This feature is available in full accounts.',
     firstName: 'First Name',
     lastName: 'Last Name',
     confirmPassword: 'Confirm Password',
@@ -2331,6 +2345,13 @@ export const translations: Record<Language, Translations> = {
     buildingDocuments: 'Documents du bâtiment',
     signIn: 'Se connecter',
     demoMode: 'Mode démo',
+    demoModeTitle: 'Mode Démonstration - Consultation Seulement',
+    demoModeMessage: 'Ceci est un compte de démonstration avec accès en consultation seulement. Vous pouvez explorer toutes les fonctionnalités mais ne pouvez pas modifier les données.',
+    demoModeSuggestion: 'Pour créer, modifier ou supprimer du contenu, veuillez nous contacter pour un compte complet.',
+    demoModeContact: 'Contactez notre équipe pour commencer avec votre propre espace de gestion immobilière.',
+    demoFileUploadRestricted: "Le téléchargement de fichiers n'est pas disponible en mode démonstration. Vous pouvez consulter les documents existants mais ne pouvez pas en télécharger de nouveaux.",
+    demoBulkOperationRestricted: "Les opérations en lot ne sont pas disponibles en mode démonstration pour protéger l'intégrité des données de démonstration.",
+    demoExportRestricted: "L'exportation de données n'est pas disponible en mode démonstration. Cette fonctionnalité est disponible dans les comptes complets.",
     firstName: 'Prénom',
     lastName: 'Nom de famille',
     confirmPassword: 'Confirmer le mot de passe',
