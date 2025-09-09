@@ -243,7 +243,7 @@ class DatabaseSyncTester {
     const query = `
       SELECT 1 FROM information_schema.table_constraints 
       WHERE table_name = 'documents' 
-        AND constraint_name = 'documents_file_path_key' 
+        AND constraint_name = 'documents_file_path_unique' 
         AND constraint_type = 'UNIQUE';
     `;
     
