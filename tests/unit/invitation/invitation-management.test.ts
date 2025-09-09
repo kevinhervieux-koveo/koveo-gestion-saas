@@ -6,42 +6,9 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import * as schema from '../../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import { mockDb, testUtils, mockSchema } from '../../mocks/unified-database-mock';
 
-// Mock database for unit testing - robust implementation
-const mockDb = {
-  delete: jest.fn(() => Promise.resolve([])),
-  insert: jest.fn(() => {
-    const insertChain = {
-      values: jest.fn((data) => {
-        const valuesChain = {
-          returning: jest.fn(() => Promise.resolve([{
-            id: `mock-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-            ...data,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }]))
-        };
-        return valuesChain;
-      })
-    };
-    return insertChain;
-  }),
-  select: jest.fn(() => ({
-    from: jest.fn(() => ({
-      where: jest.fn(() => Promise.resolve([])),
-      leftJoin: jest.fn(() => ({
-        where: jest.fn(() => Promise.resolve([]))
-      }))
-    }))
-  })),
-  update: jest.fn(() => ({
-    set: jest.fn(() => ({
-      where: jest.fn(() => ({
-        returning: jest.fn(() => Promise.resolve([{ id: 'mock-id' }]))
-      }))
-    }))
-  }))
-};
+// Using unified database mock for consistency
 
 // Mock request for API testing
 const mockRequest = {
@@ -64,14 +31,11 @@ describe('Invitation Management API', () => {
   let tenantCookie: string;
 
   beforeEach(async () => {
-    // Clean up tables in correct order
-    await mockDb.delete(schema.invitations);
-    await mockDb.delete(schema.userOrganizations);
-    await mockDb.delete(schema.users);
-    await mockDb.delete(schema.organizations);
+    // Reset mock data and clear all mocks
+    testUtils.resetMocks();
 
     // Create test organizations
-    const [org1] = await mockDb.insert(schema.organizations).values({
+    const [org1] = await mockDb.insert(mockSchema.organizations).values({
       name: 'Test Organization 1',
       type: 'management_company',
       address: '123 Test St',
@@ -80,7 +44,7 @@ describe('Invitation Management API', () => {
       postalCode: 'H1A 1A1',
     }).returning() as any[];
 
-    const [org2] = await mockDb.insert(schema.organizations).values({
+    const [org2] = await mockDb.insert(mockSchema.organizations).values({
       name: 'Test Organization 2',
       type: 'syndicate',
       address: '456 Test Ave',
@@ -95,7 +59,7 @@ describe('Invitation Management API', () => {
     // Create test users
     const hashedPassword = await bcrypt.hash('password123', 10);
     
-    const [admin] = await mockDb.insert(schema.users).values({
+    const [admin] = await mockDb.insert(mockSchema.users).values({
       username: 'admin@test.com',
       email: 'admin@test.com',
       password: hashedPassword,
@@ -130,7 +94,7 @@ describe('Invitation Management API', () => {
     tenantUser = tenant;
 
     // Assign manager to organization1
-    await mockDb.insert(schema.userOrganizations).values({
+    await mockDb.insert(mockSchema.userOrganizations).values({
       userId: managerUser.id,
       organizationId: organization1.id,
       organizationRole: 'manager',
