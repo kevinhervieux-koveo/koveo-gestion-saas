@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -30,20 +30,24 @@ export function UserBuildingsTab({
   isLoading = false 
 }: UserBuildingsTabProps) {
   const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
+  const initializedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Initialize from user's current assignments only when first opening the dialog
-    if (user && user.buildings && selectedBuildings.length === 0) {
-      const buildingIds = user.buildings.map((building: any) => building.id);
-      setSelectedBuildings(buildingIds);
-      // Notify parent of initial selection for cascading filters
-      onSelectionChange?.(buildingIds);
-    } else if (!user) {
-      // Reset only when no user (dialog closed)
+    if (user) {
+      // Only initialize if we haven't initialized for this user yet
+      if (initializedRef.current !== user.id) {
+        const buildingIds = user.buildings?.map((building: any) => building.id) || [];
+        setSelectedBuildings(buildingIds);
+        onSelectionChange?.(buildingIds);
+        initializedRef.current = user.id;
+      }
+    } else {
+      // Reset when dialog is closed (no user)
       setSelectedBuildings([]);
       onSelectionChange?.([]);
+      initializedRef.current = null;
     }
-  }, [user]); // Remove onSelectionChange dependency to prevent reset on tab switch
+  }, [user, onSelectionChange]);
 
   const handleBuildingToggle = (buildingId: string) => {
     setSelectedBuildings(prev => {

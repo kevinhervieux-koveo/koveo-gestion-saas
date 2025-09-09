@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -24,20 +24,24 @@ export function UserOrganizationsTab({
   isLoading = false 
 }: UserOrganizationsTabProps) {
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
+  const initializedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Initialize from user's current assignments only when first opening the dialog
-    if (user && user.organizations && selectedOrganizations.length === 0) {
-      const orgIds = user.organizations.map((org: any) => org.id);
-      setSelectedOrganizations(orgIds);
-      // Notify parent of initial selection for cascading filters
-      onSelectionChange?.(orgIds);
-    } else if (!user) {
-      // Reset only when no user (dialog closed)
+    if (user) {
+      // Only initialize if we haven't initialized for this user yet
+      if (initializedRef.current !== user.id) {
+        const orgIds = user.organizations?.map((org: any) => org.id) || [];
+        setSelectedOrganizations(orgIds);
+        onSelectionChange?.(orgIds);
+        initializedRef.current = user.id;
+      }
+    } else {
+      // Reset when dialog is closed (no user)
       setSelectedOrganizations([]);
       onSelectionChange?.([]);
+      initializedRef.current = null;
     }
-  }, [user]); // Remove onSelectionChange dependency to prevent reset on tab switch
+  }, [user, onSelectionChange]);
 
   const handleOrganizationToggle = (organizationId: string) => {
     setSelectedOrganizations(prev => {

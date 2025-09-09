@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -34,19 +34,23 @@ export function UserResidencesTab({
     residenceId: string; 
     relationshipType: string; 
   }[]>([]);
+  const initializedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Initialize from user's current assignments only when first opening the dialog
-    if (user && user.residences && selectedResidences.length === 0) {
-      setSelectedResidences(
-        user.residences.map((residence: any) => ({
+    if (user) {
+      // Only initialize if we haven't initialized for this user yet
+      if (initializedRef.current !== user.id) {
+        const residenceAssignments = user.residences?.map((residence: any) => ({
           residenceId: residence.id,
           relationshipType: residence.relationshipType || 'tenant'
-        }))
-      );
-    } else if (!user) {
-      // Reset only when no user (dialog closed)
+        })) || [];
+        setSelectedResidences(residenceAssignments);
+        initializedRef.current = user.id;
+      }
+    } else {
+      // Reset when dialog is closed (no user)
       setSelectedResidences([]);
+      initializedRef.current = null;
     }
   }, [user]);
 
