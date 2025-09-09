@@ -40,7 +40,7 @@ const MockSelectionGrid = ({ title, items, onSelectItem, isLoading }: any) => (
 );
 
 // Mock the SelectionGrid import
-jest.mock('@/components/ui/selection-grid', () => ({
+jest.mock('@/components/common/SelectionGrid', () => ({
   SelectionGrid: MockSelectionGrid,
 }));
 

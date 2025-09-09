@@ -41,7 +41,7 @@ const config = {
   
   // Optimized transform ignore patterns
   transformIgnorePatterns: [
-    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react))'
+    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud))'
   ],
   
   // Optimized performance settings
