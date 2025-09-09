@@ -189,31 +189,26 @@ FeaturesPage() {
 
         <div className='grid lg:grid-cols-2 gap-8 mb-16'>
           {coreFeatures.map((feature, _index) => (
-            <Card
+            <StandardCard
               key={_index}
+              title={feature.title}
+              description={feature.description}
               className='hover:shadow-lg transition-shadow'
+              headerClassName='pb-3'
               data-testid={`core-feature-${_index}`}
             >
-              <CardHeader>
-                <div className='flex items-center space-x-4'>
-                  <feature.icon className='h-12 w-12 text-blue-600' />
-                  <div>
-                    <CardTitle className='text-xl'>{feature.title}</CardTitle>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className='text-base mb-4'>{feature.description}</CardDescription>
-                <ul className='space-y-2'>
-                  {feature.features.map((item, itemIndex) => (
-                    <li key={itemIndex} className='flex items-start space-x-2'>
-                      <CheckCircle className='h-5 w-5 text-green-600 mt-0.5 flex-shrink-0' />
-                      <span className='text-sm text-gray-700'>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+              <div className='flex items-center space-x-4 mb-4'>
+                <feature.icon className='h-12 w-12 text-blue-600' />
+              </div>
+              <ul className='space-y-2'>
+                {feature.features.map((item, itemIndex) => (
+                  <li key={itemIndex} className='flex items-start space-x-2'>
+                    <CheckCircle className='h-5 w-5 text-green-600 mt-0.5 flex-shrink-0' />
+                    <span className='text-sm text-gray-700'>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </StandardCard>
           ))}
         </div>
       </section>
@@ -230,27 +225,23 @@ FeaturesPage() {
 
           <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {advancedFeatures.map((feature, _index) => (
-              <Card
+              <StandardCard
                 key={_index}
+                title={feature.title}
+                description={feature.description}
                 className='text-center hover:shadow-lg transition-shadow'
                 data-testid={`advanced-feature-${_index}`}
               >
-                <CardHeader>
-                  <feature.icon className='h-12 w-12 text-blue-600 mx-auto mb-4' />
-                  <CardTitle className='text-lg'>{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className='mb-4'>{feature.description}</CardDescription>
-                  <ul className='text-sm space-y-1'>
-                    {feature.features.map((item, itemIndex) => (
-                      <li key={itemIndex} className='flex items-center space-x-2'>
-                        <CheckCircle className='h-4 w-4 text-green-600 flex-shrink-0' />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+                <feature.icon className='h-12 w-12 text-blue-600 mx-auto mb-4' />
+                <ul className='text-sm space-y-1'>
+                  {feature.features.map((item, itemIndex) => (
+                    <li key={itemIndex} className='flex items-center space-x-2'>
+                      <CheckCircle className='h-4 w-4 text-green-600 flex-shrink-0' />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </StandardCard>
             ))}
           </div>
         </div>

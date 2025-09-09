@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StandardCard } from '@/components/ui/standard-card';
 import {
   Dialog,
   DialogContent,
@@ -181,14 +182,13 @@ export default function PricingPage() {
           <p className='text-xl text-gray-600 mb-12'>{t('pricingSubtitle')}</p>
 
           {/* Pricing Card */}
-          <Card className='max-w-lg mx-auto shadow-xl border-2 border-koveo-navy/20'>
-            <CardHeader className='bg-koveo-navy text-white rounded-t-lg'>
-              <CardTitle className='text-2xl font-bold'>{t('professionalPlan')}</CardTitle>
-              <CardDescription className='text-blue-100'>
-                {t('perfectForPropertyManagers')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='p-8'>
+          <StandardCard
+            title={t('professionalPlan')}
+            description={t('perfectForPropertyManagers')}
+            className='max-w-lg mx-auto shadow-xl border-2 border-koveo-navy/20'
+            headerClassName='bg-koveo-navy text-white rounded-t-lg'
+            contentClassName='p-8'
+          >
               <div className='text-center mb-8'>
                 <div className='text-5xl font-bold text-koveo-navy mb-2'>
                   $9.50
@@ -228,8 +228,7 @@ export default function PricingPage() {
                   </Button>
                 </TrialRequestForm>
               )}
-            </CardContent>
-          </Card>
+          </StandardCard>
         </div>
       </section>
 
@@ -256,23 +255,22 @@ export default function PricingPage() {
             {mainFeatures.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
-                <Card 
-                  key={index} 
+                <StandardCard
+                  key={index}
                   className='text-center hover:shadow-lg transition-shadow cursor-pointer hover:scale-105 transform transition-transform'
+                  contentClassName='p-6'
                   onClick={() => setSelectedFeature(index)}
                   data-testid={`feature-card-${index}`}
                 >
-                  <CardContent className='p-6'>
-                    <div className='w-12 h-12 bg-koveo-navy/10 rounded-lg flex items-center justify-center mx-auto mb-4'>
-                      <IconComponent className='h-6 w-6 text-koveo-navy' />
-                    </div>
-                    <h3 className='font-semibold text-gray-900 mb-2'>{feature.title}</h3>
-                    <p className='text-sm text-gray-600'>{feature.description}</p>
-                    <p className='text-xs text-koveo-navy mt-2 font-medium'>
-                      {language === 'fr' ? 'Cliquez pour plus de détails' : 'Click for more details'}
-                    </p>
-                  </CardContent>
-                </Card>
+                  <div className='w-12 h-12 bg-koveo-navy/10 rounded-lg flex items-center justify-center mx-auto mb-4'>
+                    <IconComponent className='h-6 w-6 text-koveo-navy' />
+                  </div>
+                  <h3 className='font-semibold text-gray-900 mb-2'>{feature.title}</h3>
+                  <p className='text-sm text-gray-600'>{feature.description}</p>
+                  <p className='text-xs text-koveo-navy mt-2 font-medium'>
+                    {language === 'fr' ? 'Cliquez pour plus de détails' : 'Click for more details'}
+                  </p>
+                </StandardCard>
               );
             })}
           </div>
