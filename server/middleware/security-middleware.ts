@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import express, { Express, Request, Response, NextFunction } from 'express';
 import { randomBytes } from 'crypto';
+import { logSecurity } from '../utils/logger.js';
 
 /**
  * Generate a cryptographic nonce for CSP
@@ -109,8 +110,8 @@ const getCSPConfig = (isDevelopment: boolean) => {
       objectSrc: ["'none'"], // Block plugins
       baseUri: ["'self'"], // Restrict base tag
       formAction: ["'self'"], // Restrict form submissions
-      upgradeInsecureRequests: [], // Force HTTPS in production
-      blockAllMixedContent: [], // Block mixed content
+      upgradeInsecureRequests: process.env.NODE_ENV === 'production', // Force HTTPS in production
+      blockAllMixedContent: process.env.NODE_ENV === 'production' // Block mixed content
     },
     reportOnly: isDevelopment, // Only report in development, enforce in production
     reportUri: isDevelopment ? undefined : '/api/security/csp-report',
@@ -368,12 +369,40 @@ export function configureSecurityMiddleware(app: Express): void {
     res.setHeader('X-Data-Retention', '7-years'); // Quebec property records retention
     res.setHeader('X-Content-Language', 'fr-CA,en-CA'); // Bilingual support
 
-    // Security headers
+    // Enhanced security headers to prevent antivirus flagging
     res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Download-Options', 'noopen');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    // Additional security headers for enhanced protection
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', isDevelopment ? 'unsafe-none' : 'require-corp');
+    
+    // Cache control for sensitive endpoints
+    if (req.path.includes('/api/auth') || req.path.includes('/api/user')) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
+    }
+    
+    // Security reporting headers
+    res.setHeader('Report-To', JSON.stringify({
+      group: 'security',
+      max_age: 31536000,
+      endpoints: [{ url: '/api/security/reports' }]
+    }));
+    
+    // Network Error Logging
+    res.setHeader('NEL', JSON.stringify({
+      report_to: 'security',
+      max_age: 31536000,
+      include_subdomains: true
+    }));
 
     // Ensure blob: support for image previews in document uploads
     if (isDevelopment) {
@@ -479,9 +508,75 @@ export function addLaw25Headers(req: Request, res: Response, next: NextFunction)
   next();
 }
 
+/**
+ * Enhanced domain validation middleware for production security
+ */
+export function validateRequestDomain(req: Request, res: Response, next: NextFunction): void {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  // Skip validation in development
+  if (isDevelopment) {
+    return next();
+  }
+  
+  const host = req.get('host');
+  const userAgent = req.get('user-agent') || '';
+  
+  // Allowed production domains
+  const allowedDomains = [
+    'koveo-gestion.com',
+    'koveogestion.com',
+    'app.koveogestion.com',
+    'koveo.com'
+  ];
+  
+  // Allow Replit domains for deployment
+  const isReplitDomain = host && (
+    host.endsWith('.replit.app') ||
+    host.endsWith('.replit.com') ||
+    host.endsWith('.replit.dev')
+  );
+  
+  const isAllowedDomain = host && allowedDomains.some(domain => 
+    host === domain || host === `www.${domain}`
+  );
+  
+  if (!host || (!isAllowedDomain && !isReplitDomain)) {
+    logSecurity('domain_validation_failed', {
+      requestId: req.headers['x-request-id'] as string || 'unknown',
+      ip: req.ip || 'unknown',
+      metadata: {
+        host,
+        userAgent: userAgent.substring(0, 100),
+        referer: req.get('referer'),
+        path: req.path
+      }
+    });
+    
+    return res.status(421).json({
+      error: 'Misdirected Request',
+      message: 'Request not allowed for this domain',
+      code: 'INVALID_DOMAIN'
+    });
+  }
+  
+  // Log successful domain validation for monitoring
+  if (process.env.NODE_ENV === 'production') {
+    logSecurity('domain_validation_success', {
+      requestId: req.headers['x-request-id'] as string || 'unknown',
+      ip: req.ip || 'unknown',
+      metadata: { host, path: req.path }
+    });
+  }
+  
+  next();
+}
+
 export default {
   configureSecurityMiddleware,
   securityHealthCheck,
   addLaw25Headers,
+  validateRequestDomain,
+  addCSPNonce,
   rateLimitConfig,
 };
