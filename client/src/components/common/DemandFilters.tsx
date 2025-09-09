@@ -1,12 +1,6 @@
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useLanguage } from '@/hooks/use-language';
 import type { Building } from './DemandCard';
 
@@ -115,48 +109,41 @@ export function DemandFilters({
       </div>
 
       {/* Status Filter */}
-      <Select value={filters.statusFilter} onValueChange={handlers.onStatusChange}>
-        <SelectTrigger className='w-40' data-testid='filter-status'>
-          <SelectValue placeholder={t('formStatus')} />
-        </SelectTrigger>
-        <SelectContent>
-          {statusOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        value={filters.statusFilter}
+        onValueChange={handlers.onStatusChange}
+        options={statusOptions}
+        placeholder={t('formStatus')}
+        searchPlaceholder="Search status..."
+        width="w-40"
+        data-testid="filter-status"
+      />
 
       {/* Type Filter */}
-      <Select value={filters.typeFilter} onValueChange={handlers.onTypeChange}>
-        <SelectTrigger className='w-40' data-testid='filter-type'>
-          <SelectValue placeholder={t('formType')} />
-        </SelectTrigger>
-        <SelectContent>
-          {typeOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <SearchableSelect
+        value={filters.typeFilter}
+        onValueChange={handlers.onTypeChange}
+        options={typeOptions}
+        placeholder={t('formType')}
+        searchPlaceholder="Search type..."
+        width="w-40"
+        data-testid="filter-type"
+      />
 
       {/* Building Filter (Manager only) */}
       {showBuildingFilter && (
-        <Select value={filters.buildingFilter || 'all'} onValueChange={handlers.onBuildingChange}>
-          <SelectTrigger className='w-40' data-testid='filter-building'>
-            <SelectValue placeholder={t('building')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>{t('allBuildings')}</SelectItem>
-            {buildings.map((building) => (
-              <SelectItem key={building.id} value={building.id}>
-                {building.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <SearchableSelect
+          value={filters.buildingFilter || 'all'}
+          onValueChange={handlers.onBuildingChange}
+          options={[
+            { value: 'all', label: t('allBuildings') },
+            ...buildings.map((building) => ({ value: building.id, label: building.name }))
+          ]}
+          placeholder={t('building')}
+          searchPlaceholder="Search buildings..."
+          width="w-40"
+          data-testid="filter-building"
+        />
       )}
     </div>
   );

@@ -2,13 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Filter,
@@ -161,7 +155,7 @@ export function FilterSort({
               <h4 className='font-medium text-sm'>Add Filter</h4>
 
               {/* Filter Field Selection */}
-              <Select
+              <SearchableSelect
                 value={selectedFilter?.id || ''}
                 onValueChange={(_value) => {
                   const filter = config.filters.find((f) => f.id === _value);
@@ -171,38 +165,30 @@ export function FilterSort({
                     setFilterOperator(filter.defaultOperator || operators[0]);
                   }
                 }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder='Select field' />
-                </SelectTrigger>
-                <SelectContent>
-                  {config.filters.map((filter) => (
-                    <SelectItem key={filter.id} value={filter.id}>
-                      <div className='flex items-center gap-2'>
-                        {filter.icon && <filter.icon className='h-4 w-4' />}
-                        {filter.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={config.filters.map((filter) => ({
+                  value: filter.id,
+                  label: filter.label,
+                }))}
+                placeholder="Select field"
+                searchPlaceholder="Search fields..."
+                width="w-full"
+              />
 
               {/* Operator Selection */}
               {selectedFilter && (
-                <Select value={filterOperator} onValueChange={setFilterOperator}>
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select operator' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(selectedFilter.operators || getDefaultOperators(selectedFilter.type)).map(
-                      (op) => (
-                        <SelectItem key={op} value={op}>
-                          {getOperatorLabel(op)}
-                        </SelectItem>
-                      )
-                    )}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  value={filterOperator}
+                  onValueChange={setFilterOperator}
+                  options={(selectedFilter.operators || getDefaultOperators(selectedFilter.type)).map(
+                    (op) => ({
+                      value: op,
+                      label: getOperatorLabel(op),
+                    })
+                  )}
+                  placeholder="Select operator"
+                  searchPlaceholder="Search operators..."
+                  width="w-full"
+                />
               )}
 
               {/* Value Input */}
@@ -211,21 +197,17 @@ export function FilterSort({
                 !['is_empty', 'is_not_empty'].includes(filterOperator) && (
                   <div>
                     {selectedFilter.type === 'select' && selectedFilter.options ? (
-                      <Select value={filterValue} onValueChange={setFilterValue}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={selectedFilter.placeholder || 'Select value'} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {selectedFilter.options.map((option) => (
-                            <SelectItem key={String(option._value)} value={String(option._value)}>
-                              <div className='flex items-center gap-2'>
-                                {option.icon && <option.icon className='h-4 w-4' />}
-                                {option.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <SearchableSelect
+                        value={filterValue}
+                        onValueChange={setFilterValue}
+                        options={selectedFilter.options.map((option) => ({
+                          value: String(option._value),
+                          label: option.label,
+                        }))}
+                        placeholder={selectedFilter.placeholder || 'Select value'}
+                        searchPlaceholder="Search values..."
+                        width="w-full"
+                      />
                     ) : (
                       <Input
                         type={selectedFilter.type === 'number' ? 'number' : 'text'}
@@ -306,7 +288,7 @@ export function FilterSort({
 
         {/* Presets */}
         {config.presets && config.presets.length > 0 && (
-          <Select
+          <SearchableSelect
             value=''
             onValueChange={(_value) => {
               const preset = config.presets?.find((p) => p.id === _value);
@@ -314,26 +296,14 @@ export function FilterSort({
                 onApplyPreset(preset.id);
               }
             }}
-          >
-            <SelectTrigger className='w-[150px]'>
-              <SelectValue placeholder='Quick filters'>
-                <div className='flex items-center gap-2'>
-                  <Sparkles className='h-4 w-4' />
-                  Quick filters
-                </div>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {config.presets.map((preset) => (
-                <SelectItem key={preset.id} value={preset.id}>
-                  <div className='flex items-center gap-2'>
-                    {preset.icon && <preset.icon className='h-4 w-4' />}
-                    {preset.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            options={config.presets.map((preset) => ({
+              value: preset.id,
+              label: preset.name,
+            }))}
+            placeholder="Quick filters"
+            searchPlaceholder="Search presets..."
+            width="w-[150px]"
+          />
         )}
 
         {/* Clear All */}
