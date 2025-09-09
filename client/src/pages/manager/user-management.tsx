@@ -606,7 +606,10 @@ export default function UserManagement() {
     setSearch('');
     setRoleFilter('');
     setStatusFilter('');
-    setOrganizationFilter('');
+    // Don't clear organization filter for demo_manager since they can't change it
+    if (currentUser?.role !== 'demo_manager') {
+      setOrganizationFilter('');
+    }
     setOrphanFilter('');
   };
 
@@ -853,8 +856,8 @@ export default function UserManagement() {
                         )) || []}
                       </select>
 
-                      {/* Organization Filter */}
-                      {filterOptions?.organizations && filterOptions.organizations.length > 0 && (
+                      {/* Organization Filter - Hidden for demo_manager since they can only see their own organization */}
+                      {filterOptions?.organizations && filterOptions.organizations.length > 0 && currentUser?.role !== 'demo_manager' && (
                         <select
                           value={organizationFilter}
                           onChange={(e) => setOrganizationFilter(e.target.value)}
@@ -868,8 +871,8 @@ export default function UserManagement() {
                         </select>
                       )}
 
-                      {/* Orphan User Filter - Admin Only, Hidden when organization is selected */}
-                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && (
+                      {/* Orphan User Filter - Admin Only, Hidden when organization is selected or for demo users */}
+                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && currentUser?.role !== 'demo_manager' && (
                         <select
                           value={orphanFilter}
                           onChange={(e) => setOrphanFilter(e.target.value)}
@@ -883,15 +886,15 @@ export default function UserManagement() {
                         </select>
                       )}
                       
-                      {/* Show explanation when orphan filter is disabled */}
-                      {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && (
+                      {/* Show explanation when orphan filter is disabled - not for demo users */}
+                      {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && currentUser?.role !== 'demo_manager' && (
                         <div className="text-sm text-gray-500 italic px-3 py-2 border border-gray-200 rounded-md bg-gray-100">
                           Orphan filter unavailable (organization selected)
                         </div>
                       )}
 
-                      {/* Clear Filters */}
-                      {(searchInput || roleFilter || statusFilter || organizationFilter || orphanFilter) && (
+                      {/* Clear Filters - adjust visibility for demo_manager */}
+                      {(searchInput || roleFilter || statusFilter || (currentUser?.role !== 'demo_manager' && organizationFilter) || orphanFilter) && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           {t('clearFilters')}
                         </Button>
