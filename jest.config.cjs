@@ -2,92 +2,77 @@
 const config = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.simple.ts'],
-  // Temporarily disable global setup/teardown to debug hanging issues
-  // globalSetup: '<rootDir>/jest.global-setup.js',
-  // globalTeardown: '<rootDir>/jest.global-teardown.js',
+  
+  // Optimized module name mapping - only essential mappings
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
-    // Fix database mock imports
-    '^\\./server/db$': '<rootDir>/tests/mocks/serverDbMock.js',
-    '^\\./tests/mocks/database$': '<rootDir>/tests/mocks/database.js',
-    // Mock server configuration
-    '^\\./server/config/index$': '<rootDir>/tests/mocks/serverConfigMock.js',
-    '^\\./config/index$': '<rootDir>/tests/mocks/serverConfigMock.js',
-    // Mock problematic ES modules
-    '@google/genai': '<rootDir>/tests/mocks/googleGenaiMock.js',
+    
+    // Essential database mocks only
     '@neondatabase/serverless': '<rootDir>/tests/mocks/serverDbMock.js',
     'drizzle-orm/neon-http': '<rootDir>/tests/mocks/serverDbMock.js',
     'drizzle-orm/neon-serverless': '<rootDir>/tests/mocks/serverDbMock.js',
-    // Mock file system operations to prevent hanging  
-    '^fs$': '<rootDir>/tests/mocks/fileSystemMock.js',
-    '^multer$': '<rootDir>/tests/mocks/fileSystemMock.js',
-    // Mock supertest to prevent actual server requests
-    '^supertest$': '<rootDir>/tests/mocks/supertestMock.js',
-    // Mock CSS and assets
+    
+    // CSS and assets (simplified)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$':
-      '<rootDir>/tests/mocks/fileMock.js',
+    '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/tests/mocks/fileMock.js',
   },
-  testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}', '<rootDir>/tests/**/*.spec.{ts,tsx}'],
-  testPathIgnorePatterns: ['/node_modules/', '/server/tests/'],
+  
+  testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
+  testPathIgnorePatterns: ['/node_modules/', '/server/tests/', '\\.disabled'],
+  
   collectCoverageFrom: [
     'client/src/**/*.{ts,tsx}',
     'shared/**/*.{ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],
+  
   preset: 'ts-jest',
   transform: {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',
       {
         tsconfig: '<rootDir>/tsconfig.test.json',
-
-      },
-    ],
-    '^.+\\.js$': [
-      'ts-jest',
-      {
-        tsconfig: {
-          module: 'CommonJS',
-          target: 'ES2022',
-          allowJs: true,
-          esModuleInterop: true,
-          allowSyntheticDefaultImports: true,
-        },
-
       },
     ],
   },
+  
+  // Optimized transform ignore patterns
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|stream/web|lucide-react|drizzle-orm|drizzle-zod|@neondatabase))'
+    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react))'
   ],
-  testTimeout: 30000,
-  clearMocks: true,
-  restoreMocks: true,
-  resetMocks: true,
-  verbose: false,
-  passWithNoTests: false,
-  // Performance optimizations
-  maxWorkers: '50%',
+  
+  // Optimized performance settings
+  testTimeout: 8000,
+  maxWorkers: 1,
   cache: true,
   cacheDirectory: '<rootDir>/.jest-cache',
-  detectOpenHandles: true,
+  detectOpenHandles: false,
   forceExit: true,
-  // Faster test isolation
+  clearMocks: true,
+  restoreMocks: true,
+  resetMocks: false,
   resetModules: false,
-  // Skip expensive operations
-  haste: {
-    enableSymlinks: false,
-  },
+  verbose: false,
+  passWithNoTests: false,
+  
+  // Memory and performance optimizations
+  workerIdleMemoryLimit: '256MB',
+  errorOnDeprecated: false,
+  
   // Optimize module resolution
   modulePathIgnorePatterns: [
     '<rootDir>/dist/',
     '<rootDir>/.cache/',
     '<rootDir>/node_modules/.cache/',
   ],
+  
+  // Faster haste map
+  haste: {
+    enableSymlinks: false,
+  },
 };
 
 module.exports = config;

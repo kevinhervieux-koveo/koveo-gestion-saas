@@ -118,10 +118,12 @@ jest.mock('@neondatabase/serverless', () => {
   });
 
   // Add properties that might be accessed
-  mockSql.query = jest.fn().mockResolvedValue({ rows: [] });
-  mockSql.end = jest.fn().mockResolvedValue(undefined);
-  mockSql.arrayMode = false;
-  mockSql.fullResults = false;
+  Object.assign(mockSql, {
+    query: jest.fn().mockResolvedValue({ rows: [] }),
+    end: jest.fn().mockResolvedValue(undefined),
+    arrayMode: false,
+    fullResults: false,
+  });
 
   // Mock Pool class
   const MockPool = jest.fn().mockImplementation(() => ({
