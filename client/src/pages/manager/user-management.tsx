@@ -89,6 +89,10 @@ export default function UserManagement() {
   const [editingUserResidences, setEditingUserResidences] = useState<UserWithAssignments | null>(null);
   const [showDeleteOrphansDialog, setShowDeleteOrphansDialog] = useState(false);
 
+  // Cascading filter states for user edit tabs
+  const [selectedOrganizationIds, setSelectedOrganizationIds] = useState<string[]>([]);
+  const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
@@ -375,6 +379,47 @@ export default function UserManagement() {
       setCurrentPage(1);
     }
   }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
+
+  // Reset cascading filter states when editing user changes
+  React.useEffect(() => {
+    if (editingUser) {
+      // Reset to empty states - let the tabs initialize from user data
+      setSelectedOrganizationIds([]);
+      setSelectedBuildingIds([]);
+    }
+  }, [editingUser]);
+
+  // Get current user's access information for role-based filtering
+  const currentUserAccess = useMemo(() => {
+    if (!currentUser || !organizations || !buildings || !residences) {
+      return {
+        organizationIds: [],
+        buildingIds: [],
+        residenceIds: []
+      };
+    }
+
+    // Find current user in users list to get their assignments
+    const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
+    
+    if (!currentUserWithAssignments) {
+      return {
+        organizationIds: [],
+        buildingIds: [],
+        residenceIds: []
+      };
+    }
+
+    const organizationIds = currentUserWithAssignments.organizations?.map((org: any) => org.id) || [];
+    const buildingIds = currentUserWithAssignments.buildings?.map((building: any) => building.id) || [];
+    const residenceIds = currentUserWithAssignments.residences?.map((residence: any) => residence.id) || [];
+
+    return {
+      organizationIds,
+      buildingIds,
+      residenceIds
+    };
+  }, [currentUser, users, organizations, buildings, residences]);
 
   const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
     if (!editingUser) {
@@ -1116,6 +1161,8 @@ export default function UserManagement() {
                   <UserOrganizationsTab 
                     user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                     organizations={organizations}
+                    currentUser={currentUser}
+                    currentUserOrganizations={currentUserAccess.organizationIds}
                     onSave={(organizationIds) => {
                       if (editingUser) {
                         editOrganizationsMutation.mutate({
@@ -1124,6 +1171,7 @@ export default function UserManagement() {
                         });
                       }
                     }}
+                    onSelectionChange={setSelectedOrganizationIds}
                     isLoading={editOrganizationsMutation.isPending}
                   />
                 </TabsContent>
@@ -1133,6 +1181,10 @@ export default function UserManagement() {
                 <UserBuildingsTab 
                   user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                   buildings={buildings}
+                  organizations={organizations}
+                  currentUser={currentUser}
+                  currentUserBuildingIds={currentUserAccess.buildingIds}
+                  selectedOrganizationIds={selectedOrganizationIds}
                   onSave={(buildingIds) => {
                     if (editingUser) {
                       editBuildingsMutation.mutate({
@@ -1141,6 +1193,7 @@ export default function UserManagement() {
                       });
                     }
                   }}
+                  onSelectionChange={setSelectedBuildingIds}
                   isLoading={editBuildingsMutation.isPending}
                 />
               </TabsContent>
@@ -1150,6 +1203,11 @@ export default function UserManagement() {
                   <UserResidencesTab 
                     user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                     residences={residences}
+                    buildings={buildings}
+                    organizations={organizations}
+                    currentUser={currentUser}
+                    currentUserResidenceIds={currentUserAccess.residenceIds}
+                    selectedBuildingIds={selectedBuildingIds}
                     onSave={(residenceAssignments) => {
                       if (editingUser) {
                         editResidencesMutation.mutate({
