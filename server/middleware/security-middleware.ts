@@ -110,8 +110,10 @@ const getCSPConfig = (isDevelopment: boolean) => {
       objectSrc: ["'none'"], // Block plugins
       baseUri: ["'self'"], // Restrict base tag
       formAction: ["'self'"], // Restrict form submissions
-      upgradeInsecureRequests: process.env.NODE_ENV === 'production', // Force HTTPS in production
-      blockAllMixedContent: process.env.NODE_ENV === 'production' // Block mixed content
+      ...(process.env.NODE_ENV === 'production' && {
+        upgradeInsecureRequests: [], // Force HTTPS in production
+        blockAllMixedContent: [], // Block mixed content
+      })
     },
     reportOnly: isDevelopment, // Only report in development, enforce in production
     reportUri: isDevelopment ? undefined : '/api/security/csp-report',

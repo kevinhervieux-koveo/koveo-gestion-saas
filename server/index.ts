@@ -108,7 +108,9 @@ app.use(helmet({
       frameSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
-      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : undefined,
+      ...(process.env.NODE_ENV === 'production' && {
+        upgradeInsecureRequests: [],
+      })
     },
   },
   hsts: {
