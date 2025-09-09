@@ -367,7 +367,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4'>
 
                 <div className='space-y-2'>
                   <Label htmlFor='category-filter' className='flex items-center gap-2'>
@@ -496,6 +496,49 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                       </div>
                     </PopoverContent>
                   </Popover>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='payment-type-filter' className='flex items-center gap-2'>
+                    <Tag className='w-4 h-4' />
+                    {t('paymentType')}
+                  </Label>
+                  <Select
+                    value={filters.paymentType}
+                    onValueChange={(value) => handleFilterChange('paymentType', value)}
+                  >
+                    <SelectTrigger id='payment-type-filter'>
+                      <SelectValue placeholder={t('allPaymentTypes')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>{t('allPaymentTypes')}</SelectItem>
+                      <SelectItem value='unique'>{t('unique')}</SelectItem>
+                      <SelectItem value='recurrent'>{t('recurrent')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='status-filter' className='flex items-center gap-2'>
+                    <Tag className='w-4 h-4' />
+                    {t('status')}
+                  </Label>
+                  <Select
+                    value={filters.status}
+                    onValueChange={(value) => handleFilterChange('status', value)}
+                  >
+                    <SelectTrigger id='status-filter'>
+                      <SelectValue placeholder={t('allStatuses')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>{t('allStatuses')}</SelectItem>
+                      <SelectItem value='draft'>{t('draft')}</SelectItem>
+                      <SelectItem value='sent'>{t('sent')}</SelectItem>
+                      <SelectItem value='overdue'>{t('overdue')}</SelectItem>
+                      <SelectItem value='paid'>{t('paid')}</SelectItem>
+                      <SelectItem value='cancelled'>{t('cancelled')}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className='space-y-2'>
