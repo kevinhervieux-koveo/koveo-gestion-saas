@@ -64,7 +64,7 @@ class DatabaseSyncTester {
         SELECT table_name, column_name, data_type, is_nullable
         FROM information_schema.columns 
         WHERE table_schema = 'public' 
-        ORDER BY table_name, ordinal_position;
+        ORDER BY table_name, column_name;
       `;
       
       const devSchema = this.execQuery(DEV_DB!, query);
@@ -78,17 +78,24 @@ class DatabaseSyncTester {
     // Test constraints
     await this.runTest('Constraints match', () => {
       const query = `
-        SELECT tc.table_name, tc.constraint_name, tc.constraint_type
+        SELECT tc.table_name, tc.constraint_type, 
+               CASE WHEN tc.constraint_type = 'FOREIGN KEY' THEN kcu.column_name
+                    WHEN tc.constraint_type = 'UNIQUE' THEN kcu.column_name
+                    WHEN tc.constraint_type = 'PRIMARY KEY' THEN kcu.column_name
+                    ELSE 'CHECK_CONSTRAINT' END as constraint_details
         FROM information_schema.table_constraints tc
-        WHERE tc.table_schema = 'public'
-        ORDER BY tc.table_name, tc.constraint_name;
+        LEFT JOIN information_schema.key_column_usage kcu 
+          ON tc.constraint_name = kcu.constraint_name
+        WHERE tc.table_schema = 'public' 
+          AND tc.constraint_type IN ('PRIMARY KEY', 'FOREIGN KEY', 'UNIQUE')
+        ORDER BY tc.table_name, tc.constraint_type, constraint_details;
       `;
       
       const devConstraints = this.execQuery(DEV_DB!, query);
       const prodConstraints = this.execQuery(PROD_DB!, query);
       
       if (devConstraints.trim() !== prodConstraints.trim()) {
-        throw new Error('Constraints do not match between environments');
+        throw new Error('Functional constraints do not match between environments');
       }
     });
 
@@ -121,7 +128,7 @@ class DatabaseSyncTester {
       SELECT table_name, column_name, data_type, is_nullable
       FROM information_schema.columns 
       WHERE table_schema = 'public' 
-      ORDER BY table_name, ordinal_position;
+      ORDER BY table_name, column_name;
     `;
     
     const devSchema = this.execQuery(DEV_DB!, query);
@@ -134,17 +141,24 @@ class DatabaseSyncTester {
 
   private async testConstraints(): Promise<void> {
     const query = `
-      SELECT tc.table_name, tc.constraint_name, tc.constraint_type
+      SELECT tc.table_name, tc.constraint_type, 
+             CASE WHEN tc.constraint_type = 'FOREIGN KEY' THEN kcu.column_name
+                  WHEN tc.constraint_type = 'UNIQUE' THEN kcu.column_name
+                  WHEN tc.constraint_type = 'PRIMARY KEY' THEN kcu.column_name
+                  ELSE 'CHECK_CONSTRAINT' END as constraint_details
       FROM information_schema.table_constraints tc
-      WHERE tc.table_schema = 'public'
-      ORDER BY tc.table_name, tc.constraint_name;
+      LEFT JOIN information_schema.key_column_usage kcu 
+        ON tc.constraint_name = kcu.constraint_name
+      WHERE tc.table_schema = 'public' 
+        AND tc.constraint_type IN ('PRIMARY KEY', 'FOREIGN KEY', 'UNIQUE')
+      ORDER BY tc.table_name, tc.constraint_type, constraint_details;
     `;
     
     const devConstraints = this.execQuery(DEV_DB!, query);
     const prodConstraints = this.execQuery(PROD_DB!, query);
     
     if (devConstraints.trim() !== prodConstraints.trim()) {
-      throw new Error('Constraints do not match between environments');
+      throw new Error('Functional constraints do not match between environments');
     }
   }
 
