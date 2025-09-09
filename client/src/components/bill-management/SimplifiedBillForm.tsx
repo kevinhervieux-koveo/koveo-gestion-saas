@@ -158,22 +158,40 @@ export function SimplifiedBillForm({
             )}
           />
 
-          <StandardFormField
+          <FormField
             control={form.control}
             name="description"
-            label="Description"
-            placeholder="Enter bill description"
-            fieldType="textarea"
-            data-testid="textarea-description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Enter bill description"
+                    data-testid="textarea-description"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
 
-          <StandardFormField
+          <FormField
             control={form.control}
             name="notes"
-            label="Notes"
-            placeholder="Additional notes"
-            fieldType="textarea"
-            data-testid="textarea-notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Notes</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Additional notes"
+                    data-testid="textarea-notes"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </>
       )}
