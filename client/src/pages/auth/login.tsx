@@ -504,7 +504,7 @@ export default function LoginPage() {
               </div>
             ) : (
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                   <StandardFormField
                     control={form.control}
                     name='email'
@@ -518,55 +518,57 @@ export default function LoginPage() {
                     formName='login'
                   />
 
-                  <FormField
-                    control={form.control}
-                    name='password'
-                    render={({ field }) => (
-                      <FormItem className='space-y-2'>
-                        <FormLabel>{language === 'fr' ? 'Mot de passe' : 'Password'}</FormLabel>
-                        <FormControl>
-                          <div className='relative'>
-                            <Input
-                              {...field}
-                              type={showPassword ? 'text' : 'password'}
-                              placeholder={
-                                language === 'fr' ? 'Votre mot de passe' : 'Your password'
-                              }
-                              disabled={isLoggingIn}
-                              className='h-11 pr-10'
-                              data-testid='input-password'
-                              autoComplete='current-password'
-                            />
-                            <Button
-                              type='button'
-                              variant='ghost'
-                              size='sm'
-                              className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
-                              onClick={() => setShowPassword(!showPassword)}
-                              disabled={isLoggingIn}
-                              data-testid='button-toggle-password'
-                            >
-                              {showPassword ? (
-                                <EyeOff className='h-4 w-4 text-gray-400' />
-                              ) : (
-                                <Eye className='h-4 w-4 text-gray-400' />
-                              )}
-                              <span className='sr-only'>
-                                {showPassword
-                                  ? language === 'fr'
-                                    ? 'Masquer le mot de passe'
-                                    : 'Hide password'
-                                  : language === 'fr'
-                                    ? 'Afficher le mot de passe'
-                                    : 'Show password'}
-                              </span>
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className='pt-2'>
+                    <FormField
+                      control={form.control}
+                      name='password'
+                      render={({ field }) => (
+                        <FormItem className='space-y-2'>
+                          <FormLabel>{language === 'fr' ? 'Mot de passe' : 'Password'}</FormLabel>
+                          <FormControl>
+                            <div className='relative'>
+                              <Input
+                                {...field}
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder={
+                                  language === 'fr' ? 'Votre mot de passe' : 'Your password'
+                                }
+                                disabled={isLoggingIn}
+                                className='h-11 pr-10'
+                                data-testid='input-password'
+                                autoComplete='current-password'
+                              />
+                              <Button
+                                type='button'
+                                variant='ghost'
+                                size='sm'
+                                className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
+                                onClick={() => setShowPassword(!showPassword)}
+                                disabled={isLoggingIn}
+                                data-testid='button-toggle-password'
+                              >
+                                {showPassword ? (
+                                  <EyeOff className='h-4 w-4 text-gray-400' />
+                                ) : (
+                                  <Eye className='h-4 w-4 text-gray-400' />
+                                )}
+                                <span className='sr-only'>
+                                  {showPassword
+                                    ? language === 'fr'
+                                      ? 'Masquer le mot de passe'
+                                      : 'Hide password'
+                                    : language === 'fr'
+                                      ? 'Afficher le mot de passe'
+                                      : 'Show password'}
+                                </span>
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   <Button type='submit' className='w-full h-11' disabled={isLoggingIn}>
                     {isLoggingIn
