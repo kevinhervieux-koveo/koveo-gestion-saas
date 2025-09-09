@@ -32,11 +32,18 @@ export function UserBuildingsTab({
   const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
 
   useEffect(() => {
-    // Don't pre-check anything - start with empty selection
-    setSelectedBuildings([]);
-    // Notify parent of initial empty selection for cascading filters
-    onSelectionChange?.([]);
-  }, [user, onSelectionChange]);
+    // Initialize from user's current assignments only when first opening the dialog
+    if (user && user.buildings && selectedBuildings.length === 0) {
+      const buildingIds = user.buildings.map((building: any) => building.id);
+      setSelectedBuildings(buildingIds);
+      // Notify parent of initial selection for cascading filters
+      onSelectionChange?.(buildingIds);
+    } else if (!user) {
+      // Reset only when no user (dialog closed)
+      setSelectedBuildings([]);
+      onSelectionChange?.([]);
+    }
+  }, [user]); // Remove onSelectionChange dependency to prevent reset on tab switch
 
   const handleBuildingToggle = (buildingId: string) => {
     setSelectedBuildings(prev => {

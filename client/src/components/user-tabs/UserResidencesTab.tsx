@@ -36,8 +36,18 @@ export function UserResidencesTab({
   }[]>([]);
 
   useEffect(() => {
-    // Don't pre-check anything - start with empty selection
-    setSelectedResidences([]);
+    // Initialize from user's current assignments only when first opening the dialog
+    if (user && user.residences && selectedResidences.length === 0) {
+      setSelectedResidences(
+        user.residences.map((residence: any) => ({
+          residenceId: residence.id,
+          relationshipType: residence.relationshipType || 'tenant'
+        }))
+      );
+    } else if (!user) {
+      // Reset only when no user (dialog closed)
+      setSelectedResidences([]);
+    }
   }, [user]);
 
   const handleResidenceToggle = (residenceId: string) => {

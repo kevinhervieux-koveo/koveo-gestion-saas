@@ -380,10 +380,10 @@ export default function UserManagement() {
     }
   }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
-  // Reset cascading filter states when editing user changes
+  // Reset cascading filter states only when dialog closes
   React.useEffect(() => {
-    if (editingUser) {
-      // Reset to empty states - let the tabs initialize from user data
+    if (!editingUser) {
+      // Reset states when dialog closes
       setSelectedOrganizationIds([]);
       setSelectedBuildingIds([]);
     }

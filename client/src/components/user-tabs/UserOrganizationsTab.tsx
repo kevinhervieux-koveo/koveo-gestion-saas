@@ -26,11 +26,18 @@ export function UserOrganizationsTab({
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
 
   useEffect(() => {
-    // Don't pre-check anything - start with empty selection
-    setSelectedOrganizations([]);
-    // Notify parent of initial empty selection for cascading filters
-    onSelectionChange?.([]);
-  }, [user, onSelectionChange]);
+    // Initialize from user's current assignments only when first opening the dialog
+    if (user && user.organizations && selectedOrganizations.length === 0) {
+      const orgIds = user.organizations.map((org: any) => org.id);
+      setSelectedOrganizations(orgIds);
+      // Notify parent of initial selection for cascading filters
+      onSelectionChange?.(orgIds);
+    } else if (!user) {
+      // Reset only when no user (dialog closed)
+      setSelectedOrganizations([]);
+      onSelectionChange?.([]);
+    }
+  }, [user]); // Remove onSelectionChange dependency to prevent reset on tab switch
 
   const handleOrganizationToggle = (organizationId: string) => {
     setSelectedOrganizations(prev => {
