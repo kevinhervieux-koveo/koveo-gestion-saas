@@ -9,7 +9,7 @@ const envSchema = z.object({
   PORT: z.string().transform(Number).default(5000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DATABASE_URL_KOVEO: z.string().optional(), // Production database
-  SESSION_SECRET: z.string().optional(),
+  SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters for security'),
   REPL_SLUG: z.string().optional(),
   REPL_OWNER: z.string().optional(),
 
@@ -40,8 +40,22 @@ const envSchema = z.object({
   QUERY_TIMEOUT: z.string().transform(Number).default(30000), // 30 seconds
 });
 
-// Parse and validate environment variables
-const env = envSchema.parse(process.env);
+// Parse and validate environment variables with production checks
+let env: z.infer<typeof envSchema>;
+try {
+  env = envSchema.parse(process.env);
+} catch (error) {
+  // Enhanced error handling for missing SESSION_SECRET
+  if (error instanceof z.ZodError) {
+    const sessionSecretError = error.errors.find(e => e.path.includes('SESSION_SECRET'));
+    if (sessionSecretError) {
+      console.error('🔐 SECURITY ERROR: SESSION_SECRET is required and must be at least 32 characters');
+      console.error('💡 Generate a secure session secret: openssl rand -base64 48');
+      process.exit(1);
+    }
+  }
+  throw error;
+}
 
 // Detect environment based on domain instead of NODE_ENV
 const detectEnvironment = () => {
@@ -112,7 +126,7 @@ export const config = {
 
   // Session configuration
   session: {
-    secret: env.SESSION_SECRET || 'koveo-gestion-secret-key',
+    secret: env.SESSION_SECRET,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     secure: envConfig.isProduction,
     httpOnly: true,
