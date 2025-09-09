@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
-interface StandardFormConfig<T extends z.ZodType<any>> {
+interface StandardFormConfig<T extends z.ZodType<any, any, any>> {
   schema: T;
   defaultValues: Partial<z.infer<T>>;
   apiEndpoint: string;
@@ -20,7 +20,8 @@ interface StandardFormConfig<T extends z.ZodType<any>> {
   };
 }
 
-interface StandardFormReturn<T> extends UseFormReturn<T> {
+interface StandardFormReturn<T> {
+  form: UseFormReturn<T>;
   handleSubmit: (onValid: (data: T) => void) => (e?: React.BaseSyntheticEvent) => Promise<void>;
   isSubmitting: boolean;
   submitMutation: {
@@ -36,7 +37,7 @@ interface StandardFormReturn<T> extends UseFormReturn<T> {
  * @param config - Configuration object with schema, defaultValues, API endpoint, etc.
  * @returns Extended form object with standardized submission handling
  */
-export function useStandardForm<T extends z.ZodType<any>>({
+export function useStandardForm<T extends z.ZodType<any, any, any>>({
   schema,
   defaultValues,
   apiEndpoint,
@@ -54,7 +55,7 @@ export function useStandardForm<T extends z.ZodType<any>>({
 
   const form = useForm<z.infer<T>>({
     resolver: zodResolver(schema),
-    defaultValues,
+    defaultValues: defaultValues as any,
   });
 
   const createMutation = useMutation({
@@ -115,7 +116,7 @@ export function useStandardForm<T extends z.ZodType<any>>({
 
   const handleSubmit = useCallback(
     (onValid: (data: z.infer<T>) => void) => {
-      return form.handleSubmit((data) => {
+      return form.handleSubmit((data: z.infer<T>) => {
         // Allow for custom data transformation before submission
         onValid(data);
       });
@@ -124,7 +125,7 @@ export function useStandardForm<T extends z.ZodType<any>>({
   );
 
   return {
-    ...form,
+    form,
     handleSubmit,
     isSubmitting,
     submitMutation,
