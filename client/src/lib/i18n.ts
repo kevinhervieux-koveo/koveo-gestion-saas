@@ -229,6 +229,10 @@ export interface Translations {
   billTitle: string;
   companyOrServiceProvider: string;
   selectPaymentType: string;
+  paymentType: string;
+  allPaymentTypes: string;
+  unique: string;
+  recurrent: string;
   selectSchedule: string;
   billingSchedule: string;
   selectStatus: string;
@@ -1250,6 +1254,10 @@ export const translations: Record<Language, Translations> = {
     billTitle: 'Bill Title',
     companyOrServiceProvider: 'Company/Service Provider',
     selectPaymentType: 'Select payment type',
+    paymentType: 'Payment Type',
+    allPaymentTypes: 'All Payment Types',
+    unique: 'Unique',
+    recurrent: 'Recurrent',
     selectSchedule: 'Select schedule',
     billingSchedule: 'Billing Schedule',
     selectStatus: 'Select status',
@@ -2235,6 +2243,10 @@ export const translations: Record<Language, Translations> = {
     billTitle: 'Titre de la facture',
     companyOrServiceProvider: 'Entreprise/Fournisseur de services',
     selectPaymentType: 'Sélectionner le type de paiement',
+    paymentType: 'Type de paiement',
+    allPaymentTypes: 'Tous les types de paiement',
+    unique: 'Unique',
+    recurrent: 'Récurrent',
     billingSchedule: 'Calendrier de facturation',
     selectStatus: 'Sélectionner le statut',
     loadingDemands: 'Chargement des demandes...',
