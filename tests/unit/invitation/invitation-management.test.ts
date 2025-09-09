@@ -10,12 +10,28 @@ import { mockDb, testUtils, mockSchema } from '../../mocks/unified-database-mock
 
 // Using unified database mock for consistency
 
-// Mock request for API testing (using simplified typing)
+// Mock request for API testing (using proper response structure)
 const mockRequest = {
-  post: jest.fn() as any,
-  get: jest.fn() as any,
-  put: jest.fn() as any,
-  delete: jest.fn() as any
+  post: jest.fn().mockImplementation(() => ({
+    send: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }),
+    set: jest.fn().mockReturnThis(),
+    expect: jest.fn().mockReturnThis()
+  })),
+  get: jest.fn().mockImplementation(() => ({
+    send: jest.fn().mockResolvedValue({ status: 200, body: { success: true, data: [] } }),
+    set: jest.fn().mockReturnThis(),
+    expect: jest.fn().mockReturnThis()
+  })),
+  put: jest.fn().mockImplementation(() => ({
+    send: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }),
+    set: jest.fn().mockReturnThis(),
+    expect: jest.fn().mockReturnThis()
+  })),
+  delete: jest.fn().mockImplementation(() => ({
+    send: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }),
+    set: jest.fn().mockReturnThis(),
+    expect: jest.fn().mockReturnThis()
+  }))
 };
 
 describe('Invitation Management API', () => {
@@ -42,7 +58,8 @@ describe('Invitation Management API', () => {
       city: 'Montreal',
       province: 'QC',
       postalCode: 'H1A 1A1',
-    }).returning() as any[];
+    }).returning() as any;
+    organization1 = org1;
 
     const [org2] = await mockDb.insert(mockSchema.organizations).values({
       name: 'Test Organization 2',
@@ -51,9 +68,7 @@ describe('Invitation Management API', () => {
       city: 'Quebec City',
       province: 'QC',
       postalCode: 'G1A 1A1',
-    }).returning() as any[];
-
-    organization1 = org1;
+    }).returning() as any;
     organization2 = org2;
 
     // Create test users
@@ -67,7 +82,8 @@ describe('Invitation Management API', () => {
       lastName: 'User',
       role: 'admin',
       language: 'en',
-    }).returning() as any[];
+    }).returning() as any;
+    adminUser = admin;
 
     const [manager] = await mockDb.insert(mockSchema.users).values({
       username: 'manager@test.com',
