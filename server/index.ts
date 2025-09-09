@@ -10,6 +10,7 @@ import { log } from './vite';
 import { registerRoutes } from './routes';
 import { sanitizeInputMiddleware } from './middleware/input-sanitization';
 import { ssrfProtectionMiddleware } from './middleware/ssrf-protection';
+import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
 // Import debug logger temporarily disabled due to module resolution
 // import { debugLogger, logInfo, logDebug } from './utils/debug-logger.js';
 

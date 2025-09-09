@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { requireAuth } from './auth/index';
+import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
 
 // Import API route registration functions
 import { registerOrganizationRoutes } from './api/organizations';
@@ -205,7 +206,11 @@ export async function registerRoutes(app: Express) {
       const files = req.files as Express.Multer.File[];
       
       if (!files || files.length === 0) {
-        return res.status(400).json({ message: 'No files uploaded' });
+        return res.status(400).json({ 
+          error: 'No files uploaded',
+          message: 'Please select at least one file to upload',
+          code: 'NO_FILES'
+        });
       }
 
       // Generate file URLs/paths for the uploaded files
@@ -213,7 +218,7 @@ export async function registerRoutes(app: Express) {
         return `/uploads/demands/${file.filename}`;
       });
 
-      console.log(`✅ Successfully uploaded ${files.length} files for user ${req.user.id}:`, fileUrls);
+      console.log(`✅ Successfully uploaded ${files.length} files for user ${req.user.id}`);
 
       res.json({ 
         message: 'Files uploaded successfully',
@@ -221,13 +226,18 @@ export async function registerRoutes(app: Express) {
         fileCount: files.length
       });
     } catch (error: any) {
-      console.error('❌ File upload error:', error);
+      console.error('❌ File upload error:', error.message);
       res.status(500).json({ 
-        message: 'Failed to upload files',
-        error: error.message 
+        error: 'File upload failed',
+        message: 'Unable to process the uploaded files',
+        code: 'UPLOAD_ERROR'
       });
     }
   });
+  
+  // Add error handlers at the end
+  app.use(notFoundHandler);
+  app.use(secureErrorHandler);
 
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
