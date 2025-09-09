@@ -55,13 +55,13 @@ describe('Invitation Table Integration Tests', () => {
       firstName: 'Manager',
       lastName: 'User',
       role: 'manager',
-    }).returning();
+    }).returning() as any[];
 
     adminUser = admin;
     managerUser = manager;
 
     // Assign manager to organization1
-    await mockDb.insert(schema.userOrganizations).values({
+    await mockDb.insert(mockSchema.userOrganizations).values({
       userId: managerUser.id,
       organizationId: organization1.id,
       organizationRole: 'manager',
@@ -71,10 +71,10 @@ describe('Invitation Table Integration Tests', () => {
 
   afterEach(async () => {
     // Clean up test data
-    await mockDb.delete(schema.invitations);
-    await mockDb.delete(schema.userOrganizations);
-    await mockDb.delete(schema.users);
-    await mockDb.delete(schema.organizations);
+    await mockDb.delete(mockSchema.invitations);
+    await mockDb.delete(mockSchema.userOrganizations);
+    await mockDb.delete(mockSchema.users);
+    await mockDb.delete(mockSchema.organizations);
   });
 
   describe('Invitation Data Validation', () => {
@@ -82,7 +82,7 @@ describe('Invitation Table Integration Tests', () => {
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + 7);
 
-      const [invitation] = await mockDb.insert(schema.invitations).values({
+      const [invitation] = await mockDb.insert(mockSchema.invitations).values({
         email: 'test@example.com',
         token: 'test-token',
         tokenHash: 'test-hash',
@@ -91,7 +91,7 @@ describe('Invitation Table Integration Tests', () => {
         organizationId: organization1.id,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning();
+      }).returning() as any[];
 
       expect(invitation).toBeDefined();
       expect(invitation.id).toBeDefined();
@@ -105,7 +105,7 @@ describe('Invitation Table Integration Tests', () => {
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + 7);
 
-      const [invitation] = await mockDb.insert(schema.invitations).values({
+      const [invitation] = await mockDb.insert(mockSchema.invitations).values({
         email: 'test@example.com',
         token: 'test-token',
         tokenHash: 'test-hash',
@@ -116,7 +116,7 @@ describe('Invitation Table Integration Tests', () => {
         residenceId: null,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning();
+      }).returning() as any[];
 
       expect(invitation.buildingId).toBeNull();
       expect(invitation.residenceId).toBeNull();
@@ -129,7 +129,7 @@ describe('Invitation Table Integration Tests', () => {
       const validRoles = ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'];
 
       for (const role of validRoles) {
-        const [invitation] = await mockDb.insert(schema.invitations).values({
+        const [invitation] = await mockDb.insert(mockSchema.invitations).values({
           email: `test-${role}@example.com`,
           token: `test-token-${role}`,
           tokenHash: `test-hash-${role}`,
@@ -151,7 +151,7 @@ describe('Invitation Table Integration Tests', () => {
       const validStatuses = ['pending', 'accepted', 'expired', 'cancelled'];
 
       for (const status of validStatuses) {
-        const [invitation] = await mockDb.insert(schema.invitations).values({
+        const [invitation] = await mockDb.insert(mockSchema.invitations).values({
           email: `test-${status}@example.com`,
           token: `test-token-${status}`,
           tokenHash: `test-hash-${status}`,
@@ -259,7 +259,7 @@ describe('Invitation Table Integration Tests', () => {
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + 7);
 
-      const [invitation] = await mockDb.insert(schema.invitations).values({
+      const [invitation] = await mockDb.insert(mockSchema.invitations).values({
         email: 'delete-test@example.com',
         token: 'delete-token',
         tokenHash: 'delete-hash',
@@ -268,7 +268,7 @@ describe('Invitation Table Integration Tests', () => {
         organizationId: organization1.id,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning();
+      }).returning() as any[];
 
       testInvitation = invitation;
     });
@@ -393,7 +393,7 @@ describe('Invitation Table Integration Tests', () => {
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + 7);
 
-      const [invitation] = await mockDb.insert(schema.invitations).values({
+      const [invitation] = await mockDb.insert(mockSchema.invitations).values({
         email: 'null-test@example.com',
         token: 'null-token',
         tokenHash: 'null-hash',
@@ -404,7 +404,7 @@ describe('Invitation Table Integration Tests', () => {
         residenceId: null,    // Allow null
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning();
+      }).returning() as any[];
 
       expect(invitation.organizationId).toBeNull();
       expect(invitation.buildingId).toBeNull();
