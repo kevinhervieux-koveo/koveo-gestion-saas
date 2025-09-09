@@ -442,10 +442,14 @@ export function configureSecurityMiddleware(app: Express): void {
     express.json({ type: 'application/csp-report' }),
     (req: Request, res: Response) => {
       const report = req.body;
-        userAgent: req.get('User-Agent'),
-        ip: req.ip,
-        timestamp: new Date().toISOString(),
-        report: report,
+      logSecurity('csp_violation_report', {
+        requestId: req.headers['x-request-id'] as string || 'unknown',
+        ip: req.ip || 'unknown',
+        metadata: {
+          userAgent: req.get('User-Agent'),
+          timestamp: new Date().toISOString(),
+          report: report,
+        }
       });
       res.status(204).end();
     }
@@ -454,10 +458,14 @@ export function configureSecurityMiddleware(app: Express): void {
   // Certificate Transparency Report Endpoint (for legacy support)
   app.post('/api/security/ct-report', express.json(), (req: Request, res: Response) => {
     const report = req.body;
-      userAgent: req.get('User-Agent'),
-      ip: req.ip,
-      timestamp: new Date().toISOString(),
-      report: report,
+    logSecurity('certificate_transparency_report', {
+      requestId: req.headers['x-request-id'] as string || 'unknown',
+      ip: req.ip || 'unknown',
+      metadata: {
+        userAgent: req.get('User-Agent'),
+        timestamp: new Date().toISOString(),
+        report: report,
+      }
     });
     res.status(204).end();
   });
@@ -480,9 +488,13 @@ export function securityHealthCheck(req: Request, res: Response, next: NextFunct
     process.env.NODE_ENV === 'development';
 
   if (!isSecure && process.env.NODE_ENV === 'production') {
-      url: req.url,
-      ip: req.ip,
-      userAgent: req.get('User-Agent'),
+    logSecurity('insecure_production_request', {
+      requestId: req.headers['x-request-id'] as string || 'unknown',
+      ip: req.ip || 'unknown',
+      metadata: {
+        url: req.url,
+        userAgent: req.get('User-Agent'),
+      }
     });
   }
 
