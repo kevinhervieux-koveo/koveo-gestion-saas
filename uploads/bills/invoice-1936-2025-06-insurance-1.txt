@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2025-06-INSURANCE-1
+Date: 2025-06-10
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Intact Insurance
+
+DESCRIPTION / DESCRIPTION:
+Insurance - Intact Insurance
+
+CATÉGORIE / CATEGORY: Insurance
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $1329.00 CAD
+TPS (5%) / GST: $66.45 CAD
+TVQ (9.975%) / QST: $132.57 CAD
+TOTAL: $1528.02 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.
