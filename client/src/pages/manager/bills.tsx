@@ -3,6 +3,7 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ClearFilters } from '@/components/ui/clear-filters';
 import {
   Select,
   SelectContent,
@@ -253,6 +254,26 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 
   const handleFilterChange = (key: keyof BillFilters, value: string | string[]) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      category: '',
+      year: new Date().getFullYear().toString(),
+      months: [],
+      paymentType: '',
+      status: '',
+    });
+  };
+
+  const hasActiveFilters = () => {
+    return (
+      filters.category !== '' ||
+      filters.year !== new Date().getFullYear().toString() ||
+      filters.months.length > 0 ||
+      filters.paymentType !== '' ||
+      filters.status !== ''
+    );
   };
 
   const handleMonthToggle = (monthValue: string) => {
@@ -543,12 +564,17 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 
                 <div className='space-y-2'>
                   <Label className='invisible'>Actions</Label>
-                  <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                    <DialogTrigger asChild>
-                      <Button className='w-full' disabled={!buildingId}>
-                        {t('createBill')}
-                      </Button>
-                    </DialogTrigger>
+                  <div className='flex gap-2'>
+                    <ClearFilters 
+                      onClear={clearAllFilters}
+                      hasActiveFilters={hasActiveFilters()}
+                    />
+                    <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                      <DialogTrigger asChild>
+                        <Button className='w-full' disabled={!buildingId}>
+                          {t('createBill')}
+                        </Button>
+                      </DialogTrigger>
                     <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
                       <DialogHeader>
                         <DialogTitle>{t('createNewBill')}</DialogTitle>
@@ -563,7 +589,8 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                         }}
                       />
                     </DialogContent>
-                  </Dialog>
+                    </Dialog>
+                  </div>
                 </div>
               </div>
             </CardContent>
