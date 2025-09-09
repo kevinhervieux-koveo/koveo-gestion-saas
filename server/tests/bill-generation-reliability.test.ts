@@ -22,7 +22,7 @@ describe('Bill Auto-Generation Reliability Tests', () => {
       schedulePayment: 'monthly',
       scheduleCustom: null,
       costs: [1500.00],
-      totalAmount: 1500.00,
+      totalAmount: '1500.00',
       startDate: '2024-01-15',
       endDate: null,
       status: 'draft',
@@ -248,8 +248,8 @@ describe('Bill Auto-Generation Reliability Tests', () => {
     });
 
     it('should reject bills with invalid amounts', () => {
-      const zeroAmountBill = { ...mockRecurrentBill, totalAmount: 0 };
-      const negativeAmountBill = { ...mockRecurrentBill, totalAmount: -100 };
+      const zeroAmountBill = { ...mockRecurrentBill, totalAmount: '0' };
+      const negativeAmountBill = { ...mockRecurrentBill, totalAmount: '-100' };
       
       expect(() => {
         service.generateForNextYear(zeroAmountBill);
