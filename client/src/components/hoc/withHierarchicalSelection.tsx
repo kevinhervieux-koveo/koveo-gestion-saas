@@ -137,7 +137,7 @@ export function withHierarchicalSelection<T extends object>(
       }
     });
 
-    // Fetch buildings
+    // Fetch buildings (with optional common spaces filter for common-spaces page)
     const {
       data: buildings = [],
       isLoading: isLoadingBuildings
@@ -147,7 +147,12 @@ export function withHierarchicalSelection<T extends object>(
         const url = organizationId 
           ? `/api/organizations/${organizationId}/buildings`
           : '/api/users/me/buildings';
-        const response = await fetch(url);
+        
+        // Add common spaces filter for common-spaces page
+        const isCommonSpacesPage = window.location.pathname.includes('common-spaces');
+        const fullUrl = isCommonSpacesPage ? `${url}?has_common_spaces=true` : url;
+        
+        const response = await fetch(fullUrl);
         if (!response.ok) {
           throw new Error('Failed to fetch buildings');
         }

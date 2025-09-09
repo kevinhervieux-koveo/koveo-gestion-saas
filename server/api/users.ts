@@ -1264,7 +1264,7 @@ export function registerUserRoutes(app: Express): void {
   app.get('/api/users/me/buildings', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      
+      const { has_common_spaces } = req.query;
 
       // For residents and tenants, get buildings through their residences  
       if (req.user.role === 'resident' || req.user.role === 'tenant' || 
@@ -1295,24 +1295,48 @@ export function registerUserRoutes(app: Express): void {
           return res.json([]);
         }
 
-        // Fetch building details
-        const buildingDetails = await db
-          .select({
-            id: schema.buildings.id,
-            name: schema.buildings.name,
-            address: schema.buildings.address,
-            city: schema.buildings.city,
-            state: schema.buildings.province, // Map province to state for consistency
-            postal_code: schema.buildings.postalCode,
-            organization_id: schema.buildings.organizationId,
-          })
-          .from(schema.buildings)
-          .where(and(
-            inArray(schema.buildings.id, buildingIds),
-            eq(schema.buildings.isActive, true)
-          ))
-          .orderBy(schema.buildings.name);
+        // Fetch building details with optional common spaces filtering
+        let buildingQuery;
+        if (has_common_spaces === 'true') {
+          // Only buildings with common spaces
+          buildingQuery = db
+            .selectDistinct({
+              id: schema.buildings.id,
+              name: schema.buildings.name,
+              address: schema.buildings.address,
+              city: schema.buildings.city,
+              state: schema.buildings.province,
+              postal_code: schema.buildings.postalCode,
+              organization_id: schema.buildings.organizationId,
+            })
+            .from(schema.buildings)
+            .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
+            .where(and(
+              inArray(schema.buildings.id, buildingIds),
+              eq(schema.buildings.isActive, true)
+            ))
+            .orderBy(schema.buildings.name);
+        } else {
+          // All buildings
+          buildingQuery = db
+            .select({
+              id: schema.buildings.id,
+              name: schema.buildings.name,
+              address: schema.buildings.address,
+              city: schema.buildings.city,
+              state: schema.buildings.province,
+              postal_code: schema.buildings.postalCode,
+              organization_id: schema.buildings.organizationId,
+            })
+            .from(schema.buildings)
+            .where(and(
+              inArray(schema.buildings.id, buildingIds),
+              eq(schema.buildings.isActive, true)
+            ))
+            .orderBy(schema.buildings.name);
+        }
 
+        const buildingDetails = await buildingQuery;
         return res.json(buildingDetails);
       }
 
