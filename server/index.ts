@@ -306,8 +306,8 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
             
             // Quick database connectivity test (non-blocking)
             try {
-              const { testDatabaseConnection } = await import('./db');
-              await testDatabaseConnection();
+              const { sql } = await import('./db');
+              await sql`SELECT 1`;
               log('✅ Database connectivity verified');
             } catch (dbError: any) {
               log(`⚠️ Database connectivity warning: ${dbError.message}`, 'warn');

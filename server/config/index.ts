@@ -47,7 +47,7 @@ try {
 } catch (error) {
   // Enhanced error handling for missing SESSION_SECRET
   if (error instanceof z.ZodError) {
-    const sessionSecretError = error.errors.find(e => e.path.includes('SESSION_SECRET'));
+    const sessionSecretError = error.issues.find(e => e.path.includes('SESSION_SECRET'));
     if (sessionSecretError) {
       console.error('🔐 SECURITY ERROR: SESSION_SECRET is required and must be at least 32 characters');
       console.error('💡 Generate a secure session secret: openssl rand -base64 48');

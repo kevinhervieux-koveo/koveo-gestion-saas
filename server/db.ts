@@ -35,22 +35,37 @@ const isUsingKoveoDb = databaseUrl.includes('DATABASE_URL_KOVEO') || (config.ser
 // Database connection established
 
 /**
- * Neon serverless database connection using HTTP.
+ * Enhanced Neon serverless database connection with stability improvements.
  * Uses the same pattern as your successful test code.
  * Optimized for serverless environments like Replit deployments.
  */
 export const sql = neon(databaseUrl, {
   arrayMode: false,
   fullResults: false,
+  // Enhanced connection stability settings
+  connectionTimeoutMillis: 30000, // 30 seconds timeout
+  idleTimeoutMillis: 60000, // 60 seconds idle timeout
+  maxConnections: 10, // Limit concurrent connections
+  retries: 3, // Retry failed connections
 });
 
-// Test connection
+// Enhanced connection test with retry logic
 (async () => {
-  try {
-    const result = await sql`SELECT version()`;
-    // Database connection verified
-  } catch (error: any) {
-    console.error('Database connection failed:', error.message);
+  let retries = 3;
+  while (retries > 0) {
+    try {
+      const result = await sql`SELECT version()`;
+      console.log('✅ Database connection verified');
+      break;
+    } catch (error: any) {
+      retries--;
+      if (retries === 0) {
+        console.error('❌ Database connection failed after retries:', error.message);
+      } else {
+        console.warn(`⚠️ Database connection retry ${4 - retries}/3...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
   }
 })();
 
