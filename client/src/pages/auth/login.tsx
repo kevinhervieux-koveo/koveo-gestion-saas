@@ -6,14 +6,7 @@ import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Shield, Building, Users, Eye, EyeOff, Loader2, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { StandardFormField } from '@/components/forms/StandardFormField';
 import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
@@ -511,28 +505,17 @@ export default function LoginPage() {
             ) : (
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-                  <FormField
+                  <StandardFormField
                     control={form.control}
                     name='email'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {language === 'fr' ? 'Adresse courriel' : 'Email Address'}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type='email'
-                            autoComplete='username'
-                            placeholder={language === 'fr' ? 'votre@email.com' : 'your@email.com'}
-                            disabled={isLoggingIn}
-                            className='h-11'
-                            data-testid='input-email'
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label={language === 'fr' ? 'Adresse courriel' : 'Email Address'}
+                    type='email'
+                    placeholder={language === 'fr' ? 'votre@email.com' : 'your@email.com'}
+                    disabled={isLoggingIn}
+                    className='h-11'
+                    data-testid='input-email'
+                    autoComplete='username'
+                    formName='login'
                   />
 
                   <FormField
