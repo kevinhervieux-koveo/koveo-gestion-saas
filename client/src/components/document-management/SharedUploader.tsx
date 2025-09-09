@@ -1,11 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Upload, X, File, Image, FileText, Camera, Sparkles } from 'lucide-react';
+import { Upload, X, File, Image, FileText, Camera, Sparkles, Folder } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { getUploadConfig, isAiAnalysisEnabled, type UploadContext } from '@shared/config/upload-config';
 
 interface SharedUploaderProps {
@@ -76,10 +77,15 @@ export function SharedUploader({
   const [validationError, setValidationError] = useState<string | null>(null);
   const [aiEnabled, setAiEnabled] = useState(finalAiEnabled);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadAreaRef = useRef<HTMLDivElement>(null);
+
+  // Mobile detection
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
   // Handle AI toggle
   const handleAiToggle = useCallback((enabled: boolean) => {
@@ -229,7 +235,7 @@ export function SharedUploader({
           e.preventDefault();
           // Create proper File object for pasted images
           const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const file = new File([blob], `screenshot-${timestamp}.png`, {
+          const file = new (File as any)([blob], `screenshot-${timestamp}.png`, {
             type: 'image/png'
           });
           processFile(file);
@@ -270,6 +276,33 @@ export function SharedUploader({
       fileInputRef.current.click();
     }
   }, [disabled]);
+
+  // Open camera (mobile)
+  const openCamera = useCallback(() => {
+    if (!disabled && cameraInputRef.current) {
+      cameraInputRef.current.click();
+    }
+    setShowMobileMenu(false);
+  }, [disabled]);
+
+  // Open gallery/files (mobile)
+  const openGallery = useCallback(() => {
+    if (!disabled && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+    setShowMobileMenu(false);
+  }, [disabled]);
+
+  // Handle upload area click
+  const handleUploadAreaClick = useCallback(() => {
+    if (disabled) return;
+    
+    if (isMobile) {
+      setShowMobileMenu(true);
+    } else {
+      openFileDialog();
+    }
+  }, [disabled, isMobile, openFileDialog]);
 
   // Tab change handler
   const handleTabChange = useCallback((value: string) => {
@@ -325,16 +358,27 @@ export function SharedUploader({
 
         {/* File Upload Tab */}
         <TabsContent value="file" className="space-y-4">
-          {/* Hidden file input with mobile camera integration */}
+          {/* Hidden file inputs */}
           <input
             ref={fileInputRef}
             type="file"
             accept={finalAllowedTypes.join(',')}
-            capture="environment" // Mobile camera integration for rear camera
             onChange={handleFileSelect}
             className="hidden"
             disabled={disabled}
-            data-testid="file-input-mobile"
+            data-testid="file-input-gallery"
+          />
+          
+          {/* Hidden camera input for mobile */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleFileSelect}
+            className="hidden"
+            disabled={disabled}
+            data-testid="file-input-camera"
           />
 
           {/* Upload area with drag-and-drop */}
@@ -343,7 +387,7 @@ export function SharedUploader({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onClick={openFileDialog}
+            onClick={handleUploadAreaClick}
             className={cn(
               "relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors min-h-[120px] flex flex-col justify-center items-center",
               isDragOver
@@ -429,6 +473,55 @@ export function SharedUploader({
               </>
             )}
           </div>
+
+          {/* Mobile Menu */}
+          {showMobileMenu && isMobile && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
+              <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-2xl p-6 space-y-4">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Choose File Source
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Select how you'd like to add your file
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <Button
+                    onClick={openCamera}
+                    className="w-full flex items-center justify-center gap-3 py-4"
+                    variant="outline"
+                    disabled={disabled}
+                    data-testid="mobile-menu-camera"
+                  >
+                    <Camera className="h-5 w-5" />
+                    Take Photo with Camera
+                  </Button>
+                  
+                  <Button
+                    onClick={openGallery}
+                    className="w-full flex items-center justify-center gap-3 py-4"
+                    variant="outline"
+                    disabled={disabled}
+                    data-testid="mobile-menu-gallery"
+                  >
+                    <Folder className="h-5 w-5" />
+                    Choose from Gallery/Files
+                  </Button>
+                </div>
+                
+                <Button
+                  onClick={() => setShowMobileMenu(false)}
+                  variant="ghost"
+                  className="w-full mt-4"
+                  data-testid="mobile-menu-cancel"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Validation error */}
           {validationError && (
