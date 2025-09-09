@@ -1,6 +1,6 @@
 # Koveo Gestion API Documentation
 
-**Current Status**: 198 API routes validated and functional (September 2025) ✅
+**Current Status**: 198 API routes validated and functional (September 09, 2025) ✅
 
 ## Table of Contents
 

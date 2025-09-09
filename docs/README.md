@@ -1,6 +1,6 @@
 # Koveo Gestion Documentation
 
-> Last updated: September 2025 with current testing infrastructure and project status
+> Last updated: September 09, 2025 with current testing infrastructure and project status
 
 ## Table of Contents
 
@@ -21,9 +21,9 @@ Koveo Gestion is an AI-powered property management SaaS platform designed specif
 
 ### Prerequisites
 
-- Node.js 18+
-- PostgreSQL database
-- NPM or Yarn
+- Node.js 20+
+- PostgreSQL 14+ database
+- NPM package manager
 
 ### Installation
 
@@ -261,5 +261,5 @@ This project maintains compliance with Quebec Law 25 and includes:
 
 ---
 
-Last Updated: 2025-08-17
-Version: 2.0.0
+Last Updated: 2025-09-09
+Version: 2.1.0

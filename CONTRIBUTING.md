@@ -1,6 +1,8 @@
 # Contributing to Koveo Gestion
 
-Thank you for your interest in contributing to Koveo Gestion! This guide outlines our development process and standards.
+> Updated: September 09, 2025
+
+Thank you for your interest in contributing to Koveo Gestion! This guide outlines our development process and standards for the Quebec property management platform.
 
 ## Development Process
 
