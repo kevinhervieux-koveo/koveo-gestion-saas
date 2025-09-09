@@ -78,7 +78,7 @@ describe('Invitation Management API', () => {
       city: 'Montreal',
       province: 'QC',
       postalCode: 'H1A 1A1',
-    }).returning();
+    }).returning() as any[];
 
     const [org2] = await mockDb.insert(schema.organizations).values({
       name: 'Test Organization 2',
@@ -87,7 +87,7 @@ describe('Invitation Management API', () => {
       city: 'Quebec City',
       province: 'QC',
       postalCode: 'G1A 1A1',
-    }).returning();
+    }).returning() as any[];
 
     organization1 = org1;
     organization2 = org2;
@@ -103,7 +103,7 @@ describe('Invitation Management API', () => {
       lastName: 'User',
       role: 'admin',
       language: 'en',
-    }).returning();
+    }).returning() as any[];
 
     const [manager] = await mockDb.insert(schema.users).values({
       username: 'manager@test.com',
@@ -113,7 +113,7 @@ describe('Invitation Management API', () => {
       lastName: 'User',
       role: 'manager',
       language: 'en',
-    }).returning();
+    }).returning() as any[];
 
     const [tenant] = await mockDb.insert(schema.users).values({
       username: 'tenant@test.com',
@@ -123,7 +123,7 @@ describe('Invitation Management API', () => {
       lastName: 'User',
       role: 'tenant',
       language: 'en',
-    }).returning();
+    }).returning() as any[];
 
     adminUser = admin;
     managerUser = manager;
@@ -150,7 +150,7 @@ describe('Invitation Management API', () => {
       organizationId: organization1.id,
       invitedByUserId: adminUser.id,
       expiresAt: expirationDate,
-    }).returning();
+    }).returning() as any[];
 
     const [invitation2] = await mockDb.insert(schema.invitations).values({
       email: 'test2@example.com',
@@ -161,7 +161,7 @@ describe('Invitation Management API', () => {
       organizationId: organization2.id,
       invitedByUserId: adminUser.id,
       expiresAt: expirationDate,
-    }).returning();
+    }).returning() as any[];
 
     testInvitation1 = invitation1;
     testInvitation2 = invitation2;
@@ -336,7 +336,7 @@ describe('Invitation Management API', () => {
   describe('Invitation Status and Expiration', () => {
     it('should only return pending invitations', async () => {
       // Create an accepted invitation
-      await mockDb.insert(schema.invitations).values({
+      await mockDb.insert(mockSchema.invitations).values({
         email: 'accepted@example.com',
         token: 'accepted-token',
         tokenHash: 'accepted-hash',
@@ -363,7 +363,7 @@ describe('Invitation Management API', () => {
       const expiredDate = new Date();
       expiredDate.setDate(expiredDate.getDate() - 1); // Yesterday
 
-      await mockDb.insert(schema.invitations).values({
+      await mockDb.insert(mockSchema.invitations).values({
         email: 'expired@example.com',
         token: 'expired-token',
         tokenHash: 'expired-hash',
@@ -398,7 +398,7 @@ describe('Invitation Management API', () => {
         organizationId: null,
         invitedByUserId: adminUser.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      }).returning();
+      }).returning() as any[];
 
       const response = await mockRequest
         .get('/api/invitations/pending')
