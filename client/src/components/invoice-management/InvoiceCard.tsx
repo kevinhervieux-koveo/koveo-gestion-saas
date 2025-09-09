@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StandardCard } from '@/components/ui/standard-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -86,17 +87,16 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
 
   return (
     <>
-      <Card className="hover:shadow-md transition-shadow" data-testid={`invoice-card-${invoice.id}`}>
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <CardTitle className="text-lg font-semibold">
-                {invoice.vendorName}
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                #{invoice.invoiceNumber}
-              </p>
-            </div>
+      <StandardCard 
+        title={invoice.vendorName}
+        className="hover:shadow-md transition-shadow" 
+        headerClassName="pb-3"
+        data-testid={`invoice-card-${invoice.id}`}
+      >
+        <div className="flex items-start justify-between mb-3">
+          <p className="text-sm text-muted-foreground">
+            #{invoice.invoiceNumber}
+          </p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -127,9 +127,8 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </CardHeader>
 
-        <CardContent className="space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-muted-foreground" />
@@ -180,8 +179,7 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </StandardCard>
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>

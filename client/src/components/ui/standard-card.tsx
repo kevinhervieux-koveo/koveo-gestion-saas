@@ -11,6 +11,7 @@ interface StandardCardProps {
   headerClassName?: string;
   contentClassName?: string;
   footerClassName?: string;
+  onClick?: () => void;
   'data-testid'?: string;
 }
 
@@ -30,10 +31,15 @@ export function StandardCard({
   headerClassName,
   contentClassName,
   footerClassName,
+  onClick,
   'data-testid': testId,
 }: StandardCardProps) {
   return (
-    <Card className={cn('w-full overflow-hidden', className)} data-testid={testId}>
+    <Card 
+      className={cn('w-full overflow-hidden', className)} 
+      onClick={onClick}
+      data-testid={testId}
+    >
       {(title || description) && (
         <CardHeader className={cn('space-y-1', headerClassName)}>
           {title && <CardTitle className="break-words hyphens-auto">{title}</CardTitle>}

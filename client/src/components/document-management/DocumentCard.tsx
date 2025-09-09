@@ -1,6 +1,7 @@
 import React from 'react';
 import { Eye, FileText, Image, File, Calendar, User } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { StandardCard } from '@/components/ui/standard-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';

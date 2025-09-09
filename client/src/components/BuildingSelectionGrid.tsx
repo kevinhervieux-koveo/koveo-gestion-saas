@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StandardCard } from '@/components/ui/standard-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building as BuildingIcon } from 'lucide-react';
@@ -55,14 +56,11 @@ export function BuildingSelectionGrid({
 }) {
   return (
     <div className='space-y-6'>
-      <Card>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <BuildingIcon className='w-5 h-5' />
-            Select a Building
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <StandardCard 
+        title="Select a Building"
+        headerClassName="flex items-center gap-2"
+      >
+        <BuildingIcon className='w-5 h-5 mr-2' />
           <p className='text-gray-600 mb-6'>Choose a building to view and manage its bills</p>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {buildings.map((building) => (
@@ -73,8 +71,7 @@ export function BuildingSelectionGrid({
               />
             ))}
           </div>
-        </CardContent>
-      </Card>
+      </StandardCard>
     </div>
   );
 }
