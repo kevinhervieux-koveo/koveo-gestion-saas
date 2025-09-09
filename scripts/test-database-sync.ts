@@ -293,7 +293,12 @@ class DatabaseSyncTester {
   }
 
   private async testValidDocumentTypes(): Promise<void> {
-    const validTypes = ['regulations', 'financial', 'meeting_minutes', 'insurance', 'safety', 'maintenance', 'permit', 'inspection', 'lease', 'invoice', 'test'];
+    const validTypes = [
+      'bylaw', 'financial', 'maintenance', 'legal', 'meeting_minutes', 'insurance', 
+      'contracts', 'permits', 'inspection', 'lease', 'correspondence', 'utilities', 'other',
+      'attachment', 'screenshot', 'evidence', 'supporting_document',
+      'regulations', 'safety', 'test', 'invoice'
+    ];
     const typeList = validTypes.map(t => `'${t}'`).join(',');
     
     const query = `
