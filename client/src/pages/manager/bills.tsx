@@ -99,6 +99,8 @@ interface BillFilters {
   category: string;
   year: string;
   months: string[];
+  paymentType: string;
+  status: string;
 }
 
 /**
@@ -128,6 +130,8 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
     category: '',
     year: new Date().getFullYear().toString(),
     months: [],
+    paymentType: '',
+    status: '',
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showAllYears, setShowAllYears] = useState(false);
