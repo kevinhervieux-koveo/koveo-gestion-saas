@@ -196,6 +196,20 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
     },
   });
 
+  // Fetch year range for building
+  const { data: yearRange } = useQuery({
+    queryKey: ['/api/bills/year-range', buildingId],
+    queryFn: async () => {
+      if (!buildingId) return null;
+      const response = await fetch(`/api/bills/year-range?buildingId=${buildingId}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch year range');
+      return response.json();
+    },
+    enabled: !!buildingId
+  });
+
   // Fetch bills based on filters
   const { data: bills = [], isLoading } = useQuery<Bill[]>({
     queryKey: ['/api/bills', buildingId, filters],
@@ -359,30 +373,51 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
   // Get current year for year calculation
   const currentYear = new Date().getFullYear();
 
-  // Generate year options based on show all years state
+  // Generate year options based on actual bill data and show all years state
   const getYearOptions = () => {
-    /**
-     * If function.
-     * @param showAllYears - ShowAllYears parameter.
-     */ /**
-     * If function.
-     * @param showAllYears - ShowAllYears parameter.
-     */
+    if (!yearRange) {
+      // Fallback to current year if no year range data
+      return [currentYear];
+    }
 
     if (showAllYears) {
-      // Show years from 2000 to 25 years forward
-      const startYear = 2000;
-      const endYear = currentYear + 25;
+      // Show extended range: from 2000 to 25 years forward
+      const startYear = Math.min(2000, yearRange.minYear - 2);
+      const endYear = Math.max(currentYear + 25, yearRange.maxYear + 2);
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
     } else {
-      // Show current year ±3 years
-      const startYear = currentYear - 3;
-      const endYear = currentYear + 3;
+      // Show dynamic range based on actual bills with some padding
+      if (!yearRange.hasBills) {
+        // No bills exist, show current year ±2 years
+        const startYear = currentYear - 2;
+        const endYear = currentYear + 2;
+        const totalYears = endYear - startYear + 1;
+        return Array.from({ length: totalYears }, (_, i) => startYear + i);
+      }
+      
+      // Use actual bill range with padding
+      const startYear = Math.min(yearRange.minYear, currentYear - 1);
+      const endYear = Math.max(yearRange.maxYear, currentYear + 1);
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
     }
   };
+
+  // Auto-adjust initial year filter when year range loads
+  useEffect(() => {
+    if (yearRange && yearRange.hasBills && filters.year === currentYear.toString()) {
+      // If we're still on the default current year and bills exist, 
+      // consider adjusting to the most recent year with bills
+      const mostRecentYear = yearRange.maxYear;
+      if (mostRecentYear !== currentYear) {
+        setFilters(prev => ({
+          ...prev,
+          year: mostRecentYear.toString()
+        }));
+      }
+    }
+  }, [yearRange, currentYear, filters.year]);
 
 
   return (
@@ -462,7 +497,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                             )}
                           </SelectItem>
                         ))}
-                        {!showAllYears && (
+                        {!showAllYears && yearRange && (
                           <div className='border-t border-gray-200 mt-2 pt-2'>
                             <Button
                               variant='ghost'
@@ -470,11 +505,11 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                               className='w-full text-left justify-start text-xs'
                               onClick={() => setShowAllYears(true)}
                             >
-                              Show more years (2000 - {currentYear + 25})
+                              Show extended range (2000 - {currentYear + 25})
                             </Button>
                           </div>
                         )}
-                        {showAllYears && (
+                        {showAllYears && yearRange && (
                           <div className='border-t border-gray-200 mt-2 pt-2'>
                             <Button
                               variant='ghost'
@@ -482,7 +517,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                               className='w-full text-left justify-start text-xs'
                               onClick={() => setShowAllYears(false)}
                             >
-                              Show fewer years ({currentYear - 3} - {currentYear + 3})
+                              Show bill range ({yearRange.hasBills ? `${Math.min(yearRange.minYear, currentYear - 1)} - ${Math.max(yearRange.maxYear, currentYear + 1)}` : `${currentYear - 2} - ${currentYear + 2}`})
                             </Button>
                           </div>
                         )}

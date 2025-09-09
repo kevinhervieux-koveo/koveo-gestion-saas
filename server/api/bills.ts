@@ -203,6 +203,53 @@ export function registerBillRoutes(app: Express) {
   );
 
   /**
+   * Get year range (min/max years) for bills in a building
+   * GET /api/bills/year-range?buildingId=uuid
+   */
+  app.get('/api/bills/year-range', requireAuth, async (req: any, res: any) => {
+    try {
+      const { buildingId } = req.query;
+
+      if (!buildingId) {
+        return res.status(400).json({ error: 'Building ID is required' });
+      }
+
+      // Get min and max years from bills
+      const yearRangeResult = await db
+        .select({
+          minYear: sql<number>`EXTRACT(YEAR FROM MIN(${bills.startDate}))`,
+          maxYear: sql<number>`EXTRACT(YEAR FROM MAX(${bills.startDate}))`,
+          count: sql<number>`COUNT(*)`
+        })
+        .from(bills)
+        .where(eq(bills.buildingId, buildingId));
+
+      const result = yearRangeResult[0];
+      
+      // If no bills exist, return current year as both min and max
+      if (!result || result.count === 0) {
+        const currentYear = new Date().getFullYear();
+        return res.json({
+          minYear: currentYear,
+          maxYear: currentYear,
+          count: 0,
+          hasBills: false
+        });
+      }
+
+      res.json({
+        minYear: result.minYear,
+        maxYear: result.maxYear,
+        count: result.count,
+        hasBills: true
+      });
+    } catch (error) {
+      console.error('Error fetching bill year range:', error);
+      res.status(500).json({ error: 'Failed to fetch year range' });
+    }
+  });
+
+  /**
    * Get all bills with optional filtering
    * GET /api/bills?buildingId=uuid&category=insurance&year=2024&status=draft&months=1,3,6.
    */
