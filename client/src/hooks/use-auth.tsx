@@ -27,11 +27,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
- * Authentication provider component that wraps the application.
- * Manages user authentication state and provides authentication actions.
- * @param props - Component props.
- * @param props.children - Child components to wrap with authentication context.
- * @returns JSX element providing authentication context.
+ * Authentication provider component that wraps the Koveo Gestion application.
+ * Manages user authentication state with Quebec compliance and RBAC support.
+ * 
+ * @param props - Component props
+ * @param props.children - Child components to wrap with authentication context
+ * @returns JSX element providing authentication context with Quebec compliance
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
