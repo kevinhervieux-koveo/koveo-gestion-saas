@@ -3,9 +3,10 @@
 > AI-powered property management SaaS platform tailored for Quebec's residential communities
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/koveo/koveo-gestion)
-[![Test Coverage](https://img.shields.io/badge/coverage-85%25-green)](https://github.com/koveo/koveo-gestion)
+[![Test Coverage](https://img.shields.io/badge/coverage-90%25-green)](https://github.com/koveo/koveo-gestion)
 [![License](https://img.shields.io/badge/license-Proprietary-blue)](LICENSE)
 [![Quebec Compliance](https://img.shields.io/badge/Law%2025-compliant-blue)](docs/QUEBEC_COMPLIANCE_EXAMPLES.md)
+[![Documentation](https://img.shields.io/badge/docs-comprehensive-blue)](docs/README.md)
 
 ## Overview
 
