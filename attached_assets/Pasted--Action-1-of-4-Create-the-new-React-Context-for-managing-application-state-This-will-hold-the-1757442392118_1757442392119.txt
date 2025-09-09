@@ -1,0 +1,217 @@
+// Action 1 of 4: Create the new React Context for managing application state.
+// This will hold the user's selected context, such as a building or organization.
+createFile: 'src/context/AppContext.tsx',
+content: `
+import React, { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
+
+type ContextType = 'organization' | 'building' | 'residence';
+
+interface AppContextProps {
+  selectedContextId: string | null;
+  selectedContextType: ContextType | null;
+  setSelectedContext: (id: string, type: ContextType) => void;
+  clearContext: () => void;
+}
+
+const AppContext = createContext<AppContextProps | undefined>(undefined);
+
+export const AppContextProvider = ({ children }: { children: ReactNode }) => {
+  const [selectedContextId, setSelectedContextId] = useState<string | null>(null);
+  const [selectedContextType, setSelectedContextType] = useState<ContextType | null>(null);
+
+  const setSelectedContext = (id: string, type: ContextType) => {
+    setSelectedContextId(id);
+    setSelectedContextType(type);
+  };
+  
+  const clearContext = () => {
+    setSelectedContextId(null);
+    setSelectedContextType(null);
+  };
+
+  return (
+    <AppContext.Provider value={{ selectedContextId, selectedContextType, setSelectedContext, clearContext }}>
+      {children}
+    </AppContext.Provider>
+  );
+};
+
+export const useAppContext = () => {
+  const context = useContext(AppContext);
+  if (context === undefined) {
+    throw new Error('useAppContext must be used within an AppContextProvider');
+  }
+  return context;
+};
+`
+
+// Action 2 of 4: Create the new Higher-Order Component (HOC) for pre-filtering.
+// This component will wrap pages that require a context selection.
+createFile: 'src/components/hoc/withAppContext.tsx',
+content: `
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { AppContextProvider, useAppContext } from '@/context/AppContext';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { NoDataCard } from '@/components/ui/no-data-card';
+import { SelectionGrid } from '@/components/common/SelectionGrid';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
+import axios from 'axios';
+
+type ContextType = 'organization' | 'building' | 'residence';
+
+interface HOCConfig {
+  requiredContext: ContextType;
+  apiEndpoint: string;
+}
+
+const withAppContext = <P extends object>(
+  PageComponent: React.ComponentType<P>,
+  config: HOCConfig
+): React.FC<P> => {
+  const WrappedComponent: React.FC<P> = (props) => {
+    const { selectedContextId, selectedContextType, setSelectedContext } = useAppContext();
+
+    const { data, isLoading, isError, error } = useQuery({
+      queryKey: [config.requiredContext],
+      queryFn: async () => {
+        const response = await axios.get(config.apiEndpoint);
+        return response.data;
+      },
+      enabled: !selectedContextId || selectedContextType !== config.requiredContext,
+    });
+
+    if (selectedContextId && selectedContextType === config.requiredContext) {
+      return <PageComponent {...props} />;
+    }
+
+    if (isLoading) {
+      return <div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>;
+    }
+
+    if (isError) {
+      return (
+        <div className="p-4">
+            <Alert variant="destructive">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>Error Fetching Data</AlertTitle>
+                <AlertDescription>{error.message}</AlertDescription>
+            </Alert>
+        </div>
+      );
+    }
+    
+    if (!data || data.length === 0) {
+        return <NoDataCard message={\`You do not have access to any \${config.requiredContext}s. Please contact your administrator.\`} />;
+    }
+
+    if (data.length === 1) {
+        setSelectedContext(data[0].id, config.requiredContext);
+        return <PageComponent {...props} />;
+    }
+
+    return (
+        <div className="p-4">
+            <h2 className="text-2xl font-bold mb-4">Select a {\`\${config.requiredContext}\`}</h2>
+            <SelectionGrid
+                items={data.map(item => ({ id: item.id, name: item.name, description: item.address || '' }))}
+                onSelectItem={(item) => setSelectedContext(item.id, config.requiredContext)}
+            />
+        </div>
+    );
+  };
+
+  return (props: P) => (
+    <AppContextProvider>
+        <WrappedComponent {...props} />
+    </AppContextProvider>
+  );
+};
+
+export default withAppContext;
+`
+
+// Action 3 of 4: Refactor the existing bills page to use the new HOC.
+// This demonstrates the pattern and simplifies the page's logic.
+modifyFile: 'src/pages/manager/bills.tsx',
+instructions: `
+1.  Remove all existing, page-specific logic for fetching the list of buildings and handling the building selection state.
+2.  Import the new HOC: \`import withAppContext from '@/components/hoc/withAppContext';\`
+3.  Import the new context hook: \`import { useAppContext } from '@/context/AppContext';\`
+4.  Inside the \`BillsPage\` component, get the selected building ID using the hook: \`const { selectedContextId: buildingId } = useAppContext();\`
+5.  Update the primary TanStack Query for fetching bills to depend on \`buildingId\`. Ensure the query is enabled only when \`buildingId\` is not null. For example: \`queryKey: ['bills', buildingId]\` and \`enabled: !!buildingId\`.
+6.  Wrap the page's default export with the new HOC, providing the necessary configuration. The final line of the file should be:
+    \`export default withAppContext(BillsPage, { requiredContext: 'building', apiEndpoint: '/api/users/me/buildings' });\`
+`
+
+// Action 4 of 4: Create a test file for the HOC to ensure its reliability and security.
+createFile: 'src/components/hoc/withAppContext.test.tsx',
+content: `
+import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { rest } from 'msw';
+import { setupServer } from 'msw/node';
+import withAppContext from './withAppContext';
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest';
+
+const server = setupServer();
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+
+const TestPage = () => <div>Test Page Content</div>;
+const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } }
+});
+
+const renderWithProvider = (Component) => {
+    return render(
+        <QueryClientProvider client={queryClient}>
+            <Component />
+        </QueryClientProvider>
+    );
+};
+
+describe('withAppContext HOC', () => {
+    it('renders loading spinner while fetching', () => {
+        server.use(rest.get('/api/users/me/buildings', (req, res, ctx) => {
+            return res(ctx.delay('infinite'));
+        }));
+        const ComponentWithHOC = withAppContext(TestPage, { requiredContext: 'building', apiEndpoint: '/api/users/me/buildings' });
+        renderWithProvider(ComponentWithHOC);
+        expect(screen.getByRole('status')).toBeInTheDocument(); // Assuming LoadingSpinner has a role of status
+    });
+
+    it('renders NoDataCard when API returns empty array', async () => {
+        server.use(rest.get('/api/users/me/buildings', (req, res, ctx) => {
+            return res(ctx.json([]));
+        }));
+        const ComponentWithHOC = withAppContext(TestPage, { requiredContext: 'building', apiEndpoint: '/api/users/me/buildings' });
+        renderWithProvider(ComponentWithHOC);
+        expect(await screen.findByText(/You do not have access/i)).toBeInTheDocument();
+    });
+
+    it('renders the wrapped component directly if only one option is available', async () => {
+        server.use(rest.get('/api/users/me/buildings', (req, res, ctx) => {
+            return res(ctx.json([{ id: 'building1', name: 'Building One' }]));
+        }));
+        const ComponentWithHOC = withAppContext(TestPage, { requiredContext: 'building', apiEndpoint: '/api/users/me/buildings' });
+        renderWithProvider(ComponentWithHOC);
+        expect(await screen.findByText('Test Page Content')).toBeInTheDocument();
+    });
+
+    it('renders SelectionGrid when multiple options are available', async () => {
+        server.use(rest.get('/api/users/me/buildings', (req, res, ctx) => {
+            return res(ctx.json([
+                { id: 'building1', name: 'Building One' },
+                { id: 'building2', name: 'Building Two' }
+            ]));
+        }));
+        const ComponentWithHOC = withAppContext(TestPage, { requiredContext: 'building', apiEndpoint: '/api/users/me/buildings' });
+        renderWithProvider(ComponentWithHOC);
+        expect(await screen.findByText(/Select a building/i)).toBeInTheDocument();
+    });
+});
+`
