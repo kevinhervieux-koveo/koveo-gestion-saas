@@ -278,19 +278,31 @@ export function SharedUploader({
   }, [disabled]);
 
   // Open camera (mobile)
-  const openCamera = useCallback(() => {
-    if (!disabled && cameraInputRef.current) {
-      cameraInputRef.current.click();
-    }
+  const openCamera = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setShowMobileMenu(false);
+    
+    // Use setTimeout to ensure the modal is closed before triggering the input
+    setTimeout(() => {
+      if (!disabled && cameraInputRef.current) {
+        cameraInputRef.current.click();
+      }
+    }, 100);
   }, [disabled]);
 
   // Open gallery/files (mobile)
-  const openGallery = useCallback(() => {
-    if (!disabled && fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+  const openGallery = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setShowMobileMenu(false);
+    
+    // Use setTimeout to ensure the modal is closed before triggering the input
+    setTimeout(() => {
+      if (!disabled && fileInputRef.current) {
+        fileInputRef.current.click();
+      }
+    }, 100);
   }, [disabled]);
 
   // Handle upload area click
@@ -476,8 +488,14 @@ export function SharedUploader({
 
           {/* Mobile Menu */}
           {showMobileMenu && isMobile && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
-              <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-2xl p-6 space-y-4">
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50"
+              onClick={() => setShowMobileMenu(false)}
+            >
+              <div 
+                className="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-2xl p-6 space-y-4"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     Choose File Source
