@@ -127,8 +127,8 @@ export const mockDb = {
   execute: jest.fn().mockImplementation(async () => ({ rows: [] })),
   
   // Connection management (for integration tests)
-  end: jest.fn().mockResolvedValue(void 0),
-  connect: jest.fn().mockResolvedValue(void 0)
+  end: jest.fn(),
+  connect: jest.fn()
 };
 
 // Mock schema tables for type safety

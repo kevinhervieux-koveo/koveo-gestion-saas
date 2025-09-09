@@ -22,7 +22,7 @@ describe('Invitation Table Integration Tests', () => {
       city: 'Montreal',
       province: 'QC',
       postalCode: 'H1A 1A1',
-    }).returning();
+    }).returning() as any[];
 
     const [org2] = await mockDb.insert(mockSchema.organizations).values({
       name: 'Test Organization 2',
@@ -31,7 +31,7 @@ describe('Invitation Table Integration Tests', () => {
       city: 'Quebec City',
       province: 'QC',
       postalCode: 'G1A 1A1',
-    }).returning();
+    }).returning() as any[];
 
     organization1 = org1;
     organization2 = org2;
@@ -46,7 +46,7 @@ describe('Invitation Table Integration Tests', () => {
       firstName: 'Admin',
       lastName: 'User',
       role: 'admin',
-    }).returning();
+    }).returning() as any[];
 
     const [manager] = await mockDb.insert(mockSchema.users).values({
       username: 'manager@test.com',
