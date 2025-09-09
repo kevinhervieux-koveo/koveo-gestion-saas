@@ -492,6 +492,15 @@ async function loadFullApplication(): Promise<void> {
       log('✅ Production static file serving configured with API route protection');
     }
 
+    // Initialize bill auto-generation job scheduler
+    try {
+      const { billJobScheduler } = await import('./jobs/bill-auto-generation-job');
+      billJobScheduler.init();
+      log('✅ Bill auto-generation job scheduler initialized');
+    } catch (jobError: any) {
+      log(`⚠️ Failed to initialize job scheduler: ${jobError.message}`, 'error');
+    }
+
     // Start heavy database work in background AFTER routes are ready
     const dbDelay = process.env.NODE_ENV === 'production' ? 500 : 1000;
     setTimeout(async () => {
