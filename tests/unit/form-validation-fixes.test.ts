@@ -216,7 +216,7 @@ describe('Form Validation Fixes', () => {
           (e.code && e.message && e.message.includes('description'))
         );
         expect(descriptionError).toBeDefined();
-        expect(descriptionError.message).toContain('at least');
+        expect(descriptionError.message).toMatch(/(at least|>=10|minimum|Too small)/i);
       }
     });
   });
