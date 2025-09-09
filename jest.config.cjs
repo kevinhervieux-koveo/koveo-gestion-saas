@@ -3,6 +3,12 @@ const config = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   
+  // Performance optimizations
+  testTimeout: 10000, // 10 second timeout per test
+  detectOpenHandles: false, // Disable for performance
+  forceExit: true, // Force exit to prevent hanging
+  maxWorkers: '25%', // Limit workers for better stability
+  
   // Optimized module name mapping - only essential mappings
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',

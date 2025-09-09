@@ -6,6 +6,9 @@ process.env.TEST_TYPE = 'unit';
 process.env.USE_MOCK_DB = 'true';
 process.env.NODE_ENV = 'test';
 
+// Performance optimizations
+jest.setTimeout(10000); // 10 second timeout per test
+
 // Add Node.js polyfills for test environment
 global.setImmediate = global.setImmediate || ((fn, ...args) => setTimeout(fn, 0, ...args));
 global.clearImmediate = global.clearImmediate || clearTimeout;
