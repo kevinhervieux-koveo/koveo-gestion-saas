@@ -42,11 +42,6 @@ const isUsingKoveoDb = databaseUrl.includes('DATABASE_URL_KOVEO') || (config.ser
 export const sql = neon(databaseUrl, {
   arrayMode: false,
   fullResults: false,
-  // Enhanced connection stability settings
-  connectionTimeoutMillis: 30000, // 30 seconds timeout
-  idleTimeoutMillis: 60000, // 60 seconds idle timeout
-  maxConnections: 10, // Limit concurrent connections
-  retries: 3, // Retry failed connections
 });
 
 // Enhanced connection test with retry logic
