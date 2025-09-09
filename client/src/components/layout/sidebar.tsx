@@ -13,6 +13,7 @@ import {
 } from '@/config/navigation';
 
 import { useMobileMenu } from '@/hooks/use-mobile-menu';
+import { useCommonSpacesAccess } from '@/hooks/use-common-spaces-access';
 
 /**
  * Sidebar navigation component with responsive mobile menu functionality.
@@ -26,6 +27,7 @@ export function Sidebar() {
   const [location] = useLocation();
   const { t, language } = useLanguage();
   const { logout, user } = useAuth();
+  const { hasCommonSpacesAccess } = useCommonSpacesAccess();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
   // Close mobile menu when clicking on navigation items
@@ -135,8 +137,17 @@ export function Sidebar() {
     }
   };
 
-  // Get filtered navigation based on user role
-  const menuSections = getFilteredNavigation(user?.role);
+  // Get filtered navigation based on user role and common spaces access
+  const menuSections = getFilteredNavigation(user?.role).map((section) => ({
+    ...section,
+    items: section.items.filter((item) => {
+      // Filter out common spaces item if user has no access to buildings with common spaces
+      if (item.nameKey === 'commonSpaces' && !hasCommonSpacesAccess) {
+        return false;
+      }
+      return true;
+    }),
+  }));
 
   return (
     <>
