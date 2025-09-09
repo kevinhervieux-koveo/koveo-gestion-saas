@@ -9,6 +9,16 @@ import { describe, test, expect, jest, beforeEach, afterEach } from '@jest/globa
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 
+// Extend Jest expect to include jest-dom matchers for TypeScript
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R;
+      toHaveTextContent(text: string | RegExp): R;
+    }
+  }
+}
+
 // Mock wouter for routing
 const mockSetLocation = jest.fn();
 const mockLocation = '/residents/building';
