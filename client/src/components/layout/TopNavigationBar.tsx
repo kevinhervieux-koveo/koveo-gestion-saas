@@ -20,7 +20,7 @@ export function TopNavigationBar() {
   return (
     <header className='border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50 relative'>
       {/* Logo positioned as a card above the navigation bar */}
-      <div className='absolute left-4 top-0 transform -translate-y-2 z-10'>
+      <div className='absolute left-8 top-0 transform -translate-y-2 z-10'>
         <img
           src={koveoLogo}
           alt='Koveo Gestion'
@@ -31,7 +31,7 @@ export function TopNavigationBar() {
       </div>
 
       {/* Navigation bar with proper height to match button heights */}
-      <div className='container mx-auto px-4 py-4 flex items-center justify-between h-16'>
+      <div className='container mx-auto px-8 py-4 flex items-center justify-between h-16'>
         {/* Empty space for logo positioning */}
         <div className='w-32 sm:w-40 lg:w-48'></div>
 

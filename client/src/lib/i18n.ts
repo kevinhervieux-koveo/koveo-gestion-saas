@@ -2334,7 +2334,7 @@ export const translations: Record<Language, Translations> = {
     buildingDocumentsButton: 'Documents du bâtiment',
     residenceDocumentsButton: 'Documents de la résidence',
     viewDocumentsButton: 'Voir les documents',
-    startFreeTrial: 'Commencez votre essai gratuit',
+    startFreeTrial: 'Débutez votre essai gratuit',
     tryDemo: 'Essayer la démo',
     allStatusFilter: 'Tous les statuts',
     submittedFilter: 'Soumise',
