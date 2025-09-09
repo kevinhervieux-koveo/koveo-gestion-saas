@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as schema from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { mockDb, testUtils } from '../../mocks/unified-database-mock';
+import { mockDb, testUtils, mockSchema } from '../../mocks/unified-database-mock';
 
 describe('Invitation Table Integration Tests', () => {
   let adminUser: any;
@@ -15,7 +15,7 @@ describe('Invitation Table Integration Tests', () => {
     testUtils.resetMocks();
 
     // Create test organizations
-    const [org1] = await mockDb.insert(schema.organizations).values({
+    const [org1] = await mockDb.insert(mockSchema.organizations).values({
       name: 'Test Organization 1',
       type: 'management_company',
       address: '123 Test St',
@@ -24,7 +24,7 @@ describe('Invitation Table Integration Tests', () => {
       postalCode: 'H1A 1A1',
     }).returning();
 
-    const [org2] = await mockDb.insert(schema.organizations).values({
+    const [org2] = await mockDb.insert(mockSchema.organizations).values({
       name: 'Test Organization 2',
       type: 'syndicate',
       address: '456 Test Ave',
@@ -39,7 +39,7 @@ describe('Invitation Table Integration Tests', () => {
     // Create test users
     const hashedPassword = await bcrypt.hash('password123', 10);
     
-    const [admin] = await mockDb.insert(schema.users).values({
+    const [admin] = await mockDb.insert(mockSchema.users).values({
       username: 'admin@test.com',
       email: 'admin@test.com',
       password: hashedPassword,
@@ -48,7 +48,7 @@ describe('Invitation Table Integration Tests', () => {
       role: 'admin',
     }).returning();
 
-    const [manager] = await mockDb.insert(schema.users).values({
+    const [manager] = await mockDb.insert(mockSchema.users).values({
       username: 'manager@test.com',
       email: 'manager@test.com',
       password: hashedPassword,
