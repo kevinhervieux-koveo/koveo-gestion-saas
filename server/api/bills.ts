@@ -5,7 +5,7 @@ import { requireAuth } from '../auth';
 import { storage } from '../storage';
 import { z } from 'zod';
 import { moneyFlowJob } from '../jobs/money_flow_job';
-import { billGenerationService } from '../services/bill-generation-service';
+import { billAutoGenerationService } from '../services/bill-generation-service';
 import { delayedUpdateService } from '../services/delayed-update-service';
 import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
 import { geminiService } from '../services/geminiService';
@@ -908,7 +908,7 @@ export function registerBillRoutes(app: Express) {
       }
 
       // Generate future bills
-      const result = await billGenerationService.generateFutureBillInstances(bill[0] as any);
+      const result = await billAutoGenerationService.generateFutureBillInstances(bill[0] as any);
 
       res.json({
         message: 'Future bills generated successfully',
