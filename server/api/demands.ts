@@ -267,8 +267,53 @@ export function registerDemandRoutes(app: Express) {
       
       console.log('✅ Demand validation passed:', validatedData);
 
-      // Auto-populate residence and building from user's primary residence if not provided
-      if (!validatedData.residenceId || !validatedData.buildingId) {
+      // Implement role-based residence assignment validation
+      if (user.role === 'admin') {
+        // Admin can assign to any building/residence - no validation needed
+        if (!validatedData.buildingId) {
+          return res.status(400).json({ message: 'Building is required' });
+        }
+      } else if (user.role === 'manager') {
+        // Manager can assign demands to all buildings assigned to them and their residences
+        if (!validatedData.buildingId) {
+          return res.status(400).json({ message: 'Building is required' });
+        }
+        
+        // Verify manager has access to the specified building
+        const userOrganizationData = await db
+          .select({ organizationId: userOrganizations.organizationId })
+          .from(userOrganizations)
+          .where(eq(userOrganizations.userId, user.id));
+          
+        if (userOrganizationData.length === 0) {
+          return res.status(403).json({ message: 'Manager not assigned to any organization' });
+        }
+        
+        const organizationId = userOrganizationData[0].organizationId;
+        const buildingAccess = await db
+          .select({ id: buildings.id })
+          .from(buildings)
+          .where(and(eq(buildings.id, validatedData.buildingId), eq(buildings.organizationId, organizationId)))
+          .limit(1);
+          
+        if (buildingAccess.length === 0) {
+          return res.status(403).json({ message: 'Access denied to specified building' });
+        }
+        
+        // If residence is specified, verify it belongs to the building
+        if (validatedData.residenceId) {
+          const residenceAccess = await db
+            .select({ id: residences.id })
+            .from(residences)
+            .where(and(eq(residences.id, validatedData.residenceId), eq(residences.buildingId, validatedData.buildingId)))
+            .limit(1);
+            
+          if (residenceAccess.length === 0) {
+            return res.status(403).json({ message: 'Residence does not belong to specified building' });
+          }
+        }
+      } else {
+        // Resident and tenant can only assign residences assigned to them or their building
         const userResidenceData = await db
           .select({
             residenceId: userResidences.residenceId,
@@ -276,24 +321,37 @@ export function registerDemandRoutes(app: Express) {
           })
           .from(userResidences)
           .innerJoin(residences, eq(userResidences.residenceId, residences.id))
-          .where(eq(userResidences.userId, user.id))
-          .limit(1);
+          .where(eq(userResidences.userId, user.id));
 
         if (userResidenceData.length === 0) {
-          return res
-            .status(400)
-            .json({ message: 'User must be assigned to a residence to create demands' });
+          return res.status(400).json({ message: 'User must be assigned to a residence to create demands' });
         }
 
-        validatedData.residenceId = validatedData.residenceId || userResidenceData[0].residenceId;
-        validatedData.buildingId = validatedData.buildingId || userResidenceData[0].buildingId;
-      }
-
-      // Ensure required fields are present after auto-population
-      if (!validatedData.buildingId || !validatedData.residenceId) {
-        return res.status(400).json({ 
-          message: 'Building and residence are required to create a demand' 
-        });
+        // Auto-populate from user's primary residence if not provided
+        if (!validatedData.residenceId || !validatedData.buildingId) {
+          validatedData.residenceId = validatedData.residenceId || userResidenceData[0].residenceId;
+          validatedData.buildingId = validatedData.buildingId || userResidenceData[0].buildingId;
+        }
+        
+        // Validate that user has access to specified building/residence
+        if (validatedData.buildingId) {
+          const hasAccessToBuilding = userResidenceData.some(ur => ur.buildingId === validatedData.buildingId);
+          if (!hasAccessToBuilding) {
+            return res.status(403).json({ message: 'Access denied to specified building' });
+          }
+        }
+        
+        if (validatedData.residenceId) {
+          const hasAccessToResidence = userResidenceData.some(ur => ur.residenceId === validatedData.residenceId);
+          if (!hasAccessToResidence) {
+            return res.status(403).json({ message: 'Access denied to specified residence' });
+          }
+        }
+        
+        // Ensure required fields are present after auto-population
+        if (!validatedData.buildingId) {
+          return res.status(400).json({ message: 'Building is required' });
+        }
       }
       
       console.log('✅ Final demand data before insertion:', {

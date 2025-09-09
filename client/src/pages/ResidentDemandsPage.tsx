@@ -103,7 +103,8 @@ interface Building {
  */
 interface Residence {
   id: string;
-  name: string;
+  name?: string;
+  unitNumber: string;
   buildingId: string;
 }
 
@@ -165,31 +166,6 @@ ResidentDemandsPage() {
   const { data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/manager/buildings'],
     select: (data: any) => data?.buildings || [],
-  });
-
-  // Fetch residences - filter based on selected building and user role
-  const selectedBuildingId = newDemandForm.watch('buildingId');
-  const { data: residences = [] } = useQuery<Residence[]>({
-    queryKey: ['/api/residences', selectedBuildingId, defaultUser?.role],
-    enabled: !!selectedBuildingId,
-    select: (data: any) => {
-      if (!data) return [];
-      const allResidences = Array.isArray(data) ? data : data.residences || [];
-      
-      // Filter by selected building
-      const buildingResidences = allResidences.filter((r: any) => r.buildingId === selectedBuildingId);
-      
-      // Apply role-based filtering
-      if (defaultUser?.role === 'admin') {
-        return buildingResidences; // Admin can assign to any residence
-      } else if (defaultUser?.role === 'manager') {
-        return buildingResidences; // Manager can assign to all residences in their buildings
-      } else {
-        // Resident/tenant can only assign to their own residences
-        // This will be further filtered by backend based on user assignments
-        return buildingResidences;
-      }
-    },
   });
 
   // Fetch current user
@@ -300,6 +276,31 @@ ResidentDemandsPage() {
       residenceId: undefined,
       assignationBuildingId: undefined,
       assignationResidenceId: undefined,
+    },
+  });
+
+  // Fetch residences - filter based on selected building and user role
+  const selectedBuildingId = newDemandForm.watch('buildingId');
+  const { data: residences = [] } = useQuery<Residence[]>({
+    queryKey: ['/api/residences', selectedBuildingId, defaultUser?.role],
+    enabled: !!selectedBuildingId,
+    select: (data: any) => {
+      if (!data) return [];
+      const allResidences = Array.isArray(data) ? data : data.residences || [];
+      
+      // Filter by selected building
+      const buildingResidences = allResidences.filter((r: any) => r.buildingId === selectedBuildingId);
+      
+      // Apply role-based filtering
+      if (defaultUser?.role === 'admin') {
+        return buildingResidences; // Admin can assign to any residence
+      } else if (defaultUser?.role === 'manager') {
+        return buildingResidences; // Manager can assign to all residences in their buildings
+      } else {
+        // Resident/tenant can only assign to their own residences
+        // This will be further filtered by backend based on user assignments
+        return buildingResidences;
+      }
     },
   });
 
