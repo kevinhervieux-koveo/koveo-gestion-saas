@@ -5,8 +5,10 @@ import { apiRequest } from '@/lib/queryClient';
 import type { User } from '@shared/schema';
 
 /**
- * Authentication context interface for Koveo Gestion.
- * Provides user authentication state and actions throughout the application.
+ * Authentication context interface for Koveo Gestion Quebec property management platform.
+ * Provides user authentication state and actions with RBAC support.
+ * 
+ * Updated: September 09, 2025 with enhanced session management.
  */
 interface AuthContextType {
   user: User | null;
