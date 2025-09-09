@@ -210,7 +210,7 @@ npm run db:migrate
 
 ### Environment Variables
 
-See [DEPLOYMENT_FIXES.md](../DEPLOYMENT_FIXES.md) for complete environment configuration.
+See [Production Deployment Guide](../PRODUCTION_DEPLOYMENT_GUIDE.md) for complete environment configuration.
 
 ## Documentation Standards
 
@@ -241,7 +241,7 @@ See [DEPLOYMENT_FIXES.md](../DEPLOYMENT_FIXES.md) for complete environment confi
 
 - [Quality System Overview](QUALITY_SYSTEM_OVERVIEW.md)
 - [Code Review Guide](CODE_REVIEW_GUIDE.md)
-- [Testing Guidelines](../tests/README.md)
+- [Testing Strategy](./guides/TESTING_STRATEGY.md)
 
 ### External Resources
 
