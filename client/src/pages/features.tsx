@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
-import koveoLogo from '@/assets/koveo-logo.jpg';
+import { StandardFooter } from '@/components/layout/StandardFooter';
 import {
   Building,
   Users,
@@ -308,31 +308,7 @@ FeaturesPage() {
       </section>
 
       {/* Footer */}
-      <footer className='bg-gray-900 text-white py-12'>
-        <div className='container mx-auto px-4'>
-          <div className='flex flex-col md:flex-row items-center justify-between'>
-            <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />
-            </div>
-            <div className='flex items-center space-x-4 text-sm text-gray-400'>
-              <Shield className='h-4 w-4' />
-              <span>Conforme à la Loi 25 du Québec</span>
-              <span>•</span>
-              <span>Vos données sont protégées</span>
-              <span>•</span>
-              <Link href='/privacy-policy' data-testid='footer-privacy-link'>
-                <span className='hover:text-white cursor-pointer'>
-                  Politique de confidentialité
-                </span>
-              </Link>
-              <span>•</span>
-              <Link href='/terms-of-service' data-testid='footer-terms-link'>
-                <span className='hover:text-white cursor-pointer'>Conditions d'utilisation</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <StandardFooter />
     </div>
   );
 }

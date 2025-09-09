@@ -9,8 +9,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
+import { StandardFooter } from '@/components/layout/StandardFooter';
 import { TrialRequestForm } from '@/components/ui/trial-request-form';
-import koveoLogo from '@/assets/koveo-logo.jpg';
 import {
   Check,
   ArrowRight,
@@ -312,33 +312,7 @@ export default function PricingPage() {
       </section>
 
       {/* Footer */}
-      <footer className='bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8'>
-        <div className='max-w-7xl mx-auto'>
-          <div className='flex flex-col md:flex-row justify-between items-center'>
-            <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm mr-4' />
-              <span className='text-lg font-semibold'>Koveo Gestion</span>
-            </div>
-            <div className='flex space-x-6'>
-              <Link
-                href='/privacy-policy'
-                className='text-gray-400 hover:text-white transition-colors'
-              >
-                {t('privacyPolicy')}
-              </Link>
-              <Link
-                href='/terms-of-service'
-                className='text-gray-400 hover:text-white transition-colors'
-              >
-                {t('termsOfService')}
-              </Link>
-            </div>
-          </div>
-          <div className='mt-8 pt-8 border-t border-gray-800 text-center text-gray-400'>
-            <p>&copy; 2024 Koveo Gestion. {t('allRightsReserved')}</p>
-          </div>
-        </div>
-      </footer>
+      <StandardFooter />
 
       {/* Feature Detail Modal */}
       <Dialog open={selectedFeature !== null} onOpenChange={() => setSelectedFeature(null)}>
