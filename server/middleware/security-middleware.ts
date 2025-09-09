@@ -379,10 +379,21 @@ export function configureSecurityMiddleware(app: Express): void {
     res.setHeader('X-XSS-Protection', '1; mode=block');
     
     // Additional security headers for enhanced protection
-    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), autoplay=(), encrypted-media=(), fullscreen=(), picture-in-picture=()');
     res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
     res.setHeader('Cross-Origin-Embedder-Policy', isDevelopment ? 'unsafe-none' : 'require-corp');
+    
+    // Additional headers to prevent common attacks
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow, nosnippet, noarchive');
+    res.setHeader('Feature-Policy', 'geolocation none; microphone none; camera none; payment none;');
+    
+    // Only set HSTS in production to avoid development issues
+    if (!isDevelopment) {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
+    
+    res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
     
     // Cache control for sensitive endpoints
     if (req.path.includes('/api/auth') || req.path.includes('/api/user')) {

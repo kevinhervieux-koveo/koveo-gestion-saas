@@ -8,6 +8,8 @@ import helmet from 'helmet';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
 import { log } from './vite';
 import { registerRoutes } from './routes';
+import { sanitizeInputMiddleware } from './middleware/input-sanitization';
+import { ssrfProtectionMiddleware } from './middleware/ssrf-protection';
 // Import debug logger temporarily disabled due to module resolution
 // import { debugLogger, logInfo, logDebug } from './utils/debug-logger.js';
 
@@ -173,6 +175,10 @@ app.use((req, res, next) => {
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Security middleware for input sanitization and SSRF protection
+app.use(sanitizeInputMiddleware);
+app.use(ssrfProtectionMiddleware);
 
 // Request timeout middleware with better error handling
 app.use((req, res, next) => {

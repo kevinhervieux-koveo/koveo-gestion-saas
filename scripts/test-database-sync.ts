@@ -2,13 +2,18 @@
 /**
  * Database Synchronization Test Runner
  * Comprehensive testing suite for development and production database consistency
+ * SECURITY: Uses secure database connections instead of shell commands
  */
 
-import { execSync } from 'child_process';
+import { Pool } from '@neondatabase/serverless';
 import chalk from 'chalk';
 
 const DEV_DB = process.env.DATABASE_URL;
 const PROD_DB = process.env.DATABASE_URL_KOVEO;
+
+// Security note: This script has been updated to eliminate shell command execution
+// that could trigger antivirus warnings. All database operations now use secure
+// connection pooling instead of execSync.
 
 interface TestResult {
   name: string;
@@ -36,7 +41,7 @@ class DatabaseSyncTester {
       const duration = Date.now() - startTime;
       console.log(chalk.green(`  ✓ ${name} (${duration}ms)`));
       return { name, status: 'passed', duration };
-    } catch (error) {
+    } catch (error: any) {
       const duration = Date.now() - startTime;
       console.log(chalk.red(`  ✗ ${name} (${duration}ms)`));
       console.log(chalk.red(`    ${error.message}`));
@@ -44,14 +49,15 @@ class DatabaseSyncTester {
     }
   }
 
-  private execQuery(db: string, query: string, silent = true): string {
+  private async execQuery(dbUrl: string, query: string): Promise<string> {
+    const pool = new Pool({ connectionString: dbUrl });
     try {
-      return execSync(`psql "${db}" -t -c "${query}"`, { 
-        encoding: 'utf8',
-        stdio: silent ? 'pipe' : 'inherit'
-      });
-    } catch (error) {
+      const result = await pool.query(query);
+      return result.rows.map(row => Object.values(row).join('\t')).join('\n');
+    } catch (error: any) {
       throw new Error(`Database query failed: ${error.message}`);
+    } finally {
+      await pool.end();
     }
   }
 
@@ -59,7 +65,7 @@ class DatabaseSyncTester {
     console.log(chalk.blue('\n🔍 Testing Schema Consistency'));
 
     // Test table structures
-    await this.runTest('Table structures match', () => {
+    await this.runTest('Table structures match', async () => {
       const query = `
         SELECT table_name, column_name, data_type, is_nullable
         FROM information_schema.columns 
@@ -67,8 +73,8 @@ class DatabaseSyncTester {
         ORDER BY table_name, column_name;
       `;
       
-      const devSchema = this.execQuery(DEV_DB!, query);
-      const prodSchema = this.execQuery(PROD_DB!, query);
+      const devSchema = await this.execQuery(DEV_DB!, query);
+      const prodSchema = await this.execQuery(PROD_DB!, query);
       
       if (devSchema.trim() !== prodSchema.trim()) {
         throw new Error('Table structures do not match between environments');
@@ -76,7 +82,7 @@ class DatabaseSyncTester {
     });
 
     // Test constraints
-    await this.runTest('Constraints match', () => {
+    await this.runTest('Constraints match', async () => {
       const query = `
         SELECT tc.table_name, tc.constraint_type, 
                CASE WHEN tc.constraint_type = 'FOREIGN KEY' THEN kcu.column_name
@@ -91,8 +97,8 @@ class DatabaseSyncTester {
         ORDER BY tc.table_name, tc.constraint_type, constraint_details;
       `;
       
-      const devConstraints = this.execQuery(DEV_DB!, query);
-      const prodConstraints = this.execQuery(PROD_DB!, query);
+      const devConstraints = await this.execQuery(DEV_DB!, query);
+      const prodConstraints = await this.execQuery(PROD_DB!, query);
       
       if (devConstraints.trim() !== prodConstraints.trim()) {
         throw new Error('Functional constraints do not match between environments');
@@ -100,7 +106,7 @@ class DatabaseSyncTester {
     });
 
     // Test indexes
-    await this.runTest('Indexes match', () => {
+    await this.runTest('Indexes match', async () => {
       const query = `
         SELECT tablename, indexname
         FROM pg_indexes 
@@ -108,8 +114,8 @@ class DatabaseSyncTester {
         ORDER BY tablename, indexname;
       `;
       
-      const devIndexes = this.execQuery(DEV_DB!, query);
-      const prodIndexes = this.execQuery(PROD_DB!, query);
+      const devIndexes = await this.execQuery(DEV_DB!, query);
+      const prodIndexes = await this.execQuery(PROD_DB!, query);
       
       if (devIndexes.trim() !== prodIndexes.trim()) {
         throw new Error('Indexes do not match between environments');

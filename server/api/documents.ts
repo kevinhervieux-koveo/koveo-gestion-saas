@@ -21,27 +21,36 @@ import { db } from '../db';
 
 // Enhanced security configuration for file uploads
 const SECURITY_CONFIG = {
-  MAX_FILE_SIZE: 25 * 1024 * 1024, // Reduced to 25MB for better security
-  MAX_FILES_PER_USER_PER_HOUR: 10, // Rate limiting
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // Reduced to 10MB for better security
+  MAX_FILES_PER_USER_PER_HOUR: 5, // More restrictive rate limiting
   ALLOWED_MIME_TYPES: [
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain',
     'image/jpeg',
-    'image/png',
-    'image/gif'
+    'image/png'
   ],
-  ALLOWED_EXTENSIONS: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png', 'gif']
+  ALLOWED_EXTENSIONS: ['pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png'],
+  // File content validation patterns to block potentially malicious files
+  BLOCKED_PATTERNS: [
+    /<%[\s\S]*%>/g,  // ASP/JSP tags
+    /<\?php[\s\S]*\?>/g,  // PHP tags
+    /<script[\s\S]*<\/script>/gi,  // Script tags
+    /javascript:/gi,  // JavaScript protocol
+    /vbscript:/gi,   // VBScript protocol
+    /data:.*base64/gi, // Base64 data URLs
+    /eval\s*\(/gi,   // eval() calls
+    /exec\s*\(/gi,   // exec() calls
+    /system\s*\(/gi, // system() calls
+  ]
 };
 
 // Rate limiting storage for uploads
 const uploadRateTracker = new Map();
 
-// Enhanced file validation function
-function validateFile(file: any): { isValid: boolean; error?: string } {
+// Enhanced file validation function with content scanning
+function validateFile(file: any, fileContent?: Buffer): { isValid: boolean; error?: string } {
   if (!file) return { isValid: false, error: 'No file provided' };
   
   // Check file size
@@ -60,9 +69,40 @@ function validateFile(file: any): { isValid: boolean; error?: string } {
     return { isValid: false, error: `File extension .${extension} not allowed` };
   }
   
-  // Check filename for path traversal attempts
-  if (file.originalname.includes('..') || file.originalname.includes('/') || file.originalname.includes('\\')) {
-    return { isValid: false, error: 'Invalid filename detected' };
+  // Check filename for path traversal and malicious patterns
+  const filename = file.originalname;
+  if (filename.includes('..') || filename.includes('/') || filename.includes('\\') || 
+      filename.includes('<') || filename.includes('>') || filename.includes('"') ||
+      filename.includes('|') || filename.includes('*') || filename.includes('?')) {
+    return { isValid: false, error: 'Invalid filename detected - contains prohibited characters' };
+  }
+  
+  // Validate filename length
+  if (filename.length > 255 || filename.length < 1) {
+    return { isValid: false, error: 'Filename length invalid' };
+  }
+  
+  // Check for executable file extensions (double extension attack)
+  const doubleExtensionPattern = /\.(exe|bat|cmd|com|pif|scr|vbs|js|jar|dll|sys|bin)\.[\w]+$/i;
+  if (doubleExtensionPattern.test(filename)) {
+    return { isValid: false, error: 'Potentially malicious filename detected' };
+  }
+  
+  // Content validation if available
+  if (fileContent) {
+    const contentString = fileContent.toString('utf8', 0, Math.min(fileContent.length, 8192)); // Check first 8KB
+    
+    // Check for malicious patterns in file content
+    for (const pattern of SECURITY_CONFIG.BLOCKED_PATTERNS) {
+      if (pattern.test(contentString)) {
+        return { isValid: false, error: 'File content contains potentially malicious code' };
+      }
+    }
+    
+    // Check for null bytes (possible binary exploitation)
+    if (contentString.includes('\0')) {
+      return { isValid: false, error: 'File contains null bytes - potentially malicious' };
+    }
   }
   
   return { isValid: true };
