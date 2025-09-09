@@ -1,0 +1,34 @@
+f8b561972f4605296b7883db07e1c99e
+"use strict";
+/**
+ * @file Simple Demand Schema Tests - without complex imports
+ * @description Simplified test to isolate the hanging issue
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+const globals_1 = require("@jest/globals");
+const zod_1 = require("zod");
+// Simple inline schema for testing
+const testDemandCommentSchema = zod_1.z.object({
+    demandId: zod_1.z.string().uuid(),
+    commenterId: zod_1.z.string().uuid(),
+    commentText: zod_1.z.string().min(1).max(1000),
+});
+(0, globals_1.describe)('Simple Demand Comment Schema Tests', () => {
+    (0, globals_1.it)('should validate a basic comment', () => {
+        const validComment = {
+            demandId: '123e4567-e89b-12d3-a456-426614174000',
+            commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+            commentText: 'This is a valid comment',
+        };
+        (0, globals_1.expect)(() => testDemandCommentSchema.parse(validComment)).not.toThrow();
+    });
+    (0, globals_1.it)('should reject invalid UUID', () => {
+        const invalidComment = {
+            demandId: 'invalid-uuid',
+            commenterId: '987fcdeb-51a2-43d1-9f32-123456789abc',
+            commentText: 'Valid comment text',
+        };
+        (0, globals_1.expect)(() => testDemandCommentSchema.parse(invalidComment)).toThrow();
+    });
+});
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS90ZXN0cy91bml0L2RlbWFuZHMvZGVtYW5kLXNjaGVtYS1zaW1wbGUudGVzdC50cyIsIm1hcHBpbmdzIjoiO0FBQUE7OztHQUdHOztBQUVILDJDQUFxRDtBQUNyRCw2QkFBd0I7QUFFeEIsbUNBQW1DO0FBQ25DLE1BQU0sdUJBQXVCLEdBQUcsT0FBQyxDQUFDLE1BQU0sQ0FBQztJQUN2QyxRQUFRLEVBQUUsT0FBQyxDQUFDLE1BQU0sRUFBRSxDQUFDLElBQUksRUFBRTtJQUMzQixXQUFXLEVBQUUsT0FBQyxDQUFDLE1BQU0sRUFBRSxDQUFDLElBQUksRUFBRTtJQUM5QixXQUFXLEVBQUUsT0FBQyxDQUFDLE1BQU0sRUFBRSxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsQ0FBQyxHQUFHLENBQUMsSUFBSSxDQUFDO0NBQ3pDLENBQUMsQ0FBQztBQUVILElBQUEsa0JBQVEsRUFBQyxvQ0FBb0MsRUFBRSxHQUFHLEVBQUU7SUFDbEQsSUFBQSxZQUFFLEVBQUMsaUNBQWlDLEVBQUUsR0FBRyxFQUFFO1FBQ3pDLE1BQU0sWUFBWSxHQUFHO1lBQ25CLFFBQVEsRUFBRSxzQ0FBc0M7WUFDaEQsV0FBVyxFQUFFLHNDQUFzQztZQUNuRCxXQUFXLEVBQUUseUJBQXlCO1NBQ3ZDLENBQUM7UUFFRixJQUFBLGdCQUFNLEVBQUMsR0FBRyxFQUFFLENBQUMsdUJBQXVCLENBQUMsS0FBSyxDQUFDLFlBQVksQ0FBQyxDQUFDLENBQUMsR0FBRyxDQUFDLE9BQU8sRUFBRSxDQUFDO0lBQzFFLENBQUMsQ0FBQyxDQUFDO0lBRUgsSUFBQSxZQUFFLEVBQUMsNEJBQTRCLEVBQUUsR0FBRyxFQUFFO1FBQ3BDLE1BQU0sY0FBYyxHQUFHO1lBQ3JCLFFBQVEsRUFBRSxjQUFjO1lBQ3hCLFdBQVcsRUFBRSxzQ0FBc0M7WUFDbkQsV0FBVyxFQUFFLG9CQUFvQjtTQUNsQyxDQUFDO1FBRUYsSUFBQSxnQkFBTSxFQUFDLEdBQUcsRUFBRSxDQUFDLHVCQUF1QixDQUFDLEtBQUssQ0FBQyxjQUFjLENBQUMsQ0FBQyxDQUFDLE9BQU8sRUFBRSxDQUFDO0lBQ3hFLENBQUMsQ0FBQyxDQUFDO0FBQ0wsQ0FBQyxDQUFDLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS90ZXN0cy91bml0L2RlbWFuZHMvZGVtYW5kLXNjaGVtYS1zaW1wbGUudGVzdC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIEBmaWxlIFNpbXBsZSBEZW1hbmQgU2NoZW1hIFRlc3RzIC0gd2l0aG91dCBjb21wbGV4IGltcG9ydHNcbiAqIEBkZXNjcmlwdGlvbiBTaW1wbGlmaWVkIHRlc3QgdG8gaXNvbGF0ZSB0aGUgaGFuZ2luZyBpc3N1ZVxuICovXG5cbmltcG9ydCB7IGRlc2NyaWJlLCBpdCwgZXhwZWN0IH0gZnJvbSAnQGplc3QvZ2xvYmFscyc7XG5pbXBvcnQgeyB6IH0gZnJvbSAnem9kJztcblxuLy8gU2ltcGxlIGlubGluZSBzY2hlbWEgZm9yIHRlc3RpbmdcbmNvbnN0IHRlc3REZW1hbmRDb21tZW50U2NoZW1hID0gei5vYmplY3Qoe1xuICBkZW1hbmRJZDogei5zdHJpbmcoKS51dWlkKCksXG4gIGNvbW1lbnRlcklkOiB6LnN0cmluZygpLnV1aWQoKSxcbiAgY29tbWVudFRleHQ6IHouc3RyaW5nKCkubWluKDEpLm1heCgxMDAwKSxcbn0pO1xuXG5kZXNjcmliZSgnU2ltcGxlIERlbWFuZCBDb21tZW50IFNjaGVtYSBUZXN0cycsICgpID0+IHtcbiAgaXQoJ3Nob3VsZCB2YWxpZGF0ZSBhIGJhc2ljIGNvbW1lbnQnLCAoKSA9PiB7XG4gICAgY29uc3QgdmFsaWRDb21tZW50ID0ge1xuICAgICAgZGVtYW5kSWQ6ICcxMjNlNDU2Ny1lODliLTEyZDMtYTQ1Ni00MjY2MTQxNzQwMDAnLFxuICAgICAgY29tbWVudGVySWQ6ICc5ODdmY2RlYi01MWEyLTQzZDEtOWYzMi0xMjM0NTY3ODlhYmMnLFxuICAgICAgY29tbWVudFRleHQ6ICdUaGlzIGlzIGEgdmFsaWQgY29tbWVudCcsXG4gICAgfTtcblxuICAgIGV4cGVjdCgoKSA9PiB0ZXN0RGVtYW5kQ29tbWVudFNjaGVtYS5wYXJzZSh2YWxpZENvbW1lbnQpKS5ub3QudG9UaHJvdygpO1xuICB9KTtcblxuICBpdCgnc2hvdWxkIHJlamVjdCBpbnZhbGlkIFVVSUQnLCAoKSA9PiB7XG4gICAgY29uc3QgaW52YWxpZENvbW1lbnQgPSB7XG4gICAgICBkZW1hbmRJZDogJ2ludmFsaWQtdXVpZCcsXG4gICAgICBjb21tZW50ZXJJZDogJzk4N2ZjZGViLTUxYTItNDNkMS05ZjMyLTEyMzQ1Njc4OWFiYycsXG4gICAgICBjb21tZW50VGV4dDogJ1ZhbGlkIGNvbW1lbnQgdGV4dCcsXG4gICAgfTtcblxuICAgIGV4cGVjdCgoKSA9PiB0ZXN0RGVtYW5kQ29tbWVudFNjaGVtYS5wYXJzZShpbnZhbGlkQ29tbWVudCkpLnRvVGhyb3coKTtcbiAgfSk7XG59KTsiXSwidmVyc2lvbiI6M30=
