@@ -111,12 +111,12 @@ export const mockDb = {
   }),
   
   // Transaction support
-  transaction: jest.fn().mockImplementation(async (callback) => {
+  transaction: jest.fn().mockImplementation(async (callback: any) => {
     return await callback(mockDb);
   }),
   
   // Batch operations
-  batch: jest.fn().mockImplementation(async (queries) => {
+  batch: jest.fn().mockImplementation(async (queries: any[]) => {
     return queries.map(() => ({ affectedRows: 1 }));
   }),
   
@@ -127,8 +127,8 @@ export const mockDb = {
   execute: jest.fn().mockImplementation(async () => ({ rows: [] })),
   
   // Connection management (for integration tests)
-  end: jest.fn().mockResolvedValue(undefined),
-  connect: jest.fn().mockResolvedValue(undefined)
+  end: jest.fn().mockResolvedValue(void 0),
+  connect: jest.fn().mockResolvedValue(void 0)
 };
 
 // Mock schema tables for type safety
