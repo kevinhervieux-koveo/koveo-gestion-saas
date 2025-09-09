@@ -176,30 +176,34 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Get distinct roles (including null values)
-      const rolesResult = await db
-        .selectDistinct({ role: schema.users.role })
-        .from(schema.users)
-        .orderBy(schema.users.role);
-
       // Get distinct status values (including null values)
       const statusResult = await db
         .selectDistinct({ isActive: schema.users.isActive })
         .from(schema.users)
         .orderBy(schema.users.isActive);
 
-      // Role-based organization filtering for filter options
+      // Role-based filtering for roles and organizations
       let organizations = [];
+      let allowedRoles = [];
+      
       if (currentUser.role === 'admin') {
-        // Admin can see all organizations
+        // Admin can see all organizations and all roles
         const orgsResult = await db
           .select({ id: schema.organizations.id, name: schema.organizations.name })
           .from(schema.organizations)
           .where(eq(schema.organizations.isActive, true))
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
+        
+        // Admin sees all roles
+        const rolesResult = await db
+          .selectDistinct({ role: schema.users.role })
+          .from(schema.users)
+          .orderBy(schema.users.role);
+        allowedRoles = rolesResult.map(r => r.role).filter(Boolean);
+        
       } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see demo organizations
+        // Demo users can only see demo organizations and demo roles
         const orgsResult = await db
           .select({ id: schema.organizations.id, name: schema.organizations.name })
           .from(schema.organizations)
@@ -211,8 +215,12 @@ export function registerUserRoutes(app: Express): void {
           )
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
+        
+        // Demo users only see demo roles
+        allowedRoles = ['demo_manager', 'demo_tenant', 'demo_resident'];
+        
       } else {
-        // Regular managers see only their organizations
+        // Regular managers see only their organizations and non-admin roles
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
         if (userOrgIds.length > 0) {
           const orgsResult = await db
@@ -227,14 +235,17 @@ export function registerUserRoutes(app: Express): void {
             .orderBy(schema.organizations.name);
           organizations = orgsResult;
         }
+        
+        // Regular managers can't see admin role
+        allowedRoles = ['manager', 'tenant', 'resident'];
       }
 
-      // Prepare filter options with All and null handling
+      // Prepare filter options with role-based filtering
       const roleOptions = [
         { value: '', label: 'All Roles' },
-        ...rolesResult.map(r => ({
-          value: r.role || 'null',
-          label: r.role ? r.role.charAt(0).toUpperCase() + r.role.slice(1).replace('_', ' ') : 'No Role'
+        ...allowedRoles.map(role => ({
+          value: role,
+          label: role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')
         }))
       ];
 
