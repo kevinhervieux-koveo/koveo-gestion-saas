@@ -66,7 +66,7 @@ describe('Invitation Table Integration Tests', () => {
       organizationId: organization1.id,
       organizationRole: 'manager',
       isActive: true,
-    });
+    }) as any;
   });
 
   afterEach(async () => {
@@ -211,7 +211,7 @@ describe('Invitation Table Integration Tests', () => {
       const pendingInvitations = await mockDb
         .select()
         .from(schema.invitations)
-        .where(eq(schema.invitations.status, 'pending'));
+        .where(eq(schema.invitations.status, 'pending')) as any[];
 
       expect(pendingInvitations).toHaveLength(2);
       expect(pendingInvitations.every(inv => inv.status === 'pending')).toBe(true);
@@ -228,7 +228,7 @@ describe('Invitation Table Integration Tests', () => {
         })
         .from(schema.invitations)
         .leftJoin(schema.organizations, eq(schema.invitations.organizationId, schema.organizations.id))
-        .where(eq(schema.invitations.status, 'pending'));
+        .where(eq(schema.invitations.status, 'pending')) as any[];
 
       expect(invitationsWithOrgs).toHaveLength(2);
       
@@ -245,7 +245,7 @@ describe('Invitation Table Integration Tests', () => {
         .from(schema.invitations)
         .where(
           eq(schema.invitations.organizationId, organization1.id)
-        );
+        ) as any[];
 
       expect(managerInvitations).toHaveLength(2); // 1 pending + 1 accepted from org1
       expect(managerInvitations.every(inv => inv.organizationId === organization1.id)).toBe(true);
@@ -278,20 +278,20 @@ describe('Invitation Table Integration Tests', () => {
       const beforeDelete = await mockDb
         .select()
         .from(schema.invitations)
-        .where(eq(schema.invitations.id, testInvitation.id));
+        .where(eq(schema.invitations.id, testInvitation.id)) as any[];
 
       expect(beforeDelete).toHaveLength(1);
 
       // Delete invitation
       await mockDb
         .delete(schema.invitations)
-        .where(eq(schema.invitations.id, testInvitation.id));
+        .where(eq(schema.invitations.id, testInvitation.id)) as any;
 
       // Verify invitation is deleted
       const afterDelete = await mockDb
         .select()
         .from(schema.invitations)
-        .where(eq(schema.invitations.id, testInvitation.id));
+        .where(eq(schema.invitations.id, testInvitation.id)) as any[];
 
       expect(afterDelete).toHaveLength(0);
     });
@@ -300,7 +300,7 @@ describe('Invitation Table Integration Tests', () => {
       // Try to delete non-existent invitation
       const result = await mockDb
         .delete(schema.invitations)
-        .where(eq(schema.invitations.id, 'non-existent-id'));
+        .where(eq(schema.invitations.id, 'non-existent-id')) as any;
 
       // Should not throw error, just return 0 affected rows
       expect(result).toBeDefined();
@@ -342,7 +342,7 @@ describe('Invitation Table Integration Tests', () => {
       const allPending = await mockDb
         .select()
         .from(schema.invitations)
-        .where(eq(schema.invitations.status, 'pending'));
+        .where(eq(schema.invitations.status, 'pending')) as any[];
 
       expect(allPending).toHaveLength(2);
 
@@ -363,7 +363,7 @@ describe('Invitation Table Integration Tests', () => {
       expirationDate.setDate(expirationDate.getDate() + 7);
 
       // Create first invitation
-      await mockDb.insert(schema.invitations).values({
+      await mockDb.insert(mockSchema.invitations).values({
         email: 'first@example.com',
         token: 'unique-token',
         tokenHash: 'hash1',
