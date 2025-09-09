@@ -235,9 +235,7 @@ export async function registerRoutes(app: Express) {
     }
   });
   
-  // Add error handlers at the end
-  app.use(notFoundHandler);
-  app.use(secureErrorHandler);
+  // Move error handlers to after static file serving
 
   // Serve uploaded files
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
@@ -382,6 +380,10 @@ export async function registerRoutes(app: Express) {
         res.status(404).send('Application not found - build missing');
       }
     });
+    
+    // Add error handlers at the end
+    app.use(notFoundHandler);
+    app.use(secureErrorHandler);
   } else {
     console.log('⚠️ Static files not found, only API routes available');
     
@@ -392,6 +394,10 @@ export async function registerRoutes(app: Express) {
       }
       res.status(503).send('Application is starting up...');
     });
+    
+    // Add error handlers at the end
+    app.use(notFoundHandler);
+    app.use(secureErrorHandler);
   }
   
   console.log('✅ All routes registered successfully');
