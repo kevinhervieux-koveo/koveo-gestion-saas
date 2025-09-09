@@ -91,7 +91,7 @@ export function InvoiceForm({
     dueDate: invoice?.dueDate ? new Date(invoice.dueDate) : new Date(),
     category: (invoice?.category as any) || 'other',
     paymentType: invoice?.paymentType || 'one-time',
-    frequency: invoice?.frequency || undefined,
+    frequency: (invoice?.frequency as 'monthly' | 'quarterly' | 'annually' | 'custom') || undefined,
     description: invoice?.description || '',
   };
 
@@ -118,7 +118,11 @@ export function InvoiceForm({
         create: 'Invoice created successfully',
         update: 'Invoice updated successfully',
       }}
-      uploadContext="bill"
+      uploadContext={{
+        type: 'bills',
+        buildingId,
+        residenceId,
+      }}
       data-testid="invoice-form"
     >
       {(formControls) => (

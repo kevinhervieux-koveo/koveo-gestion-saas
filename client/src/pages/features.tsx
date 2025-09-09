@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { StandardCard } from '@/components/ui/standard-card';
 import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
 import { StandardFooter } from '@/components/layout/StandardFooter';
 import {
