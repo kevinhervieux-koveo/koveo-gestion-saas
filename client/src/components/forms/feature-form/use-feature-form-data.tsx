@@ -157,6 +157,8 @@ export function useFeatureFormData(feature: Feature | null) {
         title: 'Draft Cleared',
         description: 'Saved draft has been removed.',
       });
+    } catch (error) {
+      console.error('Failed to clear draft:', error);
     }
   }, [getDraftKey, toast]);
 
