@@ -1,7 +1,7 @@
 import { defineConfig } from 'drizzle-kit';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL, ensure the database is provisioned');
+if (!process.env.DATABASE_URL_KOVEO) {
+  throw new Error('DATABASE_URL_KOVEO, ensure the production database is provisioned');
 }
 
 export default defineConfig({
@@ -9,7 +9,7 @@ export default defineConfig({
   schema: './shared/schema.ts',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url: process.env.DATABASE_URL_KOVEO,
   },
   strict: false
 });
