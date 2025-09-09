@@ -49,7 +49,6 @@ export function GeminiInvoiceExtractor({ file, onExtractionComplete }: GeminiInv
       return response;
     },
     onSuccess: (data) => {
-      console.log('[GEMINI EXTRACTOR] Extraction successful:', data);
       
       // Convert AI response to form data format
       const formData = convertAiResponseToFormData(data.data);
@@ -89,7 +88,6 @@ export function GeminiInvoiceExtractor({ file, onExtractionComplete }: GeminiInv
   // Trigger extraction when file changes
   useEffect(() => {
     if (file && !extractionMutation.isPending) {
-      console.log('[GEMINI EXTRACTOR] Starting extraction for file:', file.name);
       extractionMutation.mutate(file);
     }
   }, [file, extractionMutation.isPending]);
