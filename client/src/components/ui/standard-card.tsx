@@ -33,14 +33,14 @@ export function StandardCard({
   'data-testid': testId,
 }: StandardCardProps) {
   return (
-    <Card className={cn('w-full', className)} data-testid={testId}>
+    <Card className={cn('w-full overflow-hidden', className)} data-testid={testId}>
       {(title || description) && (
-        <CardHeader className={cn(headerClassName)}>
-          {title && <CardTitle>{title}</CardTitle>}
-          {description && <CardDescription>{description}</CardDescription>}
+        <CardHeader className={cn('space-y-1', headerClassName)}>
+          {title && <CardTitle className="break-words hyphens-auto">{title}</CardTitle>}
+          {description && <CardDescription className="break-words hyphens-auto">{description}</CardDescription>}
         </CardHeader>
       )}
-      <CardContent className={cn(contentClassName)}>{children}</CardContent>
+      <CardContent className={cn('break-words overflow-hidden', contentClassName)}>{children}</CardContent>
       {footer && <CardFooter className={cn(footerClassName)}>{footer}</CardFooter>}
     </Card>
   );
