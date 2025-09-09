@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
-import koveoLogo from '@/assets/koveo-logo.jpg';
+import { StandardFooter } from '@/components/layout/StandardFooter';
 import { Shield, ArrowLeft, FileText } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
@@ -182,27 +182,7 @@ TermsOfServicePage() {
       </div>
 
       {/* Footer */}
-      <footer className='bg-gray-900 text-white py-12'>
-        <div className='container mx-auto px-4'>
-          <div className='flex flex-col md:flex-row items-center justify-between'>
-            <div className='flex items-center mb-4 md:mb-0'>
-              <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover shadow-sm' />
-            </div>
-            <div className='flex items-center space-x-4 text-sm text-gray-400'>
-              <Shield className='h-4 w-4' />
-              <span>Conforme à la Loi 25 du Québec</span>
-              <span>•</span>
-              <span>Vos données sont protégées</span>
-              <span>•</span>
-              <Link href='/privacy-policy' data-testid='footer-privacy-link'>
-                <span className='hover:text-white cursor-pointer'>
-                  Politique de confidentialité
-                </span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <StandardFooter />
     </div>
   );
 }
