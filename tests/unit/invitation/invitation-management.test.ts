@@ -11,11 +11,11 @@ import { mockDb, testUtils, mockSchema } from '../../mocks/unified-database-mock
 // Using unified database mock for consistency
 
 // Mock request for API testing
-const mockRequest = {
-  post: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }) as any,
-  get: jest.fn().mockResolvedValue({ status: 200, body: { data: [] } }) as any,
-  put: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }) as any,
-  delete: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }) as any
+const mockRequest: any = {
+  post: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }),
+  get: jest.fn().mockResolvedValue({ status: 200, body: { data: [] } }),
+  put: jest.fn().mockResolvedValue({ status: 200, body: { success: true } }),
+  delete: jest.fn().mockResolvedValue({ status: 200, body: { success: true } })
 };
 
 describe('Invitation Management API', () => {
