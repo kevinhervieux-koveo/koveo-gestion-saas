@@ -334,30 +334,30 @@ function Router() {
             {/* Owner routes removed - documentation consolidated under admin section */}
 
             {/* Manager routes */}
-            <Route path='/manager/buildings' component={ManagerBuildings} />
+            <Route path='/manager/buildings'>{() => <ManagerBuildings />}</Route>
             <Route path='/manager/buildings/documents' component={() => <BuildingDocuments />} />
             {/* Support dynamic building ID in URL path */}
             <Route
               path='/manager/buildings/:buildingId/documents'
               component={() => <BuildingDocuments />}
             />
-            <Route path='/manager/residences' component={ManagerResidences} />
+            <Route path='/manager/residences'>{() => <ManagerResidences />}</Route>
             <Route path='/manager/residences/documents' component={() => <ResidenceDocuments />} />
             {/* Support dynamic residence ID in URL path */}
             <Route
               path='/manager/residences/:residenceId/documents'
               component={() => <ResidenceDocuments />}
             />
-            <Route path='/manager/budget' component={ManagerBudget} />
-            <Route path='/manager/bills' component={ManagerBills} />
+            <Route path='/manager/budget'>{() => <ManagerBudget />}</Route>
+            <Route path='/manager/bills'>{() => <ManagerBills />}</Route>
             <Route path='/manager/invoices' component={ManagerInvoices} />
             <Route path='/manager/demands' component={ManagerDemands} />
             <Route path='/manager/user-management' component={ManagerUserManagement} />
-            <Route path='/manager/common-spaces-stats' component={ManagerCommonSpacesStats} />
+            <Route path='/manager/common-spaces-stats'>{() => <ManagerCommonSpacesStats />}</Route>
 
 
             {/* Residents routes */}
-            <Route path='/residents/residence' component={ResidentsResidence} />
+            <Route path='/residents/residence'>{() => <ResidentsResidence />}</Route>
             <Route
               path='/residents/residence/documents'
               component={() => <ResidentsResidenceDocuments />}
@@ -367,7 +367,7 @@ function Router() {
               path='/residents/residences/:residenceId/documents'
               component={() => <ResidentsResidenceDocuments />}
             />
-            <Route path='/residents/building' component={ResidentsBuilding} />
+            <Route path='/residents/building'>{() => <ResidentsBuilding />}</Route>
             <Route
               path='/residents/building/documents'
               component={() => <ResidentsBuildingDocuments />}
@@ -378,7 +378,7 @@ function Router() {
               component={() => <ResidentsBuildingDocuments />}
             />
             <Route path='/residents/demands' component={ResidentsDemands} />
-            <Route path='/resident/common-spaces' component={ResidentsCommonSpaces} />
+            <Route path='/resident/common-spaces'>{() => <ResidentsCommonSpaces />}</Route>
             <Route path='/resident/my-calendar' component={ResidentsMyCalendar} />
 
             {/* Settings routes */}
