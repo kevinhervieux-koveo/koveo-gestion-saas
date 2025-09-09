@@ -961,22 +961,14 @@ export interface Translations {
   companyInformation: string;
   propertyInformation: string;
   additionalInformation: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
   company: string;
-  address: string;
   city: string;
   province: string;
   postalCode: string;
   numberOfBuildings: string;
   numberOfResidences: string;
   message: string;
-  optional: string;
-  cancel: string;
   submitRequest: string;
-  submitting: string;
   copyright: string;
   law25Compliant: string;
   pricing: string;
@@ -1012,6 +1004,7 @@ export interface Translations {
   processManagementDesc: string;
   law25Compliance: string;
   law25ComplianceDesc: string;
+  whatsIncluded: string;
   featuresOverviewDesc: string;
   viewAllFeatures: string;
   readyToGetStarted: string;
@@ -2032,6 +2025,7 @@ export const translations: Record<Language, Translations> = {
     processManagementDesc: 'Organized workflow tools',
     law25Compliance: 'Quebec Law 25 compliance',
     law25ComplianceDesc: 'Built-in privacy protection',
+    whatsIncluded: 'What\'s included:',
     featuresOverviewDesc: 'Complete solution for modern property management',
     viewAllFeatures: 'View all features',
     readyToGetStarted: 'Ready to get started?',
@@ -2966,8 +2960,6 @@ export const translations: Record<Language, Translations> = {
     close: 'Fermer',
     edit: 'Modifier',
     delete: 'Supprimer',
-    en: 'English',
-    fr: 'Français',
     initializationProgress: 'Initialization Progress',
     coreQualityAssurance: 'Core quality assurance framework',
     workspaceStatus: 'Workspace Statut',
