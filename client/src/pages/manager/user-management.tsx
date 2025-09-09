@@ -283,7 +283,9 @@ export default function UserManagement() {
         description: t('userUpdatedSuccess'),
       });
       setSelectedUsers(new Set());
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
     onError: (_error: Error) => {
       toast({
@@ -310,7 +312,9 @@ export default function UserManagement() {
         description: t('userUpdatedSuccess'),
       });
       setEditingUser(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
     onError: (error: Error) => {
       toast({
@@ -419,7 +423,9 @@ export default function UserManagement() {
         description: t('organizationAssignmentsUpdated'),
       });
       setEditingUserOrganizations(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
     },
     onError: (error: Error) => {
@@ -450,7 +456,9 @@ export default function UserManagement() {
         title: t('success'),
         description: t('buildingAssignmentsUpdated'),
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
     onError: (error: Error) => {
       toast({
@@ -481,7 +489,9 @@ export default function UserManagement() {
         description: t('residenceAssignmentsUpdated'),
       });
       setEditingUserResidences(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
     },
     onError: (error: Error) => {
@@ -511,12 +521,11 @@ export default function UserManagement() {
         description: t('accountDeletedDescription'),
       });
       setDeletingUser(null);
-      // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate and refetch user data with broader scope
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
-      // Force refetch to ensure UI updates
-      queryClient.refetchQueries({ queryKey: ['/api/users'] });
     },
     onError: (error: Error) => {
       toast({
