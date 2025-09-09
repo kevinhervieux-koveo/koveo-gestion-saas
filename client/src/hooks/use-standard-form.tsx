@@ -21,11 +21,11 @@ interface StandardFormConfig<T extends z.ZodType<any, any, any>> {
 }
 
 interface StandardFormReturn<T> {
-  form: UseFormReturn<T>;
-  handleSubmit: (onValid: (data: T) => void) => (e?: React.BaseSyntheticEvent) => Promise<void>;
+  form: UseFormReturn<any>;
+  handleSubmit: (onValid: (data: any) => void) => (e?: React.BaseSyntheticEvent) => Promise<void>;
   isSubmitting: boolean;
   submitMutation: {
-    mutate: (data: T) => void;
+    mutate: (data: any) => void;
     isPending: boolean;
   };
 }
@@ -53,8 +53,8 @@ export function useStandardForm<T extends z.ZodType<any, any, any>>({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<z.infer<T>>({
-    resolver: zodResolver(schema),
+  const form = useForm({
+    resolver: zodResolver(schema) as any,
     defaultValues: defaultValues as any,
   });
 

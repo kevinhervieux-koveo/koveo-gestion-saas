@@ -188,13 +188,13 @@ export function DocumentFormBase<T extends z.ZodType<any, any, any>>({
       {uploadContext && (
         <div className="mt-6 pt-6 border-t">
           <SharedUploader
-            context={uploadContext}
-            onUploadComplete={handleDocumentUpload}
-            accept={{
-              'application/pdf': ['.pdf'],
-              'image/*': ['.png', '.jpg', '.jpeg'],
+            onDocumentChange={(file, text) => {
+              if (file) {
+                handleDocumentUpload(file.name, file);
+              }
             }}
-            maxSizeMB={10}
+            allowedFileTypes={['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']}
+            maxFileSize={10}
             className="mt-4"
           />
           
