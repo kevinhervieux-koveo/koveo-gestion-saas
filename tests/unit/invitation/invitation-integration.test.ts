@@ -22,7 +22,7 @@ describe('Invitation Table Integration Tests', () => {
       city: 'Montreal',
       province: 'QC',
       postalCode: 'H1A 1A1',
-    }).returning() as any[];
+    } as any).returning() as any[];
 
     const [org2] = await mockDb.insert(mockSchema.organizations).values({
       name: 'Test Organization 2',
@@ -31,7 +31,7 @@ describe('Invitation Table Integration Tests', () => {
       city: 'Quebec City',
       province: 'QC',
       postalCode: 'G1A 1A1',
-    }).returning() as any[];
+    } as any).returning() as any[];
 
     organization1 = org1;
     organization2 = org2;
@@ -46,7 +46,7 @@ describe('Invitation Table Integration Tests', () => {
       firstName: 'Admin',
       lastName: 'User',
       role: 'admin',
-    }).returning() as any[];
+    } as any).returning() as any[];
 
     const [manager] = await mockDb.insert(mockSchema.users).values({
       username: 'manager@test.com',
@@ -55,7 +55,7 @@ describe('Invitation Table Integration Tests', () => {
       firstName: 'Manager',
       lastName: 'User',
       role: 'manager',
-    }).returning() as any[];
+    } as any).returning() as any[];
 
     adminUser = admin;
     managerUser = manager;
@@ -66,7 +66,7 @@ describe('Invitation Table Integration Tests', () => {
       organizationId: organization1.id,
       organizationRole: 'manager',
       isActive: true,
-    }) as any;
+    } as any) as any;
   });
 
   afterEach(async () => {
@@ -91,7 +91,7 @@ describe('Invitation Table Integration Tests', () => {
         organizationId: organization1.id,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning() as any[];
+      } as any).returning() as any[];
 
       expect(invitation).toBeDefined();
       expect(invitation.id).toBeDefined();
@@ -116,7 +116,7 @@ describe('Invitation Table Integration Tests', () => {
         residenceId: null,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning() as any[];
+      } as any).returning() as any[];
 
       expect(invitation.buildingId).toBeNull();
       expect(invitation.residenceId).toBeNull();
@@ -138,7 +138,7 @@ describe('Invitation Table Integration Tests', () => {
           organizationId: organization1.id,
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
-        }).returning() as any[];
+        } as any).returning() as any[];
 
         expect(invitation.role).toBe(role);
       }
@@ -160,7 +160,7 @@ describe('Invitation Table Integration Tests', () => {
           organizationId: organization1.id,
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
-        }).returning() as any[];
+        } as any).returning() as any[];
 
         expect(invitation.status).toBe(status);
       }
@@ -204,7 +204,7 @@ describe('Invitation Table Integration Tests', () => {
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
         },
-      ]) as any;
+      ] as any) as any;
     });
 
     it('should filter pending invitations correctly', async () => {
@@ -268,7 +268,7 @@ describe('Invitation Table Integration Tests', () => {
         organizationId: organization1.id,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning() as any[];
+      } as any).returning() as any[];
 
       testInvitation = invitation;
     });
@@ -336,7 +336,7 @@ describe('Invitation Table Integration Tests', () => {
           invitedByUserId: adminUser.id,
           expiresAt: futureDate,
         },
-      ]) as any;
+      ] as any) as any;
 
       // Get all pending invitations
       const allPending = await mockDb
@@ -372,7 +372,7 @@ describe('Invitation Table Integration Tests', () => {
         organizationId: organization1.id,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }) as any;
+      } as any) as any;
 
       // Try to create second invitation with same token
       await expect(async () => {
@@ -385,7 +385,7 @@ describe('Invitation Table Integration Tests', () => {
           organizationId: organization1.id,
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
-        }) as any;
+        } as any) as any;
       }).rejects.toThrow();
     });
 
@@ -404,7 +404,7 @@ describe('Invitation Table Integration Tests', () => {
         residenceId: null,    // Allow null
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning() as any[];
+      } as any).returning() as any[];
 
       expect(invitation.organizationId).toBeNull();
       expect(invitation.buildingId).toBeNull();
