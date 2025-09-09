@@ -522,7 +522,7 @@ export default function LoginPage() {
                     control={form.control}
                     name='password'
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className='space-y-2'>
                         <FormLabel>{language === 'fr' ? 'Mot de passe' : 'Password'}</FormLabel>
                         <FormControl>
                           <div className='relative'>
