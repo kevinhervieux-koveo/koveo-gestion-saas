@@ -6,13 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableFormSelect } from '@/components/common/SearchableFormSelect';
 import {
   Dialog,
   DialogContent,
@@ -439,77 +433,46 @@ ResidentDemandsPage() {
                 </DialogHeader>
                 <Form {...newDemandForm}>
                   <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className='space-y-4'>
-                    <FormField
+                    <SearchableFormSelect
                       control={newDemandForm.control}
                       name='type'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Type</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value as string}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('selectType')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value='maintenance'>Maintenance</SelectItem>
-                              <SelectItem value='complaint'>Complaint</SelectItem>
-                              <SelectItem value='information'>Information</SelectItem>
-                              <SelectItem value='other'>Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      label='Type'
+                      options={[
+                        { value: 'maintenance', label: 'Maintenance' },
+                        { value: 'complaint', label: 'Complaint' },
+                        { value: 'information', label: 'Information' },
+                        { value: 'other', label: 'Other' }
+                      ]}
+                      placeholder={t('selectType')}
+                      searchPlaceholder="Search type..."
+                      required={true}
                     />
-                    <FormField
+                    <SearchableFormSelect
                       control={newDemandForm.control}
                       name='buildingId'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Building</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value as string}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('selectBuilding')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {buildings.map((building) => (
-                                <SelectItem key={building.id} value={building.id}>
-                                  {building.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      label='Building'
+                      options={buildings.map((building) => ({
+                        value: building.id,
+                        label: building.name,
+                      }))}
+                      placeholder={t('selectBuilding')}
+                      searchPlaceholder="Search buildings..."
+                      required={true}
                     />
-                    <FormField
+                    <SearchableFormSelect
                       control={newDemandForm.control}
                       name='residenceId'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Residence (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value as string}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('selectResidence')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="">No specific residence</SelectItem>
-                              {residences.map((residence) => (
-                                <SelectItem key={residence.id} value={residence.id}>
-                                  {residence.unitNumber} - {residence.name || `Unit ${residence.unitNumber}`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      label='Residence (Optional)'
+                      options={[
+                        { value: '', label: 'No specific residence' },
+                        ...residences.map((residence) => ({
+                          value: residence.id,
+                          label: `${residence.unitNumber} - ${residence.name || `Unit ${residence.unitNumber}`}`,
+                        }))
+                      ]}
+                      placeholder={t('selectResidence')}
+                      searchPlaceholder="Search residences..."
+                      required={false}
                     />
                     <FormField
                       control={newDemandForm.control}
