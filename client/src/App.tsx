@@ -320,10 +320,6 @@ function Router() {
             {/* Main Dashboard */}
             <Route path='/dashboard/quick-actions' component={DashboardPage} />
             <Route path='/dashboard/calendar' component={DashboardCalendarPage} />
-            <Route path='/test-forms'>{() => {
-              const TestForms = React.lazy(() => import('@/pages/test-forms'));
-              return <TestForms />;
-            }}</Route>
 
             {/* Admin routes */}
             <Route path='/admin/organizations' component={AdminOrganizations} />
