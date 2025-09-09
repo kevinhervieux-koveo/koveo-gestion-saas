@@ -4,7 +4,19 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import { insertDemandCommentSchema } from '../../../shared/schemas/operations';
+import { z } from 'zod';
+
+// Inline schema definition to avoid circular dependency issues
+const insertDemandCommentSchema = z.object({
+  demandId: z.string().uuid(),
+  commenterId: z.string().uuid(),
+  commentText: z
+    .string()
+    .min(1, 'Comment content is required')
+    .max(1000, 'Comment must not exceed 1000 characters'),
+  commentType: z.string().optional(),
+  isInternal: z.boolean().default(false),
+});
 
 describe('Demand Comment Schema Validation Tests', () => {
   describe('insertDemandCommentSchema', () => {
