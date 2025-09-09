@@ -4,12 +4,12 @@
  */
 
 import { describe, it, expect } from '@jest/globals';
-import fs from 'fs';
+import { readFileSync } from 'fs';
 
 describe('Translation Function Error Detection', () => {
   it('should verify buildings page no longer has undefined t function error', () => {
     const buildingsFile = 'client/src/pages/manager/buildings.tsx';
-    const content = fs.readFileSync(buildingsFile, 'utf-8');
+    const content = readFileSync(buildingsFile, 'utf-8');
 
     // Check that BuildingCard has t parameter in interface
     expect(content).toMatch(/interface BuildingCardProps\s*{[^}]*t:\s*\(key:\s*string\)\s*=>\s*string/s);
@@ -29,7 +29,7 @@ describe('Translation Function Error Detection', () => {
 
   it('should detect any remaining t() calls without proper setup', () => {
     const buildingsFile = 'client/src/pages/manager/buildings.tsx';
-    const content = fs.readFileSync(buildingsFile, 'utf-8');
+    const content = readFileSync(buildingsFile, 'utf-8');
     
     // Split content into lines for analysis
     const lines = content.split('\n');

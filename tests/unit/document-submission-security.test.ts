@@ -122,7 +122,7 @@ const mockUsers = {
 describe('Document Submission Security Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAuditLog.length = 0;
+    // Don't clear audit log for tests that accumulate entries
     rateLimitStore.clear();
   });
 
