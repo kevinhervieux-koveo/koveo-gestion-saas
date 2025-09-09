@@ -71,10 +71,10 @@ describe('Invitation Table Integration Tests', () => {
 
   afterEach(async () => {
     // Clean up test data
-    await mockDb.delete(mockSchema.invitations);
-    await mockDb.delete(mockSchema.userOrganizations);
-    await mockDb.delete(mockSchema.users);
-    await mockDb.delete(mockSchema.organizations);
+    await mockDb.delete(mockSchema.invitations) as any;
+    await mockDb.delete(mockSchema.userOrganizations) as any;
+    await mockDb.delete(mockSchema.users) as any;
+    await mockDb.delete(mockSchema.organizations) as any;
   });
 
   describe('Invitation Data Validation', () => {
@@ -204,7 +204,7 @@ describe('Invitation Table Integration Tests', () => {
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
         },
-      ]);
+      ]) as any;
     });
 
     it('should filter pending invitations correctly', async () => {
@@ -336,7 +336,7 @@ describe('Invitation Table Integration Tests', () => {
           invitedByUserId: adminUser.id,
           expiresAt: futureDate,
         },
-      ]);
+      ]) as any;
 
       // Get all pending invitations
       const allPending = await mockDb
@@ -372,7 +372,7 @@ describe('Invitation Table Integration Tests', () => {
         organizationId: organization1.id,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      });
+      }) as any;
 
       // Try to create second invitation with same token
       await expect(async () => {
@@ -385,7 +385,7 @@ describe('Invitation Table Integration Tests', () => {
           organizationId: organization1.id,
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
-        });
+        }) as any;
       }).rejects.toThrow();
     });
 
