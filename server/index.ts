@@ -75,20 +75,46 @@ if (isNaN(port) || port < 1 || port > 65535) {
 // Trust proxy for deployment
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
-// Security headers middleware using Helmet
+// HTTPS enforcement middleware
+app.use((req, res, next) => {
+  // Force HTTPS in production
+  if (process.env.NODE_ENV === 'production' && !req.secure && req.get('X-Forwarded-Proto') !== 'https') {
+    return res.redirect(`https://${req.get('Host')}${req.url}`);
+  }
+  next();
+});
+
+// Security headers middleware using Helmet with enhanced configuration
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://replit.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        // Only allow unsafe-inline in development for HMR
+        ...(process.env.NODE_ENV === 'development' ? ["'unsafe-inline'"] : []),
+        "https://replit.com"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'", // Required for CSS-in-JS frameworks like styled-components
+        "https://fonts.googleapis.com"
+      ],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      connectSrc: ["'self'", "wss:", "ws:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : undefined,
     },
+  },
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true,
   },
   crossOriginEmbedderPolicy: false, // Allow for development
 }));

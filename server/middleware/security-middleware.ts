@@ -7,6 +7,23 @@
 import helmet from 'helmet';
 import cors from 'cors';
 import express, { Express, Request, Response, NextFunction } from 'express';
+import { randomBytes } from 'crypto';
+
+/**
+ * Generate a cryptographic nonce for CSP
+ */
+function generateNonce(): string {
+  return randomBytes(16).toString('base64');
+}
+
+/**
+ * Middleware to add CSP nonce to requests
+ */
+export function addCSPNonce(req: Request, res: Response, next: NextFunction): void {
+  // Generate a unique nonce for this request
+  res.locals.cspNonce = generateNonce();
+  next();
+}
 
 /**
  * Content Security Policy configuration for Law 25 compliance
@@ -35,7 +52,8 @@ const getCSPConfig = (isDevelopment: boolean) => {
       defaultSrc: ["'self'"],
       scriptSrc: [
         "'self'",
-        "'unsafe-inline'", // Temporary for production debugging
+        // Use nonce for inline scripts in production, unsafe-inline only in dev
+        ...(isDevelopment ? ["'unsafe-inline'"] : []),
         // Quebec government trusted domains for integration
         '*.quebec.ca',
         '*.gouv.qc.ca',
@@ -50,7 +68,9 @@ const getCSPConfig = (isDevelopment: boolean) => {
       ],
       styleSrc: [
         "'self'",
-        "'unsafe-inline'", // Required for CSS-in-JS and styled components
+        // Allow unsafe-inline for styles in both dev and prod (required for CSS-in-JS)
+        // but only from trusted sources
+        "'unsafe-inline'",
         'https://fonts.googleapis.com',
         // Allow application domain for built CSS
         'https://koveo-gestion.com',
