@@ -210,7 +210,7 @@ npm run db:migrate
 
 ### Environment Variables
 
-See [Production Deployment Guide](../PRODUCTION_DEPLOYMENT_GUIDE.md) for complete environment configuration.
+See [Deployment Guide](./guides/DEPLOYMENT_GUIDE.md) for complete environment configuration.
 
 ## Documentation Standards
 
