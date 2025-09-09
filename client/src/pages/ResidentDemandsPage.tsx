@@ -201,7 +201,7 @@ ResidentDemandsPage() {
 
   // Upload context for secure storage (using useMemo to ensure it updates with defaultUser)
   const uploadContext: UploadContext = useMemo(() => ({
-    type: 'demands',
+    type: 'maintenance',
     organizationId: 'default',
     userRole: defaultUser?.role || 'resident',
     userId: defaultUser?.id
@@ -491,7 +491,7 @@ ResidentDemandsPage() {
                             setSelectedFiles([file]);
                           }
                         }}
-                        formType="demands"
+                        formType="maintenance"
                         uploadContext={uploadContext}
                         showAiToggle={false} // No toggle, use config-based AI enablement
                         allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}
