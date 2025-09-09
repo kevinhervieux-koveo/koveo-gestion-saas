@@ -128,7 +128,7 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
             </DropdownMenu>
           </div>
 
-        <div className="space-y-4">
+          <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-muted-foreground" />
@@ -179,6 +179,7 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
               </div>
             </div>
           )}
+          </div>
       </StandardCard>
 
       {/* Edit Dialog */}
@@ -188,7 +189,6 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
             <DialogTitle>Edit Invoice</DialogTitle>
           </DialogHeader>
           <InvoiceForm
-            mode="edit"
             invoice={invoice}
             onSuccess={handleEditSuccess}
             onCancel={() => setShowEditDialog(false)}
@@ -232,8 +232,9 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
               <div>
                 <h4 className="font-medium mb-4">Attached Document</h4>
                 <DocumentCard
+                  title="Invoice Document"
                   documentId={invoice.documentId}
-                  showRemove={false}
+                  onViewClick={() => {}}
                 />
               </div>
             )}

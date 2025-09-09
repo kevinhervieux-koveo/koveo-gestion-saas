@@ -40,13 +40,17 @@ export function GeminiInvoiceExtractor({ file, onExtractionComplete }: GeminiInv
       formData.append('invoiceFile', invoiceFile);
       
       // Make API request to extraction endpoint
-      const response = await apiRequest('/api/invoices/extract-data', {
+      const response = await fetch('/api/invoices/extract-data', {
         method: 'POST',
         body: formData,
         // Note: Don't set Content-Type header - let browser set it for FormData
       });
       
-      return response;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
     },
     onSuccess: (data) => {
       
