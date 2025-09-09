@@ -41,6 +41,7 @@ import { SharedUploader } from '@/components/document-management';
 import type { UploadContext } from '@shared/config/upload-config';
 import { useLanguage } from '@/hooks/use-language';
 import { schemas, enumFields } from '@/lib/validations';
+import { handleApiError } from '@/lib/demo-error-handler';
 
 // Types
 /**
@@ -255,8 +256,8 @@ ResidentDemandsPage() {
       setUploadedAttachments([]);
       toastUtils.createSuccess('Demand');
     },
-    onError: () => {
-      toastUtils.createError('demand');
+    onError: (error: any) => {
+      handleApiError(error, t.language, t('failedToCreateDemand'));
     },
   });
 

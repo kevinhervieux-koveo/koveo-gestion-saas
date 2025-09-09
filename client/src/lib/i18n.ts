@@ -591,6 +591,7 @@ export interface Translations {
   deletionFailed: string;
   deletionFailedDescription: string;
   anErrorOccurred: string;
+  failedToCreateDemand: string;
   firstNameMaxLength: string;
   firstNameInvalidChars: string;
   lastNameMaxLength: string;
@@ -1618,6 +1619,7 @@ export const translations: Record<Language, Translations> = {
     deletionFailed: 'Deletion failed',
     deletionFailedDescription: 'Failed to delete account',
     anErrorOccurred: 'An error occurred',
+    failedToCreateDemand: 'Failed to create demand',
     firstNameMaxLength: 'First name must be less than 50 characters',
     firstNameInvalidChars: 'First name can only contain letters, spaces, apostrophes and hyphens',
     lastNameMaxLength: 'Last name must be less than 50 characters',
@@ -3026,6 +3028,7 @@ export const translations: Record<Language, Translations> = {
     editUserTitle: 'Modifier Utilisateur',
     organizationAssignmentsUpdated: 'Organisation assignments mettre à jourd succèsfully',
     anErrorOccurred: 'An erreur occurred',
+    failedToCreateDemand: 'Échec de créer la demande',
     firstNameInvalidChars: 'First nom can only contain letters, spaces, apostrophes and hyphens',
     lastNameInvalidChars: 'Last nom can only contain letters, spaces, apostrophes and hyphens',
     roleRequired: 'Please select a utilisateur role',
