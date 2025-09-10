@@ -42,7 +42,7 @@ export class BillAutoGenerationService {
       description: sourceBill.description,
       category: sourceBill.category,
       vendor: sourceBill.vendor,
-      paymentType: 'unique' as const, // Generated bills are unique
+      paymentType: 'auto-generated' as const, // Generated bills are auto-generated type
       schedulePayment: null,
       scheduleCustom: null,
       costs: sourceBill.costs,
