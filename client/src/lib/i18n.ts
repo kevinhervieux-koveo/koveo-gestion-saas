@@ -233,6 +233,22 @@ export interface Translations {
   allPaymentTypes: string;
   unique: string;
   recurrent: string;
+  // Payment management
+  paymentDate: string;
+  paymentAmount: string;
+  paymentStatus: string;
+  paymentDetails: string;
+  paymentSchedule: string;
+  paymentNumber: string;
+  scheduledDate: string;
+  amount: string;
+  paid: string;
+  overdue: string;
+  paymentHistory: string;
+  viewPayments: string;
+  noPaymentsFound: string;
+  monthlyPayments: string;
+  singlePayment: string;
   selectSchedule: string;
   billingSchedule: string;
   selectStatus: string;
@@ -1258,6 +1274,22 @@ export const translations: Record<Language, Translations> = {
     allPaymentTypes: 'All Payment Types',
     unique: 'Unique',
     recurrent: 'Recurrent',
+    // Payment management
+    paymentDate: 'Payment Date',
+    paymentAmount: 'Payment Amount',
+    paymentStatus: 'Payment Status',
+    paymentDetails: 'Payment Details',
+    paymentSchedule: 'Payment Schedule',
+    paymentNumber: 'Payment Number',
+    scheduledDate: 'Scheduled Date',
+    amount: 'Amount',
+    paid: 'Paid',
+    overdue: 'Overdue',
+    paymentHistory: 'Payment History',
+    viewPayments: 'View Payments',
+    noPaymentsFound: 'No payments found',
+    monthlyPayments: 'Monthly Payments',
+    singlePayment: 'Single Payment',
     selectSchedule: 'Select schedule',
     billingSchedule: 'Billing Schedule',
     selectStatus: 'Select status',
@@ -2247,6 +2279,22 @@ export const translations: Record<Language, Translations> = {
     allPaymentTypes: 'Tous les types de paiement',
     unique: 'Unique',
     recurrent: 'Récurrent',
+    // Payment management
+    paymentDate: 'Date de paiement',
+    paymentAmount: 'Montant du paiement',
+    paymentStatus: 'Statut du paiement',
+    paymentDetails: 'Détails du paiement',
+    paymentSchedule: 'Calendrier de paiement',
+    paymentNumber: 'Numéro de paiement',
+    scheduledDate: 'Date prévue',
+    amount: 'Montant',
+    paid: 'Payé',
+    overdue: 'En retard',
+    paymentHistory: 'Historique des paiements',
+    viewPayments: 'Voir les paiements',
+    noPaymentsFound: 'Aucun paiement trouvé',
+    monthlyPayments: 'Paiements mensuels',
+    singlePayment: 'Paiement unique',
     billingSchedule: 'Calendrier de facturation',
     selectStatus: 'Sélectionner le statut',
     loadingDemands: 'Chargement des demandes...',
