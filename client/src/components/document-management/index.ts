@@ -15,7 +15,7 @@
 export { SharedUploader } from './SharedUploader';
 export { DocumentCard } from './DocumentCard';
 export { DocumentCreateForm } from './DocumentCreateForm';
-export { DocumentEditForm } from './DocumentEditForm';
+// export { DocumentEditForm } from './DocumentEditForm'; // Temporarily disabled to avoid circular dependency
 // Note: DocumentViewModal and DocumentEditModal were temporarily removed but may be needed
 
 // Invoice Management Components

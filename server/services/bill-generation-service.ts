@@ -1387,7 +1387,7 @@ export class BillAutoGenerationService {
       const targetDate = new Date(sourceDate.getFullYear() + 1, sourceDate.getMonth(), sourceDate.getDate());
 
       // Generate bill number
-      const billNumber = this.generateBillNumber(sourceBill, targetDate);
+      const billNumber = this.generateAdvancedBillNumber(sourceBill, targetDate);
 
       // Check if auto-bill already exists for this template and date
       const existingBill = await db
@@ -1574,7 +1574,7 @@ export class BillAutoGenerationService {
    * @param targetDate - Target date for the auto-generated bill
    * @returns Generated bill number
    */
-  private generateBillNumber(sourceBill: Bill, targetDate: Date): string {
+  private generateAdvancedBillNumber(sourceBill: Bill, targetDate: Date): string {
     const year = targetDate.getFullYear();
     const month = String(targetDate.getMonth() + 1).padStart(2, '0');
     const category = sourceBill.category.toUpperCase().replace(/[^A-Z]/g, ''); // Sanitize category
