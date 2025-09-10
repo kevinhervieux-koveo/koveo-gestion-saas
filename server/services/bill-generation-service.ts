@@ -85,8 +85,8 @@ export class BillAutoGenerationService {
       throw new Error(`Bill ${sourceBill.id} does not meet next-year generation criteria`);
     }
 
-    // Generate specifically for the 2026 calendar year using source bill's anchor date
-    const dueDates = this.calculateOccurrencesForTarget2026(sourceBill);
+    // Generate for next year dynamically based on source bill's date
+    const dueDates = this.calculateOccurrencesForNextYear(sourceBill);
     
     return dueDates.map((dueDate, index) => ({
       id: '', // Will be generated on insert
@@ -97,9 +97,9 @@ export class BillAutoGenerationService {
       category: sourceBill.category,
       vendor: sourceBill.vendor,
       paymentType: 'auto-generated' as const, // Generated bills are auto-generated type
-      schedulePayment: null,
-      scheduleCustom: null,
-      costs: sourceBill.costs,
+      schedulePayment: sourceBill.schedulePayment, // Inherit exact schedule
+      scheduleCustom: sourceBill.scheduleCustom,   // Inherit custom schedule if exists
+      costs: [...sourceBill.costs], // Clone exact same payment plan array
       totalAmount: sourceBill.totalAmount,
       startDate: dueDate.toISOString().split('T')[0],
       endDate: this.calculateEndDate(sourceBill, dueDate),
@@ -120,15 +120,47 @@ export class BillAutoGenerationService {
   }
 
   /**
+   * Generate bills with payment generation for complete inheritance
+   * @param sourceBill - The recurrent bill to use as template
+   * @returns Array of generated bills with payments
+   */
+  async generateForNextYearWithPayments(sourceBill: Bill): Promise<Bill[]> {
+    try {
+      const generatedBills = this.generateForNextYear(sourceBill);
+      
+      // Generate payments for each auto-generated bill to complete payment plan inheritance
+      for (const bill of generatedBills) {
+        const insertResult = await db.insert(bills).values(bill).returning();
+        const newBill = insertResult[0];
+        
+        try {
+          const { paymentGenerationService } = await import('./payment-generation-service');
+          await paymentGenerationService.generatePaymentsForBill(newBill.id);
+          console.log(`✅ Generated payments for auto-bill ${newBill.billNumber}`);
+        } catch (paymentError) {
+          console.warn(`⚠️ Failed to generate payments for auto-bill ${newBill.id}:`, paymentError);
+        }
+      }
+      
+      return generatedBills;
+    } catch (error: any) {
+      console.error('❌ Failed to generate bills with payments:', error);
+      return [];
+    }
+  }
+
+  /**
    * Calculate 2026 occurrence dates based on source bill's anchor date and schedule.
    * This respects the original bill's recurrence pattern instead of starting from Jan 1, 2026.
    * @param sourceBill - The source recurrent bill
    * @returns Array of dates that fall within 2026 calendar year
    */
-  private calculateOccurrencesForTarget2026(sourceBill: Bill): Date[] {
-    const targetYear = 2026;
-    const targetYearStart = new Date(targetYear, 0, 1); // January 1, 2026
-    const targetYearEnd = new Date(targetYear, 11, 31); // December 31, 2026
+  private calculateOccurrencesForNextYear(sourceBill: Bill): Date[] {
+    // Calculate next year based on source bill's start date
+    const sourceDate = new Date(sourceBill.startDate);
+    const targetYear = sourceDate.getFullYear() + 1;
+    const targetYearStart = new Date(targetYear, 0, 1);
+    const targetYearEnd = new Date(targetYear, 11, 31);
     
     // Use source bill's start date as the anchor
     const anchorDate = new Date(sourceBill.startDate);
@@ -139,8 +171,8 @@ export class BillAutoGenerationService {
       return this.calculateCustomOccurrences(targetYearStart, targetYearEnd, sourceBill.scheduleCustom);
     }
     
-    // Calculate a range that ensures we capture all possible 2026 occurrences
-    // Start from a date before 2026 that would generate the first 2026 occurrence
+    // Calculate a range that ensures we capture all possible next year occurrences
+    // Start from a date before target year that would generate the first occurrence
     let calculationStart: Date;
     
     switch (schedule) {
@@ -161,7 +193,7 @@ export class BillAutoGenerationService {
         break;
       case 'yearly':
       default:
-        // For yearly, we need to find the exact occurrence in 2026
+        // For yearly, we need to find the exact occurrence in target year
         calculationStart = new Date(anchorDate);
         calculationStart.setFullYear(targetYear);
         break;
@@ -170,7 +202,7 @@ export class BillAutoGenerationService {
     // Calculate all occurrences from the calculation start to end of target year
     const allOccurrences = this.calculateOccurrences(calculationStart, targetYearEnd, schedule);
     
-    // Filter to only include dates within the 2026 calendar year
+    // Filter to only include dates within the target calendar year
     return allOccurrences.filter(date => 
       date >= targetYearStart && date <= targetYearEnd
     );
@@ -266,10 +298,11 @@ export class BillAutoGenerationService {
   private generateAdvancedBillNumber(sourceBill: Bill, dueDate: Date, index: number): string {
     const year = dueDate.getFullYear();
     const month = String(dueDate.getMonth() + 1).padStart(2, '0');
-    const sequence = String(index + 1).padStart(2, '0');
+    const category = sourceBill.category.toUpperCase().replace(/[^A-Z]/g, ''); // Sanitize category
+    const sequence = String(index + 1).padStart(3, '0');
     
-    // Format: ORIGINAL-YYYY-MM-SEQ
-    return `${sourceBill.billNumber}-${year}-${month}-${sequence}`;
+    // Format: AUTO-{year}-{month}-{category}-{sequence}
+    return `AUTO-${year}-${month}-${category}-${sequence}`;
   }
 
   /**
@@ -1374,7 +1407,7 @@ export class BillAutoGenerationService {
         return existingBill[0];
       }
 
-      // Create the auto-generated bill
+      // Create the auto-generated bill with exact payment plan inheritance
       const autoGeneratedBill = {
         buildingId: sourceBill.buildingId,
         billNumber,
@@ -1383,12 +1416,12 @@ export class BillAutoGenerationService {
         category: sourceBill.category,
         vendor: sourceBill.vendor,
         paymentType: 'auto-generated' as const,
-        schedulePayment: sourceBill.schedulePayment,
-        scheduleCustom: sourceBill.scheduleCustom,
-        costs: sourceBill.costs, // Inherit exact same payment plan
+        schedulePayment: sourceBill.schedulePayment, // Inherit exact schedule
+        scheduleCustom: sourceBill.scheduleCustom,   // Inherit custom schedule if exists
+        costs: [...sourceBill.costs], // Clone exact same payment plan array
         totalAmount: sourceBill.totalAmount,
-        startDate: targetDate.toISOString(),
-        endDate: sourceBill.endDate ? new Date(new Date(sourceBill.endDate).getFullYear() + 1, new Date(sourceBill.endDate).getMonth(), new Date(sourceBill.endDate).getDate()).toISOString() : undefined,
+        startDate: targetDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        endDate: sourceBill.endDate ? new Date(new Date(sourceBill.endDate).getFullYear() + 1, new Date(sourceBill.endDate).getMonth(), new Date(sourceBill.endDate).getDate()).toISOString().split('T')[0] : undefined,
         status: 'draft' as const,
         filePath: sourceBill.filePath,
         fileName: sourceBill.fileName,
@@ -1404,8 +1437,30 @@ export class BillAutoGenerationService {
         updatedAt: new Date(),
       };
 
+      // Check for existing bill with same number to avoid duplicates
+      const existingByNumber = await db
+        .select()
+        .from(bills)
+        .where(eq(bills.billNumber, billNumber))
+        .limit(1);
+
+      if (existingByNumber.length > 0) {
+        console.log(`✅ Auto-bill ${billNumber} already exists, skipping duplicate creation`);
+        return existingByNumber[0];
+      }
+
       const insertResult = await db.insert(bills).values(autoGeneratedBill).returning();
       const newBill = insertResult[0];
+
+      // Generate payments for the auto-generated bill to complete payment plan inheritance
+      try {
+        const { paymentGenerationService } = await import('./payment-generation-service');
+        await paymentGenerationService.generatePaymentsForBill(newBill.id);
+        console.log(`✅ Generated payments for auto-bill ${billNumber}`);
+      } catch (paymentError) {
+        console.warn('⚠️ Failed to generate payments for auto-generated bill:', paymentError);
+        // Don't fail the generation if payment creation fails
+      }
 
       console.log(`✅ Generated auto-bill ${billNumber} for ${targetDate.getFullYear()}`);
       return newBill;
@@ -1418,6 +1473,7 @@ export class BillAutoGenerationService {
 
   /**
    * Clean up auto-generated bills older than current date - 1 month
+   * Only removes bills with startDate older than 1 month from today
    * @param buildingId - Optional filter by building
    * @returns Number of bills deleted
    */
@@ -1425,23 +1481,42 @@ export class BillAutoGenerationService {
     try {
       const cutoffDate = new Date();
       cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+      const cutoffDateString = cutoffDate.toISOString().split('T')[0]; // YYYY-MM-DD format
 
       let whereConditions = [
         eq(bills.isAutoGenerated, true),
-        sql`${bills.startDate} < ${cutoffDate.toISOString()}`
+        sql`${bills.startDate} < ${cutoffDateString}`
       ];
 
       if (buildingId) {
         whereConditions.push(eq(bills.buildingId, buildingId));
       }
 
+      // First delete associated payments
+      const billsToDelete = await db
+        .select({ id: bills.id })
+        .from(bills)
+        .where(and(...whereConditions));
+
+      for (const bill of billsToDelete) {
+        try {
+          const { paymentGenerationService } = await import('./payment-generation-service');
+          await paymentGenerationService.deletePaymentsForBill(bill.id);
+        } catch (paymentError) {
+          console.warn(`⚠️ Failed to delete payments for bill ${bill.id}:`, paymentError);
+        }
+      }
+
+      // Then delete the bills
       const deletedBills = await db
         .delete(bills)
         .where(and(...whereConditions))
         .returning({ id: bills.id });
 
       const deletedCount = deletedBills.length;
-      console.log(`🗑️ Cleaned up ${deletedCount} past auto-generated bills`);
+      if (deletedCount > 0) {
+        console.log(`🗑️ Cleaned up ${deletedCount} past auto-generated bills (older than ${cutoffDateString})`);
+      }
       return deletedCount;
 
     } catch (error: any) {
@@ -1502,9 +1577,9 @@ export class BillAutoGenerationService {
   private generateBillNumber(sourceBill: Bill, targetDate: Date): string {
     const year = targetDate.getFullYear();
     const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-    const category = sourceBill.category.toUpperCase();
+    const category = sourceBill.category.toUpperCase().replace(/[^A-Z]/g, ''); // Sanitize category
     
-    // Generate a simple sequence number based on the date
+    // Generate sequence based on day of year for uniqueness
     const dayOfYear = Math.floor((targetDate.getTime() - new Date(year, 0, 0).getTime()) / (1000 * 60 * 60 * 24));
     const sequence = String(dayOfYear).padStart(3, '0');
     
