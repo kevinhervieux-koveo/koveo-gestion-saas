@@ -412,20 +412,15 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
   const getYearOptions = () => {
     if (!yearRange) {
       // Fallback to current year if no year range data
-      console.log('📅 [YEAR OPTIONS] No yearRange data, using current year:', currentYear);
       return [currentYear];
     }
-
-    console.log('📅 [YEAR OPTIONS] yearRange:', yearRange, 'showAllYears:', showAllYears, 'currentYear:', currentYear);
 
     if (showAllYears) {
       // Show extended range: from 2000 to 25 years forward
       const startYear = Math.min(2000, yearRange.minYear - 2);
       const endYear = Math.max(currentYear + 25, yearRange.maxYear + 2);
       const totalYears = endYear - startYear + 1;
-      const years = Array.from({ length: totalYears }, (_, i) => startYear + i);
-      console.log('📅 [YEAR OPTIONS] Extended range:', startYear, '-', endYear, 'years:', years);
-      return years;
+      return Array.from({ length: totalYears }, (_, i) => startYear + i);
     } else {
       // Show dynamic range based on actual bills with some padding
       if (!yearRange.hasBills) {
@@ -433,36 +428,35 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
         const startYear = currentYear - 2;
         const endYear = currentYear + 2;
         const totalYears = endYear - startYear + 1;
-        const years = Array.from({ length: totalYears }, (_, i) => startYear + i);
-        console.log('📅 [YEAR OPTIONS] No bills range:', startYear, '-', endYear, 'years:', years);
-        return years;
+        return Array.from({ length: totalYears }, (_, i) => startYear + i);
       }
       
       // Use actual bill range with padding
       const startYear = Math.min(yearRange.minYear, currentYear - 1);
       const endYear = Math.max(yearRange.maxYear, currentYear + 1);
       const totalYears = endYear - startYear + 1;
-      const years = Array.from({ length: totalYears }, (_, i) => startYear + i);
-      console.log('📅 [YEAR OPTIONS] Bill range:', startYear, '-', endYear, 'years:', years);
-      return years;
+      return Array.from({ length: totalYears }, (_, i) => startYear + i);
     }
   };
 
-  // Auto-adjust initial year filter when year range loads
+  // Only auto-adjust initial year filter when year range loads for the first time
+  // and only if the current year has no bills
   useEffect(() => {
     if (yearRange && yearRange.hasBills && filters.year === currentYear.toString()) {
-      // If we're still on the default current year and bills exist, 
-      // consider adjusting to the most recent year with bills
-      const mostRecentYear = yearRange.maxYear;
-      if (mostRecentYear !== currentYear) {
-        console.log('🔄 [BILLS PAGE] Auto-adjusting year from', currentYear, 'to', mostRecentYear);
+      // Check if current year has bills
+      const hasCurrentYearBills = yearRange.minYear <= currentYear && currentYear <= yearRange.maxYear;
+      
+      // Only auto-adjust if current year has no bills at all
+      if (!hasCurrentYearBills) {
+        const mostRecentYear = yearRange.maxYear;
+        console.log('🔄 [BILLS PAGE] Auto-adjusting year from', currentYear, 'to', mostRecentYear, '(current year has no bills)');
         setFilters(prev => ({
           ...prev,
           year: mostRecentYear.toString()
         }));
       }
     }
-  }, [yearRange, currentYear, filters.year]);
+  }, [yearRange]); // Remove filters.year and currentYear from dependencies to prevent constant re-adjustments
 
 
   return (
@@ -546,17 +540,10 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                     </SelectTrigger>
                     <SelectContent className='max-h-[300px] overflow-y-auto'>
                       {getYearOptions().map((year) => (
-                        <SelectItem 
-                          key={year} 
-                          value={year.toString()}
-                          className={year === 2025 ? 'bg-yellow-100 dark:bg-yellow-900' : ''}
-                        >
+                        <SelectItem key={year} value={year.toString()}>
                           {year}
                           {year === currentYear && (
                             <span className='ml-2 text-xs text-blue-500'>(Current)</span>
-                          )}
-                          {year === 2025 && (
-                            <span className='ml-2 text-xs text-red-500'>(Debug)</span>
                           )}
                         </SelectItem>
                       ))}
