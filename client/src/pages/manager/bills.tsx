@@ -1134,9 +1134,8 @@ function PaymentScheduleDisplay({
       return response.json();
     },
     onSuccess: () => {
+      // Only invalidate the specific payment data to avoid collapsing the bill
       queryClient.invalidateQueries({ queryKey: ['/api/bills', bill.id, 'payments'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
-      onPaymentUpdate();
     },
   });
 
