@@ -1,0 +1,166 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+withHierarchicalSelection-DgALkcPk.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', itemName: '1936 Nitzsche Track Building 5'}
+bills-DYTWRyJ-.js:16 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-DYTWRyJ-.js:16 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2025
+bills-DYTWRyJ-.js:16 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-DYTWRyJ-.js:16 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-DYTWRyJ-.js:16 🏗️ [BILLS PAGE] Building ID changed: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+bills-DYTWRyJ-.js:16 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-DYTWRyJ-.js:16 ⏳ [BILLS PAGE] Loading bills...
+bills-DYTWRyJ-.js:16 📊 [BILLS PAGE] Bills API response status: 200
+bills-DYTWRyJ-.js:16 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-DYTWRyJ-.js:16 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-DYTWRyJ-.js:16 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-DYTWRyJ-.js:16 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-DYTWRyJ-.js:16 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-DYTWRyJ-.js:16 ✅ [BILLS PAGE] Bills data received: (25) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+bills-DYTWRyJ-.js:16 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-DYTWRyJ-.js:16 🃏 [BILL CARD] Rendering bill: {id: 'f4660b11-58ae-4ad4-95ea-9628edcd20bc', title: 'Insurance - Desjardins Assurances', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-DYTWRyJ-.js:16 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-DYTWRyJ-.js:16 🃏 [BILL CARD] Rendering bill: {id: 'f4660b11-58ae-4ad4-95ea-9628edcd20bc', title: 'Insurance - Desjardins Assurances', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+index-DNfSJSqF.js:136 ReferenceError: generateNextYearMutation is not defined
+    at tr (bills-DYTWRyJ-.js:16:72822)
+    at Object.react_stack_bottom_frame (index-DNfSJSqF.js:229:12448)
+    at oc (index-DNfSJSqF.js:120:804)
+    at kc (index-DNfSJSqF.js:141:5839)
+    at Pc (index-DNfSJSqF.js:150:10147)
+    at q (index-DNfSJSqF.js:45:108)
+    at Kh (index-DNfSJSqF.js:163:29810)
+    at Jh (index-DNfSJSqF.js:163:28479)
+    at Wc (index-DNfSJSqF.js:163:28312)
+    at Ih (index-DNfSJSqF.js:163:24807)
+
+The above error occurred in the <tr> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, sR.
+
+overrideMethod @ hook.js:608
+oh @ index-DNfSJSqF.js:136
+lh @ index-DNfSJSqF.js:141
+q @ index-DNfSJSqF.js:45
+l.componentDidCatch.e.callback @ index-DNfSJSqF.js:141
+Dp @ index-DNfSJSqF.js:107
+Ep @ index-DNfSJSqF.js:107
+q @ index-DNfSJSqF.js:45
+Dh @ index-DNfSJSqF.js:163
+Nh @ index-DNfSJSqF.js:163
+Qn @ index-DNfSJSqF.js:163
+Nh @ index-DNfSJSqF.js:163
+Qn @ index-DNfSJSqF.js:163
+Nh @ index-DNfSJSqF.js:163
+Qn @ index-DNfSJSqF.js:163
+Nh @ index-DNfSJSqF.js:163
+Qn @ index-DNfSJSqF.js:163
+Nh @ index-DNfSJSqF.js:163
+Qn @ index-DNfSJSqF.js:163
+Nh @ index-DNfSJSqF.js:163
+Qn @ index-DNfSJSqF.js:163
+Nh @ index-DNfSJSqF.js:163
+ng @ index-DNfSJSqF.js:163
+ed @ index-DNfSJSqF.js:163
+Xh @ index-DNfSJSqF.js:163
+Ih @ index-DNfSJSqF.js:163
+mg @ index-DNfSJSqF.js:185
+ml @ index-DNfSJSqF.js:185
+ad @ index-DNfSJSqF.js:185
+(anonymous) @ index-DNfSJSqF.js:185
+<tr>
+du.jsxDEV @ index-DNfSJSqF.js:15
+(anonymous) @ bills-DYTWRyJ-.js:16
+sr @ bills-DYTWRyJ-.js:16
+react_stack_bottom_frame @ index-DNfSJSqF.js:229
+oc @ index-DNfSJSqF.js:120
+kc @ index-DNfSJSqF.js:141
+Pc @ index-DNfSJSqF.js:150
+q @ index-DNfSJSqF.js:45
+Kh @ index-DNfSJSqF.js:163
+Jh @ index-DNfSJSqF.js:163
+Wc @ index-DNfSJSqF.js:163
+Ih @ index-DNfSJSqF.js:163
+mg @ index-DNfSJSqF.js:185
+ml @ index-DNfSJSqF.js:185
+ad @ index-DNfSJSqF.js:185
+(anonymous) @ index-DNfSJSqF.js:185
+<sr>
+du.jsxDEV @ index-DNfSJSqF.js:15
+(anonymous) @ bills-DYTWRyJ-.js:16
+nr @ bills-DYTWRyJ-.js:16
+react_stack_bottom_frame @ index-DNfSJSqF.js:229
+oc @ index-DNfSJSqF.js:120
+kc @ index-DNfSJSqF.js:141
+Pc @ index-DNfSJSqF.js:150
+q @ index-DNfSJSqF.js:45
+Kh @ index-DNfSJSqF.js:163
+Jh @ index-DNfSJSqF.js:163
+Wc @ index-DNfSJSqF.js:163
+Ih @ index-DNfSJSqF.js:163
+mg @ index-DNfSJSqF.js:185
+ml @ index-DNfSJSqF.js:185
+ad @ index-DNfSJSqF.js:185
+(anonymous) @ index-DNfSJSqF.js:185
+<nr>
+du.jsxDEV @ index-DNfSJSqF.js:15
+(anonymous) @ withHierarchicalSelection-DgALkcPk.js:1
+react_stack_bottom_frame @ index-DNfSJSqF.js:229
+oc @ index-DNfSJSqF.js:120
+kc @ index-DNfSJSqF.js:141
+Pc @ index-DNfSJSqF.js:150
+q @ index-DNfSJSqF.js:45
+Kh @ index-DNfSJSqF.js:163
+Jh @ index-DNfSJSqF.js:163
+Wc @ index-DNfSJSqF.js:163
+Ih @ index-DNfSJSqF.js:163
+mg @ index-DNfSJSqF.js:185
+ml @ index-DNfSJSqF.js:185
+ad @ index-DNfSJSqF.js:185
+(anonymous) @ index-DNfSJSqF.js:185
+<...>
+du.jsxDEV @ index-DNfSJSqF.js:15
+children @ index-DNfSJSqF.js:364
+Pb @ index-DNfSJSqF.js:240
+P @ index-DNfSJSqF.js:240
+react_stack_bottom_frame @ index-DNfSJSqF.js:229
+oc @ index-DNfSJSqF.js:120
+kc @ index-DNfSJSqF.js:141
+Pc @ index-DNfSJSqF.js:150
+q @ index-DNfSJSqF.js:45
+Kh @ index-DNfSJSqF.js:163
+JS @ index-DNfSJSqF.js:163
+$S @ index-DNfSJSqF.js:163
+Ih @ index-DNfSJSqF.js:163
+fg @ index-DNfSJSqF.js:185
+d @ index-DNfSJSqF.js:23
+<P>
+du.jsxDEV @ index-DNfSJSqF.js:15
+PR @ index-DNfSJSqF.js:364
+react_stack_bottom_frame @ index-DNfSJSqF.js:229
+oc @ index-DNfSJSqF.js:120
+kc @ index-DNfSJSqF.js:141
+Pc @ index-DNfSJSqF.js:150
+q @ index-DNfSJSqF.js:45
+Kh @ index-DNfSJSqF.js:163
+Jh @ index-DNfSJSqF.js:163
+Wc @ index-DNfSJSqF.js:163
+Ih @ index-DNfSJSqF.js:163
+mg @ index-DNfSJSqF.js:185
+ml @ index-DNfSJSqF.js:185
+ad @ index-DNfSJSqF.js:185
+(anonymous) @ index-DNfSJSqF.js:185
+<PR>
+du.jsxDEV @ index-DNfSJSqF.js:15
+YR @ index-DNfSJSqF.js:364
+react_stack_bottom_frame @ index-DNfSJSqF.js:229
+oc @ index-DNfSJSqF.js:120
+kc @ index-DNfSJSqF.js:141
+Pc @ index-DNfSJSqF.js:150
+q @ index-DNfSJSqF.js:45
+Kh @ index-DNfSJSqF.js:163
+Jh @ index-DNfSJSqF.js:163
+Wc @ index-DNfSJSqF.js:163
+Ih @ index-DNfSJSqF.js:163
+fg @ index-DNfSJSqF.js:185
+d @ index-DNfSJSqF.js:23
+<YR>
+du.jsxDEV @ index-DNfSJSqF.js:15
+(anonymous) @ index-DNfSJSqF.js:364
