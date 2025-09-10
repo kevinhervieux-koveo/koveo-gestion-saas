@@ -20,7 +20,7 @@ export class BillAutoGenerationService {
   /**
    * Generate bills for the next year based on a recurrent source bill with enhanced rules.
    * @param sourceBill - The recurrent bill to use as a template
-   * @returns Array of generated bills for next year
+   * @returns Array of generated bills for the next year (today + 1 year)
    */
   generateForNextYear(sourceBill: Bill): Bill[] {
     // Enhanced auto-generation rules
@@ -28,9 +28,9 @@ export class BillAutoGenerationService {
       throw new Error(`Bill ${sourceBill.id} does not meet auto-generation criteria`);
     }
 
-    const nextYear = new Date().getFullYear() + 1;
-    const startDate = new Date(nextYear, 0, 1); // January 1st of next year
-    const endDate = new Date(nextYear, 11, 31); // December 31st of next year
+    const today = new Date();
+    const startDate = new Date(today); // Start from today
+    const endDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()); // Today + 1 year
 
     const dueDates = this.calculateNextDueDates(sourceBill.schedulePayment || 'yearly', startDate, endDate, sourceBill.scheduleCustom);
     
