@@ -63,6 +63,13 @@ export const schedulePaymentEnum = pgEnum('schedule_payment', [
   'custom',
 ]);
 
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'pending',
+  'overdue', 
+  'paid',
+  'cancelled',
+]);
+
 // Financial tables
 /**
  * Enhanced bills table for tracking financial obligations with advanced scheduling.
@@ -100,6 +107,27 @@ export const bills = pgTable('bills', {
   createdBy: varchar('created_by')
     .notNull()
     .references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Payments table for tracking individual payment instances for each bill.
+ * Supports both unique and recurring payment schedules with automatic generation.
+ */
+export const payments = pgTable('payments', {
+  id: varchar('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  billId: varchar('bill_id')
+    .notNull()
+    .references(() => bills.id, { onDelete: 'cascade' }),
+  paymentNumber: integer('payment_number').notNull(), // 1, 2, 3... for recurring bills
+  scheduledDate: date('scheduled_date').notNull(),
+  paidDate: date('paid_date'), // nullable - set when payment is confirmed
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  status: paymentStatusEnum('status').notNull().default('pending'),
+  notes: text('notes'), // Optional notes for this specific payment
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -250,6 +278,19 @@ export const insertMonthlyBudgetSchema = createInsertSchema(monthlyBudgets).omit
   updatedAt: true 
 });
 
+export const insertPaymentSchema = createInsertSchema(payments, {
+  paymentNumber: z.number().int().positive("Payment number must be positive"),
+  scheduledDate: z.coerce.date(),
+  paidDate: z.coerce.date().optional(),
+  amount: z.coerce.number().positive("Payment amount must be positive"),
+  status: z.enum(['pending', 'overdue', 'paid', 'cancelled']).default('pending'),
+  notes: z.string().optional(),
+}).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
 // Types
 
 /**
@@ -287,6 +328,15 @@ export type InsertMonthlyBudget = typeof monthlyBudgets.$inferInsert;
  *
  */
 export type MonthlyBudget = typeof monthlyBudgets.$inferSelect;
+
+/**
+ * Payment insert and select types.
+ */
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+/**
+ *
+ */
+export type Payment = typeof payments.$inferSelect;
 
 // Relations - temporarily commented out due to drizzle-orm version compatibility
 // Removed moneyFlow relations
