@@ -36,6 +36,7 @@ import {
   ChevronDown,
   ArrowLeft,
   Sparkles,
+  Search,
 } from 'lucide-react';
 import ModularBillForm from '@/components/bill-management/ModularBillForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -106,6 +107,7 @@ interface BillFilters {
   months: string[];
   paymentType: string;
   status: string;
+  search: string;
 }
 
 /**
@@ -137,6 +139,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
     months: [],
     paymentType: '',
     status: '',
+    search: '',
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showAllYears, setShowAllYears] = useState(false);
@@ -241,6 +244,10 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 
       if (filters.status && filters.status !== 'all') {
         params.set('status', filters.status);
+      }
+
+      if (filters.search && filters.search.trim()) {
+        params.set('search', filters.search.trim());
       }
 
       const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
@@ -430,6 +437,22 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
             </CardHeader>
             <CardContent>
               <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4'>
+
+                {/* Search Bar */}
+                <div className='space-y-2'>
+                  <Label htmlFor='search-filter' className='flex items-center gap-2'>
+                    <Search className='w-4 h-4' />
+                    Search
+                  </Label>
+                  <Input
+                    id='search-filter'
+                    type='text'
+                    placeholder='Search bills...'
+                    value={filters.search}
+                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                    data-testid='input-search-bills'
+                  />
+                </div>
 
                 <div className='space-y-2'>
                   <Label htmlFor='category-filter' className='flex items-center gap-2'>
