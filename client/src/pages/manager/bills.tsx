@@ -176,14 +176,18 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 
   // Generate bills for next year
   const generateNextYearMutation = useMutation({
-    mutationFn: (billId: string) =>
-      apiRequest(`/api/bills/${billId}/generate-next-year`, {
+    mutationFn: async (billId: string) => {
+      const response = await fetch(`/api/bills/${billId}/generate-next-year`, {
         method: 'POST',
-      }),
-    onSuccess: (response) => {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to generate bills');
+      return await response.json();
+    },
+    onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
       // Show success toast
-      const generatedCount = response?.data?.generatedBills?.length || 1;
+      const generatedCount = response?.generatedBills?.length || 1;
       console.log(`✅ Successfully generated ${generatedCount} bills for 2026`);
     },
     onError: (error) => {
@@ -663,7 +667,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                     <SelectContent>
                       <SelectItem value='all'>{t('allStatuses')}</SelectItem>
                       <SelectItem value='draft'>{t('draft')}</SelectItem>
-                      <SelectItem value='sent'>{t('sent')}</SelectItem>
+                      <SelectItem value='sent'>Sent</SelectItem>
                       <SelectItem value='overdue'>{t('overdue')}</SelectItem>
                       <SelectItem value='paid'>{t('paid')}</SelectItem>
                       <SelectItem value='cancelled'>{t('cancelled')}</SelectItem>
@@ -693,12 +697,12 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
               ...(filters.paymentType && filters.paymentType !== 'all' ? [{
                 id: 'paymentType',
                 label: t('paymentType'),
-                displayValue: t(filters.paymentType)
+                displayValue: filters.paymentType
               }] : []),
               ...(filters.status && filters.status !== 'all' ? [{
                 id: 'status',
                 label: t('status'),
-                displayValue: t(filters.status)
+                displayValue: filters.status
               }] : []),
               ...(filters.search ? [{
                 id: 'search',
