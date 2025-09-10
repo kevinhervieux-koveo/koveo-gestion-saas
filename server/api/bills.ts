@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { moneyFlowJob } from '../jobs/money_flow_job';
 import { billAutoGenerationService } from '../services/bill-generation-service';
 import { delayedUpdateService } from '../services/delayed-update-service';
+import { paymentGenerationService } from '../services/payment-generation-service';
 import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
 import { geminiService } from '../services/geminiService';
 import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
@@ -440,6 +441,14 @@ export function registerBillRoutes(app: Express) {
         })
         .returning();
 
+      // Generate payments for the new bill
+      try {
+        await paymentGenerationService.generatePaymentsForBill(newBill[0].id);
+      } catch (paymentError) {
+        console.warn('⚠️ Failed to generate payments for bill:', paymentError);
+        // Don't fail the bill creation if payment generation fails
+      }
+
       // Schedule delayed money flow and budget update for the new bill
       try {
         delayedUpdateService.scheduleBillUpdate(newBill[0].id);
@@ -524,6 +533,14 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
+      // Update payments for the edited bill
+      try {
+        await paymentGenerationService.updatePaymentsForBill(id);
+      } catch (paymentError) {
+        console.warn('⚠️ Failed to update payments for bill:', paymentError);
+        // Don't fail the bill update if payment update fails
+      }
+
       res.json(updatedBill[0]);
     } catch (_error: any) {
       console.error('❌ Error updating bill (PATCH):', _error);
@@ -597,6 +614,14 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
+      // Update payments for the edited bill
+      try {
+        await paymentGenerationService.updatePaymentsForBill(id);
+      } catch (paymentError) {
+        console.warn('⚠️ Failed to update payments for bill:', paymentError);
+        // Don't fail the bill update if payment update fails
+      }
+
       // Schedule delayed money flow and budget update for the updated bill
       try {
         delayedUpdateService.scheduleBillUpdate(id);
@@ -622,6 +647,14 @@ export function registerBillRoutes(app: Express) {
   app.delete('/api/bills/:id', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
+
+      // Delete associated payments first
+      try {
+        await paymentGenerationService.deletePaymentsForBill(id);
+      } catch (paymentError) {
+        console.warn('⚠️ Failed to delete payments for bill:', paymentError);
+        // Continue with bill deletion even if payment deletion fails
+      }
 
       const deletedBill = await db.delete(bills).where(eq(bills.id, id)).returning();
 

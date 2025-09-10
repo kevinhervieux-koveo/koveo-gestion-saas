@@ -1,0 +1,274 @@
+import { db } from '../db';
+import { bills, payments } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
+import type { Bill, InsertPayment } from '@shared/schema';
+
+/**
+ * Payment Generation Service
+ * Automatically generates payment records for bills based on their payment type and schedule
+ */
+export class PaymentGenerationService {
+  
+  /**
+   * Generate payments for a newly created bill
+   */
+  async generatePaymentsForBill(billId: string): Promise<void> {
+    try {
+      // Get the bill details
+      const bill = await db.select().from(bills).where(eq(bills.id, billId)).limit(1);
+      
+      if (!bill || bill.length === 0) {
+        throw new Error(`Bill with ID ${billId} not found`);
+      }
+
+      const billData = bill[0];
+      const paymentsToInsert: InsertPayment[] = [];
+
+      switch (billData.paymentType) {
+        case 'unique':
+          // Single payment for unique bills
+          paymentsToInsert.push({
+            billId,
+            paymentNumber: 1,
+            scheduledDate: billData.startDate,
+            amount: billData.totalAmount,
+            status: 'pending',
+          });
+          break;
+
+        case 'recurrent':
+        case 'auto-generated':
+          // Generate multiple payments based on schedule
+          const generatedPayments = this.generateRecurrentPayments(billData);
+          paymentsToInsert.push(...generatedPayments);
+          break;
+
+        default:
+          throw new Error(`Unsupported payment type: ${billData.paymentType}`);
+      }
+
+      // Insert all generated payments
+      if (paymentsToInsert.length > 0) {
+        await db.insert(payments).values(paymentsToInsert);
+        console.log(`✅ Generated ${paymentsToInsert.length} payments for bill ${billId}`);
+      }
+    } catch (error) {
+      console.error(`❌ Error generating payments for bill ${billId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update payments when a bill is edited
+   */
+  async updatePaymentsForBill(billId: string): Promise<void> {
+    try {
+      // Get the updated bill details
+      const bill = await db.select().from(bills).where(eq(bills.id, billId)).limit(1);
+      
+      if (!bill || bill.length === 0) {
+        throw new Error(`Bill with ID ${billId} not found`);
+      }
+
+      const billData = bill[0];
+
+      // Delete existing payments that are still pending (keep paid ones)
+      await db.delete(payments).where(
+        and(
+          eq(payments.billId, billId),
+          eq(payments.status, 'pending')
+        )
+      );
+
+      // Regenerate payments
+      await this.generatePaymentsForBill(billId);
+      
+      console.log(`✅ Updated payments for bill ${billId}`);
+    } catch (error) {
+      console.error(`❌ Error updating payments for bill ${billId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete all payments when a bill is deleted
+   */
+  async deletePaymentsForBill(billId: string): Promise<void> {
+    try {
+      await db.delete(payments).where(eq(payments.billId, billId));
+      console.log(`✅ Deleted all payments for bill ${billId}`);
+    } catch (error) {
+      console.error(`❌ Error deleting payments for bill ${billId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update payment status and cascade to bill status if needed
+   */
+  async updatePaymentStatus(paymentId: string, status: 'pending' | 'overdue' | 'paid' | 'cancelled', paidDate?: string): Promise<void> {
+    try {
+      const updateData: any = { status };
+      if (status === 'paid' && paidDate) {
+        updateData.paidDate = paidDate;
+      }
+
+      await db.update(payments)
+        .set(updateData)
+        .where(eq(payments.id, paymentId));
+
+      // Check if we need to update the bill status
+      const payment = await db.select().from(payments).where(eq(payments.id, paymentId)).limit(1);
+      if (payment.length > 0) {
+        await this.updateBillStatusBasedOnPayments(payment[0].billId);
+      }
+
+      console.log(`✅ Updated payment ${paymentId} status to ${status}`);
+    } catch (error) {
+      console.error(`❌ Error updating payment status:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update bill status based on payment statuses
+   */
+  private async updateBillStatusBasedOnPayments(billId: string): Promise<void> {
+    try {
+      const billPayments = await db.select().from(payments).where(eq(payments.billId, billId));
+      
+      if (billPayments.length === 0) return;
+
+      const paidCount = billPayments.filter(p => p.status === 'paid').length;
+      const overdueCount = billPayments.filter(p => p.status === 'overdue').length;
+      const totalCount = billPayments.length;
+
+      let newBillStatus: 'draft' | 'sent' | 'overdue' | 'paid' | 'cancelled' = 'sent';
+
+      if (paidCount === totalCount) {
+        newBillStatus = 'paid';
+      } else if (overdueCount > 0) {
+        newBillStatus = 'overdue';
+      }
+
+      await db.update(bills)
+        .set({ status: newBillStatus })
+        .where(eq(bills.id, billId));
+
+      console.log(`✅ Updated bill ${billId} status to ${newBillStatus}`);
+    } catch (error) {
+      console.error(`❌ Error updating bill status:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate payment schedule for recurrent bills
+   */
+  private generateRecurrentPayments(bill: Bill): InsertPayment[] {
+    const payments: InsertPayment[] = [];
+    const startDate = new Date(bill.startDate);
+    const endDate = bill.endDate ? new Date(bill.endDate) : null;
+    
+    // Default to 12 months if no end date specified
+    const maxPayments = 12;
+    let paymentNumber = 1;
+
+    if (bill.schedulePayment === 'custom' && bill.scheduleCustom && bill.scheduleCustom.length > 0) {
+      // Custom schedule
+      bill.scheduleCustom.forEach((dateStr, index) => {
+        payments.push({
+          billId: bill.id,
+          paymentNumber: index + 1,
+          scheduledDate: dateStr,
+          amount: bill.costs[index] || bill.totalAmount / bill.scheduleCustom!.length,
+          status: 'pending',
+        });
+      });
+    } else {
+      // Standard schedule (weekly, monthly, quarterly, yearly)
+      let currentDate = new Date(startDate);
+      
+      while (paymentNumber <= maxPayments && (!endDate || currentDate <= endDate)) {
+        payments.push({
+          billId: bill.id,
+          paymentNumber,
+          scheduledDate: currentDate.toISOString().split('T')[0],
+          amount: bill.costs[paymentNumber - 1] || bill.totalAmount / maxPayments,
+          status: 'pending',
+        });
+
+        // Calculate next payment date
+        switch (bill.schedulePayment) {
+          case 'weekly':
+            currentDate.setDate(currentDate.getDate() + 7);
+            break;
+          case 'monthly':
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            break;
+          case 'quarterly':
+            currentDate.setMonth(currentDate.getMonth() + 3);
+            break;
+          case 'yearly':
+            currentDate.setFullYear(currentDate.getFullYear() + 1);
+            break;
+          default:
+            // Default to monthly if schedule not specified
+            currentDate.setMonth(currentDate.getMonth() + 1);
+        }
+
+        paymentNumber++;
+      }
+    }
+
+    return payments;
+  }
+
+  /**
+   * Get payments for a specific bill
+   */
+  async getPaymentsForBill(billId: string) {
+    try {
+      return await db.select().from(payments)
+        .where(eq(payments.billId, billId))
+        .orderBy(payments.paymentNumber);
+    } catch (error) {
+      console.error(`❌ Error fetching payments for bill ${billId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check for overdue payments and update their status
+   */
+  async updateOverduePayments(): Promise<void> {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Find payments that are past due and still pending
+      const overduePayments = await db.select()
+        .from(payments)
+        .where(
+          and(
+            eq(payments.status, 'pending'),
+            // Payment is overdue if scheduled date is before today
+            db.sql`${payments.scheduledDate} < ${today}`
+          )
+        );
+
+      if (overduePayments.length > 0) {
+        // Update to overdue status
+        for (const payment of overduePayments) {
+          await this.updatePaymentStatus(payment.id, 'overdue');
+        }
+        console.log(`✅ Updated ${overduePayments.length} payments to overdue status`);
+      }
+    } catch (error) {
+      console.error(`❌ Error updating overdue payments:`, error);
+      throw error;
+    }
+  }
+}
+
+// Export singleton instance
+export const paymentGenerationService = new PaymentGenerationService();
