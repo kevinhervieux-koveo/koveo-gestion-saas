@@ -1719,4 +1719,67 @@ export function registerBillRoutes(app: Express) {
       });
     }
   });
+
+  /**
+   * Get payments for a specific bill
+   * GET /api/bills/:id/payments
+   */
+  app.get('/api/bills/:id/payments', requireAuth, async (req: any, res: any) => {
+    try {
+      const { id } = req.params;
+
+      // Verify the bill exists and user has access
+      const bill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
+      
+      if (bill.length === 0) {
+        return res.status(404).json({
+          message: 'Bill not found',
+        });
+      }
+
+      // Get payments for this bill
+      const billPayments = await paymentGenerationService.getPaymentsForBill(id);
+
+      res.json({
+        payments: billPayments,
+        bill: bill[0],
+      });
+    } catch (error: any) {
+      console.error('❌ Error fetching payments for bill:', error);
+      res.status(500).json({
+        message: 'Failed to fetch payments',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  /**
+   * Update payment status
+   * PATCH /api/bills/:billId/payments/:paymentId
+   */
+  app.patch('/api/bills/:billId/payments/:paymentId', requireAuth, async (req: any, res: any) => {
+    try {
+      const { billId, paymentId } = req.params;
+      const { status, paidDate } = req.body;
+
+      if (!status || !['pending', 'overdue', 'paid', 'cancelled'].includes(status)) {
+        return res.status(400).json({
+          message: 'Valid status is required (pending, overdue, paid, cancelled)',
+        });
+      }
+
+      // Update payment status
+      await paymentGenerationService.updatePaymentStatus(paymentId, status, paidDate);
+
+      res.json({
+        message: 'Payment status updated successfully',
+      });
+    } catch (error: any) {
+      console.error('❌ Error updating payment status:', error);
+      res.status(500).json({
+        message: 'Failed to update payment status',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
 }
