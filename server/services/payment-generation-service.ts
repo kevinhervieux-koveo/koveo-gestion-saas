@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { bills, payments } from '@shared/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, not, sql, lt } from 'drizzle-orm';
 import type { Bill, InsertPayment } from '@shared/schema';
 
 /**
@@ -164,7 +164,8 @@ export class PaymentGenerationService {
             .where(
               and(
                 eq(payments.billId, billId),
-                db.sql`${payments.status} NOT IN ('paid', 'cancelled')`
+                not(eq(payments.status, 'paid')),
+                not(eq(payments.status, 'cancelled'))
               )
             );
           console.log(`✅ Activated payments for bill ${billId} (sent status)`);
@@ -186,7 +187,7 @@ export class PaymentGenerationService {
             .where(
               and(
                 eq(payments.billId, billId),
-                db.sql`${payments.status} IN ('pending', 'overdue')`
+                sql`${payments.status} IN ('pending', 'overdue')`
               )
             );
           console.log(`✅ Cancelled pending payments for bill ${billId}`);
@@ -201,7 +202,7 @@ export class PaymentGenerationService {
               and(
                 eq(payments.billId, billId),
                 eq(payments.status, 'pending'),
-                db.sql`${payments.scheduledDate} < ${today}`
+                lt(payments.scheduledDate, today)
               )
             );
           console.log(`✅ Updated overdue payments for bill ${billId}`);

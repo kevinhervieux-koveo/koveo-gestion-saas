@@ -682,7 +682,6 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                         <DialogTitle>{t('createNewBill')}</DialogTitle>
                       </DialogHeader>
                       <ModularBillForm
-                        mode="create"
                         buildingId={buildingId}
                         onCancel={() => setShowCreateDialog(false)}
                         onSuccess={() => {
@@ -743,7 +742,6 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto' aria-describedby="create-bill-description">
           <ModularBillForm
-            mode="create"
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
               setShowCreateDialog(false);
@@ -822,7 +820,7 @@ function BillCategorySection({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        <div className='space-y-4'>
           {bills.map((bill) => (
             <BillCard 
               key={bill.id} 
@@ -1057,7 +1055,6 @@ function BillCard({
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto' aria-describedby="edit-bill-description">
           <ModularBillForm
-            mode="edit"
             bill={bill}
             onSuccess={() => {
               setShowEditDialog(false);
