@@ -53,7 +53,7 @@ export const billCategoryEnum = pgEnum('bill_category', [
   'other',
 ]);
 
-export const paymentTypeEnum = pgEnum('payment_type', ['unique', 'recurrent']);
+export const paymentTypeEnum = pgEnum('payment_type', ['unique', 'recurrent', 'auto-generated']);
 
 export const schedulePaymentEnum = pgEnum('schedule_payment', [
   'weekly',
