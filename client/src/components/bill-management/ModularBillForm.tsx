@@ -687,6 +687,32 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               )}
             />
 
+            {/* Status */}
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="sent">Sent</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Payment Type */}
             <FormField
               control={form.control}
