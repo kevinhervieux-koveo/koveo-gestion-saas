@@ -186,7 +186,7 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
       
       return allResidences;
     },
-    enabled: !!user?.id && !!buildingId,
+    enabled: !!user?.id,
     refetchOnMount: true,
     staleTime: 0,
   });

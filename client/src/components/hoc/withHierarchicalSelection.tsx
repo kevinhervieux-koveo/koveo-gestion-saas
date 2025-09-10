@@ -107,23 +107,47 @@ export function withHierarchicalSelection<T extends object>(
       enabled: currentLevel === 'organization'
     });
 
-    // Fetch building counts for each organization when at organization level
+    // Fetch accessible building counts for each organization (bottom up logic)
     const {
       data: buildingCounts = {},
       isLoading: isLoadingBuildingCounts
     } = useQuery<Record<string, number>>({
-      queryKey: ['/api/organizations/building-counts'],
+      queryKey: ['/api/organizations/accessible-building-counts'],
       enabled: currentLevel === 'organization' && organizations.length > 0,
       queryFn: async () => {
         const counts: Record<string, number> = {};
         
-        // Fetch building count for each organization
+        // For residence-related pages, check if buildings have accessible residences
+        const isResidencePage = window.location.pathname.includes('residence');
+        
+        // Fetch accessible building count for each organization
         for (const org of organizations) {
           try {
             const response = await fetch(`/api/organizations/${org.id}/buildings`);
             if (response.ok) {
               const buildings = await response.json();
-              counts[org.id] = buildings.length;
+              
+              if (isResidencePage) {
+                // For residence pages, only count buildings that have accessible residences
+                let accessibleBuildingCount = 0;
+                for (const building of buildings) {
+                  try {
+                    const residenceResponse = await fetch(`/api/buildings/${building.id}/residences`);
+                    if (residenceResponse.ok) {
+                      const residences = await residenceResponse.json();
+                      if (residences.length > 0) {
+                        accessibleBuildingCount++;
+                      }
+                    }
+                  } catch (error) {
+                    console.error(`Failed to fetch residences for building ${building.id}:`, error);
+                  }
+                }
+                counts[org.id] = accessibleBuildingCount;
+              } else {
+                // For non-residence pages, count all buildings
+                counts[org.id] = buildings.length;
+              }
             } else {
               counts[org.id] = 0;
             }
@@ -137,12 +161,12 @@ export function withHierarchicalSelection<T extends object>(
       }
     });
 
-    // Fetch buildings (with optional common spaces filter for common-spaces page)
+    // Fetch buildings with residences filter (bottom up logic)
     const {
       data: buildings = [],
       isLoading: isLoadingBuildings
     } = useQuery<Building[]>({
-      queryKey: organizationId ? ['/api/organizations', organizationId, 'buildings'] : ['/api/users/me/buildings'],
+      queryKey: organizationId ? ['/api/organizations', organizationId, 'buildings', 'with-residences'] : ['/api/users/me/buildings', 'with-residences'],
       queryFn: async () => {
         const url = organizationId 
           ? `/api/organizations/${organizationId}/buildings`
@@ -150,13 +174,39 @@ export function withHierarchicalSelection<T extends object>(
         
         // Add common spaces filter for common-spaces page
         const isCommonSpacesPage = window.location.pathname.includes('common-spaces');
-        const fullUrl = isCommonSpacesPage ? `${url}?has_common_spaces=true` : url;
+        const isResidencePage = window.location.pathname.includes('residence');
+        
+        let fullUrl = url;
+        if (isCommonSpacesPage) {
+          fullUrl = `${url}?has_common_spaces=true`;
+        }
         
         const response = await fetch(fullUrl);
         if (!response.ok) {
           throw new Error('Failed to fetch buildings');
         }
-        return response.json();
+        let allBuildings = await response.json();
+        
+        // For residence pages, filter buildings that have accessible residences
+        if (isResidencePage) {
+          const buildingsWithResidences = [];
+          for (const building of allBuildings) {
+            try {
+              const residenceResponse = await fetch(`/api/buildings/${building.id}/residences`);
+              if (residenceResponse.ok) {
+                const residences = await residenceResponse.json();
+                if (residences.length > 0) {
+                  buildingsWithResidences.push(building);
+                }
+              }
+            } catch (error) {
+              console.error(`Failed to fetch residences for building ${building.id}:`, error);
+            }
+          }
+          return buildingsWithResidences;
+        }
+        
+        return allBuildings;
       },
       enabled: (currentLevel === 'building' || currentLevel === 'complete') && (!!organizationId || config.hierarchy.length === 1),
       staleTime: 0
@@ -216,19 +266,26 @@ export function withHierarchicalSelection<T extends object>(
 
     // Render selection screens
     if (currentLevel === 'organization') {
-      const items: SelectionGridItem[] = organizations.map(org => {
+      // Filter out organizations with no accessible buildings (bottom up logic)
+      const accessibleOrganizations = organizations.filter(org => {
         const buildingCount = buildingCounts[org.id] ?? 0;
-        const hasBuildings = buildingCount > 0;
+        return buildingCount > 0;
+      });
+
+      const items: SelectionGridItem[] = accessibleOrganizations.map(org => {
+        const buildingCount = buildingCounts[org.id] ?? 0;
+        const isResidencePage = window.location.pathname.includes('residence');
+        const buildingLabel = isResidencePage 
+          ? (buildingCount === 1 ? 'building with residences' : 'buildings with residences')
+          : (buildingCount === 1 ? 'building' : 'buildings');
         
         return {
           id: org.id,
           name: org.name,
-          details: hasBuildings 
-            ? `${buildingCount} building${buildingCount !== 1 ? 's' : ''}` 
-            : 'No buildings available',
+          details: `${buildingCount} ${buildingLabel}`,
           type: 'organization' as const,
-          disabled: !hasBuildings,
-          disabledReason: hasBuildings ? undefined : 'No Buildings'
+          disabled: false,
+          disabledReason: undefined
         };
       });
 
