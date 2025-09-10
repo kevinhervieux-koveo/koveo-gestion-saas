@@ -179,8 +179,14 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
       apiRequest(`/api/bills/${billId}/generate-next-year`, {
         method: 'POST',
       }),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+      // Show success toast
+      const generatedCount = response?.data?.generatedBills?.length || 1;
+      console.log(`✅ Successfully generated ${generatedCount} bills for 2026`);
+    },
+    onError: (error) => {
+      console.error('❌ Failed to generate 2026 bills:', error);
     },
   });
 
@@ -953,6 +959,21 @@ function BillCard({
                 )}
               </div>
               <div className="flex items-center gap-2">
+                {bill.paymentType === 'recurrent' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      generateNextYearMutation.mutate(bill.id);
+                    }}
+                    disabled={generateNextYearMutation.isPending}
+                    className="h-8 px-3 text-xs"
+                    data-testid={`button-generate-2026-${bill.id}`}
+                  >
+                    Generate 2026
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
