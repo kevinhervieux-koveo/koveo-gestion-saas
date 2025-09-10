@@ -9,7 +9,7 @@ interface FilterConfig {
   id: string;
   label: string;
   type: 'select' | 'multiselect' | 'checkbox' | 'custom';
-  options?: { _value: string; label: string }[];
+  options?: { value: string; label: string }[];
   value?: any;
   onChange: (_value: unknown) => void;
   customComponent?: React.ReactNode;
@@ -205,7 +205,7 @@ CollapsibleFilters({
                       <Label className='text-sm font-medium'>{filter.label}</Label>
                       <select
                         value={filter.value || ''}
-                        onChange={(e) => filter.onChange(e.target._value)}
+                        onChange={(e) => filter.onChange(e.target.value)}
                         className='w-full h-9 px-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                       >
                         {filter.options?.map((option) => (
@@ -229,7 +229,7 @@ CollapsibleFilters({
                     <div key={filter.id} className='space-y-2 col-span-full'>
                       <div className='flex items-center justify-between'>
                         <Label className='text-sm font-medium'>{filter.label}</Label>
-                        {Array.isArray(filter._value) && filter.value.length > 0 && (
+                        {Array.isArray(filter.value) && filter.value.length > 0 && (
                           <div className='flex items-center gap-2'>
                             <span className='text-xs text-muted-foreground'>
                               {filter.value.length} {translations.selected}
@@ -257,12 +257,12 @@ CollapsibleFilters({
                               <input
                                 type='checkbox'
                                 checked={
-                                  Array.isArray(filter._value) &&
-                                  filter.value.includes(option._value)
+                                  Array.isArray(filter.value) &&
+                                  filter.value.includes(option.value)
                                 }
                                 onChange={(e) => {
-                                  const currentValue = Array.isArray(filter._value)
-                                    ? filter._value
+                                  const currentValue = Array.isArray(filter.value)
+                                    ? filter.value
                                     : []; /**
                                    * If function.
                                    * @param e.target.checked - e.target.checked parameter.
@@ -275,7 +275,7 @@ CollapsibleFilters({
                                     filter.onChange([...currentValue, option.value]);
                                   } else {
                                     filter.onChange(
-                                      currentValue.filter((v: unknown) => v !== option._value)
+                                      currentValue.filter((v: unknown) => v !== option.value)
                                     );
                                   }
                                 }}

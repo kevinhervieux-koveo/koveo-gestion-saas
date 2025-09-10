@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CollapsibleFilters } from '@/components/ui/collapsible-filters';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -144,6 +145,15 @@ export default function Invoices() {
     }));
   };
 
+  const clearAllFilters = () => {
+    setFilters({
+      buildingId: '',
+      paymentType: '',
+      year: new Date().getFullYear().toString(),
+      months: [],
+    });
+  };
+
   const handleAllMonthsToggle = () => {
     const allMonthValues = MONTHS.map((m) => m.value);
     setFilters((prev) => ({
@@ -215,26 +225,21 @@ export default function Invoices() {
 
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Filters Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="w-5 h-5" />
-                Filters
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="building-filter" className="flex items-center gap-2">
-                    <BuildingIcon className="w-4 h-4" />
-                    Building
-                  </Label>
+          {/* Collapsible Filters Section */}
+          <CollapsibleFilters
+            title="Filters"
+            defaultExpanded={false}
+            filters={[
+              {
+                id: 'buildingId',
+                label: 'Building',
+                type: 'custom',
+                customComponent: (
                   <Select
                     value={filters.buildingId}
                     onValueChange={(value) => handleFilterChange('buildingId', value)}
                   >
-                    <SelectTrigger id="building-filter" data-testid="select-building-filter">
+                    <SelectTrigger data-testid="select-building-filter">
                       <SelectValue placeholder="Select building" />
                     </SelectTrigger>
                     <SelectContent>
@@ -246,18 +251,20 @@ export default function Invoices() {
                         ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="payment-type-filter" className="flex items-center gap-2">
-                    <Receipt className="w-4 h-4" />
-                    Payment Type
-                  </Label>
+                ),
+                value: filters.buildingId,
+                onChange: (value) => handleFilterChange('buildingId', value as string),
+              },
+              {
+                id: 'paymentType',
+                label: 'Payment Type',
+                type: 'custom',
+                customComponent: (
                   <Select
                     value={filters.paymentType}
                     onValueChange={(value) => handleFilterChange('paymentType', value)}
                   >
-                    <SelectTrigger id="payment-type-filter" data-testid="select-payment-type-filter">
+                    <SelectTrigger data-testid="select-payment-type-filter">
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
@@ -266,18 +273,20 @@ export default function Invoices() {
                       <SelectItem value="recurring">Recurring</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="year-filter" className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Year
-                  </Label>
+                ),
+                value: filters.paymentType,
+                onChange: (value) => handleFilterChange('paymentType', value as string),
+              },
+              {
+                id: 'year',
+                label: 'Year',
+                type: 'custom',
+                customComponent: (
                   <Select
                     value={filters.year}
                     onValueChange={(value) => handleFilterChange('year', value)}
                   >
-                    <SelectTrigger id="year-filter" data-testid="select-year-filter">
+                    <SelectTrigger data-testid="select-year-filter">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="max-h-[300px] overflow-y-auto">
@@ -291,13 +300,15 @@ export default function Invoices() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Months
-                  </Label>
+                ),
+                value: filters.year,
+                onChange: (value) => handleFilterChange('year', value as string),
+              },
+              {
+                id: 'months',
+                label: 'Months',
+                type: 'custom',
+                customComponent: (
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -347,40 +358,65 @@ export default function Invoices() {
                       </div>
                     </PopoverContent>
                   </Popover>
-                </div>
+                ),
+                value: filters.months,
+                onChange: (value) => handleFilterChange('months', value as string[]),
+              },
+            ]}
+            activeFilters={[
+              ...(filters.buildingId ? [{
+                id: 'buildingId',
+                label: 'Building',
+                displayValue: buildings.find((b: Building) => b.id === filters.buildingId)?.name || filters.buildingId
+              }] : []),
+              ...(filters.paymentType && filters.paymentType !== 'all' ? [{
+                id: 'paymentType',
+                label: 'Payment Type',
+                displayValue: filters.paymentType
+              }] : []),
+              ...(filters.year !== new Date().getFullYear().toString() ? [{
+                id: 'year',
+                label: 'Year',
+                displayValue: filters.year
+              }] : []),
+              ...(filters.months.length > 0 ? [{
+                id: 'months',
+                label: 'Months',
+                displayValue: `${filters.months.length} selected`
+              }] : []),
+            ]}
+            onReset={clearAllFilters}
+            resetLabel="Clear Filters"
+          />
 
-                <div className="space-y-2">
-                  <Label className="invisible">Actions</Label>
-                  <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="w-full" 
-                        disabled={!filters.buildingId}
-                        data-testid="button-create-invoice"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create Invoice
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Create New Invoice</DialogTitle>
-                      </DialogHeader>
-                      <InvoiceForm
-                        mode="create"
-                        buildingId={filters.buildingId}
-                        onSuccess={() => {
-                          setShowCreateDialog(false);
-                          queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
-                        }}
-                        onCancel={() => setShowCreateDialog(false)}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Create Invoice Section */}
+          <div className="flex justify-end">
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button 
+                  disabled={!filters.buildingId}
+                  data-testid="button-create-invoice"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Invoice
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create New Invoice</DialogTitle>
+                </DialogHeader>
+                <InvoiceForm
+                  mode="create"
+                  buildingId={filters.buildingId}
+                  onSuccess={() => {
+                    setShowCreateDialog(false);
+                    queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+                  }}
+                  onCancel={() => setShowCreateDialog(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
 
           {/* Invoices Display */}
           {!filters.buildingId ? (
