@@ -412,15 +412,20 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
   const getYearOptions = () => {
     if (!yearRange) {
       // Fallback to current year if no year range data
+      console.log('📅 [YEAR OPTIONS] No yearRange data, using current year:', currentYear);
       return [currentYear];
     }
+
+    console.log('📅 [YEAR OPTIONS] yearRange:', yearRange, 'showAllYears:', showAllYears, 'currentYear:', currentYear);
 
     if (showAllYears) {
       // Show extended range: from 2000 to 25 years forward
       const startYear = Math.min(2000, yearRange.minYear - 2);
       const endYear = Math.max(currentYear + 25, yearRange.maxYear + 2);
       const totalYears = endYear - startYear + 1;
-      return Array.from({ length: totalYears }, (_, i) => startYear + i);
+      const years = Array.from({ length: totalYears }, (_, i) => startYear + i);
+      console.log('📅 [YEAR OPTIONS] Extended range:', startYear, '-', endYear, 'years:', years);
+      return years;
     } else {
       // Show dynamic range based on actual bills with some padding
       if (!yearRange.hasBills) {
@@ -428,14 +433,18 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
         const startYear = currentYear - 2;
         const endYear = currentYear + 2;
         const totalYears = endYear - startYear + 1;
-        return Array.from({ length: totalYears }, (_, i) => startYear + i);
+        const years = Array.from({ length: totalYears }, (_, i) => startYear + i);
+        console.log('📅 [YEAR OPTIONS] No bills range:', startYear, '-', endYear, 'years:', years);
+        return years;
       }
       
       // Use actual bill range with padding
       const startYear = Math.min(yearRange.minYear, currentYear - 1);
       const endYear = Math.max(yearRange.maxYear, currentYear + 1);
       const totalYears = endYear - startYear + 1;
-      return Array.from({ length: totalYears }, (_, i) => startYear + i);
+      const years = Array.from({ length: totalYears }, (_, i) => startYear + i);
+      console.log('📅 [YEAR OPTIONS] Bill range:', startYear, '-', endYear, 'years:', years);
+      return years;
     }
   };
 
@@ -446,6 +455,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
       // consider adjusting to the most recent year with bills
       const mostRecentYear = yearRange.maxYear;
       if (mostRecentYear !== currentYear) {
+        console.log('🔄 [BILLS PAGE] Auto-adjusting year from', currentYear, 'to', mostRecentYear);
         setFilters(prev => ({
           ...prev,
           year: mostRecentYear.toString()
@@ -536,10 +546,17 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                     </SelectTrigger>
                     <SelectContent className='max-h-[300px] overflow-y-auto'>
                       {getYearOptions().map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
+                        <SelectItem 
+                          key={year} 
+                          value={year.toString()}
+                          className={year === 2025 ? 'bg-yellow-100 dark:bg-yellow-900' : ''}
+                        >
                           {year}
                           {year === currentYear && (
                             <span className='ml-2 text-xs text-blue-500'>(Current)</span>
+                          )}
+                          {year === 2025 && (
+                            <span className='ml-2 text-xs text-red-500'>(Debug)</span>
                           )}
                         </SelectItem>
                       ))}
