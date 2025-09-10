@@ -1051,19 +1051,27 @@ function PaymentScheduleDisplay({
     },
   });
 
-  const getPaymentStatusColor = (status: string) => {
+  const getPaymentStatusColor = (status: string, isOverdue: boolean = false) => {
     switch (status) {
       case 'paid':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
       case 'overdue':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return isOverdue 
+          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
+          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
       case 'cancelled':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
+  };
+
+  const isPaymentOverdue = (payment: any) => {
+    if (payment.status === 'paid' || payment.status === 'cancelled') return false;
+    const today = new Date().toISOString().split('T')[0];
+    return payment.scheduledDate < today;
   };
 
   const handlePaymentStatusChange = (paymentId: string, newStatus: string) => {
@@ -1072,31 +1080,46 @@ function PaymentScheduleDisplay({
   };
 
   if (bill.paymentType === 'unique') {
-    // Single payment display for unique bills
+    // Single payment line for unique bills
     const payment = payments[0];
     if (!payment) return <div className="text-sm text-gray-500">No payment information</div>;
 
+    const overdue = isPaymentOverdue(payment);
+    
     return (
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="font-medium text-sm">${Number(payment.amount).toLocaleString()}</div>
-            <div className="text-xs text-gray-500">Due: {payment.scheduledDate}</div>
+      <div className="bg-white dark:bg-gray-900 border rounded-lg overflow-hidden">
+        <div className="grid grid-cols-4 gap-4 p-3 bg-gray-50 dark:bg-gray-800 border-b text-xs font-medium text-gray-700 dark:text-gray-300">
+          <div>Payment Date</div>
+          <div>Amount</div>
+          <div>Status</div>
+          <div>Actions</div>
+        </div>
+        <div className={cn(
+          "grid grid-cols-4 gap-4 p-3 items-center",
+          overdue && "bg-red-50 dark:bg-red-950/20"
+        )}>
+          <div className="text-sm">
+            <div>{payment.scheduledDate}</div>
             {payment.paidDate && (
-              <div className="text-xs text-green-600">Paid: {payment.paidDate}</div>
+              <div className="text-xs text-green-600 dark:text-green-400">Paid: {payment.paidDate}</div>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <Badge className={getPaymentStatusColor(payment.status)}>
-              {payment.status}
+          <div className="text-sm font-medium">
+            ${Number(payment.amount).toLocaleString()}
+          </div>
+          <div>
+            <Badge className={getPaymentStatusColor(payment.status, overdue)}>
+              {overdue && payment.status === 'pending' ? 'overdue' : payment.status}
             </Badge>
+          </div>
+          <div>
             {payment.status !== 'paid' && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handlePaymentStatusChange(payment.id, 'paid')}
                 disabled={updatePaymentMutation.isPending}
-                className="h-6 text-xs"
+                className="h-7 text-xs"
                 data-testid={`button-mark-paid-${payment.id}`}
               >
                 Mark Paid
@@ -1107,41 +1130,63 @@ function PaymentScheduleDisplay({
       </div>
     );
   } else {
-    // Multiple payments display for recurrent bills
+    // Table with multiple payment rows for recurrent/auto-generated bills
     return (
-      <div className="space-y-2">
-        {payments.map((payment) => (
-          <div key={payment.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium text-sm">
-                  Payment #{payment.paymentNumber} - ${Number(payment.amount).toLocaleString()}
+      <div className="bg-white dark:bg-gray-900 border rounded-lg overflow-hidden">
+        <div className="grid grid-cols-4 gap-4 p-3 bg-gray-50 dark:bg-gray-800 border-b text-xs font-medium text-gray-700 dark:text-gray-300">
+          <div>Payment Date</div>
+          <div>Amount</div>
+          <div>Status</div>
+          <div>Actions</div>
+        </div>
+        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+          {payments.map((payment, index) => {
+            const overdue = isPaymentOverdue(payment);
+            return (
+              <div 
+                key={payment.id} 
+                className={cn(
+                  "grid grid-cols-4 gap-4 p-3 items-center",
+                  overdue && "bg-red-50 dark:bg-red-950/20"
+                )}
+              >
+                <div className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">#{payment.paymentNumber}</span>
+                    <span>{payment.scheduledDate}</span>
+                  </div>
+                  {payment.paidDate && (
+                    <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                      Paid: {payment.paidDate}
+                    </div>
+                  )}
                 </div>
-                <div className="text-xs text-gray-500">Due: {payment.scheduledDate}</div>
-                {payment.paidDate && (
-                  <div className="text-xs text-green-600">Paid: {payment.paidDate}</div>
-                )}
+                <div className="text-sm font-medium">
+                  ${Number(payment.amount).toLocaleString()}
+                </div>
+                <div>
+                  <Badge className={getPaymentStatusColor(payment.status, overdue)}>
+                    {overdue && payment.status === 'pending' ? 'overdue' : payment.status}
+                  </Badge>
+                </div>
+                <div>
+                  {payment.status !== 'paid' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePaymentStatusChange(payment.id, 'paid')}
+                      disabled={updatePaymentMutation.isPending}
+                      className="h-7 text-xs"
+                      data-testid={`button-mark-paid-${payment.id}`}
+                    >
+                      Mark Paid
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge className={getPaymentStatusColor(payment.status)}>
-                  {payment.status}
-                </Badge>
-                {payment.status !== 'paid' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePaymentStatusChange(payment.id, 'paid')}
-                    disabled={updatePaymentMutation.isPending}
-                    className="h-6 text-xs"
-                    data-testid={`button-mark-paid-${payment.id}`}
-                  >
-                    Mark Paid
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
     );
   }
