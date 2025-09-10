@@ -703,6 +703,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                     <SelectContent>
                       <SelectItem value="unique">One-time Payment</SelectItem>
                       <SelectItem value="recurrent">Recurring Payment</SelectItem>
+                      <SelectItem value="auto-generated">Auto-Generated</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

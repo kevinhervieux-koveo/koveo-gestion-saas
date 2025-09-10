@@ -64,7 +64,7 @@ const billFormSchema = z.object({
     'other',
   ]),
   vendor: z.string().optional(),
-  paymentType: z.enum(['unique', 'recurrent']),
+  paymentType: z.enum(['unique', 'recurrent', 'auto-generated']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   scheduleCustom: z.array(z.string()).optional(),
   costs: z.array(z.string()),
