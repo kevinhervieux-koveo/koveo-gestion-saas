@@ -1792,4 +1792,72 @@ export function registerBillRoutes(app: Express) {
       });
     }
   });
+
+  /**
+   * Development utility: Regenerate payments for all bills
+   * POST /api/bills/dev/regenerate-payments
+   */
+  app.post('/api/bills/dev/regenerate-payments', requireAuth, async (req: any, res: any) => {
+    try {
+      // Only allow in development environment
+      if (process.env.NODE_ENV !== 'development') {
+        return res.status(403).json({
+          message: 'This endpoint is only available in development environment',
+        });
+      }
+
+      console.log('🔄 Starting payment regeneration for all bills...');
+
+      // Get all bills
+      const allBills = await db.select().from(bills);
+      console.log(`📊 Found ${allBills.length} bills to process`);
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: any[] = [];
+
+      // Process each bill
+      for (const bill of allBills) {
+        try {
+          console.log(`🔄 Processing bill ${bill.id} (${bill.title})`);
+          
+          // Delete existing payments for this bill
+          await paymentGenerationService.deletePaymentsForBill(bill.id);
+          
+          // Generate new payments
+          await paymentGenerationService.generatePaymentsForBill(bill.id);
+          
+          successCount++;
+          console.log(`✅ Regenerated payments for bill ${bill.id}`);
+        } catch (error: any) {
+          errorCount++;
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          errors.push({
+            billId: bill.id,
+            billTitle: bill.title,
+            error: errorMessage
+          });
+          console.error(`❌ Failed to regenerate payments for bill ${bill.id}:`, errorMessage);
+        }
+      }
+
+      console.log(`🏁 Payment regeneration complete: ${successCount} successful, ${errorCount} errors`);
+
+      res.json({
+        message: 'Payment regeneration complete',
+        results: {
+          totalBills: allBills.length,
+          successful: successCount,
+          errors: errorCount,
+          errorDetails: errors
+        }
+      });
+    } catch (error: any) {
+      console.error('❌ Error during payment regeneration:', error);
+      res.status(500).json({
+        message: 'Failed to regenerate payments',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
 }
