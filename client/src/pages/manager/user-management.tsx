@@ -636,7 +636,7 @@ export default function UserManagement() {
   // Permission checks
   const canEditOrganizations = currentUser?.role === 'admin';
   const canEditResidences = currentUser?.role === 'admin' || currentUser?.role === 'manager';
-  const canDeleteUsers = currentUser?.role === 'admin';
+  const canDeleteUsers = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
   // Filter configuration - temporarily simplified
   // const filterConfig = {

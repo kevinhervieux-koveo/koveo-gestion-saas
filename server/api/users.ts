@@ -1942,16 +1942,16 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Only admins can delete other users' accounts
-      if (currentUser.role !== 'admin') {
+      // Only admins and managers can delete other users' accounts
+      if (currentUser.role !== 'admin' && currentUser.role !== 'manager') {
         return res.status(403).json({
-          message: 'Only administrators can delete user accounts',
+          message: 'Only administrators and managers can delete user accounts',
           code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
       
       // Additional safety check: Log this critical operation
-      console.warn(`⚠️  CRITICAL: Admin ${currentUser.email} attempting to delete user ${targetUserId}`);
+      console.warn(`⚠️  CRITICAL: ${currentUser.role} ${currentUser.email} attempting to delete user ${targetUserId}`);
 
       if (!targetUserId) {
         return res.status(400).json({
