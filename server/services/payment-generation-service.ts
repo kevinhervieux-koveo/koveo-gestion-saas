@@ -131,6 +131,92 @@ export class PaymentGenerationService {
   }
 
   /**
+   * Update associated payments when bill status changes
+   * Implements the status management flow:
+   * - draft → all payments pending
+   * - sent → payments become active (remain pending but ready for processing)
+   * - paid → mark all payments as paid
+   * - cancelled → cancel all pending payments
+   */
+  async updatePaymentStatusFromBillStatus(billId: string, billStatus: 'draft' | 'sent' | 'overdue' | 'paid' | 'cancelled'): Promise<void> {
+    try {
+      const billPayments = await db.select().from(payments).where(eq(payments.billId, billId));
+      
+      if (billPayments.length === 0) {
+        console.log(`⚠️ No payments found for bill ${billId}`);
+        return;
+      }
+
+      switch (billStatus) {
+        case 'draft':
+          // Set all payments to pending
+          await db.update(payments)
+            .set({ status: 'pending', paidDate: null })
+            .where(eq(payments.billId, billId));
+          console.log(`✅ Set all payments for bill ${billId} to pending (draft status)`);
+          break;
+
+        case 'sent':
+          // Payments become active - keep as pending but ready for processing
+          // Only update payments that are not already paid or cancelled
+          await db.update(payments)
+            .set({ status: 'pending' })
+            .where(
+              and(
+                eq(payments.billId, billId),
+                db.sql`${payments.status} NOT IN ('paid', 'cancelled')`
+              )
+            );
+          console.log(`✅ Activated payments for bill ${billId} (sent status)`);
+          break;
+
+        case 'paid':
+          // Mark all payments as paid with current date
+          const currentDate = new Date().toISOString();
+          await db.update(payments)
+            .set({ status: 'paid', paidDate: currentDate })
+            .where(eq(payments.billId, billId));
+          console.log(`✅ Marked all payments for bill ${billId} as paid`);
+          break;
+
+        case 'cancelled':
+          // Cancel all pending payments (keep already paid ones as paid)
+          await db.update(payments)
+            .set({ status: 'cancelled' })
+            .where(
+              and(
+                eq(payments.billId, billId),
+                db.sql`${payments.status} IN ('pending', 'overdue')`
+              )
+            );
+          console.log(`✅ Cancelled pending payments for bill ${billId}`);
+          break;
+
+        case 'overdue':
+          // Update overdue payments based on their due dates
+          const today = new Date().toISOString().split('T')[0];
+          await db.update(payments)
+            .set({ status: 'overdue' })
+            .where(
+              and(
+                eq(payments.billId, billId),
+                eq(payments.status, 'pending'),
+                db.sql`${payments.scheduledDate} < ${today}`
+              )
+            );
+          console.log(`✅ Updated overdue payments for bill ${billId}`);
+          break;
+
+        default:
+          console.log(`⚠️ Unknown bill status: ${billStatus}`);
+      }
+    } catch (error) {
+      console.error(`❌ Error updating payments for bill status change:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Update bill status based on payment statuses
    */
   private async updateBillStatusBasedOnPayments(billId: string): Promise<void> {

@@ -536,6 +536,11 @@ export function registerBillRoutes(app: Express) {
       // Update payments for the edited bill
       try {
         await paymentGenerationService.updatePaymentsForBill(id);
+        
+        // If status was updated, cascade status changes to payments
+        if (billData.status) {
+          await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status);
+        }
       } catch (paymentError) {
         console.warn('⚠️ Failed to update payments for bill:', paymentError);
         // Don't fail the bill update if payment update fails
@@ -617,6 +622,11 @@ export function registerBillRoutes(app: Express) {
       // Update payments for the edited bill
       try {
         await paymentGenerationService.updatePaymentsForBill(id);
+        
+        // If status was updated, cascade status changes to payments
+        if (billData.status) {
+          await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status);
+        }
       } catch (paymentError) {
         console.warn('⚠️ Failed to update payments for bill:', paymentError);
         // Don't fail the bill update if payment update fails
