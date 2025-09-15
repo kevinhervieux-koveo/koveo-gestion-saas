@@ -13,8 +13,8 @@ const config = {
     '@neondatabase/serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
     'drizzle-orm/neon-http': '<rootDir>/__mocks__/enhanced-database-mock.js',
     'drizzle-orm/neon-serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
-    'drizzle-orm/pg-core': '<rootDir>/__mocks__/enhanced-database-mock.js',
-    'drizzle-orm': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    'drizzle-orm/pg-core': '<rootDir>/__mocks__/drizzle-orm/pg-core.js',
+    'drizzle-orm': '<rootDir>/__mocks__/drizzle-orm/index.js',
     'drizzle-zod': '<rootDir>/__mocks__/enhanced-database-mock.js',
     
     // Server module mocks to prevent real imports
