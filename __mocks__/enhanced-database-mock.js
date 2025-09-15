@@ -1,7 +1,22 @@
 // Enhanced database mock for complete drizzle-orm isolation
 // Use global jest instead of importing it
 const jest = global.jest || {
-  fn: (impl) => impl || (() => {}),
+  fn: (impl) => {
+    const mockFn = impl || (() => {});
+    mockFn.mockResolvedValue = (value) => {
+      mockFn._mockResolvedValue = value;
+      return mockFn;
+    };
+    mockFn.mockReturnValue = (value) => {
+      mockFn._mockReturnValue = value;
+      return mockFn;
+    };
+    mockFn.mockImplementation = (impl) => {
+      mockFn._mockImplementation = impl;
+      return mockFn;
+    };
+    return mockFn;
+  },
   clearAllMocks: () => {},
 };
 
@@ -279,7 +294,7 @@ const testUtils = {
   getStore: () => store
 };
 
-// Fix exports for proper import compatibility
+// Fix exports for proper import compatibility - explicit module.exports
 module.exports = {
   // Core exports for tests
   mockDb,
@@ -304,10 +319,43 @@ module.exports = {
   timestamp,
   integer,
   uuid,
+  serial,
+  date,
+  json,
   
   // Neon serverless mocks
   Pool: MockPool,
-  neonConfig
+  neonConfig,
+  
+  // Additional drizzle-zod mocks
+  createInsertSchema: jest.fn(),
+  createSelectSchema: jest.fn()
+};
+
+// Single explicit export - unconditional at top level
+module.exports = {
+  mockDb,
+  testUtils,
+  mockSchema,
+  eq,
+  and,
+  or,
+  sql,
+  neonConfig,
+  MockPool,
+  pgEnum,
+  pgTable,
+  text,
+  varchar,
+  boolean,
+  timestamp,
+  integer,
+  uuid,
+  serial,
+  date,
+  json,
+  createInsertSchema: jest.fn(),
+  createSelectSchema: jest.fn()
 };
 
 // Also export as CommonJS for compatibility with module name mapping

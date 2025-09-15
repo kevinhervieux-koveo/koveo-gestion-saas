@@ -11,28 +11,37 @@ const pgTable = jest.fn().mockImplementation((name, schema) => ({
   _: { name, columns: schema }
 }));
 
-// Create chainable column objects with all necessary methods
-const createChainableColumn = (type) => {
+// Simple chainable column mock - recursive self-reference approach
+const createChainableColumn = (type, name, options = {}) => {
   const column = {
     type,
-    primaryKey: jest.fn(() => column),
-    notNull: jest.fn(() => column),
-    unique: jest.fn(() => column),
-    default: jest.fn(() => column),
-    references: jest.fn(() => column),
-    onDelete: jest.fn(() => column),
-    onUpdate: jest.fn(() => column),
+    name,
+    ...options
   };
+  
+  // Add all chainable methods that return the same object
+  const chainableMethods = ['primaryKey', 'notNull', 'unique', 'default', 'references', 'onDelete', 'onUpdate', 'array'];
+  
+  chainableMethods.forEach(method => {
+    column[method] = jest.fn(() => {
+      // Return a new object that also has all the chainable methods
+      const newColumn = createChainableColumn(type, name, { ...options, [method]: true });
+      return newColumn;
+    });
+  });
+  
   return column;
 };
 
-const text = jest.fn().mockImplementation(() => createChainableColumn('text'));
-const varchar = jest.fn().mockImplementation((length) => createChainableColumn('varchar'));
-const boolean = jest.fn().mockImplementation(() => createChainableColumn('boolean'));
-const timestamp = jest.fn().mockImplementation(() => createChainableColumn('timestamp'));
-const integer = jest.fn().mockImplementation(() => createChainableColumn('integer'));
-const uuid = jest.fn().mockImplementation(() => createChainableColumn('uuid'));
-const serial = jest.fn().mockImplementation(() => createChainableColumn('serial'));
+const text = jest.fn().mockImplementation((name) => createChainableColumn('text', name));
+const varchar = jest.fn().mockImplementation((name, options) => createChainableColumn('varchar', name, options));
+const boolean = jest.fn().mockImplementation((name) => createChainableColumn('boolean', name));
+const timestamp = jest.fn().mockImplementation((name) => createChainableColumn('timestamp', name));
+const integer = jest.fn().mockImplementation((name) => createChainableColumn('integer', name));
+const uuid = jest.fn().mockImplementation((name) => createChainableColumn('uuid', name));
+const serial = jest.fn().mockImplementation((name) => createChainableColumn('serial', name));
+const date = jest.fn().mockImplementation((name) => createChainableColumn('date', name));
+const json = jest.fn().mockImplementation((name) => createChainableColumn('json', name));
 const primaryKey = jest.fn().mockImplementation(() => createChainableColumn('primaryKey'));
 const unique = jest.fn().mockImplementation(() => createChainableColumn('unique'));
 const index = jest.fn().mockImplementation(() => createChainableColumn('index'));
@@ -47,6 +56,8 @@ module.exports = {
   integer,
   uuid,
   serial,
+  date,
+  json,
   primaryKey,
   unique,
   index

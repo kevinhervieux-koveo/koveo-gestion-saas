@@ -2,6 +2,22 @@
  * Jest Global Setup - Enhanced Test Infrastructure
  * Comprehensive test setup with MSW, polyfills, and optimized mocking
  */
+
+// Mocks now handled via custom resolver - hard verification for fast failure
+try {
+  const pgCorePath = require.resolve('drizzle-orm/pg-core');
+  console.log('pg-core resolves to:', pgCorePath);
+  
+  const enhancedMock = require(require('path').join(process.cwd(), '__mocks__/enhanced-database-mock.js'));
+  console.log('Enhanced mock mockDb available:', !!enhancedMock.mockDb);
+  
+  if (!enhancedMock.mockDb) {
+    throw new Error('CRITICAL: Enhanced database mock not properly exported - mockDb is undefined');
+  }
+} catch (error) {
+  console.error('Mock verification failed:', error.message);
+}
+
 import '@testing-library/jest-dom';
 import { afterEach, beforeAll, afterAll } from '@jest/globals';
 

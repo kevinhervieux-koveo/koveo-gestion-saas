@@ -2,17 +2,17 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as schema from '../../../shared/schema';
 import bcrypt from 'bcryptjs';
 
-// Import centralized enhanced database mock instead of defining local mocks
-const enhancedMock = require('../../../__mocks__/enhanced-database-mock');
+// Import centralized enhanced database mock directly - fix destructuring issue
 const { 
   mockDb, 
   testUtils, 
   mockSchema,
   eq, and, or, sql 
-} = enhancedMock;
+} = require('../../../__mocks__/enhanced-database-mock');
 
-console.log('Enhanced mock loaded:', Object.keys(enhancedMock));
-console.log('mockDb type:', typeof mockDb);
+console.log('Enhanced mock loaded - mockDb available:', !!mockDb);
+console.log('Enhanced mock loaded - testUtils available:', !!testUtils);
+console.log('Enhanced mock loaded - mockSchema available:', !!mockSchema);
 
 describe('Invitation Table Integration Tests', () => {
   let adminUser: any;

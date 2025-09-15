@@ -3,6 +3,9 @@ const config = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   
+  // Custom resolver temporarily disabled - format issues
+  // resolver: '<rootDir>/jest-resolver.js',
+  
   // Optimized module name mapping - only essential mappings
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
@@ -13,9 +16,9 @@ const config = {
     '@neondatabase/serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
     'drizzle-orm/neon-http': '<rootDir>/__mocks__/enhanced-database-mock.js',
     'drizzle-orm/neon-serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
-    'drizzle-orm/pg-core': '<rootDir>/__mocks__/drizzle-orm/pg-core.js',
-    'drizzle-orm': '<rootDir>/__mocks__/drizzle-orm/index.js',
-    'drizzle-zod': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    '^drizzle-orm/pg-core(?:\\.js)?$': '<rootDir>/__mocks__/drizzle-orm/pg-core.js',
+    '^drizzle-orm$': '<rootDir>/__mocks__/drizzle-orm/index.js',
+    '^drizzle-zod(?:\\.js)?$': '<rootDir>/__mocks__/enhanced-database-mock.js',
     
     // Server module mocks to prevent real imports
     '^../server/db$': '<rootDir>/__mocks__/server/db.ts',
@@ -29,10 +32,8 @@ const config = {
     '^../../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
     '^../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
     
-    // Schema mocks to prevent drizzle-orm imports
-    '^../../../shared/schema$': '<rootDir>/__mocks__/shared/schema.ts',
-    '^../../shared/schema$': '<rootDir>/__mocks__/shared/schema.ts',
-    '^../shared/schema$': '<rootDir>/__mocks__/shared/schema.ts',
+    // Schema mocks to prevent drizzle-orm imports - robust directory-agnostic pattern
+    '^(.*/)?shared/schema(?:\\.(ts|js))?$': '<rootDir>/__mocks__/shared/schema.ts',
     
     // CSS and assets (simplified)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
