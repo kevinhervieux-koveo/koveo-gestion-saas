@@ -37,6 +37,9 @@ const config = {
     // CSS and assets (simplified)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/__mocks__/fileMock.js',
+    
+    // ES Module mocks to prevent import issues
+    'wouter': '<rootDir>/__mocks__/wouter.js',
   },
   
   testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
@@ -55,13 +58,14 @@ const config = {
       'ts-jest',
       {
         tsconfig: '<rootDir>/tsconfig.test.json',
+        useESM: false,
       },
     ],
   },
   
   // Optimized transform ignore patterns
   transformIgnorePatterns: [
-    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud))'
+    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud|react-router-dom))'
   ],
   
   // Performance settings - remove duplicates and optimize

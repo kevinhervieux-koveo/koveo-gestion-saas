@@ -38,7 +38,10 @@ const mockApiRequest = jest.fn() as jest.MockedFunction<any>;
 const mockFetch = jest.fn() as jest.MockedFunction<any>;
 
 jest.mock('@/lib/queryClient', () => ({
-  apiRequest: mockApiRequest,
+  apiRequest: jest.fn(),
+  queryClient: {
+    invalidateQueries: jest.fn(),
+  }
 }));
 
 // Mock authentication hook
