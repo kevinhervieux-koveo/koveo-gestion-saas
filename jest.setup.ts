@@ -331,29 +331,29 @@ jest.mock('@neondatabase/serverless', () => {
 
 // Mock Drizzle database connections
 jest.mock('drizzle-orm/neon-serverless', () => {
-  const { mockDb } = require('./tests/mocks/unified-database-mock');
+  const { db, drizzle } = require('./tests/mocks/enhanced-database-mock');
   return {
     __esModule: true,
-    drizzle: jest.fn().mockImplementation(() => mockDb),
+    drizzle: jest.fn().mockImplementation(() => db),
   };
 });
 
 jest.mock('drizzle-orm/neon-http', () => {
-  const { mockDb } = require('./tests/mocks/unified-database-mock');
+  const { db, drizzle } = require('./tests/mocks/enhanced-database-mock');
   return {
     __esModule: true,
-    drizzle: jest.fn().mockImplementation(() => mockDb),
+    drizzle: jest.fn().mockImplementation(() => db),
   };
 });
 
 // Mock database modules
 jest.mock('./server/db', () => {
-  const { mockDb } = require('./tests/mocks/unified-database-mock');
+  const { db, sql, pool } = require('./tests/mocks/enhanced-database-mock');
   return {
-    db: mockDb,
-    sql: jest.fn().mockResolvedValue([]),
-    pool: mockDb,
-    default: mockDb
+    db: db,
+    sql: sql,
+    pool: pool,
+    default: db
   };
 });
 
@@ -457,22 +457,29 @@ jest.mock('./server/storage', () => ({
   }
 }));
 
-jest.mock('./server/optimized-db-storage', () => ({
-  optimizedDbStorage: {
-    create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
-    findById: jest.fn().mockResolvedValue(null),
-    findMany: jest.fn().mockResolvedValue([]),
-    update: jest.fn().mockResolvedValue({ success: true }),
-    delete: jest.fn().mockResolvedValue({ success: true }),
-  },
-  default: {
-    create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
-    findById: jest.fn().mockResolvedValue(null),
-    findMany: jest.fn().mockResolvedValue([]),
-    update: jest.fn().mockResolvedValue({ success: true }),
-    delete: jest.fn().mockResolvedValue({ success: true }),
-  }
-}));
+jest.mock('./server/optimized-db-storage', () => {
+  const { testUtils } = require('./tests/mocks/enhanced-database-mock');
+  return {
+    optimizedDbStorage: {
+      create: jest.fn().mockImplementation(async (data) => {
+        return testUtils.createTestData('unknown', data);
+      }),
+      findById: jest.fn().mockResolvedValue(null),
+      findMany: jest.fn().mockResolvedValue([]),
+      update: jest.fn().mockResolvedValue({ success: true }),
+      delete: jest.fn().mockResolvedValue({ success: true }),
+    },
+    default: {
+      create: jest.fn().mockImplementation(async (data) => {
+        return testUtils.createTestData('unknown', data);
+      }),
+      findById: jest.fn().mockResolvedValue(null),
+      findMany: jest.fn().mockResolvedValue([]),
+      update: jest.fn().mockResolvedValue({ success: true }),
+      delete: jest.fn().mockResolvedValue({ success: true }),
+    }
+  };
+});
 
 // Mock email service
 jest.mock('./server/services/email-service', () => ({

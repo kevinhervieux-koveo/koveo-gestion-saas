@@ -15,10 +15,10 @@ const config = {
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     
-    // Essential database mocks only
-    '@neondatabase/serverless': '<rootDir>/tests/mocks/serverDbMock.js',
-    'drizzle-orm/neon-http': '<rootDir>/tests/mocks/serverDbMock.js',
-    'drizzle-orm/neon-serverless': '<rootDir>/tests/mocks/serverDbMock.js',
+    // Enhanced database mocks - consolidated solution
+    '@neondatabase/serverless': '<rootDir>/tests/mocks/enhanced-database-mock.js',
+    'drizzle-orm/neon-http': '<rootDir>/tests/mocks/enhanced-database-mock.js',
+    'drizzle-orm/neon-serverless': '<rootDir>/tests/mocks/enhanced-database-mock.js',
     
     // CSS and assets (simplified)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
