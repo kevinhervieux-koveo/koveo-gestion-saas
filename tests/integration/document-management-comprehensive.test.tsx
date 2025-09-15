@@ -48,22 +48,8 @@ jest.mock('../../client/src/hooks/use-toast', () => ({
   }),
 }));
 
-// Mock wouter navigation
-jest.mock('wouter', () => {
-  const mockNavigate = jest.fn();
-  return {
-    useLocation: jest.fn(() => ['/', mockNavigate]),
-    useRoute: jest.fn(() => [true, {}]),
-    useRouter: jest.fn(() => ({ navigate: mockNavigate })),
-    Router: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-router">{children}</div>,
-    Route: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-route">{children}</div>,
-    Link: ({ children, href, ...props }: any) => (
-      <a href={href} data-testid="mock-link" {...props}>
-        {children}
-      </a>
-    ),
-  };
-});
+// Use comprehensive wouter mock from __mocks__/wouter.js
+jest.mock('wouter');
 
 // Demo test data
 const demoTenantUser = {
