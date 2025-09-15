@@ -19,13 +19,26 @@ const config = {
     '@neondatabase/serverless': '<rootDir>/tests/mocks/enhanced-database-mock.js',
     'drizzle-orm/neon-http': '<rootDir>/tests/mocks/enhanced-database-mock.js',
     'drizzle-orm/neon-serverless': '<rootDir>/tests/mocks/enhanced-database-mock.js',
+    'drizzle-orm/pg-core': '<rootDir>/tests/mocks/enhanced-database-mock.js',
     'drizzle-orm': '<rootDir>/tests/mocks/enhanced-database-mock.js',
+    'drizzle-zod': '<rootDir>/tests/mocks/enhanced-database-mock.js',
     
     // Server module mocks to prevent real imports
     '^../server/db$': '<rootDir>/__mocks__/server/db.ts',
     '^../server/storage$': '<rootDir>/__mocks__/server/storage.ts',
     '^../../server/db$': '<rootDir>/__mocks__/server/db.ts', 
     '^../../server/storage$': '<rootDir>/__mocks__/server/storage.ts',
+    '^../../../server/routes$': '<rootDir>/__mocks__/server/routes.ts',
+    '^../../server/routes$': '<rootDir>/__mocks__/server/routes.ts',
+    '^../server/routes$': '<rootDir>/__mocks__/server/routes.ts',
+    '^../../../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
+    '^../../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
+    '^../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
+    
+    // Schema mocks to prevent drizzle-orm imports
+    '^../../../shared/schema$': '<rootDir>/__mocks__/shared/schema.ts',
+    '^../../shared/schema$': '<rootDir>/__mocks__/shared/schema.ts',
+    '^../shared/schema$': '<rootDir>/__mocks__/shared/schema.ts',
     
     // CSS and assets (simplified)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',

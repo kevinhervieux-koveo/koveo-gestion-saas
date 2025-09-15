@@ -417,6 +417,120 @@ const mockDrizzle = typeof jest !== 'undefined' ? jest.fn().mockImplementation((
   return mockDb;
 };
 
+// Mock pg-core functions for schema definitions
+const mockPgEnum = typeof jest !== 'undefined' ? jest.fn().mockImplementation((name, values) => {
+  // Return a mock enum object that behaves like a drizzle pgEnum
+  return {
+    enumName: name,
+    enumValues: values,
+    _: {
+      name,
+      values,
+      schema: undefined,
+      baseName: name
+    }
+  };
+}) : function(name, values) {
+  return {
+    enumName: name,
+    enumValues: values,
+    _: {
+      name,
+      values,
+      schema: undefined,
+      baseName: name
+    }
+  };
+};
+
+const mockPgTable = typeof jest !== 'undefined' ? jest.fn().mockImplementation((name, columns) => {
+  return createMockTable(name);
+}) : function(name, columns) {
+  return createMockTable(name);
+};
+
+// Mock column types for pg-core
+const createColumnMock = (type) => {
+  const mock = typeof jest !== 'undefined' ? jest.fn() : function() {};
+  
+  const columnFactory = (...args) => {
+    const column = {
+      _: { type, name: args[0] || 'unknown' },
+      name: args[0] || 'unknown',
+      // Chain methods
+      primaryKey: () => column,
+      notNull: () => column,
+      unique: () => column,
+      default: () => column,
+      references: () => column,
+      array: () => column
+    };
+    return column;
+  };
+  
+  if (typeof jest !== 'undefined') {
+    return jest.fn().mockImplementation(columnFactory);
+  }
+  return columnFactory;
+};
+
+// Mock all pg-core column types
+const mockText = createColumnMock('text');
+const mockVarchar = createColumnMock('varchar');
+const mockInteger = createColumnMock('integer');
+const mockBoolean = createColumnMock('boolean');
+const mockTimestamp = createColumnMock('timestamp');
+const mockDate = createColumnMock('date');
+const mockUuid = createColumnMock('uuid');
+const mockJson = createColumnMock('json');
+
+// Mock sql template function
+const mockSqlFromCore = typeof jest !== 'undefined' ? jest.fn().mockImplementation((strings, ...values) => {
+  if (typeof strings === 'string') {
+    return { sql: strings, params: values };
+  }
+  if (Array.isArray(strings) && strings.raw) {
+    const query = strings.join('?');
+    return { sql: query, params: values };
+  }
+  return { sql: '', params: [] };
+}) : function(strings, ...values) {
+  if (typeof strings === 'string') {
+    return { sql: strings, params: values };
+  }
+  if (Array.isArray(strings) && strings.raw) {
+    const query = strings.join('?');
+    return { sql: query, params: values };
+  }
+  return { sql: '', params: [] };
+};
+
+// Mock relations function
+const mockRelations = typeof jest !== 'undefined' ? jest.fn().mockImplementation((table, relationsFn) => {
+  return {};
+}) : function(table, relationsFn) {
+  return {};
+};
+
+// Mock eq and other operators
+const mockEq = typeof jest !== 'undefined' ? jest.fn().mockImplementation((column, value) => {
+  return { type: 'eq', column, value };
+}) : function(column, value) {
+  return { type: 'eq', column, value };
+};
+
+const mockAnd = typeof jest !== 'undefined' ? jest.fn().mockImplementation((...conditions) => {
+  return { type: 'and', conditions };
+}) : function(...conditions) {
+  return { type: 'and', conditions };
+};
+
+const mockOr = typeof jest !== 'undefined' ? jest.fn().mockImplementation((...conditions) => {
+  return { type: 'or', conditions };
+}) : function(...conditions) {
+  return { type: 'or', conditions };
+};
+
 // Test utilities for data isolation and testing
 const testUtils = {
   clearMockData,
@@ -468,7 +582,28 @@ const exports = {
   
   // Data management
   generateMockId,
-  clearMockData
+  clearMockData,
+  
+  // pg-core exports for schema definitions
+  pgEnum: mockPgEnum,
+  pgTable: mockPgTable,
+  text: mockText,
+  varchar: mockVarchar,
+  integer: mockInteger,
+  boolean: mockBoolean,
+  timestamp: mockTimestamp,
+  date: mockDate,
+  uuid: mockUuid,
+  json: mockJson,
+  
+  // drizzle-orm exports (operators and utilities)
+  eq: mockEq,
+  and: mockAnd,
+  or: mockOr,
+  relations: mockRelations,
+  
+  // Additional sql export for compatibility
+  sqlFromCore: mockSqlFromCore
 };
 
 // Export for CommonJS (required for jest.config.cjs moduleNameMapper)

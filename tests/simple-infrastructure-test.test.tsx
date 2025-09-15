@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { renderWithProviders, createMockUser, cleanupTestUtils } from '@/test-utils';
+import { renderWithProviders, createMockUser, cleanupTestUtils } from '../client/src/test-utils';
 import { screen, waitFor } from '@testing-library/react';
 
 // Simple test component

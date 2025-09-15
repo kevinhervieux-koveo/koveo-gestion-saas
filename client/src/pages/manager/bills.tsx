@@ -1101,7 +1101,7 @@ function BillCard({
 }
 
 // Payment Schedule Display Component
-function PaymentScheduleDisplay({ 
+export function PaymentScheduleDisplay({ 
   payments, 
   bill, 
   onPaymentUpdate 

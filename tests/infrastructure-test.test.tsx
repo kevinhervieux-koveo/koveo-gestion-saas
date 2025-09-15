@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { renderWithProviders, __mockAuthUtils, createMockUser, cleanupTestUtils } from '@/test-utils';
-import { useAuth } from '@/hooks/use-auth';
+import { renderWithProviders, __mockAuthUtils, createMockUser, cleanupTestUtils } from '../client/src/test-utils';
+import { useAuth } from '../client/src/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
 
 // Test component that uses auth and API calls

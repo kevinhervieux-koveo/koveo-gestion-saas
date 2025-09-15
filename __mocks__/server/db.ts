@@ -6,7 +6,7 @@
 // Mock the Neon SQL function with Jest-compatible implementation
 const mockSql = jest.fn().mockImplementation(async (strings: any, ...values: any[]) => {
   // Handle template literal calls
-  if (Array.isArray(strings) && strings.raw) {
+  if (Array.isArray(strings) && 'raw' in strings) {
     const query = strings.join('?').toLowerCase();
     
     // Common database queries with realistic responses
