@@ -4,16 +4,15 @@
  */
 import '@testing-library/jest-dom';
 import { afterEach, beforeAll, afterAll } from '@jest/globals';
-// import { setupServer } from 'msw/node'; // DISABLED: MSW v2 compatibility issue
+
 import { cleanup } from '@testing-library/react';
-// import { handlers } from './tests/mocks/msw-handlers'; // DISABLED: MSW v2 compatibility issue
 
 // =============================================================================
-// MSW SERVER SETUP - TEMPORARILY DISABLED
+// MSW SERVER SETUP - DISABLED DUE TO V2 COMPATIBILITY ISSUES
 // =============================================================================
 
-// MSW v2 compatibility issues - will be re-enabled once fixed
-// export const server = setupServer(...handlers);
+// MSW v2 has complex polyfill requirements for Node.js environment
+// Keeping it disabled for now to focus on core test stabilization
 
 // Mock server object for tests that might reference it
 const mockServer = {
@@ -28,7 +27,7 @@ export const server = mockServer;
 
 // Setup hooks without MSW
 beforeAll(() => {
-  console.log('Test setup: MSW temporarily disabled for compatibility');
+  console.log('✅ Test setup: MSW disabled, focusing on core test fixes');
 });
 
 // Reset state after each test for isolation
@@ -39,7 +38,7 @@ afterEach(() => {
 
 // Cleanup after all tests
 afterAll(() => {
-  console.log('Test cleanup completed');
+  console.log('✅ Test cleanup completed');
 });
 
 // =============================================================================

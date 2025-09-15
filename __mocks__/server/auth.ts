@@ -105,5 +105,60 @@ export const acceptInvitation = jest.fn().mockResolvedValue({
   }
 });
 
+// Mock setupAuthRoutes function for integration tests
+export const setupAuthRoutes = jest.fn().mockImplementation((app: any) => {
+  // Mock login route
+  app.post('/api/auth/login', (req: any, res: any) => {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({
+        message: 'Email and password are required',
+        code: 'MISSING_CREDENTIALS'
+      });
+    }
+    
+    // Mock demo users
+    const demoUsers = {
+      'admin@demo.com': { role: 'admin', password: 'demo123' },
+      'manager@demo.com': { role: 'manager', password: 'demo123' },
+      'tenant@demo.com': { role: 'tenant', password: 'demo123' }
+    };
+    
+    const user = demoUsers[email as keyof typeof demoUsers];
+    if (!user || user.password !== password) {
+      return res.status(401).json({
+        message: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS'
+      });
+    }
+    
+    // Set session
+    req.session = req.session || {};
+    req.session.userId = `user-${email.split('@')[0]}`;
+    req.session.user = { email, role: user.role };
+    
+    res.json({
+      message: 'Login successful',
+      user: { email, role: user.role }
+    });
+  });
+  
+  // Mock user info route
+  app.get('/api/auth/user', (req: any, res: any) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ message: 'Not authenticated' });
+    }
+    
+    res.json(req.session.user);
+  });
+  
+  // Mock logout route
+  app.post('/api/auth/logout', (req: any, res: any) => {
+    req.session = null;
+    res.json({ message: 'Logout successful' });
+  });
+});
+
 // Export default session store for compatibility
 export default sessionStore;

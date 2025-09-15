@@ -97,7 +97,9 @@ function getDatabaseUrl(requestDomain?: string): string {
   const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
   const isProduction = config.server.isProduction || isKoveoRequest;
   
-  console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)'} database: ${finalUrl?.substring(0, 50)}... (domain: ${requestDomain || 'unknown'})`);
+  // Mask the database URL for security - only show connection type and domain
+  const maskedUrl = finalUrl ? `${finalUrl.split('://')[0]}://***@[masked-host]/[masked-db]` : '[no-url]';
+  console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)'} database: ${maskedUrl} (domain: ${requestDomain || 'unknown'})`);
   
   if (!finalUrl) {
     throw new Error('No database URL available for session store');
