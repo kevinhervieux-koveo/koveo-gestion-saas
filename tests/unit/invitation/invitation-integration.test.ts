@@ -1,61 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as schema from '../../../shared/schema';
-import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-// Mock the database operations with proper return structures
-let mockDataStore: any = {
-  organizations: [],
-  users: [],
-  invitations: [],
-  userOrganizations: []
-};
 
-const mockDb = {
-  insert: jest.fn().mockImplementation((table) => ({
-    values: jest.fn().mockImplementation((data) => ({
-      returning: jest.fn().mockImplementation(() => {
-        // Generate mock data based on the input with proper fields
-        const mockId = `mock-${Date.now()}-${Math.random()}`;
-        const mockData = { id: mockId, ...data };
-        
-        // Store in mock store for later queries
-        if (table.name === 'organizations') {
-          mockDataStore.organizations.push(mockData);
-        } else if (table.name === 'invitations') {
-          mockDataStore.invitations.push(mockData);
-        } else if (table.name === 'users') {
-          mockDataStore.users.push(mockData);
-        }
-        
-        return Promise.resolve([mockData]);
-      })
-    }))
-  })),
-  select: jest.fn().mockReturnValue({
-    from: jest.fn().mockReturnValue({
-      where: jest.fn().mockResolvedValue(mockDataStore.invitations || []),
-      leftJoin: jest.fn().mockReturnValue({
-        where: jest.fn().mockResolvedValue(mockDataStore.invitations || [])
-      }),
-      limit: jest.fn().mockResolvedValue(mockDataStore.invitations || [])
-    })
-  }),
-  delete: jest.fn().mockImplementation((table) => ({
-    where: jest.fn().mockResolvedValue(true)
-  })),
-  query: {
-    invitations: {
-      findMany: jest.fn().mockResolvedValue(mockDataStore.invitations),
-    }
-  }
-};
-
-const mockSchema = {
-  organizations: { name: 'organizations' },
-  users: { name: 'users' },
-  userOrganizations: { name: 'userOrganizations' },
-  invitations: { name: 'invitations' },
-};
+// Import centralized enhanced database mock instead of defining local mocks
+const { 
+  mockDb, 
+  testUtils, 
+  mockSchema,
+  eq, and, or, sql 
+} = require('../../../__mocks__/enhanced-database-mock');
 
 describe('Invitation Table Integration Tests', () => {
   let adminUser: any;
@@ -64,13 +17,10 @@ describe('Invitation Table Integration Tests', () => {
   let organization2: any;
 
   beforeEach(async () => {
-    // Reset mock data store and clear all mocks
-    mockDataStore = {
-      organizations: [],
-      users: [],
-      invitations: [],
-      userOrganizations: []
-    };
+    // Reset enhanced mock data store and clear all mocks
+    if (testUtils && testUtils.clearData) {
+      testUtils.clearData();
+    }
     jest.clearAllMocks();
 
     // Create test organizations
@@ -129,13 +79,10 @@ describe('Invitation Table Integration Tests', () => {
   });
 
   afterEach(async () => {
-    // Clean up test data by clearing the mock store
-    mockDataStore = {
-      organizations: [],
-      users: [],
-      invitations: [],
-      userOrganizations: []
-    };
+    // Clean up test data by clearing the enhanced mock store
+    if (testUtils && testUtils.clearData) {
+      testUtils.clearData();
+    }
   });
 
   describe('Invitation Data Validation', () => {

@@ -71,29 +71,212 @@ const neonConfig = {
   fetchConnectionCache: true
 };
 
-// Mock database instance
-const mockDb = {
-  query: mockQuery,
-  insert: mockInsert,
-  update: mockUpdate,
-  delete: mockDelete,
-  select: mockSelect
+// In-memory store for test data  
+const store = {
+  invitations: [],
+  organizations: [],
+  users: [],
+  buildings: [],
+  residences: []
 };
 
-// Mock schema with common tables
+// Enhanced predicate evaluator with support for column-to-column comparisons
+const evaluatePredicate = (item, condition, context = {}) => {
+  if (!condition) return true;
+  
+  if (condition.type === 'eq') {
+    const leftValue = condition.column?.name ? item[condition.column.name] : condition.column;
+    const rightValue = condition.value?.name ? 
+      (context.right && context.right[condition.value.name]) || item[condition.value.name] :
+      condition.value;
+    
+    return leftValue === rightValue;
+  }
+  
+  if (condition.type === 'and') {
+    return condition.conditions.every(cond => evaluatePredicate(item, cond, context));
+  }
+  
+  if (condition.type === 'or') {
+    return condition.conditions.some(cond => evaluatePredicate(item, cond, context));
+  }
+  
+  return true;
+};
+
+// Enhanced mock database with dynamic evaluation
+const mockDb = {
+  query: mockQuery,
+  
+  insert: jest.fn().mockImplementation((table) => ({
+    values: jest.fn().mockImplementation((data) => {
+      const tableName = table?._.name || table?.name;
+      const tableStore = store[tableName] || [];
+      
+      // Handle array of values
+      const items = Array.isArray(data) ? data : [data];
+      
+      items.forEach(item => {
+        // Check unique constraints for invitations
+        if (tableName === 'invitations' && item.token) {
+          const existing = tableStore.find(inv => inv.token === item.token || inv.tokenHash === item.tokenHash);
+          if (existing) {
+            throw new Error('Unique constraint violation: token already exists');
+          }
+        }
+        
+        // Add to store with proper ID generation
+        const newItem = { 
+          id: item.id || `${tableName}_${Date.now()}_${Math.random()}`, 
+          ...item 
+        };
+        
+        // Ensure we're modifying the actual store reference
+        if (!store[tableName]) store[tableName] = [];
+        store[tableName].push(newItem);
+      });
+      
+      return {
+        returning: jest.fn().mockImplementation(() => Promise.resolve(items))
+      };
+    }),
+    returning: jest.fn().mockImplementation(() => Promise.resolve([]))
+  })),
+  
+  update: mockUpdate,
+  
+  delete: jest.fn().mockImplementation((table) => ({
+    where: jest.fn().mockImplementation((condition) => {
+      const tableName = table?._.name || table?.name;
+      const tableStore = store[tableName] || [];
+      
+      const initialLength = tableStore.length;
+      const filtered = tableStore.filter(item => !evaluatePredicate(item, condition));
+      
+      // Update the store
+      store[tableName] = filtered;
+      
+      const deletedCount = initialLength - filtered.length;
+      return Promise.resolve({ affectedRows: deletedCount });
+    })
+  })),
+  
+  select: jest.fn().mockImplementation((projection) => ({
+    from: jest.fn().mockImplementation((table) => {
+      const tableName = table?._.name || table?.name;
+      let dataset = store[tableName] || [];
+      
+      return {
+        where: jest.fn().mockImplementation((condition) => {
+          const filtered = dataset.filter(item => evaluatePredicate(item, condition));
+          
+          return {
+            leftJoin: jest.fn().mockImplementation((joinTable, joinCondition) => {
+              const joinTableName = joinTable?._.name || joinTable?.name;
+              const joinDataset = store[joinTableName] || [];
+              
+              // Enhanced leftJoin with column-to-column support
+              const joined = filtered.map(item => {
+                const match = joinDataset.find(joinItem => 
+                  evaluatePredicate(item, joinCondition, { right: joinItem })
+                );
+                
+                // Apply projection mapping if provided
+                let result = { ...item, ...(match || {}) };
+                if (projection && typeof projection === 'object') {
+                  const projected = {};
+                  Object.keys(projection).forEach(key => {
+                    const column = projection[key];
+                    if (column?.name) {
+                      projected[key] = result[column.name] || (match && match[column.name]);
+                    } else {
+                      projected[key] = result[key];
+                    }
+                  });
+                  result = projected;
+                }
+                
+                return result;
+              });
+              
+              return {
+                where: jest.fn().mockImplementation((cond) => 
+                  Promise.resolve(joined.filter(item => evaluatePredicate(item, cond)))
+                ),
+                execute: jest.fn().mockImplementation(() => Promise.resolve(joined))
+              };
+            }),
+            limit: jest.fn().mockImplementation(() => Promise.resolve(filtered)),
+            orderBy: jest.fn().mockImplementation(() => Promise.resolve(filtered)),
+            execute: jest.fn().mockImplementation(() => Promise.resolve(filtered))
+          };
+        }),
+        leftJoin: jest.fn().mockImplementation(() => Promise.resolve(dataset)),
+        limit: jest.fn().mockImplementation(() => Promise.resolve(dataset)),
+        orderBy: jest.fn().mockImplementation(() => Promise.resolve(dataset)),
+        execute: jest.fn().mockImplementation(() => Promise.resolve(dataset))
+      };
+    })
+  }))
+};
+
+// Mock schema with common tables and column references
 const mockSchema = {
-  organizations: { name: 'organizations' },
-  users: { name: 'users' },
-  userOrganizations: { name: 'userOrganizations' },
-  invitations: { name: 'invitations' },
-  buildings: { name: 'buildings' },
-  residences: { name: 'residences' }
+  organizations: { 
+    name: 'organizations',
+    id: { name: 'id' },
+    name: { name: 'name' },
+    type: { name: 'type' }
+  },
+  users: { 
+    name: 'users',
+    id: { name: 'id' },
+    username: { name: 'username' },
+    email: { name: 'email' }
+  },
+  userOrganizations: { 
+    name: 'userOrganizations',
+    id: { name: 'id' },
+    userId: { name: 'userId' },
+    organizationId: { name: 'organizationId' }
+  },
+  invitations: { 
+    name: 'invitations',
+    id: { name: 'id' },
+    email: { name: 'email' },
+    status: { name: 'status' },
+    token: { name: 'token' },
+    organizationId: { name: 'organizationId' },
+    buildingId: { name: 'buildingId' },
+    residenceId: { name: 'residenceId' },
+    role: { name: 'role' },
+    expiresAt: { name: 'expiresAt' }
+  },
+  buildings: { 
+    name: 'buildings',
+    id: { name: 'id' },
+    name: { name: 'name' }
+  },
+  residences: { 
+    name: 'residences',
+    id: { name: 'id' },
+    unitNumber: { name: 'unitNumber' }
+  }
 };
 
 // Test utilities
 const testUtils = {
   resetMocks: jest.fn(),
-  clearData: jest.fn()
+  clearData: jest.fn().mockImplementation(() => {
+    Object.keys(store).forEach(key => {
+      store[key] = [];
+    });
+  }),
+  seedData: jest.fn().mockImplementation((tableName, data) => {
+    if (!store[tableName]) store[tableName] = [];
+    store[tableName].push(...(Array.isArray(data) ? data : [data]));
+  }),
+  getStore: () => store
 };
 
 // Ensure pg-core functions are available for early import mocking
