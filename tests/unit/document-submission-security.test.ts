@@ -22,6 +22,11 @@ import { execSync } from 'child_process';
 // Mock document security functions
 const mockAuditLog: any[] = [];
 
+// Add cleanup function for test isolation
+const clearAuditLog = () => {
+  mockAuditLog.length = 0;
+};
+
 const logSecurityEvent = jest.fn((event: string, user: any, success: boolean, details?: any) => {
   mockAuditLog.push({
     id: `audit-${Date.now()}-${Math.random()}`,
@@ -122,7 +127,8 @@ const mockUsers = {
 describe('Document Submission Security Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Don't clear audit log for tests that accumulate entries
+    // Clear audit log and rate limiting for proper test isolation
+    clearAuditLog();
     rateLimitStore.clear();
   });
 

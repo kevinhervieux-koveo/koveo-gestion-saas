@@ -1,3 +1,4 @@
+f38d30b07bcef56e53ae5c3d14cb468d
 // Enhanced mock for wouter router with comprehensive hook support
 const React = require('react');
 
@@ -184,20 +185,12 @@ const wouterMock = {
 Object.defineProperty(wouterMock, '__esModule', { value: true });
 wouterMock.default = wouterMock;
 
-// Individual exports for named imports with ES module compatibility
+// Individual exports for named imports
 Object.keys(wouterMock).forEach(key => {
   if (key !== '__esModule' && key !== 'default') {
     module.exports[key] = wouterMock[key];
   }
 });
-
-// Additional explicit exports to fix ES module import issues
-module.exports.useParams = wouterMock.useParams;
-module.exports.useLocation = wouterMock.useLocation;
-module.exports.useRoute = wouterMock.useRoute;
-module.exports.useSearch = wouterMock.useSearch;
-module.exports.useRouter = wouterMock.useRouter;
-module.exports.useNavigate = wouterMock.useNavigate;
 
 // Main export
 module.exports = wouterMock;

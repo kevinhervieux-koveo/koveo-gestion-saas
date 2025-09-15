@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as schema from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { mockDb, testUtils, mockSchema } from '../../mocks/unified-database-mock';
+import { mockDb, testUtils, mockSchema } from '../../../__mocks__/enhanced-database-mock';
 
 describe('Invitation Table Integration Tests', () => {
   let adminUser: any;
