@@ -3,25 +3,19 @@ const config = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   
-  // Performance optimizations
-  testTimeout: 10000, // 10 second timeout per test
-  detectOpenHandles: false, // Disable for performance
-  forceExit: true, // Force exit to prevent hanging
-  maxWorkers: '25%', // Limit workers for better stability
-  
   // Optimized module name mapping - only essential mappings
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
-    '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
+    '^@assets/(.*)$': '<rootDir>/__mocks__/fileMock.js',
     
     // Complete database isolation - prevent any real connections
-    '@neondatabase/serverless': '<rootDir>/tests/mocks/enhanced-database-mock.js',
-    'drizzle-orm/neon-http': '<rootDir>/tests/mocks/enhanced-database-mock.js',
-    'drizzle-orm/neon-serverless': '<rootDir>/tests/mocks/enhanced-database-mock.js',
-    'drizzle-orm/pg-core': '<rootDir>/tests/mocks/enhanced-database-mock.js',
-    'drizzle-orm': '<rootDir>/tests/mocks/enhanced-database-mock.js',
-    'drizzle-zod': '<rootDir>/tests/mocks/enhanced-database-mock.js',
+    '@neondatabase/serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    'drizzle-orm/neon-http': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    'drizzle-orm/neon-serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    'drizzle-orm/pg-core': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    'drizzle-orm': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    'drizzle-zod': '<rootDir>/__mocks__/enhanced-database-mock.js',
     
     // Server module mocks to prevent real imports
     '^../server/db$': '<rootDir>/__mocks__/server/db.ts',
@@ -42,7 +36,7 @@ const config = {
     
     // CSS and assets (simplified)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/tests/mocks/fileMock.js',
+    '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/__mocks__/fileMock.js',
   },
   
   testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
@@ -70,7 +64,7 @@ const config = {
     'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud))'
   ],
   
-  // Optimized performance settings
+  // Performance settings - remove duplicates and optimize
   testTimeout: 25000,
   maxWorkers: 1,
   cache: true,
@@ -87,6 +81,19 @@ const config = {
   // Memory and performance optimizations
   workerIdleMemoryLimit: '256MB',
   errorOnDeprecated: false,
+  
+  // CI/CD Guardrails
+  collectCoverage: process.env.CI === 'true',
+  coverageDirectory: '<rootDir>/coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70
+    }
+  },
   
   // Optimize module resolution
   modulePathIgnorePatterns: [
