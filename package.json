@@ -172,6 +172,7 @@
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.62.0",
     "react-resizable-panels": "^3.0.5",
+    "react-router-dom": "^7.9.1",
     "recharts": "^3.1.2",
     "simple-git": "^3.28.0",
     "tailwind-merge": "^3.3.1",

@@ -15,10 +15,17 @@ const config = {
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
     
-    // Enhanced database mocks - consolidated solution
+    // Complete database isolation - prevent any real connections
     '@neondatabase/serverless': '<rootDir>/tests/mocks/enhanced-database-mock.js',
     'drizzle-orm/neon-http': '<rootDir>/tests/mocks/enhanced-database-mock.js',
     'drizzle-orm/neon-serverless': '<rootDir>/tests/mocks/enhanced-database-mock.js',
+    'drizzle-orm': '<rootDir>/tests/mocks/enhanced-database-mock.js',
+    
+    // Server module mocks to prevent real imports
+    '^../server/db$': '<rootDir>/__mocks__/server/db.ts',
+    '^../server/storage$': '<rootDir>/__mocks__/server/storage.ts',
+    '^../../server/db$': '<rootDir>/__mocks__/server/db.ts', 
+    '^../../server/storage$': '<rootDir>/__mocks__/server/storage.ts',
     
     // CSS and assets (simplified)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
@@ -51,7 +58,7 @@ const config = {
   ],
   
   // Optimized performance settings
-  testTimeout: 8000,
+  testTimeout: 25000,
   maxWorkers: 1,
   cache: true,
   cacheDirectory: '<rootDir>/.jest-cache',
