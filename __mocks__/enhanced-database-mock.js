@@ -279,33 +279,35 @@ const testUtils = {
   getStore: () => store
 };
 
-// Ensure pg-core functions are available for early import mocking
+// Fix exports for proper import compatibility
 module.exports = {
-  // Database instance
+  // Core exports for tests
   mockDb,
   testUtils,
   mockSchema,
   
-  // Database mocks
+  // Query operators
+  eq,
+  and, 
+  or,
+  sql,
+  
+  // Database mocks for module mapping
   drizzle: jest.fn().mockReturnValue(mockDb),
   
-  // Operators
-  eq, and, or, sql,
+  // pg-core functions for schema imports
+  pgEnum,
+  pgTable,
+  text,
+  varchar,
+  boolean,
+  timestamp,
+  integer,
+  uuid,
   
-  // pg-core functions - these must be available for schema imports
-  pgEnum, pgTable, text, varchar, boolean, timestamp, integer, uuid,
-  
-  // Neon serverless
+  // Neon serverless mocks
   Pool: MockPool,
-  neonConfig,
-  
-  // Default export
-  default: {
-    drizzle: jest.fn().mockReturnValue(mockDb),
-    mockDb,
-    testUtils,
-    mockSchema
-  }
+  neonConfig
 };
 
 // Also export as CommonJS for compatibility with module name mapping
