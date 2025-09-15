@@ -679,6 +679,30 @@ jest.mock('bcryptjs', () => ({
 // DATABASE AND ORM MOCKS
 // =============================================================================
 
+// Mock pg-core functions BEFORE drizzle-orm to prevent schema import issues
+jest.mock('drizzle-orm/pg-core', () => ({
+  pgEnum: jest.fn().mockImplementation((name, values) => ({
+    name,
+    enumValues: values,
+    enumName: name
+  })),
+  pgTable: jest.fn().mockImplementation((name, schema) => ({
+    name,
+    ...schema,
+    _: { name, columns: schema }
+  })),
+  text: jest.fn().mockImplementation(() => ({ type: 'text' })),
+  varchar: jest.fn().mockImplementation((length) => ({ type: 'varchar', length })),
+  boolean: jest.fn().mockImplementation(() => ({ type: 'boolean' })),
+  timestamp: jest.fn().mockImplementation(() => ({ type: 'timestamp' })),
+  integer: jest.fn().mockImplementation(() => ({ type: 'integer' })),
+  uuid: jest.fn().mockImplementation(() => ({ type: 'uuid' })),
+  serial: jest.fn().mockImplementation(() => ({ type: 'serial' })),
+  primaryKey: jest.fn().mockImplementation(() => ({ type: 'primaryKey' })),
+  unique: jest.fn().mockImplementation(() => ({ type: 'unique' })),
+  index: jest.fn().mockImplementation(() => ({ type: 'index' })),
+}));
+
 // Mock Drizzle ORM functions first to prevent import issues
 jest.mock('drizzle-orm', () => ({
   eq: jest.fn(() => 'mock-eq-condition'),

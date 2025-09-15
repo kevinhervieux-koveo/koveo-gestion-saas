@@ -34,6 +34,9 @@ const mockDb = {
   select: jest.fn().mockReturnValue({
     from: jest.fn().mockReturnValue({
       where: jest.fn().mockResolvedValue(mockDataStore.invitations || []),
+      leftJoin: jest.fn().mockReturnValue({
+        where: jest.fn().mockResolvedValue(mockDataStore.invitations || [])
+      }),
       limit: jest.fn().mockResolvedValue(mockDataStore.invitations || [])
     })
   }),

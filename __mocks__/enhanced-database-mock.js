@@ -96,6 +96,7 @@ const testUtils = {
   clearData: jest.fn()
 };
 
+// Ensure pg-core functions are available for early import mocking
 module.exports = {
   // Database instance
   mockDb,
@@ -108,7 +109,7 @@ module.exports = {
   // Operators
   eq, and, or, sql,
   
-  // pg-core functions
+  // pg-core functions - these must be available for schema imports
   pgEnum, pgTable, text, varchar, boolean, timestamp, integer, uuid,
   
   // Neon serverless
@@ -123,3 +124,13 @@ module.exports = {
     mockSchema
   }
 };
+
+// Also export as CommonJS for compatibility with module name mapping
+module.exports.pgEnum = pgEnum;
+module.exports.pgTable = pgTable;
+module.exports.text = text;
+module.exports.varchar = varchar;
+module.exports.boolean = boolean;
+module.exports.timestamp = timestamp;
+module.exports.integer = integer;
+module.exports.uuid = uuid;

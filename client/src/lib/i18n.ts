@@ -53,6 +53,8 @@ export interface Translations {
   buildTime: string;
   translationCoverage: string;
   responseTime: string;
+  quebecComplianceDesc: string;
+  quebecDataProtectionDesc: string;
   memoryUsage: string;
   bundleSize: string;
   dbQueryTime: string;
@@ -1094,6 +1096,8 @@ export const translations: Record<Language, Translations> = {
     buildTime: 'Build Time',
     translationCoverage: 'Translation Coverage',
     responseTime: 'Response Time',
+    quebecComplianceDesc: 'Quebec regulatory compliance for property management',
+    quebecDataProtectionDesc: 'Data protection in accordance with Quebec Law 25',
     memoryUsage: 'Memory Usage',
     bundleSize: 'Bundle Size',
     dbQueryTime: 'DB Query Time',
@@ -2126,6 +2130,8 @@ export const translations: Record<Language, Translations> = {
     buildTime: 'Temps de construction',
     translationCoverage: 'Couverture de traduction',
     responseTime: 'Temps de réponse',
+    quebecComplianceDesc: 'Conformité réglementaire du Québec pour la gestion immobilière',
+    quebecDataProtectionDesc: 'Protection des données selon la Loi 25 du Québec',
     memoryUsage: 'Utilisation de la mémoire',
     bundleSize: 'Taille du bundle',
     dbQueryTime: 'Temps de requête DB',
