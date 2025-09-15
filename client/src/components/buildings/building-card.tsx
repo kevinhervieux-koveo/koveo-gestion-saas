@@ -9,7 +9,7 @@ import {
   Users,
   Car,
   Package,
-  Edit3,
+  Edit2,
   Trash2,
   FileText,
 } from 'lucide-react';
@@ -94,7 +94,7 @@ export function BuildingCard({ building, userRole, onEdit, onDelete }: BuildingC
                   className='h-8 w-8 p-0'
                   title='Edit building'
                 >
-                  <Edit3 className='w-4 h-4' />
+                  <Edit2 className='w-4 h-4' />
                 </Button>
                 {userRole === 'admin' && (
                   <Button

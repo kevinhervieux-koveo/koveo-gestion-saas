@@ -39,7 +39,7 @@ import {
   ArrowLeft,
   Sparkles,
   Search,
-  Edit3,
+  Edit2,
   DollarSign,
 } from 'lucide-react';
 import ModularBillForm from '@/components/bill-management/ModularBillForm';
@@ -985,7 +985,7 @@ function BillCard({
                   className="h-8 w-8 p-0"
                   data-testid={`button-edit-bill-${bill.id}`}
                 >
-                  <Edit3 className="h-4 w-4" />
+                  <Edit2 className="h-4 w-4" />
                 </Button>
                 <Badge className={statusColors[bill.status as keyof typeof statusColors]}>
                   {bill.status}
