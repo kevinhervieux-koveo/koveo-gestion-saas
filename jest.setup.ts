@@ -177,6 +177,79 @@ if (typeof Response === 'undefined') {
   thresholds: [],
 }));
 
+// =============================================================================
+// NAVIGATION AND ROUTER MOCKING ENHANCEMENTS
+// =============================================================================
+
+// Enhanced Location object mock that prevents navigation errors
+const createMockLocation = (initialPath = '/', initialSearch = '') => {
+  const mockLocation = {
+    href: `http://localhost:3000${initialPath}${initialSearch}`,
+    origin: 'http://localhost:3000',
+    protocol: 'http:',
+    host: 'localhost:3000',
+    hostname: 'localhost',
+    port: '3000',
+    pathname: initialPath,
+    search: initialSearch,
+    hash: '',
+    assign: jest.fn(),
+    replace: jest.fn(),
+    reload: jest.fn(),
+    toString: jest.fn(() => `http://localhost:3000${initialPath}${initialSearch}`)
+  };
+  
+  return mockLocation;
+};
+
+// Export the mock factory for tests to use
+(global as any).__createMockLocation = createMockLocation;
+
+// Mock History API to prevent JSDOM navigation errors  
+const createMockHistory = () => ({
+  length: 1,
+  state: null,
+  scrollRestoration: 'auto',
+  pushState: jest.fn(),
+  replaceState: jest.fn(),
+  go: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn()
+});
+
+// Only define history if it's not already properly mocked
+if (!window.history || !window.history.pushState || typeof window.history.pushState !== 'function') {
+  Object.defineProperty(window, 'history', {
+    value: createMockHistory(),
+    writable: true,
+    configurable: true
+  });
+}
+
+// Mock navigation API to prevent "Not implemented" errors
+Object.defineProperty(window, 'navigation', {
+  value: {
+    navigate: jest.fn().mockResolvedValue(undefined),
+    reload: jest.fn().mockResolvedValue(undefined),
+    canGoBack: false,
+    canGoForward: false,
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn()
+  },
+  writable: true,
+  configurable: true
+});
+
+// Mock PopStateEvent for navigation events
+(global as any).PopStateEvent = class MockPopStateEvent extends Event {
+  constructor(type: string, eventInitDict?: any) {
+    super(type, eventInitDict);
+    this.state = eventInitDict?.state || null;
+  }
+  state: any;
+};
+
 // Mock matchMedia for responsive design tests
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -233,6 +306,76 @@ Object.defineProperty(window, 'localStorage', {
 // Mock URL.createObjectURL and revokeObjectURL for file handling tests
 global.URL.createObjectURL = jest.fn(() => 'mock-object-url');
 global.URL.revokeObjectURL = jest.fn();
+
+// Enhanced URLSearchParams mock with full functionality
+(global as any).URLSearchParams = class MockURLSearchParams {
+  private params: Map<string, string[]> = new Map();
+
+  constructor(init?: string | string[][] | Record<string, string> | URLSearchParams) {
+    if (typeof init === 'string') {
+      // Parse query string
+      const searchParams = init.startsWith('?') ? init.slice(1) : init;
+      searchParams.split('&').forEach(pair => {
+        if (pair) {
+          const [key, value = ''] = pair.split('=');
+          this.append(decodeURIComponent(key), decodeURIComponent(value));
+        }
+      });
+    } else if (Array.isArray(init)) {
+      init.forEach(([key, value]) => this.append(key, value));
+    } else if (init && typeof init === 'object') {
+      Object.entries(init).forEach(([key, value]) => this.append(key, value));
+    }
+  }
+
+  append(name: string, value: string) {
+    if (!this.params.has(name)) {
+      this.params.set(name, []);
+    }
+    this.params.get(name)!.push(value);
+  }
+
+  delete(name: string) {
+    this.params.delete(name);
+  }
+
+  get(name: string): string | null {
+    const values = this.params.get(name);
+    return values ? values[0] : null;
+  }
+
+  getAll(name: string): string[] {
+    return this.params.get(name) || [];
+  }
+
+  has(name: string): boolean {
+    return this.params.has(name);
+  }
+
+  set(name: string, value: string) {
+    this.params.set(name, [value]);
+  }
+
+  toString(): string {
+    const pairs: string[] = [];
+    for (const [name, values] of this.params) {
+      for (const value of values) {
+        pairs.push(`${encodeURIComponent(name)}=${encodeURIComponent(value)}`);
+      }
+    }
+    return pairs.join('&');
+  }
+
+  [Symbol.iterator]() {
+    const entries: [string, string][] = [];
+    for (const [name, values] of this.params) {
+      for (const value of values) {
+        entries.push([name, value]);
+      }
+    }
+    return entries[Symbol.iterator]();
+  }
+};
 
 // Mock File and FileReader for file upload tests
 (global as any).File = class MockFile {
