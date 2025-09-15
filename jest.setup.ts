@@ -1,22 +1,244 @@
-// Jest setup file - global test configuration
+/**
+ * Jest Global Setup - Enhanced Test Infrastructure
+ * Comprehensive test setup with MSW, polyfills, and optimized mocking
+ */
 import '@testing-library/jest-dom';
+import { afterEach, beforeAll, afterAll } from '@jest/globals';
+import { setupServer } from 'msw/node';
+import { cleanup } from '@testing-library/react';
+import { handlers } from './tests/mocks/msw-handlers';
 
-// Set test environment variables
-process.env.TEST_TYPE = 'unit';
-process.env.USE_MOCK_DB = 'true';
-process.env.NODE_ENV = 'test';
+// =============================================================================
+// MSW SERVER SETUP
+// =============================================================================
+
+// Set up MSW server for API mocking
+export const server = setupServer(...handlers);
+
+// Start server before all tests
+beforeAll(() => {
+  server.listen({
+    onUnhandledRequest: 'warn', // Warn about unhandled requests
+  });
+});
+
+// Reset handlers after each test for isolation
+afterEach(() => {
+  server.resetHandlers();
+  cleanup(); // Clean up React components
+  jest.clearAllMocks(); // Clear all mock call history
+});
+
+// Close server after all tests
+afterAll(() => {
+  server.close();
+});
+
+// =============================================================================
+// ENVIRONMENT CONFIGURATION
+// =============================================================================
+
+// Comprehensive test environment variables
+const testEnvDefaults = {
+  NODE_ENV: 'test',
+  TEST_TYPE: 'unit',
+  USE_MOCK_DB: 'true',
+  DATABASE_URL: 'postgresql://test:test@localhost:5432/test_db',
+  VITE_API_URL: 'http://localhost:5000',
+  VITE_APP_ENV: 'test',
+  SESSION_SECRET: 'test-session-secret-key',
+  SENDGRID_API_KEY: 'test-sendgrid-key',
+  SENDGRID_FROM_EMAIL: 'test@example.com',
+  JWT_SECRET: 'test-jwt-secret',
+  BCRYPT_ROUNDS: '1', // Faster bcrypt for tests
+  UPLOAD_DIR: './test-uploads',
+  MAX_FILE_SIZE: '10485760', // 10MB
+  RATE_LIMIT_MAX: '1000',
+  RATE_LIMIT_WINDOW: '900000',
+};
+
+// Apply test environment defaults
+Object.entries(testEnvDefaults).forEach(([key, value]) => {
+  if (!process.env[key]) {
+    process.env[key] = value;
+  }
+});
+
+// =============================================================================
+// PERFORMANCE AND TIMEOUT CONFIGURATION
+// =============================================================================
 
 // Performance optimizations
 jest.setTimeout(10000); // 10 second timeout per test
 
+// Configure React Query to suppress console errors during tests
+// Note: React Query v5 uses a different approach for logger configuration
+// This will be handled in individual test files as needed
+
+// =============================================================================
+// NODE.JS POLYFILLS FOR TEST ENVIRONMENT
+// =============================================================================
+
 // Add Node.js polyfills for test environment
-global.setImmediate = global.setImmediate || ((fn, ...args) => setTimeout(fn, 0, ...args));
-global.clearImmediate = global.clearImmediate || clearTimeout;
+if (!global.setImmediate) {
+  (global as any).setImmediate = (fn: (...args: any[]) => void, ...args: any[]) => setTimeout(fn, 0, ...args);
+}
+if (!global.clearImmediate) {
+  (global as any).clearImmediate = (id: any) => clearTimeout(id);
+}
 
-// Mock fetch for tests
-global.fetch = jest.fn();
+// Add TextEncoder/TextDecoder polyfills for Node.js environment
+if (typeof TextEncoder === 'undefined') {
+  const { TextEncoder, TextDecoder } = require('util');
+  (global as any).TextEncoder = TextEncoder;
+  (global as any).TextDecoder = TextDecoder;
+}
 
-// Performance: Mock expensive external dependencies
+// Web Streams API polyfills for MSW compatibility
+if (typeof TransformStream === 'undefined') {
+  const { TransformStream } = require('stream/web');
+  (global as any).TransformStream = TransformStream;
+}
+
+if (typeof ReadableStream === 'undefined') {
+  const { ReadableStream } = require('stream/web');
+  (global as any).ReadableStream = ReadableStream;
+}
+
+if (typeof WritableStream === 'undefined') {
+  const { WritableStream } = require('stream/web');
+  (global as any).WritableStream = WritableStream;
+}
+
+// Add BroadcastChannel polyfill for MSW
+if (typeof BroadcastChannel === 'undefined') {
+  (global as any).BroadcastChannel = class {
+    constructor(name: string) {}
+    postMessage(message: any) {}
+    addEventListener(event: string, handler: Function) {}
+    removeEventListener(event: string, handler: Function) {}
+    close() {}
+  };
+}
+
+// =============================================================================
+// BROWSER API POLYFILLS AND MOCKS
+// =============================================================================
+
+// Mock implementations for browser APIs
+(global as any).ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
+(global as any).IntersectionObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+  root: null,
+  rootMargin: '',
+  thresholds: [],
+}));
+
+// Mock matchMedia for responsive design tests
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+
+// Mock scrollTo for navigation tests
+Object.defineProperty(window, 'scrollTo', {
+  writable: true,
+  value: jest.fn(),
+});
+
+// Mock scrollIntoView for element navigation tests
+Element.prototype.scrollIntoView = jest.fn();
+
+// Mock storage APIs
+const createMockStorage = () => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: jest.fn((key: string) => store[key] || null),
+    setItem: jest.fn((key: string, value: string) => {
+      store[key] = String(value);
+    }),
+    removeItem: jest.fn((key: string) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: jest.fn((index: number) => Object.keys(store)[index] || null),
+  };
+};
+
+Object.defineProperty(window, 'sessionStorage', {
+  value: createMockStorage(),
+});
+
+Object.defineProperty(window, 'localStorage', {
+  value: createMockStorage(),
+});
+
+// Mock URL.createObjectURL and revokeObjectURL for file handling tests
+global.URL.createObjectURL = jest.fn(() => 'mock-object-url');
+global.URL.revokeObjectURL = jest.fn();
+
+// Mock File and FileReader for file upload tests
+(global as any).File = class MockFile {
+  constructor(parts: any[], filename: string, properties?: any) {
+    return { parts, filename, ...properties };
+  }
+};
+
+(global as any).FileReader = class MockFileReader {
+  result: any = null;
+  error: any = null;
+  readAsDataURL = jest.fn().mockImplementation(() => {
+    this.onload?.({ target: { result: 'data:text/plain;base64,dGVzdA==' } });
+  });
+  readAsText = jest.fn().mockImplementation(() => {
+    this.onload?.({ target: { result: 'test content' } });
+  });
+  onload: any = null;
+  onerror: any = null;
+};
+
+// =============================================================================
+// EXTERNAL SERVICE MOCKS
+// =============================================================================
+
+// Mock fetch with MSW fallback for non-API requests
+global.fetch = jest.fn().mockImplementation((url: string, options?: any) => {
+  // Let MSW handle /api/ requests
+  if (url.includes('/api/')) {
+    return fetch(url, options);
+  }
+  
+  // Mock other requests
+  return Promise.resolve({
+    ok: true,
+    status: 200,
+    json: async () => ({ success: true, data: [] }),
+    text: async () => '{"success": true, "data": []}'
+  });
+});
+
+// Mock Google AI service
 jest.mock('@google/genai', () => ({
   GoogleGenAI: jest.fn().mockImplementation(() => ({
     getGenerativeModel: jest.fn().mockReturnValue({
@@ -29,7 +251,24 @@ jest.mock('@google/genai', () => ({
   })),
 }));
 
-// Mock drizzle-orm functions FIRST before anything else
+// Mock SendGrid email service
+jest.mock('@sendgrid/mail', () => ({
+  setApiKey: jest.fn(),
+  send: jest.fn().mockResolvedValue([{ statusCode: 202, body: {}, headers: {} }]),
+}));
+
+// Mock bcrypt for faster tests
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn().mockResolvedValue('mock-hashed-password'),
+  compare: jest.fn().mockResolvedValue(true),
+  genSalt: jest.fn().mockResolvedValue('mock-salt'),
+}));
+
+// =============================================================================
+// DATABASE AND ORM MOCKS
+// =============================================================================
+
+// Mock Drizzle ORM functions first to prevent import issues
 jest.mock('drizzle-orm', () => ({
   eq: jest.fn(() => 'mock-eq-condition'),
   and: jest.fn(() => 'mock-and-condition'),
@@ -58,7 +297,97 @@ jest.mock('drizzle-orm', () => ({
   ne: jest.fn(() => 'mock-ne'),
 }));
 
-// Mock server config to prevent runtime errors
+// Mock Neon database serverless
+jest.mock('@neondatabase/serverless', () => {
+  const mockSql = jest.fn().mockImplementation(async (strings, ...values) => {
+    if (strings && strings[0] && strings[0].includes('SELECT version()')) {
+      return [{ version: 'PostgreSQL 15.0 (Mock Version)' }];
+    }
+    return [];
+  });
+
+  Object.assign(mockSql, {
+    query: jest.fn().mockResolvedValue({ rows: [] }),
+    end: jest.fn().mockResolvedValue(undefined),
+    arrayMode: false,
+    fullResults: false,
+  });
+
+  const MockPool = jest.fn().mockImplementation(() => ({
+    query: jest.fn().mockResolvedValue({ rows: [] }),
+    end: jest.fn().mockResolvedValue(undefined),
+    connect: jest.fn().mockResolvedValue(undefined),
+  }));
+
+  const mockNeon = jest.fn().mockImplementation(() => mockSql);
+
+  return {
+    __esModule: true,
+    neon: mockNeon,
+    Pool: MockPool,
+    default: mockNeon,
+  };
+});
+
+// Mock Drizzle database connections
+jest.mock('drizzle-orm/neon-serverless', () => {
+  const { mockDb } = require('./tests/mocks/unified-database-mock');
+  return {
+    __esModule: true,
+    drizzle: jest.fn().mockImplementation(() => mockDb),
+  };
+});
+
+jest.mock('drizzle-orm/neon-http', () => {
+  const { mockDb } = require('./tests/mocks/unified-database-mock');
+  return {
+    __esModule: true,
+    drizzle: jest.fn().mockImplementation(() => mockDb),
+  };
+});
+
+// Mock database modules
+jest.mock('./server/db', () => {
+  const { mockDb } = require('./tests/mocks/unified-database-mock');
+  return {
+    db: mockDb,
+    sql: jest.fn().mockResolvedValue([]),
+    pool: mockDb,
+    default: mockDb
+  };
+});
+
+// Mock Drizzle Zod schemas
+jest.mock('drizzle-zod', () => ({
+  createInsertSchema: jest.fn((table, overrides) => {
+    const mockSchema = {
+      parse: jest.fn((data) => data),
+      safeParse: jest.fn((data) => ({ success: true, data })),
+      omit: jest.fn(() => mockSchema),
+      extend: jest.fn(() => mockSchema),
+      pick: jest.fn(() => mockSchema),
+      partial: jest.fn(() => mockSchema)
+    };
+    return mockSchema;
+  }),
+  createSelectSchema: jest.fn((table, overrides) => {
+    const mockSchema = {
+      parse: jest.fn((data) => data),
+      safeParse: jest.fn((data) => ({ success: true, data })),
+      omit: jest.fn(() => mockSchema),
+      extend: jest.fn(() => mockSchema),
+      pick: jest.fn(() => mockSchema),
+      partial: jest.fn(() => mockSchema)
+    };
+    return mockSchema;
+  })
+}));
+
+// =============================================================================
+// APPLICATION SERVICE MOCKS
+// =============================================================================
+
+// Mock server configuration
 jest.mock('./server/config/index', () => ({
   config: {
     server: {
@@ -110,68 +439,7 @@ jest.mock('./server/config/index', () => ({
   },
 }));
 
-// PRIORITY: Mock Neon serverless BEFORE everything else to prevent import errors
-jest.mock('@neondatabase/serverless', () => {
-  // Create a mock SQL function that can be called as a template literal
-  const mockSql = jest.fn().mockImplementation(async (strings, ...values) => {
-    if (strings && strings[0] && strings[0].includes('SELECT version()')) {
-      return [{ version: 'PostgreSQL 15.0 (Mock Version)' }];
-    }
-    return [];
-  });
-
-  // Add properties that might be accessed
-  Object.assign(mockSql, {
-    query: jest.fn().mockResolvedValue({ rows: [] }),
-    end: jest.fn().mockResolvedValue(undefined),
-    arrayMode: false,
-    fullResults: false,
-  });
-
-  // Mock Pool class
-  const MockPool = jest.fn().mockImplementation(() => ({
-    query: jest.fn().mockResolvedValue({ rows: [] }),
-    end: jest.fn().mockResolvedValue(undefined),
-    connect: jest.fn().mockResolvedValue(undefined),
-  }));
-
-  // Mock neon function that returns the mockSql
-  const mockNeon = jest.fn().mockImplementation(() => mockSql);
-
-  return {
-    __esModule: true,
-    neon: mockNeon,
-    Pool: MockPool,
-    default: mockNeon,
-  };
-});
-
-// Query builder creation is now handled by unified mock
-
-// Query builder creation is now handled by unified mock
-
-// Mock drizzle-orm/neon-serverless for serverless database connections
-jest.mock('drizzle-orm/neon-serverless', () => {
-  const { mockDb } = require('./tests/mocks/unified-database-mock');
-  return {
-    __esModule: true,
-    drizzle: jest.fn().mockImplementation(() => mockDb),
-  };
-});
-
-// Mock the database module completely
-jest.mock('./server/db', () => {
-  const { mockDb } = require('./tests/mocks/unified-database-mock');
-  
-  return {
-    db: mockDb,
-    sql: jest.fn().mockResolvedValue([]),
-    pool: mockDb,
-    default: mockDb
-  };
-});
-
-// Mock server storage completely
+// Mock storage services
 jest.mock('./server/storage', () => ({
   storage: {
     create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
@@ -189,7 +457,6 @@ jest.mock('./server/storage', () => ({
   }
 }));
 
-// Mock optimized DB storage
 jest.mock('./server/optimized-db-storage', () => ({
   optimizedDbStorage: {
     create: jest.fn().mockResolvedValue({ id: 'mock-id' }),
@@ -207,10 +474,7 @@ jest.mock('./server/optimized-db-storage', () => ({
   }
 }));
 
-// Keep shared schema available for tests to import types and schemas
-// All database operations are mocked above
-
-// Mock email service to prevent actual SendGrid calls during tests
+// Mock email service
 jest.mock('./server/services/email-service', () => ({
   emailService: {
     sendEmail: jest.fn().mockResolvedValue(true),
@@ -228,65 +492,16 @@ jest.mock('./server/services/email-service', () => ({
   }))
 }));
 
-// Mock bcrypt to speed up tests and prevent hanging 
-jest.mock('bcryptjs', () => ({
-  hash: jest.fn().mockResolvedValue('mock-hashed-password'),
-  compare: jest.fn().mockResolvedValue(true),
-  genSalt: jest.fn().mockResolvedValue('mock-salt'),
-}));
+// =============================================================================
+// FRONTEND AND REACT MOCKS
+// =============================================================================
 
-// Mock the routes registration to prevent server startup issues
-jest.mock('./server/routes', () => ({
-  registerRoutes: jest.fn().mockImplementation((app) => {
-    // Mock basic routes that tests expect
-    app.get('/api/invitations/validate/:token', (req, res) => {
-      res.json({ 
-        valid: true, 
-        invitation: { 
-          id: 'mock-invite-id', 
-          email: 'test-registration@example.com', 
-          role: 'manager',
-          organizationId: 'mock-org-id',
-          status: 'pending'
-        } 
-      });
-    });
-    
-    app.post('/api/auth/register', (req, res) => {
-      res.json({ 
-        success: true, 
-        user: { 
-          id: 'mock-user-id', 
-          email: req.body.email,
-          username: req.body.username,
-          role: req.body.role || 'manager'
-        } 
-      });
-    });
-    
-    // Other necessary mock routes
-    app.post('/api/auth/login', (req, res) => {
-      res.json({ success: true, user: { id: 'mock-user', email: req.body.email } });
-    });
-    
-    app.post('/api/auth/logout', (req, res) => {
-      res.json({ success: true });
-    });
-    
-    return app;
-  }),
-}));
-
-// Note: wouter mocking is handled in test-utils.tsx Router provider
-
-// Mock language hook and provider with proper React setup
+// Mock React hooks and providers
 jest.mock('@/hooks/use-language', () => {
   const React = require('react');
   
-  // Create a mock function that always returns the expected structure
   const mockUseLanguage = jest.fn().mockReturnValue({
     t: jest.fn((key: string, options?: any) => {
-      // Handle interpolations like t('key', { value: 'test' })
       if (options && typeof options === 'object') {
         let result = key;
         Object.keys(options).forEach(k => {
@@ -307,7 +522,6 @@ jest.mock('@/hooks/use-language', () => {
   };
 });
 
-// Mock auth provider
 jest.mock('@/hooks/use-auth', () => ({
   useAuth: jest.fn(() => ({
     user: { id: '1', username: 'test', role: 'admin' },
@@ -318,7 +532,6 @@ jest.mock('@/hooks/use-auth', () => ({
   AuthProvider: ({ children }: any) => children,
 }));
 
-// Mock mobile menu provider
 jest.mock('@/hooks/use-mobile-menu', () => ({
   useMobileMenu: jest.fn(() => ({
     isOpen: false,
@@ -329,7 +542,7 @@ jest.mock('@/hooks/use-mobile-menu', () => ({
   MobileMenuProvider: ({ children }: any) => children,
 }));
 
-// Mock query client with proper TanStack Query setup
+// Mock React Query client
 jest.mock('@/lib/queryClient', () => {
   const { QueryClient } = require('@tanstack/react-query');
   const mockQueryClient = new QueryClient({
@@ -347,157 +560,12 @@ jest.mock('@/lib/queryClient', () => {
   };
 });
 
-// Remove duplicate Neon mock - already handled above
+// =============================================================================
+// UTILITY FUNCTIONS FOR TESTS
+// =============================================================================
 
-// Mock drizzle-orm/neon-http for HTTP database connections
-jest.mock('drizzle-orm/neon-http', () => {
-  const { mockDb } = require('./tests/mocks/unified-database-mock');
-  return {
-    __esModule: true,
-    drizzle: jest.fn().mockImplementation(() => mockDb),
-  };
-});
-
-// Remove duplicate drizzle-orm mock - already handled above
-
-// Mock drizzle-zod to prevent schema creation issues
-jest.mock('drizzle-zod', () => ({
-  createInsertSchema: jest.fn((table, overrides) => {
-    const mockSchema = {
-      parse: jest.fn((data) => data),
-      safeParse: jest.fn((data) => ({ success: true, data })),
-      omit: jest.fn(() => mockSchema),
-      extend: jest.fn(() => mockSchema),
-      pick: jest.fn(() => mockSchema),
-      partial: jest.fn(() => mockSchema)
-    };
-    return mockSchema;
-  }),
-  createSelectSchema: jest.fn((table, overrides) => {
-    const mockSchema = {
-      parse: jest.fn((data) => data),
-      safeParse: jest.fn((data) => ({ success: true, data })),
-      omit: jest.fn(() => mockSchema),
-      extend: jest.fn(() => mockSchema),
-      pick: jest.fn(() => mockSchema),
-      partial: jest.fn(() => mockSchema)
-    };
-    return mockSchema;
-  })
-}));
-import 'whatwg-fetch';
-
-// Mock fetch for network requests in tests
-global.fetch = jest.fn().mockImplementation((url: string, options?: any) => {
-  // Mock successful API responses
-  if (url.includes('/api/')) {
-    return Promise.resolve({
-      ok: true,
-      status: 200,
-      json: async () => ({ success: true, data: [] }),
-      text: async () => '{"success": true, "data": []}'
-    });
-  }
-  
-  // Default to network request failed for external URLs
-  return Promise.reject(new Error('Network request failed'));
-});
-
-// Add TransformStream polyfill for MSW compatibility
-if (typeof TransformStream === 'undefined') {
-  const { TransformStream } = require('stream/web');
-  (global as any).TransformStream = TransformStream;
-}
-
-// Add ReadableStream polyfill
-if (typeof ReadableStream === 'undefined') {
-  const { ReadableStream } = require('stream/web');
-  (global as any).ReadableStream = ReadableStream;
-}
-
-// Add WritableStream polyfill
-if (typeof WritableStream === 'undefined') {
-  const { WritableStream } = require('stream/web');
-  (global as any).WritableStream = WritableStream;
-}
-
-// Add BroadcastChannel polyfill for MSW
-if (typeof BroadcastChannel === 'undefined') {
-  (global as any).BroadcastChannel = class {
-    constructor(name: string) {}
-    postMessage(message: any) {}
-    addEventListener(event: string, handler: Function) {}
-    removeEventListener(event: string, handler: Function) {}
-    close() {}
-  };
-}
-
-// Mock runQuery function for integration tests
+// Global test utilities
 global.runQuery = jest.fn(() => Promise.resolve([]));
 
-// Database URL is now set in global setup, don't override here
-
-// Mock implementations for browser APIs
-(global as any).ResizeObserver = function () {
-  return {
-    observe: function () {},
-    unobserve: function () {},
-    disconnect: function () {},
-  };
-};
-
-(global as any).IntersectionObserver = function () {
-  return {
-    observe: function () {},
-    unobserve: function () {},
-    disconnect: function () {},
-  };
-};
-
-// Add TextEncoder/TextDecoder polyfills for Node.js environment
-if (typeof TextEncoder === 'undefined') {
-  const { TextEncoder, TextDecoder } = require('util');
-  (global as any).TextEncoder = TextEncoder;
-  (global as any).TextDecoder = TextDecoder;
-}
-
-// Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: function (query: string) {
-    return {
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: function () {}, // deprecated
-      removeListener: function () {}, // deprecated
-      addEventListener: function () {},
-      removeEventListener: function () {},
-      dispatchEvent: function () {},
-    };
-  },
-});
-
-// Mock sessionStorage and localStorage
-const createMockStorage = () => ({
-  getItem: function () {
-    return null;
-  },
-  setItem: function () {},
-  removeItem: function () {},
-  clear: function () {},
-  length: 0,
-  key: function () {
-    return null;
-  },
-});
-
-Object.defineProperty(window, 'sessionStorage', {
-  value: createMockStorage(),
-});
-
-Object.defineProperty(window, 'localStorage', {
-  value: createMockStorage(),
-});
-
-// Console error suppression will be handled by individual test files if needed
+// Import whatwg-fetch for fetch polyfill
+import 'whatwg-fetch';
