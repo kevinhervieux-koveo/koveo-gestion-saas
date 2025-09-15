@@ -1,0 +1,65 @@
+de4582e4d2484f0c3ef4b8c6ff93673c
+"use strict";
+/**
+ * Koveo Gestion Database Schema.
+ *
+ * This is the main schema file that re-exports all domain-specific schemas.
+ * The schemas are organized by domain for better maintainability:
+ *
+ * - core: Users, organizations, invitations, and authentication
+ * - property: Buildings, residences, and user-residence relationships
+ * - financial: Bills, budgets, and financial management
+ * - operations: Maintenance requests and notifications
+ * - documents: Document management and file storage
+ * - development: Features, improvement suggestions, and development tracking
+ * - monitoring: Quality metrics, predictions, and AI monitoring.
+ */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sessions = exports.sslCertificates = exports.improvementSuggestions = exports.actionableItems = exports.features = exports.frameworkConfiguration = exports.qualityMetrics = exports.workspaceStatus = exports.developmentPillars = exports.documents = exports.demandComments = exports.demands = exports.notifications = exports.maintenanceRequests = exports.featureRequestUpvotes = exports.featureRequests = exports.bugs = void 0;
+// Re-export all enums, schemas, and validation schemas
+__exportStar(require("./schemas/core"), exports);
+__exportStar(require("./schemas/property"), exports);
+__exportStar(require("./schemas/financial"), exports);
+__exportStar(require("./schemas/operations"), exports);
+__exportStar(require("./schemas/documents"), exports);
+__exportStar(require("./schemas/invoices"), exports);
+__exportStar(require("./schemas/development"), exports);
+__exportStar(require("./schemas/monitoring"), exports);
+__exportStar(require("./schemas/infrastructure"), exports);
+// Export tables for use in storage and API layers
+var operations_1 = require("./schemas/operations");
+Object.defineProperty(exports, "bugs", { enumerable: true, get: function () { return operations_1.bugs; } });
+Object.defineProperty(exports, "featureRequests", { enumerable: true, get: function () { return operations_1.featureRequests; } });
+Object.defineProperty(exports, "featureRequestUpvotes", { enumerable: true, get: function () { return operations_1.featureRequestUpvotes; } });
+Object.defineProperty(exports, "maintenanceRequests", { enumerable: true, get: function () { return operations_1.maintenanceRequests; } });
+Object.defineProperty(exports, "notifications", { enumerable: true, get: function () { return operations_1.notifications; } });
+Object.defineProperty(exports, "demands", { enumerable: true, get: function () { return operations_1.demands; } });
+Object.defineProperty(exports, "demandComments", { enumerable: true, get: function () { return operations_1.demandComments; } });
+var documents_1 = require("./schemas/documents");
+Object.defineProperty(exports, "documents", { enumerable: true, get: function () { return documents_1.documents; } });
+var development_1 = require("./schemas/development");
+Object.defineProperty(exports, "developmentPillars", { enumerable: true, get: function () { return development_1.developmentPillars; } });
+Object.defineProperty(exports, "workspaceStatus", { enumerable: true, get: function () { return development_1.workspaceStatus; } });
+Object.defineProperty(exports, "qualityMetrics", { enumerable: true, get: function () { return development_1.qualityMetrics; } });
+Object.defineProperty(exports, "frameworkConfiguration", { enumerable: true, get: function () { return development_1.frameworkConfiguration; } });
+Object.defineProperty(exports, "features", { enumerable: true, get: function () { return development_1.features; } });
+Object.defineProperty(exports, "actionableItems", { enumerable: true, get: function () { return development_1.actionableItems; } });
+Object.defineProperty(exports, "improvementSuggestions", { enumerable: true, get: function () { return development_1.improvementSuggestions; } });
+var infrastructure_1 = require("./schemas/infrastructure");
+Object.defineProperty(exports, "sslCertificates", { enumerable: true, get: function () { return infrastructure_1.sslCertificates; } });
+Object.defineProperty(exports, "sessions", { enumerable: true, get: function () { return infrastructure_1.sessions; } });
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9zaGFyZWQvc2NoZW1hLnRzIiwibWFwcGluZ3MiOiI7QUFBQTs7Ozs7Ozs7Ozs7OztHQWFHOzs7Ozs7Ozs7Ozs7Ozs7OztBQUVILHVEQUF1RDtBQUN2RCxpREFBK0I7QUFDL0IscURBQW1DO0FBQ25DLHNEQUFvQztBQUNwQyx1REFBcUM7QUFDckMsc0RBQW9DO0FBQ3BDLHFEQUFtQztBQUNuQyx3REFBc0M7QUFDdEMsdURBQXFDO0FBQ3JDLDJEQUF5QztBQXFHekMsa0RBQWtEO0FBQ2xELG1EQVE4QjtBQVA1QixrR0FBQSxJQUFJLE9BQUE7QUFDSiw2R0FBQSxlQUFlLE9BQUE7QUFDZixtSEFBQSxxQkFBcUIsT0FBQTtBQUNyQixpSEFBQSxtQkFBbUIsT0FBQTtBQUNuQiwyR0FBQSxhQUFhLE9BQUE7QUFDYixxR0FBQSxPQUFPLE9BQUE7QUFDUCw0R0FBQSxjQUFjLE9BQUE7QUFFaEIsaURBRTZCO0FBRDNCLHNHQUFBLFNBQVMsT0FBQTtBQUVYLHFEQVErQjtBQVA3QixpSEFBQSxrQkFBa0IsT0FBQTtBQUNsQiw4R0FBQSxlQUFlLE9BQUE7QUFDZiw2R0FBQSxjQUFjLE9BQUE7QUFDZCxxSEFBQSxzQkFBc0IsT0FBQTtBQUN0Qix1R0FBQSxRQUFRLE9BQUE7QUFDUiw4R0FBQSxlQUFlLE9BQUE7QUFDZixxSEFBQSxzQkFBc0IsT0FBQTtBQUV4QiwyREFHa0M7QUFGaEMsaUhBQUEsZUFBZSxPQUFBO0FBQ2YsMEdBQUEsUUFBUSxPQUFBIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9ob21lL3J1bm5lci93b3Jrc3BhY2Uvc2hhcmVkL3NjaGVtYS50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIEtvdmVvIEdlc3Rpb24gRGF0YWJhc2UgU2NoZW1hLlxuICpcbiAqIFRoaXMgaXMgdGhlIG1haW4gc2NoZW1hIGZpbGUgdGhhdCByZS1leHBvcnRzIGFsbCBkb21haW4tc3BlY2lmaWMgc2NoZW1hcy5cbiAqIFRoZSBzY2hlbWFzIGFyZSBvcmdhbml6ZWQgYnkgZG9tYWluIGZvciBiZXR0ZXIgbWFpbnRhaW5hYmlsaXR5OlxuICpcbiAqIC0gY29yZTogVXNlcnMsIG9yZ2FuaXphdGlvbnMsIGludml0YXRpb25zLCBhbmQgYXV0aGVudGljYXRpb25cbiAqIC0gcHJvcGVydHk6IEJ1aWxkaW5ncywgcmVzaWRlbmNlcywgYW5kIHVzZXItcmVzaWRlbmNlIHJlbGF0aW9uc2hpcHNcbiAqIC0gZmluYW5jaWFsOiBCaWxscywgYnVkZ2V0cywgYW5kIGZpbmFuY2lhbCBtYW5hZ2VtZW50XG4gKiAtIG9wZXJhdGlvbnM6IE1haW50ZW5hbmNlIHJlcXVlc3RzIGFuZCBub3RpZmljYXRpb25zXG4gKiAtIGRvY3VtZW50czogRG9jdW1lbnQgbWFuYWdlbWVudCBhbmQgZmlsZSBzdG9yYWdlXG4gKiAtIGRldmVsb3BtZW50OiBGZWF0dXJlcywgaW1wcm92ZW1lbnQgc3VnZ2VzdGlvbnMsIGFuZCBkZXZlbG9wbWVudCB0cmFja2luZ1xuICogLSBtb25pdG9yaW5nOiBRdWFsaXR5IG1ldHJpY3MsIHByZWRpY3Rpb25zLCBhbmQgQUkgbW9uaXRvcmluZy5cbiAqL1xuXG4vLyBSZS1leHBvcnQgYWxsIGVudW1zLCBzY2hlbWFzLCBhbmQgdmFsaWRhdGlvbiBzY2hlbWFzXG5leHBvcnQgKiBmcm9tICcuL3NjaGVtYXMvY29yZSc7XG5leHBvcnQgKiBmcm9tICcuL3NjaGVtYXMvcHJvcGVydHknO1xuZXhwb3J0ICogZnJvbSAnLi9zY2hlbWFzL2ZpbmFuY2lhbCc7XG5leHBvcnQgKiBmcm9tICcuL3NjaGVtYXMvb3BlcmF0aW9ucyc7XG5leHBvcnQgKiBmcm9tICcuL3NjaGVtYXMvZG9jdW1lbnRzJztcbmV4cG9ydCAqIGZyb20gJy4vc2NoZW1hcy9pbnZvaWNlcyc7XG5leHBvcnQgKiBmcm9tICcuL3NjaGVtYXMvZGV2ZWxvcG1lbnQnO1xuZXhwb3J0ICogZnJvbSAnLi9zY2hlbWFzL21vbml0b3JpbmcnO1xuZXhwb3J0ICogZnJvbSAnLi9zY2hlbWFzL2luZnJhc3RydWN0dXJlJztcblxuLy8gRm9yIGJhY2t3YXJkIGNvbXBhdGliaWxpdHksIHdlIGFsc28gZXhwb3J0IGNvbW1vbmx5IHVzZWQgdGFibGVzIGFuZCB0eXBlc1xuLy8gVGhlc2UgYXJlIHRoZSBtb3N0IGZyZXF1ZW50bHkgaW1wb3J0ZWQgaXRlbXMgYWNyb3NzIHRoZSBjb2RlYmFzZVxuZXhwb3J0IHR5cGUge1xuICBVc2VyLFxuICBVc2VyV2l0aEFzc2lnbm1lbnRzLFxuICBJbnNlcnRVc2VyLFxuICBPcmdhbml6YXRpb24sXG4gIEluc2VydE9yZ2FuaXphdGlvbixcbiAgUGVybWlzc2lvbixcbiAgSW5zZXJ0UGVybWlzc2lvbixcbiAgUm9sZVBlcm1pc3Npb24sXG4gIEluc2VydFJvbGVQZXJtaXNzaW9uLFxuICBVc2VyUGVybWlzc2lvbixcbiAgSW5zZXJ0VXNlclBlcm1pc3Npb24sXG4gIEludml0YXRpb24sXG4gIEluc2VydEludml0YXRpb24sXG4gIFBhc3N3b3JkUmVzZXRUb2tlbixcbiAgSW5zZXJ0UGFzc3dvcmRSZXNldFRva2VuLFxuICBJbnZpdGF0aW9uQXVkaXRMb2csXG4gIEluc2VydEludml0YXRpb25BdWRpdExvZyxcbn0gZnJvbSAnLi9zY2hlbWFzL2NvcmUnO1xuXG5leHBvcnQgdHlwZSB7XG4gIEJ1aWxkaW5nLFxuICBJbnNlcnRCdWlsZGluZyxcbiAgUmVzaWRlbmNlLFxuICBJbnNlcnRSZXNpZGVuY2UsXG4gIFVzZXJSZXNpZGVuY2UsXG4gIEluc2VydFVzZXJSZXNpZGVuY2UsXG4gIENvbnRhY3QsXG4gIEluc2VydENvbnRhY3QsXG4gIENvbW1vblNwYWNlLFxuICBJbnNlcnRDb21tb25TcGFjZSxcbiAgQm9va2luZyxcbiAgSW5zZXJ0Qm9va2luZyxcbiAgVXNlckJvb2tpbmdSZXN0cmljdGlvbixcbiAgSW5zZXJ0VXNlckJvb2tpbmdSZXN0cmljdGlvbixcbn0gZnJvbSAnLi9zY2hlbWFzL3Byb3BlcnR5JztcblxuZXhwb3J0IHR5cGUge1xuICBCaWxsLFxuICBJbnNlcnRCaWxsLFxuICBCdWRnZXQsXG4gIEluc2VydEJ1ZGdldCxcbiAgTW9udGhseUJ1ZGdldCxcbiAgSW5zZXJ0TW9udGhseUJ1ZGdldCxcbn0gZnJvbSAnLi9zY2hlbWFzL2ZpbmFuY2lhbCc7XG5cbmV4cG9ydCB0eXBlIHtcbiAgTWFpbnRlbmFuY2VSZXF1ZXN0LFxuICBJbnNlcnRNYWludGVuYW5jZVJlcXVlc3QsXG4gIE5vdGlmaWNhdGlvbixcbiAgSW5zZXJ0Tm90aWZpY2F0aW9uLFxuICBCdWcsXG4gIEluc2VydEJ1ZyxcbiAgRmVhdHVyZVJlcXVlc3QsXG4gIEluc2VydEZlYXR1cmVSZXF1ZXN0LFxuICBGZWF0dXJlUmVxdWVzdFVwdm90ZSxcbiAgSW5zZXJ0RmVhdHVyZVJlcXVlc3RVcHZvdGUsXG59IGZyb20gJy4vc2NoZW1hcy9vcGVyYXRpb25zJztcblxuZXhwb3J0IHR5cGUge1xuICBEb2N1bWVudCxcbiAgSW5zZXJ0RG9jdW1lbnQsXG59IGZyb20gJy4vc2NoZW1hcy9kb2N1bWVudHMnO1xuXG5leHBvcnQgdHlwZSB7XG4gIEludm9pY2UsXG4gIEluc2VydEludm9pY2UsXG4gIEludm9pY2VGb3JtRGF0YSxcbiAgQWlFeHRyYWN0aW9uUmVzcG9uc2UsXG59IGZyb20gJy4vc2NoZW1hcy9pbnZvaWNlcyc7XG5cbmV4cG9ydCB0eXBlIHtcbiAgRmVhdHVyZSxcbiAgSW5zZXJ0RmVhdHVyZSxcbiAgQWN0aW9uYWJsZUl0ZW0sXG4gIEluc2VydEFjdGlvbmFibGVJdGVtLFxuICBJbXByb3ZlbWVudFN1Z2dlc3Rpb24sXG4gIEluc2VydEltcHJvdmVtZW50U3VnZ2VzdGlvbixcbiAgUGlsbGFyLFxuICBJbnNlcnRQaWxsYXIsXG4gIFdvcmtzcGFjZVN0YXR1cyxcbiAgSW5zZXJ0V29ya3NwYWNlU3RhdHVzLFxuICBRdWFsaXR5TWV0cmljLFxuICBJbnNlcnRRdWFsaXR5TWV0cmljLFxuICBGcmFtZXdvcmtDb25maWd1cmF0aW9uLFxuICBJbnNlcnRGcmFtZXdvcmtDb25maWd1cmF0aW9uLFxufSBmcm9tICcuL3NjaGVtYXMvZGV2ZWxvcG1lbnQnO1xuXG5leHBvcnQgdHlwZSB7XG4gIFF1YWxpdHlJc3N1ZSxcbiAgSW5zZXJ0UXVhbGl0eUlzc3VlLFxuICBNZXRyaWNQcmVkaWN0aW9uLFxuICBJbnNlcnRNZXRyaWNQcmVkaWN0aW9uLFxufSBmcm9tICcuL3NjaGVtYXMvbW9uaXRvcmluZyc7XG5cbmV4cG9ydCB0eXBlIHsgU3NsQ2VydGlmaWNhdGUsIEluc2VydFNzbENlcnRpZmljYXRlLCBTZXNzaW9uLCBJbnNlcnRTZXNzaW9uIH0gZnJvbSAnLi9zY2hlbWFzL2luZnJhc3RydWN0dXJlJztcblxuLy8gRXhwb3J0IHRhYmxlcyBmb3IgdXNlIGluIHN0b3JhZ2UgYW5kIEFQSSBsYXllcnNcbmV4cG9ydCB7XG4gIGJ1Z3MsXG4gIGZlYXR1cmVSZXF1ZXN0cyxcbiAgZmVhdHVyZVJlcXVlc3RVcHZvdGVzLFxuICBtYWludGVuYW5jZVJlcXVlc3RzLFxuICBub3RpZmljYXRpb25zLFxuICBkZW1hbmRzLFxuICBkZW1hbmRDb21tZW50cyxcbn0gZnJvbSAnLi9zY2hlbWFzL29wZXJhdGlvbnMnO1xuZXhwb3J0IHtcbiAgZG9jdW1lbnRzLFxufSBmcm9tICcuL3NjaGVtYXMvZG9jdW1lbnRzJztcbmV4cG9ydCB7XG4gIGRldmVsb3BtZW50UGlsbGFycyxcbiAgd29ya3NwYWNlU3RhdHVzLFxuICBxdWFsaXR5TWV0cmljcyxcbiAgZnJhbWV3b3JrQ29uZmlndXJhdGlvbixcbiAgZmVhdHVyZXMsXG4gIGFjdGlvbmFibGVJdGVtcyxcbiAgaW1wcm92ZW1lbnRTdWdnZXN0aW9ucyxcbn0gZnJvbSAnLi9zY2hlbWFzL2RldmVsb3BtZW50JztcbmV4cG9ydCB7XG4gIHNzbENlcnRpZmljYXRlcyxcbiAgc2Vzc2lvbnMsXG59IGZyb20gJy4vc2NoZW1hcy9pbmZyYXN0cnVjdHVyZSc7XG4iXSwidmVyc2lvbiI6M30=

@@ -68,9 +68,9 @@ const config = {
     'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud|react-router-dom))'
   ],
   
-  // Performance settings - remove duplicates and optimize
-  testTimeout: 25000,
-  maxWorkers: 1,
+  // Performance settings - optimized for large test suites
+  testTimeout: 15000,
+  maxWorkers: 3,
   cache: true,
   cacheDirectory: '<rootDir>/.jest-cache',
   detectOpenHandles: false,
@@ -81,6 +81,7 @@ const config = {
   resetModules: false,
   verbose: false,
   passWithNoTests: false,
+  bail: false,
   
   // Memory and performance optimizations
   workerIdleMemoryLimit: '256MB',
