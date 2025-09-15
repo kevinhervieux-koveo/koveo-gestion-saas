@@ -1,5 +1,9 @@
 // Enhanced database mock for complete drizzle-orm isolation
-const { jest } = require('@jest/globals');
+// Use global jest instead of importing it
+const jest = global.jest || {
+  fn: (impl) => impl || (() => {}),
+  clearAllMocks: () => {},
+};
 
 // Mock all drizzle-orm functions
 const mockQuery = jest.fn().mockResolvedValue([]);
@@ -67,15 +71,39 @@ const neonConfig = {
   fetchConnectionCache: true
 };
 
+// Mock database instance
+const mockDb = {
+  query: mockQuery,
+  insert: mockInsert,
+  update: mockUpdate,
+  delete: mockDelete,
+  select: mockSelect
+};
+
+// Mock schema with common tables
+const mockSchema = {
+  organizations: { name: 'organizations' },
+  users: { name: 'users' },
+  userOrganizations: { name: 'userOrganizations' },
+  invitations: { name: 'invitations' },
+  buildings: { name: 'buildings' },
+  residences: { name: 'residences' }
+};
+
+// Test utilities
+const testUtils = {
+  resetMocks: jest.fn(),
+  clearData: jest.fn()
+};
+
 module.exports = {
+  // Database instance
+  mockDb,
+  testUtils,
+  mockSchema,
+  
   // Database mocks
-  drizzle: jest.fn().mockReturnValue({
-    query: mockQuery,
-    insert: mockInsert,
-    update: mockUpdate,
-    delete: mockDelete,
-    select: mockSelect
-  }),
+  drizzle: jest.fn().mockReturnValue(mockDb),
   
   // Operators
   eq, and, or, sql,
@@ -89,12 +117,9 @@ module.exports = {
   
   // Default export
   default: {
-    drizzle: jest.fn().mockReturnValue({
-      query: mockQuery,
-      insert: mockInsert,
-      update: mockUpdate,
-      delete: mockDelete,
-      select: mockSelect
-    })
+    drizzle: jest.fn().mockReturnValue(mockDb),
+    mockDb,
+    testUtils,
+    mockSchema
   }
 };
