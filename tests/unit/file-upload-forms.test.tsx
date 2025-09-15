@@ -22,11 +22,10 @@ import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { render } from '../utils/test-utils';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
+import React, { useState } from 'react';
 
 // Import components for testing
-import BugReports from '../../client/src/pages/settings/bug-reports';
-import IdeaBox from '../../client/src/pages/settings/idea-box';
+import { SharedUploader } from '../../client/src/components/document-management/SharedUploader';
 import DemandDetailsPopup from '../../client/src/components/demands/demand-details-popup';
 import ModularBillForm from '../../client/src/components/bill-management/ModularBillForm';
 import ModularBuildingDocuments from '../../client/src/pages/manager/ModularBuildingDocuments';
@@ -58,6 +57,23 @@ const mockAuth = {
 
 jest.mock('@/hooks/use-auth', () => ({
   useAuth: () => mockAuth,
+}));
+
+// Mock language hook
+jest.mock('@/hooks/use-language', () => ({
+  useLanguage: () => ({
+    language: 'en',
+    t: (key: string) => key,
+    setLanguage: jest.fn(),
+  }),
+}));
+
+// Mock mobile menu hook
+jest.mock('@/hooks/use-mobile-menu', () => ({
+  useMobileMenu: () => ({
+    isOpen: false,
+    setIsOpen: jest.fn(),
+  }),
 }));
 
 // Mock toast hook
@@ -100,109 +116,84 @@ describe('File Upload Forms Test Suite', () => {
   });
 
   describe('Bug Report Form with File Attachments', () => {
-    // Mock the component to prevent import issues
-    const BugReportForm = () => (
-      <div data-testid="bug-report-form">
-        <button data-testid="button-report-bug">Report Bug</button>
-        <div style={{ display: 'none' }}>
-          <input type="text" placeholder="Bug title" />
-          <textarea placeholder="Bug description" />
-          <input type="text" placeholder="Page location" />
-          <button>Attach Files</button>
-          <button data-testid="button-submit-bug">Submit Bug</button>
+    // Test the actual SharedUploader component
+    const TestFileUploadForm = ({ onDocumentChange = jest.fn(), maxFiles = 5 }: { onDocumentChange?: jest.MockedFunction<any>, maxFiles?: number }) => {
+      const [files, setFiles] = useState<File[]>([]);
+      const [error, setError] = useState<string | null>(null);
+      
+      const handleFileChange = (file: File | null, text: string | null) => {
+        if (file) {
+          if (files.length >= maxFiles) {
+            setError(`Maximum ${maxFiles} files allowed`);
+            return;
+          }
+          setFiles(prev => [...prev, file]);
+          setError(null);
+        }
+        onDocumentChange(file, text);
+      };
+      
+      return (
+        <div data-testid="test-file-upload-form">
+          <SharedUploader
+            onDocumentChange={handleFileChange}
+            allowedFileTypes={['image/*', 'application/pdf']}
+            maxFileSize={10}
+            data-testid="shared-uploader"
+          />
+          {error && <div data-testid="error-message">{error}</div>}
+          <div data-testid="file-count">{files.length} files selected</div>
         </div>
-      </div>
-    );
+      );
+    };
 
     beforeEach(() => {
       // Reset mocks for this test suite
       jest.clearAllMocks();
     });
 
-    it('should render bug report form with file upload capability', async () => {
-      render(
-        <>
-          <BugReportForm />
-        </>
-      );
+    it('should render file upload form with upload capability', async () => {
+      render(<TestFileUploadForm />);
 
-      // Check for bug report button
-      const reportButton = screen.queryByTestId('button-report-bug') || 
-                          screen.queryByText(/report bug/i);
+      // Check that SharedUploader renders
+      const uploadForm = screen.getByTestId('test-file-upload-form');
+      expect(uploadForm).toBeInTheDocument();
       
-      if (reportButton) {
-        await userEvent.click(reportButton);
-
-        // Look for file upload components
-        const attachButton = screen.queryByText(/attach files/i) ||
-                            screen.queryByText(/screenshots/i) ||
-                            screen.queryByRole('button', { name: /attach/i });
-        
-        expect(attachButton).toBeTruthy();
-      }
+      // Should show initial file count
+      const fileCount = screen.getByTestId('file-count');
+      expect(fileCount).toHaveTextContent('0 files selected');
     });
 
-    it('should handle single file attachment to bug reports', async () => {
-      render(
-        <>
-          <BugReportForm />
-        </>
-      );
-
-      const reportButton = screen.queryByTestId('button-report-bug') || 
-                          screen.queryByText(/report bug/i);
+    it('should handle single file attachment', async () => {
+      const mockOnDocumentChange = jest.fn();
       
-      if (reportButton) {
-        await userEvent.click(reportButton);
+      render(<TestFileUploadForm onDocumentChange={mockOnDocumentChange} />);
 
-        // Fill required fields
-        const titleInput = screen.queryByLabelText(/title/i) || 
-                          screen.queryByPlaceholderText(/title/i);
-        const descriptionInput = screen.queryByLabelText(/description/i) ||
-                                screen.queryByPlaceholderText(/description/i);
-        const pageInput = screen.queryByLabelText(/page/i) ||
-                         screen.queryByPlaceholderText(/page/i);
+      // Find file input element
+      const fileInput = screen.getByRole('button', { name: /upload/i }) || 
+                       screen.getByText(/choose file/i) ||
+                       document.querySelector('input[type="file"]');
+      
+      expect(fileInput).toBeTruthy();
 
-        if (titleInput && descriptionInput && pageInput) {
-          await userEvent.type(titleInput, 'Test Bug Report with File');
-          await userEvent.type(descriptionInput, 'This is a test bug report with file attachment for testing purposes.');
-          await userEvent.type(pageInput, 'Test Page');
+      if (fileInput) {
+        const mockFile = createMockImage('screenshot.png');
+        
+        // Simulate file selection
+        Object.defineProperty(fileInput, 'files', {
+          value: [mockFile],
+          writable: false,
+        });
 
-          // Try to find and interact with file upload
-          const fileInput = screen.queryByRole('button', { name: /attach/i }) ||
-                           screen.queryByText(/attach files/i);
+        fireEvent.change(fileInput, { target: { files: [mockFile] } });
 
-          if (fileInput) {
-            const mockFile = createMockImage('screenshot.png');
-            
-            // Simulate file selection
-            Object.defineProperty(fileInput, 'files', {
-              value: [mockFile],
-              writable: false,
-            });
-
-            fireEvent.change(fileInput, { target: { files: [mockFile] } });
-
-            // Submit form
-            const submitButton = screen.queryByTestId('button-submit-bug') ||
-                               screen.queryByRole('button', { name: /submit/i });
-            
-            if (submitButton) {
-              await userEvent.click(submitButton);
-
-              await waitFor(() => {
-                expect(mockFetch).toHaveBeenCalledWith(
-                  '/api/bugs',
-                  expect.objectContaining({
-                    method: 'POST',
-                    body: expect.any(FormData),
-                    credentials: 'include',
-                  })
-                );
-              });
-            }
-          }
-        }
+        await waitFor(() => {
+          expect(mockOnDocumentChange).toHaveBeenCalledWith(mockFile, null);
+        });
+        
+        // Check file count updated
+        const fileCount = screen.getByTestId('file-count');
+        expect(fileCount).toHaveTextContent('1 files selected');
       }
     });
 
@@ -269,137 +260,86 @@ describe('File Upload Forms Test Suite', () => {
       }
     });
 
-    it('should validate file size limits for bug report attachments', async () => {
-      render(
-        <>
-          <BugReportForm />
-        </>
-      );
+    it('should validate file size limits', async () => {
+      render(<TestFileUploadForm />);
 
-      const reportButton = screen.queryByTestId('button-report-bug') || 
-                          screen.queryByText(/report bug/i);
+      // Find file input - try multiple approaches
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       
-      if (reportButton) {
-        await userEvent.click(reportButton);
+      expect(fileInput).toBeTruthy();
 
-        const fileInput = screen.queryByRole('button', { name: /attach/i });
+      if (fileInput) {
+        // Create oversized file (50MB - larger than 10MB limit)
+        const oversizedFile = createMockImage('huge-file.png', 50 * 1024 * 1024);
 
-        if (fileInput) {
-          // Create oversized file (50MB)
-          const oversizedFile = createMockImage('huge-file.png', 50 * 1024 * 1024);
+        Object.defineProperty(fileInput, 'files', {
+          value: [oversizedFile],
+          writable: false,
+        });
 
-          Object.defineProperty(fileInput, 'files', {
-            value: [oversizedFile],
-            writable: false,
-          });
+        fireEvent.change(fileInput, { target: { files: [oversizedFile] } });
 
-          fireEvent.change(fileInput, { target: { files: [oversizedFile] } });
-
-          // Should show error message for oversized file
-          await waitFor(() => {
-            const errorMessage = screen.queryByText(/file.*too large/i) ||
-                                screen.queryByText(/size.*exceeded/i) ||
-                                screen.queryByText(/maximum.*size/i);
-            
-            if (errorMessage) {
-              expect(errorMessage).toBeTruthy();
-            }
-          });
-        }
+        // Should show error message for oversized file
+        await waitFor(() => {
+          const errorMessage = screen.queryByText(/file size exceeds/i) ||
+                              screen.queryByText(/exceeds.*limit/i);
+          
+          expect(errorMessage).toBeInTheDocument();
+        }, { timeout: 3000 });
       }
     });
   });
 
   describe('Feature Request Form with File Attachments', () => {
-    // Mock the component to prevent import issues
-    const FeatureRequestForm = () => (
+    // Test the SharedUploader component in feature request context
+    const TestFeatureRequestForm = ({ onDocumentChange = jest.fn() }: { onDocumentChange?: jest.MockedFunction<any> }) => (
       <div data-testid="feature-request-form">
-        <button data-testid="button-request-feature">Request Feature</button>
-        <div style={{ display: 'none' }}>
-          <input type="text" placeholder="Feature title" />
-          <textarea placeholder="Feature description" />
-          <button>Attach Files</button>
-          <button>Submit</button>
-        </div>
+        <SharedUploader
+          onDocumentChange={onDocumentChange}
+          allowedFileTypes={['image/*', 'application/pdf', 'text/*']}
+          maxFileSize={25}
+          formType="features"
+          data-testid="feature-uploader"
+        />
       </div>
     );
 
     it('should render feature request form with file upload capability', async () => {
-      render(
-        <>
-          <FeatureRequestForm />
-        </>
-      );
+      render(<TestFeatureRequestForm />);
 
-      const requestButton = screen.queryByTestId('button-request-feature') || 
-                           screen.queryByText(/request feature/i) ||
-                           screen.queryByText(/suggest idea/i);
+      const uploadForm = screen.getByTestId('feature-request-form');
+      expect(uploadForm).toBeInTheDocument();
       
-      if (requestButton) {
-        await userEvent.click(requestButton);
-
-        const attachButton = screen.queryByText(/attach files/i) ||
-                            screen.queryByText(/attachments/i) ||
-                            screen.queryByRole('button', { name: /attach/i });
-        
-        expect(attachButton).toBeTruthy();
-      }
+      // Should have file upload capability
+      const fileInput = document.querySelector('input[type="file"]');
+      expect(fileInput).toBeTruthy();
     });
 
-    it('should submit feature request with file attachments', async () => {
-      render(
-        <>
-          <FeatureRequestForm />
-        </>
-      );
-
-      const requestButton = screen.queryByTestId('button-request-feature') || 
-                           screen.queryByText(/request feature/i);
+    it('should handle feature request file attachments', async () => {
+      const mockOnDocumentChange = jest.fn();
       
-      if (requestButton) {
-        await userEvent.click(requestButton);
+      render(<TestFeatureRequestForm onDocumentChange={mockOnDocumentChange} />);
 
-        const titleInput = screen.queryByLabelText(/title/i) || 
-                          screen.queryByPlaceholderText(/title/i);
-        const descriptionInput = screen.queryByLabelText(/description/i) ||
-                                screen.queryByPlaceholderText(/description/i);
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      expect(fileInput).toBeTruthy();
 
-        if (titleInput && descriptionInput) {
-          await userEvent.type(titleInput, 'New Feature with Mockups');
-          await userEvent.type(descriptionInput, 'Feature request with design mockups and documentation.');
+      if (fileInput) {
+        const mockFiles = [
+          createMockImage('mockup.png'),
+          createMockPDF('requirements.pdf')
+        ];
 
-          const fileInput = screen.queryByRole('button', { name: /attach/i });
+        // Test single file upload
+        Object.defineProperty(fileInput, 'files', {
+          value: [mockFiles[0]],
+          writable: false,
+        });
 
-          if (fileInput) {
-            const mockFiles = [
-              createMockImage('mockup.png'),
-              createMockPDF('requirements.pdf')
-            ];
+        fireEvent.change(fileInput, { target: { files: [mockFiles[0]] } });
 
-            Object.defineProperty(fileInput, 'files', {
-              value: mockFiles,
-              writable: false,
-            });
-
-            fireEvent.change(fileInput, { target: { files: mockFiles } });
-
-            const submitButton = screen.queryByRole('button', { name: /submit/i });
-            
-            if (submitButton) {
-              await userEvent.click(submitButton);
-
-              await waitFor(() => {
-                expect(mockFetch).toHaveBeenCalledWith(
-                  expect.stringMatching(/\/api\/(features|feature-requests)/),
-                  expect.objectContaining({
-                    method: 'POST',
-                    body: expect.any(FormData),
-                  })
-                );
-              });
-            }
-          }
-        }
+        await waitFor(() => {
+          expect(mockOnDocumentChange).toHaveBeenCalledWith(mockFiles[0], null);
+        });
       }
     });
   });
@@ -1313,40 +1253,42 @@ describe('File Upload Forms Test Suite', () => {
       expect(mockApiRequest).not.toHaveBeenCalled();
     });
 
-    it('should respect maximum file count limits', () => {
+    it('should respect maximum file count limits', async () => {
       const MAX_FILES = 3;
+      
+      render(<TestFileUploadForm maxFiles={MAX_FILES} />);
 
-      render(
-        <>
-          <input 
-            type="file" 
-            multiple
-            data-testid="file-input"
-            onChange={(e) => {
-              if (e.target.files && e.target.files.length > MAX_FILES) {
-                throw new Error(`Maximum ${MAX_FILES} files allowed`);
-              }
-            }}
-          />
-        </>
-      );
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      expect(fileInput).toBeTruthy();
 
-      const fileInput = screen.getByTestId('file-input');
-      const tooManyFiles = [
-        createMockImage('1.png'),
-        createMockImage('2.png'),
-        createMockImage('3.png'),
-        createMockImage('4.png'), // One too many
-      ];
-
-      expect(() => {
+      if (fileInput) {
+        // Add files one by one to reach the limit
+        for (let i = 0; i < MAX_FILES; i++) {
+          const file = createMockImage(`image${i}.png`);
+          Object.defineProperty(fileInput, 'files', {
+            value: [file],
+            writable: false,
+            configurable: true,
+          });
+          fireEvent.change(fileInput, { target: { files: [file] } });
+          await new Promise(resolve => setTimeout(resolve, 50)); // Small delay
+        }
+        
+        // Try to add one more file (should trigger error)
+        const extraFile = createMockImage('extra.png');
         Object.defineProperty(fileInput, 'files', {
-          value: tooManyFiles,
+          value: [extraFile],
           writable: false,
           configurable: true,
         });
-        fireEvent.change(fileInput, { target: { files: tooManyFiles } });
-      }).toThrow(/Maximum.*files.*allowed/);
+        fireEvent.change(fileInput, { target: { files: [extraFile] } });
+
+        // Should show error message for too many files
+        await waitFor(() => {
+          const errorMessage = screen.getByTestId('error-message');
+          expect(errorMessage).toHaveTextContent(`Maximum ${MAX_FILES} files allowed`);
+        });
+      }
     });
   });
 

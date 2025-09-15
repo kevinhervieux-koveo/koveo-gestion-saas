@@ -936,3 +936,28 @@ global.runQuery = jest.fn(() => Promise.resolve([]));
 
 // Import whatwg-fetch for fetch polyfill
 import 'whatwg-fetch';
+
+// =============================================================================
+// ROUTER AND NAVIGATION MOCKS
+// =============================================================================
+
+// Mock wouter router hooks for proper navigation testing
+jest.mock('wouter', () => {
+  const actualWouter = jest.requireActual('wouter');
+  return {
+    ...actualWouter,
+    useParams: jest.fn(() => ({})),
+    useLocation: jest.fn(() => ['/', jest.fn()]),
+    useRouter: jest.fn(() => ({
+      navigate: jest.fn(),
+      location: '/',
+    })),
+    Link: ({ children, to, ...props }: any) => {
+      const React = require('react');
+      return React.createElement('a', { href: to, ...props }, children);
+    },
+  };
+});
+
+// Note: window.location mocking is handled by JSDOM automatically
+// Custom location mocking can be done per-test as needed

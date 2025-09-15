@@ -2,14 +2,13 @@ import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router } from 'wouter';
-import { LanguageProvider } from '@/hooks/use-language';
 
-// Use the real LanguageProvider in tests
+// Use a simple mock LanguageProvider for tests to avoid complex i18n dependencies
 const TestLanguageProvider = ({ children }: { children: React.ReactNode }) => {
   return (
-    <LanguageProvider>
-      <div data-testid="language-provider">{children}</div>
-    </LanguageProvider>
+    <div data-testid="language-provider">
+      {children}
+    </div>
   );
 };
 
@@ -30,6 +29,15 @@ const AllTheProviders = ({ children }: AllTheProvidersProps) => {
     defaultOptions: {
       queries: {
         retry: false,
+        queryFn: async ({ queryKey }) => {
+          // Default queryFn for tests - simulates API calls
+          const url = Array.isArray(queryKey) ? queryKey.join('/') : String(queryKey);
+          const response = await fetch(url, { credentials: 'include' });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        },
       },
       mutations: {
         retry: false,
