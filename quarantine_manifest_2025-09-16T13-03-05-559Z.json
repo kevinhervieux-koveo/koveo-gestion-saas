@@ -1,0 +1,2410 @@
+{
+  "timestamp": "2025-09-16T13:03:05.560Z",
+  "quarantineDirectory": "uploads/_quarantine_2025-09-16T13-03-05-559Z",
+  "processedDirectories": [
+    {
+      "originalPath": "bills",
+      "quarantinePath": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills",
+      "fileCount": 3218,
+      "size": 2416161,
+      "movedAt": "2025-09-16T13:03:05.987Z"
+    },
+    {
+      "originalPath": "buildings",
+      "quarantinePath": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/buildings",
+      "fileCount": 29,
+      "size": 3027511,
+      "movedAt": "2025-09-16T13:03:06.067Z"
+    },
+    {
+      "originalPath": "residences",
+      "quarantinePath": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences",
+      "fileCount": 128,
+      "size": 120374,
+      "movedAt": "2025-09-16T13:03:06.157Z"
+    }
+  ],
+  "quarantinedFiles": [],
+  "errors": [],
+  "statistics": {
+    "directoriesQuarantined": 3,
+    "filesQuarantined": 3375,
+    "totalSizeQuarantined": 5564046,
+    "databaseRecordsMarked": 0
+  },
+  "estimatedSizeToQuarantine": 5564046,
+  "databaseScript": {
+    "path": "uploads/_quarantine_2025-09-16T13-03-05-559Z/metadata/quarantine_orphaned_records.sql",
+    "purpose": "Mark 648 orphaned document records as quarantined",
+    "instructions": "Execute this SQL script against the database to complete the quarantine process"
+  },
+  "verification": {
+    "samplePercentage": 10,
+    "filesChecked": 335,
+    "results": [
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-01-administration-1-3ff1e6e2.txt",
+        "originalDirectory": "bills",
+        "hash": "adca4f71d03d64f7bece1cda7dbeb3db7b2910b958ddcc1e6b8e5e68145907cb",
+        "size": 1108,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-01-cleaning-65c19d45.txt",
+        "originalDirectory": "bills",
+        "hash": "5d14f09d3c1fe703cec81b9f236b13874599dbf8417840c85cf84dd328402289",
+        "size": 991,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-01-professional_services-2-f86c2965.txt",
+        "originalDirectory": "bills",
+        "hash": "e4298a163fd036c24b569bfda8c47a1202d3657f8411d4f716fef95a42582a12",
+        "size": 1139,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-02-maintenance-2-a7db8dcf.txt",
+        "originalDirectory": "bills",
+        "hash": "454c3ed6512d4276d612e4475a04c06119df01b19a50fc5692ed1dbf8a853dd2",
+        "size": 1089,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-02-professional_services-1e846c49.txt",
+        "originalDirectory": "bills",
+        "hash": "8d5411a757af7619997e7ffa72dc65dce7d5bdb6c0efdeb7a503e726c16118f5",
+        "size": 1104,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-02-security-23d2cecf.txt",
+        "originalDirectory": "bills",
+        "hash": "27f19f6d73b7a45844548eb08438b8ccd6fd7d73c6bd86104f23ade62798c299",
+        "size": 1035,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-02-supplies-2-2cc4b30f.txt",
+        "originalDirectory": "bills",
+        "hash": "2cebd2da9f8f56feca1a2f38b2bfc00ca0b3ba58535d6f2f8784e7fcb2a92b88",
+        "size": 1063,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-02-utilities-1-331104a2.txt",
+        "originalDirectory": "bills",
+        "hash": "eb01dcfbdcdd51f08cb7af98e6aaa60bf299af591ce64aba12c8204dd74661d1",
+        "size": 1069,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-02-utilities-2-19763d0e.txt",
+        "originalDirectory": "bills",
+        "hash": "a3dc8a4ec79ddd1310e530b24eb3d0476d442a4d08e17349ed08346b75b8b9a6",
+        "size": 1054,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-03-administration-1-0f594e85.txt",
+        "originalDirectory": "bills",
+        "hash": "4b2a0c90385e84e9c09bad3a69cd11477d5d47c88fd56ea2e13ef0c895218477",
+        "size": 1141,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-03-cleaning-2-2b5a7d9b.txt",
+        "originalDirectory": "bills",
+        "hash": "0a21eaa36e7306edca5ab97d26ca2f4c5e682b29e9814a28e45b4182262efb09",
+        "size": 1010,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-03-landscaping-27fff1cc.txt",
+        "originalDirectory": "bills",
+        "hash": "f3c3dc7561be7dfd1599ecccaac2b457d4db911875d44dffae2dfce176eb6639",
+        "size": 1064,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-03-maintenance-1-131f60a0.txt",
+        "originalDirectory": "bills",
+        "hash": "90666f6348ebbe29486c1bf0109b29e5a1a303cba4598b05197171a7525e171c",
+        "size": 1085,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-03-maintenance-2-209bf169.txt",
+        "originalDirectory": "bills",
+        "hash": "b127882b02056fbae1ad8170375f980a09a2fe4da6bda5275b495be58a152fb4",
+        "size": 1118,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-03-professional_services-0751fb26.txt",
+        "originalDirectory": "bills",
+        "hash": "1608138b5f47c67e05ff62d42fde5655f5a66509f730853a205eefd1ec60bff7",
+        "size": 1049,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-03-supplies-1-e060bb29.txt",
+        "originalDirectory": "bills",
+        "hash": "bea58d1395365669278302f6c95a3e43de3e0e5fd8f47db2a97ad2cddf0d207a",
+        "size": 1045,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-03-supplies-2-c415a0ab.txt",
+        "originalDirectory": "bills",
+        "hash": "abc1e96bd98b6be45e62225f98d93db51ae086b54f71432851714ba2589ad087",
+        "size": 1049,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-04-administration-1-713eafdd.txt",
+        "originalDirectory": "bills",
+        "hash": "296800402dd95fb4c8d12a38cb3fefca35cc9df81111ad49c2eeb1e82792f31e",
+        "size": 1095,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-04-administration-2-253aff27.txt",
+        "originalDirectory": "bills",
+        "hash": "009f6026333bbc748e8de1bc0f8d20499e238a9e460c39ca245f5664fc8b5737",
+        "size": 1066,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-04-cleaning-6d321986.txt",
+        "originalDirectory": "bills",
+        "hash": "084665cc02500951b8d7fe0354cb241b2b9ae4ce646f2c8feb5d8740ab91939f",
+        "size": 1059,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-04-insurance-1-863a2025.txt",
+        "originalDirectory": "bills",
+        "hash": "b597669949aab04ccaa5ffd9ad81bb7016e655de5fbd2068f28c9eb499e54368",
+        "size": 1063,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-04-insurance-2-c9556b74.txt",
+        "originalDirectory": "bills",
+        "hash": "834334af0f12e540e9dd8e991d97d4d285e7ca6e41f2ad62155d312bb82ecfbf",
+        "size": 1039,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-04-landscaping-2-c3b14539.txt",
+        "originalDirectory": "bills",
+        "hash": "c26896cc0606323353d8cdc558aa5991060fd6e87a98306136039d0eb614833e",
+        "size": 1108,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-04-maintenance-ec52cc1f.txt",
+        "originalDirectory": "bills",
+        "hash": "915399e29f2d73f9c75a4d12d9312cdffd156e2f1bc30fa6badc3b66c1cd00d2",
+        "size": 1039,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-04-professional_services-2-4e8b358f.txt",
+        "originalDirectory": "bills",
+        "hash": "8fd9948d79867ed60f6d5a21794782e5cd42aec33bc601240199f79d4f92c4cc",
+        "size": 1101,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-04-security-241304d3.txt",
+        "originalDirectory": "bills",
+        "hash": "f8dbf10f7ece05ec9510340ba00bbec927af04dfbe6cbf0629c517760e59de09",
+        "size": 1052,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-05-administration-d80d335a.txt",
+        "originalDirectory": "bills",
+        "hash": "866e9bdb9e194fc93429e07dfbb8e4b756b6c25792b041a802200a0840fec6c0",
+        "size": 1064,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-05-cleaning-1-8fe4ddd2.txt",
+        "originalDirectory": "bills",
+        "hash": "64b6772d22f86beb7b67ad8fd9f30161a9e77a4db3c6d868c7d51e3bc586b741",
+        "size": 1056,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-05-insurance-7c8cb930.txt",
+        "originalDirectory": "bills",
+        "hash": "df8c512bf595f343f610d4a1a2fe2c306e01abb4da1b0a51942cc7b7d23dcfac",
+        "size": 1067,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-05-landscaping-2-04e03b3c.txt",
+        "originalDirectory": "bills",
+        "hash": "2a81e68d6bdc6ac056b4fa8e891e510ef8cae118b8551b3cb6f18bad7a6882a2",
+        "size": 1115,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-05-maintenance-2-2644de3c.txt",
+        "originalDirectory": "bills",
+        "hash": "30287c7641a9c68c529b3acf76fa96856dcf339a285e4b61054b404dc90d79f9",
+        "size": 1116,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-05-professional_services-1-99ff8f1d.txt",
+        "originalDirectory": "bills",
+        "hash": "9d3c21db00326c04955df1ebf7159e65a5d1c0c1ca5da1f0bdaf028bf5c7b49a",
+        "size": 1100,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-05-security-61f43950.txt",
+        "originalDirectory": "bills",
+        "hash": "d8cea86177b31e3cc4a5fb0340f866ac2d3482b6505634662230cd6399860c44",
+        "size": 1000,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-05-supplies-8e571e9a.txt",
+        "originalDirectory": "bills",
+        "hash": "1e1cfef00b0581b8a181eb8c59e6e45478f708019a693f98bada62b4601008f8",
+        "size": 1082,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-06-cleaning-1-fd880e21.txt",
+        "originalDirectory": "bills",
+        "hash": "ceff34c9095970c5872290e71ae048b16e3985f512bf640c2376344f3477a438",
+        "size": 1098,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-06-cleaning-2-279708d5.txt",
+        "originalDirectory": "bills",
+        "hash": "10f46d706d81a0814c635f6053f3439917d17c34e1c48863f116ce9ded58b6d2",
+        "size": 1026,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-06-maintenance-eac6c853.txt",
+        "originalDirectory": "bills",
+        "hash": "119588bb3e07d0ac5764390cf6069d0b7fd370ea34d53257ef83ca9d7f09c4a8",
+        "size": 1047,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-06-professional_services-c6076c40.txt",
+        "originalDirectory": "bills",
+        "hash": "a6d579a8df85d63349a2940f5eadc8de571b92bd5cf110d86634f721ad8847f3",
+        "size": 1121,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-07-administration-2-e117bd10.txt",
+        "originalDirectory": "bills",
+        "hash": "b1414bc2b6d2519cf04a2dc81369d25ae2a85e4be958523d5cb0a78465c7140f",
+        "size": 1082,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-07-insurance-1-8eef83aa.txt",
+        "originalDirectory": "bills",
+        "hash": "3565bd2f813f5fee087e105a586c92008093aadbd6304df313f6712167afb389",
+        "size": 1138,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-07-landscaping-1-2d955fc3.txt",
+        "originalDirectory": "bills",
+        "hash": "e6c75a6dd054521d24aad3f78614b312f4336a411f22219dcfb65554b45966a3",
+        "size": 1105,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-07-landscaping-2-9ed743a6.txt",
+        "originalDirectory": "bills",
+        "hash": "240ad60e688791142e6fae9fe6eb2ecde58ddc176cdf61000616974f5c6f32dc",
+        "size": 1062,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-07-maintenance-239e2871.txt",
+        "originalDirectory": "bills",
+        "hash": "57d5536c525f6e22f6202194a75d86acb04a5e0c26488e76beac185d6f17a5de",
+        "size": 1041,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-07-professional_services-5f8ffdeb.txt",
+        "originalDirectory": "bills",
+        "hash": "33db6509adfc203fa3bf2f1008eeb50aa1b9eaa16111c1d980dc657a086c5601",
+        "size": 1089,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-07-supplies-1-b290363e.txt",
+        "originalDirectory": "bills",
+        "hash": "4b4903884e4b78dd79522b8bd4cad29fab1ea89224dfe2b9b6c96d4531f3f2da",
+        "size": 1032,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-07-supplies-2-81fd7615.txt",
+        "originalDirectory": "bills",
+        "hash": "f015ff8de78c2a4e0157182101ed0a3d52a352751f1f69c657fe40832038607d",
+        "size": 1055,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-07-utilities-ef03b217.txt",
+        "originalDirectory": "bills",
+        "hash": "d591c403e7a05e70147f202162f4b5b7267f2b01bbf6fad5549302bf029bc02a",
+        "size": 1018,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-08-cleaning-1-9c10c434.txt",
+        "originalDirectory": "bills",
+        "hash": "76ac7de75346e26a3e376401e326de5c67f5c60a16c3103cdd3b9036ebec2e63",
+        "size": 1097,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-08-cleaning-2-8fc0b541.txt",
+        "originalDirectory": "bills",
+        "hash": "4f606e856e51811624357ead964b6ed961a0f151a4be9b588dfa9b8221b4746b",
+        "size": 1075,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-08-maintenance-1-497ae5eb.txt",
+        "originalDirectory": "bills",
+        "hash": "62f598e74983b454af6f059dd9867c5e2f8ccdadb91eaa7601fed7286778acb4",
+        "size": 1124,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-08-professional_services-1-89f9d9c1.txt",
+        "originalDirectory": "bills",
+        "hash": "06da803a2442ae19c532c23746c66472f82737439c5814c9f039c53d6333751d",
+        "size": 1140,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-08-security-1-40de6152.txt",
+        "originalDirectory": "bills",
+        "hash": "36381cfee83eef3f4b54a6b6415bb98c8ee646b239d2db069f82f658be22620f",
+        "size": 1060,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-08-security-2-de890e11.txt",
+        "originalDirectory": "bills",
+        "hash": "31567af51e031781e14fef701e8a380118f4bcabe57ee93755cbda8b61f622c8",
+        "size": 1070,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-08-supplies-c0eff954.txt",
+        "originalDirectory": "bills",
+        "hash": "a70262f79333a6059a9fa99c29b390716cce6edb30fc6ea9d6f08ce65a12695e",
+        "size": 1015,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-08-utilities-1-85985516.txt",
+        "originalDirectory": "bills",
+        "hash": "fb2af6bcdc9cd56e63d8dba077d523b991fcd1d7df4f17afd523ead815f37951",
+        "size": 1106,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-09-landscaping-1-41221a9c.txt",
+        "originalDirectory": "bills",
+        "hash": "e6b719cb9954f22d356c0d5dd8ce655899af0a8eaa694e46aeee1f22dca8a987",
+        "size": 1059,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-09-landscaping-2-aceeba70.txt",
+        "originalDirectory": "bills",
+        "hash": "15d569b6e548e19750350c5416a9e6c0d61c126c2f910be4841c0928b831af26",
+        "size": 1067,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-09-professional_services-959b233f.txt",
+        "originalDirectory": "bills",
+        "hash": "08d94820af41cf1d73441a8784b1e90138b21c74fd6057cd13d79b6df4e107a0",
+        "size": 1113,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-09-security-1-6a96b270.txt",
+        "originalDirectory": "bills",
+        "hash": "6ee818c9ac006f495aec7c668824560eda8efe0e4e0413a1c8e03cb8642e0561",
+        "size": 1088,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-09-security-2-f3749bdb.txt",
+        "originalDirectory": "bills",
+        "hash": "267dfd3588c2063d17866a380f067346202eab2b04b520dfa89587a83ebcd062",
+        "size": 1054,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-09-supplies-2-0186157e.txt",
+        "originalDirectory": "bills",
+        "hash": "3c6e3b3bb54f908f347f2af964f4910409e04be8464ed31f6c29fa80ff1db5f3",
+        "size": 1072,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-09-utilities-8e9e2a5e.txt",
+        "originalDirectory": "bills",
+        "hash": "c584ce66b678a57e26ccbde109205fcb32930f57c7fb28516c5363c1086c7db8",
+        "size": 998,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-10-cleaning-ae41e85f.txt",
+        "originalDirectory": "bills",
+        "hash": "5f3c3c01b52d49747e8a18342472a439b193eaff5ebec5eba8c269995c5c0eca",
+        "size": 1061,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-10-insurance-71cc39ac.txt",
+        "originalDirectory": "bills",
+        "hash": "d7d5c8f8bc14ce5886852f5ca920cd8b394f190f21217b546f80e4d49fd5b88e",
+        "size": 1107,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-10-maintenance-1-b09784db.txt",
+        "originalDirectory": "bills",
+        "hash": "81c5638641d7cdbd152e3adf8e873637d26532faebc5e8e137d7dc0be00279b3",
+        "size": 1135,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-10-security-1-430d0b19.txt",
+        "originalDirectory": "bills",
+        "hash": "a2d079a3a8920513f2adbc4d44be101ccc115d7d5c30e609966943b205dc50f0",
+        "size": 1021,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-10-security-2-b1d01743.txt",
+        "originalDirectory": "bills",
+        "hash": "2d211c01874304efa87391d2dfff53e5a88583e74483eaac3909649200585d2e",
+        "size": 1044,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-10-supplies-1-b7356c65.txt",
+        "originalDirectory": "bills",
+        "hash": "b385973239bcd201812e84a41cbc312caef327ca885b527e32ecdb18b9f37278",
+        "size": 1055,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-10-supplies-2-a9a750f6.txt",
+        "originalDirectory": "bills",
+        "hash": "51b59c88a32c0ac9cdce72e04e0f18236983a08d25e6a190cd4709ab1cc57a95",
+        "size": 1081,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-11-cleaning-648211e4.txt",
+        "originalDirectory": "bills",
+        "hash": "61645c537d355a944b748dfd248782c321acb37cf1e90d28120271b210c4bcd4",
+        "size": 1037,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-11-professional_services-1-9c365e0d.txt",
+        "originalDirectory": "bills",
+        "hash": "92bc6104f4b8fb85e9d9484cf4c5ec0e635a0d907cbd34adc97a4adb6ff677c8",
+        "size": 1053,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-11-professional_services-2-1039b714.txt",
+        "originalDirectory": "bills",
+        "hash": "1bbd180dbd2d10ec03c05dda568e73d7125ffb7e9e981053d954f312a8f6150a",
+        "size": 1124,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-11-security-1-adf6e76f.txt",
+        "originalDirectory": "bills",
+        "hash": "0594e3f0981976f05e573b7df73435a0dedda8879d2e0901c94d4ecb3efe2517",
+        "size": 1085,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-11-security-2-13887881.txt",
+        "originalDirectory": "bills",
+        "hash": "26cf62a64ea8e4ede3b7074949a4ae39df91db05e32a55263b8ddf4802260d5f",
+        "size": 1070,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-11-supplies-c51e00d4.txt",
+        "originalDirectory": "bills",
+        "hash": "7085e4d07e37f1cc113e0a6dea164aff4ca7ce0d34f33377d46b18cd3ab33f98",
+        "size": 990,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-11-utilities-2-6ce0305d.txt",
+        "originalDirectory": "bills",
+        "hash": "1c8865bb66cc0d986dc130ad5c787779ef4fc687ec3316162431889ecaf705b7",
+        "size": 1009,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-12-cleaning-1-26fffe39.txt",
+        "originalDirectory": "bills",
+        "hash": "35c715f94c7b9344acb7a1ef8587b6fcff383fa5fbe5ad56de43d2d1b0f2d7e8",
+        "size": 1053,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-12-cleaning-2-6ab096b8.txt",
+        "originalDirectory": "bills",
+        "hash": "8ab562cf2ba722f1cd0ee837bd513370c3eeddb222f32301579141fa4ee636b6",
+        "size": 1117,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-12-landscaping-9bb08684.txt",
+        "originalDirectory": "bills",
+        "hash": "5560c24e468c951c98c7ad8f739ff693f3363fe30b11b42f89aca9c8179772c3",
+        "size": 1096,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-12-security-1-ab01632a.txt",
+        "originalDirectory": "bills",
+        "hash": "f505a53eabffe419afb94758faad57c527e2dc285f847836bed899702296ed59",
+        "size": 1046,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-12-supplies-3c03ebcf.txt",
+        "originalDirectory": "bills",
+        "hash": "342d81c26331b581d881575fecb462f662f458b85615cdce72946ad06bc9443a",
+        "size": 1062,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-15a4-2024-12-utilities-1-fb1f21af.txt",
+        "originalDirectory": "bills",
+        "hash": "5082e46ff6f34c1e2fb72423373949e00b9b0d2448d3b519d8ec50816b2f6b7d",
+        "size": 1063,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-01-administration-2.txt",
+        "originalDirectory": "bills",
+        "hash": "bc341f5e46829a195b32abfaadb26641547dd93363f704a13ae04cfea814131e",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-01-cleaning-2.txt",
+        "originalDirectory": "bills",
+        "hash": "7657a42686eba79e4c63fa588fc990612ebadd8081e212bbda40c85df2535aca",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-01-cleaning.txt",
+        "originalDirectory": "bills",
+        "hash": "acccdffe8babe5129fa3cbceae506fd69778aabbbc91e189593849b2d30c1a50",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-01-insurance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "403bd5ded10b59514fc9f3eedde06d052bac5db26dee015f5fa1a04c1ff0cc49",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-01-landscaping.txt",
+        "originalDirectory": "bills",
+        "hash": "93e970082608ac4c3db52a74b26fa24d049cc9fde074f57172a45a6b682cb2a1",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-01-professional_services-2.txt",
+        "originalDirectory": "bills",
+        "hash": "be216de0f53dd74a9b5c3519815be73f4e964fe838288fe90ba75c838d1b0455",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-01-supplies-2.txt",
+        "originalDirectory": "bills",
+        "hash": "67ca8c8824740a2d78b9aec55b2b258ab682830ca285384043be18d2b0ef9684",
+        "size": 800,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-01-utilities-2.txt",
+        "originalDirectory": "bills",
+        "hash": "43dd12572b118dae1ae9f82559f8610afcd53f72be1b04896b56ac688e4f746b",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-02-landscaping-2.txt",
+        "originalDirectory": "bills",
+        "hash": "13854fccfdeee101a43dda3d3c6d1964d60e7c61278bfc92a95cff886a505307",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-02-landscaping.txt",
+        "originalDirectory": "bills",
+        "hash": "2795dac6c6eb6990f397184b7d6e465c8039703f8f9b98020d9c373a03d2396c",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-02-maintenance.txt",
+        "originalDirectory": "bills",
+        "hash": "ba4b6c96df8471e03d53d2d489408fbb0d1bcdbb9919f283faf365c5ac57829c",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-02-supplies-2.txt",
+        "originalDirectory": "bills",
+        "hash": "daa8871a321573d610409da634442c2ad3c493dcbb62818539f79f1b740727dc",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-02-utilities-2.txt",
+        "originalDirectory": "bills",
+        "hash": "57564663ab4b35a5f1e3c29a2c8632ee92cc345d99dce4e4dbe7943c7ed64083",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-administration-2.txt",
+        "originalDirectory": "bills",
+        "hash": "026e901f1e06eed7e2001eac822402e4fc601414fcab951f6f5593e477da13c8",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-administration.txt",
+        "originalDirectory": "bills",
+        "hash": "602cc1a67a5248c31cd1eb22ae1a5bcd45772f3e14993dfea2581fbd6e0f9d14",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-cleaning-2.txt",
+        "originalDirectory": "bills",
+        "hash": "edb96976b3e65600a2961161cd235c2a23c5a064710d5fa71d3f60b778d3e2c0",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-insurance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "63d9e70a2f07cf3e403573f5ddd07449d0345767d17b2b007835235c03cafbc0",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-landscaping-2.txt",
+        "originalDirectory": "bills",
+        "hash": "7e2e64f72d456ee9d4900c5ef87f3d0aeaa499aed5422ad32b3475e44598f658",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-maintenance.txt",
+        "originalDirectory": "bills",
+        "hash": "c5d047a342b9879b9e692a54ad4e6d647510afa9f85d34b8507fc00df7334805",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-security-2.txt",
+        "originalDirectory": "bills",
+        "hash": "1b14f1d7d5aa6405a5287b0d6b873f787c80848b754b054bc9006b41c0136a4c",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-supplies.txt",
+        "originalDirectory": "bills",
+        "hash": "1581379736ddce612b3f4d2fbefe026fb340f5e2e121072a9552fd05451332a2",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-utilities-2.txt",
+        "originalDirectory": "bills",
+        "hash": "d02ef4c10e7271fae999c12762940b0f36c9690de46120feb99500f1f0c6e764",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-03-utilities.txt",
+        "originalDirectory": "bills",
+        "hash": "c33722ce84db0510f2c04cc2ab3c30d86e6acabda02bb7837e1acaef4d4b135e",
+        "size": 802,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-04-administration-2.txt",
+        "originalDirectory": "bills",
+        "hash": "603a6114af7b137c07ea13b217e0948d67b46a7287d6b38349cf6c5d91352927",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-04-administration.txt",
+        "originalDirectory": "bills",
+        "hash": "2cf0e2df0f67e60c3f0689b0626196e0494fb7cf901c33e26cb7d151f3dc316b",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-04-cleaning.txt",
+        "originalDirectory": "bills",
+        "hash": "4791fafd604c66f60bae07d288e2325430cd00b0fa7dae9e634898ba8d794553",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-04-insurance.txt",
+        "originalDirectory": "bills",
+        "hash": "6d5af58b35edf6a07f82bf97dce48c3941aadf3ff09aa31b403510208d0b2f5d",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-04-maintenance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "11b48d591abb0e890a0efc7464dbea8363a6170bbe226d415e1c9fa53482b3d1",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-04-professional_services.txt",
+        "originalDirectory": "bills",
+        "hash": "c08c99d2c805805496e8c1452acab80c134ae00db6914d39e22be4fc216f8a4d",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-04-security.txt",
+        "originalDirectory": "bills",
+        "hash": "b33555be1c2ac89452c391ae5e8b73bcf82da7d1e22c5c9d1a37e484e2576ccc",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-04-supplies.txt",
+        "originalDirectory": "bills",
+        "hash": "e2f6171a971065757a46e679746563bd432563de859791cab1670117fa28d3db",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-04-utilities.txt",
+        "originalDirectory": "bills",
+        "hash": "e1c96c9b027b9c8751174ccbb204d839f37bd8d1046f4956ba99fdfdae0a6449",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-administration-2.txt",
+        "originalDirectory": "bills",
+        "hash": "9a5e3218eff97ae484b7f199ca2c973b192f32110705cf31115869dbaafb4894",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-cleaning.txt",
+        "originalDirectory": "bills",
+        "hash": "f179efc9b71e668548b529b294bfb4f7eac7d6f3488b2db46a38b17ae61d691d",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-insurance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "09e3b2a012e45397cb0501a387eaa99e383645e2d99c9c151dd9969ad819c48f",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-insurance.txt",
+        "originalDirectory": "bills",
+        "hash": "f15c383ee4d727764716127306c854f7280841eeba1897e591bba64754ad622a",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-landscaping.txt",
+        "originalDirectory": "bills",
+        "hash": "87485db84ffc81685a0860686db6ad0054b21bada57b253eca91fbf91c1b7f82",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-professional_services.txt",
+        "originalDirectory": "bills",
+        "hash": "fb8f9323416dfb7b8dc46c2abf6d307d5f521b0510bb4505010a44219ea6adf3",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-security-2.txt",
+        "originalDirectory": "bills",
+        "hash": "274c2bc99ea585b6153caaa0d081f8fd48d26952acc7c20bc73ca49881ac83eb",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-security.txt",
+        "originalDirectory": "bills",
+        "hash": "535ad0d091eb5a556e49a1aeb1bb1438304db99e2e720388733a6a1728b35fef",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-supplies.txt",
+        "originalDirectory": "bills",
+        "hash": "876ed5365e3f0cc3cada25fa14e00fac4edd4304129ac83cb5fd38fe4950d004",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-05-utilities.txt",
+        "originalDirectory": "bills",
+        "hash": "4a8ee4ee756b430e37d29c777a72dc70cd1fa77aea15565fdf640dada79be31a",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-06-administration.txt",
+        "originalDirectory": "bills",
+        "hash": "f97823811a711a1b1fb90e253d16129b00bff7c09d5cc7d59876fb9db3a741dc",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-06-cleaning-2.txt",
+        "originalDirectory": "bills",
+        "hash": "7d7e4d8d6b421066f6d9d95b4eb9ba9d89d7badac9ae630f0c2c9c9ec70f443e",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-06-insurance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "35b37b7b853c82795b2e189b3504bd2b805338d8a04d073702f1cd7046320d75",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-06-landscaping-2.txt",
+        "originalDirectory": "bills",
+        "hash": "6349766cc0a4b5a3c2f80f19833cdbe3597bae78282b0ea6fad6e39491e22d55",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-06-maintenance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "58f289d97d3218b97a4cea64ec8e92412e9c5160b80e27e2d537b0562913875a",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-06-professional_services-2.txt",
+        "originalDirectory": "bills",
+        "hash": "b43b61c14bd8e33145b78740d8f24f74c52486e8e8efc2635ce14d2c7d2a7a45",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-06-professional_services.txt",
+        "originalDirectory": "bills",
+        "hash": "2ec040810ab8bc3ca7e610b1af241dd2f59c00775eeaf20ff965deb47f1b85d2",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-06-supplies.txt",
+        "originalDirectory": "bills",
+        "hash": "5d829724151edc09b961753fed9533e77a800a626f759954e0eb2c4da6dd7cf2",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-07-administration.txt",
+        "originalDirectory": "bills",
+        "hash": "1c341c22adc1e8c7b1075218b7c725e312a1d0fa6d94d7ac328bc770b59b3030",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-07-cleaning-2.txt",
+        "originalDirectory": "bills",
+        "hash": "df1ecdecd50955092398666581e307db81f36814cd3d80bb9635cfec3c6c3a9f",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-07-insurance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "83b95f2211abc7f7557d55f7e78428184d7575d2d2387bd9ba174d1be3811620",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-07-insurance.txt",
+        "originalDirectory": "bills",
+        "hash": "0ddc59d812c03b9c827be567c59290c84a608cf469a7cdcd535844177569a0e5",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-07-landscaping.txt",
+        "originalDirectory": "bills",
+        "hash": "e7d026117f9537d3694306ccee8877eed9ad3e8e81fe4eb2ca5ead7f2b5660ab",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-07-maintenance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "58f289d97d3218b97a4cea64ec8e92412e9c5160b80e27e2d537b0562913875a",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-07-professional_services-2.txt",
+        "originalDirectory": "bills",
+        "hash": "aba6c508a9e87278fb466fba09ff9892ab6b87df64f4590be2967162ce869d31",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-07-supplies-2.txt",
+        "originalDirectory": "bills",
+        "hash": "2de587813619164d655362f55b56fc8692fa6271fe1240ec2ad8aa8e77ca7a5b",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-07-utilities-2.txt",
+        "originalDirectory": "bills",
+        "hash": "319a46ae7ba65fa2606ea015175d3404bed707c9f9a70778ef65a9f970296e76",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-administration-2.txt",
+        "originalDirectory": "bills",
+        "hash": "61decfb597979c6cec671c197d6baa3e450df1b4cdae4717e71405a26ff1194b",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-cleaning.txt",
+        "originalDirectory": "bills",
+        "hash": "004e1208916a05b3cc67c138f8e880a858520ebbbc63ee4445aba3d0abd2c422",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-insurance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "c3c877e431febb2b184df4bf04d9608af0bb1f6a08528d0a1d7a37948992d35f",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-insurance.txt",
+        "originalDirectory": "bills",
+        "hash": "2a4d52075b67dc7f8980be56d07d489d4145c8f321d8e5b7700472082a47dc89",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-maintenance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "e05711caa3906fcec753bc2e3b3aafe81009abdda5e438b3565ea8bc8fb46e25",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-professional_services-2.txt",
+        "originalDirectory": "bills",
+        "hash": "40526e554c61070a680f4d69c35f3290eb813abd19208f42ea0124b5c7873b5d",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-security-2.txt",
+        "originalDirectory": "bills",
+        "hash": "7df81b160b97d4772ce93a73b537b32ee751af3390fc6cbadfd9b7258c34d9af",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-security.txt",
+        "originalDirectory": "bills",
+        "hash": "346fdf32e6df56381b7bd472bed3ef0a80e8140dfa03361922758e29b3298672",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-supplies-2.txt",
+        "originalDirectory": "bills",
+        "hash": "a89a149b1b09231fda97fe402566ec75341e1da3434e56f5320044d6ae97160a",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-utilities-2.txt",
+        "originalDirectory": "bills",
+        "hash": "9f5ef672bf57dbf63ab55025cc8e88e80509c6c8cc4fe66642fc2dcacecbe3f1",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-08-utilities.txt",
+        "originalDirectory": "bills",
+        "hash": "20654beae8876a4757911a97b28fb7a6b83fa278f1bd165920a7ec8a9bc817de",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-09-administration.txt",
+        "originalDirectory": "bills",
+        "hash": "b75148ba5b1c8ba4239d198b7361cf66961e9c84444cbd14b2a6606771fad246",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-09-cleaning-2.txt",
+        "originalDirectory": "bills",
+        "hash": "83cbcdc882fa16c342f56274ab794d274e50b61bc13fe826829d2ebf1c7b9060",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-09-landscaping.txt",
+        "originalDirectory": "bills",
+        "hash": "24796e15bf9c12f83289f10f7bb6e2c27bdfd7003a107ea2d4a34db60e512009",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-09-supplies-2.txt",
+        "originalDirectory": "bills",
+        "hash": "92b3fed428b08307099b309666f9f06dee91da261cd947f3bdc3e4ed2e0b0e05",
+        "size": 800,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-09-supplies.txt",
+        "originalDirectory": "bills",
+        "hash": "b0544b4742e3bf343cc7a195b796d5baf13d5e0a9dcebdc9241e567ebd236723",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-09-utilities-2.txt",
+        "originalDirectory": "bills",
+        "hash": "811d8b2c92c9c658f7ee539a523ba6fd7de042bc4920608ada7798593a2ef103",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-09-utilities.txt",
+        "originalDirectory": "bills",
+        "hash": "a3a7f7d7d20820f71a67f469760b826fab5d304a4e03fb3ffdbe59b708306628",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-10-administration-2.txt",
+        "originalDirectory": "bills",
+        "hash": "28443e789d7c4927235ff86ef4d6eb6fb280f955ca02bede262034cb6c3cc296",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-10-landscaping-2.txt",
+        "originalDirectory": "bills",
+        "hash": "05be858b0b5f28ab56fc55d00a5ee9b8fe20dbdd3e42d00737ff80e0aebf3178",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-10-landscaping.txt",
+        "originalDirectory": "bills",
+        "hash": "4923cb07aebb79b1cb1f705f2ba16f81185d942db0d9b27b54d2737e6f8a38f3",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-10-professional_services-2.txt",
+        "originalDirectory": "bills",
+        "hash": "b43b61c14bd8e33145b78740d8f24f74c52486e8e8efc2635ce14d2c7d2a7a45",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-10-professional_services.txt",
+        "originalDirectory": "bills",
+        "hash": "51187367dfb344b6a373d918b1bf524300201e333817e3e681f7306b7456332c",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-10-security-2.txt",
+        "originalDirectory": "bills",
+        "hash": "1955c50a8d5e72e6b6fd990c2abb7bedcda74c000d936b1a5f47010073e71b57",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-10-security.txt",
+        "originalDirectory": "bills",
+        "hash": "b0dc3ff9f4c90c280bf78d0b97adc611393146a02bf9d0e4963150c2eb10af86",
+        "size": 800,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-10-supplies-2.txt",
+        "originalDirectory": "bills",
+        "hash": "003fc7b18394def123776a23090b355cec2ba699ab0e01b0352419e258c3837f",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-10-supplies.txt",
+        "originalDirectory": "bills",
+        "hash": "9d74bd53a8fa8843de538da8d71e7c1a28f46fd185a3f7dee0294c698a55a9ae",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-administration-2.txt",
+        "originalDirectory": "bills",
+        "hash": "ddafc8831709c06bc3f1331d0d9a88b4bc653dbf75bff872ca8a1ce121a42ddc",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-administration.txt",
+        "originalDirectory": "bills",
+        "hash": "b3cd14a11b84bfeab0435517544635fa94c8dd9136f653fe252baaacd0d47be8",
+        "size": 813,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-cleaning.txt",
+        "originalDirectory": "bills",
+        "hash": "0f0e05fd5d7dbecaffd52d3ff59ea349cbf09e308eb73049af934a341681c6a6",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-insurance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "4752752595828b67f91a94c9ee7c627b211537d6aa73b3dc50ce5114f25f3687",
+        "size": 802,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-landscaping.txt",
+        "originalDirectory": "bills",
+        "hash": "3b3e4ad1622125b4a1f4bb36c0317bc75007502f4c1311f4386fea6decefd033",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-maintenance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "5765bd6e26140caf79d54eeaa8c4dcfa1db012cec641afd9bf4262a85e3236a7",
+        "size": 806,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-professional_services.txt",
+        "originalDirectory": "bills",
+        "hash": "d9a602b2a6ea712305395eadeb8b1ee0c9cbc15244db94aceb4dc1029fb4ff78",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-security.txt",
+        "originalDirectory": "bills",
+        "hash": "99c8da209ee7ac772f5ffa88327aad509ffc0812ed8599b9ee6d80cffb89f748",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-supplies-2.txt",
+        "originalDirectory": "bills",
+        "hash": "237ff750c071f884cb232f91f79e3d2323c092f2b2bcc2f870502c9815308b63",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-11-utilities-2.txt",
+        "originalDirectory": "bills",
+        "hash": "468ea5f76a79fc8cb43c45a6bbf74a082eba38cca1e7fb8a0832df7a35b26e21",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-12-insurance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "669ae80430183620ddeb6ae358af6be18b4aa01ea8a8b4c72c1fb1efdd2ba52d",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-12-insurance.txt",
+        "originalDirectory": "bills",
+        "hash": "bd2533a8bb50aa1f34173681a38e77f9dcd928cc3ef8338cc7e844af1d9af604",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-12-landscaping-2.txt",
+        "originalDirectory": "bills",
+        "hash": "7acc41f7ef7585e68a6262f0ff74e556f1ed8d75c5f7799f63f360a6acd76ee6",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-12-maintenance-2.txt",
+        "originalDirectory": "bills",
+        "hash": "07e2a9672dd595fd432225a938878d4b055e72619b7686d233488cc8c784fd77",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-12-maintenance.txt",
+        "originalDirectory": "bills",
+        "hash": "901b58a771dbefa9878cceddded3a171759256c33c3e7e8417d9b266c23b2913",
+        "size": 807,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-12-professional_services.txt",
+        "originalDirectory": "bills",
+        "hash": "c03540558c89de0e39efed422005a1f51acef96a7f5d3c16f003d91abd7f0e07",
+        "size": 827,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-12-security.txt",
+        "originalDirectory": "bills",
+        "hash": "0d8bd2a3c39ea76f0e1475887d8b157778e57ca8b99d9f48256bacc7f52930b4",
+        "size": 800,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-12-supplies.txt",
+        "originalDirectory": "bills",
+        "hash": "52f916465767f155d60ce70f9fcc5a1966db32ab9cec62a4d2cd0fae702cdc2a",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-17f6-2024-12-utilities-2.txt",
+        "originalDirectory": "bills",
+        "hash": "d3ea5391642615906259b884274ab1bbf9f583cc0bec60a3e1d58c77034a555a",
+        "size": 803,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-01-cleaning-2-37295511.txt",
+        "originalDirectory": "bills",
+        "hash": "90c27b5260182786eb1d80f73fcf57f00fe3e09c60247ff3aa431a4c60eb03ed",
+        "size": 1047,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-01-insurance-2-94c5e3a4.txt",
+        "originalDirectory": "bills",
+        "hash": "e059df3c1c320d63acbe31228a3bafb71a5be22470198d38d06242c3453a2450",
+        "size": 1102,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-01-landscaping-48e40b84.txt",
+        "originalDirectory": "bills",
+        "hash": "e4ce3d9725699cc905ff3613dbeb3697d343a3debe024abfb8cf5800e269a016",
+        "size": 1013,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-01-maintenance-3aa33362.txt",
+        "originalDirectory": "bills",
+        "hash": "2a06b23c8d3060746223b1d0f5214706828840c05b1e675ed7107ca78ab23970",
+        "size": 1058,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-01-professional_services-3791a49a.txt",
+        "originalDirectory": "bills",
+        "hash": "71fe94f8d501b6fcca8d7cf18e9459adb248323c56673a8a933e3dc2ace082bb",
+        "size": 1047,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-01-security-1-577d3af5.txt",
+        "originalDirectory": "bills",
+        "hash": "1dc1ca4e3f826909e13a89d0d1a4274173a9742d6e646f54af8dd5f0571150a9",
+        "size": 1015,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-01-security-2-6bb7e800.txt",
+        "originalDirectory": "bills",
+        "hash": "9ef8e31eb1fe93caf253c3bf02fdb0258d80f76b3eeccef54fcf2e0c5c236a43",
+        "size": 1014,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-01-supplies-97f043ca.txt",
+        "originalDirectory": "bills",
+        "hash": "6b7357d37d91a7ab98969da1e5f9a7898476cf0aed9c956dea703735c5faa837",
+        "size": 1051,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-01-utilities-08c516cd.txt",
+        "originalDirectory": "bills",
+        "hash": "0c9376382aa148a2ccfc7373bb6bf6f11f7748b422f35a9777c9333f52307fff",
+        "size": 1031,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-02-administration-9a87694f.txt",
+        "originalDirectory": "bills",
+        "hash": "cf61de298f038b2597fc2cf6c47348f380c4553284e58a220149f462a18d3f61",
+        "size": 1059,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-02-cleaning-1-20d10e4b.txt",
+        "originalDirectory": "bills",
+        "hash": "5e485192a676d5c7bd13aefa61b726c7587482391e8f3ddde71fcad25e4befaf",
+        "size": 1043,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-02-cleaning-2-78288f54.txt",
+        "originalDirectory": "bills",
+        "hash": "bfe64208f8fa03c11907b332ee8156b79defa3f67344437447cc0d9a6bdde33a",
+        "size": 1099,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-02-professional_services-f6cc9403.txt",
+        "originalDirectory": "bills",
+        "hash": "222cfc9bbed48ee289e3fd9c335d8cc90d1c01f94c886eaa465e2b1399b1be1d",
+        "size": 1091,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-02-utilities-2-d0a1f503.txt",
+        "originalDirectory": "bills",
+        "hash": "66a68ae681280d97f84c84efeb47d4f2b0601da49592043c28d41b062b25f79c",
+        "size": 1045,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-03-administration-1-96c83cab.txt",
+        "originalDirectory": "bills",
+        "hash": "a94e175ddffaafccc6845c5f87dd4eeeab745d7225233db0dd5c591d54e7f25d",
+        "size": 1128,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-03-administration-2-16025591.txt",
+        "originalDirectory": "bills",
+        "hash": "afb9a435de051ada9fcc9c6b5b6e6e5a3f4eec7c559cdf1eebf5b413652584dc",
+        "size": 1119,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-03-cleaning-2-30c493be.txt",
+        "originalDirectory": "bills",
+        "hash": "31f98a771d94277e3812b55499f8598346e4a3a1e446bf844f62cbf0f06e99ad",
+        "size": 1040,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-03-supplies-1-10f71ce1.txt",
+        "originalDirectory": "bills",
+        "hash": "fe291d77a1e630b165fb2daee63fcfb7380c42d1a039a72e0bfa44731028e4f4",
+        "size": 1079,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-03-supplies-2-30c4da6c.txt",
+        "originalDirectory": "bills",
+        "hash": "3732574f276a9056e31c488cd08bec99dea61506b8d53c291f0c65cfd59c3535",
+        "size": 1065,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-03-utilities-2-006a4d6f.txt",
+        "originalDirectory": "bills",
+        "hash": "e6599313f42d6574856d6db86058c3b9b90224c51f1bd3181cd840d641ffdf8f",
+        "size": 1067,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-04-administration-95e96185.txt",
+        "originalDirectory": "bills",
+        "hash": "99e25938fba75e1b344e702fd65112f38d25807b6c429d3850b4ae3fe7d5f001",
+        "size": 1077,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-04-cleaning-2-bec81524.txt",
+        "originalDirectory": "bills",
+        "hash": "1ef3c4ce01210ef3832cf6cbcc5178b439580f7873ca7bc9e6a89ab3a70b4f31",
+        "size": 1053,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-04-professional_services-1-b7c6aab2.txt",
+        "originalDirectory": "bills",
+        "hash": "d0bfe2d9e1acc589ad95a89e5917b180ebce84cf3a01669c7fac4c0db8ffd6b7",
+        "size": 1099,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-04-security-1-123e0085.txt",
+        "originalDirectory": "bills",
+        "hash": "5964cbe823a91f02405348a9d196e89d27ba5db4f484d873fec1b64ed48aa273",
+        "size": 1063,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-04-supplies-89bb8161.txt",
+        "originalDirectory": "bills",
+        "hash": "31f339211774315bf8c9ef6dc91e36cbaf81bcf9077c7666291a5a4d3eee0287",
+        "size": 1092,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-04-utilities-1-ce6161d4.txt",
+        "originalDirectory": "bills",
+        "hash": "9dd605030a0b25a164e985c6dd3889e9dc849b893c7697883f8241f2f0d1c0dd",
+        "size": 1079,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-05-administration-1-cd7738d7.txt",
+        "originalDirectory": "bills",
+        "hash": "952036a2ba67293709359deb1553f41d5dcf8047d1f2a13f7628455b84aa50e2",
+        "size": 1102,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-05-cleaning-1-63616cef.txt",
+        "originalDirectory": "bills",
+        "hash": "5f365b38c2af53e3994f5bca4ab1a4ecd1b6fac61e32173ea3d21d5227dec8fb",
+        "size": 1084,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-05-cleaning-2-383c8d62.txt",
+        "originalDirectory": "bills",
+        "hash": "d2466268a0fc123a921230cd3eba87f72f07ed4081dc139c0ada88244be26438",
+        "size": 998,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-05-insurance-9ba9b533.txt",
+        "originalDirectory": "bills",
+        "hash": "5f21fe8308eea43c6420fe3a1d298708f72ba0f8075ce0e6b3d2fba6f1611dae",
+        "size": 1023,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-05-landscaping-1-c7c10829.txt",
+        "originalDirectory": "bills",
+        "hash": "6ba50a7ea2b31dd8e31fe083b4ae226fc82a49a0d135438d9c8e295d1e9eaf5a",
+        "size": 1090,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-05-maintenance-2-d310f7bf.txt",
+        "originalDirectory": "bills",
+        "hash": "49f2903b777c09d5be0e3a872bddb776a4900ebc55368d0df71251460ecd39a2",
+        "size": 1089,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-05-professional_services-1-1b62f9f2.txt",
+        "originalDirectory": "bills",
+        "hash": "c7ffce3c4bdc16f7e2160090e8bd33853ab33483d8c4288a67d899affc62be8e",
+        "size": 1152,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-05-supplies-1-6489b693.txt",
+        "originalDirectory": "bills",
+        "hash": "6364d250187ca2230df67bb20d68251735193d173df1f37f0e1bcf4ef37dfc45",
+        "size": 1083,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-06-cleaning-2-d8b783b8.txt",
+        "originalDirectory": "bills",
+        "hash": "7bfbdfe1ec3b0136f2c9efbb35325c768b226702d5227ad6d829371e4386664a",
+        "size": 1066,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-06-insurance-63a7c149.txt",
+        "originalDirectory": "bills",
+        "hash": "892114445210445e8e8c7d8482857a6d77ee6a33de5d8b302494144b5bfc8f58",
+        "size": 1047,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-06-landscaping-1-25ce61be.txt",
+        "originalDirectory": "bills",
+        "hash": "f5972dd06a3328cd6b3fe6812e33f416c69645f941ac180b6ac44e5b11ae19b0",
+        "size": 1074,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-06-professional_services-2-67d05cc0.txt",
+        "originalDirectory": "bills",
+        "hash": "a74f2fe9c7ccfd48daa876212e1492bea30f0adf9c670e6861a5555d46a2a9f5",
+        "size": 1100,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-06-security-1-d7fc7184.txt",
+        "originalDirectory": "bills",
+        "hash": "db0011ebd9e7d9ac18e211872961d3bcc11d7b5cd37d5b712ff0ac03ce5cd580",
+        "size": 1058,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-06-supplies-1-956ef438.txt",
+        "originalDirectory": "bills",
+        "hash": "4ad8b674efe91d7813319c25e5593e2295a9ff6aa85e352eab213529b9a918ad",
+        "size": 1095,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-06-utilities-53976da2.txt",
+        "originalDirectory": "bills",
+        "hash": "7e2e91c267b2690833f266c29f871da0798ec0b31a4d94cea20e2090f9f66b4b",
+        "size": 1055,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-07-administration-8688f69e.txt",
+        "originalDirectory": "bills",
+        "hash": "632dfaae14c8f617d6139e0e145e6931b62cbb0c11fa4908911178effd4065f9",
+        "size": 1038,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-07-cleaning-cdc38c05.txt",
+        "originalDirectory": "bills",
+        "hash": "624951203c0a807888d40d34cfcbca795037fcc325b1d4dd3e5c0fb8bf75ba9e",
+        "size": 1042,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-07-insurance-2-3b0a9149.txt",
+        "originalDirectory": "bills",
+        "hash": "016b5445db4b340bd17c8d9556328263b9c5d89d499d9dcd1dd97d9cd856cf9d",
+        "size": 1055,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-07-maintenance-2-cc3fb698.txt",
+        "originalDirectory": "bills",
+        "hash": "6bbbff8b40dc793f719f664436a376173a1c9ebe50b6e181ccc5d342624996dc",
+        "size": 1063,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-07-professional_services-2-5a3e590c.txt",
+        "originalDirectory": "bills",
+        "hash": "6e872a6955d0dd546d05f031da6029b6e84c8e29ce89f3117e248a93e98f0874",
+        "size": 1077,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-07-security-2-119a133e.txt",
+        "originalDirectory": "bills",
+        "hash": "7b65198285199446e336463a59aa16da3a66b18c5761a9f72765838874dc567b",
+        "size": 1076,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-07-utilities-2-b47dee0c.txt",
+        "originalDirectory": "bills",
+        "hash": "aa7c9f5dbaafcbba400d71eb729f22b57220fc7a29582db92f31ba262c8c1f61",
+        "size": 1079,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-08-administration-ab4325ee.txt",
+        "originalDirectory": "bills",
+        "hash": "6db5e8a18261c5ca412d42de60bf0d636a6dc4bfdbd1fc9e889719075c055006",
+        "size": 1043,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-08-cleaning-2-c5ac83b7.txt",
+        "originalDirectory": "bills",
+        "hash": "9998cba9bb2cc240b99925bf2227cd74c9984f6a3130a63c47682d54545aa9e8",
+        "size": 1091,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-08-landscaping-224794e2.txt",
+        "originalDirectory": "bills",
+        "hash": "d41b58e1e23b207d22b796095d73b87f73902bb11be193c47511217f8ad0a59c",
+        "size": 1039,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-08-maintenance-1-3218f77e.txt",
+        "originalDirectory": "bills",
+        "hash": "2caa363aded1868c1a1b61f7e5cbd46bd1499fd7b9252a8034ec26a3638a182a",
+        "size": 1031,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-08-maintenance-2-7b3d4eb9.txt",
+        "originalDirectory": "bills",
+        "hash": "04f07d88571808cc4e17d9871c485d99cf4fe65f5aeffac420fa7dc6a0163506",
+        "size": 1111,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-08-professional_services-a56350bf.txt",
+        "originalDirectory": "bills",
+        "hash": "791872ba499f296658532ae2d4e8118647ff079f0fcd1157ef6dc7e68b210dea",
+        "size": 1053,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-09-administration-1-c2bd039b.txt",
+        "originalDirectory": "bills",
+        "hash": "a543406b3106a5a5993d06cd7cad53dbdffdffd7d4d11d33c84f552a20715e72",
+        "size": 1076,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-09-administration-2-094ca210.txt",
+        "originalDirectory": "bills",
+        "hash": "9c4c7b8b78139cf89c069876270da793f8255fb328d137b045c4f5579cfec692",
+        "size": 1107,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-09-insurance-d99bd72c.txt",
+        "originalDirectory": "bills",
+        "hash": "245fc4bbdbc07442093029f8c6b33fc1e36d5439e04380edce50d6a2a9b92bf6",
+        "size": 1075,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-09-landscaping-2-de481db2.txt",
+        "originalDirectory": "bills",
+        "hash": "23d69db0ebdbf31702c7164f5f72ea8f52ebba834768964011dedf3d00a5988c",
+        "size": 1057,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-09-maintenance-034b033c.txt",
+        "originalDirectory": "bills",
+        "hash": "b13aa6efc92d423231be63f0a49440ad9b873bb05e7cd733e38935f6d39e6eb3",
+        "size": 1095,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-09-security-2-0649e4cd.txt",
+        "originalDirectory": "bills",
+        "hash": "7d398c267df508c37ee9302e5b4f98e9297c8f3b41732514d2f7260b0a4a4c91",
+        "size": 1033,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-09-supplies-2-2ecbdcdf.txt",
+        "originalDirectory": "bills",
+        "hash": "824d6cb4a5353c320f32322b39e4232f9dd049bfcaf494401d6cf8f8fe7575c2",
+        "size": 1026,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-10-administration-dba8cf73.txt",
+        "originalDirectory": "bills",
+        "hash": "967199f848f9e331d1737286c5b4098d302ec60b1cbe0121fa771720809ba2fc",
+        "size": 1034,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-10-maintenance-042b6615.txt",
+        "originalDirectory": "bills",
+        "hash": "fab04f36247f96bc7a794213fcb7a4c6317e9f822121ec0e56a3babd360eb57e",
+        "size": 1043,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-10-professional_services-2-a9b3d19d.txt",
+        "originalDirectory": "bills",
+        "hash": "54e6e9f8e6b943e62423f82218eb11d0a1868167eedc851a4010f5f5d6bc318f",
+        "size": 1128,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-10-security-2-716cac2a.txt",
+        "originalDirectory": "bills",
+        "hash": "d083f03a508838cde677a1930a66ef4a5055062e37d2164f42ca8472c00b46a5",
+        "size": 1072,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-10-supplies-2-fc07bd0e.txt",
+        "originalDirectory": "bills",
+        "hash": "2acb4e3f127fd0fc4bc1d9a38d31e84d841cc5895c3a6ca84ddc6d0028f9a6c6",
+        "size": 1033,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-11-administration-2-818ab34d.txt",
+        "originalDirectory": "bills",
+        "hash": "91ecf8e0736160eb204843e1d0ee30739db730bbbffc86e3254af545232584e8",
+        "size": 1120,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-11-cleaning-8f0341f4.txt",
+        "originalDirectory": "bills",
+        "hash": "71ed9b578a0be0d34822a53c50685b61ff9b3f5aec61708f38f6a36ae6af97ea",
+        "size": 1038,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-11-insurance-72e02d8d.txt",
+        "originalDirectory": "bills",
+        "hash": "080ad3da06c6f0503f5c5da9bc97b5022ae55a20b0893767cc60e7b5d6d12671",
+        "size": 1084,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-11-landscaping-2-434ffd76.txt",
+        "originalDirectory": "bills",
+        "hash": "a6a3cf664f54c17029bb8410ce46dbf29ad760a4a5f58f138b85822d0c1bf7bf",
+        "size": 1024,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-11-professional_services-47cb209d.txt",
+        "originalDirectory": "bills",
+        "hash": "6353fcd4e9e4bdaa6dd663e2e7d2a544c5cd8aeac2a92f9498ac446b4a061a7d",
+        "size": 1137,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-11-security-49726110.txt",
+        "originalDirectory": "bills",
+        "hash": "7222decec9642873807b145471789a49e615f64330d394d30eb484ffdaa00320",
+        "size": 1020,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-11-supplies-fde4a7ca.txt",
+        "originalDirectory": "bills",
+        "hash": "c37de46194a71bda23067a25077c152b57110c4744259df64f37ac12f30ce7d1",
+        "size": 1027,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-11-utilities-2-4998e21d.txt",
+        "originalDirectory": "bills",
+        "hash": "7a564d2d4b0a864f32bd045fe7248d36dc91082635269a7b4e1363e32232c46b",
+        "size": 1074,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-12-cleaning-e2096804.txt",
+        "originalDirectory": "bills",
+        "hash": "b15a35afbd29d88f7c876a9b9514df11a2663b5eb3dec2a7ea9cc51f68bba963",
+        "size": 1039,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-12-maintenance-2-2afd87c1.txt",
+        "originalDirectory": "bills",
+        "hash": "44b1740467d414ba05a94f60acbb3b70c82714f923ad822b6863a28ecf5400af",
+        "size": 1080,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-18bc-2024-12-utilities-2-3295589b.txt",
+        "originalDirectory": "bills",
+        "hash": "f9f7b2cff4e37d98e4ec603033d41c0cb23e0a1b59b0dfe36bc22845864952b6",
+        "size": 1146,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21DC-2024-01-ADMINISTRATION-2.txt",
+        "originalDirectory": "bills",
+        "hash": "520715c527cf4b602cb08b3cdebccd303692d76312621c8ed4c2291695c0c68b",
+        "size": 859,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-01-administration-1-afe01b89.txt",
+        "originalDirectory": "bills",
+        "hash": "96aa0064c58b6536e4df0502574684d64f60971833aa07e3f28660f0921f6ee3",
+        "size": 1105,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-01-cleaning-1-f2a1bf76.txt",
+        "originalDirectory": "bills",
+        "hash": "f858b5083700b5e8a66769c116bc4f806cd0e944eba8c12cdba91cfc3a3a4e50",
+        "size": 1095,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-01-cleaning-2b.txt",
+        "originalDirectory": "bills",
+        "hash": "a91654023f3ef10e8db01b5abf6b17cdf65f5226071cdf20048c22ea942858f7",
+        "size": 801,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-01-insurance-c2ac1b72.txt",
+        "originalDirectory": "bills",
+        "hash": "ae9185fa085e4d37d3ef6ea7d64ff17c52ffd99a37fbe2c24977f019eaf7c7b2",
+        "size": 1054,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-01-landscaping-1-107b1272.txt",
+        "originalDirectory": "bills",
+        "hash": "5b83e7d4c18f5a6b7322b032ee744aeb63f43dcad5896ccddac9d8063ff81782",
+        "size": 1084,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-01-maintenance-a57ba80c.txt",
+        "originalDirectory": "bills",
+        "hash": "2d3a7e902903334597d11a540fb9491761c50cee7da0f942a4470d1b2bd9e5c2",
+        "size": 1078,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-01-professional_services-2-790c5cb5.txt",
+        "originalDirectory": "bills",
+        "hash": "744ea61b65a5cf64042d98861cc7d608e7253a99bd157bcd5c62c6a211053f9e",
+        "size": 1106,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-02-landscaping-71695fbf.txt",
+        "originalDirectory": "bills",
+        "hash": "05bb89774548f10d626fbc40a55ba7caac208525738b10796d5244399c650f3b",
+        "size": 1081,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-02-professional_services-6dd2761f.txt",
+        "originalDirectory": "bills",
+        "hash": "2494175b76d2a6c3be99d0ac1f43d48d85d9d77026a802fcab4584e2efcd4922",
+        "size": 1068,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-02-security-2-6f704146.txt",
+        "originalDirectory": "bills",
+        "hash": "4899056f89bd02f8d28e5fb5faaa1d68149c461d7564339c3bc5bd5fa085bf03",
+        "size": 1045,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-03-cleaning-1-6d8b1e1f.txt",
+        "originalDirectory": "bills",
+        "hash": "5588127ceec4819ae7c36efea44e2d87ec6f04e58bd150e58f353393dcfd4721",
+        "size": 1084,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-03-cleaning-2-1bda1e53.txt",
+        "originalDirectory": "bills",
+        "hash": "6a5f1992cc8c932fc627f8f4b753bd6112bd966938bcb0ecb6b8ec9752f3697c",
+        "size": 1039,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-03-insurance-1-f6b64e47.txt",
+        "originalDirectory": "bills",
+        "hash": "3bca8816cf01721c9461cce4d9d98682d86677281561592ea6d0505322bce7e4",
+        "size": 1052,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-03-landscaping-1-35ce9ca9.txt",
+        "originalDirectory": "bills",
+        "hash": "0ce1ec90b0f6ef99ad596fcf169c77ae764c238d81d030470a75c18368cb12dc",
+        "size": 1076,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-03-landscaping-2-33beff47.txt",
+        "originalDirectory": "bills",
+        "hash": "cbe25055d03d3f62f5618e0bcb8877066090ae7c8b94b7aa8f578d5fb6076ef0",
+        "size": 1100,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-03-supplies-2-41aad62c.txt",
+        "originalDirectory": "bills",
+        "hash": "4732989730a1fe0caca2e194c591bd54568b0e520cbb710ac4626112d764f3a9",
+        "size": 1063,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-03-utilities-1d8ef0bf.txt",
+        "originalDirectory": "bills",
+        "hash": "971d1ad9714bb4ad814892bbb7ef981169256b9d9329e48ac91505d93e6de485",
+        "size": 1043,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-04-administration-2-8f7e66b0.txt",
+        "originalDirectory": "bills",
+        "hash": "f57eb88351e01e15d91ae74a5f533465c9be4f1b0c62135154ee29f9443c726b",
+        "size": 1093,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-04-cleaning-1-bea37ea8.txt",
+        "originalDirectory": "bills",
+        "hash": "7270ffb2c73111ab79d226494a61456b88074ea3b04272720a1e8d45844c0357",
+        "size": 1106,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-04-cleaning-2-d86d1b3c.txt",
+        "originalDirectory": "bills",
+        "hash": "beb8d58435610ed446a7047b46a071917f1f8023e6caa1d034d88fe0287b45a8",
+        "size": 1032,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-04-landscaping-1-b8a4a0df.txt",
+        "originalDirectory": "bills",
+        "hash": "4f3d316ee72a854325096a1e88d707e64861b5cfd6116bf7ca3efd3366722624",
+        "size": 1133,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-04-maintenance-440b5e5f.txt",
+        "originalDirectory": "bills",
+        "hash": "25470f8360847e6dcea741bbba72627725d72b4d0d0650a3b7483645cdf3878c",
+        "size": 1030,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-04-professional_services-0d6dc8e5.txt",
+        "originalDirectory": "bills",
+        "hash": "5e898a4db7bb4d845b581e7ae8520a90df619d5d0b13c80a9676e0bc6ee37e01",
+        "size": 1074,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-04-supplies-145f43a0.txt",
+        "originalDirectory": "bills",
+        "hash": "684c47e8ed3b297ee78e07e753d30e9efd9af4f110ae80a9ef561e13957d23d4",
+        "size": 1051,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-04-utilities-1-0ed10607.txt",
+        "originalDirectory": "bills",
+        "hash": "372679cd3f036be17ba15da5587dec689e1e8224764998f4efae41ed9e3ca8d4",
+        "size": 1085,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-05-cleaning-2-74c81e23.txt",
+        "originalDirectory": "bills",
+        "hash": "49044918b490216f75351ddec39bbfd3f0e04f973581f013aac1e0912e8c68c3",
+        "size": 1031,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-05-insurance-1-e163238a.txt",
+        "originalDirectory": "bills",
+        "hash": "269d7ab18bb3c6deacde8b5da2721bcdf5924b1878a974468d00aa23c430f2b6",
+        "size": 1064,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-05-insurance-2-ac793c05.txt",
+        "originalDirectory": "bills",
+        "hash": "dbc2ccbd3fc077d85e2dc0be76abb71cc9ad5cceab9daeb6ad4abad9c4ba741c",
+        "size": 1097,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-05-landscaping-1-d87c658e.txt",
+        "originalDirectory": "bills",
+        "hash": "e9ed77a0cf16b038e6b523434c1f2ac5bf0c4444c489c1835ae77465ec8887cf",
+        "size": 1088,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-05-maintenance-1-3fc3e8b3.txt",
+        "originalDirectory": "bills",
+        "hash": "804e3d7ab4cc73fd97b1e8583579b9cb2958b8fe36080cc586f9720210efbc09",
+        "size": 1047,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-05-supplies-2-cfad28d2.txt",
+        "originalDirectory": "bills",
+        "hash": "99ca107d0c93b6b36acdc25a923997acfb21ce6682412acbee2b5fa7657c2f10",
+        "size": 1057,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-06-administration-1-ac0afb45.txt",
+        "originalDirectory": "bills",
+        "hash": "9e9ab6696b0f9ffe80718d47373fa7fb89cb27045798248b853033034f902689",
+        "size": 1047,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-06-administration-2-d1fb5ac5.txt",
+        "originalDirectory": "bills",
+        "hash": "cd9647aa3a455842b5e635cef9f5461b858acf87be2435920cf95363f6a1400d",
+        "size": 1132,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-06-cleaning-6a50c66b.txt",
+        "originalDirectory": "bills",
+        "hash": "acf6da52712c4b2c595e39e97cbdc2187bf0a9aa133fd993d68b2f59a87595ca",
+        "size": 1031,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-06-professional_services-27c26536.txt",
+        "originalDirectory": "bills",
+        "hash": "a7c436ba5cb92c3d5b070333ea8e30415664dcc4401840212e9bac03a3f4432e",
+        "size": 1129,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-06-supplies-2-fa9cf1e8.txt",
+        "originalDirectory": "bills",
+        "hash": "d4bcdb85fdbe862c53915d69f427217bd96f9977668426a14c31f4a5fa00c808",
+        "size": 1088,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-07-administration-1-214fadfe.txt",
+        "originalDirectory": "bills",
+        "hash": "9a141d46c78eefdb78bc89f6bd4d32c3f6cc249c7f2d632c62a5989d38beb5d1",
+        "size": 1071,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-07-administration-2-fdfe03ba.txt",
+        "originalDirectory": "bills",
+        "hash": "1fc222e2be0628b04ce7bc09675ff4cd8f9d3343871d5e0661606fb810374d3c",
+        "size": 1076,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-07-cleaning-2-d0980003.txt",
+        "originalDirectory": "bills",
+        "hash": "8bfe52bb7a3bfb7893256186a09e09c8b4024c8724e218d1e5bda4dc2ea7769d",
+        "size": 1015,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-07-landscaping-2-50c44a02.txt",
+        "originalDirectory": "bills",
+        "hash": "722616d9368c3be429b10d03213841078f5e0d0edbd2284822c916baf97afc6c",
+        "size": 1071,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-07-maintenance-1-c7df9a1f.txt",
+        "originalDirectory": "bills",
+        "hash": "fbc4ebd6a2a90a49f45b0f2fccc6d94bd493bf419aa0dfa1cc50fbe77e22877a",
+        "size": 1035,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-07-professional_services-2169a85a.txt",
+        "originalDirectory": "bills",
+        "hash": "addc7821d548b8be9688457ce2f1d96d1c78d4d478227c29ce9eb0118a985177",
+        "size": 1089,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-07-security-8400abca.txt",
+        "originalDirectory": "bills",
+        "hash": "c7e998d3105d8c8d10edd53b2ab6ea7b894ac27048e9cfc0455f76f530ab8a00",
+        "size": 1036,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-07-utilities-45a19f3d.txt",
+        "originalDirectory": "bills",
+        "hash": "5e9145636e0467296d4cb689aab6a9457dd3d4412f9e71119c1f8c54d26f9bd6",
+        "size": 1061,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-08-administration-1-268a0cbe.txt",
+        "originalDirectory": "bills",
+        "hash": "992a2e4c3580259f0fe0920763fec3c848f451ff820d64b5eabe622c6ad56629",
+        "size": 1097,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-08-cleaning-1-5c594c88.txt",
+        "originalDirectory": "bills",
+        "hash": "ccd59b0c76b216e2eae27d12616f3c15cb8ff97d492f4e174b8855d7b63b7af6",
+        "size": 1027,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-08-security-2-db89c6c6.txt",
+        "originalDirectory": "bills",
+        "hash": "489ab1f2a4c7bc1d073bd8854037aab65ceea4adfc3ad4c65aed7c659820b06f",
+        "size": 1060,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-08-utilities-af5ed3ff.txt",
+        "originalDirectory": "bills",
+        "hash": "a14a8fe33311ea1685061b52eeec4232255fb5fa20899a3ab2b1f514b16aaaf8",
+        "size": 1052,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-09-cleaning-4f05ffb1.txt",
+        "originalDirectory": "bills",
+        "hash": "5d9a7bf74d50c44cb74c2d3801520c927c20c8a7c73e9f0a74f732013a3394d4",
+        "size": 1020,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-09-landscaping-2-e289c941.txt",
+        "originalDirectory": "bills",
+        "hash": "cdadcf325063e7799d041a234761259b0a3736af6bfc46de240450556d86d749",
+        "size": 1068,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-09-maintenance-1-2e520702.txt",
+        "originalDirectory": "bills",
+        "hash": "f90ea8bef086fd6320f29321980bef79d63f3e28df1a69bdd890e3c179fc1b13",
+        "size": 1097,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-09-maintenance-2-8931b82d.txt",
+        "originalDirectory": "bills",
+        "hash": "3b5ab038b27c3a904cfcaea6e045ca6d94bb6a552aa6323a3a300e14c245d43a",
+        "size": 1088,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-09-professional_services-2-69a6cffe.txt",
+        "originalDirectory": "bills",
+        "hash": "f20277a050cccf11959df1f7e1020a59e5d72c0bf29fb49f79e4370b045948be",
+        "size": 1116,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-09-supplies-1-c0f200fc.txt",
+        "originalDirectory": "bills",
+        "hash": "b129b1ac78ffc32f57d09c45fe0aef1e0701c849653c64fc367b6f878bfbbf71",
+        "size": 1052,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-09-supplies-2-a0d8c953.txt",
+        "originalDirectory": "bills",
+        "hash": "acaff2373aed094ea39960471bc70c2d5f7e4bf9543332c756b2ca4a587b6efb",
+        "size": 1078,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills/invoice-21dc-2024-10-administration-1-760ad866.txt",
+        "originalDirectory": "bills",
+        "hash": "7af1bd5e6aa5853f8b1319d741896938014740e0385a629c58e3b69e63892617",
+        "size": 1044,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/buildings/21dcf337-cdbb-40c3-b7c5-619d7341e3ba/insurance-7393-abernathy-green-building-5-1.txt",
+        "originalDirectory": "buildings",
+        "hash": "8822d83bf6ea91168dfbe2e17cc9ea553461c95c9d8bfa73af39f7abbb8af13e",
+        "size": 1037,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/buildings/21dcf337-cdbb-40c3-b7c5-619d7341e3ba/insurance-7393-abernathy-green-building-5-2.txt",
+        "originalDirectory": "buildings",
+        "hash": "559a2b64205f377ff3bb2c392887356456db193392749891af29098d0010a7a5",
+        "size": 1047,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/0a445357-3355-4354-8594-a8c3d0ebece7/inspection-575.txt",
+        "originalDirectory": "residences",
+        "hash": "afc13e792f0c6d5b3b8231f421dd9b1e49561c62c0c976634f412157118f2ef2",
+        "size": 1056,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/0a445357-3355-4354-8594-a8c3d0ebece7/lease-575.txt",
+        "originalDirectory": "residences",
+        "hash": "904bfcce9968b45cabd279c3f24f649bc5ad8aeaa823177f2afdcf132eb84bd4",
+        "size": 975,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/0a445357-3355-4354-8594-a8c3d0ebece7/maintenance-575.txt",
+        "originalDirectory": "residences",
+        "hash": "4e5cc0f3ae986cf8e7b7f5ced120327f1b791270adbdf5419ffa34aac293da7c",
+        "size": 769,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/10f8e0b9-07ef-4770-ac4d-29baa6f48b58/inspection-937.txt",
+        "originalDirectory": "residences",
+        "hash": "4cba73cf53ac3ffd0ed5835358e05f09c0a4fbf5dd19834c913e3c5b4f32262b",
+        "size": 1126,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/10f8e0b9-07ef-4770-ac4d-29baa6f48b58/lease-937-1.txt",
+        "originalDirectory": "residences",
+        "hash": "9419b419c3c0000ecfd1234f519f1e34389c196594fcb92efb1985377702aa38",
+        "size": 950,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/10f8e0b9-07ef-4770-ac4d-29baa6f48b58/lease-937-2.txt",
+        "originalDirectory": "residences",
+        "hash": "674e87546a9a40ac3007f117513fdbb9528671e6e486033961b26e249cf7ebf5",
+        "size": 973,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/10f8e0b9-07ef-4770-ac4d-29baa6f48b58/maintenance-937.txt",
+        "originalDirectory": "residences",
+        "hash": "44fc713c7cd392189a8e1baabf3b3d56aeef95b58cdece45c2f78ea88d7dd5c4",
+        "size": 771,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/1769fc6f-ede8-4677-a354-557cfb32ea4e/inspection-488-1.txt",
+        "originalDirectory": "residences",
+        "hash": "fe35d322991e0a69e4e398ee37e58d067fb9e1f67754e61349dbc375b0fcd432",
+        "size": 1072,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/1769fc6f-ede8-4677-a354-557cfb32ea4e/inspection-488-2.txt",
+        "originalDirectory": "residences",
+        "hash": "127459c159812c6d4fe3725807f6f2078d838dc203a1db014d0929a08453b817",
+        "size": 1092,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/1769fc6f-ede8-4677-a354-557cfb32ea4e/lease-488-1.txt",
+        "originalDirectory": "residences",
+        "hash": "9530f17b17aad2581a56b80b44957635bfcda048fcdc4187281e554b144e8c91",
+        "size": 942,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/1769fc6f-ede8-4677-a354-557cfb32ea4e/lease-488-2.txt",
+        "originalDirectory": "residences",
+        "hash": "83ed1fddaa94ff3dd57e60a6b6e8bbd56cd21bb8953c728b4af0341c5421c9bb",
+        "size": 950,
+        "verified": true
+      },
+      {
+        "file": "uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences/1769fc6f-ede8-4677-a354-557cfb32ea4e/maintenance-488.txt",
+        "originalDirectory": "residences",
+        "hash": "fe20a541fb9597ad6656fbb086729404725545b19cdd1892ba69c1675eb4f2b4",
+        "size": 771,
+        "verified": true
+      }
+    ]
+  },
+  "rollback": {
+    "instructions": [
+      "1. Stop the application",
+      "2. Execute the following commands to restore from quarantine:",
+      "   mv \"uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/bills\" \"bills\"",
+      "   mv \"uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/buildings\" \"buildings\"",
+      "   mv \"uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/residences\" \"residences\"",
+      "3. Run the database rollback script to unquarantine records",
+      "4. Restart the application",
+      "5. Verify functionality"
+    ],
+    "databaseRollback": "\n-- Rollback quarantined records\nUPDATE documents \nSET is_quarantined = false, updated_at = CURRENT_TIMESTAMP \nWHERE is_quarantined = true \n  AND updated_at >= '2025-09-16T13:03:05.560Z';\n      ",
+    "warnings": [
+      "Only execute rollback if you are certain the quarantine was incorrect",
+      "Backup your database before running rollback scripts",
+      "Verify application functionality after rollback"
+    ]
+  }
+}

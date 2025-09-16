@@ -19,7 +19,7 @@ import { relations } from 'drizzle-orm';
 import { users, organizations } from './core';
 
 // Property enums
-export const buildingTypeEnum = pgEnum('building_type', ['apartment', 'condo', 'rental']);
+export const buildingTypeEnum = pgEnum('building_type', ['apartment', 'appartement', 'condo', 'rental']);
 
 export const contactEntityEnum = pgEnum('contact_entity', [
   'organization',
