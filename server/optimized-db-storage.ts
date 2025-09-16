@@ -2556,6 +2556,16 @@ export class OptimizedDatabaseStorage implements IStorage {
             operationId,
             attachedToType: filters.attachedToType
           }, 'DEBUG');
+        } else {
+          // By default, exclude bill attachments unless explicitly requested
+          conditions.push(or(
+            isNull(schema.documents.attachedToType),
+            notInArray(schema.documents.attachedToType, ['bill'])
+          ));
+          this.logStorageOperation('getDocuments_EXCLUDE_BILLS_DEFAULT', {
+            operationId,
+            message: 'Excluding bill attachments by default'
+          }, 'DEBUG');
         }
         if (filters?.attachedToId) {
           conditions.push(eq(schema.documents.attachedToId, filters.attachedToId));
