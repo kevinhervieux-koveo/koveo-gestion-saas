@@ -14,6 +14,37 @@ export interface UploadContext {
   userId?: string;
 }
 
+/**
+ * Map legacy document types to allowed upload types
+ */
+export function mapLegacyDocumentType(documentType: string): 'bills' | 'buildings' | 'residences' | 'bugs' | 'features' | 'documents' | 'maintenance' {
+  // Map legacy types to allowed types
+  const typeMapping: Record<string, string> = {
+    'contracts': 'documents',
+    'financial': 'documents', 
+    'insurance': 'documents',
+    'legal': 'documents',
+    'meeting_minutes': 'documents',
+    'permits': 'documents',
+    'inspection': 'documents',
+    'lease': 'documents',
+    'correspondence': 'documents',
+    'utilities': 'documents',
+    'bylaw': 'documents',
+    'other': 'documents',
+    // Keep existing allowed types as-is
+    'bills': 'bills',
+    'buildings': 'buildings', 
+    'residences': 'residences',
+    'bugs': 'bugs',
+    'features': 'features',
+    'documents': 'documents',
+    'maintenance': 'maintenance'
+  };
+  
+  return (typeMapping[documentType] || 'documents') as any;
+}
+
 export interface UploadFormConfig {
   /** Whether AI analysis is enabled for this form type */
   aiAnalysisEnabled: boolean;
@@ -110,10 +141,28 @@ export const UPLOAD_FORM_CONFIGS: Record<string, UploadFormConfig> = {
 };
 
 /**
+ * Normalize user role to handle demo roles and role prefixes
+ */
+export function normalizeUserRole(role: string): string {
+  if (!role) return 'user';
+  
+  // Handle demo_ prefixed roles
+  if (role.startsWith('demo_')) {
+    return role.substring(5); // Remove 'demo_' prefix
+  }
+  
+  // Handle other role normalization if needed
+  return role;
+}
+
+/**
  * Generate secure storage directory path based on context and user role
  */
 export function generateStorageDirectory(context: UploadContext): string {
-  const { type, organizationId, buildingId, residenceId, userRole, userId } = context;
+  const { type, organizationId, buildingId, residenceId, userRole: rawUserRole, userId } = context;
+  
+  // Normalize the user role to handle demo roles and prefixes
+  const userRole = normalizeUserRole(rawUserRole || 'user');
   
   // Base directory structure: uploads/{type}/{org_or_default}/{building?}/{residence?}/{user_role}
   const baseParts = ['uploads', type];
@@ -142,7 +191,8 @@ export function generateStorageDirectory(context: UploadContext): string {
     baseParts.push(`user_${userId}`);
   }
   
-  return baseParts.join('/');
+  // Ensure POSIX-style path separators
+  return baseParts.join('/').replace(/\\/g, '/');
 }
 
 /**
@@ -163,7 +213,10 @@ export function isAiAnalysisEnabled(formType: string): boolean {
 /**
  * Validate upload context and ensure proper access control
  */
-export function validateUploadContext(context: UploadContext, userRole: string): boolean {
+export function validateUploadContext(context: UploadContext, rawUserRole: string): boolean {
+  // Normalize the role to handle demo roles
+  const userRole = normalizeUserRole(rawUserRole);
+  
   // Admin can upload to any context
   if (userRole === 'admin') {
     return true;
