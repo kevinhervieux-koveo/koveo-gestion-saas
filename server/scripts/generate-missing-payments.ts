@@ -144,7 +144,7 @@ async function generateMissingPayments() {
 export { generateMissingPayments };
 
 // Run the script if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   generateMissingPayments()
     .then(() => {
       console.log('🎉 Script completed successfully');
