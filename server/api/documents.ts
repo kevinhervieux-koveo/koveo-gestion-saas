@@ -2334,36 +2334,239 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
   
-  // Delete document with enhanced security logging
+  // Delete document with comprehensive security checks and audit logging
   app.delete('/api/documents/:id', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
       const documentId = req.params.id;
-      const documentType = req.query.type as string; // Optional type hint
+      const operationId = `delete-${documentId}-${Date.now()}`;
 
-      // Get user's organization for permission checking
+      logDocumentOperation('DELETE_ATTEMPT', {
+        operationId,
+        documentId,
+        userId,
+        userRole,
+        timestamp: new Date().toISOString()
+      }, 'INFO');
+
+      // SECURITY CHECK 1: Role-based access control - only admin and manager can delete documents
+      if (!['admin', 'manager'].includes(userRole)) {
+        logSecurityEvent('UNAUTHORIZED_DELETE_ATTEMPT', user, false, documentId, { 
+          operationId,
+          requiredRoles: ['admin', 'manager'],
+          attemptedRole: userRole
+        });
+        logDocumentOperation('DELETE_DENIED_INSUFFICIENT_ROLE', {
+          operationId,
+          documentId,
+          userRole,
+          requiredRoles: ['admin', 'manager']
+        }, 'WARN');
+        return res.status(403).json({ 
+          message: 'Insufficient permissions. Only administrators and managers can delete documents.' 
+        });
+      }
+
+      // SECURITY CHECK 2: Document existence and ownership verification
+      let document;
+      try {
+        // Get all documents the user has access to and find the specific one
+        const documents = await storage.getDocuments({
+          userId,
+          userRole,
+        });
+        document = documents.find((doc) => doc.id === documentId);
+      } catch (error: any) {
+        logSecurityEvent('DELETE_ERROR_DOCUMENT_LOOKUP', user, false, documentId, { 
+          operationId,
+          error: error.message 
+        });
+        console.error('❌ Error looking up document for deletion:', error);
+        return res.status(500).json({ message: 'Error verifying document access' });
+      }
+
+      if (!document) {
+        logSecurityEvent('DELETE_ATTEMPT_NONEXISTENT_DOCUMENT', user, false, documentId, { 
+          operationId 
+        });
+        logDocumentOperation('DELETE_DENIED_DOCUMENT_NOT_FOUND', {
+          operationId,
+          documentId,
+          userId,
+          userRole
+        }, 'WARN');
+        return res.status(404).json({ message: 'Document not found or access denied' });
+      }
+
+      // SECURITY CHECK 3: Organization membership verification
       const organizations = await storage.getUserOrganizations(userId);
-      const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+      const userOrganizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
 
-      // Use unified documents system for deletion
+      if (!userOrganizationId) {
+        logSecurityEvent('DELETE_DENIED_NO_ORGANIZATION', user, false, documentId, { 
+          operationId 
+        });
+        return res.status(403).json({ message: 'User must belong to an organization to delete documents' });
+      }
+
+      // SECURITY CHECK 4: Building/Residence access verification
+      let documentOrganizationId: string | undefined;
+
+      if (document.buildingId) {
+        try {
+          const building = await storage.getBuilding(document.buildingId);
+          if (!building) {
+            logSecurityEvent('DELETE_DENIED_BUILDING_NOT_FOUND', user, false, documentId, { 
+              operationId,
+              buildingId: document.buildingId 
+            });
+            return res.status(404).json({ message: 'Associated building not found' });
+          }
+          documentOrganizationId = building.organizationId;
+        } catch (error: any) {
+          logSecurityEvent('DELETE_ERROR_BUILDING_LOOKUP', user, false, documentId, { 
+            operationId,
+            buildingId: document.buildingId,
+            error: error.message 
+          });
+          return res.status(500).json({ message: 'Error verifying building access' });
+        }
+      } else if (document.residenceId) {
+        try {
+          const residence = await storage.getResidence(document.residenceId);
+          if (!residence) {
+            logSecurityEvent('DELETE_DENIED_RESIDENCE_NOT_FOUND', user, false, documentId, { 
+              operationId,
+              residenceId: document.residenceId 
+            });
+            return res.status(404).json({ message: 'Associated residence not found' });
+          }
+          const building = await storage.getBuilding(residence.buildingId);
+          if (!building) {
+            logSecurityEvent('DELETE_DENIED_RESIDENCE_BUILDING_NOT_FOUND', user, false, documentId, { 
+              operationId,
+              residenceId: document.residenceId,
+              buildingId: residence.buildingId 
+            });
+            return res.status(404).json({ message: 'Associated building for residence not found' });
+          }
+          documentOrganizationId = building.organizationId;
+        } catch (error: any) {
+          logSecurityEvent('DELETE_ERROR_RESIDENCE_LOOKUP', user, false, documentId, { 
+            operationId,
+            residenceId: document.residenceId,
+            error: error.message 
+          });
+          return res.status(500).json({ message: 'Error verifying residence access' });
+        }
+      } else {
+        logSecurityEvent('DELETE_DENIED_NO_BUILDING_OR_RESIDENCE', user, false, documentId, { 
+          operationId 
+        });
+        return res.status(400).json({ message: 'Document must be associated with a building or residence' });
+      }
+
+      // SECURITY CHECK 5: Organization access verification
+      if (documentOrganizationId !== userOrganizationId) {
+        logSecurityEvent('DELETE_DENIED_ORGANIZATION_MISMATCH', user, false, documentId, { 
+          operationId,
+          userOrganizationId,
+          documentOrganizationId 
+        });
+        logDocumentOperation('DELETE_DENIED_CROSS_ORGANIZATION_ACCESS', {
+          operationId,
+          documentId,
+          userId,
+          userRole,
+          userOrganizationId,
+          documentOrganizationId
+        }, 'WARN');
+        return res.status(403).json({ 
+          message: 'Cannot delete document outside your organization' 
+        });
+      }
+
+      // SECURITY CHECK 6: Manager-specific building access verification
+      if (userRole === 'manager') {
+        if (document.buildingId) {
+          // Manager can only delete documents for buildings in their organization (already verified above)
+          logDocumentOperation('DELETE_AUTHORIZED_MANAGER_BUILDING', {
+            operationId,
+            documentId,
+            buildingId: document.buildingId,
+            userId,
+            organizationId: userOrganizationId
+          }, 'DEBUG');
+        } else if (document.residenceId) {
+          // Manager can delete residence documents if the residence building is in their organization
+          logDocumentOperation('DELETE_AUTHORIZED_MANAGER_RESIDENCE', {
+            operationId,
+            documentId,
+            residenceId: document.residenceId,
+            userId,
+            organizationId: userOrganizationId
+          }, 'DEBUG');
+        }
+      }
+
+      // All security checks passed - proceed with deletion
+      logSecurityEvent('DELETE_AUTHORIZED', user, true, documentId, { 
+        operationId,
+        documentType: document.documentType,
+        buildingId: document.buildingId,
+        residenceId: document.residenceId,
+        organizationId: userOrganizationId
+      });
+
+      // Attempt to delete the document
       let deleted = false;
-
       try {
         deleted = await storage.deleteDocument(documentId);
-      } catch (e) {
-        console.warn('⚠️ Error deleting document:', e);
+      } catch (deleteError: any) {
+        logSecurityEvent('DELETE_ERROR_STORAGE_FAILURE', user, false, documentId, { 
+          operationId,
+          error: deleteError.message 
+        });
+        console.error('❌ Error deleting document from storage:', deleteError);
+        return res.status(500).json({ message: 'Failed to delete document from storage' });
       }
 
       if (!deleted) {
-        return res.status(404).json({ message: 'DocumentRecord not found or access denied' });
+        logSecurityEvent('DELETE_FAILED_NOT_FOUND_IN_STORAGE', user, false, documentId, { 
+          operationId 
+        });
+        return res.status(404).json({ message: 'Document not found in storage' });
       }
+
+      // Successful deletion
+      logSecurityEvent('DELETE_SUCCESS', user, true, documentId, { 
+        operationId,
+        documentName: document.name,
+        documentType: document.documentType,
+        buildingId: document.buildingId,
+        residenceId: document.residenceId
+      });
+      
+      logDocumentOperation('DELETE_COMPLETED', {
+        operationId,
+        documentId,
+        documentName: document.name,
+        userId,
+        userRole,
+        organizationId: userOrganizationId,
+        timestamp: new Date().toISOString()
+      }, 'INFO');
 
       res.status(204).send();
     } catch (error: any) {
-      console.error('❌ Error in document deletion:', error);
-      res.status(500).json({ message: 'Failed to delete document' });
+      logSecurityEvent('DELETE_ERROR_UNEXPECTED', req.user, false, req.params.id, { 
+        error: error.message,
+        stack: error.stack 
+      });
+      console.error('❌ Unexpected error in document deletion:', error);
+      res.status(500).json({ message: 'Failed to delete document due to unexpected error' });
     }
   });
 
