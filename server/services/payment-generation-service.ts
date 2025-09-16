@@ -30,8 +30,8 @@ export class PaymentGenerationService {
           paymentsToInsert.push({
             billId,
             paymentNumber: 1,
-            scheduledDate: billData.startDate,
-            amount: parseFloat(billData.totalAmount),
+            scheduledDate: billData.startDate, // This is already a string in YYYY-MM-DD format from Drizzle
+            amount: billData.totalAmount,
             status: 'pending',
           });
           break;
@@ -268,7 +268,7 @@ export class PaymentGenerationService {
           billId: bill.id,
           paymentNumber: index + 1,
           scheduledDate: dateStr,
-          amount: parseFloat(bill.costs[index]) || parseFloat(bill.totalAmount) / bill.scheduleCustom!.length,
+          amount: (bill.costs[index] ? bill.costs[index] : (parseFloat(bill.totalAmount) / bill.scheduleCustom!.length).toString()),
           status: 'pending',
         });
       });
@@ -281,7 +281,7 @@ export class PaymentGenerationService {
           billId: bill.id,
           paymentNumber,
           scheduledDate: currentDate.toISOString().split('T')[0],
-          amount: parseFloat(bill.costs[paymentNumber - 1]) || parseFloat(bill.totalAmount) / maxPayments,
+          amount: (bill.costs[paymentNumber - 1] ? bill.costs[paymentNumber - 1] : (parseFloat(bill.totalAmount) / maxPayments).toString()),
           status: 'pending',
         });
 
