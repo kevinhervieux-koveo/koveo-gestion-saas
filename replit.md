@@ -33,6 +33,7 @@ Preferred communication style: Simple, everyday language.
 - **Database**: PostgreSQL via Drizzle ORM and Neon serverless database.
 - **Dual Database Environment**: Development (DATABASE_URL) and Production (DATABASE_URL_KOVEO) databases are maintained in sync, requiring all schema changes to be applied to both.
 - **Schema Management**: Drizzle Kit for migrations and TypeScript integration.
+- **File Storage Architecture**: Modern hierarchical structure with canonical paths: `{type}/org_{organizationId}/building_{buildingId}/residence_{residenceId}/role_{userRole}/user_{userId}`. Supports role normalization (demo_manager → manager), type mapping (contracts/financial → documents), and comprehensive quarantine system for legacy file management. File access secured through dedicated resolver endpoint (`GET /api/documents/:id/file`) with role-based permissions.
 
 ### Authentication and Authorization
 
@@ -43,7 +44,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Features
 
-- **Document Management**: Full system with role-based access control (Admin: full, Manager: organization-wide, Resident: residence/building, Tenant: view-only). Supports upload/download, categorization, and assignment.
+- **Document Management**: Full system with role-based access control (Admin: full, Manager: organization-wide, Resident: residence/building, Tenant: view-only). Modern hierarchical storage structure with canonical paths, secure file resolver endpoint, quarantine system for legacy files (30-day retention), and comprehensive upload/download with categorization and assignment. Supports type mapping and role normalization for enterprise-grade file organization.
 - **Property Management**:
   - **Buildings**: Comprehensive management for Admin/Manager roles (view, create, edit, delete).
   - **Residences**: Auto-generated (max 300 units/building) with advanced search, filtering, pagination, and multi-parking/storage support.
@@ -55,6 +56,7 @@ Preferred communication style: Simple, everyday language.
 - **Working Methodology**: **CRITICAL** - Always restart the "Start application" workflow after making code changes and before each checkpoint or testing phase. This ensures the hot reload system properly rebuilds and loads all changes, preventing issues with stale code or missing updates.
 - **Security Enhancement (September 2025)**: Comprehensive security improvements to eliminate antivirus false positives while maintaining Law 25 compliance. Replaced shell command execution with secure database connections, enhanced file upload security with malware detection, implemented input sanitization and SSRF protection middleware, and added secure error handling.
 - **Code Consolidation**: Phase 2 consolidation completed (September 2025) achieving 40-50% code reduction through standardized form patterns, unified card components (StandardCard), and consolidated form hooks (useStandardForm). Created DocumentFormBase for shared document form structure, maintaining 100% functionality while improving developer experience.
+- **Storage Reorganization (September 2025)**: Complete overhaul of document storage system from legacy flat structure to modern hierarchical organization. Successfully migrated 156 documents to canonical path structure: `{type}/org_{organizationId}/building_{buildingId}/residence_{residenceId}/role_{userRole}/user_{userId}`. Implemented quarantine process for legacy files with 30-day retention policy, fixed critical document viewer functionality, and enhanced security with role-based access control patterns.
 - **Quality Monitoring**: Real-time workspace status, automated quality metrics with 90%+ test coverage tracking.
 - **Configuration**: Dynamic framework configuration with comprehensive documentation.
 - **Progress Tracking**: Automated validation with detailed success metrics per component category.
