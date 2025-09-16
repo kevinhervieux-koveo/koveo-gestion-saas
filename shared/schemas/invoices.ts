@@ -118,11 +118,10 @@ export const baseInvoiceInsertSchema = insertInvoiceSchema;
 
 // Enhanced validation with conditional logic for recurring payments
 export const invoiceFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
-  amount: z.string().min(1, 'Amount is required'),
+  vendorName: z.string().min(1, 'Vendor name is required'),
+  invoiceNumber: z.string().min(1, 'Invoice number is required'),
+  totalAmount: z.string().min(1, 'Total amount is required'),
   dueDate: z.coerce.date(),
-  category: z.string().min(1, 'Category is required'),
   paymentType: z.enum(['one-time', 'recurring']),
   frequency: z.enum(['monthly', 'quarterly', 'annually', 'custom']).optional(),
   startDate: z.coerce.date().optional(),
@@ -244,7 +243,7 @@ export function convertAiResponseToFormData(aiResponse: AiExtractionResponse): P
   return {
     vendorName: aiResponse.vendorName || '',
     invoiceNumber: aiResponse.invoiceNumber || '',
-    totalAmount: aiResponse.totalAmount || 0,
+    totalAmount: aiResponse.totalAmount ? aiResponse.totalAmount.toString() : '0',
     dueDate: aiResponse.dueDate ? new Date(aiResponse.dueDate) : new Date(),
     paymentType: aiResponse.paymentType || 'one-time',
     frequency: aiResponse.frequency || undefined,

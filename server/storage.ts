@@ -571,7 +571,7 @@ export class MemStorage implements IStorage {
       buildingId: doc.buildingId || '',
       residenceId: doc.residenceId || '',
       fileName: doc.fileName || '',
-      fileSize: doc.fileSize || '',
+      fileSize: doc.fileSize || 0,
       mimeType: doc.mimeType || '',
       attachedToType: doc.attachedToType || '',
       attachedToId: doc.attachedToId || '',
@@ -625,6 +625,8 @@ export class MemStorage implements IStorage {
     const newInvoice: Invoice = {
       ...invoice,
       id,
+      buildingId: invoice.buildingId || '',
+      residenceId: invoice.residenceId || '',
       createdAt: new Date(),
       updatedAt: new Date(),
     };
