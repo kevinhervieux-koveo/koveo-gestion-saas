@@ -1647,6 +1647,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: documentType || 'other',
           filePath: `text-documents/${userId}/${uuidv4()}.txt`, // Virtual path for text documents
           isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true,
+          isQuarantined: false, // Text documents are safe by default
           residenceId: residenceId || undefined,
           buildingId: buildingId || undefined,
           uploadedById: userId,
@@ -1725,6 +1726,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: otherData.category || documentType || 'other',
           filePath: `metadata-documents/${userId}/${uuidv4()}`, // Placeholder path for metadata-only documents
           isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true || false,
+          isQuarantined: false, // Metadata documents are safe by default
           residenceId: residenceId || undefined,
           buildingId: buildingId || undefined,
           uploadedById: userId,
@@ -1936,6 +1938,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: validatedData.documentType,
           filePath: validatedData.filePath || `temp-path-${Date.now()}`,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
+          isQuarantined: false, // Building documents are validated and safe
           residenceId: undefined,
           buildingId: validatedData.buildingId,
           uploadedById: validatedData.uploadedById,
@@ -2076,6 +2079,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: validatedData.documentType,
           filePath: validatedData.filePath || `temp-path-${Date.now()}`,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
+          isQuarantined: false, // Resident documents are validated and safe
           residenceId: validatedData.residenceId,
           buildingId: undefined,
           uploadedById: validatedData.uploadedById,
@@ -2489,6 +2493,140 @@ export function registerDocumentRoutes(app: Express): void {
     }
   );
 
+  // Helper function to handle text document creation
+  async function handleTextDocumentCreation(req: any, res: any, timestamp: string) {
+    try {
+      console.log(`[${timestamp}] 📝 Starting text document creation process`);
+      
+      const userId = req.user?.id;
+      if (!userId) {
+        console.log(`[${timestamp}] ❌ User not authenticated`);
+        return res.status(401).json({ message: 'User not authenticated' });
+      }
+      
+      const { textContent, name, description, documentType, attachedToType, attachedToId, buildingId, residenceId, isVisibleToTenants } = req.body;
+      
+      console.log(`[${timestamp}] 🔍 Text document data:`, {
+        textContentLength: textContent?.length,
+        name,
+        description,
+        documentType,
+        attachedToType,
+        attachedToId,
+        buildingId,
+        residenceId,
+        isVisibleToTenants,
+        userId
+      });
+      
+      // Validate required fields
+      if (!textContent || !name) {
+        console.log(`[${timestamp}] ❌ Missing required fields: textContent=${!!textContent}, name=${!!name}`);
+        return res.status(400).json({ message: 'Text content and name are required for text documents' });
+      }
+      
+      // Create unique filename and path for text document
+      const fileName = `${uuidv4()}-text-document.txt`;
+      
+      // Determine storage path
+      let storagePath: string;
+      if (attachedToType && attachedToId) {
+        storagePath = `text-documents/${attachedToType}/${attachedToId}`;
+      } else if (buildingId) {
+        storagePath = `text-documents/buildings/${buildingId}`;
+      } else if (residenceId) {
+        storagePath = `text-documents/residences/${residenceId}`;
+      } else {
+        storagePath = `text-documents/general`;
+      }
+      
+      // Create directory structure
+      const fullStoragePath = path.join(process.cwd(), 'uploads', storagePath);
+      console.log(`[${timestamp}] 📁 Creating storage directory: ${fullStoragePath}`);
+      
+      try {
+        if (!fs.existsSync(fullStoragePath)) {
+          fs.mkdirSync(fullStoragePath, { recursive: true });
+          console.log(`[${timestamp}] ✅ Created storage directory successfully`);
+        }
+      } catch (dirError) {
+        console.error(`[${timestamp}] ❌ Error creating storage directory:`, dirError);
+        return res.status(500).json({ message: 'Failed to create storage directory' });
+      }
+      
+      // Write text content to file
+      const fullFilePath = path.join(fullStoragePath, fileName);
+      try {
+        fs.writeFileSync(fullFilePath, textContent, 'utf8');
+        console.log(`[${timestamp}] ✅ Text file written successfully: ${fullFilePath}`);
+      } catch (fileError) {
+        console.error(`[${timestamp}] ❌ Error writing text file:`, fileError);
+        return res.status(500).json({ message: 'Failed to save text document to filesystem' });
+      }
+      
+      // Prepare document data for database
+      const documentData: InsertDocument = {
+        name,
+        description: description || textContent.substring(0, 200) + (textContent.length > 200 ? '...' : ''),
+        documentType: documentType || 'other',
+        filePath: `${storagePath}/${fileName}`,
+        isVisibleToTenants: isVisibleToTenants === 'true' || isVisibleToTenants === true,
+        isQuarantined: false, // Text documents are safe by default
+        residenceId: residenceId || undefined,
+        buildingId: buildingId || undefined,
+        attachedToType: attachedToType || undefined,
+        attachedToId: attachedToId || undefined,
+        uploadedById: userId,
+      };
+      
+      console.log(`[${timestamp}] 💾 Creating document record in database:`, {
+        ...documentData,
+        textContentLength: textContent.length
+      });
+      
+      // Create document record in database
+      const document = await storage.createDocument(documentData);
+      
+      console.log(`[${timestamp}] ✅ Text document created successfully:`, {
+        documentId: document.id,
+        name: document.name,
+        filePath: document.filePath,
+        attachedToType: document.attachedToType,
+        attachedToId: document.attachedToId
+      });
+      
+      return res.status(201).json({
+        message: 'Text document created successfully',
+        document: {
+          ...document,
+          title: document.name,
+          category: document.documentType,
+        },
+      });
+      
+    } catch (error: any) {
+      console.error(`[${timestamp}] ❌ Error in handleTextDocumentCreation:`, error);
+      
+      // Log detailed error information
+      const errorEntry = {
+        timestamp,
+        error: error.message,
+        stack: error.stack,
+        type: error.constructor.name,
+        userId: req.user?.id,
+        requestBody: req.body
+      };
+      
+      console.error(`[${timestamp}] 💥 Detailed error info:`, errorEntry);
+      
+      return res.status(500).json({ 
+        message: 'Failed to create text document',
+        error: error.message,
+        timestamp 
+      });
+    }
+  }
+
   // POST /api/documents/upload - Upload file to GCS and create unified document record
   app.post('/api/documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     const timestamp = new Date().toISOString();
@@ -2501,10 +2639,19 @@ export function registerDocumentRoutes(app: Express): void {
     });
     
     try {
+      // Check if we have either a file or text content
+      const hasFile = !!req.file;
+      const hasTextContent = !!req.body.textContent;
       
-      // Check if file was uploaded
-      if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
+      if (!hasFile && !hasTextContent) {
+        console.log(`[${timestamp}] ❌ No file or text content provided`);
+        return res.status(400).json({ message: 'Either a file or text content is required' });
+      }
+      
+      // Handle text document creation
+      if (!hasFile && hasTextContent) {
+        console.log(`[${timestamp}] 📝 Processing text document creation`);
+        return await handleTextDocumentCreation(req, res, timestamp);
       }
 
       // Parse form data
@@ -2616,6 +2763,7 @@ export function registerDocumentRoutes(app: Express): void {
         documentType: validatedData.documentType,
         filePath: filePath,
         isVisibleToTenants: validatedData.isVisibleToTenants,
+        isQuarantined: false, // File uploads are validated and safe
         residenceId: validatedData.residenceId,
         buildingId: validatedData.buildingId,
         uploadedById: userId,
