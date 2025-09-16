@@ -58,7 +58,7 @@ const billFormSchema = z.object({
     'other',
   ]),
   vendor: z.string().max(150, 'Vendor name must be less than 150 characters').optional(),
-  paymentType: z.enum(['unique', 'recurrent']),
+  paymentType: z.enum(['unique', 'recurrent', 'auto-generated']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   customPayments: z.array(z.object({
     amount: z.string().min(1, 'Amount is required').refine((val) => {
