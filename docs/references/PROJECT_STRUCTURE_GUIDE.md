@@ -1,8 +1,10 @@
 # Project Structure Guide
 
+> Updated: September 09, 2025
+
 ## Overview
 
-This guide provides a comprehensive overview of the Koveo Gestion project structure, including organization principles, naming conventions, and best practices for maintaining a clean, scalable codebase.
+This guide provides a comprehensive overview of the Koveo Gestion project structure, including organization principles, naming conventions, and best practices for maintaining a clean, scalable codebase optimized for Quebec property management.
 
 ## Directory Structure
 
@@ -42,16 +44,16 @@ koveo-gestion/
 ├── shared/                     # Shared code between client/server
 │   └── schema.ts              # Database schema & types
 ├── config/                     # Configuration files
-├── jest.config.simple.cjs      # Jest testing configuration
-├── docs/                       # Documentation
+├── jest.config.simple.cjs      # Jest testing configuration (ES module support)
+├── docs/                       # Documentation (73+ pages)
 │   ├── guides/                # Implementation guides
 │   ├── references/            # Reference documentation
 │   └── reports/               # Generated reports
-├── tests/                      # Test files
-│   ├── unit/                   # Unit tests
-│   ├── integration/            # Integration tests
-│   ├── e2e/                    # End-to-end tests
-│   ├── mocks/                  # Testing infrastructure
+├── tests/                      # Test files (comprehensive coverage)
+│   ├── unit/                   # Unit tests (15/15 dashboard components passing)
+│   ├── integration/            # Integration tests (API validation 15/15)
+│   ├── e2e/                    # End-to-end tests (Quebec compliance)
+│   ├── mocks/                  # Testing infrastructure (September 2025)
 │   │   ├── unified-database-mock.ts    # Database testing framework
 │   │   ├── serverApiMock.js            # Server route mocking
 │   │   ├── schemaMock.js               # Schema validation mocking

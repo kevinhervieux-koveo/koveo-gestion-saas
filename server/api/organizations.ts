@@ -13,6 +13,7 @@ import {
   userOrganizations,
   userResidences,
   invitations,
+  commonSpaces,
 } from '@shared/schema';
 import { and, eq, count, sql, or, inArray, isNull, ne } from 'drizzle-orm';
 import { requireAuth } from '../auth';
@@ -616,9 +617,10 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const { organizationId } = req.params;
+      const { has_common_spaces } = req.query;
 
       console.log(
-        `📊 Fetching buildings for organization ${organizationId} by user ${currentUser.id} with role ${currentUser.role}`
+        `📊 Fetching buildings for organization ${organizationId} by user ${currentUser.id} with role ${currentUser.role}${has_common_spaces === 'true' ? ' (with common spaces filter)' : ''}`
       );
 
       // First, verify the user has access to this organization
@@ -657,63 +659,130 @@ export function registerOrganizationRoutes(app: Express): void {
 
       if (currentUser.role === 'admin') {
         // Admin can see all buildings in the organization
-        buildingsQuery = db
-          .select({
-            id: buildings.id,
-            name: buildings.name,
-            address: buildings.address,
-            city: buildings.city,
-            province: buildings.province,
-            postalCode: buildings.postalCode,
-          })
-          .from(buildings)
-          .where(
-            and(
-              eq(buildings.organizationId, organizationId),
-              eq(buildings.isActive, true)
-            )
-          )
-          .orderBy(buildings.name);
-      } else {
-        // Non-admin users can only see buildings they have access to through their residences or direct organization access
-        buildingsQuery = db
-          .selectDistinct({
-            id: buildings.id,
-            name: buildings.name,
-            address: buildings.address,
-            city: buildings.city,
-            province: buildings.province,
-            postalCode: buildings.postalCode,
-          })
-          .from(buildings)
-          .leftJoin(residences, eq(residences.buildingId, buildings.id))
-          .leftJoin(
-            userResidences,
-            and(
-              eq(userResidences.residenceId, residences.id),
-              eq(userResidences.userId, currentUser.id),
-              eq(userResidences.isActive, true)
-            )
-          )
-          .leftJoin(
-            userOrganizations,
-            and(
-              eq(userOrganizations.organizationId, buildings.organizationId),
-              eq(userOrganizations.userId, currentUser.id),
-              eq(userOrganizations.isActive, true)
-            )
-          )
-          .where(
-            and(
-              eq(buildings.organizationId, organizationId),
-              eq(buildings.isActive, true),
-              or(
-                eq(userResidences.userId, currentUser.id), // User has a residence in the building
-                eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
+        if (has_common_spaces === 'true') {
+          // Only buildings with common spaces
+          buildingsQuery = db
+            .selectDistinct({
+              id: buildings.id,
+              name: buildings.name,
+              address: buildings.address,
+              city: buildings.city,
+              province: buildings.province,
+              postalCode: buildings.postalCode,
+            })
+            .from(buildings)
+            .innerJoin(commonSpaces, eq(commonSpaces.buildingId, buildings.id))
+            .where(
+              and(
+                eq(buildings.organizationId, organizationId),
+                eq(buildings.isActive, true)
               )
             )
-          )
-          .orderBy(buildings.name);
+            .orderBy(buildings.name);
+        } else {
+          // All buildings
+          buildingsQuery = db
+            .select({
+              id: buildings.id,
+              name: buildings.name,
+              address: buildings.address,
+              city: buildings.city,
+              province: buildings.province,
+              postalCode: buildings.postalCode,
+            })
+            .from(buildings)
+            .where(
+              and(
+                eq(buildings.organizationId, organizationId),
+                eq(buildings.isActive, true)
+              )
+            )
+            .orderBy(buildings.name);
+        }
+      } else {
+        // Non-admin users can only see buildings they have access to through their residences or direct organization access
+        if (has_common_spaces === 'true') {
+          // Only buildings with common spaces
+          buildingsQuery = db
+            .selectDistinct({
+              id: buildings.id,
+              name: buildings.name,
+              address: buildings.address,
+              city: buildings.city,
+              province: buildings.province,
+              postalCode: buildings.postalCode,
+            })
+            .from(buildings)
+            .innerJoin(commonSpaces, eq(commonSpaces.buildingId, buildings.id))
+            .leftJoin(residences, eq(residences.buildingId, buildings.id))
+            .leftJoin(
+              userResidences,
+              and(
+                eq(userResidences.residenceId, residences.id),
+                eq(userResidences.userId, currentUser.id),
+                eq(userResidences.isActive, true)
+              )
+            )
+            .leftJoin(
+              userOrganizations,
+              and(
+                eq(userOrganizations.organizationId, buildings.organizationId),
+                eq(userOrganizations.userId, currentUser.id),
+                eq(userOrganizations.isActive, true)
+              )
+            )
+            .where(
+              and(
+                eq(buildings.organizationId, organizationId),
+                eq(buildings.isActive, true),
+                or(
+                  eq(userResidences.userId, currentUser.id), // User has a residence in the building
+                  eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
+                )
+              )
+            )
+            .orderBy(buildings.name);
+        } else {
+          // All buildings
+          buildingsQuery = db
+            .selectDistinct({
+              id: buildings.id,
+              name: buildings.name,
+              address: buildings.address,
+              city: buildings.city,
+              province: buildings.province,
+              postalCode: buildings.postalCode,
+            })
+            .from(buildings)
+            .leftJoin(residences, eq(residences.buildingId, buildings.id))
+            .leftJoin(
+              userResidences,
+              and(
+                eq(userResidences.residenceId, residences.id),
+                eq(userResidences.userId, currentUser.id),
+                eq(userResidences.isActive, true)
+              )
+            )
+            .leftJoin(
+              userOrganizations,
+              and(
+                eq(userOrganizations.organizationId, buildings.organizationId),
+                eq(userOrganizations.userId, currentUser.id),
+                eq(userOrganizations.isActive, true)
+              )
+            )
+            .where(
+              and(
+                eq(buildings.organizationId, organizationId),
+                eq(buildings.isActive, true),
+                or(
+                  eq(userResidences.userId, currentUser.id), // User has a residence in the building
+                  eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
+                )
+              )
+            )
+            .orderBy(buildings.name);
+        }
       }
 
       const buildingsList = await buildingsQuery;

@@ -1,6 +1,8 @@
 # Koveo Gestion Component Documentation
 
-This comprehensive guide documents all 73 React components in the Koveo Gestion application, providing detailed descriptions, TypeScript interfaces, usage examples, and implementation patterns.
+> Last updated: September 09, 2025
+
+This comprehensive guide documents all 73+ React components in the Koveo Gestion application, providing detailed descriptions, TypeScript interfaces, usage examples, and implementation patterns optimized for Quebec property management.
 
 ## Table of Contents
 
@@ -162,6 +164,8 @@ This section documents all form components located in `client/src/components/for
 - **React Hook Form**: Performant form state management with minimal re-renders
 - **Quebec Compliance**: Bilingual error messages and Canadian address formats
 - **Accessibility**: WCAG 2.1 AA compliant form controls and error handling
+- **Test Coverage**: All forms include data-testid attributes for reliable testing
+- **Error Handling**: Comprehensive validation with Law 25 compliance messaging
 
 ### OrganizationForm (`client/src/components/forms/organization-form.tsx`)
 
@@ -810,13 +814,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 ### Form Pattern
 
-All forms follow a consistent pattern:
+All forms follow a consistent pattern established in September 2025:
 
-1. Zod schema for validation
-2. React Hook Form for form management
-3. Shadcn/ui form components
-4. TanStack Query for mutations
-5. Toast notifications for feedback
+1. Zod schema for validation with Quebec-specific rules
+2. React Hook Form for form management with optimized performance
+3. Shadcn/ui form components with accessibility features
+4. TanStack Query for mutations with proper cache invalidation
+5. Toast notifications for feedback with bilingual support
+6. Data-testid attributes for reliable testing coverage
 
 ### Data Fetching Pattern
 

@@ -1,10 +1,4 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableSelect, SearchableSelectOption } from '@/components/ui/searchable-select';
 
 /**
  *
@@ -23,6 +17,7 @@ interface FilterDropdownProps {
   onValueChange: (value: string) => void;
   options: FilterOption[];
   placeholder?: string;
+  searchPlaceholder?: string;
   width?: string;
   disabled?: boolean;
   'data-testid'?: string;
@@ -30,13 +25,14 @@ interface FilterDropdownProps {
 }
 
 /**
- * Reusable filter dropdown component
- * Standardizes the select dropdown pattern used across filtering components.
+ * Reusable filter dropdown component with search functionality
+ * Standardizes the searchable select dropdown pattern used across filtering components.
  * @param root0
  * @param root0.value
  * @param root0.onValueChange
  * @param root0.options
  * @param root0.placeholder
+ * @param root0.searchPlaceholder
  * @param root0.width
  * @param root0.disabled
  * @param root0.'data-testid'
@@ -47,24 +43,30 @@ export function FilterDropdown({
   onValueChange,
   options,
   placeholder = 'Select option',
+  searchPlaceholder = 'Search options...',
   width = 'w-40',
   disabled = false,
   'data-testid': testId,
   className = '',
 }: FilterDropdownProps) {
+  const searchableOptions: SearchableSelectOption[] = options.map(option => ({
+    value: option.value,
+    label: option.label,
+    disabled: option.disabled,
+  }));
+
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger className={`${width} ${className}`} data-testid={testId}>
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <SearchableSelect
+      value={value}
+      onValueChange={onValueChange}
+      options={searchableOptions}
+      placeholder={placeholder}
+      searchPlaceholder={searchPlaceholder}
+      width={width}
+      disabled={disabled}
+      data-testid={testId}
+      className={className}
+    />
   );
 }
 

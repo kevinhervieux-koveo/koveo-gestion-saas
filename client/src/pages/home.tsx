@@ -1,12 +1,12 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TopNavigationBar } from '@/components/layout/TopNavigationBar';
+import { StandardFooter } from '@/components/layout/StandardFooter';
 import { TrialRequestForm } from '@/components/ui/trial-request-form';
 import { Building, Users, Shield, BarChart3, ArrowRight, CheckCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
  * Home page component for Koveo Gestion.
@@ -231,136 +231,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className='bg-gray-900 text-white py-12'>
-        <div className='container mx-auto px-4'>
-          <div className='grid grid-cols-1 md:grid-cols-4 gap-8'>
-            {/* Logo and Company Info */}
-            <div className='col-span-1 md:col-span-2'>
-              <img 
-                src={koveoLogo} 
-                alt='Koveo Gestion' 
-                className='h-16 w-32 lg:h-20 lg:w-40 rounded-lg object-contain bg-white p-2 mb-4 cursor-pointer hover:shadow-lg transition-shadow'
-                onClick={() => setLocation('/')}
-                data-testid='footer-logo'
-              />
-              <p className='text-gray-400 text-sm mb-4 max-w-md'>
-                {t('comprehensivePropertyManagement')}
-              </p>
-              <div className='flex items-center space-x-4 text-sm text-gray-400'>
-                <Shield className='h-4 w-4' />
-                <span>{t('quebecLaw25Compliant')}</span>
-                <span>•</span>
-                <span>{t('yourDataIsProtected')}</span>
-              </div>
-            </div>
-
-            {/* Product Links */}
-            <div>
-              <h4 className='font-semibold text-white mb-4'>{t('navigation')}</h4>
-              <ul className='space-y-2'>
-                <li>
-                  <button 
-                    onClick={() => setLocation('/')} 
-                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
-                    data-testid='footer-home-link'
-                  >
-                    {t('home')}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => setLocation('/features')} 
-                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
-                    data-testid='footer-features-link'
-                  >
-                    {t('features')}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => setLocation('/pricing')} 
-                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
-                    data-testid='footer-pricing-link'
-                  >
-                    {t('pricing')}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => setLocation('/security')} 
-                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
-                    data-testid='footer-security-link'
-                  >
-                    {t('security')}
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* Company & Legal Links */}
-            <div>
-              <h4 className='font-semibold text-white mb-4'>{t('account')}</h4>
-              <ul className='space-y-2'>
-                <li>
-                  <button 
-                    onClick={() => setLocation('/story')} 
-                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
-                    data-testid='footer-story-link'
-                  >
-                    {t('ourStory')}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => setLocation('/privacy-policy')} 
-                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
-                    data-testid='footer-privacy-link'
-                  >
-                    {t('privacyPolicy')}
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => setLocation('/terms-of-service')} 
-                    className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
-                    data-testid='footer-terms-link'
-                  >
-                    {t('termsOfService')}
-                  </button>
-                </li>
-                {!isAuthenticated ? (
-                  <li>
-                    <button 
-                      onClick={() => setLocation('/login')} 
-                      className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
-                      data-testid='footer-login-link'
-                    >
-                      {t('login')}
-                    </button>
-                  </li>
-                ) : (
-                  <li>
-                    <button 
-                      onClick={() => setLocation('/dashboard/quick-actions')} 
-                      className='text-gray-400 hover:text-white text-sm transition-colors cursor-pointer'
-                      data-testid='footer-dashboard-link'
-                    >
-                      {t('dashboard')}
-                    </button>
-                  </li>
-                )}
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom Copyright Section */}
-          <div className='border-t border-gray-800 mt-8 pt-8 text-center'>
-            <p className='text-gray-400 text-sm'>
-              © 2024 Koveo Gestion Inc. {t('allRightsReserved')}
-            </p>
-          </div>
-        </div>
-      </footer>
+      <StandardFooter />
     </div>
   );
 }

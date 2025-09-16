@@ -211,9 +211,11 @@ export function usePerformanceTracking(componentName: string): void {
 export function analyzePerformance(): void {
   const metrics = performanceMonitor.getMetrics();
 
+  console.log(
     'DOM Content Loaded:',
     metrics.domContentLoaded ? `${metrics.domContentLoaded}ms` : 'N/A'
   );
+  console.log(
     'First Contentful Paint:',
     metrics.firstContentfulPaint ? `${metrics.firstContentfulPaint}ms` : 'N/A'
   );

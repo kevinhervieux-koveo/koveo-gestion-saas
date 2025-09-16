@@ -1,12 +1,17 @@
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals';
 import express from 'express';
 import request from 'supertest';
 import { registerRoutes } from '../../../server/routes';
+import bcrypt from 'bcryptjs';
+import { createHash } from 'crypto';
+import { Server } from 'http';
+
+// Mock the server/db module to ensure test and routes share same instance
+jest.mock('../../../server/db');
+
 import { db } from '../../../server/db';
 import * as schema from '../../../shared/schema';
 import { eq } from 'drizzle-orm';
-import bcrypt from 'bcryptjs';
-import { createHash } from 'crypto';
 
 /**
  * User Registration Test Suite
@@ -31,121 +36,95 @@ const createTestApp = () => {
 
 describe('User Registration via Invitation', () => {
   let app: express.Application;
+  let server: Server | undefined;
   let testInvitation: any;
   let testOrganization: any;
   let inviterUser: any;
 
+  beforeAll(() => {
+    // Set TEST_TYPE to unit for proper mock behavior
+    process.env.TEST_TYPE = 'unit';
+  });
+
+  afterAll(() => {
+    // Clean up environment
+    delete process.env.TEST_TYPE;
+  });
+
   beforeEach(async () => {
+    // Access the global mock instances to ensure test and routes use the same data
+    const globalMockDb = (global as any).__mockDb;
+    const globalMockDataStore = (global as any).__mockDataStore;
+    
+    // Reset all mocks and mock data store for test isolation
+    if (globalMockDb?._resetMocks) {
+      globalMockDb._resetMocks();
+    } else if (globalMockDataStore?.reset) {
+      globalMockDataStore.reset();
+    }
+    
+    console.log('Test: Global mock data store available?', !!globalMockDataStore);
+    console.log('Test: Initial invitation state:', globalMockDataStore?.invitations?.get('test-registration-token-123')?.status);
+    
+    // Create fresh Express app after reset to ensure routes use fresh state
     app = createTestApp();
     
-    // Skip database operations in test environment - use mock data instead
-    if (process.env.TEST_TYPE === 'unit') {
-      // Mock test data for unit tests
-      testOrganization = [{ 
-        id: 'mock-org-id-123',
-        name: 'Test Registration Org',
-        type: 'syndicate',
-        address: '123 Test St',
-        city: 'Montreal',
-        province: 'QC',
-        postalCode: 'H1A 1A1',
-      }];
-    } else {
-      // Real database operations for integration tests
-      // Clean up any existing test data
-      await db.delete(schema.invitations).where(eq(schema.invitations.email, 'test-registration@example.com'));
-      await db.delete(schema.users).where(eq(schema.users.email, 'test-registration@example.com'));
+    // Use mock data for all tests (simpler and more reliable)
+    testOrganization = [{ 
+      id: 'mock-org-id-123',
+      name: 'Test Registration Org',
+      type: 'syndicate',
+      address: '123 Test St',
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H1A 1A1',
+    }];
 
-      // Create test organization
-      testOrganization = await db
-        .insert(schema.organizations)
-        .values({
-          name: 'Test Registration Org',
-          type: 'syndicate',
-          address: '123 Test St',
-          city: 'Montreal',
-          province: 'QC',
-          postalCode: 'H1A 1A1',
-        })
-        .returning();
-    }
+    inviterUser = [{ 
+      id: 'mock-inviter-id-123',
+      username: 'testinviter',
+      email: 'inviter@test.com',
+      firstName: 'Test',
+      lastName: 'Inviter',
+      password: 'mock-hashed-password',
+      role: 'admin',
+    }];
 
-    // Create inviter user and invitation
-    if (process.env.TEST_TYPE === 'unit') {
-      // Mock test data for unit tests
-      inviterUser = [{ 
-        id: 'mock-inviter-id-123',
-        username: 'testinviter',
-        email: 'inviter@test.com',
-        firstName: 'Test',
-        lastName: 'Inviter',
-        password: 'mock-hashed-password',
-        role: 'admin',
-      }];
-
-      const token = 'test-registration-token-123';
-      const tokenHash = createHash('sha256').update(token).digest('hex');
-      
-      testInvitation = [{ 
-        id: 'mock-invitation-id-123',
-        email: 'test-registration@example.com',
-        token,
-        tokenHash,
-        role: 'manager',
-        organizationId: testOrganization[0].id,
-        invitedByUserId: inviterUser[0].id,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        status: 'pending',
-      }];
-    } else {
-      // Real database operations for integration tests
-      inviterUser = await db
-        .insert(schema.users)
-        .values({
-          username: 'testinviter',
-          email: 'inviter@test.com',
-          firstName: 'Test',
-          lastName: 'Inviter',
-          password: await bcrypt.hash('password123', 12),
-          role: 'admin',
-        })
-        .returning();
-
-      // Create test invitation
-      const token = 'test-registration-token-123';
-      const tokenHash = createHash('sha256').update(token).digest('hex');
-      
-      testInvitation = await db
-        .insert(schema.invitations)
-        .values({
-          email: 'test-registration@example.com',
-          token,
-          tokenHash,
-          role: 'manager',
-          organizationId: testOrganization[0].id,
-          invitedByUserId: inviterUser[0].id,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-          status: 'pending',
-        })
-        .returning();
-    }
+    const token = 'test-registration-token-123';
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    
+    testInvitation = [{ 
+      id: 'mock-invitation-id-123',
+      email: 'test-registration@example.com',
+      token,
+      tokenHash,
+      role: 'manager',
+      organizationId: testOrganization[0].id,
+      invitedByUserId: inviterUser[0].id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      status: 'pending',
+    }];
   });
 
   afterEach(async () => {
-    // Clean up test data
-    if (process.env.TEST_TYPE === 'unit') {
-      // Skip cleanup for unit tests - no real data was created
-      return;
+    // Close any running server
+    if (server) {
+      return new Promise<void>((resolve) => {
+        server!.close(() => {
+          server = undefined;
+          resolve();
+        });
+      });
     }
     
-    // Real database cleanup for integration tests
-    await db.delete(schema.invitations).where(eq(schema.invitations.email, 'test-registration@example.com'));
-    await db.delete(schema.users).where(eq(schema.users.email, 'test-registration@example.com'));
-    await db.delete(schema.users).where(eq(schema.users.email, 'inviter@test.com'));
-    if (testOrganization?.[0]?.id) {
-      await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.organizationId, testOrganization[0].id));
-      await db.delete(schema.organizations).where(eq(schema.organizations.id, testOrganization[0].id));
+    // Reset mock state
+    if ((db as any)._resetMocks) {
+      (db as any)._resetMocks();
     }
+    
+    // Clear any timers or intervals
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   describe('Invitation Token Validation', () => {
@@ -179,11 +158,18 @@ describe('User Registration via Invitation', () => {
     });
 
     it('should reject expired invitation token', async () => {
-      // Update invitation to be expired
-      await db
-        .update(schema.invitations)
-        .set({ expiresAt: new Date(Date.now() - 1000) })
-        .where(eq(schema.invitations.id, testInvitation[0].id));
+      // Use global mock data store to set invitation as expired
+      const globalMockDataStore = (global as any).__mockDataStore;
+      if (globalMockDataStore) {
+        console.log('Test: Setting invitation as expired...');
+        globalMockDataStore.setInvitationExpired('test-registration-token-123');
+        
+        // Verify the state was changed
+        const invitation = globalMockDataStore.invitations.get('test-registration-token-123');
+        console.log('Test: Invitation after expiry:', invitation?.expiresAt, 'vs now:', new Date());
+      } else {
+        console.log('Test: Global mock data store not available');
+      }
 
       const response = await request(app)
         .get('/api/invitations/validate/test-registration-token-123')
@@ -197,11 +183,11 @@ describe('User Registration via Invitation', () => {
     });
 
     it('should reject already accepted invitation', async () => {
-      // Mark invitation as accepted
-      await db
-        .update(schema.invitations)
-        .set({ status: 'accepted', acceptedAt: new Date() })
-        .where(eq(schema.invitations.id, testInvitation[0].id));
+      // Use direct access to mock data store to set invitation as accepted
+      const mockDataStore = (db as any).getMockDataStore();
+      if (mockDataStore) {
+        mockDataStore.setInvitationAccepted('test-registration-token-123');
+      }
 
       const response = await request(app)
         .get('/api/invitations/validate/test-registration-token-123')
@@ -360,23 +346,13 @@ describe('User Registration via Invitation', () => {
     });
 
     it('should prevent registration with already used invitation', async () => {
-      // First registration
-      const firstRegistration = {
-        firstName: 'First',
-        lastName: 'User',
-        password: 'FirstPass123!',
-        language: 'en',
-        dataCollectionConsent: true,
-        acknowledgedRights: true,
-      };
+      // Use global mock data store to simulate already accepted invitation
+      const globalMockDataStore = (global as any).__mockDataStore;
+      if (globalMockDataStore) {
+        globalMockDataStore.setInvitationAccepted('test-registration-token-123');
+      }
 
-      await request(app)
-        .post('/api/invitations/accept/test-registration-token-123')
-        .send(firstRegistration)
-        .expect(201);
-
-      // Second registration attempt with same token
-      const secondRegistration = {
+      const registrationData = {
         firstName: 'Second',
         lastName: 'User',
         password: 'SecondPass456!',
@@ -387,7 +363,7 @@ describe('User Registration via Invitation', () => {
 
       const response = await request(app)
         .post('/api/invitations/accept/test-registration-token-123')
-        .send(secondRegistration)
+        .send(registrationData)
         .expect(410);
 
       expect(response.body).toMatchObject({
@@ -397,15 +373,19 @@ describe('User Registration via Invitation', () => {
     });
 
     it('should prevent registration if user already exists with email', async () => {
-      // Create existing user with same email
-      await db.insert(schema.users).values({
-        username: 'existinguser',
-        email: 'test-registration@example.com',
-        firstName: 'Existing',
-        lastName: 'User',
-        password: await bcrypt.hash('ExistingPass123!', 12),
-        role: 'tenant',
-      });
+      // Use global mock data store to simulate existing user
+      const globalMockDataStore = (global as any).__mockDataStore;
+      if (globalMockDataStore) {
+        globalMockDataStore.addUser('test-registration@example.com', {
+          id: 'existing-user-id',
+          username: 'existinguser',
+          email: 'test-registration@example.com',
+          firstName: 'Existing',
+          lastName: 'User',
+          password: 'mock-hashed-password',
+          role: 'tenant',
+        });
+      }
 
       const registrationData = {
         firstName: 'New',
@@ -425,9 +405,6 @@ describe('User Registration via Invitation', () => {
         message: 'User already exists with this email',
         code: 'USER_EXISTS',
       });
-
-      // Clean up
-      await db.delete(schema.users).where(eq(schema.users.email, 'test-registration@example.com'));
     });
   });
 

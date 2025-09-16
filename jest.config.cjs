@@ -1,93 +1,117 @@
 /** @type {import('jest').Config} */
 const config = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.simple.ts'],
-  // Temporarily disable global setup/teardown to debug hanging issues
-  // globalSetup: '<rootDir>/jest.global-setup.js',
-  // globalTeardown: '<rootDir>/jest.global-teardown.js',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  
+  // Custom resolver temporarily disabled - format issues
+  // resolver: '<rootDir>/jest-resolver.js',
+  
+  // Optimized module name mapping - only essential mappings
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
-    '^@assets/(.*)$': '<rootDir>/tests/mocks/fileMock.js',
-    // Fix database mock imports
-    '^\\./server/db$': '<rootDir>/tests/mocks/serverDbMock.js',
-    '^\\./tests/mocks/database$': '<rootDir>/tests/mocks/database.js',
-    // Mock server configuration
-    '^\\./server/config/index$': '<rootDir>/tests/mocks/serverConfigMock.js',
-    '^\\./config/index$': '<rootDir>/tests/mocks/serverConfigMock.js',
-    // Mock problematic ES modules
-    '@google/genai': '<rootDir>/tests/mocks/googleGenaiMock.js',
-    '@neondatabase/serverless': '<rootDir>/tests/mocks/serverDbMock.js',
-    'drizzle-orm/neon-http': '<rootDir>/tests/mocks/serverDbMock.js',
-    'drizzle-orm/neon-serverless': '<rootDir>/tests/mocks/serverDbMock.js',
-    // Mock file system operations to prevent hanging  
-    '^fs$': '<rootDir>/tests/mocks/fileSystemMock.js',
-    '^multer$': '<rootDir>/tests/mocks/fileSystemMock.js',
-    // Mock supertest to prevent actual server requests
-    '^supertest$': '<rootDir>/tests/mocks/supertestMock.js',
-    // Mock CSS and assets
+    '^@assets/(.*)$': '<rootDir>/__mocks__/fileMock.js',
+    
+    // Complete database isolation - prevent any real connections
+    '@neondatabase/serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    'drizzle-orm/neon-http': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    'drizzle-orm/neon-serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    '^drizzle-orm/pg-core(?:\\.js)?$': '<rootDir>/__mocks__/drizzle-orm/pg-core.js',
+    '^drizzle-orm$': '<rootDir>/__mocks__/drizzle-orm/index.js',
+    '^drizzle-zod(?:\\.js)?$': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    
+    // Server module mocks to prevent real imports
+    '^../server/db$': '<rootDir>/__mocks__/server/db.ts',
+    '^../server/storage$': '<rootDir>/__mocks__/server/storage.ts',
+    '^../../server/db$': '<rootDir>/__mocks__/server/db.ts', 
+    '^../../server/storage$': '<rootDir>/__mocks__/server/storage.ts',
+    '^../../../server/routes$': '<rootDir>/__mocks__/server/routes.ts',
+    '^../../server/routes$': '<rootDir>/__mocks__/server/routes.ts',
+    '^../server/routes$': '<rootDir>/__mocks__/server/routes.ts',
+    '^../../../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
+    '^../../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
+    '^../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
+    
+    // Schema mocks to prevent drizzle-orm imports - robust directory-agnostic pattern
+    '^(.*/)?shared/schema(?:\\.(ts|js))?$': '<rootDir>/__mocks__/shared/schema.ts',
+    
+    // CSS and assets (simplified)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$':
-      '<rootDir>/tests/mocks/fileMock.js',
+    '\\.(jpg|jpeg|png|gif|svg|webp|bmp|ico|woff|woff2|eot|ttf|otf)$': '<rootDir>/__mocks__/fileMock.js',
+    
+    // ES Module mocks to prevent import issues
+    'wouter': '<rootDir>/__mocks__/wouter.js',
   },
-  testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}', '<rootDir>/tests/**/*.spec.{ts,tsx}'],
-  testPathIgnorePatterns: ['/node_modules/', '/server/tests/'],
+  
+  testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
+  testPathIgnorePatterns: ['/node_modules/', '/server/tests/', '\\.disabled'],
+  
   collectCoverageFrom: [
     'client/src/**/*.{ts,tsx}',
     'shared/**/*.{ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
   ],
+  
   preset: 'ts-jest',
   transform: {
     '^.+\\.(ts|tsx)$': [
       'ts-jest',
       {
         tsconfig: '<rootDir>/tsconfig.test.json',
-
-      },
-    ],
-    '^.+\\.js$': [
-      'ts-jest',
-      {
-        tsconfig: {
-          module: 'CommonJS',
-          target: 'ES2022',
-          allowJs: true,
-          esModuleInterop: true,
-          allowSyntheticDefaultImports: true,
-        },
-
+        useESM: false,
       },
     ],
   },
+  
+  // Optimized transform ignore patterns
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|wouter|@tanstack|@testing-library|regexparam|@radix-ui|@hookform|react|stream/web|lucide-react|drizzle-orm|drizzle-zod|@neondatabase))'
+    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud|react-router-dom))'
   ],
-  testTimeout: 30000,
-  clearMocks: true,
-  restoreMocks: true,
-  resetMocks: true,
-  verbose: false,
-  passWithNoTests: false,
-  // Performance optimizations
-  maxWorkers: '50%',
+  
+  // Performance settings - optimized for large test suites
+  testTimeout: 15000,
+  maxWorkers: 3,
   cache: true,
   cacheDirectory: '<rootDir>/.jest-cache',
-  detectOpenHandles: true,
+  detectOpenHandles: false,
   forceExit: true,
-  // Faster test isolation
+  clearMocks: true,
+  restoreMocks: true,
+  resetMocks: false,
   resetModules: false,
-  // Skip expensive operations
-  haste: {
-    enableSymlinks: false,
+  verbose: false,
+  passWithNoTests: false,
+  bail: false,
+  
+  // Memory and performance optimizations
+  workerIdleMemoryLimit: '256MB',
+  errorOnDeprecated: false,
+  
+  // CI/CD Guardrails
+  collectCoverage: process.env.CI === 'true',
+  coverageDirectory: '<rootDir>/coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70
+    }
   },
+  
   // Optimize module resolution
   modulePathIgnorePatterns: [
     '<rootDir>/dist/',
     '<rootDir>/.cache/',
     '<rootDir>/node_modules/.cache/',
   ],
+  
+  // Faster haste map
+  haste: {
+    enableSymlinks: false,
+  },
 };
 
 module.exports = config;

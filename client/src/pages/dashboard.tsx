@@ -1,6 +1,7 @@
 import { useAuth } from '@/hooks/use-auth';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StandardCard } from '@/components/ui/standard-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/use-language';
@@ -226,15 +227,15 @@ export default function Dashboard() {
               })}
             </div>
           ) : (
-            <Card className='text-center py-12'>
-              <CardContent>
-                <Home className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
-                <CardTitle className='text-xl mb-2'>Welcome to Koveo Gestion</CardTitle>
-                <p className='text-muted-foreground'>
-                  Your dashboard will be customized based on your role and permissions.
-                </p>
-              </CardContent>
-            </Card>
+            <StandardCard 
+              title="Welcome to Koveo Gestion"
+              className='text-center py-12'
+            >
+              <Home className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
+              <p className='text-muted-foreground'>
+                Your dashboard will be customized based on your role and permissions.
+              </p>
+            </StandardCard>
           )}
 
         </div>

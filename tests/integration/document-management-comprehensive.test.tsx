@@ -4,6 +4,14 @@ import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
+// Import router test utilities
+import { 
+  setupResidenceRouterMock, 
+  setupManagerRouterMock,
+  resetRouterMock,
+  navigateToRoute 
+} from '../utils/router-test-utils';
+
 // Mock window methods that wouter uses
 const mockPushState = jest.fn();
 const mockReplaceState = jest.fn();
@@ -40,22 +48,8 @@ jest.mock('../../client/src/hooks/use-toast', () => ({
   }),
 }));
 
-// Mock wouter navigation
-jest.mock('wouter', () => {
-  const mockNavigate = jest.fn();
-  return {
-    useLocation: jest.fn(() => ['/', mockNavigate]),
-    useRoute: jest.fn(() => [true, {}]),
-    useRouter: jest.fn(() => ({ navigate: mockNavigate })),
-    Router: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-router">{children}</div>,
-    Route: ({ children }: { children: React.ReactNode }) => <div data-testid="mock-route">{children}</div>,
-    Link: ({ children, href, ...props }: any) => (
-      <a href={href} data-testid="mock-link" {...props}>
-        {children}
-      </a>
-    ),
-  };
-});
+// Use comprehensive wouter mock from __mocks__/wouter.js
+jest.mock('wouter');
 
 // Demo test data
 const demoTenantUser = {
@@ -207,12 +201,8 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
     // Mock window.open for downloads
     global.open = jest.fn();
 
-    // Mock URL search params
-    delete (window as any).location;
-    window.location = {
-      search: '?residenceId=residence-demo-101',
-      pathname: '/residents/residence/documents',
-    } as any;
+    // Set up default router mock for residence documents
+    setupResidenceRouterMock('residence-demo-101', '/residents/residence/documents');
 
     // Set default auth mock
     mockUseAuth.mockReturnValue({
@@ -223,6 +213,7 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+    // Don't reset router mock to avoid navigation errors
   });
 
   describe('Tenant User - Residents Residence Documents Page', () => {
@@ -595,11 +586,8 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
         .mockResolvedValueOnce({ buildings: [demoBuildingData] })
         .mockResolvedValueOnce({ documents: demoResidenceDocuments });
 
-      // Mock URL params for residence ID
-      window.location = {
-        search: '?residenceId=residence-demo-101',
-        pathname: '/manager/residences/documents',
-      } as any;
+      // Mock URL params for residence ID safely
+      setupManagerRouterMock('residence-demo-101', 'residence');
 
       render(
         <TestProviders userRole='manager'>
@@ -736,11 +724,8 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
     });
 
     it('should handle missing residence ID', async () => {
-      // Clear URL params
-      window.location = {
-        search: '',
-        pathname: '/manager/residences/documents',
-      } as any;
+      // Clear URL params safely
+      navigateToRoute('/manager/residences/documents', '');
 
       render(
         <TestProviders userRole='manager'>

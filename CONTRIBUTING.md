@@ -1,25 +1,27 @@
 # Contributing to Koveo Gestion
 
-Thank you for your interest in contributing to Koveo Gestion! This guide outlines our development process and standards.
+> Updated: September 09, 2025
+
+Thank you for your interest in contributing to Koveo Gestion! This guide outlines our development process and standards for the Quebec property management platform.
 
 ## Development Process
 
 ### 1. Setup Development Environment
 
 ```bash
-# Clone and setup
+# Clone and setup (updated September 2025)
 git clone https://github.com/koveo/koveo-gestion.git
 cd koveo-gestion
 npm install
 
-# Configure environment
+# Configure environment with Neon PostgreSQL
 cp .env.example .env
-# Edit .env with your database credentials
+# Edit .env with your database credentials (PostgreSQL/Neon)
 
-# Initialize database
+# Initialize database with latest schema
 npm run db:push
 
-# Start development server
+# Start development server (React 18 + Express)
 npm run dev
 ```
 
@@ -43,13 +45,14 @@ npm run dev
    - Write/update tests
    - Update documentation
 
-3. **Quality Checks**:
+3. **Quality Checks** (updated September 2025):
 
    ```bash
-   npm run lint                                     # Code linting
-   npm run type-check                              # TypeScript validation
-   npx jest --config=jest.config.simple.cjs       # Run stable test suite
-   npm run test:coverage                           # Verify coverage
+   npm run lint                                     # ESLint with strict rules
+   npm run type-check                              # TypeScript strict mode validation
+   npx jest --config=jest.config.simple.cjs       # Stable test suite with ES modules
+   npm run test:coverage                           # Coverage reports (80%+ target)
+   npm run format                                  # Prettier auto-formatting
    ```
 
 4. **Commit Changes**:

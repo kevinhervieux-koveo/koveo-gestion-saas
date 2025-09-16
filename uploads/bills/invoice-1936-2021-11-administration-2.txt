@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2021-11-ADMINISTRATION-2
+Date: 2021-11-02
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Pro-Admin Services
+
+DESCRIPTION / DESCRIPTION:
+Administration - Pro-Admin Services
+
+CATÉGORIE / CATEGORY: Administration
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $760.00 CAD
+TPS (5%) / GST: $38.00 CAD
+TVQ (9.975%) / QST: $75.81 CAD
+TOTAL: $873.81 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

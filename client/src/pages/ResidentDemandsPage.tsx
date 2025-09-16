@@ -6,13 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { SearchableFormSelect } from '@/components/common/SearchableFormSelect';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +41,7 @@ import { SharedUploader } from '@/components/document-management';
 import type { UploadContext } from '@shared/config/upload-config';
 import { useLanguage } from '@/hooks/use-language';
 import { schemas, enumFields } from '@/lib/validations';
+import { handleApiError } from '@/lib/demo-error-handler';
 
 // Types
 /**
@@ -103,7 +98,8 @@ interface Building {
  */
 interface Residence {
   id: string;
-  name: string;
+  name?: string;
+  unitNumber: string;
   buildingId: string;
 }
 
@@ -167,11 +163,6 @@ ResidentDemandsPage() {
     select: (data: any) => data?.buildings || [],
   });
 
-  // Fetch residences
-  const { data: residences = [] } = useQuery<Residence[]>({
-    queryKey: ['/api/residences'],
-  });
-
   // Fetch current user
   const { data: currentUser } = useQuery({
     queryKey: ['/api/auth/user'],
@@ -201,7 +192,7 @@ ResidentDemandsPage() {
 
   // Upload context for secure storage (using useMemo to ensure it updates with defaultUser)
   const uploadContext: UploadContext = useMemo(() => ({
-    type: 'demands',
+    type: 'maintenance',
     organizationId: 'default',
     userRole: defaultUser?.role || 'resident',
     userId: defaultUser?.id
@@ -265,8 +256,8 @@ ResidentDemandsPage() {
       setUploadedAttachments([]);
       toastUtils.createSuccess('Demand');
     },
-    onError: () => {
-      toastUtils.createError('demand');
+    onError: (error: any) => {
+      handleApiError(error, t.language, t('failedToCreateDemand'));
     },
   });
 
@@ -280,6 +271,31 @@ ResidentDemandsPage() {
       residenceId: undefined,
       assignationBuildingId: undefined,
       assignationResidenceId: undefined,
+    },
+  });
+
+  // Fetch residences - filter based on selected building and user role
+  const selectedBuildingId = newDemandForm.watch('buildingId');
+  const { data: residences = [] } = useQuery<Residence[]>({
+    queryKey: ['/api/residences', selectedBuildingId, defaultUser?.role],
+    enabled: !!selectedBuildingId,
+    select: (data: any) => {
+      if (!data) return [];
+      const allResidences = Array.isArray(data) ? data : data.residences || [];
+      
+      // Filter by selected building
+      const buildingResidences = allResidences.filter((r: any) => r.buildingId === selectedBuildingId);
+      
+      // Apply role-based filtering
+      if (defaultUser?.role === 'admin') {
+        return buildingResidences; // Admin can assign to any residence
+      } else if (defaultUser?.role === 'manager') {
+        return buildingResidences; // Manager can assign to all residences in their buildings
+      } else {
+        // Resident/tenant can only assign to their own residences
+        // This will be further filtered by backend based on user assignments
+        return buildingResidences;
+      }
     },
   });
 
@@ -418,52 +434,46 @@ ResidentDemandsPage() {
                 </DialogHeader>
                 <Form {...newDemandForm}>
                   <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className='space-y-4'>
-                    <FormField
+                    <SearchableFormSelect
                       control={newDemandForm.control}
                       name='type'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Type</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value as string}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('selectType')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value='maintenance'>Maintenance</SelectItem>
-                              <SelectItem value='complaint'>Complaint</SelectItem>
-                              <SelectItem value='information'>Information</SelectItem>
-                              <SelectItem value='other'>Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      label='Type'
+                      options={[
+                        { value: 'maintenance', label: 'Maintenance' },
+                        { value: 'complaint', label: 'Complaint' },
+                        { value: 'information', label: 'Information' },
+                        { value: 'other', label: 'Other' }
+                      ]}
+                      placeholder={t('selectType')}
+                      searchPlaceholder="Search type..."
+                      required={true}
                     />
-                    <FormField
+                    <SearchableFormSelect
                       control={newDemandForm.control}
                       name='buildingId'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Building</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value as string}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('selectBuilding')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {buildings.map((building) => (
-                                <SelectItem key={building.id} value={building.id}>
-                                  {building.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                      label='Building'
+                      options={buildings.map((building) => ({
+                        value: building.id,
+                        label: building.name,
+                      }))}
+                      placeholder={t('selectBuilding')}
+                      searchPlaceholder="Search buildings..."
+                      required={true}
+                    />
+                    <SearchableFormSelect
+                      control={newDemandForm.control}
+                      name='residenceId'
+                      label='Residence (Optional)'
+                      options={[
+                        { value: '', label: 'No specific residence' },
+                        ...residences.map((residence) => ({
+                          value: residence.id,
+                          label: `${residence.unitNumber} - ${residence.name || `Unit ${residence.unitNumber}`}`,
+                        }))
+                      ]}
+                      placeholder={t('selectResidence')}
+                      searchPlaceholder="Search residences..."
+                      required={false}
                     />
                     <FormField
                       control={newDemandForm.control}
@@ -491,7 +501,7 @@ ResidentDemandsPage() {
                             setSelectedFiles([file]);
                           }
                         }}
-                        formType="demands"
+                        formType="maintenance"
                         uploadContext={uploadContext}
                         showAiToggle={false} // No toggle, use config-based AI enablement
                         allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}

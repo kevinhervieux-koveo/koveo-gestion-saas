@@ -22,6 +22,11 @@ import { execSync } from 'child_process';
 // Mock document security functions
 const mockAuditLog: any[] = [];
 
+// Add cleanup function for test isolation
+const clearAuditLog = () => {
+  mockAuditLog.length = 0;
+};
+
 const logSecurityEvent = jest.fn((event: string, user: any, success: boolean, details?: any) => {
   mockAuditLog.push({
     id: `audit-${Date.now()}-${Math.random()}`,
@@ -122,7 +127,8 @@ const mockUsers = {
 describe('Document Submission Security Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockAuditLog.length = 0;
+    // Clear audit log and rate limiting for proper test isolation
+    clearAuditLog();
     rateLimitStore.clear();
   });
 
@@ -339,6 +345,7 @@ describe('Document Submission Security Tests', () => {
 
   describe('Admin Audit Log Access', () => {
     it('should allow admin access to audit logs', () => {
+      mockAuditLog.length = 0; // Clear for this specific test
       const admin = mockUsers.admin;
       
       // Simulate admin requesting audit logs
@@ -357,6 +364,7 @@ describe('Document Submission Security Tests', () => {
     });
 
     it('should deny non-admin access to audit logs', () => {
+      mockAuditLog.length = 0; // Clear for this specific test
       const nonAdminUsers = [mockUsers.manager, mockUsers.resident, mockUsers.tenant];
       
       nonAdminUsers.forEach(user => {
@@ -381,6 +389,7 @@ describe('Document Submission Security Tests', () => {
 
   describe('Integration Security Tests', () => {
     it('should handle complete document submission flow with all security checks', () => {
+      mockAuditLog.length = 0; // Clear for this specific test
       const user = mockUsers.resident;
       const fileName = 'lease-renewal.pdf';
       const fileSize = 2 * 1024 * 1024; // 2MB
@@ -413,6 +422,7 @@ describe('Document Submission Security Tests', () => {
     });
 
     it('should reject malicious file upload attempt', () => {
+      mockAuditLog.length = 0; // Clear for this specific test
       const user = mockUsers.tenant;
       const fileName = '../../../etc/passwd';
       const fileSize = 1024;
@@ -463,6 +473,7 @@ describe('Document Submission Security Tests', () => {
     });
 
     it('should log Quebec-specific document types', () => {
+      mockAuditLog.length = 0; // Clear for this specific test
       const user = mockUsers.manager;
       
       logSecurityEvent('DOCUMENT_UPLOAD', user, true, {

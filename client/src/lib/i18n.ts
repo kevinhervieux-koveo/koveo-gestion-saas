@@ -53,6 +53,8 @@ export interface Translations {
   buildTime: string;
   translationCoverage: string;
   responseTime: string;
+  quebecComplianceDesc: string;
+  quebecDataProtectionDesc: string;
   memoryUsage: string;
   bundleSize: string;
   dbQueryTime: string;
@@ -229,6 +231,26 @@ export interface Translations {
   billTitle: string;
   companyOrServiceProvider: string;
   selectPaymentType: string;
+  paymentType: string;
+  allPaymentTypes: string;
+  unique: string;
+  recurrent: string;
+  // Payment management
+  paymentDate: string;
+  paymentAmount: string;
+  paymentStatus: string;
+  paymentDetails: string;
+  paymentSchedule: string;
+  paymentNumber: string;
+  scheduledDate: string;
+  amount: string;
+  paid: string;
+  overdue: string;
+  paymentHistory: string;
+  viewPayments: string;
+  noPaymentsFound: string;
+  monthlyPayments: string;
+  singlePayment: string;
   selectSchedule: string;
   billingSchedule: string;
   selectStatus: string;
@@ -346,6 +368,13 @@ export interface Translations {
   buildingDocuments: string;
   signIn: string;
   demoMode: string;
+  demoModeTitle: string;
+  demoModeMessage: string;
+  demoModeSuggestion: string;
+  demoModeContact: string;
+  demoFileUploadRestricted: string;
+  demoBulkOperationRestricted: string;
+  demoExportRestricted: string;
   firstName: string;
   lastName: string;
   confirmPassword: string;
@@ -584,6 +613,7 @@ export interface Translations {
   deletionFailed: string;
   deletionFailedDescription: string;
   anErrorOccurred: string;
+  failedToCreateDemand: string;
   firstNameMaxLength: string;
   firstNameInvalidChars: string;
   lastNameMaxLength: string;
@@ -945,6 +975,22 @@ export interface Translations {
   getStarted: string;
   openMenu: string;
   closeMenu: string;
+  
+  // Trial Request Form
+  trialRequestTitle: string;
+  trialRequestDescription: string;
+  personalInformation: string;
+  companyInformation: string;
+  propertyInformation: string;
+  additionalInformation: string;
+  company: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  numberOfBuildings: string;
+  numberOfResidences: string;
+  message: string;
+  submitRequest: string;
   copyright: string;
   law25Compliant: string;
   pricing: string;
@@ -980,6 +1026,7 @@ export interface Translations {
   processManagementDesc: string;
   law25Compliance: string;
   law25ComplianceDesc: string;
+  whatsIncluded: string;
   featuresOverviewDesc: string;
   viewAllFeatures: string;
   readyToGetStarted: string;
@@ -1049,6 +1096,8 @@ export const translations: Record<Language, Translations> = {
     buildTime: 'Build Time',
     translationCoverage: 'Translation Coverage',
     responseTime: 'Response Time',
+    quebecComplianceDesc: 'Quebec regulatory compliance for property management',
+    quebecDataProtectionDesc: 'Data protection in accordance with Quebec Law 25',
     memoryUsage: 'Memory Usage',
     bundleSize: 'Bundle Size',
     dbQueryTime: 'DB Query Time',
@@ -1225,6 +1274,26 @@ export const translations: Record<Language, Translations> = {
     billTitle: 'Bill Title',
     companyOrServiceProvider: 'Company/Service Provider',
     selectPaymentType: 'Select payment type',
+    paymentType: 'Payment Type',
+    allPaymentTypes: 'All Payment Types',
+    unique: 'Unique',
+    recurrent: 'Recurrent',
+    // Payment management
+    paymentDate: 'Payment Date',
+    paymentAmount: 'Payment Amount',
+    paymentStatus: 'Payment Status',
+    paymentDetails: 'Payment Details',
+    paymentSchedule: 'Payment Schedule',
+    paymentNumber: 'Payment Number',
+    scheduledDate: 'Scheduled Date',
+    amount: 'Amount',
+    paid: 'Paid',
+    overdue: 'Overdue',
+    paymentHistory: 'Payment History',
+    viewPayments: 'View Payments',
+    noPaymentsFound: 'No payments found',
+    monthlyPayments: 'Monthly Payments',
+    singlePayment: 'Single Payment',
     selectSchedule: 'Select schedule',
     billingSchedule: 'Billing Schedule',
     selectStatus: 'Select status',
@@ -1342,6 +1411,13 @@ export const translations: Record<Language, Translations> = {
     buildingDocuments: 'Building Documents',
     signIn: 'Sign In',
     demoMode: 'Demo Mode',
+    demoModeTitle: 'Demo Mode - View Only',
+    demoModeMessage: 'This is a demonstration account with view-only access. You can explore all features but cannot make changes to the data.',
+    demoModeSuggestion: 'To create, edit, or delete content, please contact us for a full account.',
+    demoModeContact: 'Contact our team to get started with your own property management workspace.',
+    demoFileUploadRestricted: 'File uploads are not available in demonstration mode. You can view existing documents but cannot upload new ones.',
+    demoBulkOperationRestricted: 'Bulk operations are not available in demonstration mode to protect the integrity of demo data.',
+    demoExportRestricted: 'Data export is not available in demonstration mode. This feature is available in full accounts.',
     firstName: 'First Name',
     lastName: 'Last Name',
     confirmPassword: 'Confirm Password',
@@ -1580,6 +1656,7 @@ export const translations: Record<Language, Translations> = {
     deletionFailed: 'Deletion failed',
     deletionFailedDescription: 'Failed to delete account',
     anErrorOccurred: 'An error occurred',
+    failedToCreateDemand: 'Failed to create demand',
     firstNameMaxLength: 'First name must be less than 50 characters',
     firstNameInvalidChars: 'First name can only contain letters, spaces, apostrophes and hyphens',
     lastNameMaxLength: 'Last name must be less than 50 characters',
@@ -1941,13 +2018,29 @@ export const translations: Record<Language, Translations> = {
     getStarted: 'Get Started',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
+    
+    // Trial Request Form
+    trialRequestTitle: 'Free Trial Request',
+    trialRequestDescription: 'Discover Koveo Gestion with a free 30-day trial. Fill out the form below and our team will contact you quickly.',
+    personalInformation: 'Personal Information',
+    companyInformation: 'Company Information',
+    propertyInformation: 'Property Information',
+    additionalInformation: 'Additional Information',
+    company: 'Company Name',
+    city: 'City',
+    province: 'Province',
+    postalCode: 'Postal Code',
+    numberOfBuildings: 'Number of Buildings',
+    numberOfResidences: 'Total Number of Residences',
+    message: 'Message',
+    submitRequest: 'Submit Request',
     copyright: '© 2025 Koveo Gestion',
     law25Compliant: 'Quebec Law 25 Compliant',
     pricing: 'Pricing',
     simplePricing: 'Simple and Transparent Pricing',
     pricingSubtitle: 'Professional property management that scales with your business',
     professionalPlan: 'Professional Plan',
-    perfectForPropertyManagers: 'Perfect for property managers of all sizes',
+    perfectForPropertyManagers: 'Perfect for all your management needs',
     perDoorPerMonth: 'per door per month',
     noSetupFees: 'No setup fees',
     unlimitedResidents: 'Unlimited residents',
@@ -1976,6 +2069,7 @@ export const translations: Record<Language, Translations> = {
     processManagementDesc: 'Organized workflow tools',
     law25Compliance: 'Quebec Law 25 compliance',
     law25ComplianceDesc: 'Built-in privacy protection',
+    whatsIncluded: 'What\'s included:',
     featuresOverviewDesc: 'Complete solution for modern property management',
     viewAllFeatures: 'View all features',
     readyToGetStarted: 'Ready to get started?',
@@ -2036,6 +2130,8 @@ export const translations: Record<Language, Translations> = {
     buildTime: 'Temps de construction',
     translationCoverage: 'Couverture de traduction',
     responseTime: 'Temps de réponse',
+    quebecComplianceDesc: 'Conformité réglementaire du Québec pour la gestion immobilière',
+    quebecDataProtectionDesc: 'Protection des données selon la Loi 25 du Québec',
     memoryUsage: 'Utilisation de la mémoire',
     bundleSize: 'Taille du bundle',
     dbQueryTime: 'Temps de requête DB',
@@ -2185,6 +2281,26 @@ export const translations: Record<Language, Translations> = {
     billTitle: 'Titre de la facture',
     companyOrServiceProvider: 'Entreprise/Fournisseur de services',
     selectPaymentType: 'Sélectionner le type de paiement',
+    paymentType: 'Type de paiement',
+    allPaymentTypes: 'Tous les types de paiement',
+    unique: 'Unique',
+    recurrent: 'Récurrent',
+    // Payment management
+    paymentDate: 'Date de paiement',
+    paymentAmount: 'Montant du paiement',
+    paymentStatus: 'Statut du paiement',
+    paymentDetails: 'Détails du paiement',
+    paymentSchedule: 'Calendrier de paiement',
+    paymentNumber: 'Numéro de paiement',
+    scheduledDate: 'Date prévue',
+    amount: 'Montant',
+    paid: 'Payé',
+    overdue: 'En retard',
+    paymentHistory: 'Historique des paiements',
+    viewPayments: 'Voir les paiements',
+    noPaymentsFound: 'Aucun paiement trouvé',
+    monthlyPayments: 'Paiements mensuels',
+    singlePayment: 'Paiement unique',
     billingSchedule: 'Calendrier de facturation',
     selectStatus: 'Sélectionner le statut',
     loadingDemands: 'Chargement des demandes...',
@@ -2291,6 +2407,13 @@ export const translations: Record<Language, Translations> = {
     buildingDocuments: 'Documents du bâtiment',
     signIn: 'Se connecter',
     demoMode: 'Mode démo',
+    demoModeTitle: 'Mode Démonstration - Consultation Seulement',
+    demoModeMessage: 'Ceci est un compte de démonstration avec accès en consultation seulement. Vous pouvez explorer toutes les fonctionnalités mais ne pouvez pas modifier les données.',
+    demoModeSuggestion: 'Pour créer, modifier ou supprimer du contenu, veuillez nous contacter pour un compte complet.',
+    demoModeContact: 'Contactez notre équipe pour commencer avec votre propre espace de gestion immobilière.',
+    demoFileUploadRestricted: "Le téléchargement de fichiers n'est pas disponible en mode démonstration. Vous pouvez consulter les documents existants mais ne pouvez pas en télécharger de nouveaux.",
+    demoBulkOperationRestricted: "Les opérations en lot ne sont pas disponibles en mode démonstration pour protéger l'intégrité des données de démonstration.",
+    demoExportRestricted: "L'exportation de données n'est pas disponible en mode démonstration. Cette fonctionnalité est disponible dans les comptes complets.",
     firstName: 'Prénom',
     lastName: 'Nom de famille',
     confirmPassword: 'Confirmer le mot de passe',
@@ -2334,7 +2457,7 @@ export const translations: Record<Language, Translations> = {
     buildingDocumentsButton: 'Documents du bâtiment',
     residenceDocumentsButton: 'Documents de la résidence',
     viewDocumentsButton: 'Voir les documents',
-    startFreeTrial: 'Commencez votre essai gratuit',
+    startFreeTrial: 'Débutez votre essai gratuit',
     tryDemo: 'Essayer la démo',
     allStatusFilter: 'Tous les statuts',
     submittedFilter: 'Soumise',
@@ -2835,13 +2958,29 @@ export const translations: Record<Language, Translations> = {
     getStarted: 'Commencer',
     openMenu: 'Ouvrir le menu',
     closeMenu: 'Fermer le menu',
+    
+    // Trial Request Form
+    trialRequestTitle: 'Demande d\'essai gratuit',
+    trialRequestDescription: 'Découvrez Koveo Gestion avec un essai gratuit de 30 jours. Remplissez le formulaire ci-dessous et notre équipe vous contactera rapidement.',
+    personalInformation: 'Informations personnelles',
+    companyInformation: 'Informations sur l\'entreprise',
+    propertyInformation: 'Informations sur les propriétés',
+    additionalInformation: 'Informations supplémentaires',
+    company: 'Nom de l\'entreprise',
+    city: 'Ville',
+    province: 'Province',
+    postalCode: 'Code postal',
+    numberOfBuildings: 'Nombre de bâtiments',
+    numberOfResidences: 'Nombre total de résidences',
+    message: 'Message',
+    submitRequest: 'Envoyer la demande',
     copyright: '© 2025 Koveo Gestion',
     law25Compliant: 'Conforme à la Loi 25 du Québec',
     pricing: 'Tarification',
     simplePricing: 'Tarification simple et transparente',
     pricingSubtitle: 'Gestion immobilière professionnelle qui évolue avec votre entreprise',
     professionalPlan: 'Plan professionnel',
-    perfectForPropertyManagers: 'Parfait pour les gestionnaires immobiliers de toutes tailles',
+    perfectForPropertyManagers: 'Parfait pour tous vos besoins de gestion',
     perDoorPerMonth: 'par porte par mois',
     whatsIncluded: 'Ce qui est inclus :',
     unlimitedResidents: 'Résidents illimités',
@@ -2887,8 +3026,6 @@ export const translations: Record<Language, Translations> = {
     close: 'Fermer',
     edit: 'Modifier',
     delete: 'Supprimer',
-    en: 'English',
-    fr: 'Français',
     initializationProgress: 'Initialization Progress',
     coreQualityAssurance: 'Core quality assurance framework',
     workspaceStatus: 'Workspace Statut',
@@ -2949,6 +3086,7 @@ export const translations: Record<Language, Translations> = {
     editUserTitle: 'Modifier Utilisateur',
     organizationAssignmentsUpdated: 'Organisation assignments mettre à jourd succèsfully',
     anErrorOccurred: 'An erreur occurred',
+    failedToCreateDemand: 'Échec de créer la demande',
     firstNameInvalidChars: 'First nom can only contain letters, spaces, apostrophes and hyphens',
     lastNameInvalidChars: 'Last nom can only contain letters, spaces, apostrophes and hyphens',
     roleRequired: 'Please select a utilisateur role',

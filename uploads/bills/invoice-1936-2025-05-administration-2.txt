@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2025-05-ADMINISTRATION-2
+Date: 2025-05-01
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Gestion Administrative Pro
+
+DESCRIPTION / DESCRIPTION:
+Administration - Gestion Administrative Pro
+
+CATÉGORIE / CATEGORY: Administration
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $801.00 CAD
+TPS (5%) / GST: $40.05 CAD
+TVQ (9.975%) / QST: $79.90 CAD
+TOTAL: $920.95 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

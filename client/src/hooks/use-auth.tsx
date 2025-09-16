@@ -5,8 +5,10 @@ import { apiRequest } from '@/lib/queryClient';
 import type { User } from '@shared/schema';
 
 /**
- * Authentication context interface for Koveo Gestion.
- * Provides user authentication state and actions throughout the application.
+ * Authentication context interface for Koveo Gestion Quebec property management platform.
+ * Provides user authentication state and actions with RBAC support.
+ * 
+ * Updated: September 09, 2025 with enhanced session management.
  */
 interface AuthContextType {
   user: User | null;
@@ -25,11 +27,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
- * Authentication provider component that wraps the application.
- * Manages user authentication state and provides authentication actions.
- * @param props - Component props.
- * @param props.children - Child components to wrap with authentication context.
- * @returns JSX element providing authentication context.
+ * Authentication provider component that wraps the Koveo Gestion application.
+ * Manages user authentication state with Quebec compliance and RBAC support.
+ * 
+ * @param props - Component props
+ * @param props.children - Child components to wrap with authentication context
+ * @returns JSX element providing authentication context with Quebec compliance
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();

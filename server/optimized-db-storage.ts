@@ -17,6 +17,8 @@ import type {
   InsertBuilding,
   Residence,
   InsertResidence,
+  Contact,
+  InsertContact,
   Document,
   InsertDocument,
   InsertPillar,
@@ -44,6 +46,10 @@ import type {
   InsertPasswordResetToken,
   Bug,
   InsertBug,
+  FeatureRequest,
+  InsertFeatureRequest,
+  FeatureRequestUpvote,
+  InsertFeatureRequestUpvote,
   Invoice,
   InsertInvoice,
 } from '@shared/schema';
@@ -335,8 +341,8 @@ export class OptimizedDatabaseStorage implements IStorage {
 
           // Demo-only filter for demo users
           if (filters.demoOnly === 'true') {
-            whereConditions.push("(u.role LIKE 'demo_%')");
-            countWhereConditions.push("(role LIKE 'demo_%')");
+            whereConditions.push("(u.role IN ('demo_manager', 'demo_tenant', 'demo_resident'))");
+            countWhereConditions.push("(role IN ('demo_manager', 'demo_tenant', 'demo_resident'))");
           }
 
           // Search filter for name/email
@@ -709,7 +715,13 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       // Demo-only filter for demo users
       if (filters.demoOnly === 'true') {
-        whereConditions.push(sql`${schema.users.role} LIKE 'demo_%'`);
+        whereConditions.push(
+          or(
+            eq(schema.users.role, 'demo_manager'),
+            eq(schema.users.role, 'demo_tenant'),
+            eq(schema.users.role, 'demo_resident')
+          )
+        );
       }
 
       // Search filter for name/email
@@ -1343,7 +1355,13 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createBuilding(insertBuilding: InsertBuilding): Promise<Building> {
     const result = await dbPerformanceMonitor.trackQuery('createBuilding', async () => {
-      return db.insert(schema.buildings).values([insertBuilding]).returning();
+      return db.insert(schema.buildings).values([{
+        ...insertBuilding,
+        buildingType: insertBuilding.buildingType as 'condo' | 'appartement',
+        totalUnits: insertBuilding.totalUnits || 0,
+        bankAccountStartAmount: insertBuilding.bankAccountStartAmount ? insertBuilding.bankAccountStartAmount.toString() : undefined,
+        bankAccountMinimums: insertBuilding.bankAccountMinimums ? JSON.stringify(insertBuilding.bankAccountMinimums) : undefined
+      }]).returning();
     });
 
     // Invalidate building caches
@@ -1391,7 +1409,13 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createResidence(insertResidence: InsertResidence): Promise<Residence> {
     const result = await dbPerformanceMonitor.trackQuery('createResidence', async () => {
-      return db.insert(schema.residences).values([insertResidence]).returning();
+      return db.insert(schema.residences).values([{
+        ...insertResidence,
+        bathrooms: insertResidence.bathrooms ? insertResidence.bathrooms.toString() : undefined,
+        squareFootage: insertResidence.squareFootage ? insertResidence.squareFootage.toString() : undefined,
+        ownershipPercentage: insertResidence.ownershipPercentage ? insertResidence.ownershipPercentage.toString() : undefined,
+        monthlyFees: insertResidence.monthlyFees ? insertResidence.monthlyFees.toString() : undefined
+      }]).returning();
     });
 
     // Invalidate residence caches
@@ -1633,7 +1657,11 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createPillar(pillar: InsertPillar): Promise<DevelopmentPillar> {
     const result = await dbPerformanceMonitor.trackQuery('createPillar', async () => {
-      return db.insert(schema.developmentPillars).values(pillar).returning();
+      return db.insert(schema.developmentPillars).values([{
+        ...pillar,
+        order: pillar.order.toString(),
+        description: pillar.description || ''
+      }]).returning();
     });
 
     queryCache.invalidate('pillars');
@@ -1700,7 +1728,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createWorkspaceStatus(status: InsertWorkspaceStatus): Promise<WorkspaceStatus> {
     const result = await dbPerformanceMonitor.trackQuery('createWorkspaceStatus', async () => {
-      return db.insert(schema.workspaceStatus).values(status).returning();
+      return db.insert(schema.workspaceStatus).values([status]).returning();
     });
 
     queryCache.invalidate('workspace_status');
@@ -1714,12 +1742,12 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async updateWorkspaceStatus(
     component: string,
-    status: string
+    statusUpdates: Partial<WorkspaceStatus>
   ): Promise<WorkspaceStatus | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updateWorkspaceStatus', async () => {
       return db
         .update(schema.workspaceStatus)
-        .set({ status })
+        .set({ ...statusUpdates, lastUpdated: new Date() })
         .where(eq(schema.workspaceStatus.component, component))
         .returning();
     });
@@ -1868,6 +1896,8 @@ export class OptimizedDatabaseStorage implements IStorage {
                 | 'Continuous Improvement'
                 | 'Replit AI Agent Monitoring'
                 | 'Replit App',
+              priority: suggestion.priority as 'Low' | 'Medium' | 'High' | 'Critical',
+              status: suggestion.status as 'New' | 'Acknowledged' | 'Done',
             },
           ])
           .returning();
@@ -1978,7 +2008,13 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createFeature(feature: InsertFeature): Promise<Feature> {
     const result = await dbPerformanceMonitor.trackQuery('createFeature', async () => {
-      return db.insert(schema.features).values([feature]).returning();
+      return db.insert(schema.features).values([{
+        ...feature,
+        category: feature.category as 'Dashboard & Home' | 'Property Management' | 'Resident Management' | 'Financial Management' | 'Maintenance & Requests' | 'Document Management' | 'Communication' | 'AI & Automation' | 'Compliance & Security' | 'Analytics & Reporting' | 'Integration & API' | 'Infrastructure & Performance' | 'Website',
+        status: feature.status as 'submitted' | 'planned' | 'in-progress' | 'ai-analyzed' | 'completed' | 'cancelled',
+        priority: feature.priority as 'low' | 'medium' | 'high' | 'critical',
+        dependencies: feature.dependencies ? JSON.stringify(feature.dependencies) : undefined
+      }]).returning();
     });
 
     queryCache.invalidate('features');
@@ -1990,11 +2026,11 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param id
    * @param updates
    */
-  async updateFeature(id: string, updates: Partial<InsertFeature>): Promise<Feature | undefined> {
+  async updateFeature(id: string, updates: Partial<Feature>): Promise<Feature | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updateFeature', async () => {
       return db
         .update(schema.features)
-        .set(updates as any)
+        .set({ ...updates, updatedAt: new Date() })
         .where(eq(schema.features.id, id))
         .returning();
     });
@@ -2060,7 +2096,11 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createActionableItem(item: InsertActionableItem): Promise<ActionableItem> {
     const result = await dbPerformanceMonitor.trackQuery('createActionableItem', async () => {
-      return db.insert(schema.actionableItems).values([item]).returning();
+      return db.insert(schema.actionableItems).values([{
+        ...item,
+        featureId: item.featureId || crypto.randomUUID(),
+        status: item.status as 'pending' | 'in-progress' | 'completed' | 'blocked'
+      }]).returning();
     });
 
     queryCache.invalidate('actionable_items');
@@ -2073,7 +2113,11 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createActionableItems(items: InsertActionableItem[]): Promise<ActionableItem[]> {
     const result = await dbPerformanceMonitor.trackQuery('createActionableItems', async () => {
-      return db.insert(schema.actionableItems).values(items).returning();
+      return db.insert(schema.actionableItems).values(items.map(item => ({
+        ...item,
+        featureId: item.featureId || crypto.randomUUID(),
+        status: item.status as 'pending' | 'in-progress' | 'completed' | 'blocked'
+      }))).returning();
     });
 
     queryCache.invalidate('actionable_items');
@@ -2224,8 +2268,16 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param invitation
    */
   async createInvitation(invitation: InsertInvitation): Promise<Invitation> {
+    const token = crypto.randomUUID();
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    
     const result = await dbPerformanceMonitor.trackQuery('createInvitation', async () => {
-      return db.insert(schema.invitations).values([invitation]).returning();
+      return db.insert(schema.invitations).values([{
+        ...invitation,
+        token,
+        tokenHash,
+        expiresAt: invitation.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Default 7 days
+      }]).returning();
     });
 
     queryCache.invalidate('invitations');
@@ -2307,8 +2359,6 @@ export class OptimizedDatabaseStorage implements IStorage {
         .update(schema.invitations)
         .set({
           status: 'cancelled',
-          cancelledBy,
-          cancelledAt: new Date(),
           updatedAt: new Date(),
         })
         .where(eq(schema.invitations.id, id))
@@ -2357,18 +2407,16 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Gets invitation audit logs.
-   * @param invitationId
    */
-  async getInvitationAuditLogs(invitationId: string): Promise<InvitationAuditLog[]> {
+  async getInvitationAuditLogs(): Promise<InvitationAuditLog[]> {
     return this.withOptimizations(
       'getInvitationAuditLogs',
-      `invitation_logs:${invitationId}`,
+      'invitation_logs:all',
       'invitation_logs',
       () =>
         db
           .select()
           .from(schema.invitationAuditLog)
-          .where(eq(schema.invitationAuditLog.invitationId, invitationId))
           .orderBy(desc(schema.invitationAuditLog.createdAt))
     );
   }
@@ -2379,7 +2427,11 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createInvitationAuditLog(logEntry: InsertInvitationAuditLog): Promise<InvitationAuditLog> {
     const result = await dbPerformanceMonitor.trackQuery('createInvitationAuditLog', async () => {
-      return db.insert(schema.invitationAuditLog).values(logEntry).returning();
+      return db.insert(schema.invitationAuditLog).values([{
+        ...logEntry,
+        previousStatus: logEntry.previousStatus as 'pending' | 'cancelled' | 'accepted' | 'expired' | undefined,
+        newStatus: logEntry.newStatus as 'pending' | 'cancelled' | 'accepted' | 'expired' | undefined
+      }]).returning();
     });
 
     queryCache.invalidate('invitation_logs');
@@ -2929,7 +2981,11 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async createContact(contact: InsertContact): Promise<Contact> {
     const result = await dbPerformanceMonitor.trackQuery('createContact', async () => {
-      return db.insert(schema.contacts).values(contact).returning();
+      return db.insert(schema.contacts).values([{
+        ...contact,
+        entity: contact.entity as 'organization' | 'building' | 'residence',
+        contactCategory: contact.contactCategory as 'resident' | 'manager' | 'tenant' | 'maintenance' | 'emergency' | 'other'
+      }]).returning();
     });
 
     queryCache.invalidate('contacts');
@@ -2977,7 +3033,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async getDemandsForUser(userId: string): Promise<any[]> {
     return this.withOptimizations('getDemandsForUser', `demands_user:${userId}`, 'demands', () =>
-      db.select().from(schema.demands).where(eq(schema.demands.userId, userId))
+      db.select().from(schema.demands).where(eq(schema.demands.createdBy, userId))
     );
   }
 
@@ -3647,7 +3703,12 @@ export class OptimizedDatabaseStorage implements IStorage {
     try {
       const result = await db
         .insert(schema.invoices)
-        .values(invoice)
+        .values([{
+          ...invoice,
+          totalAmount: invoice.totalAmount.toString(),
+          dueDate: invoice.dueDate.toISOString().split('T')[0], // Convert Date to string
+          extractionConfidence: invoice.extractionConfidence ? invoice.extractionConfidence.toString() : undefined
+        }])
         .returning();
       
       return result[0];

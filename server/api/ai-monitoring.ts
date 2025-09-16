@@ -208,6 +208,7 @@ export async function getAIInsights(req: Request, res: Response) {
       .limit(20);
 
     res.json(insights);
+  } catch (error) {
     res.status(500).json({ _error: 'Failed to fetch AI insights' });
   }
 }

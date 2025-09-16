@@ -132,7 +132,7 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
 
       {/* Menu Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 max-w-[80vw] shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 w-80 max-w-[80vw] shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{
@@ -140,15 +140,17 @@ export function HamburgerMenu({ className = '' }: HamburgerMenuProps) {
           borderLeft: '1px solid #e5e7eb',
           zIndex: '1000',
           position: 'fixed',
+          height: '100dvh', // Use dynamic viewport height for better mobile support
+          maxHeight: '100vh', // Fallback for browsers that don't support dvh
         }}
         data-testid='menu-panel'
       >
         <div
-          className='p-6 h-full flex flex-col bg-gray-50'
+          className='p-6 flex flex-col bg-gray-50 overflow-y-auto'
           style={{
             backgroundColor: '#f9fafb !important',
             width: '100%',
-            height: '100vh',
+            height: '100%',
             position: 'relative',
             zIndex: '1001',
           }}
