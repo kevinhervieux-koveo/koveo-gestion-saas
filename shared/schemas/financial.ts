@@ -296,7 +296,7 @@ export const insertPaymentSchema = createInsertSchema(payments, {
 /**
  * Bills insert and select types.
  */
-export type InsertBill = z.infer<typeof insertBillSchema>;
+export type InsertBill = typeof bills.$inferInsert;
 /**
  *
  */

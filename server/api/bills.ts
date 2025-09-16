@@ -1782,10 +1782,12 @@ export function registerBillRoutes(app: Express) {
       );
 
       // Insert the bill into database
-      const [insertedBill] = await db.insert(bills).values({
+      const insertedBills = await db.insert(bills).values({
         ...newBill,
         id: undefined, // Let database generate ID
       }).returning();
+      
+      const insertedBill = insertedBills[0];
 
       res.status(201).json({
         message: 'Bill created successfully from auto-generated template',
