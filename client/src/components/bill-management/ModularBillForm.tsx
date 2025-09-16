@@ -132,6 +132,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   
   // State for manual document upload
   const [manualFile, setManualFile] = useState<File | null>(null);
+  const [textContent, setTextContent] = useState<string | null>(null);
   const [customPayments, setCustomPayments] = useState<CustomPayment[]>([]);
   
   // State for template mode
@@ -319,7 +320,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   };
 
   // Handle file upload from SharedUploader
-  const handleFileUpload = (file: File | null, extractedText?: string | null) => {
+  const handleFileUpload = (file: File | null, text: string | null) => {
     if (file) {
       if (aiEnabled) {
         setAiFile(file);
@@ -328,6 +329,19 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       } else {
         setManualFile(file);
       }
+      // Clear text content when file is selected
+      setTextContent(null);
+    } else if (text) {
+      // Handle text content input
+      setTextContent(text);
+      // Clear file content when text is entered
+      setAiFile(null);
+      setManualFile(null);
+    } else {
+      // Clear both when neither file nor text is provided
+      setTextContent(null);
+      setAiFile(null);
+      setManualFile(null);
     }
   };
 
@@ -346,51 +360,86 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       const response = await apiRequest(method, endpoint, billData);
       const billResponse = await response.json();
       
-      // Upload document if one was attached (either from AI extraction or manual entry)
+      // Upload document or create text file if content was provided
       const fileToUpload = aiFile || manualFile;
-      if (!bill && fileToUpload) {
+      if (!bill && (fileToUpload || textContent)) {
         try {
-          console.log('[BILL FORM] Uploading document:', fileToUpload.name, 'for bill:', billResponse.id);
-          const formData = new FormData();
-          formData.append('document', fileToUpload);
-          
-          const uploadResponse = await fetch(`/api/bills/${billResponse.id}/upload-document`, {
-            method: 'POST',
-            credentials: 'include',
-            body: formData,
-          });
-          
-          if (!uploadResponse.ok) {
-            const errorText = await uploadResponse.text();
-            console.error('[BILL FORM] Upload failed with status:', uploadResponse.status, errorText);
-            throw new Error(`Upload failed: ${uploadResponse.status} ${errorText}`);
+          if (fileToUpload) {
+            // Handle file upload
+            console.log('[BILL FORM] Uploading document:', fileToUpload.name, 'for bill:', billResponse.id);
+            const formData = new FormData();
+            formData.append('document', fileToUpload);
+            
+            const uploadResponse = await fetch(`/api/bills/${billResponse.id}/upload-document`, {
+              method: 'POST',
+              credentials: 'include',
+              body: formData,
+            });
+            
+            if (!uploadResponse.ok) {
+              const errorText = await uploadResponse.text();
+              console.error('[BILL FORM] Upload failed with status:', uploadResponse.status, errorText);
+              throw new Error(`Upload failed: ${uploadResponse.status} ${errorText}`);
+            }
+            
+            const uploadResult = await uploadResponse.json();
+            console.log('[BILL FORM] Document upload successful:', uploadResult);
+            
+            // Update the bill response with the document information from the upload
+            if (uploadResult.bill) {
+              billResponse.filePath = uploadResult.bill.filePath;
+              billResponse.fileName = uploadResult.bill.fileName;
+              billResponse.fileSize = uploadResult.bill.fileSize;
+              billResponse.isAiAnalyzed = uploadResult.bill.isAiAnalyzed;
+              billResponse.aiAnalysisData = uploadResult.bill.aiAnalysisData;
+            }
+            
+            // Show success toast for document upload
+            toast({
+              title: 'Document Uploaded',
+              description: `${fileToUpload.name} has been attached to the bill`,
+            });
+          } else if (textContent) {
+            // Handle text content creation
+            console.log('[BILL FORM] Creating text document for bill:', billResponse.id);
+            const formData = new FormData();
+            formData.append('textContent', textContent);
+            formData.append('name', `${billResponse.billNumber || billResponse.title} - Notes`);
+            formData.append('description', 'Text document created for bill');
+            formData.append('documentType', 'other');
+            formData.append('attachedToType', 'bill');
+            formData.append('attachedToId', billResponse.id);
+            
+            const uploadResponse = await fetch('/api/documents/upload', {
+              method: 'POST',
+              credentials: 'include',
+              body: formData,
+            });
+            
+            if (!uploadResponse.ok) {
+              const errorText = await uploadResponse.text();
+              console.error('[BILL FORM] Text document creation failed with status:', uploadResponse.status, errorText);
+              throw new Error(`Text document creation failed: ${uploadResponse.status} ${errorText}`);
+            }
+            
+            const uploadResult = await uploadResponse.json();
+            console.log('[BILL FORM] Text document creation successful:', uploadResult);
+            
+            // Show success toast for text document creation
+            toast({
+              title: 'Text Document Created',
+              description: 'Your text content has been saved as a document attached to the bill',
+            });
           }
-          
-          const uploadResult = await uploadResponse.json();
-          console.log('[BILL FORM] Document upload successful:', uploadResult);
-          
-          // Update the bill response with the document information from the upload
-          if (uploadResult.bill) {
-            billResponse.filePath = uploadResult.bill.filePath;
-            billResponse.fileName = uploadResult.bill.fileName;
-            billResponse.fileSize = uploadResult.bill.fileSize;
-            billResponse.isAiAnalyzed = uploadResult.bill.isAiAnalyzed;
-            billResponse.aiAnalysisData = uploadResult.bill.aiAnalysisData;
-          }
-          
-          // Show success toast for document upload
-          toast({
-            title: 'Document Uploaded',
-            description: `${fileToUpload.name} has been attached to the bill`,
-          });
         } catch (uploadError) {
-          console.error('[BILL FORM] Failed to upload document:', uploadError);
+          console.error('[BILL FORM] Failed to upload/create document:', uploadError);
+          const contentType = fileToUpload ? 'file' : 'text document';
           toast({
-            title: 'Document Upload Failed',
-            description: `Failed to upload ${fileToUpload.name}. The bill was created but without the document.`,
+            title: 'Document Creation Failed',
+            description: `Failed to create ${contentType}. The bill was created but without the document.`,
             variant: 'destructive',
           });
-          // Don't fail the bill creation if document upload fails
+          // Don't fail the bill creation if document upload/creation fails
         }
       }
       
