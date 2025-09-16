@@ -2906,9 +2906,30 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Enhanced document lookup with performance tracking - FIXED to use Drizzle for proper camelCase mapping
       const documentLookupStart = performance.now();
-      const document = await db.query.documents.findFirst({ 
-        where: eq(documents.id, documentId) 
-      });
+      let document;
+      try {
+        document = await db.query.documents.findFirst({ 
+          where: eq(documents.id, documentId) 
+        });
+      } catch (dbError: any) {
+        const totalTime = performance.now() - startTime;
+        logDocumentOperation('DATABASE_CONNECTION_ERROR', {
+          operationId,
+          documentId,
+          error: dbError.message,
+          errorCode: dbError.code,
+          totalRequestTime: `${totalTime.toFixed(2)}ms`,
+          errorDetails: {
+            name: dbError.name,
+            severity: dbError.severity
+          }
+        }, 'ERROR');
+        console.error('❌ [DOCUMENT DATABASE] Database connection error:', dbError);
+        return res.status(503).json({ 
+          message: 'Database temporarily unavailable. Please try again in a moment.',
+          error: 'DB_CONNECTION_FAILED'
+        });
+      }
       const documentLookupTime = performance.now() - documentLookupStart;
       
       logDocumentOperation('DOCUMENT_LOOKUP', {

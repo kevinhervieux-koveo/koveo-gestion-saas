@@ -22,6 +22,7 @@ const { documents } = schema;
 async function fixDocumentPaths() {
   console.log(chalk.blue.bold('\n🔧 Document Path Fixer for Koveo Gestion\n'));
 
+  // Use production database URL if available
   const dbUrl = process.env.DATABASE_URL_KOVEO || process.env.DATABASE_URL;
   if (!dbUrl) {
     console.error(chalk.red('❌ No database URL found'));
@@ -48,6 +49,7 @@ async function fixDocumentPaths() {
     console.log(chalk.green(`✅ Found ${allDocuments.length} documents with file paths`));
 
     const uploadsDir = path.join(process.cwd(), 'uploads');
+    console.log(chalk.blue(`📁 Checking files in: ${uploadsDir}`));
     const fixes = [];
 
     // Check each document
