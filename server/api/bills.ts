@@ -300,7 +300,7 @@ export function registerBillRoutes(app: Express) {
           ilike(bills.description, searchTerm),
           ilike(bills.vendor, searchTerm),
           ilike(bills.notes, searchTerm),
-          ilike(bills.category, searchTerm)
+          ilike(sql`${bills.category}::text`, searchTerm) // Cast enum to text for search
         );
         conditions.push(searchConditions);
       }
@@ -344,6 +344,8 @@ export function registerBillRoutes(app: Express) {
       res.json(billsList);
     } catch (_error: any) {
       console.error('❌ Error fetching bills:', _error);
+      console.error('❌ Error stack:', _error?.stack);
+      console.error('❌ Query params:', req.query);
       res.status(500).json({
         message: 'Failed to fetch bills',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
