@@ -31,7 +31,7 @@ export class PaymentGenerationService {
             billId,
             paymentNumber: 1,
             scheduledDate: billData.startDate,
-            amount: billData.totalAmount,
+            amount: parseFloat(billData.totalAmount),
             status: 'pending',
           });
           break;
@@ -268,7 +268,7 @@ export class PaymentGenerationService {
           billId: bill.id,
           paymentNumber: index + 1,
           scheduledDate: dateStr,
-          amount: bill.costs[index] || bill.totalAmount / bill.scheduleCustom!.length,
+          amount: parseFloat(bill.costs[index]) || parseFloat(bill.totalAmount) / bill.scheduleCustom!.length,
           status: 'pending',
         });
       });
@@ -281,7 +281,7 @@ export class PaymentGenerationService {
           billId: bill.id,
           paymentNumber,
           scheduledDate: currentDate.toISOString().split('T')[0],
-          amount: bill.costs[paymentNumber - 1] || bill.totalAmount / maxPayments,
+          amount: parseFloat(bill.costs[paymentNumber - 1]) || parseFloat(bill.totalAmount) / maxPayments,
           status: 'pending',
         });
 
@@ -339,7 +339,7 @@ export class PaymentGenerationService {
           and(
             eq(payments.status, 'pending'),
             // Payment is overdue if scheduled date is before today
-            db.sql`${payments.scheduledDate} < ${today}`
+            sql`${payments.scheduledDate} < ${today}`
           )
         );
 
