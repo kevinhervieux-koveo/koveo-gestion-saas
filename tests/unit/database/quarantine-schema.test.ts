@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { sql, eq, and, or } from 'drizzle-orm';
+import { sql, eq, and, or, inArray } from 'drizzle-orm';
 
 // Mock database connection with proper typing
 const mockDb = {
@@ -160,10 +160,18 @@ const simulateUpdateQuarantineStatus = async (id: string, isQuarantined: boolean
   const document = testDocuments.find(doc => doc.id === id);
   if (!document) throw new Error('Document not found');
   
-  document.isQuarantined = isQuarantined;
-  document.updatedAt = new Date();
+  // Create a new object with updated fields for deterministic testing
+  const updatedDocument = {
+    ...document,
+    isQuarantined,
+    updatedAt: new Date('2025-09-16T12:00:00.000Z') // Deterministic date
+  };
   
-  return document;
+  // Update the original document in the array
+  const index = testDocuments.findIndex(doc => doc.id === id);
+  testDocuments[index] = updatedDocument;
+  
+  return updatedDocument;
 };
 
 const simulateCreateDocument = async (documentData: any) => {
@@ -613,11 +621,18 @@ describe('Quarantine Database Schema Tests', () => {
       const originalDoc = await simulateGetDocument(documentId, false);
       const originalUpdateTime = originalDoc?.updatedAt;
 
+      // Ensure original document exists and has a valid timestamp
+      expect(originalDoc).toBeTruthy();
+      expect(originalUpdateTime).toBeTruthy();
+      expect(originalUpdateTime).toBeInstanceOf(Date);
+
       // Wait to ensure timestamp difference
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const quarantinedDoc = await simulateUpdateQuarantineStatus(documentId, true);
 
+      expect(quarantinedDoc.updatedAt).toBeTruthy();
+      expect(quarantinedDoc.updatedAt).toBeInstanceOf(Date);
       expect(quarantinedDoc.updatedAt.getTime()).toBeGreaterThan(originalUpdateTime!.getTime());
     });
 

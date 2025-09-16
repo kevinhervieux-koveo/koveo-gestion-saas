@@ -1,5 +1,7 @@
 /**
  * @jest-environment node
+ */
+/**
  * File Upload API Integration Tests
  * 
  * Tests the server-side handling of file uploads for all submission forms.

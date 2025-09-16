@@ -192,15 +192,21 @@ describe('Enhanced Calendar Features', () => {
 
     test('should correctly identify available days', () => {
       const today = new Date();
-      const tomorrow = addDays(today, 1);
-      // Use a more future date to avoid any edge cases
-      const futureMonday = addDays(today, 14); // Two weeks from today, ensure it's Monday
+      
+      // Find next Monday (which is definitely open according to mock data)
+      const futureMonday = addDays(today, 1);
       while (futureMonday.getDay() !== 1) { // 1 = Monday
         futureMonday.setDate(futureMonday.getDate() + 1);
       }
+      
+      // Find next Tuesday (also open)
+      const futureTuesday = addDays(today, 1);
+      while (futureTuesday.getDay() !== 2) { // 2 = Tuesday
+        futureTuesday.setDate(futureTuesday.getDate() + 1);
+      }
 
-      expect(isDayAvailable(tomorrow)).toBe(true);
       expect(isDayAvailable(futureMonday)).toBe(true);
+      expect(isDayAvailable(futureTuesday)).toBe(true);
     });
 
     test('should correctly identify past dates as unavailable', () => {

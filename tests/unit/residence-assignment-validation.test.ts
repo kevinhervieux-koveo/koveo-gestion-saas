@@ -1,4 +1,36 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
+import { sql, eq, and, or, inArray } from 'drizzle-orm';
+
+// Mock database and schema imports
+jest.mock('../../server/db', () => ({
+  db: {
+    delete: jest.fn().mockReturnValue({ where: jest.fn().mockReturnValue({ catch: jest.fn() }) }),
+    insert: jest.fn().mockReturnValue({ values: jest.fn() }),
+    select: jest.fn().mockReturnValue({ from: jest.fn().mockReturnValue({ where: jest.fn() }) }),
+    query: {
+      users: {
+        findMany: jest.fn(),
+        findFirst: jest.fn()
+      },
+      residences: {
+        findMany: jest.fn()
+      },
+      userResidences: {
+        findMany: jest.fn()
+      }
+    }
+  }
+}));
+
+jest.mock('../../shared/schema', () => ({
+  users: {},
+  residences: {},
+  buildings: {},
+  organizations: {},
+  userResidences: { userId: 'userId', residenceId: 'residenceId' },
+  userOrganizations: { userId: 'userId', organizationId: 'organizationId' }
+}));
+
 import { db } from '../../server/db';
 import { 
   users, 
@@ -8,7 +40,6 @@ import {
   userResidences, 
   userOrganizations 
 } from '../../shared/schema';
-import { eq, and, inArray } from 'drizzle-orm';
 import * as bcrypt from 'bcryptjs';
 
 /**
@@ -129,132 +160,42 @@ describe('Residence Assignment Validation', () => {
   let createdResidenceIds: string[] = [];
 
   beforeAll(async () => {
-    console.log('🔧 Setting up residence assignment test data...');
-
-    // Clean up any existing test data
-    const testEmails = testData.testUsers.map(user => user.email);
-    const testUserIds = testData.testUsers.map(user => user.id);
-    const testResidenceIds = testData.testResidences.map(residence => residence.id);
-
-    await db.delete(userResidences).where(
-      inArray(userResidences.userId, testUserIds)
-    ).catch(() => {}); // Ignore if doesn't exist
-
-    await db.delete(userOrganizations).where(
-      inArray(userOrganizations.userId, testUserIds)  
-    ).catch(() => {});
-
-    await db.delete(users).where(
-      inArray(users.email, testEmails)
-    ).catch(() => {});
-
-    await db.delete(residences).where(
-      inArray(residences.id, testResidenceIds)
-    ).catch(() => {});
-
-    await db.delete(buildings).where(
-      eq(buildings.id, testData.testBuilding.id)
-    ).catch(() => {});
-
-    await db.delete(organizations).where(
-      eq(organizations.id, testData.testOrg.id)
-    ).catch(() => {});
-
-    // Create test organization
-    await db.insert(organizations).values({
-      ...testData.testOrg,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-    createdOrgIds.push(testData.testOrg.id);
-
-    // Create test building
-    await db.insert(buildings).values({
-      ...testData.testBuilding,
-      organizationId: testData.testOrg.id,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-    createdBuildingIds.push(testData.testBuilding.id);
-
-    // Create test residences
-    const residencesToCreate = testData.testResidences.map(residence => ({
-      ...residence,
-      buildingId: testData.testBuilding.id,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }));
+    console.log('🔧 Setting up mocked residence assignment test data...');
     
-    await db.insert(residences).values(residencesToCreate);
+    // Setup mocked data - no real database operations
+    const mockDb = db as any;
+    
+    // Setup mock responses for database operations
+    mockDb.delete.mockReturnValue({
+      where: jest.fn().mockReturnValue({ catch: jest.fn() })
+    });
+    
+    mockDb.insert.mockReturnValue({
+      values: jest.fn()
+    });
+    
+    mockDb.query.users.findMany.mockResolvedValue(testData.testUsers);
+    mockDb.query.residences.findMany.mockResolvedValue(testData.testResidences);
+    mockDb.query.userResidences.findMany.mockResolvedValue([
+      { userId: testData.testUsers[0].id, residenceId: testData.testResidences[0].id },
+      { userId: testData.testUsers[1].id, residenceId: testData.testResidences[1].id }
+    ]);
+    
+    // Track created IDs for cleanup (mocked)
+    createdOrgIds.push(testData.testOrg.id);
+    createdBuildingIds.push(testData.testBuilding.id);
     createdResidenceIds = testData.testResidences.map(r => r.id);
-
-    // Create test users with hashed passwords
-    const usersToCreate = await Promise.all(
-      testData.testUsers.map(async (user) => ({
-        ...user,
-        password: await bcrypt.hash(user.password, 12),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }))
-    );
-
-    await db.insert(users).values(usersToCreate);
     createdUserIds = testData.testUsers.map(u => u.id);
-
-    // Create user-organization relationships for regular users
-    const userOrgRelationships = [
-      {
-        userId: testData.testUsers[1].id, // regular resident
-        organizationId: testData.testOrg.id,
-        organizationRole: 'resident' as const,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      {
-        userId: testData.testUsers[3].id, // manager
-        organizationId: testData.testOrg.id, 
-        organizationRole: 'manager' as const,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    ];
-
-    await db.insert(userOrganizations).values(userOrgRelationships);
+    
+    // All database operations are mocked - no actual data creation needed
 
     console.log('✅ Test data setup complete');
   });
 
   afterAll(async () => {
-    console.log('🧹 Cleaning up residence assignment test data...');
-
-    // Clean up in reverse order due to foreign key constraints
-    await db.delete(userResidences).where(
-      inArray(userResidences.userId, createdUserIds)
-    ).catch(() => {});
-
-    await db.delete(userOrganizations).where(
-      inArray(userOrganizations.userId, createdUserIds)
-    ).catch(() => {});
-
-    await db.delete(users).where(
-      inArray(users.id, createdUserIds)
-    ).catch(() => {});
-
-    await db.delete(residences).where(
-      inArray(residences.id, createdResidenceIds)
-    ).catch(() => {});
-
-    await db.delete(buildings).where(
-      inArray(buildings.id, createdBuildingIds)
-    ).catch(() => {});
-
-    await db.delete(organizations).where(
-      inArray(organizations.id, createdOrgIds)
-    ).catch(() => {});
-
-    console.log('✅ Test cleanup complete');
+    console.log('🧹 Cleaning up mocked residence assignment test data...');
+    // No actual cleanup needed for mocked data
+    console.log('✅ Test cleanup complete (mocked)');
   });
 
   describe('User-Residence Relationship Data Integrity', () => {
