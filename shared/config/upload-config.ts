@@ -164,8 +164,8 @@ export function generateStorageDirectory(context: UploadContext): string {
   // Normalize the user role to handle demo roles and prefixes
   const userRole = normalizeUserRole(rawUserRole || 'user');
   
-  // Base directory structure: uploads/{type}/{org_or_default}/{building?}/{residence?}/{user_role}
-  const baseParts = ['uploads', type];
+  // Base directory structure: {type}/{org_or_default}/{building?}/{residence?}/{user_role}
+  const baseParts: string[] = [type];
   
   // Organization level
   const orgId = organizationId || 'default';
