@@ -397,8 +397,10 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 
     if (showAllYears) {
       // Show extended range: from 2000 to 25 years forward
-      const startYear = Math.min(2000, yearRange.minYear - 2);
-      const endYear = Math.max(currentYear + 25, yearRange.maxYear + 2);
+      const minYear = yearRange.minYear ?? currentYear;
+      const maxYear = yearRange.maxYear ?? currentYear;
+      const startYear = Math.min(2000, minYear - 2);
+      const endYear = Math.max(currentYear + 25, maxYear + 2);
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
     } else {
@@ -412,8 +414,10 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
       }
       
       // Use actual bill range with padding
-      const startYear = Math.min(yearRange.minYear, currentYear - 1);
-      const endYear = Math.max(yearRange.maxYear, currentYear + 1);
+      const minYear = yearRange.minYear ?? currentYear;
+      const maxYear = yearRange.maxYear ?? currentYear;
+      const startYear = Math.min(minYear, currentYear - 1);
+      const endYear = Math.max(maxYear, currentYear + 1);
       const totalYears = endYear - startYear + 1;
       return Array.from({ length: totalYears }, (_, i) => startYear + i);
     }
@@ -424,11 +428,14 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
   useEffect(() => {
     if (yearRange && yearRange.hasBills && filters.year === currentYear.toString()) {
       // Check if current year has bills
-      const hasCurrentYearBills = yearRange.minYear <= currentYear && currentYear <= yearRange.maxYear;
+      const minYear = yearRange.minYear ?? currentYear;
+      const maxYear = yearRange.maxYear ?? currentYear;
+      const hasCurrentYearBills = minYear <= currentYear && currentYear <= maxYear;
       
       // Only auto-adjust if current year has no bills at all
       if (!hasCurrentYearBills) {
-        const mostRecentYear = yearRange.maxYear;
+        // Use maxYear if it exists, otherwise fallback to current year
+        const mostRecentYear = yearRange.maxYear ?? currentYear;
         console.log('🔄 [BILLS PAGE] Auto-adjusting year from', currentYear, 'to', mostRecentYear, '(current year has no bills)');
         setFilters(prev => ({
           ...prev,
