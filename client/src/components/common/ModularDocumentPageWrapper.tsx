@@ -284,7 +284,6 @@ function DocumentEditDialog({ documentId, isOpen, onClose, onSuccess }: Document
               document={document}
               onSuccess={handleSuccess}
               onCancel={onClose}
-              onDelete={handleDelete}
             />
           </div>
         ) : (
@@ -403,11 +402,11 @@ export default function ModularDocumentPageWrapper({
     },
     enabled: !!entityId,
     staleTime: 0, // Always refetch
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache
   });
 
   // Extract documents array from API response
-  const documents = Array.isArray(documentResponse?.documents) ? documentResponse.documents : [];
+  const documents = Array.isArray((documentResponse as any)?.documents) ? (documentResponse as any).documents : [];
 
   // Determine permissions based on user role and type
   const isUserTenant = user?.role === 'tenant';
@@ -726,7 +725,7 @@ export default function ModularDocumentPageWrapper({
             </Card>
           ) : (
             <div className="space-y-6">
-              {Object.entries(groupedDocuments).map(([category, categoryDocuments]) => {
+              {Object.entries(groupedDocuments).map(([category, categoryDocuments]: [string, any[]]) => {
                 const isExpanded = expandedCategories.has(category);
                 
                 return (

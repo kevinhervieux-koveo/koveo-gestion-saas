@@ -1,15 +1,16 @@
 # Getting Started with Koveo Gestion
 
+> Updated: September 09, 2025
 > Complete guide to setting up and understanding the Koveo Gestion property management platform
 
 ## Quick Setup (5 minutes)
 
 ### Prerequisites
 
-- **Node.js**: Version 20 or higher
-- **PostgreSQL**: Version 14 or higher
+- **Node.js**: Version 20 or higher (required for ES modules)
+- **PostgreSQL**: Version 14 or higher (Neon serverless supported)
 - **Git**: For version control
-- **Code Editor**: VS Code recommended
+- **Code Editor**: VS Code recommended with TypeScript extensions
 
 ### Installation
 

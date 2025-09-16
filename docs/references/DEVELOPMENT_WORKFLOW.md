@@ -1,5 +1,6 @@
 # Development Workflow Guide
 
+> Updated: September 09, 2025
 > Complete guide to the development process and best practices for Koveo Gestion
 
 ## Development Process Overview
@@ -60,10 +61,12 @@ hotfix/database-migration-rollback
 
 **Testing Requirements (September 2025)**
 
-- Use stable Jest configuration (`jest.config.simple.cjs`)
-- Ensure ES module compatibility for new components
-- Follow established mock patterns for server testing
-- Validate Quebec compliance patterns
+- Use stable Jest configuration (`jest.config.simple.cjs`) with ES module support
+- Ensure ES module compatibility for new components and services
+- Follow established mock patterns for server testing (serverApiMock.js, schemaMock.js)
+- Validate Quebec compliance patterns with bilingual testing
+- Maintain 80%+ test coverage with meaningful test cases
+- Include data-testid attributes for reliable component testing
 
 - Architecture review for complex features
 - Database schema changes planning
@@ -260,18 +263,19 @@ Brief description of the changes and motivation
 **Development Environment**
 
 ```bash
-# Node.js and package management
-node --version    # v20.0.0+
-npm --version     # v10.0.0+
+# Node.js and package management (updated September 2025)
+node --version    # v20.0.0+ (required for ES modules)
+npm --version     # v10.0.0+ 
 
-# Database tools
-psql --version    # PostgreSQL client
-npm run db:studio # Drizzle Studio
+# Database tools (Neon PostgreSQL)
+psql --version    # PostgreSQL client for Neon database
+npm run db:studio # Drizzle Studio for schema management
 
-# Code quality tools
-npm run lint      # ESLint
-npm run format    # Prettier
-npm run type-check # TypeScript
+# Code quality tools (enhanced standards)
+npm run lint      # ESLint with strict TypeScript rules
+npm run format    # Prettier auto-formatting
+npm run type-check # TypeScript strict mode compilation
+npm test          # Jest with ES module support
 ```
 
 **Recommended IDE Setup**

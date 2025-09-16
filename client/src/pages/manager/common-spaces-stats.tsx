@@ -57,6 +57,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { handleApiError } from '@/lib/demo-error-handler';
 import {
   BarChart,
   Bar,
@@ -304,11 +305,10 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       setSelectedUser(null);
     },
     onError: (error: any) => {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: error.message || 'Une erreur est survenue',
-        variant: 'destructive',
-      });
+      handleApiError(error, language, language === 'fr' 
+        ? 'Une erreur est survenue'
+        : 'An error occurred'
+      );
     },
   });
 
@@ -391,12 +391,11 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
     }
     },
     onError: (error: any) => {
-      // Error processing request
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: 'An error occurred while processing the request.',
-        variant: 'destructive',
-      });
+      // Handle demo restriction errors or fallback to generic error
+      handleApiError(error, language, language === 'fr' 
+        ? 'Une erreur est survenue lors du traitement de la demande.'
+        : 'An error occurred while processing the request.'
+      );
     }
   });
 

@@ -6,14 +6,7 @@ import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Shield, Building, Users, Eye, EyeOff, Loader2, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { StandardFormField } from '@/components/forms/StandardFormField';
 import koveoLogo from '@/assets/koveo-logo.jpg';
 
 /**
@@ -271,6 +265,7 @@ export default function LoginPage() {
         title: language === 'fr' ? 'Demo Mode Activé' : 'Demo Mode Activated',
         description:
           language === 'fr' ? `Connecté(e) en tant que ${userName}` : `Logged in as ${userName}`,
+        duration: 3000,
       });
     } catch (_error: unknown) {
       const errorMessage = (_error as Error).message || 'Demo login failed';
@@ -509,80 +504,71 @@ export default function LoginPage() {
               </div>
             ) : (
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-                  <FormField
+                <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                  <StandardFormField
                     control={form.control}
                     name='email'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {language === 'fr' ? 'Adresse courriel' : 'Email Address'}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type='email'
-                            autoComplete='username'
-                            placeholder={language === 'fr' ? 'votre@email.com' : 'your@email.com'}
-                            disabled={isLoggingIn}
-                            className='h-11'
-                            data-testid='input-email'
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label={language === 'fr' ? 'Adresse courriel' : 'Email Address'}
+                    type='email'
+                    placeholder={language === 'fr' ? 'votre@email.com' : 'your@email.com'}
+                    disabled={isLoggingIn}
+                    className='h-11'
+                    data-testid='input-email'
+                    autoComplete='username'
+                    formName='login'
                   />
 
-                  <FormField
-                    control={form.control}
-                    name='password'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{language === 'fr' ? 'Mot de passe' : 'Password'}</FormLabel>
-                        <FormControl>
-                          <div className='relative'>
-                            <Input
-                              {...field}
-                              type={showPassword ? 'text' : 'password'}
-                              placeholder={
-                                language === 'fr' ? 'Votre mot de passe' : 'Your password'
-                              }
-                              disabled={isLoggingIn}
-                              className='h-11 pr-10'
-                              data-testid='input-password'
-                              autoComplete='current-password'
-                            />
-                            <Button
-                              type='button'
-                              variant='ghost'
-                              size='sm'
-                              className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
-                              onClick={() => setShowPassword(!showPassword)}
-                              disabled={isLoggingIn}
-                              data-testid='button-toggle-password'
-                            >
-                              {showPassword ? (
-                                <EyeOff className='h-4 w-4 text-gray-400' />
-                              ) : (
-                                <Eye className='h-4 w-4 text-gray-400' />
-                              )}
-                              <span className='sr-only'>
-                                {showPassword
-                                  ? language === 'fr'
-                                    ? 'Masquer le mot de passe'
-                                    : 'Hide password'
-                                  : language === 'fr'
-                                    ? 'Afficher le mot de passe'
-                                    : 'Show password'}
-                              </span>
-                            </Button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className='pt-2'>
+                    <FormField
+                      control={form.control}
+                      name='password'
+                      render={({ field }) => (
+                        <FormItem className='space-y-2'>
+                          <FormLabel>{language === 'fr' ? 'Mot de passe' : 'Password'}</FormLabel>
+                          <FormControl>
+                            <div className='relative'>
+                              <Input
+                                {...field}
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder={
+                                  language === 'fr' ? 'Votre mot de passe' : 'Your password'
+                                }
+                                disabled={isLoggingIn}
+                                className='h-11 pr-10'
+                                data-testid='input-password'
+                                autoComplete='current-password'
+                              />
+                              <Button
+                                type='button'
+                                variant='ghost'
+                                size='sm'
+                                className='absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent'
+                                onClick={() => setShowPassword(!showPassword)}
+                                disabled={isLoggingIn}
+                                data-testid='button-toggle-password'
+                              >
+                                {showPassword ? (
+                                  <EyeOff className='h-4 w-4 text-gray-400' />
+                                ) : (
+                                  <Eye className='h-4 w-4 text-gray-400' />
+                                )}
+                                <span className='sr-only'>
+                                  {showPassword
+                                    ? language === 'fr'
+                                      ? 'Masquer le mot de passe'
+                                      : 'Hide password'
+                                    : language === 'fr'
+                                      ? 'Afficher le mot de passe'
+                                      : 'Show password'}
+                                </span>
+                              </Button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
                   <Button type='submit' className='w-full h-11' disabled={isLoggingIn}>
                     {isLoggingIn

@@ -1,6 +1,8 @@
 # Quebec Compliance Code Examples
 
-This guide provides comprehensive code examples for implementing Quebec-specific compliance features in the Koveo Gestion application, including Law 25 privacy compliance, French language support, and Canadian standards.
+> Updated: September 09, 2025
+
+This guide provides comprehensive code examples for implementing Quebec-specific compliance features in the Koveo Gestion application, including Law 25 privacy compliance, French language support, and Canadian standards optimized for property management.
 
 ## Table of Contents
 

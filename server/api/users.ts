@@ -76,14 +76,36 @@ export function registerUserRoutes(app: Express): void {
       
       console.log(`🔐 [USER FILTER] Current user role: ${currentUser.role}, applying role-based filters...`);
       
-      if (currentUser.role === 'admin') {
-        // Admin can see all users - no additional filtering
-        console.log('🔓 [ADMIN] No role-based filtering applied - admin can see all users');
-      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see other demo users
+      if (currentUser.role === 'admin' || currentUser.role === 'demo_manager') {
+        // Admin and demo_manager can see all users - no additional filtering
+        console.log('🔓 [ADMIN] No role-based filtering applied - admin/demo_manager can see all users');
+      } else if (['demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // Demo users can only see other demo users in their organizations
         if (!roleBasedFilters.role) {
           // If no role filter is applied, restrict to demo roles only
           roleBasedFilters.demoOnly = 'true';
+        }
+        
+        // Also restrict to users from their organizations (like regular managers)
+        console.log('🎭 [DEMO] Restricting to users from demo user\'s organizations');
+        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
+        console.log(`   → Demo user organizations: [${userOrgIds.join(', ')}]`);
+        if (userOrgIds.length > 0) {
+          roleBasedFilters.managerOrganizations = userOrgIds.join(',');
+          console.log('   → Added organization filter for demo user');
+        } else {
+          // Demo user has no organizations, return empty result
+          return res.json({
+            users: [],
+            pagination: {
+              page,
+              limit,
+              total: 0,
+              totalPages: 0,
+              hasNext: false,
+              hasPrev: false
+            }
+          });
         }
       } else {
         // Regular managers can only see users from their organizations
@@ -154,30 +176,34 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Get distinct roles (including null values)
-      const rolesResult = await db
-        .selectDistinct({ role: schema.users.role })
-        .from(schema.users)
-        .orderBy(schema.users.role);
-
       // Get distinct status values (including null values)
       const statusResult = await db
         .selectDistinct({ isActive: schema.users.isActive })
         .from(schema.users)
         .orderBy(schema.users.isActive);
 
-      // Role-based organization filtering for filter options
+      // Role-based filtering for roles and organizations
       let organizations = [];
-      if (currentUser.role === 'admin') {
-        // Admin can see all organizations
+      let allowedRoles = [];
+      
+      if (currentUser.role === 'admin' || currentUser.role === 'demo_manager') {
+        // Admin and demo_manager can see all organizations and all roles
         const orgsResult = await db
           .select({ id: schema.organizations.id, name: schema.organizations.name })
           .from(schema.organizations)
           .where(eq(schema.organizations.isActive, true))
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
-      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see demo organizations
+        
+        // Admin and demo_manager see all roles
+        const rolesResult = await db
+          .selectDistinct({ role: schema.users.role })
+          .from(schema.users)
+          .orderBy(schema.users.role);
+        allowedRoles = rolesResult.map(r => r.role).filter(Boolean);
+        
+      } else if (['demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // Demo users can only see demo organizations and demo roles
         const orgsResult = await db
           .select({ id: schema.organizations.id, name: schema.organizations.name })
           .from(schema.organizations)
@@ -189,8 +215,12 @@ export function registerUserRoutes(app: Express): void {
           )
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
+        
+        // Demo users only see demo roles
+        allowedRoles = ['demo_manager', 'demo_tenant', 'demo_resident'];
+        
       } else {
-        // Regular managers see only their organizations
+        // Regular managers see only their organizations and non-admin roles
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
         if (userOrgIds.length > 0) {
           const orgsResult = await db
@@ -205,14 +235,17 @@ export function registerUserRoutes(app: Express): void {
             .orderBy(schema.organizations.name);
           organizations = orgsResult;
         }
+        
+        // Regular managers can't see admin role
+        allowedRoles = ['manager', 'tenant', 'resident'];
       }
 
-      // Prepare filter options with All and null handling
+      // Prepare filter options with role-based filtering
       const roleOptions = [
         { value: '', label: 'All Roles' },
-        ...rolesResult.map(r => ({
-          value: r.role || 'null',
-          label: r.role ? r.role.charAt(0).toUpperCase() + r.role.slice(1).replace('_', ' ') : 'No Role'
+        ...allowedRoles.map(role => ({
+          value: role,
+          label: role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')
         }))
       ];
 
@@ -232,7 +265,7 @@ export function registerUserRoutes(app: Express): void {
         }))
       ];
 
-      const orphanOptions = currentUser.role === 'admin' ? [
+      const orphanOptions = (currentUser.role === 'admin' || currentUser.role === 'demo_manager') ? [
         { value: '', label: 'All Users' },
         { value: 'true', label: 'Orphan Users' },
         { value: 'false', label: 'Assigned Users' }
@@ -1231,7 +1264,7 @@ export function registerUserRoutes(app: Express): void {
   app.get('/api/users/me/buildings', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      
+      const { has_common_spaces } = req.query;
 
       // For residents and tenants, get buildings through their residences  
       if (req.user.role === 'resident' || req.user.role === 'tenant' || 
@@ -1262,24 +1295,48 @@ export function registerUserRoutes(app: Express): void {
           return res.json([]);
         }
 
-        // Fetch building details
-        const buildingDetails = await db
-          .select({
-            id: schema.buildings.id,
-            name: schema.buildings.name,
-            address: schema.buildings.address,
-            city: schema.buildings.city,
-            state: schema.buildings.province, // Map province to state for consistency
-            postal_code: schema.buildings.postalCode,
-            organization_id: schema.buildings.organizationId,
-          })
-          .from(schema.buildings)
-          .where(and(
-            inArray(schema.buildings.id, buildingIds),
-            eq(schema.buildings.isActive, true)
-          ))
-          .orderBy(schema.buildings.name);
+        // Fetch building details with optional common spaces filtering
+        let buildingQuery;
+        if (has_common_spaces === 'true') {
+          // Only buildings with common spaces
+          buildingQuery = db
+            .selectDistinct({
+              id: schema.buildings.id,
+              name: schema.buildings.name,
+              address: schema.buildings.address,
+              city: schema.buildings.city,
+              state: schema.buildings.province,
+              postal_code: schema.buildings.postalCode,
+              organization_id: schema.buildings.organizationId,
+            })
+            .from(schema.buildings)
+            .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
+            .where(and(
+              inArray(schema.buildings.id, buildingIds),
+              eq(schema.buildings.isActive, true)
+            ))
+            .orderBy(schema.buildings.name);
+        } else {
+          // All buildings
+          buildingQuery = db
+            .select({
+              id: schema.buildings.id,
+              name: schema.buildings.name,
+              address: schema.buildings.address,
+              city: schema.buildings.city,
+              state: schema.buildings.province,
+              postal_code: schema.buildings.postalCode,
+              organization_id: schema.buildings.organizationId,
+            })
+            .from(schema.buildings)
+            .where(and(
+              inArray(schema.buildings.id, buildingIds),
+              eq(schema.buildings.isActive, true)
+            ))
+            .orderBy(schema.buildings.name);
+        }
 
+        const buildingDetails = await buildingQuery;
         return res.json(buildingDetails);
       }
 
@@ -1885,16 +1942,16 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Only admins can delete other users' accounts
-      if (currentUser.role !== 'admin') {
+      // Only admins and managers can delete other users' accounts
+      if (currentUser.role !== 'admin' && currentUser.role !== 'manager') {
         return res.status(403).json({
-          message: 'Only administrators can delete user accounts',
+          message: 'Only administrators and managers can delete user accounts',
           code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
       
       // Additional safety check: Log this critical operation
-      console.warn(`⚠️  CRITICAL: Admin ${currentUser.email} attempting to delete user ${targetUserId}`);
+      console.warn(`⚠️  CRITICAL: ${currentUser.role} ${currentUser.email} attempting to delete user ${targetUserId}`);
 
       if (!targetUserId) {
         return res.status(400).json({

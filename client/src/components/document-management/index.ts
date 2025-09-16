@@ -19,8 +19,8 @@ export { DocumentEditForm } from './DocumentEditForm';
 // Note: DocumentViewModal and DocumentEditModal were temporarily removed but may be needed
 
 // Invoice Management Components
-export { default as InvoiceForm } from '../invoices/InvoiceForm';
-export { default as GeminiInvoiceExtractor } from '../invoices/GeminiInvoiceExtractor';
+// export { default as InvoiceForm } from '../invoices/InvoiceForm'; // Temporarily disabled - missing default export
+// export { default as GeminiInvoiceExtractor } from '../invoices/GeminiInvoiceExtractor'; // Temporarily disabled - missing default export
 
 // Bill Management Components
 export { default as ModularBillForm } from '../bill-management/ModularBillForm';

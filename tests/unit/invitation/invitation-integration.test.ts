@@ -1,8 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import * as schema from '../../../shared/schema';
-import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { mockDb, testUtils } from '../../mocks/unified-database-mock';
+
+// Import centralized enhanced database mock directly - fix destructuring issue
+const { 
+  mockDb, 
+  testUtils, 
+  mockSchema,
+  eq, and, or, sql 
+} = require('../../../__mocks__/enhanced-database-mock');
+
+console.log('Enhanced mock loaded - mockDb available:', !!mockDb);
+console.log('Enhanced mock loaded - testUtils available:', !!testUtils);
+console.log('Enhanced mock loaded - mockSchema available:', !!mockSchema);
 
 describe('Invitation Table Integration Tests', () => {
   let adminUser: any;
@@ -11,27 +21,30 @@ describe('Invitation Table Integration Tests', () => {
   let organization2: any;
 
   beforeEach(async () => {
-    // Reset mock data and clear all mocks
-    testUtils.resetMocks();
+    // Reset enhanced mock data store and clear all mocks
+    if (testUtils && testUtils.clearData) {
+      testUtils.clearData();
+    }
+    jest.clearAllMocks();
 
     // Create test organizations
-    const [org1] = await mockDb.insert(schema.organizations).values({
+    const [org1] = await mockDb.insert(mockSchema.organizations).values({
       name: 'Test Organization 1',
       type: 'management_company',
       address: '123 Test St',
       city: 'Montreal',
       province: 'QC',
       postalCode: 'H1A 1A1',
-    }).returning();
+    } as any).returning() as any[];
 
-    const [org2] = await mockDb.insert(schema.organizations).values({
+    const [org2] = await mockDb.insert(mockSchema.organizations).values({
       name: 'Test Organization 2',
       type: 'syndicate',
       address: '456 Test Ave',
       city: 'Quebec City',
       province: 'QC',
       postalCode: 'G1A 1A1',
-    }).returning();
+    } as any).returning() as any[];
 
     organization1 = org1;
     organization2 = org2;
@@ -39,42 +52,41 @@ describe('Invitation Table Integration Tests', () => {
     // Create test users
     const hashedPassword = await bcrypt.hash('password123', 10);
     
-    const [admin] = await mockDb.insert(schema.users).values({
+    const [admin] = await mockDb.insert(mockSchema.users).values({
       username: 'admin@test.com',
       email: 'admin@test.com',
       password: hashedPassword,
       firstName: 'Admin',
       lastName: 'User',
       role: 'admin',
-    }).returning();
+    } as any).returning() as any[];
 
-    const [manager] = await mockDb.insert(schema.users).values({
+    const [manager] = await mockDb.insert(mockSchema.users).values({
       username: 'manager@test.com',
       email: 'manager@test.com',
       password: hashedPassword,
       firstName: 'Manager',
       lastName: 'User',
       role: 'manager',
-    }).returning();
+    } as any).returning() as any[];
 
     adminUser = admin;
     managerUser = manager;
 
     // Assign manager to organization1
-    await mockDb.insert(schema.userOrganizations).values({
+    await mockDb.insert(mockSchema.userOrganizations).values({
       userId: managerUser.id,
       organizationId: organization1.id,
       organizationRole: 'manager',
       isActive: true,
-    });
+    } as any) as any;
   });
 
   afterEach(async () => {
-    // Clean up test data
-    await mockDb.delete(schema.invitations);
-    await mockDb.delete(schema.userOrganizations);
-    await mockDb.delete(schema.users);
-    await mockDb.delete(schema.organizations);
+    // Clean up test data by clearing the enhanced mock store
+    if (testUtils && testUtils.clearData) {
+      testUtils.clearData();
+    }
   });
 
   describe('Invitation Data Validation', () => {
@@ -82,7 +94,7 @@ describe('Invitation Table Integration Tests', () => {
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + 7);
 
-      const [invitation] = await mockDb.insert(schema.invitations).values({
+      const [invitation] = await mockDb.insert(mockSchema.invitations).values({
         email: 'test@example.com',
         token: 'test-token',
         tokenHash: 'test-hash',
@@ -91,7 +103,7 @@ describe('Invitation Table Integration Tests', () => {
         organizationId: organization1.id,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning();
+      } as any).returning() as any[];
 
       expect(invitation).toBeDefined();
       expect(invitation.id).toBeDefined();
@@ -105,7 +117,7 @@ describe('Invitation Table Integration Tests', () => {
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + 7);
 
-      const [invitation] = await mockDb.insert(schema.invitations).values({
+      const [invitation] = await mockDb.insert(mockSchema.invitations).values({
         email: 'test@example.com',
         token: 'test-token',
         tokenHash: 'test-hash',
@@ -116,7 +128,7 @@ describe('Invitation Table Integration Tests', () => {
         residenceId: null,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning();
+      } as any).returning() as any[];
 
       expect(invitation.buildingId).toBeNull();
       expect(invitation.residenceId).toBeNull();
@@ -129,7 +141,7 @@ describe('Invitation Table Integration Tests', () => {
       const validRoles = ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'];
 
       for (const role of validRoles) {
-        const [invitation] = await mockDb.insert(schema.invitations).values({
+        const [invitation] = await mockDb.insert(mockSchema.invitations).values({
           email: `test-${role}@example.com`,
           token: `test-token-${role}`,
           tokenHash: `test-hash-${role}`,
@@ -138,7 +150,7 @@ describe('Invitation Table Integration Tests', () => {
           organizationId: organization1.id,
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
-        }).returning();
+        } as any).returning() as any[];
 
         expect(invitation.role).toBe(role);
       }
@@ -151,7 +163,7 @@ describe('Invitation Table Integration Tests', () => {
       const validStatuses = ['pending', 'accepted', 'expired', 'cancelled'];
 
       for (const status of validStatuses) {
-        const [invitation] = await mockDb.insert(schema.invitations).values({
+        const [invitation] = await mockDb.insert(mockSchema.invitations).values({
           email: `test-${status}@example.com`,
           token: `test-token-${status}`,
           tokenHash: `test-hash-${status}`,
@@ -160,7 +172,7 @@ describe('Invitation Table Integration Tests', () => {
           organizationId: organization1.id,
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
-        }).returning();
+        } as any).returning() as any[];
 
         expect(invitation.status).toBe(status);
       }
@@ -173,7 +185,7 @@ describe('Invitation Table Integration Tests', () => {
       expirationDate.setDate(expirationDate.getDate() + 7);
 
       // Create test invitations
-      await mockDb.insert(schema.invitations).values([
+      await mockDb.insert(mockSchema.invitations).values([
         {
           email: 'pending1@example.com',
           token: 'token1',
@@ -204,14 +216,14 @@ describe('Invitation Table Integration Tests', () => {
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
         },
-      ]);
+      ] as any) as any;
     });
 
     it('should filter pending invitations correctly', async () => {
       const pendingInvitations = await mockDb
         .select()
-        .from(schema.invitations)
-        .where(eq(schema.invitations.status, 'pending'));
+        .from(mockSchema.invitations)
+        .where(eq(mockSchema.invitations.status, 'pending')) as any[];
 
       expect(pendingInvitations).toHaveLength(2);
       expect(pendingInvitations.every(inv => inv.status === 'pending')).toBe(true);
@@ -228,7 +240,7 @@ describe('Invitation Table Integration Tests', () => {
         })
         .from(schema.invitations)
         .leftJoin(schema.organizations, eq(schema.invitations.organizationId, schema.organizations.id))
-        .where(eq(schema.invitations.status, 'pending'));
+        .where(eq(schema.invitations.status, 'pending')) as any[];
 
       expect(invitationsWithOrgs).toHaveLength(2);
       
@@ -242,10 +254,10 @@ describe('Invitation Table Integration Tests', () => {
     it('should filter invitations by organization for manager view', async () => {
       const managerInvitations = await mockDb
         .select()
-        .from(schema.invitations)
+        .from(mockSchema.invitations)
         .where(
-          eq(schema.invitations.organizationId, organization1.id)
-        );
+          eq(mockSchema.invitations.organizationId, organization1.id)
+        ) as any[];
 
       expect(managerInvitations).toHaveLength(2); // 1 pending + 1 accepted from org1
       expect(managerInvitations.every(inv => inv.organizationId === organization1.id)).toBe(true);
@@ -259,7 +271,7 @@ describe('Invitation Table Integration Tests', () => {
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + 7);
 
-      const [invitation] = await mockDb.insert(schema.invitations).values({
+      const [invitation] = await mockDb.insert(mockSchema.invitations).values({
         email: 'delete-test@example.com',
         token: 'delete-token',
         tokenHash: 'delete-hash',
@@ -268,7 +280,7 @@ describe('Invitation Table Integration Tests', () => {
         organizationId: organization1.id,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning();
+      } as any).returning() as any[];
 
       testInvitation = invitation;
     });
@@ -277,21 +289,21 @@ describe('Invitation Table Integration Tests', () => {
       // Verify invitation exists
       const beforeDelete = await mockDb
         .select()
-        .from(schema.invitations)
-        .where(eq(schema.invitations.id, testInvitation.id));
+        .from(mockSchema.invitations)
+        .where(eq(mockSchema.invitations.id, testInvitation.id)) as any[];
 
       expect(beforeDelete).toHaveLength(1);
 
       // Delete invitation
       await mockDb
-        .delete(schema.invitations)
-        .where(eq(schema.invitations.id, testInvitation.id));
+        .delete(mockSchema.invitations)
+        .where(eq(mockSchema.invitations.id, testInvitation.id)) as any;
 
       // Verify invitation is deleted
       const afterDelete = await mockDb
         .select()
-        .from(schema.invitations)
-        .where(eq(schema.invitations.id, testInvitation.id));
+        .from(mockSchema.invitations)
+        .where(eq(mockSchema.invitations.id, testInvitation.id)) as any[];
 
       expect(afterDelete).toHaveLength(0);
     });
@@ -299,8 +311,8 @@ describe('Invitation Table Integration Tests', () => {
     it('should handle deletion of non-existent invitation', async () => {
       // Try to delete non-existent invitation
       const result = await mockDb
-        .delete(schema.invitations)
-        .where(eq(schema.invitations.id, 'non-existent-id'));
+        .delete(mockSchema.invitations)
+        .where(eq(mockSchema.invitations.id, 'non-existent-id')) as any;
 
       // Should not throw error, just return 0 affected rows
       expect(result).toBeDefined();
@@ -315,7 +327,7 @@ describe('Invitation Table Integration Tests', () => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 7); // Next week
 
-      await mockDb.insert(schema.invitations).values([
+      await mockDb.insert(mockSchema.invitations).values([
         {
           email: 'expired@example.com',
           token: 'expired-token',
@@ -336,13 +348,13 @@ describe('Invitation Table Integration Tests', () => {
           invitedByUserId: adminUser.id,
           expiresAt: futureDate,
         },
-      ]);
+      ] as any) as any;
 
       // Get all pending invitations
       const allPending = await mockDb
         .select()
-        .from(schema.invitations)
-        .where(eq(schema.invitations.status, 'pending'));
+        .from(mockSchema.invitations)
+        .where(eq(mockSchema.invitations.status, 'pending')) as any[];
 
       expect(allPending).toHaveLength(2);
 
@@ -363,7 +375,7 @@ describe('Invitation Table Integration Tests', () => {
       expirationDate.setDate(expirationDate.getDate() + 7);
 
       // Create first invitation
-      await mockDb.insert(schema.invitations).values({
+      await mockDb.insert(mockSchema.invitations).values({
         email: 'first@example.com',
         token: 'unique-token',
         tokenHash: 'hash1',
@@ -372,11 +384,11 @@ describe('Invitation Table Integration Tests', () => {
         organizationId: organization1.id,
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      });
+      } as any) as any;
 
       // Try to create second invitation with same token
       await expect(async () => {
-        await mockDb.insert(schema.invitations).values({
+        await mockDb.insert(mockSchema.invitations).values({
           email: 'second@example.com',
           token: 'unique-token', // Same token
           tokenHash: 'hash2',
@@ -385,7 +397,7 @@ describe('Invitation Table Integration Tests', () => {
           organizationId: organization1.id,
           invitedByUserId: adminUser.id,
           expiresAt: expirationDate,
-        });
+        } as any) as any;
       }).rejects.toThrow();
     });
 
@@ -393,7 +405,7 @@ describe('Invitation Table Integration Tests', () => {
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + 7);
 
-      const [invitation] = await mockDb.insert(schema.invitations).values({
+      const [invitation] = await mockDb.insert(mockSchema.invitations).values({
         email: 'null-test@example.com',
         token: 'null-token',
         tokenHash: 'null-hash',
@@ -404,7 +416,7 @@ describe('Invitation Table Integration Tests', () => {
         residenceId: null,    // Allow null
         invitedByUserId: adminUser.id,
         expiresAt: expirationDate,
-      }).returning();
+      } as any).returning() as any[];
 
       expect(invitation.organizationId).toBeNull();
       expect(invitation.buildingId).toBeNull();

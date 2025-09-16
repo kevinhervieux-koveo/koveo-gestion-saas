@@ -17,6 +17,7 @@ const createTestApp = () => {
   // Add session middleware for memory-based sessions in tests
   const session = require('express-session');
   app.use(session({
+    name: 'koveo.sid', // Match production session cookie name
     secret: 'test-secret',
     resave: false,
     saveUninitialized: false,

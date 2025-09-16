@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2021-04-MAINTENANCE-2
+Date: 2021-04-12
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Total Maintenance Solutions
+
+DESCRIPTION / DESCRIPTION:
+Maintenance - Total Maintenance Solutions
+
+CATÉGORIE / CATEGORY: Maintenance
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $2227.00 CAD
+TPS (5%) / GST: $111.35 CAD
+TVQ (9.975%) / QST: $222.14 CAD
+TOTAL: $2560.49 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

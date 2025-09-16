@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -87,6 +88,10 @@ export default function UserManagement() {
   const [editingUserOrganizations, setEditingUserOrganizations] = useState<UserWithAssignments | null>(null);
   const [editingUserResidences, setEditingUserResidences] = useState<UserWithAssignments | null>(null);
   const [showDeleteOrphansDialog, setShowDeleteOrphansDialog] = useState(false);
+
+  // Cascading filter states for user edit tabs
+  const [selectedOrganizationIds, setSelectedOrganizationIds] = useState<string[]>([]);
+  const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -282,7 +287,9 @@ export default function UserManagement() {
         description: t('userUpdatedSuccess'),
       });
       setSelectedUsers(new Set());
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
     onError: (_error: Error) => {
       toast({
@@ -309,7 +316,9 @@ export default function UserManagement() {
         description: t('userUpdatedSuccess'),
       });
       setEditingUser(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
     onError: (error: Error) => {
       toast({
@@ -371,6 +380,47 @@ export default function UserManagement() {
     }
   }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
+  // Reset cascading filter states only when dialog closes
+  React.useEffect(() => {
+    if (!editingUser) {
+      // Reset states when dialog closes
+      setSelectedOrganizationIds([]);
+      setSelectedBuildingIds([]);
+    }
+  }, [editingUser]);
+
+  // Get current user's access information for role-based filtering
+  const currentUserAccess = useMemo(() => {
+    if (!currentUser || !organizations || !buildings || !residences) {
+      return {
+        organizationIds: [],
+        buildingIds: [],
+        residenceIds: []
+      };
+    }
+
+    // Find current user in users list to get their assignments
+    const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
+    
+    if (!currentUserWithAssignments) {
+      return {
+        organizationIds: [],
+        buildingIds: [],
+        residenceIds: []
+      };
+    }
+
+    const organizationIds = currentUserWithAssignments.organizations?.map((org: any) => org.id) || [];
+    const buildingIds = currentUserWithAssignments.buildings?.map((building: any) => building.id) || [];
+    const residenceIds = currentUserWithAssignments.residences?.map((residence: any) => residence.id) || [];
+
+    return {
+      organizationIds,
+      buildingIds,
+      residenceIds
+    };
+  }, [currentUser, users, organizations, buildings, residences]);
+
   const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
     if (!editingUser) {
       return;
@@ -418,7 +468,9 @@ export default function UserManagement() {
         description: t('organizationAssignmentsUpdated'),
       });
       setEditingUserOrganizations(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
     },
     onError: (error: Error) => {
@@ -449,7 +501,9 @@ export default function UserManagement() {
         title: t('success'),
         description: t('buildingAssignmentsUpdated'),
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
     onError: (error: Error) => {
       toast({
@@ -480,7 +534,9 @@ export default function UserManagement() {
         description: t('residenceAssignmentsUpdated'),
       });
       setEditingUserResidences(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate all user queries regardless of filters
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
     },
     onError: (error: Error) => {
@@ -504,20 +560,71 @@ export default function UserManagement() {
       const response = await apiRequest('POST', `/api/users/${userId}/delete-account`, data);
       return response.json();
     },
+    onMutate: async ({ userId }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['/api/users'] });
+
+      // Snapshot the previous value
+      const previousUsers = queryClient.getQueryData(['/api/users', { 
+        page: currentPage, 
+        limit: usersPerPage,
+        roleFilter,
+        statusFilter,
+        organizationFilter,
+        orphanFilter,
+        search
+      }]);
+
+      // Optimistically update to remove the user from the cache
+      queryClient.setQueryData(['/api/users', { 
+        page: currentPage, 
+        limit: usersPerPage,
+        roleFilter,
+        statusFilter,
+        organizationFilter,
+        orphanFilter,
+        search
+      }], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          users: old.users.filter((user: any) => user.id !== userId),
+          pagination: {
+            ...old.pagination,
+            total: Math.max(0, old.pagination.total - 1)
+          }
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousUsers };
+    },
     onSuccess: () => {
       toast({
         title: t('accountDeleted'),
         description: t('accountDeletedDescription'),
       });
       setDeletingUser(null);
-      // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      // Invalidate and refetch user data to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
-      // Force refetch to ensure UI updates
-      queryClient.refetchQueries({ queryKey: ['/api/users'] });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables, context) => {
+      // If the mutation fails, restore the previous data
+      if (context?.previousUsers) {
+        queryClient.setQueryData(['/api/users', { 
+          page: currentPage, 
+          limit: usersPerPage,
+          roleFilter,
+          statusFilter,
+          organizationFilter,
+          orphanFilter,
+          search
+        }], context.previousUsers);
+      }
+      
       toast({
         title: t('deletionFailed'),
         description: error.message || t('deletionFailedDescription'),
@@ -529,7 +636,7 @@ export default function UserManagement() {
   // Permission checks
   const canEditOrganizations = currentUser?.role === 'admin';
   const canEditResidences = currentUser?.role === 'admin' || currentUser?.role === 'manager';
-  const canDeleteUsers = currentUser?.role === 'admin';
+  const canDeleteUsers = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
   // Filter configuration - temporarily simplified
   // const filterConfig = {
@@ -605,7 +712,10 @@ export default function UserManagement() {
     setSearch('');
     setRoleFilter('');
     setStatusFilter('');
-    setOrganizationFilter('');
+    // Don't clear organization filter for demo_manager since they can't change it
+    if (currentUser?.role !== 'demo_manager') {
+      setOrganizationFilter('');
+    }
     setOrphanFilter('');
   };
 
@@ -773,10 +883,25 @@ export default function UserManagement() {
             </TabsList>
 
             <div className="flex gap-2">
-              <Button onClick={() => setShowInviteDialog(true)}>
-                <UserPlus className='h-4 w-4 mr-2' />
-                {t('inviteUser')}
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={() => setShowInviteDialog(true)}
+                      disabled={currentUser?.role === 'demo_manager'}
+                      data-testid="button-invite-user"
+                    >
+                      <UserPlus className='h-4 w-4 mr-2' />
+                      {t('inviteUser')}
+                    </Button>
+                  </TooltipTrigger>
+                  {currentUser?.role === 'demo_manager' && (
+                    <TooltipContent>
+                      <p>User invitations are not available in demo mode</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
               
               {/* Admin-only: Delete Orphan Users button */}
               {currentUser?.role === 'admin' && (
@@ -837,8 +962,8 @@ export default function UserManagement() {
                         )) || []}
                       </select>
 
-                      {/* Organization Filter */}
-                      {filterOptions?.organizations && filterOptions.organizations.length > 0 && (
+                      {/* Organization Filter - Hidden for demo_manager since they can only see their own organization */}
+                      {filterOptions?.organizations && filterOptions.organizations.length > 0 && currentUser?.role !== 'demo_manager' && (
                         <select
                           value={organizationFilter}
                           onChange={(e) => setOrganizationFilter(e.target.value)}
@@ -852,8 +977,8 @@ export default function UserManagement() {
                         </select>
                       )}
 
-                      {/* Orphan User Filter - Admin Only, Hidden when organization is selected */}
-                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && (
+                      {/* Orphan User Filter - Admin Only, Hidden when organization is selected or for demo users */}
+                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && currentUser?.role !== 'demo_manager' && (
                         <select
                           value={orphanFilter}
                           onChange={(e) => setOrphanFilter(e.target.value)}
@@ -867,15 +992,15 @@ export default function UserManagement() {
                         </select>
                       )}
                       
-                      {/* Show explanation when orphan filter is disabled */}
-                      {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && (
+                      {/* Show explanation when orphan filter is disabled - not for demo users */}
+                      {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && currentUser?.role !== 'demo_manager' && (
                         <div className="text-sm text-gray-500 italic px-3 py-2 border border-gray-200 rounded-md bg-gray-100">
                           Orphan filter unavailable (organization selected)
                         </div>
                       )}
 
-                      {/* Clear Filters */}
-                      {(searchInput || roleFilter || statusFilter || organizationFilter || orphanFilter) && (
+                      {/* Clear Filters - adjust visibility for demo_manager */}
+                      {(searchInput || roleFilter || statusFilter || (currentUser?.role !== 'demo_manager' && organizationFilter) || orphanFilter) && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           {t('clearFilters')}
                         </Button>
@@ -1088,6 +1213,8 @@ export default function UserManagement() {
                   <UserOrganizationsTab 
                     user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                     organizations={organizations}
+                    currentUser={currentUser}
+                    currentUserOrganizations={currentUserAccess.organizationIds}
                     onSave={(organizationIds) => {
                       if (editingUser) {
                         editOrganizationsMutation.mutate({
@@ -1096,6 +1223,7 @@ export default function UserManagement() {
                         });
                       }
                     }}
+                    onSelectionChange={setSelectedOrganizationIds}
                     isLoading={editOrganizationsMutation.isPending}
                   />
                 </TabsContent>
@@ -1105,6 +1233,10 @@ export default function UserManagement() {
                 <UserBuildingsTab 
                   user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                   buildings={buildings}
+                  organizations={organizations}
+                  currentUser={currentUser}
+                  currentUserBuildingIds={currentUserAccess.buildingIds}
+                  selectedOrganizationIds={selectedOrganizationIds}
                   onSave={(buildingIds) => {
                     if (editingUser) {
                       editBuildingsMutation.mutate({
@@ -1113,6 +1245,7 @@ export default function UserManagement() {
                       });
                     }
                   }}
+                  onSelectionChange={setSelectedBuildingIds}
                   isLoading={editBuildingsMutation.isPending}
                 />
               </TabsContent>
@@ -1122,6 +1255,11 @@ export default function UserManagement() {
                   <UserResidencesTab 
                     user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                     residences={residences}
+                    buildings={buildings}
+                    organizations={organizations}
+                    currentUser={currentUser}
+                    currentUserResidenceIds={currentUserAccess.residenceIds}
+                    selectedBuildingIds={selectedBuildingIds}
                     onSave={(residenceAssignments) => {
                       if (editingUser) {
                         editResidencesMutation.mutate({

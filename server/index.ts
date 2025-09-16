@@ -8,8 +8,18 @@ import helmet from 'helmet';
 import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
 import { log } from './vite';
 import { registerRoutes } from './routes';
+import { sanitizeInputMiddleware } from './middleware/input-sanitization';
+import { ssrfProtectionMiddleware } from './middleware/ssrf-protection';
+import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
+// Import debug logger temporarily disabled due to module resolution
+// import { debugLogger, logInfo, logDebug } from './utils/debug-logger.js';
 
-// Production debugging: Log server startup
+// Enhanced startup logging with debug support
+// logInfo('SYSTEM', 'SERVER_STARTUP', { 
+//   nodeEnv: process.env.NODE_ENV,
+//   port: process.env.PORT || 5000,
+//   timestamp: new Date().toISOString()
+// });
 console.log('🚀 Server starting with enhanced debugging...');
 
 // Add global error handlers to prevent crashes
@@ -68,20 +78,48 @@ if (isNaN(port) || port < 1 || port > 65535) {
 // Trust proxy for deployment
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
-// Security headers middleware using Helmet
+// HTTPS enforcement middleware
+app.use((req, res, next) => {
+  // Force HTTPS in production
+  if (process.env.NODE_ENV === 'production' && !req.secure && req.get('X-Forwarded-Proto') !== 'https') {
+    return res.redirect(`https://${req.get('Host')}${req.url}`);
+  }
+  next();
+});
+
+// Security headers middleware using Helmet with enhanced configuration
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://replit.com"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        // Only allow unsafe-inline in development for HMR
+        ...(process.env.NODE_ENV === 'development' ? ["'unsafe-inline'"] : []),
+        "https://replit.com"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'", // Required for CSS-in-JS frameworks like styled-components
+        "https://fonts.googleapis.com"
+      ],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      connectSrc: ["'self'", "wss:", "ws:"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      ...(process.env.NODE_ENV === 'production' && {
+        upgradeInsecureRequests: [],
+      })
     },
+  },
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true,
   },
   crossOriginEmbedderPolicy: false, // Allow for development
 }));
@@ -138,6 +176,10 @@ app.use((req, res, next) => {
 // Basic middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Security middleware for input sanitization and SSRF protection
+app.use(sanitizeInputMiddleware);
+app.use(ssrfProtectionMiddleware);
 
 // Request timeout middleware with better error handling
 app.use((req, res, next) => {
@@ -271,8 +313,8 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
             
             // Quick database connectivity test (non-blocking)
             try {
-              const { testDatabaseConnection } = await import('./db');
-              await testDatabaseConnection();
+              const { sql } = await import('./db');
+              await sql`SELECT 1`;
               log('✅ Database connectivity verified');
             } catch (dbError: any) {
               log(`⚠️ Database connectivity warning: ${dbError.message}`, 'warn');
@@ -448,6 +490,15 @@ async function loadFullApplication(): Promise<void> {
       // Remove duplicate handlers to avoid conflicts
 
       log('✅ Production static file serving configured with API route protection');
+    }
+
+    // Initialize bill auto-generation job scheduler
+    try {
+      const { billJobScheduler } = await import('./jobs/bill-auto-generation-job');
+      billJobScheduler.init();
+      log('✅ Bill auto-generation job scheduler initialized');
+    } catch (jobError: any) {
+      log(`⚠️ Failed to initialize job scheduler: ${jobError.message}`, 'error');
     }
 
     // Start heavy database work in background AFTER routes are ready
