@@ -2756,18 +2756,24 @@ export function registerDocumentRoutes(app: Express): void {
         }
       });
 
-      // Enhanced document lookup with performance tracking
+      // Enhanced document lookup with performance tracking - FIXED to use Drizzle for proper camelCase mapping
       const documentLookupStart = performance.now();
-      const allDocuments = await storage.getDocuments({});
-      const document = allDocuments.find((doc) => doc.id === documentId);
+      const document = await db.query.documents.findFirst({ 
+        where: eq(documents.id, documentId) 
+      });
       const documentLookupTime = performance.now() - documentLookupStart;
       
       logDocumentOperation('DOCUMENT_LOOKUP', {
         operationId,
         documentId,
         lookupTime: `${documentLookupTime.toFixed(2)}ms`,
-        totalDocumentsSearched: allDocuments.length,
-        documentFound: !!document
+        documentFound: !!document,
+        documentInfo: document ? {
+          id: document.id,
+          name: document.name,
+          filePath: document.filePath,
+          buildingId: document.buildingId
+        } : null
       }, 'DEBUG');
 
       if (!document) {

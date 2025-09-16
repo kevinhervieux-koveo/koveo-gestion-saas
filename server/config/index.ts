@@ -82,12 +82,12 @@ const detectEnvironment = () => {
   // Force production mode if we detect koveo-gestion.com domain
   const isKoveoProduction = domain.includes('koveo-gestion.com');
   
-  // CRITICAL FIX: Force production mode for your specific Replit production URL
-  const isReplitProduction = domain.includes('koveo-gestion-kevhervieux.replit.app');
+  // CORRECT FIX: Use REPLIT_DEPLOYMENT to detect production deployment vs workspace
+  const isReplitDeployment = process.env.REPLIT_DEPLOYMENT === '1';
   
   // Prioritize explicit NODE_ENV setting (deployment environment)
-  // If NODE_ENV=production is explicitly set (like in your deployment), always use production mode
-  const isProduction = isExplicitProduction || isKoveoProduction || isDomainProduction || isReplitProduction;
+  // Use production mode for: explicit production, koveo domains, or Replit deployments
+  const isProduction = isExplicitProduction || isKoveoProduction || isDomainProduction || isReplitDeployment;
   const isDevelopment = !isProduction;
 
   // Environment detected
@@ -122,11 +122,12 @@ export const config = {
     queryTimeout: env.QUERY_TIMEOUT,
     // Helper function to get database URL at runtime based on request
     getRuntimeDatabaseUrl: (requestDomain?: string) => {
-      // CRITICAL FIX: Check domain at request time for proper database selection
-      const isRuntimeProduction = requestDomain?.includes('koveo-gestion-kevhervieux.replit.app') || 
-                                   requestDomain?.includes('koveo-gestion.com') ||
-                                   envConfig.isProduction;
-      // Use DATABASE_URL_KOVEO for production requests, otherwise use DATABASE_URL
+      // Use REPLIT_DEPLOYMENT and domain detection for proper database selection
+      const isRuntimeDeployment = process.env.REPLIT_DEPLOYMENT === '1';
+      const isRuntimeKoveoProduction = requestDomain?.includes('koveo-gestion.com');
+      const isRuntimeProduction = isRuntimeDeployment || isRuntimeKoveoProduction || envConfig.isProduction;
+      
+      // Use DATABASE_URL_KOVEO for production/deployment, DATABASE_URL for workspace
       return isRuntimeProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL;
     },
   },
