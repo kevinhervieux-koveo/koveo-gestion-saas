@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2025-01-SUPPLIES-1
+Date: 2025-01-25
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Matériaux Plus
+
+DESCRIPTION / DESCRIPTION:
+Supplies - Matériaux Plus
+
+CATÉGORIE / CATEGORY: Supplies
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $404.00 CAD
+TPS (5%) / GST: $20.20 CAD
+TVQ (9.975%) / QST: $40.30 CAD
+TOTAL: $464.50 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

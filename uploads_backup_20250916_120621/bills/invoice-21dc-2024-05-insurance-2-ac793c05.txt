@@ -1,0 +1,32 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+INVOICE DOCUMENT
+
+Bill Number: 21DC-2024-05-INSURANCE-2
+Title: Insurance (2) - Ryan, Bauch and Carroll
+Vendor: Considine - Mitchell
+Category: Insurance
+Total Amount: $2274.25
+Description: Monthly insurance service for November 2024 - Invoice 2
+
+This invoice document would normally be uploaded by the property manager
+as a PDF or image file, but for this demo we're showing it as text content.
+
+Payment Terms: Net 30 days
+Invoice Date: 9/8/2025
+Due Date: 1/10/2026
+
+Service Details:
+- Quis bis avarus victoria dolor quod caecus audeo iure volva.
+- Solus victoria molestias audax tot uterque copiose patior.
+
+Thank you for your business!
+Considine - Mitchell

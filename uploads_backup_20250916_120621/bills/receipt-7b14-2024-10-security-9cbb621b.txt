@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: 7B14-2024-10-SECURITY
+Title: Security  - Gutkowski Inc
+Vendor: Dibbert and Sons
+Category: Security
+Total Amount: $3071.26
+Description: Monthly security service for October 2024
+
+Payment Amount: $3071.26
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-CL3QR5SC
+
+This payment has been processed successfully.
+Building Management Office

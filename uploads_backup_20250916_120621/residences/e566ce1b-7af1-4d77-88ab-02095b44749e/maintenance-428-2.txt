@@ -1,0 +1,30 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+MAINTENANCE LOG
+
+Unit: 428
+Building: 64671 Green Close Building 4
+Address: 309 Meadow Drive
+Document 2 of 2
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 428:
+
+6/19/2025 - Plumbing repair
+Status: Completed
+Cost: $316
+
+9/7/2025 - Filter replacement
+Status: In Progress
+Estimated Cost: $414
+
+Next Scheduled Maintenance: 9/9/2025

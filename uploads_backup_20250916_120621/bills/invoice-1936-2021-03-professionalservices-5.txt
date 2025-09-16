@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2021-03-PROFESSIONALSERVICES-5
+Date: 2021-03-10
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Consultants Experts
+
+DESCRIPTION / DESCRIPTION:
+Professional services - Consultants Experts
+
+CATÉGORIE / CATEGORY: Professional services
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $2091.00 CAD
+TPS (5%) / GST: $104.55 CAD
+TVQ (9.975%) / QST: $208.58 CAD
+TOTAL: $2404.13 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

@@ -1,0 +1,33 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+LEASE AGREEMENT
+
+Unit: 153
+Building: 7393 Abernathy Green Building 5
+Address: 56114 Abbey Road
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 153
+- Lease Start Date: 10/25/2024
+- Lease End Date: 3/8/2026
+- Monthly Rent: $1425
+- Security Deposit: $2477
+
+Terms and Conditions:
+- Admitto decerno desparatus eum subito coepi ventito statua tamquam.
+- Vulnero sursum tribuo facere certe ipsum admoneo.
+
+Landlord: 7393 Abernathy Green Building 5 Management
+Tenant Signature: ____________________
+Date: 9/7/2025

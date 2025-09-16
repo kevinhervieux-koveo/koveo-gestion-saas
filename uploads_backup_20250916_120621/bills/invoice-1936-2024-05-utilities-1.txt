@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2024-05-UTILITIES-1
+Date: 2024-05-27
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Videotron
+
+DESCRIPTION / DESCRIPTION:
+Utilities - Videotron
+
+CATÉGORIE / CATEGORY: Utilities
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $898.00 CAD
+TPS (5%) / GST: $44.90 CAD
+TVQ (9.975%) / QST: $89.58 CAD
+TOTAL: $1032.48 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

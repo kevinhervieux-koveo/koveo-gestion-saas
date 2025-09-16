@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: FDE5-2024-08-SECURITY
+Title: Security  - Crona, Wuckert and Feil
+Vendor: Walter, Rosenbaum and Bode
+Category: Security
+Total Amount: $399.94
+Description: Monthly security service for July 2024
+
+Payment Amount: $399.94
+Payment Date: 9/8/2025
+Payment Method: ACH Transfer
+Reference Number: PAY-KHVGPXZX
+
+This payment has been processed successfully.
+Building Management Office

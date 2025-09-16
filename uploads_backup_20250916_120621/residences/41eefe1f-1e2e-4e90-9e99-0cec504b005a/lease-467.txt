@@ -1,0 +1,33 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+LEASE AGREEMENT
+
+Unit: 467
+Building: 64671 Green Close Building 4
+Address: 36316 Krajcik Harbors
+Document 1 of 1
+
+LEASE AGREEMENT
+
+Tenant Information:
+- Unit Number: 467
+- Lease Start Date: 10/14/2024
+- Lease End Date: 4/9/2026
+- Monthly Rent: $2333
+- Security Deposit: $883
+
+Terms and Conditions:
+- Deputo denique aqua vigilo calco textus ars uredo.
+- Ventito sperno viduo tenuis necessitatibus utilis curto.
+
+Landlord: 64671 Green Close Building 4 Management
+Tenant Signature: ____________________
+Date: 9/7/2025
