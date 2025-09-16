@@ -18,7 +18,7 @@ import path from 'path';
 import fs from 'fs';
 import * as schema from '@shared/schema';
 
-const { buildings, bills } = schema;
+const { buildings, bills, documents } = schema;
 
 // Database-driven bills - no more mock data
 
@@ -858,6 +858,32 @@ export function registerBillRoutes(app: Express) {
           .returning();
 
         console.log(`📄 [BILLS UPLOAD] Database update successful for bill ${id}`);
+
+        // Create document record in documents table for file attachment
+        console.log(`📄 [BILLS UPLOAD] Creating document record for bill ${id}`);
+        try {
+          const documentData = {
+            name: req.file.originalname,
+            description: `AI-analyzed bill document for ${updatedBill[0].title || 'Bill'}`,
+            documentType: 'attachment',
+            filePath,
+            fileName: req.file.originalname,
+            fileSize: req.file.size,
+            mimeType: req.file.mimetype,
+            isVisibleToTenants: false,
+            isQuarantined: false,
+            buildingId: updatedBill[0].buildingId,
+            uploadedById: req.user.id,
+            attachedToType: 'bill',
+            attachedToId: id,
+          };
+
+          const createdDocument = await storage.createDocument(documentData);
+          console.log(`📄 [BILLS UPLOAD] Document record created successfully with ID: ${createdDocument.id}`);
+        } catch (documentError) {
+          console.error(`⚠️ [BILLS UPLOAD] Failed to create document record for bill ${id}:`, documentError);
+          // Don't fail the upload if document creation fails, but log the error
+        }
 
         // Clean up temporary file
         console.log(`📄 [BILLS UPLOAD] Cleaning up temporary file: ${req.file.path}`);
