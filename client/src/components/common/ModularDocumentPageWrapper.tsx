@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
   Collapsible,
@@ -136,9 +136,12 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto" aria-describedby="document-details-description">
         <DialogHeader>
           <DialogTitle>Document Details</DialogTitle>
+          <DialogDescription id="document-details-description">
+            View and manage document information including download and viewing options.
+          </DialogDescription>
         </DialogHeader>
         
         {isLoading ? (

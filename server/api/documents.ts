@@ -16,7 +16,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-import { sql } from 'drizzle-orm';
+import { sql, eq } from 'drizzle-orm';
 import { db } from '../db';
 
 // Enhanced security configuration for file uploads
@@ -2779,8 +2779,7 @@ export function registerDocumentRoutes(app: Express): void {
       if (!document) {
         logDocumentOperation('DOCUMENT_NOT_FOUND', {
           operationId,
-          documentId,
-          totalDocumentsInDatabase: allDocuments.length
+          documentId
         }, 'WARN');
         logSecurityEvent('DOCUMENT_FILE_ACCESS_NOT_FOUND', user, false, documentId, { operationId });
         return res.status(404).json({ message: 'Document not found' });
@@ -2933,60 +2932,118 @@ export function registerDocumentRoutes(app: Express): void {
         documentType: document.documentType
       });
 
+      // Check if document is quarantined
+      if (document.isQuarantined) {
+        logDocumentOperation('DOCUMENT_QUARANTINED', {
+          operationId,
+          documentId,
+          documentName: document.name
+        }, 'WARN');
+        
+        return res.status(410).json({ 
+          message: 'Document quarantined or unavailable',
+          reason: 'This document has been quarantined and is not accessible'
+        });
+      }
+
       // Serve from local storage
       if (document.filePath) {
-        // Serving file from local storage
         try {
-          // Always serve from local storage (GCS disabled)
-          let filePathToServe = document.filePath;
-
-          // Resolving file path
-
-          // Check if it's an absolute path
-          if (document.filePath.startsWith('/')) {
-            filePathToServe = document.filePath;
-            // Using absolute path
+          // URL normalization - clean and resolve the file path
+          let cleanFilePath = document.filePath.trim();
+          
+          // Remove double slashes and normalize
+          cleanFilePath = cleanFilePath.replace(/\/+/g, '/');
+          
+          // Remove leading 'uploads/' if it exists to prevent double-prefix
+          if (cleanFilePath.startsWith('uploads/')) {
+            cleanFilePath = cleanFilePath.substring('uploads/'.length);
           }
-          // Check if it's a relative file path
-          else if (
-            document.filePath.includes('residences/') ||
-            document.filePath.includes('buildings/') ||
-            document.filePath.includes('text-documents/') ||
-            document.filePath.includes('general/') ||
-            document.filePath.includes('bills/')
-          ) {
-            // Checking common file locations
-            
-            // For development, try to find the file in common upload directories
-            const possiblePaths = [
-              path.join(process.cwd(), document.filePath), // Direct path (PRIORITY - user directory structure)
-              path.join(process.cwd(), 'uploads', document.filePath), // Fallback location
-              `/tmp/uploads/${document.filePath}`,
-              `/uploads/${document.filePath}`,
-              `./uploads/${document.filePath}`,
-              path.join('/tmp', document.filePath),
+          
+          // Handle quarantine paths
+          if (cleanFilePath.includes('_quarantine_')) {
+            const quarantinePaths = [
+              path.join(process.cwd(), 'uploads', cleanFilePath),
+              path.join(process.cwd(), cleanFilePath),
             ];
-
-            // Checking multiple possible paths
-
-            // Try to find the file in any of these locations
-            for (const possiblePath of possiblePaths) {
-              // Checking file path
-              if (fs.existsSync(possiblePath)) {
-                filePathToServe = possiblePath;
-                // File found
-                break;
+            
+            for (const quarantinePath of quarantinePaths) {
+              if (fs.existsSync(quarantinePath)) {
+                return res.status(410).json({ 
+                  message: 'Document quarantined or unavailable',
+                  reason: 'This document has been moved to quarantine'
+                });
               }
             }
           }
-          // Check if it's a temp file path
-          else if (document.filePath.includes('tmp')) {
-            filePathToServe = document.filePath;
-            // Using temp file path
+
+          let filePathToServe = null;
+
+          // Try different path combinations in order of priority
+          const possiblePaths = [
+            // 1. Direct absolute path (if provided)
+            cleanFilePath.startsWith('/') ? cleanFilePath : null,
+            
+            // 2. Direct path from process.cwd() (user directory structure)
+            path.join(process.cwd(), cleanFilePath),
+            
+            // 3. Standard uploads directory
+            path.join(process.cwd(), 'uploads', cleanFilePath),
+            
+            // 4. Demo directory within uploads
+            path.join(process.cwd(), 'uploads', 'demo', cleanFilePath),
+            
+            // 5. Legacy temp uploads
+            path.join('/tmp/uploads', cleanFilePath),
+            path.join('/tmp', cleanFilePath),
+            
+            // 6. Alternative upload locations
+            path.join(process.cwd(), 'uploads', 'demo', 'residences', cleanFilePath),
+            path.join(process.cwd(), 'uploads', 'demo', 'buildings', cleanFilePath),
+          ].filter(Boolean); // Remove null entries
+
+          logDocumentOperation('PATH_RESOLUTION_START', {
+            operationId,
+            originalPath: document.filePath,
+            cleanedPath: cleanFilePath,
+            searchPaths: possiblePaths.length
+          }, 'DEBUG');
+
+          // Try to find the file in any of these locations
+          for (const possiblePath of possiblePaths) {
+            if (fs.existsSync(possiblePath)) {
+              // Ensure the resolved path is within allowed directories (security check)
+              const resolvedPath = path.resolve(possiblePath);
+              const allowedDirs = [
+                path.resolve(process.cwd(), 'uploads'),
+                path.resolve('/tmp/uploads'),
+                path.resolve('/tmp')
+              ];
+              
+              const isPathSafe = allowedDirs.some(allowedDir => 
+                resolvedPath.startsWith(allowedDir)
+              );
+              
+              if (isPathSafe) {
+                filePathToServe = resolvedPath;
+                logDocumentOperation('FILE_FOUND', {
+                  operationId,
+                  resolvedPath: filePathToServe,
+                  searchAttempts: possiblePaths.indexOf(possiblePath) + 1
+                }, 'DEBUG');
+                break;
+              } else {
+                logDocumentOperation('UNSAFE_PATH_REJECTED', {
+                  operationId,
+                  rejectedPath: resolvedPath,
+                  allowedDirs
+                }, 'WARN');
+              }
+            }
           }
 
-          // Try to serve the file
-          if (fs.existsSync(filePathToServe)) {
+          // Try to serve the file if we found one
+          if (filePathToServe && fs.existsSync(filePathToServe)) {
             // Preparing to serve file
             
             // Get the original filename with extension, or construct one from the document name
