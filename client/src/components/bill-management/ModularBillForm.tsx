@@ -32,7 +32,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from './GeminiBillExtractor';
-import type { Bill } from '@shared/schema';
+import { AttachedFileSection } from '@/components/common/AttachedFileSection';
+import type { Bill, Document } from '@shared/schema';
 import type { UploadContext } from '@shared/config/upload-config';
 
 // Unified form schema (simplified from original)
@@ -183,6 +184,30 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       return data.bills || [];
     },
     enabled: !!buildingId && !bill, // Only fetch when creating new bills
+  });
+
+  // Query for attached documents when editing an existing bill
+  const { data: attachedDocuments = [] } = useQuery<Document[]>({
+    queryKey: ['/api/documents', { attachedToType: 'bill', attachedToId: bill?.id }],
+    queryFn: async () => {
+      if (!bill?.id) return [];
+      
+      console.log('[MODULAR BILL FORM] Fetching attached documents for bill:', bill.id);
+      
+      const response = await fetch(`/api/documents?attachedToType=bill&attachedToId=${bill.id}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) return [];
+        throw new Error('Failed to fetch attached documents');
+      }
+      
+      const data = await response.json();
+      console.log('[MODULAR BILL FORM] Attached documents received:', data);
+      return Array.isArray(data.documents) ? data.documents : [];
+    },
+    enabled: !!bill?.id
   });
 
   // Handle template selection
@@ -909,6 +934,34 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               </FormItem>
             )}
           />
+
+          {/* Display attached documents if editing existing bill */}
+          {bill?.id && attachedDocuments.length > 0 && (
+            <div className="space-y-4">
+              <div className="border-t pt-6">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                  Attached Documents ({attachedDocuments.length})
+                </h4>
+                <div className="grid gap-3">
+                  {attachedDocuments.map((document) => (
+                    <AttachedFileSection
+                      key={document.id}
+                      entityType="document"
+                      entityId={document.id}
+                      filePath={document.filePath}
+                      fileName={document.fileName || document.name}
+                      fileSize={document.fileSize}
+                      canView={true}
+                      canDownload={true}
+                      className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      fallbackName={document.name || 'Bill Attachment'}
+                      data-testid={`attachment-${document.id}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Form Actions */}
           <div className="flex justify-between items-center">
