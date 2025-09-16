@@ -629,6 +629,12 @@ export class MemStorage implements IStorage {
       residenceId: invoice.residenceId || '',
       createdAt: new Date(),
       updatedAt: new Date(),
+      // Ensure dates are strings for Drizzle compatibility
+      dueDate: invoice.dueDate instanceof Date ? invoice.dueDate.toISOString().split('T')[0] : invoice.dueDate,
+      startDate: invoice.startDate instanceof Date ? invoice.startDate.toISOString().split('T')[0] : invoice.startDate,
+      customPaymentDates: invoice.customPaymentDates?.map(date => 
+        date instanceof Date ? date.toISOString().split('T')[0] : date
+      ),
     };
     this.invoices.set(id, newInvoice);
     return newInvoice;
@@ -638,7 +644,21 @@ export class MemStorage implements IStorage {
     const existing = this.invoices.get(id);
     if (!existing) return undefined;
     
-    const updated = { ...existing, ...updates, updatedAt: new Date() };
+    const processedUpdates = { ...updates };
+    // Ensure dates are strings for Drizzle compatibility
+    if (processedUpdates.dueDate instanceof Date) {
+      processedUpdates.dueDate = processedUpdates.dueDate.toISOString().split('T')[0];
+    }
+    if (processedUpdates.startDate instanceof Date) {
+      processedUpdates.startDate = processedUpdates.startDate.toISOString().split('T')[0];
+    }
+    if (processedUpdates.customPaymentDates) {
+      processedUpdates.customPaymentDates = processedUpdates.customPaymentDates.map(date => 
+        date instanceof Date ? date.toISOString().split('T')[0] : date
+      );
+    }
+    
+    const updated = { ...existing, ...processedUpdates, updatedAt: new Date() };
     this.invoices.set(id, updated);
     return updated;
   }
