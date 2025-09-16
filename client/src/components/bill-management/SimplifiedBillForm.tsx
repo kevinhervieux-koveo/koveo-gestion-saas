@@ -6,7 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { DocumentFormBase } from '@/components/forms/DocumentFormBase';
 import { StandardFormField } from '@/components/forms/StandardFormField';
-import type { Bill } from '@shared/schema';
+import { AttachedFileSection } from '@/components/common/AttachedFileSection';
+import { useQuery } from '@tanstack/react-query';
+import type { Bill, Document } from '@shared/schema';
 
 // Simplified bill schema for testing
 const billFormSchema = z.object({
@@ -49,6 +51,27 @@ export function SimplifiedBillForm({
   onCancel, 
   buildingId 
 }: SimplifiedBillFormProps) {
+  
+  // Query for attached documents when editing an existing bill
+  const { data: attachedDocuments = [] } = useQuery<Document[]>({
+    queryKey: ['/api/documents', { attachedToType: 'bill', attachedToId: bill?.id }],
+    queryFn: async () => {
+      if (!bill?.id) return [];
+      
+      const response = await fetch(`/api/documents?attachedToType=bill&attachedToId=${bill.id}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) return [];
+        throw new Error('Failed to fetch attached documents');
+      }
+      
+      const data = await response.json();
+      return Array.isArray(data.documents) ? data.documents : [];
+    },
+    enabled: !!bill?.id
+  });
   
   const defaultValues: Partial<BillFormData> = {
     title: bill?.title || '',
@@ -193,6 +216,34 @@ export function SimplifiedBillForm({
               </FormItem>
             )}
           />
+
+          {/* Display attached documents if editing existing bill */}
+          {bill?.id && attachedDocuments.length > 0 && (
+            <div className="space-y-4">
+              <div className="border-t pt-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">
+                  Attached Documents ({attachedDocuments.length})
+                </h4>
+                <div className="space-y-2">
+                  {attachedDocuments.map((document) => (
+                    <AttachedFileSection
+                      key={document.id}
+                      entityType="document"
+                      entityId={document.id}
+                      filePath={document.filePath}
+                      fileName={document.fileName || document.name}
+                      fileSize={document.fileSize}
+                      canView={true}
+                      canDownload={true}
+                      className="border rounded-lg p-3 bg-gray-50"
+                      fallbackName={document.name || 'Bill Attachment'}
+                      data-testid={`attachment-${document.id}`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </DocumentFormBase>
