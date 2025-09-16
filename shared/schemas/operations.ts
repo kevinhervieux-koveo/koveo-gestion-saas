@@ -363,6 +363,10 @@ export const insertBugSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
   reproductionSteps: z.string().optional(),
   environment: z.string().optional(),
+  // File attachment fields (optional for bug reports)
+  filePath: z.string().optional(), // Path to uploaded file
+  fileName: z.string().optional(), // Original filename  
+  fileSize: z.number().int().optional(), // File size in bytes
 });
 
 export const insertFeatureRequestSchema = z.object({

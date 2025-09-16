@@ -2,7 +2,7 @@ import type { Express } from 'express';
 import { storage } from '../storage';
 import { insertBugSchema, type Bug, type InsertBug } from '@shared/schema';
 import { z } from 'zod';
-import { requireAuth } from '../auth';
+import { requireAuth } from '../middleware/auth-middleware';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -58,8 +58,8 @@ export function registerBugRoutes(app: Express): void {
       
       // Debug: Log file attachment info for each bug
       bugs.forEach(bug => {
-        if (bug.file_path) {
-          console.log(`🔗 Bug ${bug.id} has file: ${bug.file_name} at ${bug.file_path}`);
+        if (bug.filePath) {
+          console.log(`🔗 Bug ${bug.id} has file: ${bug.fileName} at ${bug.filePath}`);
         }
       });
       
@@ -336,8 +336,8 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      // Check both camelCase and snake_case field names for compatibility
-      const filePath = bug.filePath || (bug as any).file_path;
+      // Use camelCase field names consistently
+      const filePath = bug.filePath;
       const fileName = bug.fileName || (bug as any).file_name;
       
       if (!filePath) {
