@@ -625,8 +625,8 @@ export class MemStorage implements IStorage {
     const newInvoice: Invoice = {
       ...invoice,
       id,
-      buildingId: invoice.buildingId || '',
-      residenceId: invoice.residenceId || '',
+      buildingId: invoice.buildingId || null,
+      residenceId: invoice.residenceId || null,
       createdAt: new Date(),
       updatedAt: new Date(),
       // Ensure dates are strings for Drizzle compatibility
