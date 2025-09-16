@@ -12,14 +12,14 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { sql, eq, and, or } from 'drizzle-orm';
 
-// Mock database connection
+// Mock database connection with proper typing
 const mockDb = {
-  execute: jest.fn(),
-  query: jest.fn(),
-  select: jest.fn(),
-  insert: jest.fn(),
-  update: jest.fn(),
-  delete: jest.fn()
+  execute: jest.fn() as jest.MockedFunction<any>,
+  query: jest.fn() as jest.MockedFunction<any>,
+  select: jest.fn() as jest.MockedFunction<any>,
+  insert: jest.fn() as jest.MockedFunction<any>,
+  update: jest.fn() as jest.MockedFunction<any>,
+  delete: jest.fn() as jest.MockedFunction<any>
 };
 
 // Mock Drizzle ORM
@@ -214,7 +214,7 @@ describe('Quarantine Database Schema Tests', () => {
         SELECT column_name, data_type, is_nullable, column_default
         FROM information_schema.columns 
         WHERE table_name = 'documents' AND column_name = 'is_quarantined'
-      `);
+      `) as { rows: any[] };
 
       expect(result.rows).toHaveLength(1);
       expect(result.rows[0]).toEqual(expect.objectContaining({
@@ -341,7 +341,7 @@ describe('Quarantine Database Schema Tests', () => {
         AND d.is_quarantined = false
         AND d.is_visible_to_tenants = true
         ORDER BY d.created_at DESC
-      `);
+      `) as { rows: any[] };
 
       expect(result.rows.length).toBeGreaterThan(0);
       result.rows.forEach((doc: any) => {

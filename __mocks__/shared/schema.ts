@@ -724,7 +724,3 @@ export interface DemandComment {
 }
 
 export type InsertDemandComment = Partial<DemandComment>;
-
-// Export additional table references
-export const demands = createMockTable('demands');
-export const demandComments = createMockTable('demandComments');
