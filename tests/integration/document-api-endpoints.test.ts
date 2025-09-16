@@ -1,4 +1,5 @@
 /**
+ * @jest-environment node
  * Integration tests for document API endpoints
  * Tests actual HTTP endpoints for upload, fetch, and access control
  */

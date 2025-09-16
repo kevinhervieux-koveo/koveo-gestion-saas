@@ -1,4 +1,5 @@
 /**
+ * @jest-environment node
  * Integration tests for document upload, fetch, and access control
  * Tests directory structure, file paths, permissions, and role-based access
  */

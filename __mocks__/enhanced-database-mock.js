@@ -60,19 +60,39 @@ const sql = jest.fn().mockImplementation((strings, ...values) => ({
   params: values
 }));
 
-// Mock pg-core functions
+// Mock pg-core functions with chainable methods
+const createChainableColumn = (type, name, options = {}) => {
+  const column = {
+    type,
+    name,
+    ...options
+  };
+  
+  // Add all chainable methods that return the same object
+  const chainableMethods = ['primaryKey', 'notNull', 'unique', 'default', 'references', 'onDelete', 'onUpdate', 'array'];
+  
+  chainableMethods.forEach(method => {
+    column[method] = jest.fn(() => createChainableColumn(type, name, { ...options, [method]: true }));
+  });
+  
+  return column;
+};
+
 const pgEnum = jest.fn().mockImplementation((name, values) => ({
   name, values, enumValues: values
 }));
 const pgTable = jest.fn().mockImplementation((name, schema) => ({
   name, schema, _: { name, columns: schema }
 }));
-const text = jest.fn().mockImplementation(() => ({ type: 'text' }));
-const varchar = jest.fn().mockImplementation(() => ({ type: 'varchar' }));
-const boolean = jest.fn().mockImplementation(() => ({ type: 'boolean' }));
-const timestamp = jest.fn().mockImplementation(() => ({ type: 'timestamp' }));
-const integer = jest.fn().mockImplementation(() => ({ type: 'integer' }));
-const uuid = jest.fn().mockImplementation(() => ({ type: 'uuid' }));
+const text = jest.fn().mockImplementation((name) => createChainableColumn('text', name));
+const varchar = jest.fn().mockImplementation((name, options) => createChainableColumn('varchar', name, options));
+const boolean = jest.fn().mockImplementation((name) => createChainableColumn('boolean', name));
+const timestamp = jest.fn().mockImplementation((name) => createChainableColumn('timestamp', name));
+const integer = jest.fn().mockImplementation((name) => createChainableColumn('integer', name));
+const uuid = jest.fn().mockImplementation((name) => createChainableColumn('uuid', name));
+const serial = jest.fn().mockImplementation((name) => createChainableColumn('serial', name));
+const date = jest.fn().mockImplementation((name) => createChainableColumn('date', name));
+const json = jest.fn().mockImplementation((name) => createChainableColumn('json', name));
 
 // Mock Neon serverless
 class MockPool {
@@ -294,7 +314,7 @@ const testUtils = {
   getStore: () => store
 };
 
-// Fix exports for proper import compatibility - explicit module.exports
+// Single explicit export - fix duplicate exports
 module.exports = {
   // Core exports for tests
   mockDb,
@@ -331,39 +351,3 @@ module.exports = {
   createInsertSchema: jest.fn(),
   createSelectSchema: jest.fn()
 };
-
-// Single explicit export - unconditional at top level
-module.exports = {
-  mockDb,
-  testUtils,
-  mockSchema,
-  eq,
-  and,
-  or,
-  sql,
-  neonConfig,
-  MockPool,
-  pgEnum,
-  pgTable,
-  text,
-  varchar,
-  boolean,
-  timestamp,
-  integer,
-  uuid,
-  serial,
-  date,
-  json,
-  createInsertSchema: jest.fn(),
-  createSelectSchema: jest.fn()
-};
-
-// Also export as CommonJS for compatibility with module name mapping
-module.exports.pgEnum = pgEnum;
-module.exports.pgTable = pgTable;
-module.exports.text = text;
-module.exports.varchar = varchar;
-module.exports.boolean = boolean;
-module.exports.timestamp = timestamp;
-module.exports.integer = integer;
-module.exports.uuid = uuid;

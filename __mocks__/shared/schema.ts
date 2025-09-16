@@ -63,7 +63,18 @@ const createMockTable = (tableName: string) => ({
   address: { name: 'address' },
   city: { name: 'city' },
   province: { name: 'province' },
-  postalCode: { name: 'postalCode' }
+  postalCode: { name: 'postalCode' },
+  // Document-specific columns
+  documentType: { name: 'documentType' },
+  filePath: { name: 'filePath' },
+  fileName: { name: 'fileName' },
+  fileSize: { name: 'fileSize' },
+  mimeType: { name: 'mimeType' },
+  isVisibleToTenants: { name: 'isVisibleToTenants' },
+  isQuarantined: { name: 'isQuarantined' },
+  uploadedById: { name: 'uploadedById' },
+  attachedToType: { name: 'attachedToType' },
+  attachedToId: { name: 'attachedToId' }
 });
 
 // Core tables
@@ -359,8 +370,21 @@ export type InsertResidence = Partial<Residence>;
 export interface Document {
   id: string;
   name: string;
-  type: string;
-  path: string;
+  description?: string;
+  documentType: string;
+  filePath: string;
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  isVisibleToTenants: boolean;
+  isQuarantined: boolean;
+  residenceId?: string;
+  buildingId?: string;
+  uploadedById: string;
+  attachedToType?: string;
+  attachedToId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export type InsertDocument = Partial<Document>;
@@ -460,7 +484,247 @@ export const userValidationSchemas = {
   insertPasswordResetTokenSchema,
 };
 
+// Additional insert schemas
+export const insertDocumentSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertBuildingSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertResidenceSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertContactSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertInvoiceSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertBillSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertBudgetSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertMaintenanceRequestSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertNotificationSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertBugSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertFeatureRequestSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
+export const insertFeatureRequestUpvoteSchema = {
+  parse: jest.fn().mockImplementation((data) => data),
+  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+};
+
 // Add other validation schemas as needed
 export const validationSchemas = {
   ...userValidationSchemas,
+  insertDocumentSchema,
+  insertBuildingSchema,
+  insertResidenceSchema,
+  insertContactSchema,
+  insertInvoiceSchema,
+  insertBillSchema,
+  insertBudgetSchema,
+  insertMaintenanceRequestSchema,
+  insertNotificationSchema,
+  insertBugSchema,
+  insertFeatureRequestSchema,
+  insertFeatureRequestUpvoteSchema,
 };
+
+// Mock drizzle-orm table inference
+export const $inferSelect = Symbol('$inferSelect');
+export const $inferInsert = Symbol('$inferInsert');
+
+// Add missing interfaces and types for comprehensive coverage
+export interface Contact {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  entityType: string;
+  entityId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertContact = Partial<Contact>;
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  amount: number;
+  currency: string;
+  status: string;
+  dueDate: Date;
+  issueDate: Date;
+  description?: string;
+  vendorName?: string;
+  vendorEmail?: string;
+  buildingId?: string;
+  residenceId?: string;
+  uploadedById: string;
+  filePath?: string;
+  extractedData?: any;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertInvoice = Partial<Invoice>;
+
+// Additional development types
+export interface Feature {
+  id: string;
+  name: string;
+  description?: string;
+  status: string;
+  priority: string;
+  assignedTo?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertFeature = Partial<Feature>;
+
+export interface ActionableItem {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  assignedTo?: string;
+  dueDate?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertActionableItem = Partial<ActionableItem>;
+
+export interface ImprovementSuggestion {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  status: string;
+  submittedBy: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertImprovementSuggestion = Partial<ImprovementSuggestion>;
+
+export interface Pillar {
+  id: string;
+  name: string;
+  description?: string;
+  status: string;
+  progress: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertPillar = Partial<Pillar>;
+
+export interface WorkspaceStatus {
+  component: string;
+  status: string;
+  lastChecked: Date;
+  details?: any;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertWorkspaceStatus = Partial<WorkspaceStatus>;
+
+export interface QualityMetric {
+  id: string;
+  name: string;
+  value: number;
+  target?: number;
+  unit: string;
+  category: string;
+  measuredAt: Date;
+  createdAt?: Date;
+}
+
+export type InsertQualityMetric = Partial<QualityMetric>;
+
+export interface FrameworkConfiguration {
+  key: string;
+  value: any;
+  description?: string;
+  category: string;
+  isActive: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertFrameworkConfiguration = Partial<FrameworkConfiguration>;
+
+// Additional tables and types from operations schema  
+export interface Demand {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  status: string;
+  requesterUserId: string;
+  assignedToUserId?: string;
+  organizationId?: string;
+  buildingId?: string;
+  residenceId?: string;
+  dueDate?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertDemand = Partial<Demand>;
+
+export interface DemandComment {
+  id: string;
+  demandId: string;
+  userId: string;
+  content: string;
+  isInternal: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type InsertDemandComment = Partial<DemandComment>;
+
+// Export additional table references
+export const demands = createMockTable('demands');
+export const demandComments = createMockTable('demandComments');

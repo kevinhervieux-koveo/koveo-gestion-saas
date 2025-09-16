@@ -3,19 +3,31 @@
  * Comprehensive test setup with MSW, polyfills, and optimized mocking
  */
 
-// Mocks now handled via custom resolver - hard verification for fast failure
+// Verify database mocks are properly loaded
 try {
-  const pgCorePath = require.resolve('drizzle-orm/pg-core');
-  console.log('pg-core resolves to:', pgCorePath);
+  const path = require('path');
+  const mockPath = path.resolve(__dirname, '__mocks__/enhanced-database-mock.js');
+  const enhancedMock = require(mockPath);
   
-  const enhancedMock = require(require('path').join(process.cwd(), '__mocks__/enhanced-database-mock.js'));
-  console.log('Enhanced mock mockDb available:', !!enhancedMock.mockDb);
+  console.log('✅ Enhanced mock verification:');
+  console.log('  - Mock path:', mockPath);
+  console.log('  - mockDb available:', !!enhancedMock.mockDb);
+  console.log('  - testUtils available:', !!enhancedMock.testUtils);
+  console.log('  - pg-core functions available:', !!(enhancedMock.pgTable && enhancedMock.text && enhancedMock.varchar));
   
   if (!enhancedMock.mockDb) {
-    throw new Error('CRITICAL: Enhanced database mock not properly exported - mockDb is undefined');
+    console.warn('⚠️  mockDb not found in enhanced mock, continuing with module mapping approach');
+  } else {
+    // Test basic mock functionality
+    if (typeof enhancedMock.mockDb.query !== 'function') {
+      throw new Error('CRITICAL: mockDb.query is not a function');
+    }
+    console.log('✅ Database mocks verified successfully');
   }
 } catch (error) {
-  console.error('Mock verification failed:', error.message);
+  console.error('❌ Mock verification failed:', error.message);
+  console.log('⚠️  Continuing with module mapping approach for database mocks');
+  // Don't throw during import to prevent test environment failures
 }
 
 import '@testing-library/jest-dom';
