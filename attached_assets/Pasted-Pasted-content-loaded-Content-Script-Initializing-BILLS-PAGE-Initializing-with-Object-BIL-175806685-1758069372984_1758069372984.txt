@@ -1,0 +1,101 @@
+Pasted--content-loaded-Content-Script-Initializing-BILLS-PAGE-Initializing-with-Object-BIL-1758066859390_1758066859391.txt
+ content loaded
+ Content Script: Initializing
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea&year=2025
+ 📊 [BILLS PAGE] Applied filters: Object
+ 🔄 [BILLS PAGE] Filters changed: Object
+ 🏗️ [BILLS PAGE] Building ID changed: ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea
+ 📋 [BILLS PAGE] Bills data updated: Object
+ ⏳ [BILLS PAGE] Loading bills...
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 📋 [BILLS PAGE] Bills data updated: Object
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 📋 [BILLS PAGE] Bills data updated: Object
+ 📊 [BILLS PAGE] Bills API response status: 200
+ ✅ [BILLS PAGE] Bills data received: Array(1)
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 📋 [BILLS PAGE] Bills data updated: Object
+ 🔄 [BILL CARD] Card clicked: Object
+ 📂 [BILL CARD] Toggling expansion: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 💰 [BILL CARD] Fetching payments for bill: 514ea097-ea55-489c-97d6-b7ddef3901b8
+ 💰 [BILL CARD] Payments API response status: 200
+ ✅ [BILL CARD] Payments data received: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 💰 [PAYMENT DISPLAY] Rendering payments: Object
+ ✏️ [BILL CARD] Edit button clicked for bill: 514ea097-ea55-489c-97d6-b7ddef3901b8
+ 🃏 [BILL CARD] Rendering bill: Object
+ 💰 [PAYMENT DISPLAY] Rendering payments: Object
+ [MODULAR BILL FORM] Fetching attached documents for bill: 514ea097-ea55-489c-97d6-b7ddef3901b8
+ `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+overrideMethod @ installHook.js:1
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ installHook.js:1
+ [MODULAR BILL FORM] Attached documents received: Object
+ 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea&year=2025
+ 📊 [BILLS PAGE] Applied filters: Object
+ 💰 [BILL CARD] Fetching payments for bill: 514ea097-ea55-489c-97d6-b7ddef3901b8
+ 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea&year=2025
+ 📊 [BILLS PAGE] Applied filters: Object
+ 💰 [BILL CARD] Fetching payments for bill: 514ea097-ea55-489c-97d6-b7ddef3901b8
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 💰 [PAYMENT DISPLAY] Rendering payments: Object
+ 💰 [BILL CARD] Payments API response status: 200
+ ✅ [BILL CARD] Payments data received: Object
+ 📊 [BILLS PAGE] Bills API response status: 200
+ ✅ [BILLS PAGE] Bills data received: Array(1)
+ 📊 [BILLS PAGE] Bills API response status: 200
+ ✅ [BILLS PAGE] Bills data received: Array(1)
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 💰 [PAYMENT DISPLAY] Rendering payments: Object
+ 📋 [BILLS PAGE] Bills data updated: Object
+ 💰 [BILL CARD] Payments API response status: 200
+ ✅ [BILL CARD] Payments data received: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 💰 [PAYMENT DISPLAY] Rendering payments: Object
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 💰 [PAYMENT DISPLAY] Rendering payments: Object
+ 🔄 [BILL CARD] Card clicked: Object
+ 📂 [BILL CARD] Toggling expansion: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea&year=2026
+ 📊 [BILLS PAGE] Applied filters: Object
+ 🔄 [BILLS PAGE] Filters changed: Object
+ 📋 [BILLS PAGE] Bills data updated: Object
+ ⏳ [BILLS PAGE] Loading bills...
+ 📊 [BILLS PAGE] Bills API response status: 200
+ ✅ [BILLS PAGE] Bills data received: Array(1)
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 📋 [BILLS PAGE] Bills data updated: Object
+ 🔄 [BILL CARD] Card clicked: Object
+ 🤖 [BILL CARD] Auto-generated bill clicked
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ installHook.js:1
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 🔄 [BILL CARD] Card clicked: Object
+ 🤖 [BILL CARD] Auto-generated bill clicked
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ installHook.js:1
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ 🔄 [BILL CARD] Card clicked: Object
+ 🤖 [BILL CARD] Auto-generated bill clicked
+ 🏠 [BILLS PAGE] Initializing with: Object
+ 🃏 [BILL CARD] Rendering bill: Object
+ Warning: Missin...

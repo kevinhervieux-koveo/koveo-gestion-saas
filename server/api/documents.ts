@@ -2468,8 +2468,8 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(400).json({ message: 'Document must be associated with a building or residence' });
       }
 
-      // SECURITY CHECK 5: Organization access verification
-      if (documentOrganizationId !== userOrganizationId) {
+      // SECURITY CHECK 5: Organization access verification (admin bypass allowed)
+      if (userRole !== 'admin' && documentOrganizationId !== userOrganizationId) {
         logSecurityEvent('DELETE_DENIED_ORGANIZATION_MISMATCH', user, false, documentId, { 
           operationId,
           userOrganizationId,
@@ -2486,6 +2486,25 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(403).json({ 
           message: 'Cannot delete document outside your organization' 
         });
+      }
+
+      // Log admin cross-organization access for audit purposes
+      if (userRole === 'admin' && documentOrganizationId !== userOrganizationId) {
+        logSecurityEvent('ADMIN_CROSS_ORGANIZATION_DELETE', user, true, documentId, { 
+          operationId,
+          userOrganizationId,
+          documentOrganizationId,
+          justification: 'Admin privilege bypass'
+        });
+        logDocumentOperation('ADMIN_BYPASS_ORGANIZATION_CHECK', {
+          operationId,
+          documentId,
+          userId,
+          userRole,
+          userOrganizationId,
+          documentOrganizationId,
+          action: 'Cross-organization delete authorized via admin privilege'
+        }, 'INFO');
       }
 
       // SECURITY CHECK 6: Manager-specific building access verification
