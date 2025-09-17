@@ -1071,7 +1071,6 @@ function BillCard({
                   <PaymentScheduleDisplay 
                     payments={paymentsData.payments} 
                     bill={bill}
-                    onPaymentUpdate={onUpdate}
                   />
                 ) : (
                   <div className="text-sm text-gray-500">No payments found</div>
@@ -1125,12 +1124,10 @@ function BillCard({
 // Payment Schedule Display Component
 export function PaymentScheduleDisplay({ 
   payments, 
-  bill, 
-  onPaymentUpdate 
+  bill 
 }: { 
   payments: any[]; 
   bill: Bill; 
-  onPaymentUpdate: () => void;
 }) {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
