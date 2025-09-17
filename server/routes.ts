@@ -14,6 +14,7 @@ import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
 import { registerBugRoutes } from './api/bugs';
 import { registerBillRoutes } from './api/bills';
+import budgetRouter from './api/budgets';
 import { registerResidenceRoutes } from './api/residences';
 import { registerDemandRoutes } from './api/demands';
 import { registerFeatureRequestRoutes } from './api/feature-requests';
@@ -93,6 +94,10 @@ export async function registerRoutes(app: Express) {
   registerBugRoutes(app);
 
   registerBillRoutes(app);
+  
+  // Budget routes
+  app.use('/api/budgets', requireAuth, budgetRouter);
+  
   registerResidenceRoutes(app);
   registerDemandRoutes(app);
   registerFeatureRequestRoutes(app);
