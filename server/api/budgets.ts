@@ -230,6 +230,11 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
 router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
+    debugLog('PUT /:buildingId/bank-account - Request received', { 
+      buildingId, 
+      body: req.body, 
+      timestamp: new Date().toISOString() 
+    });
     const {
       bankAccountNumber,
       bankAccountNotes,
@@ -238,6 +243,18 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       bankAccountMinimums,
       generalInflationRate,
       revenueInflationRate,
+      // Extended configuration fields
+      emergencyFundMinimum,
+      operatingCashMinimum,
+      revenueGrowthRate,
+      revenueInflation,
+      reserveFundTarget,
+      utilityInflationRate,
+      maintenanceInflationRate,
+      costInflationRate, // Added missing field
+      specialInvestmentBudget,
+      investmentHorizonYears,
+      capitalProjectReserve,
     } = req.body;
 
     // Validate building exists
@@ -250,7 +267,22 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       return res.status(404).json({ _error: 'Building not found' });
     }
 
-    // Update building with bank account info and inflation rates
+    // Prepare extended configuration object
+    const extendedConfig = {
+      emergencyFundMinimum,
+      operatingCashMinimum,
+      revenueGrowthRate,
+      revenueInflation,
+      reserveFundTarget,
+      utilityInflationRate,
+      maintenanceInflationRate,
+      costInflationRate,
+      specialInvestmentBudget,
+      investmentHorizonYears,
+      capitalProjectReserve,
+    };
+
+    // Update building with bank account info and extended configuration
     await db
       .update(buildings)
       .set({
@@ -261,9 +293,16 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
         bankAccountMinimums,
         generalInflationRate,
         revenueInflationRate,
+        amenities: extendedConfig, // Using amenities jsonb field for extended config
         bankAccountUpdatedAt: new Date(),
       })
       .where(eq(buildings.id, buildingId));
+
+    debugLog('PUT /:buildingId/bank-account - Database updated successfully', { 
+      buildingId, 
+      extendedConfig,
+      timestamp: new Date().toISOString() 
+    });
 
     res.json({
       message: 'Bank account updated successfully',
@@ -275,6 +314,8 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       generalInflationRate,
       revenueInflationRate,
       bankAccountUpdatedAt: new Date(),
+      // Extended configuration fields
+      ...extendedConfig,
     });
   } catch (error: any) {
     console.error('❌ Error updating bank account:', error);
@@ -317,12 +358,22 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
         generalInflationRate: true,
         revenueInflationRate: true,
         bankAccountUpdatedAt: true,
+        amenities: true, // Contains extended configuration
       },
     });
 
     if (!building) {
       return res.status(404).json({ _error: 'Building not found' });
     }
+
+    // Extract extended configuration from amenities field
+    const extendedConfig = (building.amenities && typeof building.amenities === 'object') ? building.amenities : {};
+    
+    debugLog('GET /:buildingId/bank-account - Response data', { 
+      buildingId, 
+      extendedConfig,
+      timestamp: new Date().toISOString() 
+    });
 
     res.json({
       bankAccountNumber: building.bankAccountNumber,
@@ -333,6 +384,8 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       generalInflationRate: building.generalInflationRate,
       revenueInflationRate: building.revenueInflationRate,
       bankAccountUpdatedAt: building.bankAccountUpdatedAt,
+      // Extended configuration fields
+      ...(extendedConfig as Record<string, any>),
     });
   } catch (error: any) {
     console.error('❌ Error fetching bank account info:', error);
