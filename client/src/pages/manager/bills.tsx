@@ -1161,6 +1161,7 @@ export function PaymentScheduleDisplay({
     },
     onSuccess: () => {
       // Only invalidate the specific payment data to avoid collapsing the bill
+      // Do NOT call onPaymentUpdate as it would invalidate the entire bills list
       queryClient.invalidateQueries({ queryKey: ['/api/bills', bill.id, 'payments'] });
     },
   });
