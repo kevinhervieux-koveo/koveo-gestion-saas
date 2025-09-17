@@ -42,7 +42,8 @@ import {
   Eye,
   EyeOff,
   Calendar,
-  ChevronDown
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import {
   LineChart as RechartsLineChart,
@@ -240,6 +241,17 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       netCashFlow: false,
     },
   });
+  
+  // Budget filters collapsible state
+  const [filtersCollapsed, setFiltersCollapsed] = useState(() => {
+    const saved = localStorage.getItem('budget-filters-collapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+  
+  // Save collapsed state to localStorage
+  React.useEffect(() => {
+    localStorage.setItem('budget-filters-collapsed', JSON.stringify(filtersCollapsed));
+  }, [filtersCollapsed]);
 
   // Custom revenue lines state
   const [customRevenueLines, setCustomRevenueLines] = useState<CustomRevenueLine[]>([]);
@@ -1393,11 +1405,23 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       <div className="p-4 border-b border-gray-200 bg-gray-50/50">
         <div className="max-w-7xl mx-auto space-y-4">
           {/* Filter Header */}
-          <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-5 h-5 text-muted-foreground" />
-            <h3 className="font-semibold text-lg">Budget Filters</h3>
+          <div 
+            className="flex items-center justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-md transition-colors" 
+            onClick={() => setFiltersCollapsed(!filtersCollapsed)}
+            data-testid="button-toggle-filters"
+          >
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-muted-foreground" />
+              <h3 className="font-semibold text-lg">Budget Filters</h3>
+            </div>
+            {filtersCollapsed ? (
+              <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform" />
+            ) : (
+              <ChevronUp className="w-5 h-5 text-muted-foreground transition-transform" />
+            )}
           </div>
 
+          {!filtersCollapsed && (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* View Toggle Section */}
             <Card className="p-4">
@@ -1619,6 +1643,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
               Data: {Object.entries(filters.dataVisibility).filter(([_, visible]) => visible).length} of 4 categories visible
             </span>
           </div>
+          )}
         </div>
       </div>
       
