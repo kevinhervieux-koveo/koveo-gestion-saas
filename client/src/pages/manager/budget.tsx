@@ -15,6 +15,7 @@ import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { Residence } from '@shared/schema';
 import { 
   PieChart, 
   BarChart, 
@@ -62,13 +63,10 @@ interface BankAccountSettings {
   bankAccountStartAmount?: number;
   bankAccountMinimums?: number;
   generalInflationRate?: number;
-  revenueInflationRate?: number;
   // Extended configuration options
   emergencyFundMinimum?: number;
-  reserveFundTarget?: number;
   operatingCashMinimum?: number;
   revenueGrowthRate?: number;
-  revenueInflation?: number; // Added missing field for complete type alignment
   costInflationRate?: number;
   utilityInflationRate?: number;
   maintenanceInflationRate?: number;
@@ -81,7 +79,6 @@ interface BankAccountData {
   bankAccountStartAmount?: string;
   bankAccountMinimums?: string;
   generalInflationRate?: string;
-  revenueInflationRate?: string;
 }
 
 interface ForecastData {
@@ -124,6 +121,18 @@ interface BudgetFilters {
   };
 }
 
+interface CustomRevenueLine {
+  id: string;
+  description: string;
+  monthlyAmount: number;
+}
+
+interface RevenueData {
+  residenceRevenue: number;
+  customRevenueLines: CustomRevenueLine[];
+  totalRevenue: number;
+}
+
 function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const { t } = useLanguage();
   const [, navigate] = useLocation();
@@ -146,13 +155,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     bankAccountStartAmount: 0,
     bankAccountMinimums: 0,
     generalInflationRate: 2.0,
-    revenueInflationRate: 2.0,
     // Extended configuration defaults
     emergencyFundMinimum: 10000,
-    reserveFundTarget: 50000,
     operatingCashMinimum: 5000,
     revenueGrowthRate: 2.5,
-    revenueInflation: 2.0,
     costInflationRate: 2.0,
     utilityInflationRate: 3.0,
     maintenanceInflationRate: 2.5,
@@ -176,9 +182,24 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     },
   });
 
+  // Custom revenue lines state
+  const [customRevenueLines, setCustomRevenueLines] = useState<CustomRevenueLine[]>([]);
+  const [newRevenueLine, setNewRevenueLine] = useState<{description: string; monthlyAmount: string}>({
+    description: '',
+    monthlyAmount: ''
+  });
+
   // Fetch bank account settings
   const { data: bankAccountData, isLoading: bankAccountLoading, error: bankAccountError } = useQuery({
     queryKey: [`/api/budgets/${buildingId}/bank-account`],
+    enabled: !!buildingId,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  // Fetch residences for the building
+  const { data: residences = [], isLoading: residencesLoading, error: residencesError } = useQuery<Residence[]>({
+    queryKey: ['/api/buildings', buildingId, 'residences'],
     enabled: !!buildingId,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -207,13 +228,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       bankAccountStartAmount: parseFloat(data.bankAccountStartAmount || '0'),
       bankAccountMinimums: parseFloat(data.bankAccountMinimums || '0'),
       generalInflationRate: parseFloat(data.generalInflationRate || '2.0'),
-      revenueInflationRate: parseFloat(data.revenueInflationRate || '2.0'),
       // Extended configuration fields
       emergencyFundMinimum: parseFloat(data.emergencyFundMinimum || '10000'),
       operatingCashMinimum: parseFloat(data.operatingCashMinimum || '5000'),
       revenueGrowthRate: parseFloat(data.revenueGrowthRate || '2.5'),
-      revenueInflation: parseFloat(data.revenueInflation || '2.0'),
-      reserveFundTarget: parseFloat(data.reserveFundTarget || '50000'),
       utilityInflationRate: parseFloat(data.utilityInflationRate || '3.0'),
       maintenanceInflationRate: parseFloat(data.maintenanceInflationRate || '2.5'),
       costInflationRate: parseFloat(data.costInflationRate || '2.0'),
@@ -228,12 +246,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         bankAccountStartAmount: prev.bankAccountStartAmount,
         bankAccountMinimums: prev.bankAccountMinimums,
         generalInflationRate: prev.generalInflationRate,
-        revenueInflationRate: prev.revenueInflationRate,
         emergencyFundMinimum: prev.emergencyFundMinimum,
         operatingCashMinimum: prev.operatingCashMinimum,
         revenueGrowthRate: prev.revenueGrowthRate,
-        revenueInflation: prev.revenueInflation,
-        reserveFundTarget: prev.reserveFundTarget,
         utilityInflationRate: prev.utilityInflationRate,
         maintenanceInflationRate: prev.maintenanceInflationRate,
         costInflationRate: prev.costInflationRate,
@@ -333,6 +348,69 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     saveSettingsMutation.mutate(localSettings);
   };
 
+  // Calculate residence revenue from monthly fees
+  const calculateResidenceRevenue = () => {
+    if (!residences || residences.length === 0) return 0;
+    
+    return residences
+      .filter((residence) => {
+        // Only include active residences
+        return residence?.isActive !== false; // Default to true if undefined
+      })
+      .reduce((total, residence) => {
+        // Handle null/undefined residence
+        if (!residence || !residence.monthlyFees) return total;
+        
+        // Parse monthlyFees with robust validation
+        const feesString = String(residence.monthlyFees).replace(/[^0-9.-]/g, ''); // Remove currency symbols
+        const monthlyFees = parseFloat(feesString);
+        
+        // Only add valid positive numbers
+        if (!isNaN(monthlyFees) && monthlyFees >= 0) {
+          return total + monthlyFees;
+        }
+        
+        return total;
+      }, 0);
+  };
+
+  // Calculate total revenue (residence + custom lines)
+  const calculateTotalRevenue = () => {
+    const residenceRevenue = calculateResidenceRevenue();
+    const customRevenue = customRevenueLines.reduce((total, line) => total + line.monthlyAmount, 0);
+    return residenceRevenue + customRevenue;
+  };
+
+  // Add custom revenue line
+  const addCustomRevenueLine = () => {
+    if (!newRevenueLine.description.trim() || !newRevenueLine.monthlyAmount.trim()) return;
+    
+    // Validate amount is a positive number
+    const amount = parseFloat(newRevenueLine.monthlyAmount);
+    if (isNaN(amount) || amount < 0) {
+      toast({
+        title: 'Invalid Amount',
+        description: 'Please enter a valid positive number for the monthly amount.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    const newLine: CustomRevenueLine = {
+      id: `custom-${Date.now()}`,
+      description: newRevenueLine.description.trim(),
+      monthlyAmount: amount,
+    };
+    
+    setCustomRevenueLines(prev => [...prev, newLine]);
+    setNewRevenueLine({ description: '', monthlyAmount: '' });
+  };
+
+  // Remove custom revenue line
+  const removeCustomRevenueLine = (id: string) => {
+    setCustomRevenueLines(prev => prev.filter(line => line.id !== id));
+  };
+
   // Calculate summary metrics from forecast data with filters applied
   const calculateSummaryMetrics = () => {
     if (!forecastData?.forecast || forecastData.forecast.length === 0) {
@@ -386,7 +464,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
     return {
       currentBalance: currentMonth.balance,
-      monthlyIncome: currentMonth.revenue,
+      monthlyIncome: calculateTotalRevenue(),
       monthlySpending: currentMonth.spending,
       yearEndBalance: lastPeriod.balance,
       variance: currentMonth.balance - priorYearBalance,
@@ -397,31 +475,35 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const getSpendingCategories = () => {
     if (!forecastData) return [];
 
-    // Create spending categories based on forecast data
+    // Use our new revenue calculation instead of baseline income
+    const totalMonthlyRevenue = calculateTotalRevenue();
+    const residenceRevenue = calculateResidenceRevenue();
+    const customRevenue = customRevenueLines.reduce((total, line) => total + line.monthlyAmount, 0);
+
     const categories = [
       { 
-        category: 'Monthly Income', 
-        budget: forecastData.baselineMonthlyIncome * 12, 
-        used: forecastData.baselineMonthlyIncome * 12, 
+        category: 'Total Monthly Revenue', 
+        budget: totalMonthlyRevenue * 12, 
+        used: totalMonthlyRevenue * 12, 
         color: 'bg-green-500' 
+      },
+      { 
+        category: 'Residence Revenue', 
+        budget: residenceRevenue * 12, 
+        used: residenceRevenue * 12, 
+        color: 'bg-blue-500' 
+      },
+      { 
+        category: 'Custom Revenue', 
+        budget: customRevenue * 12, 
+        used: customRevenue * 12, 
+        color: 'bg-purple-500' 
       },
       { 
         category: 'Monthly Expenses', 
         budget: forecastData.baselineMonthlyExpenses * 12, 
         used: forecastData.baselineMonthlyExpenses * 12, 
         color: 'bg-red-500' 
-      },
-      { 
-        category: 'Recurrent Bills', 
-        budget: forecastData.recurrentBillsCount * 1000, 
-        used: forecastData.baselineMonthlyExpenses, 
-        color: 'bg-blue-500' 
-      },
-      { 
-        category: 'Unique Bills', 
-        budget: forecastData.uniqueBillsCount * 500, 
-        used: forecastData.uniqueBillsCount * 300, 
-        color: 'bg-purple-500' 
       },
     ];
 
@@ -431,6 +513,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   // Prepare chart data with filters applied
   const getChartData = () => {
     if (!forecastData?.forecast) return [];
+
+    // Calculate combined revenue once for consistent display
+    const combinedRevenue = calculateTotalRevenue();
 
     // Calculate start index based on start date selection
     let startIndex = 0;
@@ -462,9 +547,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         if (!yearlyData[item.year]) {
           yearlyData[item.year] = { revenue: 0, spending: 0, balance: 0, netCashFlow: 0, count: 0 };
         }
-        yearlyData[item.year].revenue += item.revenue;
+        // Use combined revenue instead of forecast revenue
+        yearlyData[item.year].revenue += combinedRevenue;
         yearlyData[item.year].spending += item.spending;
-        yearlyData[item.year].netCashFlow += item.netCashFlow;
+        // Recalculate net cash flow with combined revenue
+        yearlyData[item.year].netCashFlow += (combinedRevenue - item.spending);
         yearlyData[item.year].count++;
         // Use last month's balance for the year
         yearlyData[item.year].balance = item.balance;
@@ -488,9 +575,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
       balance: item.balance,
       status: item.status,
-      revenue: item.revenue,
+      revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
       spending: item.spending,
-      netCashFlow: item.netCashFlow,
+      netCashFlow: combinedRevenue - item.spending, // Recalculate with combined revenue
     }));
   };
 
@@ -605,25 +692,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     }
                     className="col-span-3"
                     data-testid="input-general-inflation"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="revenueInflation" className="text-right">
-                    Revenue Inflation (%)
-                  </Label>
-                  <Input
-                    id="revenueInflation"
-                    type="number"
-                    step="0.1"
-                    value={localSettings.revenueInflationRate}
-                    onChange={(e) =>
-                      setLocalSettings(prev => ({
-                        ...prev,
-                        revenueInflationRate: parseFloat(e.target.value) || 2.0,
-                      }))
-                    }
-                    className="col-span-3"
-                    data-testid="input-revenue-inflation"
                   />
                 </div>
               </div>
@@ -909,15 +977,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 
                 <Card data-testid="card-monthly-income">
                   <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                    <CardTitle className='text-sm font-medium'>Monthly Income</CardTitle>
+                    <CardTitle className='text-sm font-medium'>Monthly Revenue</CardTitle>
                     <TrendingUp className='h-4 w-4 text-muted-foreground' />
                   </CardHeader>
                   <CardContent>
                     <div className='text-2xl font-bold'>
-                      ${summaryMetrics.monthlyIncome.toLocaleString()}
+                      ${calculateTotalRevenue().toLocaleString()}
                     </div>
                     <p className='text-xs text-muted-foreground'>
-                      Baseline revenue
+                      Residence + custom revenue
                     </p>
                   </CardContent>
                 </Card>
@@ -932,7 +1000,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       ${summaryMetrics.monthlySpending.toLocaleString()}
                     </div>
                     <p className='text-xs text-muted-foreground'>
-                      {Math.round((summaryMetrics.monthlySpending / summaryMetrics.monthlyIncome) * 100)}% of income
+                      {calculateTotalRevenue() > 0 ? Math.round((summaryMetrics.monthlySpending / calculateTotalRevenue()) * 100) : 0}% of revenue
                     </p>
                   </CardContent>
                 </Card>
@@ -1211,6 +1279,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className='space-y-4'>
+                    {/* Revenue Growth Rate (keep existing) */}
                     <div className='space-y-2'>
                       <Label htmlFor="revenue-growth">Revenue Growth Rate (%)</Label>
                       <div className='relative'>
@@ -1232,50 +1301,144 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         />
                       </div>
                     </div>
-                    <div className='space-y-2'>
-                      <Label htmlFor="revenue-inflation">Revenue Inflation Rate (%)</Label>
-                      <div className='relative'>
-                        <TrendingUp className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
-                        <Input
-                          id="revenue-inflation"
-                          type="number"
-                          step="0.1"
-                          value={localSettings.revenueInflationRate}
-                          onChange={(e) =>
-                            setLocalSettings(prev => ({
-                              ...prev,
-                              revenueInflationRate: parseFloat(e.target.value) || 0,
-                            }))
-                          }
-                          className="pl-9"
-                          placeholder="2.0"
-                          data-testid="input-revenue-inflation"
-                        />
+
+                    {/* Residence Revenue Display */}
+                    <div className='space-y-3'>
+                      <Label className='flex items-center gap-2'>
+                        <Building2 className='w-4 h-4' />
+                        Residence Revenue
+                      </Label>
+                      <div className='bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg' data-testid="residence-revenue-display">
+                        {residencesLoading ? (
+                          <div className='flex items-center justify-center py-4'>
+                            <div className='flex items-center gap-2 text-sm text-muted-foreground'>
+                              <div className='animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full'></div>
+                              Loading residence data...
+                            </div>
+                          </div>
+                        ) : residencesError ? (
+                          <div className='flex items-center justify-center py-4'>
+                            <div className='text-center'>
+                              <p className='text-sm text-red-600 mb-1'>Failed to load residence data</p>
+                              <p className='text-xs text-muted-foreground'>Revenue calculation may be incomplete</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className='flex items-center justify-between'>
+                            <div className='space-y-1'>
+                              <p className='text-sm font-medium'>Monthly Residence Fees</p>
+                              <p className='text-xs text-muted-foreground'>
+                                {residences?.filter(r => r?.isActive !== false).length || 0} active residences
+                              </p>
+                            </div>
+                            <div className='text-right'>
+                              <p className='text-lg font-semibold text-blue-600'>
+                                ${calculateResidenceRevenue().toLocaleString()}
+                              </p>
+                              <p className='text-xs text-muted-foreground'>per month</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className='space-y-2'>
-                      <Label htmlFor="reserve-target">Reserve Fund Target</Label>
-                      <div className='relative'>
-                        <Target className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
-                        <Input
-                          id="reserve-target"
-                          type="number"
-                          value={localSettings.reserveFundTarget}
-                          onChange={(e) =>
-                            setLocalSettings(prev => ({
-                              ...prev,
-                              reserveFundTarget: parseFloat(e.target.value) || 0,
-                            }))
-                          }
-                          className="pl-9"
-                          placeholder="50000"
-                          data-testid="input-reserve-target"
-                        />
+
+                    {/* Custom Revenue Lines */}
+                    <div className='space-y-3'>
+                      <Label className='flex items-center gap-2'>
+                        <Plus className='w-4 h-4' />
+                        Custom Revenue Sources
+                      </Label>
+                      
+                      {/* Existing Custom Revenue Lines */}
+                      {customRevenueLines.map((line) => (
+                        <div key={line.id} className='flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 rounded-lg'>
+                          <div className='flex-1'>
+                            <p className='text-sm font-medium'>{line.description}</p>
+                            <p className='text-xs text-muted-foreground'>Monthly revenue</p>
+                          </div>
+                          <div className='text-right'>
+                            <p className='text-lg font-semibold text-green-600'>
+                              ${line.monthlyAmount.toLocaleString()}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeCustomRevenueLine(line.id)}
+                            className='text-red-500 hover:text-red-700'
+                            data-testid={`button-remove-revenue-${line.id}`}
+                          >
+                            <Minus className='w-4 h-4' />
+                          </Button>
+                        </div>
+                      ))}
+
+                      {/* Add New Custom Revenue Line */}
+                      <div className='space-y-3 p-3 border-2 border-dashed border-gray-300 rounded-lg'>
+                        <div className='grid grid-cols-1 gap-3'>
+                          <div>
+                            <Label htmlFor="revenue-description">Description</Label>
+                            <Input
+                              id="revenue-description"
+                              type="text"
+                              value={newRevenueLine.description}
+                              onChange={(e) =>
+                                setNewRevenueLine(prev => ({
+                                  ...prev,
+                                  description: e.target.value,
+                                }))
+                              }
+                              placeholder="e.g., Laundry room, Parking fees, etc."
+                              data-testid="input-revenue-description"
+                            />
+                          </div>
+                          <div className='flex gap-2'>
+                            <div className='flex-1'>
+                              <Label htmlFor="revenue-amount">Monthly Amount ($)</Label>
+                              <Input
+                                id="revenue-amount"
+                                type="number"
+                                value={newRevenueLine.monthlyAmount}
+                                onChange={(e) =>
+                                  setNewRevenueLine(prev => ({
+                                    ...prev,
+                                    monthlyAmount: e.target.value,
+                                  }))
+                                }
+                                placeholder="0.00"
+                                data-testid="input-revenue-amount"
+                              />
+                            </div>
+                            <div className='flex items-end'>
+                              <Button
+                                onClick={addCustomRevenueLine}
+                                disabled={!newRevenueLine.description.trim() || !newRevenueLine.monthlyAmount.trim()}
+                                data-testid="button-add-custom-revenue"
+                              >
+                                <Plus className='w-4 h-4 mr-2' />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className='pt-2 border-t'>
-                      <div className='text-sm text-muted-foreground'>
-                        Monthly Income: ${summaryMetrics.monthlyIncome.toLocaleString()}
+
+                    {/* Revenue Summary */}
+                    <div className='pt-2 border-t space-y-2'>
+                      <div className='flex justify-between text-sm'>
+                        <span className='text-muted-foreground'>Residence Revenue:</span>
+                        <span className='font-medium'>${calculateResidenceRevenue().toLocaleString()}</span>
+                      </div>
+                      <div className='flex justify-between text-sm'>
+                        <span className='text-muted-foreground'>Custom Revenue:</span>
+                        <span className='font-medium'>
+                          ${customRevenueLines.reduce((total, line) => total + line.monthlyAmount, 0).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className='flex justify-between text-base font-semibold pt-2 border-t'>
+                        <span>Total Monthly Revenue:</span>
+                        <span className='text-green-600'>${calculateTotalRevenue().toLocaleString()}</span>
                       </div>
                     </div>
                   </CardContent>
