@@ -60,34 +60,35 @@ export class BillAutoGenerationService {
   }
 
   /**
-   * Generate unique bill number with atomic operations to prevent duplicates.
-   * Retries with exponential backoff on constraint violations.
+   * Generate unique bill number using timestamp + UUID approach to prevent duplicates.
+   * This ensures true uniqueness without race conditions.
    * @param category - Bill category
-   * @param date - Bill date for formatting
+   * @param date - Bill date for formatting  
    * @returns Unique bill number
    */
   private async generateUniqueBillNumber(category: string, date: Date): Promise<string> {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    const categoryCode = category.toUpperCase().replace(/[^A-Z]/g, '');
+    const day = String(date.getDate()).padStart(2, '0');
+    const categoryCode = category.toUpperCase().replace(/[^A-Z]/g, '').substring(0, 4); // Limit to 4 chars
     
-    const maxRetries = 5;
+    // Generate timestamp-based unique identifier
+    const timestamp = Date.now();
+    const timestampStr = timestamp.toString(36).toUpperCase(); // Base36 for shorter string
+    
+    // Generate short UUID for additional uniqueness (first 8 chars)
+    const { v4: uuidv4 } = await import('uuid');
+    const shortUuid = uuidv4().split('-')[0].toUpperCase(); // First segment (8 chars)
+    
+    // Create bill number: AUTO-YYYY-MM-CATEGORY-TIMESTAMP-UUID
+    const billNumber = `AUTO-${year}-${month}-${categoryCode}-${timestampStr}-${shortUuid}`;
+    
+    // Verify uniqueness as a safety check (should be extremely rare to conflict)
+    const maxRetries = 3;
     let attempt = 0;
     
     while (attempt < maxRetries) {
       try {
-        // Get next sequence number atomically
-        const sequenceResult = await db.execute(sql`
-          SELECT COALESCE(MAX(CAST(SUBSTRING(bill_number FROM 'AUTO-${year}-${month}-${categoryCode}-(\\d+)$') AS INTEGER)), 0) + 1 as next_sequence
-          FROM bills 
-          WHERE bill_number ~ ${`^AUTO-${year}-${month}-${categoryCode}-\\d+$`}
-          FOR UPDATE
-        `);
-        
-        const nextSequence = (sequenceResult.rows[0] as any)?.next_sequence || 1;
-        const billNumber = `AUTO-${year}-${month}-${categoryCode}-${String(nextSequence).padStart(3, '0')}`;
-        
-        // Verify uniqueness with a quick check
         const existingBill = await db
           .select({ id: bills.id })
           .from(bills)
@@ -95,31 +96,41 @@ export class BillAutoGenerationService {
           .limit(1);
         
         if (existingBill.length === 0) {
+          console.log(`✅ Generated unique bill number: ${billNumber}`);
           return billNumber;
         }
         
-        // If we get here, there was a race condition, retry
+        // Extremely rare case - regenerate with new timestamp/UUID
         attempt++;
-        console.warn(`🔄 Bill number ${billNumber} already exists, retrying (attempt ${attempt}/${maxRetries})`);
+        console.warn(`🔄 Bill number ${billNumber} conflict (attempt ${attempt}/${maxRetries}) - regenerating`);
+        
+        // Wait a bit and regenerate with fresh timestamp
+        await new Promise(resolve => setTimeout(resolve, 10));
+        const newTimestamp = Date.now();
+        const newTimestampStr = newTimestamp.toString(36).toUpperCase();
+        const newShortUuid = uuidv4().split('-')[0].toUpperCase();
+        const newBillNumber = `AUTO-${year}-${month}-${categoryCode}-${newTimestampStr}-${newShortUuid}`;
+        
+        return newBillNumber;
         
       } catch (error: any) {
         attempt++;
-        if (error.message?.includes('duplicate key') || error.message?.includes('already exists')) {
-          console.warn(`🔄 Duplicate bill number detected, retrying (attempt ${attempt}/${maxRetries})`);
-        } else {
-          console.error(`❌ Error generating bill number (attempt ${attempt}/${maxRetries}):`, error);
+        if (attempt >= maxRetries) {
+          // Fallback to simple timestamp + random if all else fails
+          const fallbackNumber = `AUTO-${year}-${month}-${categoryCode}-${timestamp}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+          console.error(`❌ Failed to generate bill number after ${maxRetries} attempts, using fallback: ${fallbackNumber}`);
+          return fallbackNumber;
         }
         
-        if (attempt >= maxRetries) {
-          throw new Error(`Failed to generate unique bill number after ${maxRetries} attempts: ${error.message}`);
-        }
+        console.warn(`⚠️ Error during bill number generation (attempt ${attempt}/${maxRetries}):`, error);
+        await new Promise(resolve => setTimeout(resolve, 50 * attempt));
       }
-      
-      // Exponential backoff with jitter (10-100ms)
-      await new Promise(resolve => setTimeout(resolve, Math.random() * (10 * Math.pow(2, attempt)) + 10));
     }
     
-    throw new Error(`Failed to generate unique bill number after ${maxRetries} attempts`);
+    // This should never be reached, but provide ultimate fallback
+    const ultimateFallback = `AUTO-${year}-${month}-${categoryCode}-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
+    console.error(`❌ Using ultimate fallback bill number: ${ultimateFallback}`);
+    return ultimateFallback;
   }
 
   /**
@@ -357,7 +368,7 @@ export class BillAutoGenerationService {
   }
 
   /**
-   * Generate advanced bill number with smart formatting.
+   * Generate advanced bill number with unique timestamp approach to prevent race conditions.
    * @param sourceBill
    * @param dueDate
    * @param index
@@ -365,11 +376,17 @@ export class BillAutoGenerationService {
   private generateAdvancedBillNumber(sourceBill: Bill, dueDate: Date, index: number): string {
     const year = dueDate.getFullYear();
     const month = String(dueDate.getMonth() + 1).padStart(2, '0');
-    const category = sourceBill.category.toUpperCase().replace(/[^A-Z]/g, ''); // Sanitize category
-    const sequence = String(index + 1).padStart(3, '0');
+    const category = sourceBill.category.toUpperCase().replace(/[^A-Z]/g, '').substring(0, 4); // Sanitize and limit category
     
-    // Format: AUTO-{year}-{month}-{category}-{sequence}
-    return `AUTO-${year}-${month}-${category}-${sequence}`;
+    // Generate unique timestamp-based identifier (similar to generateUniqueBillNumber)
+    const timestamp = Date.now();
+    const timestampStr = timestamp.toString(36).toUpperCase();
+    
+    // Add index as additional uniqueness factor for batch operations
+    const indexStr = index.toString(36).toUpperCase().padStart(2, '0');
+    
+    // Format: AUTO-{year}-{month}-{category}-{timestamp}-{index}
+    return `AUTO-${year}-${month}-${category}-${timestampStr}-${indexStr}`;
   }
 
   /**

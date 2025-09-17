@@ -425,9 +425,15 @@ export function registerBillRoutes(app: Express) {
       const billData = validation.data;
       
       // Build bill object first to match working pattern from codebase
+      // Generate unique bill number using timestamp + UUID approach
+      const timestamp = Date.now();
+      const timestampStr = timestamp.toString(36).toUpperCase();
+      const { v4: uuidv4 } = await import('uuid');
+      const shortUuid = uuidv4().split('-')[0].toUpperCase();
+      
       const newBillData = {
         buildingId: billData.buildingId,
-        billNumber: `BILL-${Date.now()}`,
+        billNumber: `BILL-${timestampStr}-${shortUuid}`,
         title: billData.title,
         description: billData.description || null,
         category: billData.category,
@@ -1389,9 +1395,15 @@ export function registerBillRoutes(app: Express) {
       const validatedData = createBillSchema.parse(req.body);
 
       // Build bill object first to match working pattern from codebase
+      // Generate unique bill number using timestamp + UUID approach
+      const timestamp = Date.now();
+      const timestampStr = timestamp.toString(36).toUpperCase();
+      const { v4: uuidv4 } = await import('uuid');
+      const shortUuid = uuidv4().split('-')[0].toUpperCase();
+      
       const billFromTemplate = {
         buildingId: validatedData.buildingId,
-        billNumber: `BILL-${Date.now()}`,
+        billNumber: `BILL-${timestampStr}-${shortUuid}`,
         title: validatedData.title,
         description: validatedData.description || null,
         category: validatedData.category,
@@ -2331,9 +2343,15 @@ export function registerBillRoutes(app: Express) {
         }
 
         // Begin transaction for atomic bill + document creation
+        // Generate unique bill number using timestamp + UUID approach
+        const timestamp = Date.now();
+        const timestampStr = timestamp.toString(36).toUpperCase();
+        const { v4: uuidv4 } = await import('uuid');
+        const shortUuid = uuidv4().split('-')[0].toUpperCase();
+        
         const newBillData = {
           buildingId,
-          billNumber: `BILL-${Date.now()}`,
+          billNumber: `BILL-${timestampStr}-${shortUuid}`,
           title: validatedBillData.title,
           description: validatedBillData.description || null,
           category: validatedBillData.category,
