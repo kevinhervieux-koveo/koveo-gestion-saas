@@ -84,6 +84,18 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
+  // Development debug logging
+  const isDev = import.meta.env.MODE === 'development';
+  const debugLog = (action: string, data: any) => {
+    if (isDev) {
+      console.log(`💰 [BUDGET PAGE DEBUG] ${action}:`, data);
+    }
+  };
+
+  React.useEffect(() => {
+    debugLog('Component initialized', { organizationId, buildingId });
+  }, [organizationId, buildingId, debugLog]);
+
   // Local state for budget settings simulation
   const [localSettings, setLocalSettings] = useState<BankAccountSettings>({
     bankAccountStartAmount: 0,
@@ -94,10 +106,23 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
   // Fetch bank account settings
-  const { data: bankAccountData, isLoading: bankAccountLoading } = useQuery({
+  const { data: bankAccountData, isLoading: bankAccountLoading, error: bankAccountError } = useQuery({
     queryKey: [`/api/budgets/${buildingId}/bank-account`],
     enabled: !!buildingId,
   });
+
+  // Debug logging for bank account data
+  React.useEffect(() => {
+    if (bankAccountData) {
+      debugLog('Bank account data fetched', { buildingId, data: bankAccountData });
+    }
+  }, [bankAccountData, buildingId, debugLog]);
+
+  React.useEffect(() => {
+    if (bankAccountError) {
+      debugLog('Bank account fetch error', { buildingId, error: bankAccountError });
+    }
+  }, [bankAccountError, buildingId, debugLog]);
 
   // Initialize local settings when bank account data is loaded
   React.useEffect(() => {
@@ -113,21 +138,43 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   }, [bankAccountData]);
 
   // Fetch budget forecast based on current settings
-  const { data: forecastData, isLoading: forecastLoading } = useQuery({
+  const { data: forecastData, isLoading: forecastLoading, error: forecastError } = useQuery({
     queryKey: ['budgetForecast', buildingId, JSON.stringify(localSettings)],
     queryFn: async () => {
+      debugLog('Fetching budget forecast', { buildingId, settings: localSettings });
       const response = await apiRequest('POST', `/api/budgets/${buildingId}/forecast`, localSettings);
       const data = await response.json();
+      debugLog('Budget forecast API response', { buildingId, responseStatus: response.status });
       return data as BudgetForecastResponse;
     },
     enabled: !!buildingId,
   });
 
+  // Debug logging for forecast data and errors
+  React.useEffect(() => {
+    if (forecastData) {
+      debugLog('Budget forecast data received', { 
+        buildingId, 
+        forecastLength: forecastData?.forecast?.length,
+        startingBalance: forecastData?.startingBalance,
+        buildingName: forecastData?.buildingName
+      });
+    }
+  }, [forecastData, buildingId, debugLog]);
+
+  React.useEffect(() => {
+    if (forecastError) {
+      debugLog('Budget forecast fetch error', { buildingId, error: forecastError });
+    }
+  }, [forecastError, buildingId, debugLog]);
+
   // Save settings mutation
   const saveSettingsMutation = useMutation({
     mutationFn: async (settings: BankAccountSettings) => {
+      debugLog('Saving budget settings', { buildingId, settings });
       const response = await apiRequest('PUT', `/api/budgets/${buildingId}/bank-account`, settings);
       const data = await response.json();
+      debugLog('Budget settings save response', { buildingId, responseStatus: response.status, data });
       return data;
     },
     onSuccess: () => {

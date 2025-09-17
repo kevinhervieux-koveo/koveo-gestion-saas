@@ -96,7 +96,9 @@ export async function registerRoutes(app: Express) {
   registerBillRoutes(app);
   
   // Budget routes
+  console.log('🏦 [BUDGET DEBUG] Registering budget router at /api/budgets');
   app.use('/api/budgets', requireAuth, budgetRouter);
+  console.log('✅ Budget routes registered successfully');
   
   registerResidenceRoutes(app);
   registerDemandRoutes(app);

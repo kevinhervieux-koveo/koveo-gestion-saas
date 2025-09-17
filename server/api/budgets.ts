@@ -7,6 +7,14 @@ import { and, eq, gte, lte, sql, desc, asc } from 'drizzle-orm';
 
 const router = express.Router();
 
+// Development debug logging
+const isDev = process.env.NODE_ENV === 'development';
+const debugLog = (endpoint: string, data: any) => {
+  if (isDev) {
+    console.log(`🏦 [BUDGET API DEBUG] ${endpoint}:`, JSON.stringify(data, null, 2));
+  }
+};
+
 /**
  * Get budgets and monthly budgets for a building with date range.
  */
@@ -14,6 +22,8 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
     const { startYear, endYear, startMonth, endMonth, groupBy = 'monthly' } = req.query;
+    
+    debugLog('GET /:buildingId', { buildingId, startYear, endYear, startMonth, endMonth, groupBy });
 
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
@@ -291,6 +301,8 @@ router.patch('/:buildingId/bank-account', requireAuth, async (req, res) => {
 router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
+    
+    debugLog('GET /:buildingId/bank-account', { buildingId });
 
     // Validate building exists and get bank account info
     const building = await db.query.buildings.findFirst({
@@ -335,6 +347,13 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
 router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
   try {
     const { buildingId } = req.params;
+    
+    debugLog('POST /:buildingId/forecast - Request received', { 
+      buildingId, 
+      body: req.body,
+      timestamp: new Date().toISOString() 
+    });
+    
     const {
       bankAccountStartAmount,
       bankAccountMinimums,
