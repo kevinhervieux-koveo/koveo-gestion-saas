@@ -118,7 +118,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   React.useEffect(() => {
     debugLog('Component initialized', { organizationId, buildingId });
-  }, [organizationId, buildingId, debugLog]);
+  }, [organizationId, buildingId]);
 
   // Local state for budget settings simulation
   const [localSettings, setLocalSettings] = useState<BankAccountSettings>({
@@ -152,13 +152,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     if (bankAccountData) {
       debugLog('Bank account data fetched', { buildingId, data: bankAccountData });
     }
-  }, [bankAccountData, buildingId, debugLog]);
+  }, [bankAccountData, buildingId]);
 
   React.useEffect(() => {
     if (bankAccountError) {
       debugLog('Bank account fetch error', { buildingId, error: bankAccountError });
     }
-  }, [bankAccountError, buildingId, debugLog]);
+  }, [bankAccountError, buildingId]);
 
   // Initialize local settings when bank account data is loaded
   React.useEffect(() => {
@@ -224,7 +224,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeoutId);
-  }, [localSettings, buildingId, refetchForecast, debugLog]);
+  }, [localSettings, buildingId, refetchForecast]);
 
   // Debug logging for forecast data and errors
   React.useEffect(() => {
@@ -236,13 +236,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         buildingName: forecastData?.buildingName
       });
     }
-  }, [forecastData, buildingId, debugLog]);
+  }, [forecastData, buildingId]);
 
   React.useEffect(() => {
     if (forecastError) {
       debugLog('Budget forecast fetch error', { buildingId, error: forecastError });
     }
-  }, [forecastError, buildingId, debugLog]);
+  }, [forecastError, buildingId]);
 
   // Save settings mutation
   const saveSettingsMutation = useMutation({
