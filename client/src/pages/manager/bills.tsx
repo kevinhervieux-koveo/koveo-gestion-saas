@@ -651,6 +651,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                       <SelectItem value='all'>{t('allPaymentTypes')}</SelectItem>
                       <SelectItem value='unique'>{t('unique')}</SelectItem>
                       <SelectItem value='recurrent'>{t('recurrent')}</SelectItem>
+                      <SelectItem value='auto-generated'>Auto-generated</SelectItem>
                     </SelectContent>
                   </Select>
                 ),
