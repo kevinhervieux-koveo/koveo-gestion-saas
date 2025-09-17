@@ -1,0 +1,56 @@
+{
+  "budgetTestSuite": {
+    "description": "Configuration for comprehensive budget testing in CI/CD pipeline",
+    "version": "1.0.0",
+    "testCommands": {
+      "budgetUnitTests": "npm run test:unit -- tests/unit/api/budgets.test.ts tests/unit/utils/budgetCalculations.test.ts tests/unit/budget-page-comprehensive.test.tsx",
+      "budgetIntegrationTests": "npm run test:integration -- tests/integration/budgets.forecast.test.ts",
+      "budgetComprehensiveTests": "npx jest --config jest.budget.config.js",
+      "budgetCoverageTests": "npx jest --config jest.budget.config.js --coverage"
+    },
+    "coverageThresholds": {
+      "global": {
+        "branches": 85,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      },
+      "budgetSpecific": {
+        "branches": 90,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "cicdPipeline": {
+      "preDeploymentGates": [
+        "budgetUnitTests",
+        "budgetIntegrationTests",
+        "budgetCoverageTests"
+      ],
+      "requiredChecks": [
+        "lint:check",
+        "format:check",
+        "security:check",
+        "test:comprehensive"
+      ]
+    },
+    "testFiles": {
+      "unit": [
+        "tests/unit/api/budgets.test.ts",
+        "tests/unit/utils/budgetCalculations.test.ts",
+        "tests/unit/budget-page-comprehensive.test.tsx"
+      ],
+      "integration": [
+        "tests/integration/budgets.forecast.test.ts"
+      ],
+      "sourceFiles": [
+        "server/api/budgets.ts",
+        "server/utils/budgetCalculations.ts",
+        "client/src/pages/manager/budget.tsx",
+        "client/src/components/**/budget*.tsx",
+        "client/src/components/**/Budget*.tsx"
+      ]
+    }
+  }
+}

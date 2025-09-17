@@ -7,8 +7,11 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, jest, afterAll } from '@jest/globals';
 import '@testing-library/jest-dom';
+
+// TypeScript support for Jest DOM matchers
+// Since global declarations aren't working, we'll use type assertions
 
 // Mock the hooks and utils
 jest.mock('@/hooks/use-language', () => ({
@@ -26,6 +29,14 @@ jest.mock('@/hooks/use-toast', () => ({
 // Mock fetch with proper typing
 const mockFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 global.fetch = mockFetch;
+
+// Helper function for creating proper JSON responses
+const jsonResponse = (data: any, init?: ResponseInit) => 
+  new Response(JSON.stringify(data), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+    ...init
+  });
 
 // Mock queryClient
 const createMockQueryClient = () =>
@@ -108,7 +119,7 @@ const TestCommentForm = ({ demandId, onCommentAdded }: { demandId: string; onCom
           commentType: commentType || undefined,
           isInternal,
         }),
-      } as any);
+      });
 
       if (!response.ok) {
         throw new Error('Failed to create comment');
@@ -366,23 +377,20 @@ describe('Demand Comment Form Tests', () => {
 
   describe('Form Submission', () => {
     it('should submit comment successfully', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 'comment-3',
-          demandId: 'demand-123',
-          commentText: 'New test comment',
-          commenterId: 'user-123',
-          isInternal: false,
-          createdAt: '2023-01-01T12:00:00Z',
-          author: {
-            id: 'user-123',
-            firstName: 'Test',
-            lastName: 'User',
-            email: 'test@example.com',
-          },
-        }),
-      } as any);
+      mockFetch.mockResolvedValueOnce(jsonResponse({
+        id: 'comment-3',
+        demandId: 'demand-123',
+        commentText: 'New test comment',
+        commenterId: 'user-123',
+        isInternal: false,
+        createdAt: '2023-01-01T12:00:00Z',
+        author: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
+      }));
 
       const onCommentAdded = jest.fn();
       render(
@@ -407,7 +415,7 @@ describe('Demand Comment Form Tests', () => {
           commentType: undefined,
           isInternal: false,
         }),
-      } as any);
+      });
 
       await waitFor(() => {
         expect(onCommentAdded).toHaveBeenCalled();
@@ -415,24 +423,21 @@ describe('Demand Comment Form Tests', () => {
     });
 
     it('should submit comment with optional fields', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 'comment-3',
-          demandId: 'demand-123',
-          commentText: 'Internal update comment',
-          commentType: 'status_change',
-          commenterId: 'user-123',
-          isInternal: true,
-          createdAt: '2023-01-01T12:00:00Z',
-          author: {
-            id: 'user-123',
-            firstName: 'Test',
-            lastName: 'User',
-            email: 'test@example.com',
-          },
-        }),
-      } as any);
+      mockFetch.mockResolvedValueOnce(jsonResponse({
+        id: 'comment-3',
+        demandId: 'demand-123',
+        commentText: 'Internal update comment',
+        commentType: 'status_change',
+        commenterId: 'user-123',
+        isInternal: true,
+        createdAt: '2023-01-01T12:00:00Z',
+        author: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
+      }));
 
       render(
         <TestWrapper>
@@ -460,31 +465,27 @@ describe('Demand Comment Form Tests', () => {
           commentType: 'status_change',
           isInternal: true,
         }),
-      } as any);
+      });
     });
 
     it('should show loading state during submission', async () => {
-      mockFetch.mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ 
-              ok: true, 
-              json: async () => ({
-                id: 'comment-loading',
-                demandId: 'demand-123',
-                commentText: 'Loading test comment',
-                commenterId: 'user-123',
-                isInternal: false,
-                createdAt: '2023-01-01T12:00:00Z',
-                author: {
-                  id: 'user-123',
-                  firstName: 'Test',
-                  lastName: 'User',
-                  email: 'test@example.com',
-                },
-              })
-            }), 100)
-          )
+      mockFetch.mockImplementation(() =>
+        new Promise<Response>((resolve) =>
+          setTimeout(() => resolve(jsonResponse({
+            id: 'comment-loading',
+            demandId: 'demand-123',
+            commentText: 'Loading test comment',
+            commenterId: 'user-123',
+            isInternal: false,
+            createdAt: '2023-01-01T12:00:00Z',
+            author: {
+              id: 'user-123',
+              firstName: 'Test',
+              lastName: 'User',
+              email: 'test@example.com',
+            },
+          })), 100)
+        )
       );
 
       render(
@@ -509,23 +510,20 @@ describe('Demand Comment Form Tests', () => {
     });
 
     it('should clear form after successful submission', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 'comment-3',
-          demandId: 'demand-123',
-          commentText: 'Test comment for clearing',
-          commenterId: 'user-123',
-          isInternal: false,
-          createdAt: '2023-01-01T12:00:00Z',
-          author: {
-            id: 'user-123',
-            firstName: 'Test',
-            lastName: 'User',
-            email: 'test@example.com',
-          },
-        }),
-      } as any);
+      mockFetch.mockResolvedValueOnce(jsonResponse({
+        id: 'comment-3',
+        demandId: 'demand-123',
+        commentText: 'Test comment for clearing',
+        commenterId: 'user-123',
+        isInternal: false,
+        createdAt: '2023-01-01T12:00:00Z',
+        author: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
+      }));
 
       render(
         <TestWrapper>
@@ -576,11 +574,10 @@ describe('Demand Comment Form Tests', () => {
     });
 
     it('should handle server validation errors', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 400,
-        json: async () => ({ message: 'Comment text too long' }),
-      } as any);
+      mockFetch.mockResolvedValueOnce(jsonResponse(
+        { message: 'Comment text too long' },
+        { status: 400 }
+      ));
 
       render(
         <TestWrapper>
@@ -604,23 +601,20 @@ describe('Demand Comment Form Tests', () => {
 
   describe('Special Characters and Internationalization', () => {
     it('should handle French characters in comments', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 'comment-3',
-          demandId: 'demand-123',
-          commentText: 'Commentaire en français avec caractères spéciaux: éàùç!',
-          commenterId: 'user-123',
-          isInternal: false,
-          createdAt: '2023-01-01T12:00:00Z',
-          author: {
-            id: 'user-123',
-            firstName: 'Test',
-            lastName: 'User',
-            email: 'test@example.com',
-          },
-        }),
-      } as any);
+      mockFetch.mockResolvedValueOnce(jsonResponse({
+        id: 'comment-3',
+        demandId: 'demand-123',
+        commentText: 'Commentaire en français avec caractères spéciaux: éàùç!',
+        commenterId: 'user-123',
+        isInternal: false,
+        createdAt: '2023-01-01T12:00:00Z',
+        author: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
+      }));
 
       render(
         <TestWrapper>
@@ -644,27 +638,24 @@ describe('Demand Comment Form Tests', () => {
           commentType: undefined,
           isInternal: false,
         }),
-      } as any);
+      });
     });
 
     it('should handle emojis and special symbols', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 'comment-3',
-          demandId: 'demand-123',
-          commentText: 'Great work! 👍 Thanks @#$%^&*()',
-          commenterId: 'user-123',
-          isInternal: false,
-          createdAt: '2023-01-01T12:00:00Z',
-          author: {
-            id: 'user-123',
-            firstName: 'Test',
-            lastName: 'User',
-            email: 'test@example.com',
-          },
-        }),
-      } as any);
+      mockFetch.mockResolvedValueOnce(jsonResponse({
+        id: 'comment-3',
+        demandId: 'demand-123',
+        commentText: 'Great work! 👍 Thanks @#$%^&*()',
+        commenterId: 'user-123',
+        isInternal: false,
+        createdAt: '2023-01-01T12:00:00Z',
+        author: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
+      }));
 
       render(
         <TestWrapper>
@@ -688,7 +679,7 @@ describe('Demand Comment Form Tests', () => {
           commentType: undefined,
           isInternal: false,
         }),
-      } as any);
+      });
     });
 
     it('should handle multiline comments', async () => {
@@ -698,23 +689,20 @@ It has multiple paragraphs.
 
 End of comment.`;
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 'comment-3',
-          demandId: 'demand-123',
-          commentText: multilineText,
-          commenterId: 'user-123',
-          isInternal: false,
-          createdAt: '2023-01-01T12:00:00Z',
-          author: {
-            id: 'user-123',
-            firstName: 'Test',
-            lastName: 'User',
-            email: 'test@example.com',
-          },
-        }),
-      } as any);
+      mockFetch.mockResolvedValueOnce(jsonResponse({
+        id: 'comment-3',
+        demandId: 'demand-123',
+        commentText: multilineText,
+        commenterId: 'user-123',
+        isInternal: false,
+        createdAt: '2023-01-01T12:00:00Z',
+        author: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
+      }));
 
       render(
         <TestWrapper>
@@ -738,29 +726,26 @@ End of comment.`;
           commentType: undefined,
           isInternal: false,
         }),
-      } as any);
+      });
     });
   });
 
   describe('Form Behavior and UX', () => {
     it('should trim whitespace from comment text before submission', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          id: 'comment-3',
-          demandId: 'demand-123',
-          commentText: 'Trimmed comment',
-          commenterId: 'user-123',
-          isInternal: false,
-          createdAt: '2023-01-01T12:00:00Z',
-          author: {
-            id: 'user-123',
-            firstName: 'Test',
-            lastName: 'User',
-            email: 'test@example.com',
-          },
-        }),
-      } as any);
+      mockFetch.mockResolvedValueOnce(jsonResponse({
+        id: 'comment-3',
+        demandId: 'demand-123',
+        commentText: 'Trimmed comment',
+        commenterId: 'user-123',
+        isInternal: false,
+        createdAt: '2023-01-01T12:00:00Z',
+        author: {
+          id: 'user-123',
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
+      }));
 
       render(
         <TestWrapper>
@@ -784,31 +769,28 @@ End of comment.`;
           commentType: undefined,
           isInternal: false,
         }),
-      } as any);
+      });
     });
 
     it('should handle all comment types correctly', async () => {
       const commentTypes = ['update', 'question', 'answer', 'status_change', 'internal_note'];
       
       for (const type of commentTypes) {
-        mockFetch.mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            id: `comment-${type}`,
-            demandId: 'demand-123',
-            commentText: `Comment of type ${type}`,
-            commentType: type,
-            commenterId: 'user-123',
-            isInternal: false,
-            createdAt: '2023-01-01T12:00:00Z',
-            author: {
-              id: 'user-123',
-              firstName: 'Test',
-              lastName: 'User',
-              email: 'test@example.com',
-            },
-          }),
-        } as any);
+        mockFetch.mockResolvedValueOnce(jsonResponse({
+          id: `comment-${type}`,
+          demandId: 'demand-123',
+          commentText: `Comment of type ${type}`,
+          commentType: type,
+          commenterId: 'user-123',
+          isInternal: false,
+          createdAt: '2023-01-01T12:00:00Z',
+          author: {
+            id: 'user-123',
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'test@example.com',
+          },
+        }));
 
         const { unmount } = render(
           <TestWrapper>
@@ -834,7 +816,7 @@ End of comment.`;
             commentType: type,
             isInternal: false,
           }),
-        } as any);
+        });
 
         mockFetch.mockClear();
         unmount(); // Clean up between iterations

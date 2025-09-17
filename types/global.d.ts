@@ -95,38 +95,4 @@ declare module 'wouter/memory' {
  */
 import '@testing-library/jest-dom';
 
-/**
- * Extend Jest matchers interface with DOM testing library matchers.
- */
-declare global {
-  namespace jest {
-    /**
-     * Jest DOM matchers interface extending the default Jest matchers.
-     */
-    interface Matchers<R> {
-      toBeInTheDocument(): R;
-      toBeVisible(): R;
-      toBeEmptyDOMElement(): R;
-      toBeInvalid(): R;
-      toBeRequired(): R;
-      toBeValid(): R;
-      toBeChecked(): R;
-      toBePartiallyChecked(): R;
-      toBeDisabled(): R;
-      toBeEnabled(): R;
-      toHaveAttribute(_attr: string, _value?: string | RegExp): R;
-      toHaveClass(_className: string): R;
-      toHaveFocus(): R;
-      toHaveFormValues(_expectedValues: Record<string, unknown>): R;
-      toHaveStyle(_css: string | Record<string, unknown>): R;
-      toHaveTextContent(_text: string | RegExp): R;
-      toHaveValue(_value: string | string[] | number): R;
-      toHaveDisplayValue(_value: string | RegExp | (string | RegExp)[]): R;
-      toBeChecked(): R;
-      toHaveDescription(_text?: string | RegExp): R;
-      toHaveErrorMessage(_text?: string | RegExp): R;
-    }
-  }
-}
-
 export {};

@@ -20,8 +20,19 @@
     "allowImportingTsExtensions": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "typeRoots": ["./node_modules/@types", "./types"],
+    "types": ["jest", "@testing-library/jest-dom"],
     "skipLibCheck": true,
     "noEmitOnError": false,
     "skipDefaultLibCheck": true
-  }
+  },
+  "include": [
+    "client/src/**/*",
+    "shared/**/*",
+    "server/**/*",
+    "tests/**/*",
+    "scripts/**/*",
+    "config/**/*",
+    "jest.setup.ts",
+    "__mocks__/**/*"
+  ]
 }
