@@ -1083,7 +1083,7 @@ export function registerDocumentRoutes(app: Express): void {
         storageMethod: typeof storage?.getDocuments,
         databaseConnection: {
           hasDb: !!db,
-          connectionString: process.env.DATABASE_URL?.substring(0, 30) + '...'
+          dbConfigured: !!process.env.DATABASE_URL
         }
       }, 'DEBUG');
       const documentType = req.query.type as string; // 'building', 'resident', or undefined for both

@@ -127,9 +127,18 @@ function createSessionStore(requestDomain?: string) {
       connectionTimeoutMillis: 30000, // 30 second connection timeout
     });
     
-    // Add connection error handling
+    // Add connection error handling with credential sanitization
     sessionPool.on('error', (err) => {
-      console.error('❌ Session pool error:', err);
+      // Sanitize error to prevent credential exposure in logs
+      const sanitizedError = {
+        message: err.message,
+        code: err.code,
+        severity: err.severity,
+        name: err.name,
+        // Never log connection parameters or credentials
+        timestamp: new Date().toISOString()
+      };
+      console.error('❌ Session pool error:', sanitizedError);
     });
     
     sessionPool.on('connect', () => {

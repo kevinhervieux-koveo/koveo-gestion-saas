@@ -31,11 +31,15 @@ export class BillAutoGenerationService {
 
     const startDate = suggestedDate || new Date();
     
+    // Generate unique bill number with atomic operations
+    const uniqueBillNumber = await this.generateUniqueBillNumber(templateBill.category, startDate);
+    
     // Create the new bill
     const newBill: Bill = {
       ...templateBill,
       ...newBillData,
       id: '', // Will be generated on insert
+      billNumber: uniqueBillNumber, // Use atomic bill number
       paymentType: 'unique' as const, // Convert to unique bill
       startDate: startDate.toISOString().split('T')[0],
       endDate: newBillData.endDate || templateBill.endDate,
@@ -53,6 +57,69 @@ export class BillAutoGenerationService {
     }
 
     return newBill;
+  }
+
+  /**
+   * Generate unique bill number with atomic operations to prevent duplicates.
+   * Retries with exponential backoff on constraint violations.
+   * @param category - Bill category
+   * @param date - Bill date for formatting
+   * @returns Unique bill number
+   */
+  private async generateUniqueBillNumber(category: string, date: Date): Promise<string> {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const categoryCode = category.toUpperCase().replace(/[^A-Z]/g, '');
+    
+    const maxRetries = 5;
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+      try {
+        // Get next sequence number atomically
+        const sequenceResult = await db.execute(sql`
+          SELECT COALESCE(MAX(CAST(SUBSTRING(bill_number FROM 'AUTO-${year}-${month}-${categoryCode}-(\\d+)$') AS INTEGER)), 0) + 1 as next_sequence
+          FROM bills 
+          WHERE bill_number ~ ${`^AUTO-${year}-${month}-${categoryCode}-\\d+$`}
+          FOR UPDATE
+        `);
+        
+        const nextSequence = (sequenceResult.rows[0] as any)?.next_sequence || 1;
+        const billNumber = `AUTO-${year}-${month}-${categoryCode}-${String(nextSequence).padStart(3, '0')}`;
+        
+        // Verify uniqueness with a quick check
+        const existingBill = await db
+          .select({ id: bills.id })
+          .from(bills)
+          .where(eq(bills.billNumber, billNumber))
+          .limit(1);
+        
+        if (existingBill.length === 0) {
+          return billNumber;
+        }
+        
+        // If we get here, there was a race condition, retry
+        attempt++;
+        console.warn(`🔄 Bill number ${billNumber} already exists, retrying (attempt ${attempt}/${maxRetries})`);
+        
+      } catch (error: any) {
+        attempt++;
+        if (error.message?.includes('duplicate key') || error.message?.includes('already exists')) {
+          console.warn(`🔄 Duplicate bill number detected, retrying (attempt ${attempt}/${maxRetries})`);
+        } else {
+          console.error(`❌ Error generating bill number (attempt ${attempt}/${maxRetries}):`, error);
+        }
+        
+        if (attempt >= maxRetries) {
+          throw new Error(`Failed to generate unique bill number after ${maxRetries} attempts: ${error.message}`);
+        }
+      }
+      
+      // Exponential backoff with jitter (10-100ms)
+      await new Promise(resolve => setTimeout(resolve, Math.random() * (10 * Math.pow(2, attempt)) + 10));
+    }
+    
+    throw new Error(`Failed to generate unique bill number after ${maxRetries} attempts`);
   }
 
   /**
