@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils';
 import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from './GeminiBillExtractor';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
+import { StandardDocumentAttachments, type AttachedFile } from '@/components/common/StandardDocumentAttachments';
 import type { Bill, Document } from '@shared/schema';
 import type { UploadContext } from '@shared/config/upload-config';
 
@@ -251,9 +252,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   const [isExtracting, setIsExtracting] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true); // AI enabled by default for bills
   
-  // State for manual document upload
-  const [manualFile, setManualFile] = useState<File | null>(null);
-  const [textContent, setTextContent] = useState<string | null>(null);
+  // State for document management
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [customPayments, setCustomPayments] = useState<CustomPayment[]>(parsedPaymentData.customPayments);
   
   
@@ -420,27 +421,66 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   // Handle file upload from SharedUploader
   const handleFileUpload = (file: File | null, text: string | null) => {
     if (file) {
+      // Add file to attachments list
+      const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const isImage = file.type.startsWith('image/');
+      
+      const newAttachment: AttachedFile = {
+        id: fileId,
+        file,
+        preview: isImage ? URL.createObjectURL(file) : undefined,
+        uploadProgress: 0,
+        aiAnalyzed: aiEnabled,
+        category: getCategoryFromFileName(file.name)
+      };
+      
+      setAttachedFiles(prev => [...prev, newAttachment]);
+      
+      // Simulate upload progress
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 30;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+        }
+        setUploadProgress(prev => ({ ...prev, [fileId]: progress }));
+      }, 200);
+      
       if (aiEnabled) {
         setAiFile(file);
         setIsAiMode(true);
         setIsExtracting(true);
-      } else {
-        setManualFile(file);
       }
-      // Clear text content when file is selected
-      setTextContent(null);
     } else if (text) {
-      // Handle text content input
-      setTextContent(text);
-      // Clear file content when text is entered
-      setAiFile(null);
-      setManualFile(null);
-    } else {
-      // Clear both when neither file nor text is provided
-      setTextContent(null);
-      setAiFile(null);
-      setManualFile(null);
+      // Handle text content - could save as text document
+      console.log('Text content received:', text);
     }
+  };
+
+  // Remove file from attachments
+  const removeAttachedFile = (fileId: string) => {
+    setAttachedFiles(prev => {
+      const file = prev.find(f => f.id === fileId);
+      if (file?.preview) {
+        URL.revokeObjectURL(file.preview);
+      }
+      return prev.filter(f => f.id !== fileId);
+    });
+    setUploadProgress(prev => {
+      const { [fileId]: removed, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  // Get category from file name
+  const getCategoryFromFileName = (fileName: string): string => {
+    const lower = fileName.toLowerCase();
+    if (lower.includes('invoice') || lower.includes('bill')) return 'invoice';
+    if (lower.includes('receipt')) return 'receipt';
+    if (lower.includes('contract')) return 'contract';
+    if (lower.includes('quote') || lower.includes('estimate')) return 'quote';
+    return 'document';
   };
 
   // Create/Update bill mutation
@@ -504,9 +544,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       const response = await apiRequest(method, endpoint, billData);
       const billResponse = await response.json();
       
-      // Upload document or create text file if content was provided
-      const fileToUpload = aiFile || manualFile;
-      if (!bill && (fileToUpload || textContent)) {
+      // Upload attached documents if any
+      const fileToUpload = aiFile;
+      if (!bill && (fileToUpload || attachedFiles.length > 0)) {
         try {
           if (fileToUpload) {
             // Handle file upload
@@ -543,11 +583,13 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               title: 'Document Uploaded',
               description: `${fileToUpload.name} has been attached to the bill`,
             });
-          } else if (textContent) {
-            // Handle text content creation
-            console.log('[BILL FORM] Creating text document for bill:', billResponse.id);
-            const formData = new FormData();
-            formData.append('textContent', textContent);
+          } else if (attachedFiles.some(f => f.file.type === 'text/plain')) {
+            // Handle text document from attached files
+            const textFile = attachedFiles.find(f => f.file.type === 'text/plain');
+            if (textFile) {
+              console.log('[BILL FORM] Creating text document for bill:', billResponse.id);
+              const formData = new FormData();
+              formData.append('file', textFile.file);
             formData.append('name', `${billResponse.billNumber || billResponse.title} - Notes`);
             formData.append('description', 'Text document created for bill');
             formData.append('documentType', 'other');
@@ -754,6 +796,36 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
           </Badge>
         )}
       </div>
+
+      {/* Document Attachments Section */}
+      <StandardDocumentAttachments
+        onDocumentChange={handleFileUpload}
+        attachedFiles={attachedFiles}
+        onRemoveFile={removeAttachedFile}
+        uploadProgress={uploadProgress}
+        uploadContext={uploadContext}
+        allowedFileTypes={[
+          'application/pdf',
+          'image/jpeg',
+          'image/jpg',
+          'image/png',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ]}
+        maxFileSize={25}
+        aiEnabled={!bill && aiEnabled}
+        onAiToggle={handleAiToggle}
+        onAiExtractionComplete={handleAiAnalysisComplete}
+        aiExtractionLoading={isExtracting}
+        aiExtractionData={aiExtractionData}
+        showAiToggle={false}
+        title="Document Attachments"
+        showUploadTabs={true}
+        defaultUploadTab="file"
+        showSection={true}
+      />
 
       {!bill && (
         <Tabs defaultValue="manual" className="space-y-4">
