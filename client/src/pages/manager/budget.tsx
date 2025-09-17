@@ -21,7 +21,19 @@ import {
   Calculator,
   ArrowLeft,
   Settings,
-  LineChart
+  LineChart,
+  Building,
+  CreditCard,
+  Receipt,
+  Percent,
+  Coins,
+  Plus,
+  Minus,
+  Target,
+  TrendingUp as TrendingUpIcon,
+  Building2,
+  FileText,
+  PiggyBank
 } from 'lucide-react';
 import {
   LineChart as RechartsLineChart,
@@ -43,6 +55,17 @@ interface BankAccountSettings {
   bankAccountMinimums?: number;
   generalInflationRate?: number;
   revenueInflationRate?: number;
+  // Extended configuration options
+  emergencyFundMinimum?: number;
+  reserveFundTarget?: number;
+  operatingCashMinimum?: number;
+  revenueGrowthRate?: number;
+  costInflationRate?: number;
+  utilityInflationRate?: number;
+  maintenanceInflationRate?: number;
+  specialInvestmentBudget?: number;
+  investmentHorizonYears?: number;
+  capitalProjectReserve?: number;
 }
 
 interface BankAccountData {
@@ -102,6 +125,17 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     bankAccountMinimums: 0,
     generalInflationRate: 2.0,
     revenueInflationRate: 2.0,
+    // Extended configuration defaults
+    emergencyFundMinimum: 10000,
+    reserveFundTarget: 50000,
+    operatingCashMinimum: 5000,
+    revenueGrowthRate: 2.5,
+    costInflationRate: 2.0,
+    utilityInflationRate: 3.0,
+    maintenanceInflationRate: 2.5,
+    specialInvestmentBudget: 25000,
+    investmentHorizonYears: 5,
+    capitalProjectReserve: 100000,
   });
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
@@ -578,6 +612,369 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Configuration Cards */}
+              <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'>
+                {/* Bank Account Configuration */}
+                <Card data-testid="card-bank-account-config">
+                  <CardHeader>
+                    <CardTitle className='flex items-center gap-2'>
+                      <CreditCard className='w-5 h-5' />
+                      Bank Account Configuration
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-4'>
+                    <div className='space-y-2'>
+                      <Label htmlFor="starting-amount">Starting Balance</Label>
+                      <div className='relative'>
+                        <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="starting-amount"
+                          type="number"
+                          value={localSettings.bankAccountStartAmount}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              bankAccountStartAmount: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="0"
+                          data-testid="input-starting-balance"
+                        />
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor="emergency-fund">Emergency Fund Minimum</Label>
+                      <div className='relative'>
+                        <PiggyBank className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="emergency-fund"
+                          type="number"
+                          value={localSettings.emergencyFundMinimum}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              emergencyFundMinimum: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="10000"
+                          data-testid="input-emergency-fund"
+                        />
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor="operating-cash">Operating Cash Minimum</Label>
+                      <div className='relative'>
+                        <Coins className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="operating-cash"
+                          type="number"
+                          value={localSettings.operatingCashMinimum}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              operatingCashMinimum: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="5000"
+                          data-testid="input-operating-cash"
+                        />
+                      </div>
+                    </div>
+                    <div className='pt-2 border-t'>
+                      <div className='text-sm text-muted-foreground'>
+                        Current Balance: ${summaryMetrics.currentBalance.toLocaleString()}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Revenue Configuration */}
+                <Card data-testid="card-revenue-config">
+                  <CardHeader>
+                    <CardTitle className='flex items-center gap-2'>
+                      <TrendingUpIcon className='w-5 h-5' />
+                      Revenue Configuration
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-4'>
+                    <div className='space-y-2'>
+                      <Label htmlFor="revenue-growth">Revenue Growth Rate (%)</Label>
+                      <div className='relative'>
+                        <Percent className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="revenue-growth"
+                          type="number"
+                          step="0.1"
+                          value={localSettings.revenueGrowthRate}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              revenueGrowthRate: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="2.5"
+                          data-testid="input-revenue-growth"
+                        />
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor="revenue-inflation">Revenue Inflation Rate (%)</Label>
+                      <div className='relative'>
+                        <TrendingUp className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="revenue-inflation"
+                          type="number"
+                          step="0.1"
+                          value={localSettings.revenueInflationRate}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              revenueInflationRate: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="2.0"
+                          data-testid="input-revenue-inflation"
+                        />
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor="reserve-target">Reserve Fund Target</Label>
+                      <div className='relative'>
+                        <Target className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="reserve-target"
+                          type="number"
+                          value={localSettings.reserveFundTarget}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              reserveFundTarget: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="50000"
+                          data-testid="input-reserve-target"
+                        />
+                      </div>
+                    </div>
+                    <div className='pt-2 border-t'>
+                      <div className='text-sm text-muted-foreground'>
+                        Monthly Income: ${summaryMetrics.monthlyIncome.toLocaleString()}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Bills Configuration */}
+                <Card data-testid="card-bills-config">
+                  <CardHeader>
+                    <CardTitle className='flex items-center gap-2'>
+                      <Receipt className='w-5 h-5' />
+                      Bills Configuration
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-4'>
+                    <div className='grid grid-cols-2 gap-4'>
+                      <div className='text-center p-3 bg-blue-50 rounded-lg'>
+                        <div className='text-lg font-semibold text-blue-600'>
+                          {forecastData?.recurrentBillsCount || 0}
+                        </div>
+                        <div className='text-sm text-blue-600'>Recurrent Bills</div>
+                      </div>
+                      <div className='text-center p-3 bg-purple-50 rounded-lg'>
+                        <div className='text-lg font-semibold text-purple-600'>
+                          {forecastData?.uniqueBillsCount || 0}
+                        </div>
+                        <div className='text-sm text-purple-600'>Unique Bills</div>
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <Label>Bill Categories</Label>
+                      <div className='space-y-2'>
+                        {spendingCategories.slice(2).map((category) => (
+                          <div key={category.category} className='flex items-center justify-between text-sm'>
+                            <span className='flex items-center gap-2'>
+                              <div className={`w-2 h-2 rounded-full ${category.color}`}></div>
+                              {category.category}
+                            </span>
+                            <span className='font-medium'>
+                              ${category.used.toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className='pt-2 border-t'>
+                      <div className='text-sm text-muted-foreground'>
+                        Total Monthly Expenses: ${summaryMetrics.monthlySpending.toLocaleString()}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Inflation Configuration */}
+                <Card data-testid="card-inflation-config">
+                  <CardHeader>
+                    <CardTitle className='flex items-center gap-2'>
+                      <BarChart className='w-5 h-5' />
+                      Inflation Configuration
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-4'>
+                    <div className='space-y-2'>
+                      <Label htmlFor="general-inflation">General Inflation Rate (%)</Label>
+                      <div className='relative'>
+                        <Percent className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="general-inflation"
+                          type="number"
+                          step="0.1"
+                          value={localSettings.generalInflationRate}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              generalInflationRate: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="2.0"
+                          data-testid="input-general-inflation-rate"
+                        />
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor="utility-inflation">Utility Inflation Rate (%)</Label>
+                      <div className='relative'>
+                        <TrendingUp className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="utility-inflation"
+                          type="number"
+                          step="0.1"
+                          value={localSettings.utilityInflationRate}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              utilityInflationRate: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="3.0"
+                          data-testid="input-utility-inflation"
+                        />
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor="maintenance-inflation">Maintenance Inflation Rate (%)</Label>
+                      <div className='relative'>
+                        <Building className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="maintenance-inflation"
+                          type="number"
+                          step="0.1"
+                          value={localSettings.maintenanceInflationRate}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              maintenanceInflationRate: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="2.5"
+                          data-testid="input-maintenance-inflation"
+                        />
+                      </div>
+                    </div>
+                    <div className='pt-2 border-t'>
+                      <div className='text-sm text-muted-foreground'>
+                        Affects future cost projections
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Special Capital Investment */}
+                <Card data-testid="card-capital-investment" className='lg:col-span-2 xl:col-span-1'>
+                  <CardHeader>
+                    <CardTitle className='flex items-center gap-2'>
+                      <Building2 className='w-5 h-5' />
+                      Special Capital Investment
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-4'>
+                    <div className='space-y-2'>
+                      <Label htmlFor="investment-budget">Investment Budget</Label>
+                      <div className='relative'>
+                        <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="investment-budget"
+                          type="number"
+                          value={localSettings.specialInvestmentBudget}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              specialInvestmentBudget: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="25000"
+                          data-testid="input-investment-budget"
+                        />
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor="investment-horizon">Investment Horizon (Years)</Label>
+                      <div className='relative'>
+                        <FileText className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="investment-horizon"
+                          type="number"
+                          value={localSettings.investmentHorizonYears}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              investmentHorizonYears: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="5"
+                          data-testid="input-investment-horizon"
+                        />
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor="capital-reserve">Capital Project Reserve</Label>
+                      <div className='relative'>
+                        <PiggyBank className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="capital-reserve"
+                          type="number"
+                          value={localSettings.capitalProjectReserve}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              capitalProjectReserve: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="100000"
+                          data-testid="input-capital-reserve"
+                        />
+                      </div>
+                    </div>
+                    <div className='pt-2 border-t'>
+                      <div className='text-sm text-muted-foreground'>
+                        Plan for major capital improvements
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </>
           )}
         </div>
