@@ -84,7 +84,8 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
     },
     onError: (error: any, variables, context) => {
       console.error('[GEMINI BILL EXTRACTOR] Extraction failed:', error);
-      setRetryCount(context?.failureCount || 0);
+      const failureCount = (error as any)?.failureCount || 0;
+      setRetryCount(failureCount);
       
       // Handle different error types
       let errorMessage = 'Failed to extract bill data';
@@ -114,7 +115,7 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
       }
       
       // Add retry information if applicable
-      const currentRetries = context?.failureCount || 0;
+      const currentRetries = (error as any)?.failureCount || 0;
       if (currentRetries > 0) {
         errorMessage += ` (after ${currentRetries} retry${currentRetries === 1 ? '' : 'ies'})`;
       }

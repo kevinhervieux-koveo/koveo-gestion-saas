@@ -1586,7 +1586,7 @@ export function registerBillRoutes(app: Express) {
       const template = sourceTemplate[0];
 
       // Use the bill generation service to create a single bill
-      const generatedBills = await billAutoGenerationService.generateForNextYear(template);
+      const generatedBills = await billAutoGenerationService.generateForNextYear(template as Bill);
       
       if (generatedBills.length === 0) {
         return res.status(400).json({
