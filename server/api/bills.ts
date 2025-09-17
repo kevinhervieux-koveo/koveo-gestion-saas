@@ -655,39 +655,37 @@ export function registerBillRoutes(app: Express) {
       let updatedBill: any = null;
       let paymentRegenerationInfo = null;
 
-      // Wrap bill update and payment operations in a transaction for atomicity
-      await db.transaction(async (tx) => {
-        // Update the bill within the transaction
-        const billUpdateResult = await tx
-          .update(bills)
-          .set(updateData)
-          .where(eq(bills.id, id))
-          .returning();
+      // Note: Neon HTTP driver doesn't support transactions, so we execute operations sequentially
+      // Update the bill first
+      const billUpdateResult = await db
+        .update(bills)
+        .set(updateData)
+        .where(eq(bills.id, id))
+        .returning();
 
-        if (billUpdateResult.length === 0) {
-          throw new Error('Bill not found after update');
-        }
+      if (billUpdateResult.length === 0) {
+        throw new Error('Bill not found after update');
+      }
 
-        updatedBill = billUpdateResult[0];
+      updatedBill = billUpdateResult[0];
 
-        // Update payments for the edited bill within the same transaction
-        if (paymentStructureChanged) {
-          // Complete regeneration for recurrent bills with payment structure changes
-          console.log(`🔄 Performing complete payment schedule regeneration for bill ${id}`);
-          paymentRegenerationInfo = await paymentGenerationService.regenerateCompletePaymentSchedule(id, tx);
-          console.log(`✅ Complete payment schedule regenerated: deleted ${paymentRegenerationInfo.deletedCount}, created ${paymentRegenerationInfo.createdCount}`);
-        } else {
-          // Standard update that preserves paid payments
-          await paymentGenerationService.updatePaymentsForBill(id, tx);
-        }
-        
-        // If status was updated, cascade status changes to payments
-        if (billData.status) {
-          await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status, tx);
-        }
-      });
+      // Update payments for the edited bill (without transaction context)
+      if (paymentStructureChanged) {
+        // Complete regeneration for recurrent bills with payment structure changes
+        console.log(`🔄 Performing complete payment schedule regeneration for bill ${id}`);
+        paymentRegenerationInfo = await paymentGenerationService.regenerateCompletePaymentSchedule(id);
+        console.log(`✅ Complete payment schedule regenerated: deleted ${paymentRegenerationInfo.deletedCount}, created ${paymentRegenerationInfo.createdCount}`);
+      } else {
+        // Standard update that preserves paid payments
+        await paymentGenerationService.updatePaymentsForBill(id);
+      }
+      
+      // If status was updated, cascade status changes to payments
+      if (billData.status) {
+        await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status);
+      }
 
-      // Handle any transaction failures
+      // Handle any failures
       if (!updatedBill) {
         return res.status(404).json({
           message: 'Bill not found after update',
@@ -805,39 +803,37 @@ export function registerBillRoutes(app: Express) {
       let updatedBill: any = null;
       let paymentRegenerationInfo = null;
 
-      // Wrap bill update and payment operations in a transaction for atomicity
-      await db.transaction(async (tx) => {
-        // Update the bill within the transaction
-        const billUpdateResult = await tx
-          .update(bills)
-          .set(updateData)
-          .where(eq(bills.id, id))
-          .returning();
+      // Note: Neon HTTP driver doesn't support transactions, so we execute operations sequentially
+      // Update the bill first
+      const billUpdateResult = await db
+        .update(bills)
+        .set(updateData)
+        .where(eq(bills.id, id))
+        .returning();
 
-        if (billUpdateResult.length === 0) {
-          throw new Error('Bill not found after update');
-        }
+      if (billUpdateResult.length === 0) {
+        throw new Error('Bill not found after update');
+      }
 
-        updatedBill = billUpdateResult[0];
+      updatedBill = billUpdateResult[0];
 
-        // Update payments for the edited bill within the same transaction
-        if (paymentStructureChanged) {
-          // Complete regeneration for recurrent bills with payment structure changes
-          console.log(`🔄 Performing complete payment schedule regeneration for bill ${id}`);
-          paymentRegenerationInfo = await paymentGenerationService.regenerateCompletePaymentSchedule(id, tx);
-          console.log(`✅ Complete payment schedule regenerated: deleted ${paymentRegenerationInfo.deletedCount}, created ${paymentRegenerationInfo.createdCount}`);
-        } else {
-          // Standard update that preserves paid payments
-          await paymentGenerationService.updatePaymentsForBill(id, tx);
-        }
-        
-        // If status was updated, cascade status changes to payments
-        if (billData.status) {
-          await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status, tx);
-        }
-      });
+      // Update payments for the edited bill (without transaction context)
+      if (paymentStructureChanged) {
+        // Complete regeneration for recurrent bills with payment structure changes
+        console.log(`🔄 Performing complete payment schedule regeneration for bill ${id}`);
+        paymentRegenerationInfo = await paymentGenerationService.regenerateCompletePaymentSchedule(id);
+        console.log(`✅ Complete payment schedule regenerated: deleted ${paymentRegenerationInfo.deletedCount}, created ${paymentRegenerationInfo.createdCount}`);
+      } else {
+        // Standard update that preserves paid payments
+        await paymentGenerationService.updatePaymentsForBill(id);
+      }
+      
+      // If status was updated, cascade status changes to payments
+      if (billData.status) {
+        await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status);
+      }
 
-      // Handle any transaction failures
+      // Handle any failures
       if (!updatedBill) {
         return res.status(404).json({
           message: 'Bill not found after update',
