@@ -106,6 +106,83 @@ const upload = multer({
 });
 
 /**
+ * Helper function to detect if payment structure has changed for recurrent bills
+ * Returns true if payment-related fields have changed that require complete payment regeneration
+ */
+function hasPaymentStructureChanged(originalBill: any, updateData: any): boolean {
+  // Only check for recurrent bills - unique bills don't need structure change detection
+  if (originalBill.paymentType !== 'recurrent') {
+    return false;
+  }
+
+  // Payment structure fields that trigger complete regeneration
+  const paymentFields = [
+    'paymentType',
+    'schedulePayment', 
+    'totalAmount',
+    'startDate',
+    'endDate'
+  ];
+
+  // Check if any critical payment fields have changed
+  for (const field of paymentFields) {
+    if (updateData[field] !== undefined) {
+      // Convert values to strings for comparison to handle type differences
+      const originalValue = String(originalBill[field] || '');
+      const newValue = String(updateData[field] || '');
+      
+      if (originalValue !== newValue) {
+        console.log(`🔍 Payment structure change detected: ${field} changed from "${originalValue}" to "${newValue}"`);
+        return true;
+      }
+    }
+  }
+
+  // Check if costs array has changed (payment amounts)
+  if (updateData.costs !== undefined) {
+    const originalCosts = originalBill.costs || [];
+    const newCosts = updateData.costs || [];
+    
+    // Compare array lengths first
+    if (originalCosts.length !== newCosts.length) {
+      console.log(`🔍 Payment structure change detected: costs array length changed from ${originalCosts.length} to ${newCosts.length}`);
+      return true;
+    }
+    
+    // Compare each cost value
+    for (let i = 0; i < originalCosts.length; i++) {
+      const originalCost = Number(originalCosts[i]);
+      const newCost = Number(newCosts[i]);
+      
+      if (Math.abs(originalCost - newCost) > 0.01) { // Account for floating point precision
+        console.log(`🔍 Payment structure change detected: cost at index ${i} changed from ${originalCost} to ${newCost}`);
+        return true;
+      }
+    }
+  }
+
+  // Check if custom schedule has changed
+  if (updateData.scheduleCustom !== undefined) {
+    const originalSchedule = originalBill.scheduleCustom || [];
+    const newSchedule = updateData.scheduleCustom || [];
+    
+    if (originalSchedule.length !== newSchedule.length) {
+      console.log(`🔍 Payment structure change detected: custom schedule length changed from ${originalSchedule.length} to ${newSchedule.length}`);
+      return true;
+    }
+    
+    for (let i = 0; i < originalSchedule.length; i++) {
+      if (originalSchedule[i] !== newSchedule[i]) {
+        console.log(`🔍 Payment structure change detected: custom schedule date at index ${i} changed from ${originalSchedule[i]} to ${newSchedule[i]}`);
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  *
  * @param app
  */
@@ -521,6 +598,15 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
 
+      // Fetch the original bill data before updating to detect payment structure changes
+      const originalBill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
+      
+      if (originalBill.length === 0) {
+        return res.status(404).json({
+          message: 'Bill not found',
+        });
+      }
+
       const updateData: any = {};
       if (billData.title) {
         updateData.title = billData.title;
@@ -536,6 +622,12 @@ export function registerBillRoutes(app: Express) {
       }
       if (billData.paymentType) {
         updateData.paymentType = billData.paymentType;
+      }
+      if (billData.schedulePayment) {
+        updateData.schedulePayment = billData.schedulePayment;
+      }
+      if (billData.scheduleCustom) {
+        updateData.scheduleCustom = billData.scheduleCustom;
       }
       if (billData.costs) {
         updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
@@ -557,36 +649,56 @@ export function registerBillRoutes(app: Express) {
       }
       updateData.updatedAt = new Date();
 
-      const updatedBill = await db
-        .update(bills)
-        .set(updateData)
-        .where(eq(bills.id, id))
-        .returning();
+      // Detect if payment structure has changed for recurrent bills
+      const paymentStructureChanged = hasPaymentStructureChanged(originalBill[0], updateData);
 
-      if (updatedBill.length === 0) {
-        return res.status(404).json({
-          message: 'Bill not found',
-        });
-      }
+      let updatedBill: any = null;
+      let paymentRegenerationInfo = null;
 
-      // Update payments for the edited bill
-      try {
-        await paymentGenerationService.updatePaymentsForBill(id);
+      // Wrap bill update and payment operations in a transaction for atomicity
+      await db.transaction(async (tx) => {
+        // Update the bill within the transaction
+        const billUpdateResult = await tx
+          .update(bills)
+          .set(updateData)
+          .where(eq(bills.id, id))
+          .returning();
+
+        if (billUpdateResult.length === 0) {
+          throw new Error('Bill not found after update');
+        }
+
+        updatedBill = billUpdateResult[0];
+
+        // Update payments for the edited bill within the same transaction
+        if (paymentStructureChanged) {
+          // Complete regeneration for recurrent bills with payment structure changes
+          console.log(`🔄 Performing complete payment schedule regeneration for bill ${id}`);
+          paymentRegenerationInfo = await paymentGenerationService.regenerateCompletePaymentSchedule(id, tx);
+          console.log(`✅ Complete payment schedule regenerated: deleted ${paymentRegenerationInfo.deletedCount}, created ${paymentRegenerationInfo.createdCount}`);
+        } else {
+          // Standard update that preserves paid payments
+          await paymentGenerationService.updatePaymentsForBill(id, tx);
+        }
         
         // If status was updated, cascade status changes to payments
         if (billData.status) {
-          await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status);
+          await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status, tx);
         }
-      } catch (paymentError) {
-        console.warn('⚠️ Failed to update payments for bill:', paymentError);
-        // Don't fail the bill update if payment update fails
+      });
+
+      // Handle any transaction failures
+      if (!updatedBill) {
+        return res.status(404).json({
+          message: 'Bill not found after update',
+        });
       }
 
       // Auto-generation trigger for recurrent bills
-      if (updatedBill[0].paymentType === 'recurrent') {
+      if (updatedBill.paymentType === 'recurrent') {
         try {
           await billAutoGenerationService.regenerateAutoGeneratedBills(id);
-          await billAutoGenerationService.cleanupPastAutoGeneratedBills(updatedBill[0].buildingId);
+          await billAutoGenerationService.cleanupPastAutoGeneratedBills(updatedBill.buildingId);
           console.log(`✅ Auto-generation regenerated for recurrent bill ${id}`);
         } catch (autoGenError) {
           console.warn('⚠️ Failed to regenerate auto-generated bills:', autoGenError);
@@ -594,7 +706,21 @@ export function registerBillRoutes(app: Express) {
         }
       }
 
-      res.json(updatedBill[0]);
+      // Include payment regeneration info in response for user feedback
+      const response: any = {
+        ...updatedBill,
+        paymentScheduleRegenerated: paymentStructureChanged,
+      };
+
+      if (paymentRegenerationInfo) {
+        response.paymentRegenerationInfo = {
+          deletedPayments: paymentRegenerationInfo.deletedCount,
+          createdPayments: paymentRegenerationInfo.createdCount,
+          message: `Payment schedule completely regenerated: ${paymentRegenerationInfo.deletedCount} payments deleted, ${paymentRegenerationInfo.createdCount} new payments created. Please manually mark any payments that have already been paid.`
+        };
+      }
+
+      res.json(response);
     } catch (_error: any) {
       console.error('❌ Error updating bill (PATCH):', _error);
       res.status(500).json({
@@ -622,6 +748,15 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
 
+      // Fetch the original bill data before updating to detect payment structure changes
+      const originalBill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
+      
+      if (originalBill.length === 0) {
+        return res.status(404).json({
+          message: 'Bill not found',
+        });
+      }
+
       const updateData: any = {};
       if (billData.title) {
         updateData.title = billData.title;
@@ -638,6 +773,12 @@ export function registerBillRoutes(app: Express) {
       if (billData.paymentType) {
         updateData.paymentType = billData.paymentType;
       }
+      if (billData.schedulePayment) {
+        updateData.schedulePayment = billData.schedulePayment;
+      }
+      if (billData.scheduleCustom) {
+        updateData.scheduleCustom = billData.scheduleCustom;
+      }
       if (billData.costs) {
         updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
       }
@@ -647,6 +788,9 @@ export function registerBillRoutes(app: Express) {
       if (billData.startDate) {
         updateData.startDate = billData.startDate;
       }
+      if (billData.endDate) {
+        updateData.endDate = billData.endDate;
+      }
       if (billData.status) {
         updateData.status = billData.status;
       }
@@ -655,29 +799,49 @@ export function registerBillRoutes(app: Express) {
       }
       updateData.updatedAt = new Date();
 
-      const updatedBill = await db
-        .update(bills)
-        .set(updateData)
-        .where(eq(bills.id, id))
-        .returning();
+      // Detect if payment structure has changed for recurrent bills
+      const paymentStructureChanged = hasPaymentStructureChanged(originalBill[0], updateData);
 
-      if (updatedBill.length === 0) {
-        return res.status(404).json({
-          message: 'Bill not found',
-        });
-      }
+      let updatedBill: any = null;
+      let paymentRegenerationInfo = null;
 
-      // Update payments for the edited bill
-      try {
-        await paymentGenerationService.updatePaymentsForBill(id);
+      // Wrap bill update and payment operations in a transaction for atomicity
+      await db.transaction(async (tx) => {
+        // Update the bill within the transaction
+        const billUpdateResult = await tx
+          .update(bills)
+          .set(updateData)
+          .where(eq(bills.id, id))
+          .returning();
+
+        if (billUpdateResult.length === 0) {
+          throw new Error('Bill not found after update');
+        }
+
+        updatedBill = billUpdateResult[0];
+
+        // Update payments for the edited bill within the same transaction
+        if (paymentStructureChanged) {
+          // Complete regeneration for recurrent bills with payment structure changes
+          console.log(`🔄 Performing complete payment schedule regeneration for bill ${id}`);
+          paymentRegenerationInfo = await paymentGenerationService.regenerateCompletePaymentSchedule(id, tx);
+          console.log(`✅ Complete payment schedule regenerated: deleted ${paymentRegenerationInfo.deletedCount}, created ${paymentRegenerationInfo.createdCount}`);
+        } else {
+          // Standard update that preserves paid payments
+          await paymentGenerationService.updatePaymentsForBill(id, tx);
+        }
         
         // If status was updated, cascade status changes to payments
         if (billData.status) {
-          await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status);
+          await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status, tx);
         }
-      } catch (paymentError) {
-        console.warn('⚠️ Failed to update payments for bill:', paymentError);
-        // Don't fail the bill update if payment update fails
+      });
+
+      // Handle any transaction failures
+      if (!updatedBill) {
+        return res.status(404).json({
+          message: 'Bill not found after update',
+        });
       }
 
       // Schedule delayed money flow and budget update for the updated bill
@@ -689,10 +853,10 @@ export function registerBillRoutes(app: Express) {
       }
 
       // Auto-generation trigger for recurrent bills
-      if (updatedBill[0].paymentType === 'recurrent') {
+      if (updatedBill.paymentType === 'recurrent') {
         try {
           await billAutoGenerationService.regenerateAutoGeneratedBills(id);
-          await billAutoGenerationService.cleanupPastAutoGeneratedBills(updatedBill[0].buildingId);
+          await billAutoGenerationService.cleanupPastAutoGeneratedBills(updatedBill.buildingId);
           console.log(`✅ Auto-generation regenerated for recurrent bill ${id}`);
         } catch (autoGenError) {
           console.warn('⚠️ Failed to regenerate auto-generated bills:', autoGenError);
@@ -700,7 +864,21 @@ export function registerBillRoutes(app: Express) {
         }
       }
 
-      res.json(updatedBill[0]);
+      // Include payment regeneration info in response for user feedback
+      const response: any = {
+        ...updatedBill,
+        paymentScheduleRegenerated: paymentStructureChanged,
+      };
+
+      if (paymentRegenerationInfo) {
+        response.paymentRegenerationInfo = {
+          deletedPayments: paymentRegenerationInfo.deletedCount,
+          createdPayments: paymentRegenerationInfo.createdCount,
+          message: `Payment schedule completely regenerated: ${paymentRegenerationInfo.deletedCount} payments deleted, ${paymentRegenerationInfo.createdCount} new payments created. Please manually mark any payments that have already been paid.`
+        };
+      }
+
+      res.json(response);
     } catch (_error: any) {
       console.error('❌ Error updating bill (PUT):', _error);
       res.status(500).json({

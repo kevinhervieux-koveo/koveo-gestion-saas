@@ -2,6 +2,7 @@ import { db } from '../db';
 import { bills, payments } from '@shared/schema';
 import { eq, and, not, sql, lt } from 'drizzle-orm';
 import type { Bill, InsertPayment } from '@shared/schema';
+import type { DrizzleTransaction, DatabaseContext } from '../types/transaction';
 
 /**
  * Payment Generation Service
@@ -12,10 +13,13 @@ export class PaymentGenerationService {
   /**
    * Generate payments for a newly created bill
    */
-  async generatePaymentsForBill(billId: string): Promise<void> {
+  async generatePaymentsForBill(billId: string, tx?: DrizzleTransaction): Promise<void> {
     try {
+      // Use transaction if provided, otherwise use global db
+      const dbContext: DatabaseContext = tx || db;
+      
       // Get the bill details
-      const bill = await db.select().from(bills).where(eq(bills.id, billId)).limit(1);
+      const bill = await dbContext.select().from(bills).where(eq(bills.id, billId)).limit(1);
       
       if (!bill || bill.length === 0) {
         throw new Error(`Bill with ID ${billId} not found`);
@@ -49,7 +53,7 @@ export class PaymentGenerationService {
 
       // Insert all generated payments
       if (paymentsToInsert.length > 0) {
-        await db.insert(payments).values(paymentsToInsert);
+        await dbContext.insert(payments).values(paymentsToInsert);
         console.log(`✅ Generated ${paymentsToInsert.length} payments for bill ${billId}`);
       }
     } catch (error) {
@@ -61,10 +65,13 @@ export class PaymentGenerationService {
   /**
    * Update payments when a bill is edited
    */
-  async updatePaymentsForBill(billId: string): Promise<void> {
+  async updatePaymentsForBill(billId: string, tx?: DrizzleTransaction): Promise<void> {
     try {
+      // Use transaction if provided, otherwise use global db
+      const dbContext: DatabaseContext = tx || db;
+      
       // Get the updated bill details
-      const bill = await db.select().from(bills).where(eq(bills.id, billId)).limit(1);
+      const bill = await dbContext.select().from(bills).where(eq(bills.id, billId)).limit(1);
       
       if (!bill || bill.length === 0) {
         throw new Error(`Bill with ID ${billId} not found`);
@@ -73,7 +80,7 @@ export class PaymentGenerationService {
       const billData = bill[0];
 
       // Get all existing payments for this bill
-      const existingPayments = await db.select().from(payments)
+      const existingPayments = await dbContext.select().from(payments)
         .where(eq(payments.billId, billId))
         .orderBy(payments.paymentNumber);
 
@@ -85,7 +92,7 @@ export class PaymentGenerationService {
 
       // Delete all unpaid payments (pending + overdue) to regenerate with updated amounts
       // Only preserve payments that have already been paid
-      await db.delete(payments).where(
+      await dbContext.delete(payments).where(
         and(
           eq(payments.billId, billId),
           not(eq(payments.status, 'paid'))
@@ -103,7 +110,7 @@ export class PaymentGenerationService {
             amount: billData.totalAmount.toString(),
             status: 'pending',
           }];
-          await db.insert(payments).values(paymentsToInsert);
+          await dbContext.insert(payments).values(paymentsToInsert);
         }
       } else {
         // For recurrent payments, continue from where paid payments left off
@@ -117,7 +124,7 @@ export class PaymentGenerationService {
         );
         
         if (generatedPayments.length > 0) {
-          await db.insert(payments).values(generatedPayments);
+          await dbContext.insert(payments).values(generatedPayments);
         }
       }
       
@@ -131,12 +138,84 @@ export class PaymentGenerationService {
   /**
    * Delete all payments when a bill is deleted
    */
-  async deletePaymentsForBill(billId: string): Promise<void> {
+  async deletePaymentsForBill(billId: string, tx?: DrizzleTransaction): Promise<void> {
     try {
-      await db.delete(payments).where(eq(payments.billId, billId));
+      // Use transaction if provided, otherwise use global db
+      const dbContext: DatabaseContext = tx || db;
+      
+      await dbContext.delete(payments).where(eq(payments.billId, billId));
       console.log(`✅ Deleted all payments for bill ${billId}`);
     } catch (error) {
       console.error(`❌ Error deleting payments for bill ${billId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Completely regenerate payment schedule for recurrent bills
+   * Deletes ALL existing payments (including paid ones) and creates new schedule from scratch
+   * This is used when payment structure or pricing changes significantly
+   */
+  async regenerateCompletePaymentSchedule(billId: string, tx?: DrizzleTransaction): Promise<{ deletedCount: number; createdCount: number }> {
+    try {
+      // Use transaction if provided, otherwise use global db
+      const dbContext: DatabaseContext = tx || db;
+      
+      // Get the bill details
+      const bill = await dbContext.select().from(bills).where(eq(bills.id, billId)).limit(1);
+      
+      if (!bill || bill.length === 0) {
+        throw new Error(`Bill with ID ${billId} not found`);
+      }
+
+      const billData = bill[0];
+
+      // Get count of existing payments for logging
+      const existingPayments = await dbContext.select().from(payments).where(eq(payments.billId, billId));
+      const deletedCount = existingPayments.length;
+
+      // Delete ALL existing payments (including paid ones)
+      await dbContext.delete(payments).where(eq(payments.billId, billId));
+      console.log(`🗑️ Deleted ${deletedCount} existing payments for bill ${billId} (including paid payments)`);
+
+      // Regenerate the complete payment schedule from scratch
+      const paymentsToInsert: InsertPayment[] = [];
+
+      switch (billData.paymentType) {
+        case 'unique':
+          // Single payment for unique bills
+          paymentsToInsert.push({
+            billId,
+            paymentNumber: 1,
+            scheduledDate: billData.startDate,
+            amount: billData.totalAmount.toString(),
+            status: 'pending',
+          });
+          break;
+
+        case 'recurrent':
+        case 'auto-generated':
+          // Generate complete payment schedule from the beginning
+          const generatedPayments = this.generateRecurrentPayments(billData);
+          paymentsToInsert.push(...generatedPayments);
+          break;
+
+        default:
+          throw new Error(`Unsupported payment type: ${billData.paymentType}`);
+      }
+
+      // Insert all new payments
+      if (paymentsToInsert.length > 0) {
+        await dbContext.insert(payments).values(paymentsToInsert);
+        console.log(`✅ Generated ${paymentsToInsert.length} new payments for bill ${billId} (complete regeneration)`);
+      }
+
+      return {
+        deletedCount,
+        createdCount: paymentsToInsert.length
+      };
+    } catch (error) {
+      console.error(`❌ Error regenerating complete payment schedule for bill ${billId}:`, error);
       throw error;
     }
   }
@@ -176,9 +255,12 @@ export class PaymentGenerationService {
    * - paid → mark all payments as paid
    * - cancelled → cancel all pending payments
    */
-  async updatePaymentStatusFromBillStatus(billId: string, billStatus: 'draft' | 'sent' | 'overdue' | 'paid' | 'cancelled'): Promise<void> {
+  async updatePaymentStatusFromBillStatus(billId: string, billStatus: 'draft' | 'sent' | 'overdue' | 'paid' | 'cancelled', tx?: DrizzleTransaction): Promise<void> {
     try {
-      const billPayments = await db.select().from(payments).where(eq(payments.billId, billId));
+      // Use transaction if provided, otherwise use global db
+      const dbContext: DatabaseContext = tx || db;
+      
+      const billPayments = await dbContext.select().from(payments).where(eq(payments.billId, billId));
       
       if (billPayments.length === 0) {
         console.log(`⚠️ No payments found for bill ${billId}`);
@@ -188,7 +270,7 @@ export class PaymentGenerationService {
       switch (billStatus) {
         case 'draft':
           // Set all payments to pending
-          await db.update(payments)
+          await dbContext.update(payments)
             .set({ status: 'pending', paidDate: null })
             .where(eq(payments.billId, billId));
           console.log(`✅ Set all payments for bill ${billId} to pending (draft status)`);
@@ -197,7 +279,7 @@ export class PaymentGenerationService {
         case 'sent':
           // Payments become active - keep as pending but ready for processing
           // Only update payments that are not already paid or cancelled
-          await db.update(payments)
+          await dbContext.update(payments)
             .set({ status: 'pending' })
             .where(
               and(
@@ -212,7 +294,7 @@ export class PaymentGenerationService {
         case 'paid':
           // Mark all payments as paid with current date
           const currentDate = new Date().toISOString();
-          await db.update(payments)
+          await dbContext.update(payments)
             .set({ status: 'paid', paidDate: currentDate })
             .where(eq(payments.billId, billId));
           console.log(`✅ Marked all payments for bill ${billId} as paid`);
@@ -220,7 +302,7 @@ export class PaymentGenerationService {
 
         case 'cancelled':
           // Cancel all pending payments (keep already paid ones as paid)
-          await db.update(payments)
+          await dbContext.update(payments)
             .set({ status: 'cancelled' })
             .where(
               and(
@@ -234,7 +316,7 @@ export class PaymentGenerationService {
         case 'overdue':
           // Update overdue payments based on their due dates
           const today = new Date().toISOString().split('T')[0];
-          await db.update(payments)
+          await dbContext.update(payments)
             .set({ status: 'overdue' })
             .where(
               and(
