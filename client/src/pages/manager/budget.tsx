@@ -226,7 +226,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       other: 2.0,
     },
   });
-  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
   // Filter state management
   const [filters, setFilters] = useState<BudgetFilters>({
@@ -545,32 +544,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }
   }, [forecastError, buildingId]);
 
-  // Save settings mutation
-  const saveSettingsMutation = useMutation({
-    mutationFn: async (settings: BankAccountSettings) => {
-      debugLog('Saving budget settings', { buildingId, settings });
-      const response = await apiRequest('PUT', `/api/budgets/${buildingId}/bank-account`, settings);
-      const data = await response.json();
-      debugLog('Budget settings save response', { buildingId, responseStatus: response.status, data });
-      return data;
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Success',
-        description: 'Budget settings saved successfully',
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
-      queryClient.invalidateQueries({ queryKey: ['budgetForecast', buildingId] });
-      setSettingsDialogOpen(false);
-    },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'Failed to save budget settings',
-        variant: 'destructive',
-      });
-    },
-  });
 
   // Save capital investments mutation
   const saveInvestmentsMutation = useMutation({
@@ -607,12 +580,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     navigate(`/manager/budget?organization=${organizationId}`);
   };
 
-  const handleSaveSettings = () => {
-    // Ensure custom fields are synced before saving
-    syncCustomFieldsToLocalSettings(customBankFields);
-    debugLog('Saving settings with custom fields', { localSettings, customBankFields });
-    saveSettingsMutation.mutate(localSettings);
-  };
 
   // Calculate residence revenue from monthly fees
   const calculateResidenceRevenue = () => {
@@ -1315,89 +1282,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
             {buildingId ? t('building') : t('organization')}
           </Button>
 
-          {/* Settings Dialog */}
-          <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" data-testid="button-budget-settings">
-                <Settings className="w-4 h-4 mr-2" />
-                {t('settings')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Budget Settings</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="startAmount" className="text-right">
-                    Start Amount
-                  </Label>
-                  <Input
-                    id="startAmount"
-                    type="number"
-                    value={localSettings.bankAccountStartAmount}
-                    onChange={(e) =>
-                      setLocalSettings(prev => ({
-                        ...prev,
-                        bankAccountStartAmount: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                    className="col-span-3"
-                    data-testid="input-start-amount"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="minimums" className="text-right">
-                    Minimum Fund
-                  </Label>
-                  <Input
-                    id="minimums"
-                    type="number"
-                    value={localSettings.bankAccountMinimums}
-                    onChange={(e) =>
-                      setLocalSettings(prev => ({
-                        ...prev,
-                        bankAccountMinimums: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                    className="col-span-3"
-                    data-testid="input-minimum-fund"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="generalInflation" className="text-right">
-                    General Inflation (%)
-                  </Label>
-                  <Input
-                    id="generalInflation"
-                    type="number"
-                    step="0.1"
-                    value={localSettings.generalInflationRate}
-                    onChange={(e) =>
-                      setLocalSettings(prev => ({
-                        ...prev,
-                        generalInflationRate: parseFloat(e.target.value) || 2.0,
-                      }))
-                    }
-                    className="col-span-3"
-                    data-testid="input-general-inflation"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setSettingsDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSaveSettings}
-                  disabled={saveSettingsMutation.isPending}
-                  data-testid="button-save-settings"
-                >
-                  {saveSettingsMutation.isPending ? 'Saving...' : 'Save Settings'}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
       )}
 
