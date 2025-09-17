@@ -1,7 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { db } from '../db';
-import { budgets, monthlyBudgets, buildings, bills } from '@shared/schema';
+import { budgets, monthlyBudgets, buildings, bills, residences } from '@shared/schema';
 import { requireAuth } from '../auth';
 import { and, eq, gte, lte, sql, desc, asc } from 'drizzle-orm';
 
@@ -475,6 +475,16 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         )
       );
 
+    // Fetch residence data for revenue calculation
+    const residenceData = await db.query.residences.findMany({
+      where: eq(residences.buildingId, buildingId),
+      columns: {
+        id: true,
+        monthlyFees: true,
+        isActive: true,
+      },
+    });
+
     // Fetch latest monthly budgets for baseline income data
     const latestYear = new Date().getFullYear();
     const baselineIncome = await db
@@ -493,11 +503,42 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       )
       .limit(1);
 
-    // Initialize baseline monthly income (if no data, use default)
-    let monthlyBaselineIncome = 50000; // Default fallback
+    // Calculate monthly revenue from residences
+    let monthlyResidenceRevenue = 0;
+    if (residenceData && residenceData.length > 0) {
+      monthlyResidenceRevenue = residenceData
+        .filter((residence) => {
+          // Only include active residences
+          return residence?.isActive !== false; // Default to true if undefined
+        })
+        .reduce((total, residence) => {
+          // Handle null/undefined residence
+          if (!residence || !residence.monthlyFees) return total;
+          
+          // Parse monthlyFees with robust validation
+          const feesString = String(residence.monthlyFees).replace(/[^0-9.-]/g, ''); // Remove currency symbols
+          const monthlyFees = parseFloat(feesString);
+          
+          // Only add valid positive numbers
+          if (!isNaN(monthlyFees) && monthlyFees >= 0) {
+            return total + monthlyFees;
+          }
+          
+          return total;
+        }, 0);
+    }
+
+    // Initialize baseline monthly income from residence revenue + budget data
+    let monthlyBaselineIncome = monthlyResidenceRevenue;
     if (baselineIncome.length > 0 && baselineIncome[0].incomes) {
-      monthlyBaselineIncome = baselineIncome[0].incomes
+      const customIncomes = baselineIncome[0].incomes
         .reduce((sum, income) => sum + parseFloat(income), 0);
+      monthlyBaselineIncome += customIncomes;
+    }
+    
+    // Use fallback only if no residence or budget revenue exists
+    if (monthlyBaselineIncome === 0) {
+      monthlyBaselineIncome = 50000; // Default fallback
     }
 
     // Group unique bills by year for unplanned spending calculation
