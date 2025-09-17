@@ -166,10 +166,83 @@ const BILL_CATEGORIES = [
   { value: 'other', label: 'Other' },
 ];
 
+// Helper function to parse existing bill payment data for form initialization
+function parseBillPaymentData(bill: Bill | null | undefined) {
+  if (!bill) {
+    return {
+      schedulePayment: 'monthly' as const,
+      hasInitialPayment: false,
+      recurringPaymentsEqual: true,
+      initialPaymentAmount: '',
+      recurringPaymentAmount: '',
+      customPayments: [] as CustomPayment[],
+    };
+  }
+
+  const costs = bill.costs || [];
+  const scheduleCustom = bill.scheduleCustom || [];
+  const paymentType = bill.paymentType;
+
+  // Default values
+  let hasInitialPayment = false;
+  let recurringPaymentsEqual = true;
+  let initialPaymentAmount = '';
+  let recurringPaymentAmount = '';
+  let customPayments: CustomPayment[] = [];
+
+  if (paymentType === 'recurrent' && costs.length > 0) {
+    // Determine payment structure based on costs array
+    if (costs.length === 1) {
+      // Single recurring payment
+      recurringPaymentAmount = costs[0].toString();
+    } else if (costs.length > 1) {
+      // Multiple payments - check if first is different (initial payment)
+      const firstCost = parseFloat(costs[0].toString());
+      const otherCosts = costs.slice(1).map(c => parseFloat(c.toString()));
+      
+      // Check if first payment is different from others (likely initial payment)
+      const allOthersEqual = otherCosts.every(cost => cost === otherCosts[0]);
+      const firstDifferent = firstCost !== otherCosts[0];
+      
+      if (firstDifferent && allOthersEqual && otherCosts.length > 0) {
+        // First payment is different - treat as initial payment
+        hasInitialPayment = true;
+        initialPaymentAmount = firstCost.toString();
+        recurringPaymentAmount = otherCosts[0].toString();
+      } else if (allOthersEqual && costs.every(c => parseFloat(c.toString()) === firstCost)) {
+        // All payments are equal
+        recurringPaymentAmount = firstCost.toString();
+      } else {
+        // Unequal payments - use custom structure
+        recurringPaymentsEqual = false;
+        
+        // Convert costs and scheduleCustom to customPayments format
+        customPayments = costs.map((cost, index) => ({
+          amount: cost.toString(),
+          date: scheduleCustom[index] || '', // Use corresponding date if available
+          description: `Payment ${index + 1}`,
+        }));
+      }
+    }
+  }
+
+  return {
+    schedulePayment: bill.schedulePayment || 'monthly' as const,
+    hasInitialPayment,
+    recurringPaymentsEqual,
+    initialPaymentAmount,
+    recurringPaymentAmount,
+    customPayments,
+  };
+}
+
 export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId }: ModularBillFormProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Parse existing bill payment data
+  const parsedPaymentData = parseBillPaymentData(bill);
   
   // State for AI extraction
   const [aiFile, setAiFile] = useState<File | null>(null);
@@ -181,7 +254,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   // State for manual document upload
   const [manualFile, setManualFile] = useState<File | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
-  const [customPayments, setCustomPayments] = useState<CustomPayment[]>([]);
+  const [customPayments, setCustomPayments] = useState<CustomPayment[]>(parsedPaymentData.customPayments);
   
   
   // Upload context for secure storage
@@ -193,7 +266,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     userId: 'current-user' // Would be dynamic based on current user
   };
 
-  // Form setup
+  // Form setup with properly populated defaultValues
   const form = useForm<BillFormData>({
     resolver: zodResolver(billFormSchema),
     defaultValues: {
@@ -202,12 +275,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       category: bill?.category || 'other',
       vendor: bill?.vendor || '',
       paymentType: bill?.paymentType || 'unique',
-      schedulePayment: 'monthly',
-      customPayments: [],
-      hasInitialPayment: false,
-      recurringPaymentsEqual: true,
-      initialPaymentAmount: '',
-      recurringPaymentAmount: '',
+      schedulePayment: parsedPaymentData.schedulePayment,
+      customPayments: parsedPaymentData.customPayments,
+      hasInitialPayment: parsedPaymentData.hasInitialPayment,
+      recurringPaymentsEqual: parsedPaymentData.recurringPaymentsEqual,
+      initialPaymentAmount: parsedPaymentData.initialPaymentAmount,
+      recurringPaymentAmount: parsedPaymentData.recurringPaymentAmount,
       totalAmount: bill?.totalAmount?.toString() || '',
       startDate: bill?.startDate || '',
       endDate: bill?.endDate || '',
@@ -245,6 +318,22 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     },
     enabled: !!bill?.id
   });
+
+  // Sync customPayments state and form values when bill changes
+  useEffect(() => {
+    const newParsedData = parseBillPaymentData(bill);
+    setCustomPayments(newParsedData.customPayments);
+    
+    // Update form values if bill has changed
+    if (bill) {
+      form.setValue('schedulePayment', newParsedData.schedulePayment);
+      form.setValue('hasInitialPayment', newParsedData.hasInitialPayment);
+      form.setValue('recurringPaymentsEqual', newParsedData.recurringPaymentsEqual);
+      form.setValue('initialPaymentAmount', newParsedData.initialPaymentAmount);
+      form.setValue('recurringPaymentAmount', newParsedData.recurringPaymentAmount);
+      form.setValue('customPayments', newParsedData.customPayments);
+    }
+  }, [bill?.id, form]);
 
 
   // Handle AI extraction results

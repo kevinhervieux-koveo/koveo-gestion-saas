@@ -2377,7 +2377,7 @@ export function registerBillRoutes(app: Express) {
         console.log(`[AUTO-GENERATED BILL] Creating bill for building ${buildingId}`);
         const newBill = await db.insert(bills).values([newBillData]).returning();
 
-        if (!newBill || newBill.length === 0) {
+        if (!newBill || (Array.isArray(newBill) && newBill.length === 0)) {
           throw new Error('Failed to create bill');
         }
 
