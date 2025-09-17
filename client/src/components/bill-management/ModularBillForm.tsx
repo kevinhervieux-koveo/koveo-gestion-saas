@@ -616,6 +616,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               title: 'Text Document Created',
               description: 'Your text content has been saved as a document attached to the bill',
             });
+            }
           }
         } catch (uploadError) {
           console.error('[BILL FORM] Failed to upload/create document:', uploadError);
