@@ -1306,7 +1306,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
           </div>
 
           {!filtersCollapsed && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {/* View Toggle Section */}
             <Card className="p-4">
               <div className="space-y-3">
@@ -1515,18 +1516,19 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 </div>
               </div>
             </Card>
-          </div>
+              </div>
 
-          {/* Filter Status Summary */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
-            <span>
-              Showing: <Badge variant="secondary">{filters.periodLength} {filters.viewType === 'month' ? 'months' : 'years'}</Badge>
-            </span>
-            <Separator orientation="vertical" className="h-4" />
-            <span>
-              Data: {Object.entries(filters.dataVisibility).filter(([_, visible]) => visible).length} of 4 categories visible
-            </span>
-          </div>
+              {/* Filter Status Summary */}
+              <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
+                <span>
+                  Showing: <Badge variant="secondary">{filters.periodLength} {filters.viewType === 'month' ? 'months' : 'years'}</Badge>
+                </span>
+                <Separator orientation="vertical" className="h-4" />
+                <span>
+                  Data: {Object.entries(filters.dataVisibility).filter(([_, visible]) => visible).length} of 4 categories visible
+                </span>
+              </div>
+            </>
           )}
         </div>
       </div>
