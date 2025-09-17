@@ -53,7 +53,7 @@ export const billCategoryEnum = pgEnum('bill_category', [
   'other',
 ]);
 
-export const paymentTypeEnum = pgEnum('payment_type', ['unique', 'recurrent', 'auto-generated']);
+export const paymentTypeEnum = pgEnum('payment_type', ['unique', 'recurrent']);
 
 export const schedulePaymentEnum = pgEnum('schedule_payment', [
   'weekly',
@@ -224,7 +224,7 @@ export const insertBillSchema = createInsertSchema(bills, {
   billNumber: z.string().min(1, "Bill number is required"),
   title: z.string().min(1, "Title is required"),
   category: z.enum(['insurance', 'maintenance', 'salary', 'utilities', 'cleaning', 'security', 'landscaping', 'professional_services', 'administration', 'repairs', 'supplies', 'taxes', 'technology', 'reserves', 'other']),
-  paymentType: z.enum(['unique', 'recurrent', 'auto-generated']),
+  paymentType: z.enum(['unique', 'recurrent']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   scheduleCustom: z.array(z.coerce.date()).optional().refine(
     (dates) => !dates || dates.length === 0 || dates.every(date => date instanceof Date && !isNaN(date.getTime())),

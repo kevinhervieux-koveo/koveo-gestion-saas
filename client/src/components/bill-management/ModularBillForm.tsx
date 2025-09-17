@@ -36,7 +36,7 @@ import { AttachedFileSection } from '@/components/common/AttachedFileSection';
 import type { Bill, Document } from '@shared/schema';
 import type { UploadContext } from '@shared/config/upload-config';
 
-// Unified form schema (simplified from original)
+// Unified form schema with smart payment logic
 const billFormSchema = z.object({
   title: z.string().min(1, 'Bill title is required').max(200, 'Title must be less than 200 characters'),
   description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
@@ -58,8 +58,20 @@ const billFormSchema = z.object({
     'other',
   ]),
   vendor: z.string().max(150, 'Vendor name must be less than 150 characters').optional(),
-  paymentType: z.enum(['unique', 'recurrent', 'auto-generated']),
+  paymentType: z.enum(['unique', 'recurrent']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+  hasInitialPayment: z.boolean().optional(),
+  recurringPaymentsEqual: z.boolean().optional(),
+  initialPaymentAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Initial payment amount must be between $0.01 and $999,999.99'),
+  recurringPaymentAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Recurring payment amount must be between $0.01 and $999,999.99'),
   customPayments: z.array(z.object({
     amount: z.string().min(1, 'Amount is required').refine((val) => {
       const num = parseFloat(val);
@@ -70,10 +82,11 @@ const billFormSchema = z.object({
     }, 'Date must be a valid date'),
     description: z.string().optional()
   })).optional(),
-  totalAmount: z.string().min(1, 'Amount is required and must be a valid number').refine((val) => {
+  totalAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
     const num = parseFloat(val);
     return !isNaN(num) && num > 0 && num <= 999999.99;
-  }, 'Amount must be between $0.01 and $999,999.99'),
+  }, 'Total amount must be between $0.01 and $999,999.99'),
   startDate: z.string().min(1, 'Start date is required').refine((val) => {
     return !isNaN(Date.parse(val));
   }, 'Start date must be a valid date'),
@@ -83,6 +96,41 @@ const billFormSchema = z.object({
   }, 'End date must be a valid date'),
   status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
   notes: z.string().max(2000, 'Notes must be less than 2000 characters').optional(),
+}).superRefine((data, ctx) => {
+  // Custom validation logic for payment structure with specific field error targeting
+  if (data.paymentType === 'unique') {
+    // For unique payments, total amount is required
+    if (!data.totalAmount || data.totalAmount.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Total amount is required for unique payments',
+        path: ['totalAmount']
+      });
+    }
+  } else if (data.paymentType === 'recurrent') {
+    // For recurring payments, validate based on configuration
+    if (data.hasInitialPayment && (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Initial payment amount is required when initial payment is enabled',
+        path: ['initialPaymentAmount']
+      });
+    }
+    if (data.recurringPaymentsEqual && (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Recurring payment amount is required for equal recurring payments',
+        path: ['recurringPaymentAmount']
+      });
+    }
+    if (!data.recurringPaymentsEqual && (!data.customPayments || data.customPayments.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one custom payment is required for unequal recurring payments',
+        path: ['customPayments']
+      });
+    }
+  }
 });
 
 type BillFormData = z.infer<typeof billFormSchema>;
@@ -156,6 +204,10 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       paymentType: bill?.paymentType || 'unique',
       schedulePayment: 'monthly',
       customPayments: [],
+      hasInitialPayment: false,
+      recurringPaymentsEqual: true,
+      initialPaymentAmount: '',
+      recurringPaymentAmount: '',
       totalAmount: bill?.totalAmount?.toString() || '',
       startDate: bill?.startDate || '',
       endDate: bill?.endDate || '',
@@ -166,6 +218,8 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
 
   const paymentType = form.watch('paymentType');
   const schedulePayment = form.watch('schedulePayment');
+  const hasInitialPayment = form.watch('hasInitialPayment');
+  const recurringPaymentsEqual = form.watch('recurringPaymentsEqual');
 
 
   // Query for attached documents when editing an existing bill
@@ -306,10 +360,56 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       const endpoint = bill ? `/api/bills/${bill.id}` : '/api/bills';
       const method = bill ? 'PUT' : 'POST';
       
+      // Calculate costs array based on payment structure
+      let costs: string[] = [];
+      let calculatedTotalAmount = data.totalAmount;
+      
+      if (data.paymentType === 'unique') {
+        costs = [data.totalAmount || '0'];
+      } else if (data.paymentType === 'recurrent') {
+        if (data.recurringPaymentsEqual) {
+          // For equal recurring payments
+          if (data.hasInitialPayment && data.initialPaymentAmount) {
+            costs.push(data.initialPaymentAmount);
+          }
+          if (data.recurringPaymentAmount) {
+            // Add at least one recurring payment, more will be generated by the system
+            costs.push(data.recurringPaymentAmount);
+          }
+        } else if (data.customPayments && data.customPayments.length > 0) {
+          // For custom amounts
+          costs = data.customPayments.map(p => p.amount).filter(a => a && a.trim() !== '');
+        }
+        
+        // Calculate total if not provided
+        if (!calculatedTotalAmount || calculatedTotalAmount.trim() === '') {
+          const total = costs.reduce((sum, cost) => sum + parseFloat(cost || '0'), 0);
+          calculatedTotalAmount = total.toString();
+        }
+      }
+      
+      // Extract custom schedule dates for backend persistence
+      let scheduleCustom: string[] = [];
+      if (data.paymentType === 'recurrent' && !data.recurringPaymentsEqual && data.customPayments) {
+        scheduleCustom = data.customPayments
+          .map(p => p.date)
+          .filter(d => d && d.trim() !== '');
+      }
+      
       const billData = {
         ...data,
         buildingId: buildingId || bill?.buildingId,
-        costs: [data.totalAmount], // Convert single amount to costs array
+        totalAmount: calculatedTotalAmount,
+        costs,
+        scheduleCustom, // Send custom dates to backend for persistence
+        // Include the new payment structure fields
+        paymentStructure: {
+          hasInitialPayment: data.hasInitialPayment,
+          recurringPaymentsEqual: data.recurringPaymentsEqual,
+          initialPaymentAmount: data.initialPaymentAmount,
+          recurringPaymentAmount: data.recurringPaymentAmount,
+          customPayments: data.customPayments,
+        },
       };
 
       const response = await apiRequest(method, endpoint, billData);
@@ -452,9 +552,89 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     }
   };
 
+  // Helper function to generate next payment date based on schedule
+  const generateNextPaymentDate = (startDate: string, schedule: string, paymentIndex: number): string => {
+    if (!startDate || !schedule) return '';
+    
+    const start = new Date(startDate);
+    const endDate = form.getValues('endDate');
+    
+    // Calculate proper renewal date: endDate or startDate + 1 year
+    let maxDate: Date;
+    if (endDate && endDate.trim() !== '') {
+      maxDate = new Date(endDate);
+    } else {
+      maxDate = new Date(start);
+      maxDate.setFullYear(start.getFullYear() + 1);
+    }
+    
+    let nextDate = new Date(start);
+    
+    switch (schedule) {
+      case 'weekly':
+        nextDate.setDate(start.getDate() + (paymentIndex * 7));
+        break;
+      case 'monthly':
+        nextDate.setMonth(start.getMonth() + paymentIndex);
+        break;
+      case 'quarterly':
+        nextDate.setMonth(start.getMonth() + (paymentIndex * 3));
+        break;
+      case 'yearly':
+        nextDate.setFullYear(start.getFullYear() + paymentIndex);
+        break;
+      default:
+        return '';
+    }
+    
+    // Don't generate dates beyond the bill's renewal period
+    if (nextDate >= maxDate) {
+      return '';
+    }
+    
+    return nextDate.toISOString().split('T')[0];
+  };
+
   // Custom Payment Management
   const addCustomPayment = () => {
-    const newPayment: CustomPayment = { amount: '', date: '', description: '' };
+    const startDate = form.getValues('startDate');
+    const endDate = form.getValues('endDate');
+    const schedule = form.getValues('schedulePayment');
+    const isCustomSchedule = schedule === 'custom';
+    
+    const newPayment: CustomPayment = { 
+      amount: '', 
+      date: isCustomSchedule ? '' : generateNextPaymentDate(startDate, schedule, customPayments.length),
+      description: isCustomSchedule ? '' : `Payment ${customPayments.length + 1}` 
+    };
+    
+    // Calculate proper renewal limit: endDate or startDate + 1 year
+    let renewalLimit: Date;
+    if (endDate && endDate.trim() !== '') {
+      renewalLimit = new Date(endDate);
+    } else if (startDate) {
+      renewalLimit = new Date(startDate);
+      renewalLimit.setFullYear(renewalLimit.getFullYear() + 1);
+    } else {
+      renewalLimit = new Date();
+      renewalLimit.setFullYear(renewalLimit.getFullYear() + 1);
+    }
+    
+    const paymentDate = new Date(newPayment.date);
+    
+    // Check if we're exceeding the bill's renewal period
+    if (!isCustomSchedule && newPayment.date && paymentDate >= renewalLimit) {
+      const limitDesc = endDate && endDate.trim() !== '' 
+        ? 'the bill\'s end date' 
+        : 'the next renewal period (1 year from start date)';
+      toast({
+        title: 'Payment Limit Reached',
+        description: `Cannot add more payments beyond ${limitDesc}. Payment schedules are limited to the bill's active period.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setCustomPayments([...customPayments, newPayment]);
   };
 
@@ -675,7 +855,6 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                     <SelectContent>
                       <SelectItem value="unique">One-time Payment</SelectItem>
                       <SelectItem value="recurrent">Recurring Payment</SelectItem>
-                      <SelectItem value="auto-generated">Auto-Generated</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -683,20 +862,42 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               )}
             />
 
-            {/* Total Amount */}
-            <FormField
-              control={form.control}
-              name="totalAmount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Total Amount *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="0.00" type="number" step="0.01" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Total Amount - Conditional based on payment type */}
+            {paymentType === 'unique' ? (
+              <FormField
+                control={form.control}
+                name="totalAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total Amount *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="0.00" type="number" step="0.01" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Complete amount for this one-time payment
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="totalAmount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total Amount (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="0.00" type="number" step="0.01" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Leave empty to calculate from individual payment amounts
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Start Date */}
             <FormField
@@ -742,6 +943,102 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 )}
               />
 
+              {/* Smart Payment Configuration */}
+              <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
+                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">Payment Configuration</h4>
+                
+                {/* Initial Payment Question */}
+                <FormField
+                  control={form.control}
+                  name="hasInitialPayment"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Initial Payment</FormLabel>
+                        <FormDescription>
+                          Is there an upfront payment different from recurring amounts?
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                          className="h-4 w-4"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Recurring Payments Equal Question */}
+                <FormField
+                  control={form.control}
+                  name="recurringPaymentsEqual"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Equal Recurring Payments</FormLabel>
+                        <FormDescription>
+                          Are all recurring payment amounts the same?
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                          className="h-4 w-4"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Conditional Payment Amount Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Initial Payment Amount */}
+                {hasInitialPayment && (
+                  <FormField
+                    control={form.control}
+                    name="initialPaymentAmount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Initial Payment Amount *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="0.00" type="number" step="0.01" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Amount for the upfront payment
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Recurring Payment Amount */}
+                {recurringPaymentsEqual && (
+                  <FormField
+                    control={form.control}
+                    name="recurringPaymentAmount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Recurring Payment Amount *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="0.00" type="number" step="0.01" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Amount for each recurring payment
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
               {/* End Date for Recurrent Bills */}
               <FormField
                 control={form.control}
@@ -750,21 +1047,25 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                   <FormItem>
                     <FormLabel>Recurrence End Date (Optional)</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input 
+                        type="date" 
+                        {...field}
+                        max={new Date(new Date().getFullYear() + 1, 11, 31).toISOString().split('T')[0]}
+                      />
                     </FormControl>
                     <FormDescription>
-                      Setting an end date will stop auto-generation of future bills after this date.
+                      Payment schedule will be limited to the next year. Setting an end date will stop recurring bills after this date.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {schedulePayment === 'custom' && (
+              {(schedulePayment === 'custom' || !recurringPaymentsEqual) && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
-                      <span>Custom Payment Schedule</span>
+                      <span>{schedulePayment === 'custom' ? 'Custom Payment Schedule' : 'Individual Payment Amounts'}</span>
                       <Button
                         type="button"
                         variant="outline"
@@ -777,41 +1078,65 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {customPayments.map((payment, index) => (
-                      <div key={index} className="flex gap-2 items-end">
-                        <div className="flex-1">
-                          <Input
-                            placeholder="Amount"
-                            type="number"
-                            step="0.01"
-                            value={payment.amount}
-                            onChange={(e) => updateCustomPayment(index, 'amount', e.target.value)}
-                          />
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      {schedulePayment === 'custom' 
+                        ? 'Define your custom payment schedule with specific dates and amounts.'
+                        : 'Since recurring payments are not equal, specify individual amounts for each payment. Dates will be calculated based on your selected schedule.'}
+                    </div>
+                    <div className="max-h-60 overflow-y-auto space-y-3">
+                      {customPayments.map((payment, index) => (
+                        <div key={index} className="flex gap-2 items-end p-3 border rounded bg-white dark:bg-gray-800">
+                          <div className="flex-1">
+                            <label className="text-xs text-gray-500 dark:text-gray-400">Amount *</label>
+                            <Input
+                              placeholder="0.00"
+                              type="number"
+                              step="0.01"
+                              value={payment.amount}
+                              onChange={(e) => updateCustomPayment(index, 'amount', e.target.value)}
+                              className="mt-1"
+                            />
+                          </div>
+                          {schedulePayment === 'custom' && (
+                            <div className="flex-1">
+                              <label className="text-xs text-gray-500 dark:text-gray-400">Date *</label>
+                              <Input
+                                type="date"
+                                value={payment.date}
+                                onChange={(e) => updateCustomPayment(index, 'date', e.target.value)}
+                                max={new Date(new Date().getFullYear() + 1, 11, 31).toISOString().split('T')[0]}
+                                className="mt-1"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <label className="text-xs text-gray-500 dark:text-gray-400">Description</label>
+                            <Input
+                              placeholder={schedulePayment === 'custom' ? 'Payment description' : `Payment ${index + 1}`}
+                              value={payment.description || ''}
+                              onChange={(e) => updateCustomPayment(index, 'description', e.target.value)}
+                              className="mt-1"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeCustomPayment(index)}
+                            className="flex-shrink-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
                         </div>
-                        <div className="flex-1">
-                          <Input
-                            type="date"
-                            value={payment.date}
-                            onChange={(e) => updateCustomPayment(index, 'date', e.target.value)}
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <Input
-                            placeholder="Description"
-                            value={payment.description || ''}
-                            onChange={(e) => updateCustomPayment(index, 'description', e.target.value)}
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeCustomPayment(index)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+                      ))}
+                    </div>
+                    {customPayments.length === 0 && (
+                      <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                        <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No payments added yet</p>
+                        <p className="text-xs">Click "Add Payment" to get started</p>
                       </div>
-                    ))}
+                    )}
                   </CardContent>
                 </Card>
               )}
