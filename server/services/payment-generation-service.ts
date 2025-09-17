@@ -31,7 +31,7 @@ export class PaymentGenerationService {
             billId,
             paymentNumber: 1,
             scheduledDate: billData.startDate, // This is already a string in YYYY-MM-DD format from Drizzle
-            amount: billData.totalAmount,
+            amount: billData.totalAmount.toString(),
             status: 'pending',
           });
           break;
@@ -72,16 +72,54 @@ export class PaymentGenerationService {
 
       const billData = bill[0];
 
-      // Delete existing payments that are still pending (keep paid ones)
+      // Get all existing payments for this bill
+      const existingPayments = await db.select().from(payments)
+        .where(eq(payments.billId, billId))
+        .orderBy(payments.paymentNumber);
+
+      // Find the last paid payment to determine where to continue the sequence
+      const paidPayments = existingPayments.filter(p => p.status === 'paid');
+      const lastPaidPayment = paidPayments.length > 0 
+        ? paidPayments[paidPayments.length - 1] 
+        : null;
+
+      // Delete all unpaid payments (pending + overdue) to regenerate with updated amounts
+      // Only preserve payments that have already been paid
       await db.delete(payments).where(
         and(
           eq(payments.billId, billId),
-          eq(payments.status, 'pending')
+          not(eq(payments.status, 'paid'))
         )
       );
 
-      // Regenerate payments
-      await this.generatePaymentsForBill(billId);
+      // Regenerate payments starting from where paid payments left off
+      if (billData.paymentType === 'unique') {
+        // For unique payments, only regenerate if no payments have been made
+        if (!lastPaidPayment) {
+          const paymentsToInsert: InsertPayment[] = [{
+            billId,
+            paymentNumber: 1,
+            scheduledDate: billData.startDate,
+            amount: billData.totalAmount.toString(),
+            status: 'pending',
+          }];
+          await db.insert(payments).values(paymentsToInsert);
+        }
+      } else {
+        // For recurrent payments, continue from where paid payments left off
+        const startingPaymentNumber = lastPaidPayment ? lastPaidPayment.paymentNumber + 1 : 1;
+        const startingDate = lastPaidPayment ? this.calculateNextPaymentDate(lastPaidPayment.scheduledDate, billData.schedulePayment) : billData.startDate;
+        
+        const generatedPayments = this.generateRecurrentPayments(
+          billData, 
+          startingPaymentNumber, 
+          startingDate
+        );
+        
+        if (generatedPayments.length > 0) {
+          await db.insert(payments).values(generatedPayments);
+        }
+      }
       
       console.log(`✅ Updated payments for bill ${billId}`);
     } catch (error) {
@@ -251,27 +289,37 @@ export class PaymentGenerationService {
 
   /**
    * Generate payment schedule for recurrent bills
+   * @param bill The bill data
+   * @param startingPaymentNumber The payment number to start from (default: 1)
+   * @param startingDate The date to start from (default: bill.startDate)
    */
-  private generateRecurrentPayments(bill: Bill): InsertPayment[] {
+  private generateRecurrentPayments(
+    bill: Bill, 
+    startingPaymentNumber: number = 1, 
+    startingDate: string = bill.startDate
+  ): InsertPayment[] {
     const payments: InsertPayment[] = [];
-    const startDate = new Date(bill.startDate);
+    const startDate = new Date(startingDate);
     const endDate = bill.endDate ? new Date(bill.endDate) : null;
     
     // Default to 12 months if no end date specified
     const maxPayments = 12;
-    let paymentNumber = 1;
+    let paymentNumber = startingPaymentNumber;
 
     if (bill.schedulePayment === 'custom' && bill.scheduleCustom && bill.scheduleCustom.length > 0) {
-      // Custom schedule
-      bill.scheduleCustom.forEach((dateStr, index) => {
+      // Custom schedule - start from the appropriate index
+      const startIndex = startingPaymentNumber - 1;
+      
+      for (let i = startIndex; i < bill.scheduleCustom.length; i++) {
+        const dateStr = bill.scheduleCustom[i];
         payments.push({
           billId: bill.id,
-          paymentNumber: index + 1,
+          paymentNumber: i + 1,
           scheduledDate: dateStr,
-          amount: (bill.costs[index] ? bill.costs[index] : (parseFloat(bill.totalAmount) / bill.scheduleCustom!.length).toString()),
+          amount: bill.costs[i] ? bill.costs[i].toString() : (parseFloat(bill.totalAmount.toString()) / bill.scheduleCustom.length).toString(),
           status: 'pending',
         });
-      });
+      }
     } else {
       // Standard schedule (weekly, monthly, quarterly, yearly)
       let currentDate = new Date(startDate);
@@ -281,7 +329,7 @@ export class PaymentGenerationService {
           billId: bill.id,
           paymentNumber,
           scheduledDate: currentDate.toISOString().split('T')[0],
-          amount: (bill.costs[paymentNumber - 1] ? bill.costs[paymentNumber - 1] : (parseFloat(bill.totalAmount) / maxPayments).toString()),
+          amount: bill.costs[paymentNumber - 1] ? bill.costs[paymentNumber - 1].toString() : (parseFloat(bill.totalAmount.toString()) / maxPayments).toString(),
           status: 'pending',
         });
 
@@ -309,6 +357,33 @@ export class PaymentGenerationService {
     }
 
     return payments;
+  }
+
+  /**
+   * Calculate the next payment date based on the schedule
+   */
+  private calculateNextPaymentDate(lastDate: string, schedule: string): string {
+    const date = new Date(lastDate);
+    
+    switch (schedule) {
+      case 'weekly':
+        date.setDate(date.getDate() + 7);
+        break;
+      case 'monthly':
+        date.setMonth(date.getMonth() + 1);
+        break;
+      case 'quarterly':
+        date.setMonth(date.getMonth() + 3);
+        break;
+      case 'yearly':
+        date.setFullYear(date.getFullYear() + 1);
+        break;
+      default:
+        // Default to monthly
+        date.setMonth(date.getMonth() + 1);
+    }
+    
+    return date.toISOString().split('T')[0];
   }
 
   /**

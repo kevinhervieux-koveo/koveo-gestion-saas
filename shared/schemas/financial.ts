@@ -280,9 +280,9 @@ export const insertMonthlyBudgetSchema = createInsertSchema(monthlyBudgets).omit
 
 export const insertPaymentSchema = createInsertSchema(payments, {
   paymentNumber: z.number().int().positive("Payment number must be positive"),
-  scheduledDate: z.coerce.date(),
-  paidDate: z.coerce.date().optional(),
-  amount: z.coerce.number().positive("Payment amount must be positive"),
+  scheduledDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  paidDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format").optional(),
+  amount: z.string().regex(/^\d+(\.\d{1,2})?$/, "Amount must be a valid decimal with up to 2 decimal places"),
   status: z.enum(['pending', 'overdue', 'paid', 'cancelled']).default('pending'),
   notes: z.string().optional(),
 }).omit({ 
