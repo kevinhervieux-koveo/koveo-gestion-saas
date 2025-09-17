@@ -145,6 +145,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const { data: bankAccountData, isLoading: bankAccountLoading, error: bankAccountError } = useQuery({
     queryKey: [`/api/budgets/${buildingId}/bank-account`],
     enabled: !!buildingId,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Debug logging for bank account data
@@ -162,44 +164,55 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   // Initialize local settings when bank account data is loaded
   React.useEffect(() => {
-    if (bankAccountData) {
-      const data = bankAccountData as any; // Extended data from server
-      setLocalSettings(prev => ({
-        ...prev,
-        // Basic fields
-        bankAccountStartAmount: parseFloat(data.bankAccountStartAmount || '0'),
-        bankAccountMinimums: parseFloat(data.bankAccountMinimums || '0'),
-        generalInflationRate: parseFloat(data.generalInflationRate || '2.0'),
-        revenueInflationRate: parseFloat(data.revenueInflationRate || '2.0'),
-        // Extended configuration fields
-        emergencyFundMinimum: parseFloat(data.emergencyFundMinimum || '0'),
-        operatingCashMinimum: parseFloat(data.operatingCashMinimum || '0'),
-        revenueGrowthRate: parseFloat(data.revenueGrowthRate || '3.0'),
-        revenueInflation: parseFloat(data.revenueInflation || '2.0'),
-        reserveFundTarget: parseFloat(data.reserveFundTarget || '10000'),
-        utilityInflationRate: parseFloat(data.utilityInflationRate || '3.0'),
-        maintenanceInflationRate: parseFloat(data.maintenanceInflationRate || '4.0'),
-        costInflationRate: parseFloat(data.costInflationRate || '3.5'),
-        specialInvestmentBudget: parseFloat(data.specialInvestmentBudget || '0'),
-        investmentHorizonYears: parseFloat(data.investmentHorizonYears || '10'),
-        capitalProjectReserve: parseFloat(data.capitalProjectReserve || '5000'),
-      }));
-      debugLog('Local settings initialized with extended config', { 
-        basicFields: {
-          bankAccountStartAmount: data.bankAccountStartAmount,
-          bankAccountMinimums: data.bankAccountMinimums,
-          generalInflationRate: data.generalInflationRate,
-          revenueInflationRate: data.revenueInflationRate
-        },
-        extendedFields: {
-          emergencyFundMinimum: data.emergencyFundMinimum,
-          operatingCashMinimum: data.operatingCashMinimum,
-          revenueGrowthRate: data.revenueGrowthRate,
-          // ... truncated for brevity
-        }
-      });
-    }
-  }, [bankAccountData, debugLog]);
+    if (!bankAccountData) return;
+    
+    const data = bankAccountData as any; // Extended data from server
+    const nextSettings = {
+      // Basic fields
+      bankAccountStartAmount: parseFloat(data.bankAccountStartAmount || '0'),
+      bankAccountMinimums: parseFloat(data.bankAccountMinimums || '0'),
+      generalInflationRate: parseFloat(data.generalInflationRate || '2.0'),
+      revenueInflationRate: parseFloat(data.revenueInflationRate || '2.0'),
+      // Extended configuration fields
+      emergencyFundMinimum: parseFloat(data.emergencyFundMinimum || '10000'),
+      operatingCashMinimum: parseFloat(data.operatingCashMinimum || '5000'),
+      revenueGrowthRate: parseFloat(data.revenueGrowthRate || '2.5'),
+      revenueInflation: parseFloat(data.revenueInflation || '2.0'),
+      reserveFundTarget: parseFloat(data.reserveFundTarget || '50000'),
+      utilityInflationRate: parseFloat(data.utilityInflationRate || '3.0'),
+      maintenanceInflationRate: parseFloat(data.maintenanceInflationRate || '2.5'),
+      costInflationRate: parseFloat(data.costInflationRate || '2.0'),
+      specialInvestmentBudget: parseFloat(data.specialInvestmentBudget || '25000'),
+      investmentHorizonYears: parseFloat(data.investmentHorizonYears || '5'),
+      capitalProjectReserve: parseFloat(data.capitalProjectReserve || '100000'),
+    };
+    
+    // Only update if data has actually changed to prevent infinite loops
+    setLocalSettings(prev => {
+      const hasChanged = JSON.stringify({
+        bankAccountStartAmount: prev.bankAccountStartAmount,
+        bankAccountMinimums: prev.bankAccountMinimums,
+        generalInflationRate: prev.generalInflationRate,
+        revenueInflationRate: prev.revenueInflationRate,
+        emergencyFundMinimum: prev.emergencyFundMinimum,
+        operatingCashMinimum: prev.operatingCashMinimum,
+        revenueGrowthRate: prev.revenueGrowthRate,
+        revenueInflation: prev.revenueInflation,
+        reserveFundTarget: prev.reserveFundTarget,
+        utilityInflationRate: prev.utilityInflationRate,
+        maintenanceInflationRate: prev.maintenanceInflationRate,
+        costInflationRate: prev.costInflationRate,
+        specialInvestmentBudget: prev.specialInvestmentBudget,
+        investmentHorizonYears: prev.investmentHorizonYears,
+        capitalProjectReserve: prev.capitalProjectReserve,
+      }) !== JSON.stringify(nextSettings);
+      
+      if (!hasChanged) return prev;
+      
+      debugLog('Local settings updated from server data', {});
+      return { ...prev, ...nextSettings };
+    });
+  }, [bankAccountData]);
 
   // Fetch budget forecast based on current settings  
   const { data: forecastData, isLoading: forecastLoading, error: forecastError, refetch: refetchForecast } = useQuery({
@@ -212,6 +225,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       return data as BudgetForecastResponse;
     },
     enabled: !!buildingId,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   // Trigger forecast refetch when settings change (debounced)
@@ -224,7 +239,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeoutId);
-  }, [localSettings, buildingId, refetchForecast]);
+  }, [localSettings, buildingId]);
 
   // Debug logging for forecast data and errors
   React.useEffect(() => {
