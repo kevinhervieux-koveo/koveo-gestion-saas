@@ -73,6 +73,17 @@ interface BankAccountSettings {
   specialInvestmentBudget?: number;
   investmentHorizonYears?: number;
   capitalProjectReserve?: number;
+  // Bills configuration options
+  useGlobalBillsInflation?: boolean;
+  globalBillsInflationRate?: number;
+  unplannedBillsAmount?: number;
+  // Per-category inflation rates (used when useGlobalBillsInflation is false)
+  categoryInflationRates?: {
+    utilities?: number;
+    maintenance?: number;
+    general?: number;
+    other?: number;
+  };
   // Custom bank fields as dynamic key-value pairs
   customBankFields?: { [fieldName: string]: number };
 }
@@ -173,6 +184,16 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     specialInvestmentBudget: 25000,
     investmentHorizonYears: 5,
     capitalProjectReserve: 100000,
+    // Bills configuration defaults
+    useGlobalBillsInflation: true,
+    globalBillsInflationRate: 2.5,
+    unplannedBillsAmount: 0,
+    categoryInflationRates: {
+      utilities: 3.0,
+      maintenance: 2.5,
+      general: 2.0,
+      other: 2.0,
+    },
   });
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
@@ -238,21 +259,51 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     if (!bankAccountData) return;
     
     const data = bankAccountData as any; // Extended data from server
+    
+    // Helper function to safely parse numeric values, preserving 0
+    const parseNumericValue = (value: any, defaultValue: number): number => {
+      if (value === null || value === undefined || value === '') return defaultValue;
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : defaultValue;
+    };
+
+    // Helper function to safely parse boolean values from various formats
+    const parseBooleanValue = (value: any, defaultValue: boolean): boolean => {
+      if (value === null || value === undefined) return defaultValue;
+      if (typeof value === 'boolean') return value;
+      if (typeof value === 'string') {
+        const normalized = value.toLowerCase().trim();
+        if (normalized === 'true') return true;
+        if (normalized === 'false') return false;
+      }
+      return defaultValue;
+    };
+    
     const nextSettings = {
-      // Basic fields with safe parsing
-      bankAccountStartAmount: parseFloat(data.bankAccountStartAmount || '0') || 0,
-      bankAccountMinimums: parseFloat(data.bankAccountMinimums || '0') || 0,
-      generalInflationRate: parseFloat(data.generalInflationRate || '2.0') || 2.0,
+      // Basic fields with safe parsing that preserves zero values
+      bankAccountStartAmount: parseNumericValue(data.bankAccountStartAmount, 0),
+      bankAccountMinimums: parseNumericValue(data.bankAccountMinimums, 0),
+      generalInflationRate: parseNumericValue(data.generalInflationRate, 2.0),
       // Extended configuration fields with safe parsing
-      emergencyFundMinimum: parseFloat(data.emergencyFundMinimum || '10000') || 10000,
-      operatingCashMinimum: parseFloat(data.operatingCashMinimum || '5000') || 5000,
-      revenueGrowthRate: parseFloat(data.revenueGrowthRate || '2.5') || 2.5,
-      utilityInflationRate: parseFloat(data.utilityInflationRate || '3.0') || 3.0,
-      maintenanceInflationRate: parseFloat(data.maintenanceInflationRate || '2.5') || 2.5,
-      costInflationRate: parseFloat(data.costInflationRate || '2.0') || 2.0,
-      specialInvestmentBudget: parseFloat(data.specialInvestmentBudget || '25000') || 25000,
-      investmentHorizonYears: parseFloat(data.investmentHorizonYears || '5') || 5,
-      capitalProjectReserve: parseFloat(data.capitalProjectReserve || '100000') || 100000,
+      emergencyFundMinimum: parseNumericValue(data.emergencyFundMinimum, 10000),
+      operatingCashMinimum: parseNumericValue(data.operatingCashMinimum, 5000),
+      revenueGrowthRate: parseNumericValue(data.revenueGrowthRate, 2.5),
+      utilityInflationRate: parseNumericValue(data.utilityInflationRate, 3.0),
+      maintenanceInflationRate: parseNumericValue(data.maintenanceInflationRate, 2.5),
+      costInflationRate: parseNumericValue(data.costInflationRate, 2.0),
+      specialInvestmentBudget: parseNumericValue(data.specialInvestmentBudget, 25000),
+      investmentHorizonYears: parseNumericValue(data.investmentHorizonYears, 5),
+      capitalProjectReserve: parseNumericValue(data.capitalProjectReserve, 100000),
+      // Bills configuration fields with safe parsing that preserves zero values
+      useGlobalBillsInflation: parseBooleanValue(data.useGlobalBillsInflation, true),
+      globalBillsInflationRate: parseNumericValue(data.globalBillsInflationRate, 2.5),
+      unplannedBillsAmount: parseNumericValue(data.unplannedBillsAmount, 0),
+      categoryInflationRates: {
+        utilities: parseNumericValue(data.categoryInflationRates?.utilities, 3.0),
+        maintenance: parseNumericValue(data.categoryInflationRates?.maintenance, 2.5),
+        general: parseNumericValue(data.categoryInflationRates?.general, 2.0),
+        other: parseNumericValue(data.categoryInflationRates?.other, 2.0),
+      },
       // Include custom bank fields for persistence
       customBankFields: data.customBankFields || {},
     };
@@ -272,6 +323,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         specialInvestmentBudget: prev.specialInvestmentBudget,
         investmentHorizonYears: prev.investmentHorizonYears,
         capitalProjectReserve: prev.capitalProjectReserve,
+        useGlobalBillsInflation: prev.useGlobalBillsInflation,
+        globalBillsInflationRate: prev.globalBillsInflationRate,
+        unplannedBillsAmount: prev.unplannedBillsAmount,
+        categoryInflationRates: prev.categoryInflationRates,
         customBankFields: prev.customBankFields,
       }) !== JSON.stringify(nextSettings);
       
@@ -624,49 +679,81 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return {
       currentBalance: currentMonth.balance,
       monthlyIncome: calculateTotalRevenue(),
-      monthlySpending: currentMonth.spending,
+      monthlySpending: currentMonth.spending + (localSettings.unplannedBillsAmount || 0),
       yearEndBalance: lastPeriod.balance,
       variance: currentMonth.balance - priorYearBalance,
     };
   };
 
-  // Extract spending categories from forecast data
-  const getSpendingCategories = () => {
-    if (!forecastData) return [];
+  // Extract spending categories from forecast data - separated into revenue and expense categories
+  const getBudgetCategories = () => {
+    if (!forecastData) return { revenueCategories: [], expenseCategories: [], allCategories: [] };
 
     // Use our new revenue calculation instead of baseline income
     const totalMonthlyRevenue = calculateTotalRevenue();
     const residenceRevenue = calculateResidenceRevenue();
     const customRevenue = customRevenueLines.reduce((total, line) => total + line.monthlyAmount, 0);
+    
+    // Calculate total monthly expenses including unplanned bills
+    const totalMonthlyExpenses = forecastData.baselineMonthlyExpenses + (localSettings.unplannedBillsAmount || 0);
 
-    const categories = [
+    const revenueCategories = [
       { 
         category: 'Total Monthly Revenue', 
         budget: totalMonthlyRevenue * 12, 
         used: totalMonthlyRevenue * 12, 
-        color: 'bg-green-500' 
+        color: 'bg-green-500',
+        type: 'revenue' as const
       },
       { 
         category: 'Residence Revenue', 
         budget: residenceRevenue * 12, 
         used: residenceRevenue * 12, 
-        color: 'bg-blue-500' 
+        color: 'bg-blue-500',
+        type: 'revenue' as const
       },
       { 
         category: 'Custom Revenue', 
         budget: customRevenue * 12, 
         used: customRevenue * 12, 
-        color: 'bg-purple-500' 
+        color: 'bg-purple-500',
+        type: 'revenue' as const
       },
+    ];
+
+    const expenseCategories = [
       { 
         category: 'Monthly Expenses', 
         budget: forecastData.baselineMonthlyExpenses * 12, 
         used: forecastData.baselineMonthlyExpenses * 12, 
-        color: 'bg-red-500' 
+        color: 'bg-red-500',
+        type: 'expense' as const
+      },
+      // Add unplanned bills as a separate category if amount > 0
+      ...(localSettings.unplannedBillsAmount > 0 ? [{
+        category: 'Unplanned Bills', 
+        budget: localSettings.unplannedBillsAmount * 12, 
+        used: localSettings.unplannedBillsAmount * 12, 
+        color: 'bg-orange-500',
+        type: 'expense' as const
+      }] : []),
+      { 
+        category: 'Total Monthly Expenses (incl. Unplanned)', 
+        budget: totalMonthlyExpenses * 12, 
+        used: totalMonthlyExpenses * 12, 
+        color: 'bg-gray-600',
+        type: 'expense' as const
       },
     ];
 
-    return categories;
+    const allCategories = [...revenueCategories, ...expenseCategories];
+
+    return { revenueCategories, expenseCategories, allCategories };
+  };
+
+  // Legacy function for backward compatibility - returns all categories
+  const getSpendingCategories = () => {
+    return getBudgetCategories().allCategories;
   };
 
   // Prepare chart data with filters applied
@@ -708,9 +795,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         }
         // Use combined revenue instead of forecast revenue
         yearlyData[item.year].revenue += combinedRevenue;
-        yearlyData[item.year].spending += item.spending;
-        // Recalculate net cash flow with combined revenue
-        yearlyData[item.year].netCashFlow += (combinedRevenue - item.spending);
+        // Include unplanned bills in spending calculation for consistency
+        const totalSpending = item.spending + (localSettings.unplannedBillsAmount || 0);
+        yearlyData[item.year].spending += totalSpending;
+        // Recalculate net cash flow with combined revenue and total spending
+        yearlyData[item.year].netCashFlow += (combinedRevenue - totalSpending);
         yearlyData[item.year].count++;
         // Use last month's balance for the year
         yearlyData[item.year].balance = item.balance;
@@ -730,18 +819,23 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }
 
     // Monthly view with individual months
-    return filteredData.map((item) => ({
-      month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
-      balance: item.balance,
-      status: item.status,
-      revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
-      spending: item.spending,
-      netCashFlow: combinedRevenue - item.spending, // Recalculate with combined revenue
-    }));
+    return filteredData.map((item) => {
+      // Include unplanned bills in spending calculation for consistency
+      const totalSpending = item.spending + (localSettings.unplannedBillsAmount || 0);
+      return {
+        month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
+        balance: item.balance,
+        status: item.status,
+        revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
+        spending: totalSpending, // Include unplanned bills
+        netCashFlow: combinedRevenue - totalSpending, // Recalculate with combined revenue and total spending
+      };
+    });
   };
 
   const summaryMetrics = calculateSummaryMetrics();
-  const spendingCategories = getSpendingCategories();
+  const budgetData = getBudgetCategories();
+  const spendingCategories = budgetData.allCategories; // For backward compatibility
   const chartData = getChartData();
 
   // Custom chart line color based on status
@@ -1692,23 +1786,241 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                   </CardHeader>
                   <CardContent className='space-y-4'>
                     <div className='grid grid-cols-2 gap-4'>
-                      <div className='text-center p-3 bg-blue-50 rounded-lg'>
+                      <div className='text-center p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg'>
                         <div className='text-lg font-semibold text-blue-600'>
                           {forecastData?.recurrentBillsCount || 0}
                         </div>
                         <div className='text-sm text-blue-600'>Recurrent Bills</div>
                       </div>
-                      <div className='text-center p-3 bg-purple-50 rounded-lg'>
+                      <div className='text-center p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg'>
                         <div className='text-lg font-semibold text-purple-600'>
                           {forecastData?.uniqueBillsCount || 0}
                         </div>
                         <div className='text-sm text-purple-600'>Unique Bills</div>
                       </div>
                     </div>
+
+                    {/* Inflation Rate Controls */}
+                    <div className='space-y-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg'>
+                      <Label className='flex items-center gap-2 text-base font-semibold'>
+                        <Percent className='w-4 h-4' />
+                        Inflation Rate Settings
+                      </Label>
+                      
+                      {/* Global vs Per-Category Toggle */}
+                      <div className='flex items-center justify-between'>
+                        <div className='space-y-0.5'>
+                          <Label className='text-sm'>Inflation Rate Mode</Label>
+                          <p className='text-xs text-muted-foreground'>
+                            {localSettings.useGlobalBillsInflation 
+                              ? 'Apply same rate to all bills'
+                              : 'Set different rates per category'
+                            }
+                          </p>
+                        </div>
+                        <div className='flex items-center space-x-2'>
+                          <Label className='text-xs'>Per-Category</Label>
+                          <Switch
+                            checked={localSettings.useGlobalBillsInflation}
+                            onCheckedChange={(checked) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                useGlobalBillsInflation: checked,
+                              }))
+                            }
+                            data-testid="switch-inflation-mode"
+                          />
+                          <Label className='text-xs'>Global</Label>
+                        </div>
+                      </div>
+
+                      {/* Global Inflation Rate */}
+                      {localSettings.useGlobalBillsInflation && (
+                        <div className='space-y-2'>
+                          <Label htmlFor="global-inflation" className='text-sm'>
+                            Global Bills Inflation Rate (%)
+                          </Label>
+                          <div className='relative'>
+                            <Percent className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                            <Input
+                              id="global-inflation"
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              max="20"
+                              value={localSettings.globalBillsInflationRate}
+                              onChange={(e) =>
+                                setLocalSettings(prev => ({
+                                  ...prev,
+                                  globalBillsInflationRate: parseFloat(e.target.value) || 0,
+                                }))
+                              }
+                              className="pl-9"
+                              placeholder="2.5"
+                              data-testid="input-global-inflation"
+                            />
+                          </div>
+                          <p className='text-xs text-muted-foreground'>
+                            Applied to all bill categories for future projections
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Per-Category Inflation Rates */}
+                      {!localSettings.useGlobalBillsInflation && (
+                        <div className='space-y-3'>
+                          <Label className='text-sm'>Category-Specific Inflation Rates (%)</Label>
+                          <div className='grid grid-cols-1 gap-3'>
+                            <div className='flex items-center gap-2'>
+                              <div className='flex-1'>
+                                <Label htmlFor="utilities-inflation" className='text-xs'>Utilities</Label>
+                                <div className='relative'>
+                                  <Percent className='absolute left-2 top-2.5 h-3 w-3 text-muted-foreground' />
+                                  <Input
+                                    id="utilities-inflation"
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    max="20"
+                                    value={localSettings.categoryInflationRates?.utilities}
+                                    onChange={(e) =>
+                                      setLocalSettings(prev => ({
+                                        ...prev,
+                                        categoryInflationRates: {
+                                          ...prev.categoryInflationRates,
+                                          utilities: parseFloat(e.target.value) || 0,
+                                        },
+                                      }))
+                                    }
+                                    className="pl-6 text-xs"
+                                    placeholder="3.0"
+                                    data-testid="input-utilities-inflation"
+                                  />
+                                </div>
+                              </div>
+                              <div className='flex-1'>
+                                <Label htmlFor="maintenance-inflation" className='text-xs'>Maintenance</Label>
+                                <div className='relative'>
+                                  <Percent className='absolute left-2 top-2.5 h-3 w-3 text-muted-foreground' />
+                                  <Input
+                                    id="maintenance-inflation"
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    max="20"
+                                    value={localSettings.categoryInflationRates?.maintenance}
+                                    onChange={(e) =>
+                                      setLocalSettings(prev => ({
+                                        ...prev,
+                                        categoryInflationRates: {
+                                          ...prev.categoryInflationRates,
+                                          maintenance: parseFloat(e.target.value) || 0,
+                                        },
+                                      }))
+                                    }
+                                    className="pl-6 text-xs"
+                                    placeholder="2.5"
+                                    data-testid="input-maintenance-inflation"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className='flex items-center gap-2'>
+                              <div className='flex-1'>
+                                <Label htmlFor="general-inflation" className='text-xs'>General</Label>
+                                <div className='relative'>
+                                  <Percent className='absolute left-2 top-2.5 h-3 w-3 text-muted-foreground' />
+                                  <Input
+                                    id="general-inflation"
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    max="20"
+                                    value={localSettings.categoryInflationRates?.general}
+                                    onChange={(e) =>
+                                      setLocalSettings(prev => ({
+                                        ...prev,
+                                        categoryInflationRates: {
+                                          ...prev.categoryInflationRates,
+                                          general: parseFloat(e.target.value) || 0,
+                                        },
+                                      }))
+                                    }
+                                    className="pl-6 text-xs"
+                                    placeholder="2.0"
+                                    data-testid="input-general-inflation"
+                                  />
+                                </div>
+                              </div>
+                              <div className='flex-1'>
+                                <Label htmlFor="other-inflation" className='text-xs'>Other</Label>
+                                <div className='relative'>
+                                  <Percent className='absolute left-2 top-2.5 h-3 w-3 text-muted-foreground' />
+                                  <Input
+                                    id="other-inflation"
+                                    type="number"
+                                    step="0.1"
+                                    min="0"
+                                    max="20"
+                                    value={localSettings.categoryInflationRates?.other}
+                                    onChange={(e) =>
+                                      setLocalSettings(prev => ({
+                                        ...prev,
+                                        categoryInflationRates: {
+                                          ...prev.categoryInflationRates,
+                                          other: parseFloat(e.target.value) || 0,
+                                        },
+                                      }))
+                                    }
+                                    className="pl-6 text-xs"
+                                    placeholder="2.0"
+                                    data-testid="input-other-inflation"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <p className='text-xs text-muted-foreground'>
+                            Set different inflation rates for each category of bills
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Unplanned Bills */}
+                    <div className='space-y-2 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg'>
+                      <Label htmlFor="unplanned-bills" className='flex items-center gap-2 text-sm font-semibold text-orange-700 dark:text-orange-300'>
+                        <CreditCard className='w-4 h-4' />
+                        Unplanned Bills (Monthly)
+                      </Label>
+                      <div className='relative'>
+                        <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                        <Input
+                          id="unplanned-bills"
+                          type="number"
+                          min="0"
+                          value={localSettings.unplannedBillsAmount}
+                          onChange={(e) =>
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              unplannedBillsAmount: parseFloat(e.target.value) || 0,
+                            }))
+                          }
+                          className="pl-9"
+                          placeholder="0.00"
+                          data-testid="input-unplanned-bills"
+                        />
+                      </div>
+                      <p className='text-xs text-orange-600 dark:text-orange-400'>
+                        Additional budget for unexpected expenses each month
+                      </p>
+                    </div>
+
+                    {/* Bill Categories Display */}
                     <div className='space-y-2'>
                       <Label>Bill Categories</Label>
                       <div className='space-y-2'>
-                        {spendingCategories.slice(2).map((category) => (
+                        {budgetData.expenseCategories.map((category) => (
                           <div key={category.category} className='flex items-center justify-between text-sm'>
                             <span className='flex items-center gap-2'>
                               <div className={`w-2 h-2 rounded-full ${category.color}`}></div>
@@ -1721,9 +2033,26 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         ))}
                       </div>
                     </div>
-                    <div className='pt-2 border-t'>
-                      <div className='text-sm text-muted-foreground'>
-                        Total Monthly Expenses: ${summaryMetrics.monthlySpending.toLocaleString()}
+
+                    {/* Summary */}
+                    <div className='pt-2 border-t space-y-1'>
+                      <div className='flex justify-between text-sm'>
+                        <span className='text-muted-foreground'>Monthly Expenses:</span>
+                        <span className='font-medium'>${summaryMetrics.monthlySpending.toLocaleString()}</span>
+                      </div>
+                      {localSettings.unplannedBillsAmount > 0 && (
+                        <div className='flex justify-between text-sm'>
+                          <span className='text-orange-600 dark:text-orange-400'>Unplanned Bills:</span>
+                          <span className='font-medium text-orange-600 dark:text-orange-400'>
+                            ${localSettings.unplannedBillsAmount.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                      <div className='flex justify-between text-sm font-semibold pt-1 border-t'>
+                        <span>Total Monthly Expenses:</span>
+                        <span>
+                          ${((summaryMetrics.monthlySpending || 0) + (localSettings.unplannedBillsAmount || 0)).toLocaleString()}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
