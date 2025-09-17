@@ -1,0 +1,21 @@
+Navigate to `server/api/budgets.ts` and create a new endpoint `POST /api/budgets/:buildingId/forecast`. This endpoint will replace the existing sample data generation logic and perform the 25-year budget forecast.
+
+**Endpoint Logic**:
+1.  **Inputs**: The endpoint should accept the `buildingId` from the URL and a JSON body for simulation purposes containing optional overrides for `bankAccountStartAmount`, `bankAccountMinimums`, `generalInflationRate`, and `revenueInflationRate`.
+2.  **Data Fetching**:
+    * Retrieve the building's settings (start amount, minimums, inflation rates) from the `buildings` table. Use body overrides if provided.
+    * Fetch all `recurrent` bills from the `bills` table for the building.
+    * Fetch all `unique` (non-recurrent) bills and group them by year to calculate unplanned spending.
+    * Fetch all entries from `monthly_budgets` to get base income data. Assume the latest year's income data is the baseline for future years.
+3.  **Calculation Loop (25 years / 300 months)**:
+    * Initialize the bank balance with `bankAccountStartAmount`.
+    * For each month `t`:
+        a.  Calculate total revenue, applying the `revenueInflationRate` annually. Include special one-time incomes (`special_cotisations`) from the `monthly_budgets` table if they fall in the current month.
+        b.  Calculate total spending from recurrent bills. Apply the `generalInflationRate` annually to each cost.
+        c.  Add any "unplanned spending" from unique bills for the current year, distributed monthly or as a lump sum.
+        d.  Calculate `Net_t = Revenue_t - Spending_t`.
+        e.  Update bank balance: `Balance_t = Balance_{t-1} + Net_t`.
+        f.  Determine status: "red" (`Balance_t < 0`), "yellow" (`0 <= Balance_t < minimumFund`), "green" (`Balance_t >= minimumFund`).
+4.  **Response**: Return a JSON array containing the 25-year forecast data, structured by year and month.
+
+Also, ensure the existing `PUT /api/budgets/:buildingId/bank-account` endpoint is updated to also handle the new inflation rate fields.

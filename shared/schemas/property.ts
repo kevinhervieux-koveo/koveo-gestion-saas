@@ -70,6 +70,8 @@ export const buildings = pgTable('buildings', {
   bankAccountStartAmount: numeric('bank_account_start_amount', { precision: 10, scale: 2 }), // Starting balance
   bankAccountMinimums: text('bank_account_minimums'), // JSON string of minimum balance settings
   inflationSettings: text('inflation_settings'), // JSON string of inflation configuration by category
+  generalInflationRate: decimal('general_inflation_rate', { precision: 5, scale: 2 }).notNull().default('2.0'),
+  revenueInflationRate: decimal('revenue_inflation_rate', { precision: 5, scale: 2 }).notNull().default('2.0'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
