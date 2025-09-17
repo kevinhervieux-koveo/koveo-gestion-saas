@@ -73,6 +73,8 @@ interface BankAccountSettings {
   specialInvestmentBudget?: number;
   investmentHorizonYears?: number;
   capitalProjectReserve?: number;
+  // Custom bank fields as dynamic key-value pairs
+  customBankFields?: { [fieldName: string]: number };
 }
 
 interface BankAccountData {
@@ -125,6 +127,12 @@ interface CustomRevenueLine {
   id: string;
   description: string;
   monthlyAmount: number;
+}
+
+interface CustomBankAccountField {
+  id: string;
+  fieldName: string;
+  fieldValue: number;
 }
 
 interface RevenueData {
@@ -189,6 +197,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     monthlyAmount: ''
   });
 
+  // Custom bank account fields state - managed separately for UI but synced with localSettings
+  const [customBankFields, setCustomBankFields] = useState<CustomBankAccountField[]>([]);
+  const [newBankField, setNewBankField] = useState<{fieldName: string; fieldValue: string}>({
+    fieldName: '',
+    fieldValue: ''
+  });
+
   // Fetch bank account settings
   const { data: bankAccountData, isLoading: bankAccountLoading, error: bankAccountError } = useQuery({
     queryKey: [`/api/budgets/${buildingId}/bank-account`],
@@ -224,20 +239,22 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     
     const data = bankAccountData as any; // Extended data from server
     const nextSettings = {
-      // Basic fields
-      bankAccountStartAmount: parseFloat(data.bankAccountStartAmount || '0'),
-      bankAccountMinimums: parseFloat(data.bankAccountMinimums || '0'),
-      generalInflationRate: parseFloat(data.generalInflationRate || '2.0'),
-      // Extended configuration fields
-      emergencyFundMinimum: parseFloat(data.emergencyFundMinimum || '10000'),
-      operatingCashMinimum: parseFloat(data.operatingCashMinimum || '5000'),
-      revenueGrowthRate: parseFloat(data.revenueGrowthRate || '2.5'),
-      utilityInflationRate: parseFloat(data.utilityInflationRate || '3.0'),
-      maintenanceInflationRate: parseFloat(data.maintenanceInflationRate || '2.5'),
-      costInflationRate: parseFloat(data.costInflationRate || '2.0'),
-      specialInvestmentBudget: parseFloat(data.specialInvestmentBudget || '25000'),
-      investmentHorizonYears: parseFloat(data.investmentHorizonYears || '5'),
-      capitalProjectReserve: parseFloat(data.capitalProjectReserve || '100000'),
+      // Basic fields with safe parsing
+      bankAccountStartAmount: parseFloat(data.bankAccountStartAmount || '0') || 0,
+      bankAccountMinimums: parseFloat(data.bankAccountMinimums || '0') || 0,
+      generalInflationRate: parseFloat(data.generalInflationRate || '2.0') || 2.0,
+      // Extended configuration fields with safe parsing
+      emergencyFundMinimum: parseFloat(data.emergencyFundMinimum || '10000') || 10000,
+      operatingCashMinimum: parseFloat(data.operatingCashMinimum || '5000') || 5000,
+      revenueGrowthRate: parseFloat(data.revenueGrowthRate || '2.5') || 2.5,
+      utilityInflationRate: parseFloat(data.utilityInflationRate || '3.0') || 3.0,
+      maintenanceInflationRate: parseFloat(data.maintenanceInflationRate || '2.5') || 2.5,
+      costInflationRate: parseFloat(data.costInflationRate || '2.0') || 2.0,
+      specialInvestmentBudget: parseFloat(data.specialInvestmentBudget || '25000') || 25000,
+      investmentHorizonYears: parseFloat(data.investmentHorizonYears || '5') || 5,
+      capitalProjectReserve: parseFloat(data.capitalProjectReserve || '100000') || 100000,
+      // Include custom bank fields for persistence
+      customBankFields: data.customBankFields || {},
     };
     
     // Only update if data has actually changed to prevent infinite loops
@@ -255,6 +272,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         specialInvestmentBudget: prev.specialInvestmentBudget,
         investmentHorizonYears: prev.investmentHorizonYears,
         capitalProjectReserve: prev.capitalProjectReserve,
+        customBankFields: prev.customBankFields,
       }) !== JSON.stringify(nextSettings);
       
       if (!hasChanged) return prev;
@@ -262,6 +280,58 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       debugLog('Local settings updated from server data', {});
       return { ...prev, ...nextSettings };
     });
+    
+    // Initialize custom bank fields from server data
+    if (data.customBankFields) {
+      // Always include core fields first
+      const coreFields = [
+        { 
+          id: 'emergency-fund', 
+          fieldName: 'Emergency Fund Minimum', 
+          fieldValue: parseFloat(data.emergencyFundMinimum || '10000') || 10000 
+        },
+        { 
+          id: 'operating-cash', 
+          fieldName: 'Operating Cash Minimum', 
+          fieldValue: parseFloat(data.operatingCashMinimum || '5000') || 5000 
+        },
+      ];
+      
+      // Add custom fields from server
+      const customFieldsFromServer = Object.entries(data.customBankFields)
+        .filter(([name]) => name !== 'Emergency Fund Minimum' && name !== 'Operating Cash Minimum')
+        .map(([name, value], index) => ({
+          id: `server-field-${index}`,
+          fieldName: name,
+          fieldValue: parseFloat(String(value)) || 0,
+        }));
+        
+      const allFields = [...coreFields, ...customFieldsFromServer];
+      setCustomBankFields(allFields);
+      // Initial sync to ensure localSettings are updated
+      setTimeout(() => {
+        syncCustomFieldsToLocalSettings(allFields);
+      }, 0);
+    } else {
+      // Initialize with core required fields if no custom fields from server
+      const coreFields = [
+        { 
+          id: 'emergency-fund', 
+          fieldName: 'Emergency Fund Minimum', 
+          fieldValue: parseFloat(data.emergencyFundMinimum || '10000') || 10000 
+        },
+        { 
+          id: 'operating-cash', 
+          fieldName: 'Operating Cash Minimum', 
+          fieldValue: parseFloat(data.operatingCashMinimum || '5000') || 5000 
+        },
+      ];
+      setCustomBankFields(coreFields);
+      // Initial sync to ensure localSettings are updated
+      setTimeout(() => {
+        syncCustomFieldsToLocalSettings(coreFields);
+      }, 0);
+    }
   }, [bankAccountData]);
 
   // Fetch budget forecast based on current settings  
@@ -289,7 +359,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeoutId);
-  }, [localSettings, buildingId]);
+  }, [localSettings, buildingId, refetchForecast]);
+
+  // Sync custom bank fields with localSettings whenever they change
+  React.useEffect(() => {
+    if (customBankFields.length > 0) {
+      syncCustomFieldsToLocalSettings(customBankFields);
+      debugLog('Custom bank fields changed, syncing to localSettings', { customBankFields });
+    }
+  }, [customBankFields]);
 
   // Debug logging for forecast data and errors
   React.useEffect(() => {
@@ -345,6 +423,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   };
 
   const handleSaveSettings = () => {
+    // Ensure custom fields are synced before saving
+    syncCustomFieldsToLocalSettings(customBankFields);
+    debugLog('Saving settings with custom fields', { localSettings, customBankFields });
     saveSettingsMutation.mutate(localSettings);
   };
 
@@ -409,6 +490,84 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   // Remove custom revenue line
   const removeCustomRevenueLine = (id: string) => {
     setCustomRevenueLines(prev => prev.filter(line => line.id !== id));
+  };
+
+  // Add custom bank account field
+  const addCustomBankField = () => {
+    if (!newBankField.fieldName.trim() || !newBankField.fieldValue.trim()) return;
+    
+    // Validate amount is a positive number
+    const value = parseFloat(newBankField.fieldValue);
+    if (isNaN(value) || value < 0) {
+      toast({
+        title: 'Invalid Value',
+        description: 'Please enter a valid positive number for the field value.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    const newField: CustomBankAccountField = {
+      id: `bank-field-${Date.now()}`,
+      fieldName: newBankField.fieldName.trim(),
+      fieldValue: value,
+    };
+    
+    setCustomBankFields(prev => {
+      const updated = [...prev, newField];
+      // Sync the updated fields with localSettings
+      syncCustomFieldsToLocalSettings(updated);
+      return updated;
+    });
+    setNewBankField({ fieldName: '', fieldValue: '' });
+  };
+
+  // Remove custom bank account field
+  const removeCustomBankField = (id: string) => {
+    setCustomBankFields(prev => {
+      const updated = prev.filter(field => field.id !== id);
+      // Sync the updated fields with localSettings
+      syncCustomFieldsToLocalSettings(updated);
+      return updated;
+    });
+  };
+
+  // Update custom bank account field and sync with localSettings
+  const updateCustomBankField = (id: string, updates: Partial<CustomBankAccountField>) => {
+    setCustomBankFields(prev => {
+      const updated = prev.map(field => 
+        field.id === id ? { ...field, ...updates } : field
+      );
+      // Sync updated custom fields with localSettings
+      syncCustomFieldsToLocalSettings(updated);
+      return updated;
+    });
+  };
+  
+  // Sync custom bank fields to localSettings for API persistence and forecast calculations
+  const syncCustomFieldsToLocalSettings = (fields: CustomBankAccountField[]) => {
+    const customFieldsObj: { [key: string]: number } = {};
+    let emergencyFund = 0;
+    let operatingCash = 0;
+    
+    fields.forEach(field => {
+      // Handle special core fields that map to specific localSettings properties
+      if (field.fieldName === 'Emergency Fund Minimum') {
+        emergencyFund = field.fieldValue;
+      } else if (field.fieldName === 'Operating Cash Minimum') {
+        operatingCash = field.fieldValue;
+      } else {
+        // Store other custom fields in the customBankFields object
+        customFieldsObj[field.fieldName] = field.fieldValue;
+      }
+    });
+    
+    setLocalSettings(prev => ({
+      ...prev,
+      emergencyFundMinimum: emergencyFund,
+      operatingCashMinimum: operatingCash,
+      customBankFields: customFieldsObj,
+    }));
   };
 
   // Calculate summary metrics from forecast data with filters applied
@@ -1202,6 +1361,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className='space-y-4'>
+                    {/* Fixed Starting Balance Field */}
                     <div className='space-y-2'>
                       <Label htmlFor="starting-amount">Starting Balance</Label>
                       <div className='relative'>
@@ -1222,49 +1382,127 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         />
                       </div>
                     </div>
-                    <div className='space-y-2'>
-                      <Label htmlFor="emergency-fund">Emergency Fund Minimum</Label>
-                      <div className='relative'>
-                        <PiggyBank className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
-                        <Input
-                          id="emergency-fund"
-                          type="number"
-                          value={localSettings.emergencyFundMinimum}
-                          onChange={(e) =>
-                            setLocalSettings(prev => ({
-                              ...prev,
-                              emergencyFundMinimum: parseFloat(e.target.value) || 0,
-                            }))
-                          }
-                          className="pl-9"
-                          placeholder="10000"
-                          data-testid="input-emergency-fund"
-                        />
+
+                    {/* Dynamic Custom Bank Account Fields */}
+                    <div className='space-y-3'>
+                      <Label className='flex items-center gap-2'>
+                        <Settings className='w-4 h-4' />
+                        Custom Bank Account Fields
+                      </Label>
+                      
+                      {/* Existing Custom Bank Account Fields */}
+                      {customBankFields.map((field) => (
+                        <div key={field.id} className='flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg'>
+                          <div className='flex-1 space-y-2'>
+                            <Input
+                              value={field.fieldName}
+                              onChange={(e) =>
+                                updateCustomBankField(field.id, { fieldName: e.target.value })
+                              }
+                              placeholder="Field name"
+                              className='text-sm font-medium'
+                              data-testid={`input-bank-field-name-${field.id}`}
+                            />
+                            <div className='relative'>
+                              <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={field.fieldValue}
+                                onChange={(e) => {
+                                  const newValue = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                                  if (!isNaN(newValue) && newValue >= 0) {
+                                    updateCustomBankField(field.id, { fieldValue: newValue });
+                                  }
+                                }}
+                                placeholder="0"
+                                className='pl-9'
+                                data-testid={`input-bank-field-value-${field.id}`}
+                              />
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeCustomBankField(field.id)}
+                            className='text-red-500 hover:text-red-700'
+                            data-testid={`button-remove-bank-field-${field.id}`}
+                          >
+                            <Minus className='w-4 h-4' />
+                          </Button>
+                        </div>
+                      ))}
+
+                      {/* Add New Custom Bank Account Field */}
+                      <div className='space-y-3 p-3 border-2 border-dashed border-gray-300 rounded-lg'>
+                        <div className='grid grid-cols-1 gap-3'>
+                          <div>
+                            <Label htmlFor="bank-field-name">Field Name</Label>
+                            <Input
+                              id="bank-field-name"
+                              type="text"
+                              value={newBankField.fieldName}
+                              onChange={(e) =>
+                                setNewBankField(prev => ({
+                                  ...prev,
+                                  fieldName: e.target.value,
+                                }))
+                              }
+                              placeholder="e.g., Reserve Fund, Maintenance Buffer, Capital Reserve"
+                              data-testid="input-new-bank-field-name"
+                            />
+                          </div>
+                          <div className='flex gap-2'>
+                            <div className='flex-1'>
+                              <Label htmlFor="bank-field-value">Value ($)</Label>
+                              <div className='relative'>
+                                <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                                <Input
+                                  id="bank-field-value"
+                                  type="number"
+                                  value={newBankField.fieldValue}
+                                  onChange={(e) =>
+                                    setNewBankField(prev => ({
+                                      ...prev,
+                                      fieldValue: e.target.value,
+                                    }))
+                                  }
+                                  placeholder="0.00"
+                                  className="pl-9"
+                                  data-testid="input-new-bank-field-value"
+                                />
+                              </div>
+                            </div>
+                            <div className='flex items-end'>
+                              <Button
+                                onClick={addCustomBankField}
+                                disabled={!newBankField.fieldName.trim() || !newBankField.fieldValue.trim()}
+                                data-testid="button-add-custom-bank-field"
+                              >
+                                <Plus className='w-4 h-4 mr-2' />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className='space-y-2'>
-                      <Label htmlFor="operating-cash">Operating Cash Minimum</Label>
-                      <div className='relative'>
-                        <Coins className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
-                        <Input
-                          id="operating-cash"
-                          type="number"
-                          value={localSettings.operatingCashMinimum}
-                          onChange={(e) =>
-                            setLocalSettings(prev => ({
-                              ...prev,
-                              operatingCashMinimum: parseFloat(e.target.value) || 0,
-                            }))
-                          }
-                          className="pl-9"
-                          placeholder="5000"
-                          data-testid="input-operating-cash"
-                        />
+
+                    {/* Bank Account Summary */}
+                    <div className='pt-2 border-t space-y-2'>
+                      <div className='flex justify-between text-sm'>
+                        <span className='text-muted-foreground'>Starting Balance:</span>
+                        <span className='font-medium'>${localSettings.bankAccountStartAmount?.toLocaleString()}</span>
                       </div>
-                    </div>
-                    <div className='pt-2 border-t'>
-                      <div className='text-sm text-muted-foreground'>
-                        Current Balance: ${summaryMetrics.currentBalance.toLocaleString()}
+                      <div className='flex justify-between text-sm'>
+                        <span className='text-muted-foreground'>Total Custom Fields:</span>
+                        <span className='font-medium'>
+                          ${customBankFields.reduce((total, field) => total + field.fieldValue, 0).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className='flex justify-between text-base font-semibold pt-2 border-t'>
+                        <span>Current Balance:</span>
+                        <span className='text-blue-600'>${summaryMetrics.currentBalance.toLocaleString()}</span>
                       </div>
                     </div>
                   </CardContent>

@@ -255,6 +255,8 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       specialInvestmentBudget,
       investmentHorizonYears,
       capitalProjectReserve,
+      // Dynamic custom bank fields from frontend
+      customBankFields,
     } = req.body;
 
     // Validate building exists
@@ -267,7 +269,7 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       return res.status(404).json({ _error: 'Building not found' });
     }
 
-    // Prepare extended configuration object
+    // Prepare extended configuration object including custom bank fields
     const extendedConfig = {
       emergencyFundMinimum,
       operatingCashMinimum,
@@ -280,6 +282,8 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       specialInvestmentBudget,
       investmentHorizonYears,
       capitalProjectReserve,
+      // Include dynamic custom bank fields for persistence
+      customBankFields: customBankFields || {},
     };
 
     // Update building with bank account info and extended configuration
