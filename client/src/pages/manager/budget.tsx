@@ -567,59 +567,102 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }
   }, [serverInvestments]);
 
+  // Create debounced forecast parameters using useMemo
+  // This ensures queryKey and request body match exactly, preventing unnecessary refetches
+  const forecastParams = useMemo(() => {
+    // Only include parameters that the server actually uses
+    const params = {
+      ...localSettings,
+      capitalInvestmentMode,
+      // Include custom revenue lines if server uses them
+      customRevenueLines: customRevenueLines || [],
+      // Include relevant filter parameters that server uses
+      viewType: filters.viewType,
+      periodLength: filters.periodLength, 
+      startMonth: filters.startMonth,
+      startYear: filters.startYear,
+      // Include investment filters if server uses them
+      investmentFilters: investmentFilters || { urgency: 'all' }
+    };
+    
+    debugLog('Forecast params computed', {
+      buildingId,
+      paramKeys: Object.keys(params),
+      capitalInvestmentMode: params.capitalInvestmentMode,
+      customRevenueLines: params.customRevenueLines.length,
+      filters: {
+        viewType: params.viewType,
+        periodLength: params.periodLength,
+        startMonth: params.startMonth,
+        startYear: params.startYear
+      }
+    });
+    
+    return params;
+  }, [
+    // Core dependencies - only include what actually affects the forecast
+    buildingId,
+    capitalInvestmentMode,
+    localSettings.bankAccountStartAmount,
+    localSettings.bankAccountStartDate,
+    localSettings.bankAccountMinimums,
+    localSettings.generalInflationRate,
+    localSettings.financialYearStart,
+    localSettings.emergencyFundMinimum,
+    localSettings.operatingCashMinimum,
+    localSettings.revenueGrowthRate,
+    localSettings.utilityInflationRate,
+    localSettings.maintenanceInflationRate,
+    localSettings.costInflationRate,
+    localSettings.specialInvestmentBudget,
+    localSettings.investmentHorizonYears,
+    localSettings.capitalProjectReserve,
+    localSettings.useGlobalBillsInflation,
+    localSettings.globalBillsInflationRate,
+    localSettings.unplannedBillsAmount,
+    JSON.stringify(localSettings.categoryInflationRates),
+    // Custom revenue lines - only when they actually change
+    JSON.stringify(customRevenueLines),
+    // Filters - only relevant ones
+    filters.viewType,
+    filters.periodLength,
+    filters.startMonth,
+    filters.startYear,
+    // Investment filters
+    investmentFilters.urgency
+  ]);
+
   // Fetch budget forecast based on current settings  
-  const { data: forecastData, isLoading: forecastLoading, error: forecastError, refetch: refetchForecast } = useQuery({
+  const { data: forecastData, isLoading: forecastLoading, error: forecastError, refetch: refetchForecast } = useQuery<BudgetForecastResponse>({
     queryKey: [
       'budgetForecast', 
       buildingId, 
-      capitalInvestmentMode,
-      // Include all dependencies that affect Capital Investment Scenarios
-      JSON.stringify(localSettings),
-      JSON.stringify({
-        viewType: filters.viewType,
-        periodLength: filters.periodLength,
-        startMonth: filters.startMonth,
-        startYear: filters.startYear
-      }),
-      JSON.stringify(customRevenueLines),
-      JSON.stringify(customBankFields),
-      JSON.stringify(investmentFilters)
+      forecastParams // Use the computed params as single dependency
     ],
     queryFn: async () => {
-      const requestData = { ...localSettings, capitalInvestmentMode };
-      debugLog('Fetching budget forecast with all dependencies', { 
+      debugLog('Fetching budget forecast', { 
         buildingId, 
-        settings: localSettings, 
-        capitalInvestmentMode,
-        filters: {
-          viewType: filters.viewType,
-          periodLength: filters.periodLength,
-          startMonth: filters.startMonth,
-          startYear: filters.startYear
-        },
-        customRevenueLines,
-        customBankFields,
-        investmentFilters
+        paramsKeys: Object.keys(forecastParams),
+        mode: forecastParams.capitalInvestmentMode
       });
-      const response = await apiRequest('POST', `/api/budgets/${buildingId}/forecast`, requestData);
+      const response = await apiRequest('POST', `/api/budgets/${buildingId}/forecast`, forecastParams);
       const data = await response.json();
-      debugLog('Budget forecast API response', { buildingId, responseStatus: response.status, mode: capitalInvestmentMode });
+      debugLog('Budget forecast API response', { buildingId, responseStatus: response.status, mode: forecastParams.capitalInvestmentMode });
       return data as BudgetForecastResponse;
     },
     enabled: !!buildingId,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    // Add debouncing via staleTime to prevent rapid API calls
+    staleTime: 500, // 500ms before considering data stale
+    // Keep previous data during refetches to avoid UI flicker (v5 syntax)
+    placeholderData: (previousData) => previousData,
   });
 
   // Note: Manual forecast refetch removed - expanded queryKey now handles automatic updates
 
-  // Sync custom bank fields with localSettings whenever they change
-  React.useEffect(() => {
-    if (customBankFields.length > 0) {
-      syncCustomFieldsToLocalSettings(customBankFields);
-      debugLog('Custom bank fields changed, syncing to localSettings', { customBankFields });
-    }
-  }, [customBankFields]);
+  // REMOVED: Sync useEffect that was causing double triggers
+  // Custom bank fields are now handled directly in forecastParams useMemo
 
   // CRITICAL FIX: Sync filters.periodLength to localSettings.investmentHorizonYears when in yearly view
   React.useEffect(() => {
@@ -723,8 +766,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         title: 'Success', 
         description: 'Bank account settings saved successfully',
       });
+      // Invalidate both bank account data and forecast queries
       queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
-      refetchForecast();
+      queryClient.invalidateQueries({ queryKey: ['budgetForecast', buildingId] });
     },
     onError: (error: any) => {
       debugLog('Bank account save error', { buildingId, error });
@@ -769,8 +813,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         title: 'Success', 
         description: 'Revenue configuration saved successfully',
       });
+      // Invalidate both bank account data and forecast queries
       queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
-      refetchForecast();
+      queryClient.invalidateQueries({ queryKey: ['budgetForecast', buildingId] });
     },
     onError: (error: any) => {
       debugLog('Revenue configuration save error', { buildingId, error });
@@ -810,8 +855,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         title: 'Success', 
         description: 'Unplanned bills amount saved successfully',
       });
+      // Invalidate both bank account data and forecast queries
       queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
-      refetchForecast();
+      queryClient.invalidateQueries({ queryKey: ['budgetForecast', buildingId] });
       
       debugLog('Unplanned bills state updated immediately', { 
         buildingId, 
@@ -845,8 +891,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         title: 'Success', 
         description: 'Capital investments saved successfully',
       });
+      // Invalidate both investments data and forecast queries
       queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/investments`] });
-      refetchForecast();
+      queryClient.invalidateQueries({ queryKey: ['budgetForecast', buildingId] });
     },
     onError: () => {
       toast({
