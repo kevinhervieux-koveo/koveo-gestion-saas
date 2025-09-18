@@ -3570,6 +3570,128 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         const filteredInvestments = getFilteredInvestments();
                         
                         if (filteredInvestments.length === 0) {
+                          // CRITICAL FIX: Add proper filter gate to respect investmentFilters.urgency
+                          // Only show payment entries when filter allows them
+                          const currentModeUrgency = capitalInvestmentMode === 'urgent' ? 'urgent' : 'suggested';
+                          if (!(investmentFilters.urgency === 'all' || investmentFilters.urgency === currentModeUrgency)) {
+                            // Return original empty state if filters don't match
+                            return (
+                              <div className='text-center py-8 text-muted-foreground' data-testid="text-no-investments-filtered">
+                                <Building2 className='w-8 h-8 mx-auto mb-2 opacity-50' />
+                                <p>No investments match the current filters</p>
+                                <p className='text-sm'>Add custom investments or adjust filters to see items</p>
+                              </div>
+                            );
+                          }
+                          
+                          // Calculate monthly payment based on current capital investment mode
+                          const monthlyPayment = capitalInvestmentMode === 'urgent' 
+                            ? calculateUrgentMonthlyPayment() 
+                            : calculateSuggestedMonthlyPayment();
+                          
+                          // Only show monthly payment entries if payment > 0
+                          if (monthlyPayment > 0) {
+                            // Generate monthly payment entries for current time window
+                            const paymentEntries: (CapitalInvestment & { isMonthlyPayment: boolean })[] = [];
+                            const startMonth = filters.startMonth || 1;
+                            const startYear = filters.startYear || new Date().getFullYear();
+                            const totalMonths = filters.viewType === 'year' 
+                              ? filters.periodLength * 12 
+                              : filters.periodLength;
+                            
+                            for (let i = 0; i < totalMonths; i++) {
+                              const entryDate = new Date(startYear, startMonth - 1 + i, 1);
+                              const monthName = entryDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                              
+                              const description = capitalInvestmentMode === 'urgent'
+                                ? 'Monthly payment to prevent deficit'
+                                : 'Monthly payment to maintain minimum requirement';
+                              
+                              const title = `${monthName} Payment`;
+                              
+                              paymentEntries.push({
+                                id: `payment-${i}`,
+                                title,
+                                description,
+                                amount: monthlyPayment,
+                                targetDate: entryDate.toISOString().split('T')[0],
+                                urgency: capitalInvestmentMode === 'urgent' ? 'urgent' as const : 'suggested' as const,
+                                type: 'auto_generated' as const,
+                                ownershipType: 'residences' as const,
+                                category: 'monthly_payment',
+                                createdAt: new Date().toISOString(),
+                                isMonthlyPayment: true
+                              });
+                            }
+                            
+                            // Render monthly payment entries using existing investment styling
+                            return paymentEntries.map((payment) => {
+                              const urgencyConfig = {
+                                urgent: { 
+                                  bg: 'bg-red-100 dark:bg-red-950/30', 
+                                  text: 'text-red-800 dark:text-red-200', 
+                                  border: 'border-red-200 dark:border-red-800',
+                                  badge: 'bg-red-500'
+                                },
+                                suggested: { 
+                                  bg: 'bg-yellow-100 dark:bg-yellow-950/30', 
+                                  text: 'text-yellow-800 dark:text-yellow-200', 
+                                  border: 'border-yellow-200 dark:border-yellow-800',
+                                  badge: 'bg-yellow-500'
+                                },
+                              };
+                              
+                              const config = urgencyConfig[payment.urgency as keyof typeof urgencyConfig];
+                              const targetDate = new Date(payment.targetDate);
+                              
+                              return (
+                                <div 
+                                  key={payment.id} 
+                                  className={`${config.bg} ${config.border} border rounded-lg p-4 mb-3`}
+                                  data-testid={`card-payment-entry-${payment.id}`}
+                                >
+                                  <div className='flex items-start justify-between'>
+                                    <div className='flex-1'>
+                                      <div className='flex items-center gap-3 mb-2'>
+                                        <h4 className={`font-semibold ${config.text}`} data-testid={`text-payment-title-${payment.id}`}>
+                                          {payment.title}
+                                        </h4>
+                                        <div className='flex items-center gap-2'>
+                                          <div className={`w-2 h-2 ${config.badge} rounded-full`} data-testid={`indicator-urgency-${payment.id}`}></div>
+                                          <Badge variant="outline" className={`text-xs ${config.text} border-current`} data-testid={`badge-urgency-${payment.id}`}>
+                                            {payment.urgency}
+                                          </Badge>
+                                          <Badge variant="secondary" className='text-xs' data-testid={`badge-type-${payment.id}`}>
+                                            Monthly Payment
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                      
+                                      <p className={`text-sm ${config.text} opacity-80 mb-2`} data-testid={`text-payment-description-${payment.id}`}>
+                                        {payment.description}
+                                      </p>
+                                      
+                                      <div className='flex flex-wrap items-center gap-4 text-sm'>
+                                        <span className={`font-medium ${config.text}`} data-testid={`text-payment-amount-${payment.id}`}>
+                                          ${payment.amount.toLocaleString()}
+                                        </span>
+                                        <span className={`${config.text} opacity-75`} data-testid={`text-payment-date-${payment.id}`}>
+                                          <Calendar className='w-3 h-3 inline mr-1' />
+                                          {targetDate.toLocaleDateString()}
+                                        </span>
+                                        <span className={`${config.text} opacity-75`} data-testid={`text-payment-ownership-${payment.id}`}>
+                                          <Building className='w-3 h-3 inline mr-1' />
+                                          For Residences
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          }
+                          
+                          // Fall back to original empty state if no monthly payment needed
                           return (
                             <div className='text-center py-8 text-muted-foreground' data-testid="text-no-investments">
                               <Building2 className='w-8 h-8 mx-auto mb-2 opacity-50' />
