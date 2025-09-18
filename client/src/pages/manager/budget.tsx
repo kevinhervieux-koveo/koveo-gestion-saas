@@ -865,7 +865,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         // Only suggest if forecast deficit exceeds our current cash targets
         const projectedBalanceAfterTargets = currentBalance + cumulativeTarget;
         if (maxDeficit > projectedBalanceAfterTargets) {
-          const additionalCashFlowNeeded = maxDeficit - projectedBalanceAfterTargets + 5000; // Add safety buffer
+          const additionalCashFlowNeeded = maxDeficit - projectedBalanceAfterTargets; // Removed hardcoded safety buffer
           suggestions.push({
             id: `auto-cashflow-${Date.now()}`,
             title: 'Cash Flow Support',
