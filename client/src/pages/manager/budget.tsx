@@ -3255,27 +3255,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             data-testid="input-unplanned-bills"
                           />
                         </div>
-                        <div className='flex gap-2'>
-                          <Button
-                            size="sm"
-                            onClick={() => saveUnplannedBillsMutation.mutate(localSettings.unplannedBillsAmount || 0)}
-                            disabled={saveUnplannedBillsMutation.isPending}
-                            className='flex-1'
-                            data-testid="button-save-unplanned-bills"
-                          >
-                            {saveUnplannedBillsMutation.isPending ? (
-                              <>
-                                <div className='animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full mr-2'></div>
-                                Saving...
-                              </>
-                            ) : (
-                              <>
-                                <CreditCard className='w-3 h-3 mr-2' />
-                                Save Bills Configuration
-                              </>
-                            )}
-                          </Button>
-                        </div>
                       </div>
                       <div className='space-y-1'>
                         <p className='text-xs text-orange-600 dark:text-orange-400'>
@@ -3314,6 +3293,28 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                           ${Number(summaryMetrics?.monthlySpending ?? 0).toLocaleString()}
                         </span>
                       </div>
+                    </div>
+
+                    {/* Save Bills Configuration Button */}
+                    <div className='pt-4 border-t'>
+                      <Button
+                        onClick={() => saveUnplannedBillsMutation.mutate(localSettings.unplannedBillsAmount || 0)}
+                        disabled={saveUnplannedBillsMutation.isPending}
+                        className='w-full'
+                        data-testid="button-save-unplanned-bills"
+                      >
+                        {saveUnplannedBillsMutation.isPending ? (
+                          <>
+                            <div className='animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2'></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className='w-4 h-4 mr-2' />
+                            Save Bills Configuration
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
