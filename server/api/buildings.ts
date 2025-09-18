@@ -1531,6 +1531,8 @@ export function registerBuildingRoutes(app: Express): void {
             unitNumber: residences.unitNumber,
             floor: residences.floor,
             buildingId: residences.buildingId,
+            monthlyFees: residences.monthlyFees,
+            isActive: residences.isActive,
           })
           .from(residences)
           .innerJoin(buildings, eq(buildings.id, residences.buildingId))
@@ -1549,6 +1551,8 @@ export function registerBuildingRoutes(app: Express): void {
             unitNumber: residences.unitNumber,
             floor: residences.floor,
             buildingId: residences.buildingId,
+            monthlyFees: residences.monthlyFees,
+            isActive: residences.isActive,
           })
           .from(residences)
           .innerJoin(buildings, eq(buildings.id, residences.buildingId))
