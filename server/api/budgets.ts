@@ -787,7 +787,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
               // Approximate weekly as 4.33 times per month
               isPaymentDue = true;
               monthlyRecurringExpenses += totalBillCost * 4.33; // 52 weeks / 12 months
-              continue;
+              break;
             default:
               // Assume monthly if schedule is unclear
               isPaymentDue = true;

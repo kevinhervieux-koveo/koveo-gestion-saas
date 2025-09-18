@@ -571,11 +571,48 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         description: 'Bank account settings saved successfully',
       });
       queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
+      refetchForecast();
     },
-    onError: () => {
+    onError: (error: any) => {
+      debugLog('Bank account save error', { buildingId, error });
       toast({
         title: 'Error',
-        description: 'Failed to save bank account settings',
+        description: error?.message || 'Failed to save bank account settings',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Save unplanned bills amount mutation (dedicated endpoint)
+  const saveUnplannedBillsMutation = useMutation({
+    mutationFn: async (amount: number) => {
+      debugLog('Saving unplanned bills amount', { buildingId, amount });
+      const payload = {
+        unplannedBillsAmount: amount,
+        notes: 'Updated via budget configuration'
+      };
+      const response = await apiRequest('PUT', `/api/budgets/${buildingId}/unplanned-bills`, payload);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ _error: 'Unknown error' }));
+        throw new Error(errorData._error || `HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      debugLog('Unplanned bills save response', { buildingId, responseStatus: response.status, data });
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success', 
+        description: 'Unplanned bills amount saved successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
+      refetchForecast();
+    },
+    onError: (error: any) => {
+      debugLog('Unplanned bills save error', { buildingId, error });
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to save unplanned bills amount',
         variant: 'destructive',
       });
     },
@@ -2468,32 +2505,67 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     </div>
 
                     {/* Unplanned Bills */}
-                    <div className='space-y-2 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg'>
+                    <div className='space-y-3 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg'>
                       <Label htmlFor="unplanned-bills" className='flex items-center gap-2 text-sm font-semibold text-orange-700 dark:text-orange-300'>
                         <CreditCard className='w-4 h-4' />
                         Unplanned Bills (Monthly)
                       </Label>
-                      <div className='relative'>
-                        <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
-                        <Input
-                          id="unplanned-bills"
-                          type="number"
-                          min="0"
-                          value={localSettings.unplannedBillsAmount}
-                          onChange={(e) =>
-                            setLocalSettings(prev => ({
-                              ...prev,
-                              unplannedBillsAmount: parseFloat(e.target.value) || 0,
-                            }))
-                          }
-                          className="pl-9"
-                          placeholder="0.00"
-                          data-testid="input-unplanned-bills"
-                        />
+                      <div className='space-y-2'>
+                        <div className='relative'>
+                          <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                          <Input
+                            id="unplanned-bills"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={localSettings.unplannedBillsAmount}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                unplannedBillsAmount: parseFloat(e.target.value) || 0,
+                              }))
+                            }
+                            className="pl-9"
+                            placeholder="0.00"
+                            data-testid="input-unplanned-bills"
+                          />
+                        </div>
+                        <div className='flex gap-2'>
+                          <Button
+                            size="sm"
+                            onClick={() => saveUnplannedBillsMutation.mutate(localSettings.unplannedBillsAmount || 0)}
+                            disabled={saveUnplannedBillsMutation.isPending}
+                            className='flex-1 bg-orange-600 hover:bg-orange-700 text-white'
+                            data-testid="button-save-unplanned-bills"
+                          >
+                            {saveUnplannedBillsMutation.isPending ? (
+                              <>
+                                <div className='animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full mr-2'></div>
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className='w-3 h-3 mr-2' />
+                                Save
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
-                      <p className='text-xs text-orange-600 dark:text-orange-400'>
-                        Additional budget for unexpected expenses each month
-                      </p>
+                      <div className='space-y-1'>
+                        <p className='text-xs text-orange-600 dark:text-orange-400'>
+                          Additional budget for unexpected expenses each month
+                        </p>
+                        {localSettings.unplannedBillsAmount > 0 ? (
+                          <p className='text-xs text-orange-700 dark:text-orange-300 font-medium'>
+                            ✓ Manual override: ${localSettings.unplannedBillsAmount.toLocaleString()}/month
+                          </p>
+                        ) : (
+                          <p className='text-xs text-muted-foreground'>
+                            💡 Based on historical data (set to 0 for manual control)
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     {/* Bill Categories Display */}
