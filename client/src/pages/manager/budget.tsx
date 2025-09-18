@@ -583,28 +583,72 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   // Calculate residence revenue from monthly fees
   const calculateResidenceRevenue = () => {
-    if (!residences || residences.length === 0) return 0;
+    if (isDev) {
+      debugLog('calculateResidenceRevenue', { 
+        residencesLength: residences?.length || 0, 
+        residences: residences?.map(r => ({ 
+          id: r.id, 
+          monthlyFees: r.monthlyFees, 
+          isActive: r.isActive 
+        })) || []
+      });
+    }
+
+    if (!residences || residences.length === 0) {
+      if (isDev) debugLog('calculateResidenceRevenue - no residences', { residences });
+      return 0;
+    }
     
-    return residences
-      .filter((residence) => {
-        // Only include active residences
-        return residence?.isActive !== false; // Default to true if undefined
-      })
-      .reduce((total, residence) => {
-        // Handle null/undefined residence
-        if (!residence || !residence.monthlyFees) return total;
-        
-        // Parse monthlyFees with robust validation
-        const feesString = String(residence.monthlyFees).replace(/[^0-9.-]/g, ''); // Remove currency symbols
-        const monthlyFees = parseFloat(feesString);
-        
-        // Only add valid positive numbers
-        if (!isNaN(monthlyFees) && monthlyFees >= 0) {
-          return total + monthlyFees;
-        }
-        
+    const activeResidences = residences.filter((residence) => {
+      // Only include active residences
+      return residence?.isActive !== false; // Default to true if undefined
+    });
+
+    if (isDev) {
+      debugLog('calculateResidenceRevenue - active residences', { 
+        count: activeResidences.length,
+        activeResidences: activeResidences.map(r => ({ 
+          id: r.id, 
+          monthlyFees: r.monthlyFees, 
+          isActive: r.isActive 
+        }))
+      });
+    }
+    
+    const totalRevenue = activeResidences.reduce((total, residence) => {
+      // Handle null/undefined residence
+      if (!residence || !residence.monthlyFees) {
+        if (isDev) debugLog('calculateResidenceRevenue - skipping residence (no fees)', { residence: residence?.id, monthlyFees: residence?.monthlyFees });
         return total;
-      }, 0);
+      }
+      
+      // Parse monthlyFees with robust validation
+      const feesString = String(residence.monthlyFees).replace(/[^0-9.-]/g, ''); // Remove currency symbols
+      const monthlyFees = parseFloat(feesString);
+      
+      if (isDev) {
+        debugLog('calculateResidenceRevenue - processing residence', { 
+          residenceId: residence.id, 
+          originalFees: residence.monthlyFees,
+          cleanedString: feesString,
+          parsedFees: monthlyFees,
+          isValid: !isNaN(monthlyFees) && monthlyFees >= 0
+        });
+      }
+      
+      // Only add valid positive numbers
+      if (!isNaN(monthlyFees) && monthlyFees >= 0) {
+        return total + monthlyFees;
+      }
+      
+      return total;
+    }, 0);
+
+    if (isDev) {
+      debugLog('calculateResidenceRevenue - final result', { totalRevenue });
+    }
+    
+    return totalRevenue;
   };
 
   // Calculate total revenue (residence + custom lines)
