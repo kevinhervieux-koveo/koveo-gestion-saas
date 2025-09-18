@@ -40,6 +40,7 @@ const forecastInputSchema = z.object({
   revenueInflationRate: z.coerce.number().min(0).max(100).optional(),
   unplannedBillsAmount: z.coerce.number().min(0).optional(),
   lookbackYears: z.coerce.number().min(1).max(10).optional().default(3),
+  capitalInvestmentMode: z.enum(['urgent', 'suggested']).optional().default('suggested'),
 });
 
 const updateUnplannedBillsSchema = z.object({
@@ -622,6 +623,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       revenueInflationRate,
       unplannedBillsAmount,
       lookbackYears,
+      capitalInvestmentMode,
     } = validatedInput;
 
     // Retrieve building settings including extended configuration
@@ -905,17 +907,32 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       let capitalInvestment = 0;
       let newBalance = currentBalance + netCashFlow;
       
-      // If balance would go negative or below minimum threshold, inject capital investment
-      if (newBalance < Math.max(0, minimumFund)) {
-        // Calculate required capital investment to maintain minimum balance (or 0 if no minimum set)
-        const targetBalance = Math.max(0, minimumFund);
-        capitalInvestment = targetBalance - newBalance;
-        
-        // Round capital investment to nearest 100 for realistic injection amounts
-        capitalInvestment = Math.ceil(capitalInvestment / 100) * 100;
-        
-        // Update balance with capital investment
-        newBalance += capitalInvestment;
+      // Apply capital investment strategy based on selected mode
+      if (capitalInvestmentMode === 'urgent') {
+        // Urgent Capital Mode: Only inject capital when balance would go below $0 (emergency injection)
+        if (newBalance < 0) {
+          // Calculate required capital investment to bring balance back to 0
+          capitalInvestment = Math.abs(newBalance);
+          
+          // Round capital investment to nearest 100 for realistic injection amounts
+          capitalInvestment = Math.ceil(capitalInvestment / 100) * 100;
+          
+          // Update balance with capital investment
+          newBalance += capitalInvestment;
+        }
+      } else {
+        // Suggested Capital Mode: Inject capital to maintain minimum requirement threshold
+        if (newBalance < Math.max(0, minimumFund)) {
+          // Calculate required capital investment to maintain minimum balance (or 0 if no minimum set)
+          const targetBalance = Math.max(0, minimumFund);
+          capitalInvestment = targetBalance - newBalance;
+          
+          // Round capital investment to nearest 100 for realistic injection amounts
+          capitalInvestment = Math.ceil(capitalInvestment / 100) * 100;
+          
+          // Update balance with capital investment
+          newBalance += capitalInvestment;
+        }
       }
       
       // Update current balance for next period
@@ -960,6 +977,8 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       recurrentBillsCount: recurrentBills.length,
       historicalExpensesCount: historicalExpensesByCategory.length,
       expensesCategoriesAnalyzed: Object.keys(expensesByCategory).length,
+      // Capital investment scenario information
+      capitalInvestmentMode: capitalInvestmentMode,
       // Include calculated unplanned bills information
       unplannedBillsCalculation: {
         suggestedAmount: unplannedBillsCalculation.amount,

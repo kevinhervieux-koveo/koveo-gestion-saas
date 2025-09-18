@@ -274,6 +274,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   // Capital investments state management
   const [capitalInvestments, setCapitalInvestments] = useState<CapitalInvestment[]>([]);
+  const [capitalInvestmentMode, setCapitalInvestmentMode] = useState<'urgent' | 'suggested'>('suggested');
   const [investmentFilters, setInvestmentFilters] = useState<InvestmentFilters>({
     urgency: 'all',
   });
@@ -499,12 +500,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   // Fetch budget forecast based on current settings  
   const { data: forecastData, isLoading: forecastLoading, error: forecastError, refetch: refetchForecast } = useQuery({
-    queryKey: ['budgetForecast', buildingId],
+    queryKey: ['budgetForecast', buildingId, capitalInvestmentMode],
     queryFn: async () => {
-      debugLog('Fetching budget forecast', { buildingId, settings: localSettings });
-      const response = await apiRequest('POST', `/api/budgets/${buildingId}/forecast`, localSettings);
+      const requestData = { ...localSettings, capitalInvestmentMode };
+      debugLog('Fetching budget forecast', { buildingId, settings: localSettings, capitalInvestmentMode });
+      const response = await apiRequest('POST', `/api/budgets/${buildingId}/forecast`, requestData);
       const data = await response.json();
-      debugLog('Budget forecast API response', { buildingId, responseStatus: response.status });
+      debugLog('Budget forecast API response', { buildingId, responseStatus: response.status, mode: capitalInvestmentMode });
       return data as BudgetForecastResponse;
     },
     enabled: !!buildingId,
@@ -516,13 +518,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   React.useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (buildingId) {
-        debugLog('Settings changed, refetching forecast', { buildingId, settings: localSettings });
+        debugLog('Settings changed, refetching forecast', { buildingId, settings: localSettings, capitalInvestmentMode });
         refetchForecast();
       }
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeoutId);
-  }, [localSettings, buildingId, refetchForecast]);
+  }, [localSettings, capitalInvestmentMode, buildingId, refetchForecast]);
 
   // Sync custom bank fields with localSettings whenever they change
   React.useEffect(() => {
@@ -2598,15 +2600,78 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 </div>
 
 
-                {/* Capital Investment Management */}
-                <Card data-testid="card-capital-investment">
+                {/* Capital Investment Scenarios */}
+                <Card data-testid="card-capital-investment-scenarios">
                   <CardHeader>
                     <CardTitle className='flex items-center gap-2'>
                       <Building2 className='w-5 h-5' />
-                      Capital Investment Management
+                      Capital Investment Scenarios
                     </CardTitle>
                   </CardHeader>
                   <CardContent className='space-y-6'>
+                    {/* Capital Investment Mode Selection */}
+                    <div className='bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
+                      <div className='flex flex-col space-y-3'>
+                        <div className='flex items-center gap-2 mb-2'>
+                          <Target className='w-4 h-4 text-blue-600 dark:text-blue-400' />
+                          <span className='text-sm font-medium text-blue-700 dark:text-blue-300'>Capital Investment Strategy</span>
+                        </div>
+                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-3'>
+                          <label 
+                            className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
+                              capitalInvestmentMode === 'urgent' 
+                                ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/30' 
+                                : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                            }`}
+                            data-testid="label-urgent-capital-mode"
+                          >
+                            <div className='flex items-center space-x-3'>
+                              <input
+                                type="radio"
+                                name="capitalInvestmentMode"
+                                value="urgent"
+                                checked={capitalInvestmentMode === 'urgent'}
+                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested')}
+                                className='text-blue-600 focus:ring-blue-500'
+                                data-testid="radio-urgent-capital-mode"
+                              />
+                              <div className='flex-1'>
+                                <div className='font-medium text-gray-900 dark:text-gray-100'>Urgent Capital Only</div>
+                                <div className='text-sm text-gray-600 dark:text-gray-400'>Only inject capital when balance would go below $0 (emergency injection)</div>
+                              </div>
+                            </div>
+                          </label>
+                          
+                          <label 
+                            className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
+                              capitalInvestmentMode === 'suggested' 
+                                ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/30' 
+                                : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                            }`}
+                            data-testid="label-suggested-capital-mode"
+                          >
+                            <div className='flex items-center space-x-3'>
+                              <input
+                                type="radio"
+                                name="capitalInvestmentMode"
+                                value="suggested"
+                                checked={capitalInvestmentMode === 'suggested'}
+                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested')}
+                                className='text-blue-600 focus:ring-blue-500'
+                                data-testid="radio-suggested-capital-mode"
+                              />
+                              <div className='flex-1'>
+                                <div className='font-medium text-gray-900 dark:text-gray-100'>Suggested Capital</div>
+                                <div className='text-sm text-gray-600 dark:text-gray-400'>Inject capital to maintain minimum requirement threshold</div>
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                        <div className='text-xs text-blue-600 dark:text-blue-400 mt-2'>
+                          💡 This setting affects the forecast calculations and capital investment timing in the budget graph
+                        </div>
+                      </div>
+                    </div>
                     {/* Investment Summary & Filters */}
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
                       {/* Summary Cards */}
