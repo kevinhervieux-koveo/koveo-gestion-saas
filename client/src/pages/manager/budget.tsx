@@ -1446,7 +1446,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   }, [forecastData, filters, localSettings]);
 
   const budgetData = getBudgetCategories();
-  const spendingCategories = budgetData.allCategories; // For backward compatibility
   const chartData = getChartData();
 
   // Custom chart line color based on status
@@ -1837,35 +1836,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 </Card>
               </div>
 
-              {/* Budget Categories */}
-              <Card data-testid="card-budget-categories">
-                <CardHeader>
-                  <CardTitle className='flex items-center gap-2'>
-                    <PieChart className='w-5 h-5' />
-                    {t('budgetCategories')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className='space-y-4'>
-                    {spendingCategories.map((item) => (
-                      <div key={item.category} className='flex items-center justify-between p-4 border rounded-lg'>
-                        <div className='flex items-center gap-3'>
-                          <div className={`w-4 h-4 rounded-full ${item.color}`}></div>
-                          <div>
-                            <h3 className='font-semibold'>{item.category}</h3>
-                            <p className='text-sm text-gray-600'>
-                              ${item.used.toLocaleString()} / ${item.budget.toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant={item.used > item.budget ? 'destructive' : 'secondary'}>
-                          {Math.round((item.used / item.budget) * 100)}%
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
 
               {/* Enhanced Multi-Series Chart with Visibility Toggles */}
               <Card data-testid="card-enhanced-trend-chart">
