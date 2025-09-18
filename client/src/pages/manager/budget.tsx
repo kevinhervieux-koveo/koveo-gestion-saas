@@ -208,6 +208,52 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     debugLog('Component initialized', { organizationId, buildingId });
   }, [organizationId, buildingId]);
 
+  // Helper function to parse financial year start date and extract month/year
+  const parseFinancialYearStart = (financialYearStart?: string): { month: number; year: number } => {
+    try {
+      if (!financialYearStart) {
+        // Fallback to current date if no financial year start is set
+        return {
+          month: new Date().getMonth() + 1, // Current month (1-12)
+          year: new Date().getFullYear()
+        };
+      }
+
+      // Parse YYYY-MM-DD format
+      const dateMatch = financialYearStart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!dateMatch) {
+        // Invalid format, fallback to current date
+        debugLog('Invalid financialYearStart format, using current date', { financialYearStart });
+        return {
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear()
+        };
+      }
+
+      const [, yearStr, monthStr] = dateMatch;
+      const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10);
+
+      // Validate year and month ranges
+      if (year < 1900 || year > 2100 || month < 1 || month > 12) {
+        debugLog('Invalid year or month in financialYearStart, using current date', { year, month });
+        return {
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear()
+        };
+      }
+
+      debugLog('Parsed financial year start date', { financialYearStart, month, year });
+      return { month, year };
+    } catch (error) {
+      debugLog('Error parsing financialYearStart, using current date', { financialYearStart, error });
+      return {
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear()
+      };
+    }
+  };
+
   // Local state for budget settings simulation
   const [localSettings, setLocalSettings] = useState<BankAccountSettings>({
     bankAccountStartAmount: 0,
@@ -236,22 +282,27 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     },
   });
 
-  // Filter state management
-  const [filters, setFilters] = useState<BudgetFilters>({
-    viewType: 'month',
-    periodLength: 12, // Default to 12 months
-    startMonth: new Date().getMonth() + 1, // Current month (1-12)
-    startYear: new Date().getFullYear(),
-    dataVisibility: {
-      revenue: true,
-      spending: true,
-      balanceStart: false,
-      balanceEnd: true,
-      netCashFlow: false,
-      capitalInvestments: true,
-      minimumRequirement: true,
-    },
-  });
+  // Filter state management - Initialize with financial year start date
+  const getInitialFilters = (): BudgetFilters => {
+    const financialYearDate = parseFinancialYearStart(localSettings.financialYearStart);
+    return {
+      viewType: 'month',
+      periodLength: 12, // Default to 12 months
+      startMonth: financialYearDate.month,
+      startYear: financialYearDate.year,
+      dataVisibility: {
+        revenue: true,
+        spending: true,
+        balanceStart: false,
+        balanceEnd: true,
+        netCashFlow: false,
+        capitalInvestments: true,
+        minimumRequirement: true,
+      },
+    };
+  };
+  
+  const [filters, setFilters] = useState<BudgetFilters>(getInitialFilters());
   
   // Budget filters collapsible state
   const [filtersCollapsed, setFiltersCollapsed] = useState(() => {
@@ -566,6 +617,30 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       });
     }
   }, [filters.periodLength, filters.viewType, localSettings.investmentHorizonYears]);
+
+  // Update Period Window when financialYearStart changes
+  React.useEffect(() => {
+    if (localSettings.financialYearStart) {
+      const financialYearDate = parseFinancialYearStart(localSettings.financialYearStart);
+      
+      // Only update if the dates are different to prevent unnecessary re-renders
+      if (filters.startMonth !== financialYearDate.month || filters.startYear !== financialYearDate.year) {
+        setFilters(prev => ({
+          ...prev,
+          startMonth: financialYearDate.month,
+          startYear: financialYearDate.year,
+        }));
+        
+        debugLog('Updated Period Window from financialYearStart change', { 
+          previousStartMonth: filters.startMonth,
+          previousStartYear: filters.startYear,
+          newStartMonth: financialYearDate.month,
+          newStartYear: financialYearDate.year,
+          financialYearStart: localSettings.financialYearStart
+        });
+      }
+    }
+  }, [localSettings.financialYearStart, filters.startMonth, filters.startYear]);
 
   // Debug logging for forecast data and errors
   React.useEffect(() => {
