@@ -698,15 +698,27 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       }
       const data = await response.json();
       debugLog('Unplanned bills save response', { buildingId, responseStatus: response.status, data });
-      return data;
+      return { ...data, savedAmount: amount };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // CRITICAL FIX: Immediately update local state to ensure UI updates
+      setLocalSettings(prev => ({
+        ...prev,
+        unplannedBillsAmount: data.savedAmount
+      }));
+      
       toast({
         title: 'Success', 
         description: 'Unplanned bills amount saved successfully',
       });
       queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
       refetchForecast();
+      
+      debugLog('Unplanned bills state updated immediately', { 
+        buildingId, 
+        savedAmount: data.savedAmount,
+        previousAmount: localSettings.unplannedBillsAmount
+      });
     },
     onError: (error: any) => {
       debugLog('Unplanned bills save error', { buildingId, error });
@@ -3224,7 +3236,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <div className='pt-2 border-t space-y-1'>
                       <div className='flex justify-between text-sm'>
                         <span className='text-muted-foreground'>Monthly Expenses:</span>
-                        <span className='font-medium'>${summaryMetrics.monthlySpending.toLocaleString()}</span>
+                        <span className='font-medium'>${Number(summaryMetrics?.monthlySpending ?? 0).toLocaleString()}</span>
                       </div>
                       {localSettings.unplannedBillsAmount > 0 && (
                         <div className='flex justify-between text-sm'>
@@ -3237,7 +3249,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       <div className='flex justify-between text-sm font-semibold pt-1 border-t'>
                         <span>Total Monthly Expenses:</span>
                         <span>
-                          ${((summaryMetrics.monthlySpending || 0) + (localSettings.unplannedBillsAmount || 0)).toLocaleString()}
+                          ${Number(summaryMetrics?.monthlySpending ?? 0).toLocaleString()}
                         </span>
                       </div>
                     </div>
