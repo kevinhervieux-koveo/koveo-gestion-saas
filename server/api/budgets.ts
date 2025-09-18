@@ -4,30 +4,17 @@ import { db } from '../db';
 import { budgets, monthlyBudgets, buildings, bills, payments, residences, capitalInvestments, insertCapitalInvestmentSchema } from '@shared/schema';
 import { requireAuth } from '../auth';
 import { and, eq, gte, lte, sql, desc, asc, sum, count, ne, inArray, or, isNull } from 'drizzle-orm';
+import { applyInflation } from '../utils/budgetCalculations';
+import {
+  ExtendedBuildingConfig,
+  getMonthlyFeesInflationRate,
+  safeConvertFinancialYearStart,
+  shouldApplyInflation
+} from '../utils/inflation';
 
 const router = express.Router();
 
-// TypeScript interface for building amenities/extended configuration
-interface ExtendedBuildingConfig {
-  emergencyFundMinimum?: number;
-  operatingCashMinimum?: number;
-  revenueGrowthRate?: number;
-  revenueInflation?: number;
-  reserveFundTarget?: number;
-  utilityInflationRate?: number;
-  maintenanceInflationRate?: number;
-  costInflationRate?: number;
-  specialInvestmentBudget?: number;
-  investmentHorizonYears?: number;
-  capitalProjectReserve?: number;
-  customBankFields?: Record<string, number>;
-  customRevenueLines?: Array<{
-    id: string;
-    description: string;
-    monthlyAmount: number;
-  }>;
-  [key: string]: any; // Allow additional properties
-}
+// ExtendedBuildingConfig interface now imported from ../utils/inflation
 
 // Development debug logging
 const isDev = process.env.NODE_ENV === 'development';
@@ -88,6 +75,12 @@ function calculateMinimumRequirement(
 
   return totalMinimumRequirement;
 }
+
+// getMonthlyFeesInflationRate function now imported from ../utils/inflation
+
+// safeConvertFinancialYearStart function now imported from ../utils/inflation
+
+// shouldApplyInflation function now imported from ../utils/inflation
 
 /**
  * Get budgets and monthly budgets for a building with date range.
@@ -387,7 +380,7 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
         generalInflationRate,
         revenueInflationRate,
         unplannedBillsAmount: unplannedBillsAmount?.toString(), // Save unplanned bills amount
-        financialYearStart: financialYearStart ? new Date(financialYearStart) : null, // Save financial year start
+        financialYearStart: financialYearStart || null, // Save financial year start
         amenities: extendedConfig, // Using amenities jsonb field for extended config
         bankAccountUpdatedAt: new Date(),
       })
@@ -663,6 +656,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         generalInflationRate: true,
         revenueInflationRate: true,
         unplannedBillsAmount: true,
+        financialYearStart: true, // Financial year start date for inflation timing
         amenities: true, // Contains extended configuration
       },
     });
@@ -856,18 +850,21 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         }, 0);
     }
 
-    // Initialize baseline monthly income from residence revenue + budget data
-    let monthlyBaselineIncome = monthlyResidenceRevenue;
+    // Separate monthly fees from other income sources for different inflation treatment
+    const monthlyFeesRevenue = monthlyResidenceRevenue; // Monthly fees from residences (use bills inflation)
+    
+    // Calculate other income sources from budget data (use revenue inflation)
+    let otherMonthlyIncome = 0;
     if (baselineIncome.length > 0 && baselineIncome[0].incomes) {
-      const customIncomes = baselineIncome[0].incomes
+      otherMonthlyIncome = baselineIncome[0].incomes
         .reduce((sum, income) => sum + parseFloat(income), 0);
-      monthlyBaselineIncome += customIncomes;
     }
     
+    // Total baseline income (for backward compatibility and fallback)
+    const totalBaselineIncome = monthlyFeesRevenue + otherMonthlyIncome;
+    
     // Use fallback only if no residence or budget revenue exists
-    if (monthlyBaselineIncome === 0) {
-      monthlyBaselineIncome = 50000; // Default fallback
-    }
+    const monthlyBaselineIncome = totalBaselineIncome > 0 ? totalBaselineIncome : 50000;
 
     // Calculate monthly recurring costs using optimized approach
     const monthlyRecurringCosts = recurrentBills.reduce((total, bill) => {
@@ -917,9 +914,29 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       const currentMonth = (monthIndex % 12) + 1;
       const currentDate = new Date(currentYear, currentMonth - 1, 1);
       
-      // Apply annual inflation for both revenue and expenses
+      // Apply inflation separately for monthly fees and other income, respecting financial year start date
       const yearsElapsed = Math.floor(monthIndex / 12);
-      const inflatedIncome = monthlyBaselineIncome * Math.pow(1 + revenueInflation, yearsElapsed);
+      
+      // Check if inflation should be applied based on financial year start date
+      const financialYearStartDate = safeConvertFinancialYearStart(building.financialYearStart);
+      const shouldInflate = shouldApplyInflation(currentDate, financialYearStartDate);
+      
+      let inflatedMonthlyFees = monthlyFeesRevenue;
+      let inflatedOtherIncome = otherMonthlyIncome;
+      
+      if (shouldInflate && yearsElapsed > 0) {
+        // Get the correct inflation rate for monthly fees based on bills configuration
+        const monthlyFeesInflationRate = getMonthlyFeesInflationRate(extendedConfig, revenueInflation, generalInflation);
+        
+        // Apply bills inflation to monthly fees
+        inflatedMonthlyFees = applyInflation(monthlyFeesRevenue, monthlyFeesInflationRate, yearsElapsed);
+        
+        // Apply revenue inflation to other income sources
+        inflatedOtherIncome = applyInflation(otherMonthlyIncome, revenueInflation, yearsElapsed);
+      }
+      
+      // Total inflated income
+      const inflatedIncome = inflatedMonthlyFees + inflatedOtherIncome;
       
       // Calculate expenses from actual recurrent bill schedules for this specific month
       let monthlyRecurringExpenses = 0;
