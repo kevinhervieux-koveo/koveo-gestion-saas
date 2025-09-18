@@ -1574,7 +1574,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return {
       currentBalance: currentMonth.balance,
       monthlyIncome: calculateTotalRevenue(),
-      monthlySpending: currentMonth.spending + (localSettings.unplannedBillsAmount || 0),
+      monthlySpending: currentMonth.spending,
       yearEndBalance: lastPeriod.balance,
       variance: currentMonth.balance - priorYearBalance,
     };
@@ -1589,8 +1589,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     const residenceRevenue = calculateResidenceRevenue();
     const customRevenue = customRevenueLines.reduce((total, line) => total + line.monthlyAmount, 0);
     
-    // Calculate total monthly expenses including unplanned bills
-    const totalMonthlyExpenses = forecastData.baselineMonthlyExpenses + (localSettings.unplannedBillsAmount || 0);
+    // Calculate total monthly expenses from bills data only
+    const totalMonthlyExpenses = forecastData.baselineMonthlyExpenses;
 
     const revenueCategories = [
       { 
@@ -1703,8 +1703,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         }
         // Use combined revenue instead of forecast revenue
         yearlyData[item.year].revenue += combinedRevenue;
-        // Include unplanned bills in spending calculation for consistency
-        const totalSpending = item.spending + (localSettings.unplannedBillsAmount || 0);
+        // Use bills-only spending data from API
+        const totalSpending = item.spending;
         yearlyData[item.year].spending += totalSpending;
         // Recalculate net cash flow with combined revenue and total spending
         yearlyData[item.year].netCashFlow += (combinedRevenue - totalSpending);
@@ -1745,8 +1745,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
     // Monthly view with individual months
     return filteredData.map((item, index) => {
-      // Include unplanned bills in spending calculation for consistency
-      const totalSpending = item.spending + (localSettings.unplannedBillsAmount || 0);
+      // Use bills-only spending data from API
+      const totalSpending = item.spending;
       
       // Calculate start of period balance (previous period's ending balance)
       let balanceStart: number;

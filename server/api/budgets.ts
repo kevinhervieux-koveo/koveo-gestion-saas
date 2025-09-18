@@ -730,34 +730,15 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         )
       );
 
-    // Use optimized grouped query for historical expenses from payments table
-    const historicalExpensesByCategory = await db
-      .select({
-        category: bills.category,
-        year: sql<number>`EXTRACT(YEAR FROM ${payments.paidDate})`.mapWith(Number),
-        month: sql<number>`EXTRACT(MONTH FROM ${payments.paidDate})`.mapWith(Number),
-        totalPaid: sum(payments.amount).mapWith(Number),
-        paymentCount: count(payments.id).mapWith(Number),
-      })
-      .from(payments)
-      .innerJoin(bills, eq(payments.billId, bills.id))
-      .where(
-        and(
-          eq(bills.buildingId, buildingId),
-          eq(payments.status, 'paid'),
-          gte(payments.paidDate, new Date(currentDate.getFullYear() - 2, 0, 1).toISOString().split('T')[0])
-        )
-      )
-      .groupBy(
-        bills.category,
-        sql`EXTRACT(YEAR FROM ${payments.paidDate})`,
-        sql`EXTRACT(MONTH FROM ${payments.paidDate})`
-      )
-      .orderBy(
-        bills.category,
-        sql`EXTRACT(YEAR FROM ${payments.paidDate})`,
-        sql`EXTRACT(MONTH FROM ${payments.paidDate})`
-      );
+    // REMOVED: Historical expenses query - spending calculations now only use bills data
+    // No historical expenses or other data sources are used in spending calculations
+    debugLog('Spending calculation sources', {
+      buildingId,
+      dataSourcesUsed: ['recurrent_bills_only'],
+      historicalExpensesUsed: false,
+      monthlyBudgetSpendingUsed: false,
+      note: 'Only active recurrent bills are used for spending calculations'
+    });
 
     // Fetch residence data for revenue calculation
     const residenceData = await db.query.residences.findMany({
@@ -847,14 +828,21 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       return total;
     }, 0);
 
-    // Group historical expenses by category for trend analysis
-    const expensesByCategory: Record<string, number[]> = {};
-    historicalExpensesByCategory.forEach((expense) => {
-      if (!expensesByCategory[expense.category]) {
-        expensesByCategory[expense.category] = [];
-      }
-      expensesByCategory[expense.category].push(expense.totalPaid);
+    debugLog('Bills data sources for spending calculation', {
+      buildingId,
+      recurrentBillsFound: recurrentBills.length,
+      billsIncluded: recurrentBills.map(bill => ({
+        category: bill.category,
+        costs: bill.costs,
+        schedule: bill.schedulePayment,
+        status: 'active'
+      })),
+      totalMonthlyRecurringCosts: monthlyRecurringCosts,
+      note: 'These are the ONLY sources of spending in budget calculations'
     });
+
+    // REMOVED: Historical expenses grouping - not used in spending calculations
+    // Spending is calculated purely from recurrent bills data only
 
     // Generate 25-year forecast (300 months) with proper recurrent bill scheduling
     const forecastData = [];
@@ -1005,8 +993,13 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       baselineMonthlyIncome: monthlyBaselineIncome,
       baselineMonthlyExpenses: monthlyRecurringCosts,
       recurrentBillsCount: recurrentBills.length,
-      historicalExpensesCount: historicalExpensesByCategory.length,
-      expensesCategoriesAnalyzed: Object.keys(expensesByCategory).length,
+      // CLARIFICATION: Spending calculations use ONLY bills data
+      dataSourcesUsed: {
+        recurrentBills: true,
+        historicalExpenses: false,
+        monthlyBudgets: false,
+        note: 'Only active recurrent bills are used for spending calculations'
+      },
       // Capital investment scenario information
       capitalInvestmentMode: capitalInvestmentMode,
       // Include calculated unplanned bills information
