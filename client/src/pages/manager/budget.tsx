@@ -3260,7 +3260,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             size="sm"
                             onClick={() => saveUnplannedBillsMutation.mutate(localSettings.unplannedBillsAmount || 0)}
                             disabled={saveUnplannedBillsMutation.isPending}
-                            className='flex-1 bg-orange-600 hover:bg-orange-700 text-white'
+                            className='flex-1'
                             data-testid="button-save-unplanned-bills"
                           >
                             {saveUnplannedBillsMutation.isPending ? (
@@ -3271,7 +3271,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             ) : (
                               <>
                                 <CreditCard className='w-3 h-3 mr-2' />
-                                Save
+                                Save Bills Configuration
                               </>
                             )}
                           </Button>
