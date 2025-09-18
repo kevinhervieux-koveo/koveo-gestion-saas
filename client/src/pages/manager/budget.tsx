@@ -1941,7 +1941,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 <Card data-testid="card-bank-account-config">
                   <CardHeader>
                     <CardTitle className='flex items-center gap-2'>
-                      <CreditCard className='w-5 h-5' />
+                      <Building className='w-5 h-5' />
                       Bank Account Configuration
                     </CardTitle>
                   </CardHeader>
@@ -1984,6 +1984,40 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         />
                       </div>
                     </div>
+
+                    {/* Bank Account Summary */}
+                    <div className='pt-2 border-t space-y-2'>
+                      <div className='flex justify-between text-sm'>
+                        <span className='text-muted-foreground'>Starting Balance:</span>
+                        <span className='font-medium'>${localSettings.bankAccountStartAmount?.toLocaleString()}</span>
+                      </div>
+                      <div className='flex justify-between text-sm'>
+                        <span className='text-muted-foreground'>Balance Date:</span>
+                        <span className='font-medium'>
+                          {localSettings.bankAccountStartDate ? new Date(localSettings.bankAccountStartDate).toLocaleDateString() : 'Not set'}
+                        </span>
+                      </div>
+                      {(bankAccountData as BankAccountData)?.bankAccountUpdatedAt && (
+                        <div className='flex justify-between text-sm'>
+                          <span className='text-muted-foreground'>Last Updated:</span>
+                          <span className='font-medium text-blue-600'>
+                            {new Date((bankAccountData as BankAccountData).bankAccountUpdatedAt!).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Minimum requirement */}
+                <Card data-testid="card-minimum-requirement-config">
+                  <CardHeader>
+                    <CardTitle className='flex items-center gap-2'>
+                      <Target className='w-5 h-5' />
+                      Minimum requirement
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='space-y-4'>
 
                     {/* Dynamic Custom Bank Account Fields */}
                     <div className='space-y-3'>
@@ -2090,26 +2124,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </div>
                     </div>
 
-                    {/* Bank Account Summary */}
+                    {/* Minimum Requirement Summary */}
                     <div className='pt-2 border-t space-y-2'>
-                      <div className='flex justify-between text-sm'>
-                        <span className='text-muted-foreground'>Starting Balance:</span>
-                        <span className='font-medium'>${localSettings.bankAccountStartAmount?.toLocaleString()}</span>
-                      </div>
-                      <div className='flex justify-between text-sm'>
-                        <span className='text-muted-foreground'>Balance Date:</span>
-                        <span className='font-medium'>
-                          {localSettings.bankAccountStartDate ? new Date(localSettings.bankAccountStartDate).toLocaleDateString() : 'Not set'}
-                        </span>
-                      </div>
-                      {(bankAccountData as BankAccountData)?.bankAccountUpdatedAt && (
-                        <div className='flex justify-between text-sm'>
-                          <span className='text-muted-foreground'>Last Updated:</span>
-                          <span className='font-medium text-blue-600'>
-                            {new Date((bankAccountData as BankAccountData).bankAccountUpdatedAt!).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
                       <div className='flex justify-between text-sm'>
                         <span className='text-muted-foreground'>Total Custom Fields:</span>
                         <span className='font-medium'>
@@ -2128,7 +2144,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         onClick={() => saveBankAccountMutation.mutate()}
                         disabled={saveBankAccountMutation.isPending}
                         className='w-full'
-                        data-testid="button-save-bank-account"
+                        data-testid="button-save-minimum-requirement"
                       >
                         {saveBankAccountMutation.isPending ? (
                           <>
@@ -2137,8 +2153,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                           </>
                         ) : (
                           <>
-                            <CreditCard className='w-4 h-4 mr-2' />
-                            Save Bank Account Settings
+                            <Target className='w-4 h-4 mr-2' />
+                            Save Minimum requirement
                           </>
                         )}
                       </Button>
