@@ -1,9 +1,9 @@
 import express from 'express';
 import { z } from 'zod';
 import { db } from '../db';
-import { budgets, monthlyBudgets, buildings, bills, residences, capitalInvestments, insertCapitalInvestmentSchema } from '@shared/schema';
+import { budgets, monthlyBudgets, buildings, bills, payments, residences, capitalInvestments, insertCapitalInvestmentSchema } from '@shared/schema';
 import { requireAuth } from '../auth';
-import { and, eq, gte, lte, sql, desc, asc } from 'drizzle-orm';
+import { and, eq, gte, lte, sql, desc, asc, sum, count } from 'drizzle-orm';
 
 const router = express.Router();
 
@@ -14,6 +14,21 @@ const debugLog = (endpoint: string, data: any) => {
     console.log(`🏦 [BUDGET API DEBUG] ${endpoint}:`, JSON.stringify(data, null, 2));
   }
 };
+
+// Validation schemas
+const forecastInputSchema = z.object({
+  bankAccountStartAmount: z.coerce.number().optional(),
+  bankAccountMinimums: z.coerce.number().optional(),
+  generalInflationRate: z.coerce.number().min(0).max(100).optional(),
+  revenueInflationRate: z.coerce.number().min(0).max(100).optional(),
+  unplannedBillsAmount: z.coerce.number().min(0).optional(),
+  lookbackYears: z.coerce.number().min(1).max(10).optional().default(3),
+});
+
+const updateUnplannedBillsSchema = z.object({
+  unplannedBillsAmount: z.coerce.number().min(0),
+  notes: z.string().optional(),
+});
 
 /**
  * Get budgets and monthly budgets for a building with date range.
@@ -398,79 +413,127 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
 });
 
 /**
- * Calculate suggested unplanned bills amount based on historical unique bills data
+ * Calculate suggested unplanned bills amount based on historical payment data
+ * Uses payments table instead of bills table for accuracy
  */
-async function calculateUnplannedBillsSuggestion(buildingId: string): Promise<number> {
+async function calculateUnplannedBillsSuggestion(
+  buildingId: string, 
+  lookbackYears: number = 3
+): Promise<{amount: number, confidence: string, yearsAnalyzed: number}> {
   try {
-    const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 3; // Look back 3 years for historical data
+    const currentDate = new Date();
+    const startDate = new Date(currentDate);
+    startDate.setFullYear(currentDate.getFullYear() - lookbackYears);
     
-    debugLog('Calculating unplanned bills suggestion', { buildingId, startYear, currentYear });
+    debugLog('Calculating unplanned bills suggestion', { buildingId, lookbackYears, startDate });
     
-    // Fetch historical unique bills from the last 3 years
-    const historicalUniqueBills = await db
+    // Use single grouped SQL query for better performance
+    // Get payments for unique bills only, filter by paid status and paidDate
+    const historicalPayments = await db
       .select({
-        startDate: bills.startDate,
-        totalAmount: bills.totalAmount,
-        category: bills.category,
+        year: sql<number>`EXTRACT(YEAR FROM ${payments.paidDate})`.
+          mapWith(Number),
+        month: sql<number>`EXTRACT(MONTH FROM ${payments.paidDate})`.
+          mapWith(Number),
+        totalAmount: sum(payments.amount).mapWith(Number),
+        paymentCount: count(payments.id).mapWith(Number),
       })
-      .from(bills)
+      .from(payments)
+      .innerJoin(bills, eq(payments.billId, bills.id))
       .where(
         and(
           eq(bills.buildingId, buildingId),
           eq(bills.paymentType, 'unique'),
-          gte(bills.startDate, new Date(`${startYear}-01-01`)),
-          lte(bills.startDate, new Date(`${currentYear}-12-31`))
+          eq(payments.status, 'paid'),
+          gte(payments.paidDate, startDate.toISOString().split('T')[0]),
+          lte(payments.paidDate, currentDate.toISOString().split('T')[0])
         )
+      )
+      .groupBy(
+        sql`EXTRACT(YEAR FROM ${payments.paidDate})`,
+        sql`EXTRACT(MONTH FROM ${payments.paidDate})`
+      )
+      .orderBy(
+        sql`EXTRACT(YEAR FROM ${payments.paidDate})`,
+        sql`EXTRACT(MONTH FROM ${payments.paidDate})`
       );
 
-    debugLog('Historical unique bills fetched', { count: historicalUniqueBills.length });
+    debugLog('Historical payments fetched', { count: historicalPayments.length });
 
-    if (historicalUniqueBills.length === 0) {
-      // No historical data - return default fallback
-      debugLog('No historical data found, using fallback', { fallback: 0 });
-      return 0;
+    if (historicalPayments.length === 0) {
+      debugLog('No historical payment data found', { fallback: 0 });
+      return { amount: 0, confidence: 'no_data', yearsAnalyzed: 0 };
     }
 
-    // Group bills by year and calculate yearly totals
-    const billsByYear: Record<number, number> = {};
-    historicalUniqueBills.forEach((bill) => {
-      const year = new Date(bill.startDate).getFullYear();
-      billsByYear[year] = (billsByYear[year] || 0) + parseFloat(bill.totalAmount);
+    // Group by year for analysis
+    const paymentsByYear: Record<number, number> = {};
+    const monthsWithData = new Set<string>();
+    
+    historicalPayments.forEach((payment) => {
+      paymentsByYear[payment.year] = (paymentsByYear[payment.year] || 0) + payment.totalAmount;
+      monthsWithData.add(`${payment.year}-${payment.month}`);
     });
 
-    debugLog('Bills grouped by year', billsByYear);
+    debugLog('Payments grouped by year', { paymentsByYear, monthsWithData: monthsWithData.size });
 
-    // Calculate average yearly amount
-    const years = Object.keys(billsByYear);
+    // Handle edge cases: partial years, outliers
+    const years = Object.keys(paymentsByYear).map(Number);
     if (years.length === 0) {
-      return 0;
+      return { amount: 0, confidence: 'no_data', yearsAnalyzed: 0 };
     }
 
-    const totalYearlyAmount = Object.values(billsByYear).reduce((sum, amount) => sum + amount, 0);
-    const averageYearlyAmount = totalYearlyAmount / years.length;
+    // Remove outliers (values that are more than 2 standard deviations from mean)
+    const yearlyAmounts = Object.values(paymentsByYear);
+    const mean = yearlyAmounts.reduce((sum, amount) => sum + amount, 0) / yearlyAmounts.length;
+    const variance = yearlyAmounts.reduce((sum, amount) => sum + Math.pow(amount - mean, 2), 0) / yearlyAmounts.length;
+    const stdDev = Math.sqrt(variance);
+    
+    const filteredAmounts = yearlyAmounts.filter(amount => 
+      Math.abs(amount - mean) <= 2 * stdDev
+    );
+    
+    if (filteredAmounts.length === 0) {
+      return { amount: 0, confidence: 'outliers_removed', yearsAnalyzed: years.length };
+    }
+
+    // Calculate average yearly amount (excluding outliers)
+    const averageYearlyAmount = filteredAmounts.reduce((sum, amount) => sum + amount, 0) / filteredAmounts.length;
     
     // Convert to monthly average
     const monthlyAverageAmount = averageYearlyAmount / 12;
     
+    // Determine confidence level
+    let confidence = 'low';
+    if (years.length >= 3 && monthsWithData.size >= 24) {
+      confidence = 'high';
+    } else if (years.length >= 2 && monthsWithData.size >= 12) {
+      confidence = 'medium';
+    }
+    
     debugLog('Calculated unplanned bills suggestion', { 
-      totalYearlyAmount,
       averageYearlyAmount,
       monthlyAverageAmount,
-      yearsAnalyzed: years.length
+      yearsAnalyzed: years.length,
+      monthsWithData: monthsWithData.size,
+      outliersRemoved: yearlyAmounts.length - filteredAmounts.length,
+      confidence
     });
 
     // Round to 2 decimal places
-    return Math.round(monthlyAverageAmount * 100) / 100;
+    return {
+      amount: Math.round(monthlyAverageAmount * 100) / 100,
+      confidence,
+      yearsAnalyzed: years.length
+    };
   } catch (error) {
     console.error('❌ Error calculating unplanned bills suggestion:', error);
-    return 0; // Return fallback on error
+    return { amount: 0, confidence: 'error', yearsAnalyzed: 0 };
   }
 }
 
 /**
- * POST /api/budgets/:buildingId/forecast - Generate 25-year budget forecast
- * Replaces sample data generation with actual financial forecasting logic
+ * POST /api/budgets/:buildingId/forecast - Generate 25-year budget forecast (READ-ONLY)
+ * No side effects - does not update database
  */
 router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
   try {
@@ -482,12 +545,16 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       timestamp: new Date().toISOString() 
     });
     
+    // Validate input data
+    const validatedInput = forecastInputSchema.parse(req.body);
     const {
       bankAccountStartAmount,
       bankAccountMinimums,
       generalInflationRate,
       revenueInflationRate,
-    } = req.body;
+      unplannedBillsAmount,
+      lookbackYears,
+    } = validatedInput;
 
     // Retrieve building settings
     const building = await db.query.buildings.findFirst({
@@ -507,24 +574,13 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       return res.status(404).json({ _error: 'Building not found' });
     }
 
-    // Calculate suggested unplanned bills amount based on historical data
-    const calculatedUnplannedBillsAmount = await calculateUnplannedBillsSuggestion(buildingId);
+    // Calculate suggested unplanned bills amount based on historical data (READ-ONLY)
+    const unplannedBillsCalculation = await calculateUnplannedBillsSuggestion(buildingId, lookbackYears);
     
-    // Update building with the calculated suggestion (only if there's historical data to base it on)
-    if (calculatedUnplannedBillsAmount > 0) {
-      await db
-        .update(buildings)
-        .set({ 
-          unplannedBillsAmount: calculatedUnplannedBillsAmount.toString(),
-          updatedAt: new Date()
-        })
-        .where(eq(buildings.id, buildingId));
-      
-      debugLog('Updated building unplannedBillsAmount', { 
-        buildingId, 
-        newAmount: calculatedUnplannedBillsAmount 
-      });
-    }
+    debugLog('Calculated unplanned bills suggestion (read-only)', { 
+      buildingId, 
+      calculation: unplannedBillsCalculation
+    });
 
     // Use request overrides or fallback to building defaults
     const startAmount = parseFloat(bankAccountStartAmount || building.bankAccountStartAmount || '0');
@@ -533,12 +589,14 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     const generalInflation = parseFloat(generalInflationRate || building.generalInflationRate || '2.0') / 100;
     const revenueInflation = parseFloat(revenueInflationRate || building.revenueInflationRate || '2.0') / 100;
     
-    // Use the calculated suggestion or fall back to existing values
-    const unplannedBills = calculatedUnplannedBillsAmount > 0 
-      ? calculatedUnplannedBillsAmount
-      : parseFloat(req.body.unplannedBillsAmount || building.unplannedBillsAmount || '0');
+    // Use input override, calculated suggestion, or existing building value (in priority order)
+    const unplannedBills = unplannedBillsAmount !== undefined
+      ? unplannedBillsAmount
+      : unplannedBillsCalculation.amount > 0 
+        ? unplannedBillsCalculation.amount
+        : parseFloat(building.unplannedBillsAmount || '0');
 
-    // Fetch recurrent bills for ongoing monthly expenses
+    // Fetch recurrent bills with future payment synthesis capability
     const recurrentBills = await db
       .select({
         id: bills.id,
@@ -552,23 +610,39 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       .where(
         and(
           eq(bills.buildingId, buildingId),
-          eq(bills.paymentType, 'recurrent')
+          eq(bills.paymentType, 'recurrent'),
+          eq(bills.status, 'sent') // Only active bills
         )
       );
 
-    // Fetch unique bills for one-time expenses, grouped by year
-    const uniqueBills = await db
+    // Use optimized grouped query for historical expenses from payments table
+    const currentDate = new Date();
+    const historicalExpensesByCategory = await db
       .select({
-        startDate: bills.startDate,
-        totalAmount: bills.totalAmount,
         category: bills.category,
+        year: sql<number>`EXTRACT(YEAR FROM ${payments.paidDate})`.mapWith(Number),
+        month: sql<number>`EXTRACT(MONTH FROM ${payments.paidDate})`.mapWith(Number),
+        totalPaid: sum(payments.amount).mapWith(Number),
+        paymentCount: count(payments.id).mapWith(Number),
       })
-      .from(bills)
+      .from(payments)
+      .innerJoin(bills, eq(payments.billId, bills.id))
       .where(
         and(
           eq(bills.buildingId, buildingId),
-          eq(bills.paymentType, 'unique')
+          eq(payments.status, 'paid'),
+          gte(payments.paidDate, new Date(currentDate.getFullYear() - 2, 0, 1).toISOString().split('T')[0])
         )
+      )
+      .groupBy(
+        bills.category,
+        sql`EXTRACT(YEAR FROM ${payments.paidDate})`,
+        sql`EXTRACT(MONTH FROM ${payments.paidDate})`
+      )
+      .orderBy(
+        bills.category,
+        sql`EXTRACT(YEAR FROM ${payments.paidDate})`,
+        sql`EXTRACT(MONTH FROM ${payments.paidDate})`
       );
 
     // Fetch residence data for revenue calculation
@@ -637,28 +711,21 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       monthlyBaselineIncome = 50000; // Default fallback
     }
 
-    // Group unique bills by year for unplanned spending calculation
-    const uniqueBillsByYear: Record<number, number> = {};
-    uniqueBills.forEach((bill) => {
-      const year = new Date(bill.startDate).getFullYear();
-      uniqueBillsByYear[year] = (uniqueBillsByYear[year] || 0) + parseFloat(bill.totalAmount);
-    });
-
-    // Calculate monthly recurring bill costs
+    // Calculate monthly recurring costs using optimized approach
     const monthlyRecurringCosts = recurrentBills.reduce((total, bill) => {
       if (bill.costs && bill.costs.length > 0) {
         const billCost = bill.costs.reduce((sum, cost) => sum + parseFloat(cost), 0);
         
-        // Convert to monthly based on schedule
+        // Convert to monthly based on schedule with proper calculations
         switch (bill.schedulePayment) {
           case 'yearly':
             return total + (billCost / 12);
           case 'quarterly':
-            return total + (billCost / 3);
+            return total + (billCost / 3); // Quarterly = every 3 months
           case 'monthly':
             return total + billCost;
           case 'weekly':
-            return total + (billCost * 4.33); // 52 weeks / 12 months
+            return total + (billCost * 52 / 12); // 52 weeks / 12 months = 4.33
           default:
             return total + billCost; // Assume monthly if unknown
         }
@@ -666,7 +733,16 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       return total;
     }, 0);
 
-    // Generate 25-year forecast (300 months)
+    // Group historical expenses by category for trend analysis
+    const expensesByCategory: Record<string, number[]> = {};
+    historicalExpensesByCategory.forEach((expense) => {
+      if (!expensesByCategory[expense.category]) {
+        expensesByCategory[expense.category] = [];
+      }
+      expensesByCategory[expense.category].push(expense.totalPaid);
+    });
+
+    // Generate 25-year forecast (300 months) with proper recurrent bill scheduling
     const forecastData = [];
     let currentBalance = startAmount;
     const startYear = latestYear;
@@ -674,26 +750,69 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     for (let monthIndex = 0; monthIndex < 300; monthIndex++) {
       const currentYear = startYear + Math.floor(monthIndex / 12);
       const currentMonth = (monthIndex % 12) + 1;
+      const currentDate = new Date(currentYear, currentMonth - 1, 1);
       
       // Apply annual inflation for both revenue and expenses
       const yearsElapsed = Math.floor(monthIndex / 12);
       const inflatedIncome = monthlyBaselineIncome * Math.pow(1 + revenueInflation, yearsElapsed);
-      const inflatedExpenses = monthlyRecurringCosts * Math.pow(1 + generalInflation, yearsElapsed);
+      
+      // Calculate expenses from actual recurrent bill schedules for this specific month
+      let monthlyRecurringExpenses = 0;
+      
+      recurrentBills.forEach((bill) => {
+        const billStartDate = new Date(bill.startDate);
+        const billEndDate = bill.endDate ? new Date(bill.endDate) : null;
+        
+        // Check if bill is active during this forecast month
+        if (currentDate >= billStartDate && (!billEndDate || currentDate <= billEndDate)) {
+          const totalBillCost = bill.costs ? bill.costs.reduce((sum, cost) => sum + parseFloat(cost), 0) : 0;
+          
+          // Calculate if payment is due this month based on schedule
+          let isPaymentDue = false;
+          
+          switch (bill.schedulePayment) {
+            case 'monthly':
+              isPaymentDue = true; // Every month
+              break;
+            case 'quarterly':
+              // Every 3 months from start date
+              const monthsSinceStart = (currentYear - billStartDate.getFullYear()) * 12 + (currentMonth - 1 - billStartDate.getMonth());
+              isPaymentDue = monthsSinceStart >= 0 && monthsSinceStart % 3 === 0;
+              break;
+            case 'yearly':
+              // Same month as start date each year
+              isPaymentDue = currentMonth === billStartDate.getMonth() + 1;
+              break;
+            case 'weekly':
+              // Approximate weekly as 4.33 times per month
+              isPaymentDue = true;
+              monthlyRecurringExpenses += totalBillCost * 4.33; // 52 weeks / 12 months
+              continue;
+            default:
+              // Assume monthly if schedule is unclear
+              isPaymentDue = true;
+              break;
+          }
+          
+          if (isPaymentDue && bill.schedulePayment !== 'weekly') {
+            monthlyRecurringExpenses += totalBillCost;
+          }
+        }
+      });
+      
+      // Apply inflation to recurring expenses
+      const inflatedRecurringExpenses = monthlyRecurringExpenses * Math.pow(1 + generalInflation, yearsElapsed);
 
-      // Add unplanned spending from unique bills (use calculated suggestion as baseline)
-      // For forecast years with no specific unique bills, use the calculated monthly average
-      const yearlyUnplannedSpending = uniqueBillsByYear[currentYear] || 0;
-      const monthlyUnplannedSpending = yearlyUnplannedSpending > 0 
-        ? yearlyUnplannedSpending / 12 
-        : unplannedBills;
+      // Apply inflation to unplanned bills
+      const inflatedUnplannedBills = unplannedBills * Math.pow(1 + generalInflation, yearsElapsed);
 
       // Special one-time incomes (special_cotisations) - could be added from monthly_budgets
       let specialIncomes = 0;
       // TODO: Implement special income logic from monthly_budgets if needed
 
-      // Calculate monthly net cash flow
+      // Calculate monthly net cash flow with proper recurrent bill scheduling
       const totalRevenue = inflatedIncome + specialIncomes;
-      const totalSpending = inflatedExpenses + monthlyUnplannedSpending;
+      const totalSpending = inflatedRecurringExpenses + inflatedUnplannedBills;
       const netCashFlow = totalRevenue - totalSpending;
 
       // Update bank balance
@@ -717,7 +836,8 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         balance: Math.round(currentBalance * 100) / 100,
         status,
         inflatedIncome: Math.round(inflatedIncome * 100) / 100,
-        inflatedExpenses: Math.round(inflatedExpenses * 100) / 100,
+        inflatedRecurringExpenses: Math.round(inflatedRecurringExpenses * 100) / 100,
+        inflatedUnplannedBills: Math.round(inflatedUnplannedBills * 100) / 100,
       });
     }
 
@@ -732,22 +852,93 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       baselineMonthlyIncome: monthlyBaselineIncome,
       baselineMonthlyExpenses: monthlyRecurringCosts,
       recurrentBillsCount: recurrentBills.length,
-      uniqueBillsCount: uniqueBills.length,
+      historicalExpensesCount: historicalExpensesByCategory.length,
+      expensesCategoriesAnalyzed: Object.keys(expensesByCategory).length,
       // Include calculated unplanned bills information
-      calculatedUnplannedBillsAmount: calculatedUnplannedBillsAmount,
+      unplannedBillsCalculation: {
+        suggestedAmount: unplannedBillsCalculation.amount,
+        confidence: unplannedBillsCalculation.confidence,
+        yearsAnalyzed: unplannedBillsCalculation.yearsAnalyzed,
+        method: unplannedBillsCalculation.amount > 0 ? 'payments_historical' : 'no_data'
+      },
       monthlyUnplannedBillsUsed: unplannedBills,
-      unplannedBillsCalculationMethod: calculatedUnplannedBillsAmount > 0 
-        ? 'historical_average' 
-        : 'fallback_or_manual',
+      unplannedBillsSource: unplannedBillsAmount !== undefined 
+        ? 'user_input' 
+        : unplannedBillsCalculation.amount > 0 
+          ? 'calculated_suggestion' 
+          : 'building_default',
       forecast: forecastData,
     });
 
   } catch (error: any) {
+    if (error.name === 'ZodError') {
+      return res.status(400).json({ _error: 'Invalid input data', details: error.errors });
+    }
     console.error('❌ Error generating budget forecast:', error);
     res.status(500).json({ 
       _error: 'Internal server error',
       message: 'Failed to generate budget forecast'
     });
+  }
+});
+
+/**
+ * PUT /api/budgets/:buildingId/unplanned-bills - Update unplanned bills amount
+ * Separate endpoint for database mutations
+ */
+router.put('/:buildingId/unplanned-bills', requireAuth, async (req, res) => {
+  try {
+    const { buildingId } = req.params;
+    
+    debugLog('PUT /:buildingId/unplanned-bills - Request received', { 
+      buildingId, 
+      body: req.body,
+      timestamp: new Date().toISOString() 
+    });
+    
+    // Validate input data
+    const validatedInput = updateUnplannedBillsSchema.parse(req.body);
+    const { unplannedBillsAmount, notes } = validatedInput;
+
+    // Validate building exists
+    const building = await db.query.buildings.findFirst({
+      where: eq(buildings.id, buildingId),
+      columns: { id: true },
+    });
+
+    if (!building) {
+      return res.status(404).json({ _error: 'Building not found' });
+    }
+
+    // Update building with new unplanned bills amount
+    await db
+      .update(buildings)
+      .set({ 
+        unplannedBillsAmount: unplannedBillsAmount.toString(),
+        bankAccountNotes: notes || null,
+        updatedAt: new Date()
+      })
+      .where(eq(buildings.id, buildingId));
+      
+    debugLog('Updated building unplannedBillsAmount', { 
+      buildingId, 
+      newAmount: unplannedBillsAmount,
+      notes 
+    });
+
+    res.json({
+      message: 'Unplanned bills amount updated successfully',
+      buildingId,
+      unplannedBillsAmount,
+      notes,
+      updatedAt: new Date(),
+    });
+  } catch (error: any) {
+    if (error.name === 'ZodError') {
+      return res.status(400).json({ _error: 'Invalid input data', details: error.errors });
+    }
+    console.error('❌ Error updating unplanned bills amount:', error);
+    res.status(500).json({ _error: 'Internal server error' });
   }
 });
 
