@@ -135,6 +135,7 @@ interface BudgetFilters {
     spending: boolean;
     balance: boolean;
     netCashFlow: boolean;
+    capitalInvestments: boolean;
   };
 }
 
@@ -240,6 +241,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       spending: true,
       balance: true,
       netCashFlow: false,
+      capitalInvestments: true,
     },
   });
   
@@ -1188,6 +1190,17 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return getBudgetCategories().allCategories;
   };
 
+  // Calculate capital investments for chart
+  const calculateCapitalInvestmentsForPeriod = (startDate: Date, endDate: Date) => {
+    const filteredInvestments = getFilteredInvestments();
+    return filteredInvestments
+      .filter(investment => {
+        const investmentDate = new Date(investment.targetDate);
+        return investmentDate >= startDate && investmentDate < endDate;
+      })
+      .reduce((total, investment) => total + investment.amount, 0);
+  };
+
   // Prepare chart data with filters applied
   const getChartData = () => {
     if (!forecastData?.forecast) return [];
@@ -1218,12 +1231,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         spending: number; 
         balance: number; 
         netCashFlow: number; 
+        capitalInvestments: number;
         count: number 
       } } = {};
 
       filteredData.forEach((item) => {
         if (!yearlyData[item.year]) {
-          yearlyData[item.year] = { revenue: 0, spending: 0, balance: 0, netCashFlow: 0, count: 0 };
+          yearlyData[item.year] = { revenue: 0, spending: 0, balance: 0, netCashFlow: 0, capitalInvestments: 0, count: 0 };
         }
         // Use combined revenue instead of forecast revenue
         yearlyData[item.year].revenue += combinedRevenue;
@@ -1232,6 +1246,14 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         yearlyData[item.year].spending += totalSpending;
         // Recalculate net cash flow with combined revenue and total spending
         yearlyData[item.year].netCashFlow += (combinedRevenue - totalSpending);
+        
+        // Calculate capital investments for this year
+        const yearStart = new Date(item.year, 0, 1);
+        const yearEnd = new Date(item.year + 1, 0, 1);
+        if (yearlyData[item.year].count === 0) { // Only calculate once per year
+          yearlyData[item.year].capitalInvestments = calculateCapitalInvestmentsForPeriod(yearStart, yearEnd);
+        }
+        
         yearlyData[item.year].count++;
         // Use last month's balance for the year
         yearlyData[item.year].balance = item.balance;
@@ -1246,6 +1268,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
           revenue: data.revenue,
           spending: data.spending,
           netCashFlow: data.netCashFlow,
+          capitalInvestments: data.capitalInvestments,
           status: 'green' as const, // TODO: Calculate status based on yearly data
         }));
     }
@@ -1254,6 +1277,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return filteredData.map((item) => {
       // Include unplanned bills in spending calculation for consistency
       const totalSpending = item.spending + (localSettings.unplannedBillsAmount || 0);
+      
+      // Calculate capital investments for this month
+      const monthStart = new Date(item.year, item.month - 1, 1);
+      const monthEnd = new Date(item.year, item.month, 1);
+      const monthlyCapitalInvestments = calculateCapitalInvestmentsForPeriod(monthStart, monthEnd);
+      
       return {
         month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
         balance: item.balance,
@@ -1261,6 +1290,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
         spending: totalSpending, // Include unplanned bills
         netCashFlow: combinedRevenue - totalSpending, // Recalculate with combined revenue and total spending
+        capitalInvestments: monthlyCapitalInvestments,
       };
     });
   };
@@ -1542,6 +1572,23 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       data-testid="switch-cashflow-visibility"
                     />
                   </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="toggle-capital-investments" className="text-sm cursor-pointer flex items-center gap-2">
+                      <PiggyBank className="w-4 h-4 text-orange-500" />
+                      Capital Investments
+                    </Label>
+                    <Switch 
+                      id="toggle-capital-investments"
+                      checked={filters.dataVisibility.capitalInvestments}
+                      onCheckedChange={(checked) => {
+                        setFilters(prev => ({
+                          ...prev,
+                          dataVisibility: { ...prev.dataVisibility, capitalInvestments: checked },
+                        }));
+                      }}
+                      data-testid="switch-capital-investments-visibility"
+                    />
+                  </div>
                 </div>
               </div>
             </Card>
@@ -1554,7 +1601,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 </span>
                 <Separator orientation="vertical" className="h-4" />
                 <span>
-                  Data: {Object.entries(filters.dataVisibility).filter(([_, visible]) => visible).length} of 4 categories visible
+                  Data: {Object.entries(filters.dataVisibility).filter(([_, visible]) => visible).length} of 5 categories visible
                 </span>
               </div>
             </>
@@ -1722,7 +1769,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                 balance: 'Balance',
                                 revenue: 'Revenue', 
                                 spending: 'Spending',
-                                netCashFlow: 'Net Cash Flow'
+                                netCashFlow: 'Net Cash Flow',
+                                capitalInvestments: 'Capital Investments'
                               };
                               return [formattedValue, nameMapping[name] || name];
                             }}
@@ -1776,6 +1824,18 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                               name="netCashFlow"
                             />
                           )}
+
+                          {/* Capital Investments Line - Orange */}
+                          {filters.dataVisibility.capitalInvestments && (
+                            <RechartsLine
+                              type="monotone"
+                              dataKey="capitalInvestments"
+                              stroke="#f59e0b"
+                              strokeWidth={2}
+                              dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
+                              name="capitalInvestments"
+                            />
+                          )}
                         </RechartsLineChart>
                       </RechartsResponsiveContainer>
                     ) : (
@@ -1801,7 +1861,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         </span>
                       </div>
                       <div className="text-muted-foreground">
-                        {Object.values(filters.dataVisibility).filter(Boolean).length} of 4 series visible
+                        {Object.values(filters.dataVisibility).filter(Boolean).length} of 5 series visible
                       </div>
                     </div>
                   </div>
