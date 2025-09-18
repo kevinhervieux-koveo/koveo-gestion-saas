@@ -2426,31 +2426,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </div>
                     </div>
 
-                    {/* Save Account Balance Button */}
-                    <div className='flex items-center justify-between pt-3 border-t'>
-                      <div className='text-sm text-muted-foreground'>
-                        Save the current Starting Balance and Balance Date to the server
-                      </div>
-                      <Button
-                        type="button"
-                        onClick={() => saveBankAccountMutation.mutate()}
-                        disabled={saveBankAccountMutation.isPending}
-                        className='flex items-center gap-2'
-                        data-testid="button-save-account-balance"
-                      >
-                        {saveBankAccountMutation.isPending ? (
-                          <>
-                            <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin'></div>
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <PiggyBank className='w-4 h-4' />
-                            Save Account Balance
-                          </>
-                        )}
-                      </Button>
-                    </div>
 
                     {/* Bank Account Summary */}
                     <div className='pt-2 border-t space-y-2'>
@@ -2472,6 +2447,29 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                           </span>
                         </div>
                       )}
+                    </div>
+
+                    {/* Save Account Balance Button */}
+                    <div className='pt-4 border-t'>
+                      <Button
+                        type="button"
+                        onClick={() => saveBankAccountMutation.mutate()}
+                        disabled={saveBankAccountMutation.isPending}
+                        className='w-full flex items-center justify-center gap-2'
+                        data-testid="button-save-account-balance"
+                      >
+                        {saveBankAccountMutation.isPending ? (
+                          <>
+                            <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin'></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <PiggyBank className='w-4 h-4' />
+                            Save Account Balance
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
