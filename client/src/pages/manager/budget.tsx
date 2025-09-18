@@ -62,6 +62,7 @@ interface BudgetProps {
 
 interface BankAccountSettings {
   bankAccountStartAmount?: number;
+  bankAccountStartDate?: string;
   bankAccountMinimums?: number;
   generalInflationRate?: number;
   // Extended configuration options
@@ -91,8 +92,10 @@ interface BankAccountSettings {
 
 interface BankAccountData {
   bankAccountStartAmount?: string;
+  bankAccountStartDate?: string;
   bankAccountMinimums?: string;
   generalInflationRate?: string;
+  bankAccountUpdatedAt?: string;
 }
 
 interface ForecastData {
@@ -201,6 +204,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   // Local state for budget settings simulation
   const [localSettings, setLocalSettings] = useState<BankAccountSettings>({
     bankAccountStartAmount: 0,
+    bankAccountStartDate: new Date().toISOString().split('T')[0], // Default to today
     bankAccountMinimums: 0,
     generalInflationRate: 2.0,
     // Extended configuration defaults
@@ -366,6 +370,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     const nextSettings = {
       // Basic fields with safe parsing that preserves zero values
       bankAccountStartAmount: parseNumericValue(data.bankAccountStartAmount, 0),
+      bankAccountStartDate: data.bankAccountStartDate || new Date().toISOString().split('T')[0],
       bankAccountMinimums: parseNumericValue(data.bankAccountMinimums, 0),
       generalInflationRate: parseNumericValue(data.generalInflationRate, 2.0),
       // Extended configuration fields with safe parsing
@@ -396,6 +401,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     setLocalSettings(prev => {
       const hasChanged = JSON.stringify({
         bankAccountStartAmount: prev.bankAccountStartAmount,
+        bankAccountStartDate: prev.bankAccountStartDate,
         bankAccountMinimums: prev.bankAccountMinimums,
         generalInflationRate: prev.generalInflationRate,
         emergencyFundMinimum: prev.emergencyFundMinimum,
@@ -540,6 +546,38 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }
   }, [forecastError, buildingId]);
 
+
+  // Save bank account settings mutation
+  const saveBankAccountMutation = useMutation({
+    mutationFn: async () => {
+      debugLog('Saving bank account settings', { buildingId, settings: localSettings });
+      const bankAccountPayload = {
+        ...localSettings,
+        customBankFields: customBankFields.reduce((acc, field) => {
+          acc[field.fieldName] = field.fieldValue;
+          return acc;
+        }, {} as { [key: string]: number })
+      };
+      const response = await apiRequest('PUT', `/api/budgets/${buildingId}/bank-account`, bankAccountPayload);
+      const data = await response.json();
+      debugLog('Bank account save response', { buildingId, responseStatus: response.status, data });
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success', 
+        description: 'Bank account settings saved successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to save bank account settings',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Save capital investments mutation
   const saveInvestmentsMutation = useMutation({
@@ -1781,24 +1819,41 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className='space-y-4'>
-                    {/* Fixed Starting Balance Field */}
-                    <div className='space-y-2'>
-                      <Label htmlFor="starting-amount">Starting Balance</Label>
-                      <div className='relative'>
-                        <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                    {/* Starting Balance with Date */}
+                    <div className='grid grid-cols-2 gap-4'>
+                      <div className='space-y-2'>
+                        <Label htmlFor="starting-amount">Starting Balance</Label>
+                        <div className='relative'>
+                          <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                          <Input
+                            id="starting-amount"
+                            type="number"
+                            value={localSettings.bankAccountStartAmount}
+                            onChange={(e) =>
+                              setLocalSettings(prev => ({
+                                ...prev,
+                                bankAccountStartAmount: parseFloat(e.target.value) || 0,
+                              }))
+                            }
+                            className="pl-9"
+                            placeholder="0"
+                            data-testid="input-starting-balance"
+                          />
+                        </div>
+                      </div>
+                      <div className='space-y-2'>
+                        <Label htmlFor="balance-date">Balance Date</Label>
                         <Input
-                          id="starting-amount"
-                          type="number"
-                          value={localSettings.bankAccountStartAmount}
+                          id="balance-date"
+                          type="date"
+                          value={localSettings.bankAccountStartDate}
                           onChange={(e) =>
                             setLocalSettings(prev => ({
                               ...prev,
-                              bankAccountStartAmount: parseFloat(e.target.value) || 0,
+                              bankAccountStartDate: e.target.value,
                             }))
                           }
-                          className="pl-9"
-                          placeholder="0"
-                          data-testid="input-starting-balance"
+                          data-testid="input-balance-date"
                         />
                       </div>
                     </div>
@@ -1915,6 +1970,20 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         <span className='font-medium'>${localSettings.bankAccountStartAmount?.toLocaleString()}</span>
                       </div>
                       <div className='flex justify-between text-sm'>
+                        <span className='text-muted-foreground'>Balance Date:</span>
+                        <span className='font-medium'>
+                          {localSettings.bankAccountStartDate ? new Date(localSettings.bankAccountStartDate).toLocaleDateString() : 'Not set'}
+                        </span>
+                      </div>
+                      {(bankAccountData as BankAccountData)?.bankAccountUpdatedAt && (
+                        <div className='flex justify-between text-sm'>
+                          <span className='text-muted-foreground'>Last Updated:</span>
+                          <span className='font-medium text-blue-600'>
+                            {new Date((bankAccountData as BankAccountData).bankAccountUpdatedAt!).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                      <div className='flex justify-between text-sm'>
                         <span className='text-muted-foreground'>Total Custom Fields:</span>
                         <span className='font-medium'>
                           ${customBankFields.reduce((total, field) => total + field.fieldValue, 0).toLocaleString()}
@@ -1924,6 +1993,28 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         <span>Current Balance:</span>
                         <span className='text-blue-600'>${summaryMetrics.currentBalance.toLocaleString()}</span>
                       </div>
+                    </div>
+
+                    {/* Save Bank Account Settings Button */}
+                    <div className='pt-4 border-t'>
+                      <Button 
+                        onClick={() => saveBankAccountMutation.mutate()}
+                        disabled={saveBankAccountMutation.isPending}
+                        className='w-full'
+                        data-testid="button-save-bank-account"
+                      >
+                        {saveBankAccountMutation.isPending ? (
+                          <>
+                            <div className='animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2'></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className='w-4 h-4 mr-2' />
+                            Save Bank Account Settings
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
