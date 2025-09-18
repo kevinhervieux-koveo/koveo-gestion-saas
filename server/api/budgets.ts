@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { budgets, monthlyBudgets, buildings, bills, payments, residences, capitalInvestments, insertCapitalInvestmentSchema } from '@shared/schema';
 import { requireAuth } from '../auth';
-import { and, eq, gte, lte, sql, desc, asc, sum, count } from 'drizzle-orm';
+import { and, eq, gte, lte, sql, desc, asc, sum, count, ne, inArray, or, isNull } from 'drizzle-orm';
 
 const router = express.Router();
 
@@ -683,6 +683,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         ? unplannedBillsCalculation.amount
         : parseFloat(building.unplannedBillsAmount || '0');
 
+    // Use current date for filtering and historical expense queries
+    const currentDate = new Date();
+
     // Fetch recurrent bills with future payment synthesis capability
     const recurrentBills = await db
       .select({
@@ -698,12 +701,12 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         and(
           eq(bills.buildingId, buildingId),
           eq(bills.paymentType, 'recurrent'),
-          eq(bills.status, 'sent') // Only active bills
+          inArray(bills.status, ['sent', 'paid', 'overdue']), // Only active recurrent bills (sent, paid, overdue)
+          or(isNull(bills.endDate), gte(bills.endDate, currentDate.toISOString().split('T')[0])) // Exclude past-ended recurrent bills
         )
       );
 
     // Use optimized grouped query for historical expenses from payments table
-    const currentDate = new Date();
     const historicalExpensesByCategory = await db
       .select({
         category: bills.category,
