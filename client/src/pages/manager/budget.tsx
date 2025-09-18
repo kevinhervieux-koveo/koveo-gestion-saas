@@ -3219,23 +3219,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </div>
                     </div>
 
-                    {/* Bill Categories Display */}
-                    <div className='space-y-2'>
-                      <Label>Bill Categories</Label>
-                      <div className='space-y-2'>
-                        {budgetData.expenseCategories.map((category) => (
-                          <div key={category.category} className='flex items-center justify-between text-sm'>
-                            <span className='flex items-center gap-2'>
-                              <div className={`w-2 h-2 rounded-full ${category.color}`}></div>
-                              {category.category}
-                            </span>
-                            <span className='font-medium'>
-                              ${category.used.toLocaleString()}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
 
                     {/* Summary */}
                     <div className='pt-2 border-t space-y-1'>
