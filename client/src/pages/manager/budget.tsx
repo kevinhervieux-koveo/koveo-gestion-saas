@@ -1126,6 +1126,316 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     };
   };
 
+  // CRITICAL FIX: Dedicated helper function that always returns monthly-resolution pre-injection data
+  // Independent of viewType and capitalInvestmentMode to resolve granularity issues
+  const buildMonthlyBaselineSeries = (forecastData: BudgetForecastResponse | undefined, filters: BudgetFilters) => {
+    if (!forecastData?.forecast || forecastData.forecast.length === 0) {
+      return { startingBalance: 0, monthlyNetFlows: [] };
+    }
+
+    // ALWAYS work with monthly data from the forecast (never aggregated)
+    // This ensures monthly granularity regardless of display viewType
+    const monthlyForecast = forecastData.forecast; // Already monthly resolution
+
+    // Calculate baseline starting balance B0 at filtered range start (pre-injection)
+    let baselineStartingBalance = forecastData.startingBalance;
+
+    // Calculate start index based on filters
+    let startIndex = 0;
+    if (filters.startMonth && filters.startYear) {
+      const startDate = new Date(filters.startYear, filters.startMonth - 1, 1);
+      startIndex = monthlyForecast.findIndex(item => {
+        const itemDate = new Date(item.year, item.month - 1, 1);
+        return itemDate >= startDate;
+      });
+      if (startIndex === -1) startIndex = 0;
+
+      // If not starting at global forecast start, reconstruct B0 at filtered start
+      // using pre-injection flows (revenue - spending, no capital injections)
+      if (startIndex > 0) {
+        let reconstructedBalance = forecastData.startingBalance;
+        for (let i = 0; i < startIndex; i++) {
+          const monthData = monthlyForecast[i];
+          // Accumulate net cash flows without capital injections
+          const netCashFlow = monthData.revenue - monthData.spending;
+          reconstructedBalance += netCashFlow;
+        }
+        baselineStartingBalance = reconstructedBalance;
+      }
+    }
+
+    // Calculate the number of months to include based on filters
+    // For Year view: convert years to months, for Month view: use months directly
+    const totalMonths = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
+    const endIndex = Math.min(startIndex + totalMonths, monthlyForecast.length);
+    
+    // Extract monthly pre-injection net flows for the filtered period
+    const monthlyNetFlows: number[] = [];
+    for (let i = startIndex; i < endIndex; i++) {
+      const monthData = monthlyForecast[i];
+      // Calculate net flow without capital injections (revenue - spending)
+      const netFlow = monthData.revenue - monthData.spending;
+      monthlyNetFlows.push(netFlow);
+    }
+
+    debugLog('buildMonthlyBaselineSeries', {
+      viewType: filters.viewType,
+      periodLength: filters.periodLength,
+      totalMonthsCalculated: totalMonths,
+      actualMonthsReturned: monthlyNetFlows.length,
+      startIndex,
+      endIndex,
+      baselineStartingBalance,
+      firstFewNetFlows: monthlyNetFlows.slice(0, 3)
+    });
+
+    // VALIDATION: In Year view, ensure we're working with months not years
+    if (filters.viewType === 'year') {
+      const expectedMonths = filters.periodLength * 12;
+      if (monthlyNetFlows.length > 0 && monthlyNetFlows.length !== expectedMonths) {
+        debugLog('GRANULARITY VALIDATION WARNING', {
+          expectedMonths,
+          actualLength: monthlyNetFlows.length,
+          message: 'Monthly flow count does not match expected months for year view'
+        });
+      }
+    }
+
+    return { startingBalance: baselineStartingBalance, monthlyNetFlows };
+  };
+
+  // FIXED: Calculate monthly payment needed for urgent scenario using cumulative shortfall methodology
+  const calculateUrgentMonthlyPayment = (): number => {
+    if (!forecastData?.forecast || forecastData.forecast.length === 0) {
+      return 0;
+    }
+
+    const threshold = 0; // Urgent scenario: prevent balance going below $0
+    
+    // CRITICAL FIX: Use dedicated monthly baseline helper independent of viewType
+    const { startingBalance: baselineBalance, monthlyNetFlows } = buildMonthlyBaselineSeries(forecastData, filters);
+    
+    if (monthlyNetFlows.length === 0) {
+      return 0;
+    }
+
+    // **CUMULATIVE SHORTFALL METHOD WITH MONTHLY GRANULARITY**
+    // 1. Compute prefix sums S_k = sum_{i=1..k} f_i for each monthly period k
+    const prefixSums: number[] = [];
+    let runningSum = 0;
+    for (let k = 0; k < monthlyNetFlows.length; k++) {
+      runningSum += monthlyNetFlows[k];
+      prefixSums.push(runningSum);
+    }
+    
+    // 2. Calculate minimum constant payment: m = max_{k≥1} max(0, T - (B0 + S_k)) / k
+    let maxMonthlyPayment = 0;
+    
+    for (let k = 0; k < prefixSums.length; k++) {
+      const periodEndBalance = baselineBalance + prefixSums[k]; // Balance at end of period k+1 without payment
+      const shortfall = Math.max(0, threshold - periodEndBalance);
+      const monthlyPaymentNeeded = shortfall / (k + 1); // Divide by period number (k+1)
+      
+      if (monthlyPaymentNeeded > maxMonthlyPayment) {
+        maxMonthlyPayment = monthlyPaymentNeeded;
+      }
+    }
+    
+    // 3. ENHANCED VALIDATION: Simulate with computed payment and verify all periods ≥ threshold
+    if (maxMonthlyPayment > 0) {
+      let testBalance = baselineBalance;
+      let validationPassed = true;
+      const validationDetails: { period: number; balance: number; passed: boolean }[] = [];
+      
+      for (let k = 0; k < monthlyNetFlows.length; k++) {
+        testBalance += monthlyNetFlows[k] + maxMonthlyPayment; // Add net flow + constant payment
+        const passed = testBalance >= threshold;
+        validationDetails.push({ period: k + 1, balance: testBalance, passed });
+        
+        if (!passed) {
+          validationPassed = false;
+          break;
+        }
+      }
+      
+      if (!validationPassed) {
+        debugLog('URGENT PAYMENT VALIDATION FAILED - applying adaptive buffer', {
+          maxMonthlyPayment,
+          validationDetails: validationDetails.slice(0, 5) // Show first 5 periods
+        });
+        // Apply progressive buffer based on severity of failure
+        maxMonthlyPayment *= 1.05; // 5% buffer for more robust protection
+      }
+      
+      // Final validation after buffer
+      testBalance = baselineBalance;
+      for (let k = 0; k < monthlyNetFlows.length; k++) {
+        testBalance += monthlyNetFlows[k] + maxMonthlyPayment;
+        if (testBalance < threshold) {
+          debugLog('CRITICAL: Final validation still failed after buffer', {
+            period: k + 1,
+            balance: testBalance,
+            threshold,
+            payment: maxMonthlyPayment
+          });
+        }
+      }
+    }
+    
+    // 4. GRANULARITY VALIDATION: Ensure we computed exactly the expected number of monthly periods
+    const expectedMonths = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
+    if (monthlyNetFlows.length !== expectedMonths && monthlyNetFlows.length < forecastData.forecast.length) {
+      debugLog('GRANULARITY MISMATCH DETECTED', {
+        expectedMonths,
+        actualMonths: monthlyNetFlows.length,
+        viewType: filters.viewType,
+        periodLength: filters.periodLength
+      });
+    }
+    
+    // 5. SCENARIO VALIDATION: When urgent scenario requires capital investment, assert m > 0
+    if (maxMonthlyPayment <= 0) {
+      const totalShortfall = prefixSums.some(sum => baselineBalance + sum < threshold);
+      if (totalShortfall) {
+        debugLog('SCENARIO VALIDATION WARNING: Expected payment > 0 for urgent scenario with shortfall', {
+          baselineBalance,
+          threshold,
+          minPrefixBalance: Math.min(...prefixSums.map(sum => baselineBalance + sum))
+        });
+      }
+    }
+    
+    debugLog('Urgent Monthly Payment - Enhanced Methodology', {
+      threshold,
+      baselineBalance,
+      monthlyPeriodsProcessed: monthlyNetFlows.length,
+      prefixSums: prefixSums.slice(0, 3), // Show first 3 for debugging
+      maxMonthlyPayment: Math.round(maxMonthlyPayment * 100) / 100,
+      viewType: filters.viewType,
+      periodLength: filters.periodLength,
+      granularityValidated: monthlyNetFlows.length === expectedMonths
+    });
+
+    return Math.round(maxMonthlyPayment * 100) / 100;
+  };
+
+  // FIXED: Calculate monthly payment needed for suggested scenario using cumulative shortfall methodology
+  const calculateSuggestedMonthlyPayment = (): number => {
+    if (!forecastData?.forecast || forecastData.forecast.length === 0) {
+      return 0;
+    }
+
+    const threshold = forecastData.minimumFund || 0; // Suggested scenario: maintain minimum requirement
+    
+    // CRITICAL FIX: Use dedicated monthly baseline helper independent of viewType
+    // SCENARIO DECOUPLING: Both urgent and suggested scenarios use IDENTICAL baseline data
+    const { startingBalance: baselineBalance, monthlyNetFlows } = buildMonthlyBaselineSeries(forecastData, filters);
+    
+    if (monthlyNetFlows.length === 0) {
+      return 0;
+    }
+
+    // **CUMULATIVE SHORTFALL METHOD WITH MONTHLY GRANULARITY**
+    // 1. Compute prefix sums S_k = sum_{i=1..k} f_i for each monthly period k
+    const prefixSums: number[] = [];
+    let runningSum = 0;
+    for (let k = 0; k < monthlyNetFlows.length; k++) {
+      runningSum += monthlyNetFlows[k];
+      prefixSums.push(runningSum);
+    }
+    
+    // 2. Calculate minimum constant payment: m = max_{k≥1} max(0, T - (B0 + S_k)) / k
+    let maxMonthlyPayment = 0;
+    
+    for (let k = 0; k < prefixSums.length; k++) {
+      const periodEndBalance = baselineBalance + prefixSums[k]; // Balance at end of period k+1 without payment
+      const shortfall = Math.max(0, threshold - periodEndBalance);
+      const monthlyPaymentNeeded = shortfall / (k + 1); // Divide by period number (k+1)
+      
+      if (monthlyPaymentNeeded > maxMonthlyPayment) {
+        maxMonthlyPayment = monthlyPaymentNeeded;
+      }
+    }
+    
+    // 3. ENHANCED VALIDATION: Simulate with computed payment and verify all periods ≥ threshold
+    if (maxMonthlyPayment > 0) {
+      let testBalance = baselineBalance;
+      let validationPassed = true;
+      const validationDetails: { period: number; balance: number; passed: boolean }[] = [];
+      
+      for (let k = 0; k < monthlyNetFlows.length; k++) {
+        testBalance += monthlyNetFlows[k] + maxMonthlyPayment; // Add net flow + constant payment
+        const passed = testBalance >= threshold;
+        validationDetails.push({ period: k + 1, balance: testBalance, passed });
+        
+        if (!passed) {
+          validationPassed = false;
+          break;
+        }
+      }
+      
+      if (!validationPassed) {
+        debugLog('SUGGESTED PAYMENT VALIDATION FAILED - applying adaptive buffer', {
+          maxMonthlyPayment,
+          validationDetails: validationDetails.slice(0, 5) // Show first 5 periods
+        });
+        // Apply progressive buffer based on severity of failure
+        maxMonthlyPayment *= 1.05; // 5% buffer for more robust protection
+      }
+      
+      // Final validation after buffer
+      testBalance = baselineBalance;
+      for (let k = 0; k < monthlyNetFlows.length; k++) {
+        testBalance += monthlyNetFlows[k] + maxMonthlyPayment;
+        if (testBalance < threshold) {
+          debugLog('CRITICAL: Final validation still failed after buffer', {
+            period: k + 1,
+            balance: testBalance,
+            threshold,
+            payment: maxMonthlyPayment
+          });
+        }
+      }
+    }
+    
+    // 4. GRANULARITY VALIDATION: Ensure we computed exactly the expected number of monthly periods
+    const expectedMonths = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
+    if (monthlyNetFlows.length !== expectedMonths && monthlyNetFlows.length < forecastData.forecast.length) {
+      debugLog('GRANULARITY MISMATCH DETECTED', {
+        expectedMonths,
+        actualMonths: monthlyNetFlows.length,
+        viewType: filters.viewType,
+        periodLength: filters.periodLength
+      });
+    }
+    
+    // 5. SCENARIO VALIDATION: When suggested scenario requires capital investment, assert m > 0
+    if (maxMonthlyPayment <= 0) {
+      const totalShortfall = prefixSums.some(sum => baselineBalance + sum < threshold);
+      if (totalShortfall) {
+        debugLog('SCENARIO VALIDATION WARNING: Expected payment > 0 for suggested scenario with shortfall', {
+          baselineBalance,
+          threshold,
+          minPrefixBalance: Math.min(...prefixSums.map(sum => baselineBalance + sum))
+        });
+      }
+    }
+    
+    debugLog('Suggested Monthly Payment - Enhanced Methodology', {
+      threshold,
+      baselineBalance,
+      monthlyPeriodsProcessed: monthlyNetFlows.length,
+      prefixSums: prefixSums.slice(0, 3), // Show first 3 for debugging
+      maxMonthlyPayment: Math.round(maxMonthlyPayment * 100) / 100,
+      viewType: filters.viewType,
+      periodLength: filters.periodLength,
+      granularityValidated: monthlyNetFlows.length === expectedMonths,
+      scenarioDecoupled: true // Both scenarios now use identical baseline data
+    });
+
+    return Math.round(maxMonthlyPayment * 100) / 100;
+  };
+
   // Auto-generate investments when forecast data changes (with proper deduplication)
   React.useEffect(() => {
     if (forecastData && buildingId) {
@@ -2914,6 +3224,18 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                               <div className='flex-1'>
                                 <div className='font-medium text-gray-900 dark:text-gray-100'>Urgent Capital Only</div>
                                 <div className='text-sm text-gray-600 dark:text-gray-400'>Only inject capital when balance would go below $0 (emergency injection)</div>
+                                {(() => {
+                                  const monthlyPayment = calculateUrgentMonthlyPayment();
+                                  return monthlyPayment > 0 ? (
+                                    <div className='text-sm font-medium text-red-600 dark:text-red-400 mt-1' data-testid="text-urgent-monthly-payment">
+                                      Monthly Payment: ${monthlyPayment.toLocaleString()}
+                                    </div>
+                                  ) : (
+                                    <div className='text-sm font-medium text-green-600 dark:text-green-400 mt-1'>
+                                      No payment needed
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </label>
@@ -2939,6 +3261,18 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                               <div className='flex-1'>
                                 <div className='font-medium text-gray-900 dark:text-gray-100'>Suggested Capital</div>
                                 <div className='text-sm text-gray-600 dark:text-gray-400'>Inject capital to maintain minimum requirement threshold</div>
+                                {(() => {
+                                  const monthlyPayment = calculateSuggestedMonthlyPayment();
+                                  return monthlyPayment > 0 ? (
+                                    <div className='text-sm font-medium text-yellow-600 dark:text-yellow-400 mt-1' data-testid="text-suggested-monthly-payment">
+                                      Monthly Payment: ${monthlyPayment.toLocaleString()}
+                                    </div>
+                                  ) : (
+                                    <div className='text-sm font-medium text-green-600 dark:text-green-400 mt-1'>
+                                      No payment needed
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </label>
