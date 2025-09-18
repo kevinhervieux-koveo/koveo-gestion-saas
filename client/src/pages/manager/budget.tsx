@@ -1668,11 +1668,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <div className='text-2xl font-bold'>
                       ${summaryMetrics.currentBalance.toLocaleString()}
                     </div>
-                    <p className='text-xs text-muted-foreground'>
-                      <span className={summaryMetrics.variance >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {summaryMetrics.variance >= 0 ? '+' : ''}${summaryMetrics.variance.toLocaleString()}
-                      </span> {t('fromLastYear')}
-                    </p>
                   </CardContent>
                 </Card>
                 
@@ -1685,9 +1680,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <div className='text-2xl font-bold'>
                       ${calculateTotalRevenue().toLocaleString()}
                     </div>
-                    <p className='text-xs text-muted-foreground'>
-                      Residence + custom revenue
-                    </p>
                   </CardContent>
                 </Card>
                 
@@ -1700,9 +1692,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <div className='text-2xl font-bold'>
                       ${summaryMetrics.monthlySpending.toLocaleString()}
                     </div>
-                    <p className='text-xs text-muted-foreground'>
-                      {calculateTotalRevenue() > 0 ? Math.round((summaryMetrics.monthlySpending / calculateTotalRevenue()) * 100) : 0}% of revenue
-                    </p>
                   </CardContent>
                 </Card>
                 
@@ -1715,9 +1704,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <div className='text-2xl font-bold'>
                       ${summaryMetrics.yearEndBalance.toLocaleString()}
                     </div>
-                    <p className='text-xs text-muted-foreground'>
-                      Projected balance
-                    </p>
                   </CardContent>
                 </Card>
               </div>
