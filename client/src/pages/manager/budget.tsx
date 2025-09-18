@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Header } from '@/components/layout/header';
 import { useLanguage } from '@/hooks/use-language';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1331,7 +1331,76 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     });
   };
 
-  const summaryMetrics = calculateSummaryMetrics();
+  // Robust current balance calculation with multiple fallback sources
+  const getCurrentBalanceWithFallbacks = () => {
+    // Helper function to safely format currency
+    const formatCurrency = (value: number) => {
+      if (!Number.isFinite(value)) return '$0';
+      return `$${value.toLocaleString()}`;
+    };
+
+    // Try primary source: summaryMetrics.currentBalance (when forecast data is available)
+    const summaryMetrics = calculateSummaryMetrics();
+    if (summaryMetrics && Number.isFinite(summaryMetrics.currentBalance)) {
+      return {
+        value: summaryMetrics.currentBalance,
+        formatted: formatCurrency(summaryMetrics.currentBalance),
+        source: 'forecast',
+        available: true
+      };
+    }
+
+    // Fallback 1: forecastData.startingBalance (Fixed: accepts 0 values)
+    if (Number.isFinite(Number(forecastData?.startingBalance))) {
+      return {
+        value: Number(forecastData.startingBalance),
+        formatted: formatCurrency(Number(forecastData.startingBalance)),
+        source: 'forecast_starting',
+        available: true
+      };
+    }
+
+    // Fallback 2: bankAccountData.bankAccountStartAmount
+    if (bankAccountData) {
+      const data = bankAccountData as any; // Type assertion for bank account data
+      const startAmount = typeof data.bankAccountStartAmount === 'string' 
+        ? parseFloat(data.bankAccountStartAmount) 
+        : data.bankAccountStartAmount;
+      
+      if (Number.isFinite(startAmount)) {
+        return {
+          value: startAmount,
+          formatted: formatCurrency(startAmount),
+          source: 'bank_account',
+          available: true
+        };
+      }
+    }
+
+    // Fallback 3: localSettings.bankAccountStartAmount (Fixed: accepts 0 values)
+    if (Number.isFinite(Number(localSettings.bankAccountStartAmount))) {
+      return {
+        value: Number(localSettings.bankAccountStartAmount),
+        formatted: formatCurrency(Number(localSettings.bankAccountStartAmount)),
+        source: 'local_settings',
+        available: true
+      };
+    }
+
+    // No valid data available
+    return {
+      value: 0,
+      formatted: '$0',
+      source: 'none',
+      available: false
+    };
+  };
+
+  // Memoize summary metrics to prevent duplicate calculations
+  const summaryMetrics = useMemo(() => {
+    return calculateSummaryMetrics();
+  }, [forecastData, filters, localSettings]);
+
   const budgetData = getBudgetCategories();
   const spendingCategories = budgetData.allCategories; // For backward compatibility
   const chartData = getChartData();
@@ -1967,6 +2036,71 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             data-testid="input-starting-balance"
                           />
                         </div>
+                        {/* Current Balance Suggestion - Always Available with Robust Fallbacks */}
+                        {(() => {
+                          const currentBalanceInfo = getCurrentBalanceWithFallbacks();
+                          const isLoading = forecastLoading || bankAccountLoading;
+                          const isValueChanged = currentBalanceInfo.value !== localSettings.bankAccountStartAmount;
+                          const isValidValue = currentBalanceInfo.available && Number.isFinite(currentBalanceInfo.value);
+                          
+                          return (
+                            <div className='flex items-center justify-between text-sm text-muted-foreground bg-blue-50 dark:bg-blue-950/20 rounded-md p-2'>
+                              <span>
+                                {currentBalanceInfo.available ? (
+                                  <span className='flex items-center gap-2'>
+                                    <span>
+                                      Current balance: <span className='font-medium text-foreground' data-testid="text-current-balance">{currentBalanceInfo.formatted}</span>
+                                    </span>
+                                    <span className='flex items-center gap-1 text-xs text-muted-foreground'>
+                                      <span>
+                                        ({currentBalanceInfo.source === 'forecast' ? 'from forecast' :
+                                          currentBalanceInfo.source === 'forecast_starting' ? 'from forecast start' : 
+                                          currentBalanceInfo.source === 'bank_account' ? 'from bank data' : 
+                                          currentBalanceInfo.source === 'local_settings' ? 'from settings' : 'no data'})
+                                      </span>
+                                    </span>
+                                  </span>
+                                ) : (
+                                  <span className='flex items-center gap-2'>
+                                    {(forecastLoading || bankAccountLoading) ? (
+                                      <>
+                                        <div className='w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin'></div>
+                                        Loading current balance...
+                                      </>
+                                    ) : (
+                                      <span className='text-orange-600'>No balance data available</span>
+                                    )}
+                                  </span>
+                                )}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={!isValidValue || !isValueChanged}
+                                onClick={() => {
+                                  if (!isValidValue) return;
+                                  
+                                  setLocalSettings(prev => ({
+                                    ...prev,
+                                    bankAccountStartAmount: currentBalanceInfo.value,
+                                  }));
+                                  
+                                  toast({
+                                    title: 'Current balance applied',
+                                    description: `Starting balance set to ${currentBalanceInfo.formatted}`,
+                                  });
+                                }}
+                                className='h-6 px-2 text-xs'
+                                data-testid="button-use-current-balance"
+                                title={!isValidValue ? 'No valid balance data available' : 
+                                       !isValueChanged ? 'Value is already set' : 'Apply current balance'}
+                              >
+                                Use Current Balance
+                              </Button>
+                            </div>
+                          );
+                        })()}
                       </div>
                       <div className='space-y-2'>
                         <Label htmlFor="balance-date">Balance Date</Label>
