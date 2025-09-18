@@ -1982,7 +1982,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 </Card>
 
                 {/* Revenue Configuration */}
-                <Card data-testid="card-revenue-config">
+                <div className="w-full">
+                  <Card data-testid="card-revenue-config">
                   <CardHeader>
                     <CardTitle className='flex items-center gap-2'>
                       <TrendingUpIcon className='w-5 h-5' />
@@ -2153,10 +2154,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                  </Card>
+                </div>
 
                 {/* Bills Configuration */}
-                <Card data-testid="card-bills-config">
+                <div className="w-full">
+                  <Card data-testid="card-bills-config">
                   <CardHeader>
                     <CardTitle className='flex items-center gap-2'>
                       <Receipt className='w-5 h-5' />
@@ -2436,6 +2439,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     </div>
                   </CardContent>
                 </Card>
+                </div>
 
 
                 {/* Capital Investment Management */}
