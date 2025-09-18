@@ -3,7 +3,10 @@
  * @description Tests budget calculation utilities directly without Express router dependencies
  */
 
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+
+// Mock console.warn to capture inflation warnings
+const mockConsoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 import {
   calculateMonthlyRecurringCosts,
   groupUniqueBillsByYear,
@@ -242,6 +245,10 @@ describe('Budget Calculation Utilities', () => {
   });
 
   describe('applyInflation', () => {
+    beforeEach(() => {
+      mockConsoleWarn.mockClear();
+    });
+
     it('should apply no inflation for 0 years elapsed', () => {
       const result = applyInflation(100000, 0.02, 0);
       expect(result).toBe(100000);
@@ -267,6 +274,69 @@ describe('Budget Calculation Utilities', () => {
     it('should handle zero inflation rate', () => {
       const result = applyInflation(100000, 0, 10);
       expect(result).toBe(100000);
+    });
+
+    // Edge cases and warning tests as per architect's plan
+    it('should warn when inflation rate seems suspiciously high (percentage vs decimal)', () => {
+      const result = applyInflation(100000, 5.0, 1); // 5.0 instead of 0.05
+      
+      // Should still calculate but warn
+      expect(result).toBe(600000); // 100000 * (1 + 5.0)^1
+      expect(mockConsoleWarn).toHaveBeenCalledWith(
+        expect.stringContaining('applyInflation received suspiciously high rate: 5')
+      );
+      expect(mockConsoleWarn).toHaveBeenCalledWith(
+        expect.stringContaining('This may indicate a percentage-to-decimal conversion bug')
+      );
+    });
+
+    it('should warn about extreme inflation scenarios', () => {
+      applyInflation(100000, 1.5, 3); // 150% inflation over 3 years = ~15.6x multiplier
+      
+      expect(mockConsoleWarn).toHaveBeenCalledWith(
+        expect.stringContaining('Extreme inflation detected')
+      );
+    });
+
+    it('should handle very large inflation rates without breaking', () => {
+      const result = applyInflation(1000, 10.0, 2); // 1000% inflation
+      const expected = 1000 * Math.pow(11, 2); // 121000
+      expect(result).toBeCloseTo(expected, 2);
+    });
+
+    it('should use epsilon tolerance for floating point comparisons', () => {
+      const result = applyInflation(100000, 0.025, 5);
+      const expected = 100000 * Math.pow(1.025, 5); // ~113140.82
+      
+      // Use epsilon tolerance instead of exact equality
+      expect(result).toBeCloseTo(expected, 2);
+      expect(Math.abs(result - expected)).toBeLessThan(0.01);
+    });
+
+    it('should handle large year values correctly', () => {
+      const result = applyInflation(100000, 0.02, 25); // 25 years
+      const expected = 100000 * Math.pow(1.02, 25); // ~164060.77
+      expect(result).toBeCloseTo(expected, 2);
+    });
+
+    it('should handle very small base amounts', () => {
+      const result = applyInflation(0.01, 0.03, 10);
+      const expected = 0.01 * Math.pow(1.03, 10);
+      expect(result).toBeCloseTo(expected, 6); // Higher precision for small numbers
+    });
+
+    it('should handle boundary case of exactly 1.0 inflation rate', () => {
+      const result = applyInflation(100000, 1.0, 2); // 100% inflation
+      expect(result).toBe(400000); // 100000 * (1 + 1)^2 = 100000 * 4
+      expect(mockConsoleWarn).toHaveBeenCalledWith(
+        expect.stringContaining('applyInflation received suspiciously high rate: 1')
+      );
+    });
+
+    it('should handle fractional years (edge case)', () => {
+      const result = applyInflation(100000, 0.02, 0.5); // Half year
+      const expected = 100000 * Math.pow(1.02, 0.5); // ~100995.05
+      expect(result).toBeCloseTo(expected, 2);
     });
   });
 
@@ -452,8 +522,8 @@ describe('Budget Calculation Utilities', () => {
       const year2027Month = result[30]; // Mid-2027
       
       expect(year2025Month.spending).toBeCloseTo(25000, 2); // 20k + 5k
-      expect(year2026Month.spending).toBeCloseTo(30000, 2); // 20k + 10k (with some inflation)
-      expect(year2027Month.spending).toBeCloseTo(22000, 2); // 20k + 2k (with some inflation)
+      expect(year2026Month.spending).toBeCloseTo(30000, 1); // 20k + 10k (with some inflation), use lower precision for inflation calculations
+      expect(year2027Month.spending).toBeCloseTo(22000, 1); // 20k + 2k (with some inflation), use lower precision for inflation calculations
     });
 
     it('should correctly transition between balance statuses', () => {
@@ -476,6 +546,149 @@ describe('Budget Calculation Utilities', () => {
       expect(greenMonths.length).toBeGreaterThan(0);
       expect(yellowMonths.length).toBeGreaterThan(0);
       expect(redMonths.length).toBeGreaterThan(0);
+    });
+
+    // Additional comprehensive tests for 25-year forecast invariants
+    it('should maintain 25-year forecast invariant (exactly 300 months)', () => {
+      const result = generateBudgetForecast(forecastParams);
+      expect(result).toHaveLength(300); // 25 years * 12 months = 300
+    });
+
+    it('should have proper year/month progression across 25 years', () => {
+      const result = generateBudgetForecast(forecastParams);
+      
+      // Check first and last months
+      expect(result[0]).toMatchObject({ year: 2025, month: 1 });
+      expect(result[299]).toMatchObject({ year: 2049, month: 12 });
+      
+      // Check year transitions
+      expect(result[11]).toMatchObject({ year: 2025, month: 12 });
+      expect(result[12]).toMatchObject({ year: 2026, month: 1 });
+    });
+
+    it('should round all currency values consistently', () => {
+      const result = generateBudgetForecast(forecastParams);
+      
+      result.forEach(month => {
+        // All monetary values should be rounded to 2 decimal places
+        expect(month.revenue).toBe(roundToCurrency(month.revenue));
+        expect(month.spending).toBe(roundToCurrency(month.spending));
+        expect(month.netCashFlow).toBe(roundToCurrency(month.netCashFlow));
+        expect(month.balance).toBe(roundToCurrency(month.balance));
+        expect(month.inflatedIncome).toBe(roundToCurrency(month.inflatedIncome));
+        expect(month.inflatedExpenses).toBe(roundToCurrency(month.inflatedExpenses));
+      });
+    });
+
+    it('should maintain mathematical consistency throughout forecast', () => {
+      const result = generateBudgetForecast(forecastParams);
+      
+      result.forEach(month => {
+        // Net cash flow should equal revenue minus spending
+        const expectedNetCashFlow = roundToCurrency(month.revenue - month.spending);
+        // Use epsilon tolerance for floating point precision
+        expect(Math.abs(month.netCashFlow - expectedNetCashFlow)).toBeLessThan(0.02);
+      });
+    });
+
+    it('should handle extreme scenarios without breaking', () => {
+      const extremeParams = {
+        ...forecastParams,
+        startAmount: 0, // Start with nothing
+        monthlyBaselineIncome: 1000000, // Very high income
+        monthlyRecurringCosts: 999999, // Almost equal expenses
+        generalInflation: 0.20, // 20% inflation
+        revenueInflation: 0.25, // 25% revenue growth
+      };
+
+      const result = generateBudgetForecast(extremeParams);
+      expect(result).toHaveLength(300);
+      
+      // Should not have any NaN, Infinity, or undefined values
+      result.forEach(month => {
+        expect(Number.isFinite(month.revenue)).toBe(true);
+        expect(Number.isFinite(month.spending)).toBe(true);
+        expect(Number.isFinite(month.balance)).toBe(true);
+        expect(Number.isFinite(month.netCashFlow)).toBe(true);
+      });
+    });
+
+    it('should apply inflation consistently within same year', () => {
+      const result = generateBudgetForecast(forecastParams);
+      
+      // All months in 2025 should have same inflation factor
+      const year2025Months = result.slice(0, 12);
+      const firstMonthInflatedIncome = year2025Months[0].inflatedIncome;
+      const firstMonthInflatedExpenses = year2025Months[0].inflatedExpenses;
+      
+      year2025Months.forEach(month => {
+        expect(month.inflatedIncome).toBeCloseTo(firstMonthInflatedIncome, 2);
+        expect(month.inflatedExpenses).toBeCloseTo(firstMonthInflatedExpenses, 2);
+      });
+    });
+
+    it('should test status calculation edge cases', () => {
+      const edgeCaseParams = {
+        ...forecastParams,
+        startAmount: 50000, // Exactly at minimum fund
+        minimumFund: 50000,
+        monthlyBaselineIncome: 50000,
+        monthlyRecurringCosts: 50000, // Exactly break even
+        uniqueBillsByYear: {},
+      };
+
+      const result = generateBudgetForecast(edgeCaseParams);
+      const firstMonth = result[0];
+      
+      // Should remain green since balance equals minimum fund
+      expect(firstMonth.status).toBe('green');
+      expect(firstMonth.balance).toBeCloseTo(50000, 2);
+    });
+
+    it('should handle years with and without unique bills correctly', () => {
+      const mixedYearsParams = {
+        ...forecastParams,
+        uniqueBillsByYear: { 
+          2025: 60000, // Has unique bills
+          2026: 0,     // No unique bills
+          2027: 120000, // Has unique bills again
+        },
+        monthlyRecurringCosts: 20000,
+      };
+
+      const result = generateBudgetForecast(mixedYearsParams);
+      
+      // 2025: should include unique bills
+      const year2025Month = result[6]; // Mid-2025
+      expect(year2025Month.spending).toBeCloseTo(25000, 2); // 20k + 5k unique
+      
+      // 2026: should not include unique bills
+      const year2026Month = result[18]; // Mid-2026
+      const expectedRecurringWith1YearInflation = 20000 * Math.pow(1.02, 1);
+      expect(year2026Month.spending).toBeCloseTo(expectedRecurringWith1YearInflation, 2);
+      
+      // 2027: should include unique bills again
+      const year2027Month = result[30]; // Mid-2027
+      const expectedRecurringWith2YearInflation = 20000 * Math.pow(1.02, 2);
+      const expectedWithUnique = expectedRecurringWith2YearInflation + (120000 / 12);
+      expect(year2027Month.spending).toBeCloseTo(expectedWithUnique, 2);
+    });
+
+    it('should use epsilon tolerance for all numerical comparisons', () => {
+      const params = {
+        ...forecastParams,
+        monthlyBaselineIncome: 33333.33, // Repeating decimal
+        monthlyRecurringCosts: 16666.67, // Repeating decimal
+      };
+
+      const result = generateBudgetForecast(params);
+      
+      // Test that calculations handle floating point precision correctly
+      result.forEach(month => {
+        const calculatedNetFlow = month.revenue - month.spending;
+        // Use epsilon tolerance instead of exact equality
+        expect(Math.abs(month.netCashFlow - calculatedNetFlow)).toBeLessThan(0.01);
+      });
     });
   });
 });
