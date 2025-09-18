@@ -66,6 +66,7 @@ interface BankAccountSettings {
   bankAccountStartDate?: string;
   bankAccountMinimums?: number;
   generalInflationRate?: number;
+  financialYearStart?: string;
   // Extended configuration options
   emergencyFundMinimum?: number;
   operatingCashMinimum?: number;
@@ -383,6 +384,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       bankAccountStartDate: data.bankAccountStartDate || new Date().toISOString().split('T')[0],
       bankAccountMinimums: parseNumericValue(data.bankAccountMinimums, 0),
       generalInflationRate: parseNumericValue(data.generalInflationRate, 2.0),
+      // Financial year start (defaults to current year January 1st)
+      financialYearStart: data.financialYearStart || new Date().getFullYear() + '-01-01',
       // Extended configuration fields with safe parsing
       emergencyFundMinimum: parseNumericValue(data.emergencyFundMinimum, 10000),
       operatingCashMinimum: parseNumericValue(data.operatingCashMinimum, 5000),
@@ -414,6 +417,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         bankAccountStartDate: prev.bankAccountStartDate,
         bankAccountMinimums: prev.bankAccountMinimums,
         generalInflationRate: prev.generalInflationRate,
+        financialYearStart: prev.financialYearStart,
         emergencyFundMinimum: prev.emergencyFundMinimum,
         operatingCashMinimum: prev.operatingCashMinimum,
         revenueGrowthRate: prev.revenueGrowthRate,
@@ -2426,6 +2430,25 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </div>
                     </div>
 
+                    {/* Financial Year Start */}
+                    <div className='space-y-2'>
+                      <Label htmlFor="financial-year-start">Financial Year Start</Label>
+                      <Input
+                        id="financial-year-start"
+                        type="date"
+                        value={localSettings.financialYearStart || new Date().getFullYear() + '-01-01'}
+                        onChange={(e) =>
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            financialYearStart: e.target.value,
+                          }))
+                        }
+                        data-testid="input-financial-year-start"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Date when inflation is applied to budget calculations
+                      </p>
+                    </div>
 
                     {/* Bank Account Summary */}
                     <div className='pt-2 border-t space-y-2'>
@@ -2437,6 +2460,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         <span className='text-muted-foreground'>Balance Date:</span>
                         <span className='font-medium'>
                           {localSettings.bankAccountStartDate ? new Date(localSettings.bankAccountStartDate).toLocaleDateString() : 'Not set'}
+                        </span>
+                      </div>
+                      <div className='flex justify-between text-sm'>
+                        <span className='text-muted-foreground'>Financial Year Start:</span>
+                        <span className='font-medium'>
+                          {localSettings.financialYearStart ? new Date(localSettings.financialYearStart).toLocaleDateString() : `${new Date().getFullYear()}-01-01`}
                         </span>
                       </div>
                       {(bankAccountData as BankAccountData)?.bankAccountUpdatedAt && (
