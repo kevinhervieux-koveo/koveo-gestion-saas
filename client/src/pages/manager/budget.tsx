@@ -569,10 +569,38 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   // Fetch budget forecast based on current settings  
   const { data: forecastData, isLoading: forecastLoading, error: forecastError, refetch: refetchForecast } = useQuery({
-    queryKey: ['budgetForecast', buildingId, capitalInvestmentMode],
+    queryKey: [
+      'budgetForecast', 
+      buildingId, 
+      capitalInvestmentMode,
+      // Include all dependencies that affect Capital Investment Scenarios
+      JSON.stringify(localSettings),
+      JSON.stringify({
+        viewType: filters.viewType,
+        periodLength: filters.periodLength,
+        startMonth: filters.startMonth,
+        startYear: filters.startYear
+      }),
+      JSON.stringify(customRevenueLines),
+      JSON.stringify(customBankFields),
+      JSON.stringify(investmentFilters)
+    ],
     queryFn: async () => {
       const requestData = { ...localSettings, capitalInvestmentMode };
-      debugLog('Fetching budget forecast', { buildingId, settings: localSettings, capitalInvestmentMode });
+      debugLog('Fetching budget forecast with all dependencies', { 
+        buildingId, 
+        settings: localSettings, 
+        capitalInvestmentMode,
+        filters: {
+          viewType: filters.viewType,
+          periodLength: filters.periodLength,
+          startMonth: filters.startMonth,
+          startYear: filters.startYear
+        },
+        customRevenueLines,
+        customBankFields,
+        investmentFilters
+      });
       const response = await apiRequest('POST', `/api/budgets/${buildingId}/forecast`, requestData);
       const data = await response.json();
       debugLog('Budget forecast API response', { buildingId, responseStatus: response.status, mode: capitalInvestmentMode });
@@ -583,17 +611,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     refetchOnReconnect: false,
   });
 
-  // Trigger forecast refetch when settings change (debounced)
-  React.useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (buildingId) {
-        debugLog('Settings changed, refetching forecast', { buildingId, settings: localSettings, capitalInvestmentMode });
-        refetchForecast();
-      }
-    }, 1000); // 1 second debounce
-
-    return () => clearTimeout(timeoutId);
-  }, [localSettings, capitalInvestmentMode, buildingId, refetchForecast]);
+  // Note: Manual forecast refetch removed - expanded queryKey now handles automatic updates
 
   // Sync custom bank fields with localSettings whenever they change
   React.useEffect(() => {
@@ -828,6 +846,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         description: 'Capital investments saved successfully',
       });
       queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/investments`] });
+      refetchForecast();
     },
     onError: () => {
       toast({
