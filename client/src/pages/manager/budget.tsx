@@ -537,6 +537,21 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }
   }, [customBankFields]);
 
+  // CRITICAL FIX: Sync filters.periodLength to localSettings.investmentHorizonYears when in yearly view
+  React.useEffect(() => {
+    if (filters.viewType === 'year' && filters.periodLength !== localSettings.investmentHorizonYears) {
+      setLocalSettings(prev => ({
+        ...prev,
+        investmentHorizonYears: filters.periodLength,
+      }));
+      debugLog('Syncing periodLength to investmentHorizonYears via useEffect', { 
+        periodLength: filters.periodLength,
+        viewType: filters.viewType,
+        previousInvestmentHorizonYears: localSettings.investmentHorizonYears
+      });
+    }
+  }, [filters.periodLength, filters.viewType, localSettings.investmentHorizonYears]);
+
   // Debug logging for forecast data and errors
   React.useEffect(() => {
     if (forecastData) {
@@ -1525,11 +1540,24 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 <Select 
                   value={filters.viewType} 
                   onValueChange={(value: 'month' | 'year') => {
+                    const defaultPeriodLength = value === 'month' ? 12 : 5;
                     setFilters(prev => ({
                       ...prev,
                       viewType: value,
-                      periodLength: value === 'month' ? 12 : 5, // Reset to default
+                      periodLength: defaultPeriodLength, // Reset to default
                     }));
+                    
+                    // CRITICAL FIX: When switching to yearly view, sync periodLength to investmentHorizonYears
+                    if (value === 'year') {
+                      setLocalSettings(prev => ({
+                        ...prev,
+                        investmentHorizonYears: defaultPeriodLength,
+                      }));
+                      debugLog('View type changed to yearly, synced periodLength to investmentHorizonYears', { 
+                        viewType: value, 
+                        periodLength: defaultPeriodLength 
+                      });
+                    }
                   }}
                 >
                   <SelectTrigger data-testid="select-view-type">
@@ -1607,10 +1635,23 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <Select 
                       value={filters.periodLength.toString()} 
                       onValueChange={(value) => {
+                        const periodLength = parseInt(value);
                         setFilters(prev => ({
                           ...prev,
-                          periodLength: parseInt(value),
+                          periodLength,
                         }));
+                        
+                        // CRITICAL FIX: When in yearly view, sync periodLength to investmentHorizonYears for forecast API
+                        if (filters.viewType === 'year') {
+                          setLocalSettings(prev => ({
+                            ...prev,
+                            investmentHorizonYears: periodLength,
+                          }));
+                          debugLog('Period length synced to investmentHorizonYears', { 
+                            periodLength, 
+                            viewType: filters.viewType 
+                          });
+                        }
                       }}
                     >
                       <SelectTrigger data-testid="select-period-length">
@@ -1632,6 +1673,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             <SelectItem value="3">3 years</SelectItem>
                             <SelectItem value="5">5 years</SelectItem>
                             <SelectItem value="10">10 years</SelectItem>
+                            <SelectItem value="15">15 years</SelectItem>
+                            <SelectItem value="20">20 years</SelectItem>
+                            <SelectItem value="25">25 years</SelectItem>
                           </>
                         )}
                       </SelectContent>
