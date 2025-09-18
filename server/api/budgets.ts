@@ -674,7 +674,22 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     // Use the calculated minimum requirement, or fallback to old logic if no requirement is set
     const minimumFund = minimumRequirement > 0 ? minimumRequirement : fallbackMinimumFund;
     const generalInflation = parseFloat(String(generalInflationRate || building.generalInflationRate || '2.0')) / 100;
-    const revenueInflation = parseFloat(String(revenueInflationRate || building.revenueInflationRate || '2.0')) / 100;
+    
+    // FIX: Use revenueGrowthRate from extended config instead of revenueInflationRate for annual compounding
+    // Priority: request override -> stored revenueGrowthRate -> request revenueInflationRate -> stored revenueInflationRate -> default 2.5%
+    const revenueGrowthRate = extendedConfig.revenueGrowthRate;
+    const revenueInflation = revenueGrowthRate !== undefined 
+      ? parseFloat(String(revenueGrowthRate)) / 100
+      : parseFloat(String(revenueInflationRate || building.revenueInflationRate || '2.5')) / 100;
+    
+    debugLog('Revenue growth rate configuration', {
+      buildingId,
+      storedRevenueGrowthRate: revenueGrowthRate,
+      requestRevenueInflationRate: revenueInflationRate,
+      finalRevenueInflationUsed: revenueInflation * 100,
+      source: revenueGrowthRate !== undefined ? 'revenueGrowthRate' : 'revenueInflationRate',
+      compoundingFormula: `revenue = baseRevenue * (1 + ${revenueInflation * 100}%)^years`
+    });
     
     // Use input override, calculated suggestion, or existing building value (in priority order)
     const unplannedBills = unplannedBillsAmount !== undefined
@@ -974,7 +989,10 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       minimumRequirement: minimumRequirement,
       minimumFund, // Keep for backward compatibility
       generalInflationRate: generalInflation * 100,
-      revenueInflationRate: revenueInflation * 100,
+      // UPDATED: Now showing the actual revenue growth rate being used with proper labeling
+      revenueGrowthRate: revenueInflation * 100,
+      revenueInflationRate: revenueInflation * 100, // Keep for backward compatibility
+      revenueGrowthRateSource: revenueGrowthRate !== undefined ? 'stored_growth_rate' : 'fallback_inflation_rate',
       baselineMonthlyIncome: monthlyBaselineIncome,
       baselineMonthlyExpenses: monthlyRecurringCosts,
       recurrentBillsCount: recurrentBills.length,
