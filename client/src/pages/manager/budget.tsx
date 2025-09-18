@@ -136,7 +136,8 @@ interface BudgetFilters {
   dataVisibility: {
     revenue: boolean;
     spending: boolean;
-    balance: boolean;
+    balanceStart: boolean;
+    balanceEnd: boolean;
     netCashFlow: boolean;
     capitalInvestments: boolean;
     minimumRequirement: boolean;
@@ -243,7 +244,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     dataVisibility: {
       revenue: true,
       spending: true,
-      balance: true,
+      balanceStart: false,
+      balanceEnd: true,
       netCashFlow: false,
       capitalInvestments: true,
       minimumRequirement: true,
@@ -1688,15 +1690,16 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       const yearlyData: { [key: number]: { 
         revenue: number; 
         spending: number; 
-        balance: number; 
+        balanceStart: number;
+        balanceEnd: number; 
         netCashFlow: number; 
         capitalInvestments: number;
         count: number 
       } } = {};
 
-      filteredData.forEach((item) => {
+      filteredData.forEach((item, index) => {
         if (!yearlyData[item.year]) {
-          yearlyData[item.year] = { revenue: 0, spending: 0, balance: 0, netCashFlow: 0, capitalInvestments: 0, count: 0 };
+          yearlyData[item.year] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, count: 0 };
         }
         // Use combined revenue instead of forecast revenue
         yearlyData[item.year].revenue += combinedRevenue;
@@ -1710,8 +1713,19 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         yearlyData[item.year].capitalInvestments += item.capitalInvestment || 0;
         
         yearlyData[item.year].count++;
-        // Use last month's balance for the year
-        yearlyData[item.year].balance = item.balance;
+        // For yearly view: Use first month's balance as start, last month's balance as end
+        if (yearlyData[item.year].count === 1) {
+          // First month of the year - get start of period balance
+          const prevIndex = startIndex + index - 1;
+          if (prevIndex >= 0 && forecastData.forecast[prevIndex]) {
+            yearlyData[item.year].balanceStart = forecastData.forecast[prevIndex].balance;
+          } else {
+            // First period overall - use starting balance from settings
+            yearlyData[item.year].balanceStart = localSettings.bankAccountStartAmount || 0;
+          }
+        }
+        // Always update end balance to the latest month in the year
+        yearlyData[item.year].balanceEnd = item.balance;
       });
 
       // Sort yearly data chronologically after Object.entries
@@ -1719,7 +1733,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         .sort(([yearA], [yearB]) => parseInt(yearA) - parseInt(yearB))
         .map(([year, data]) => ({
           month: year,
-          balance: data.balance,
+          balanceStart: data.balanceStart,
+          balanceEnd: data.balanceEnd,
           revenue: data.revenue,
           spending: data.spending,
           netCashFlow: data.netCashFlow,
@@ -1729,13 +1744,24 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }
 
     // Monthly view with individual months
-    return filteredData.map((item) => {
+    return filteredData.map((item, index) => {
       // Include unplanned bills in spending calculation for consistency
       const totalSpending = item.spending + (localSettings.unplannedBillsAmount || 0);
       
+      // Calculate start of period balance (previous period's ending balance)
+      let balanceStart: number;
+      const prevIndex = startIndex + index - 1;
+      if (prevIndex >= 0 && forecastData.forecast[prevIndex]) {
+        balanceStart = forecastData.forecast[prevIndex].balance;
+      } else {
+        // First period - use starting balance from settings
+        balanceStart = localSettings.bankAccountStartAmount || 0;
+      }
+      
       return {
         month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
-        balance: item.balance,
+        balanceStart: balanceStart,
+        balanceEnd: item.balance, // Current period's ending balance
         status: item.status,
         revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
         spending: totalSpending, // Include unplanned bills
@@ -2108,20 +2134,37 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="toggle-balance" className="text-sm cursor-pointer flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-blue-500" />
-                      Balance
+                    <Label htmlFor="toggle-balance-start" className="text-sm cursor-pointer flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-cyan-500" />
+                      Balance (Start of Period)
                     </Label>
                     <Switch 
-                      id="toggle-balance"
-                      checked={filters.dataVisibility.balance}
+                      id="toggle-balance-start"
+                      checked={filters.dataVisibility.balanceStart}
                       onCheckedChange={(checked) => {
                         setFilters(prev => ({
                           ...prev,
-                          dataVisibility: { ...prev.dataVisibility, balance: checked },
+                          dataVisibility: { ...prev.dataVisibility, balanceStart: checked },
                         }));
                       }}
-                      data-testid="switch-balance-visibility"
+                      data-testid="switch-balance-start-visibility"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="toggle-balance-end" className="text-sm cursor-pointer flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-blue-500" />
+                      Balance (End of Period)
+                    </Label>
+                    <Switch 
+                      id="toggle-balance-end"
+                      checked={filters.dataVisibility.balanceEnd}
+                      onCheckedChange={(checked) => {
+                        setFilters(prev => ({
+                          ...prev,
+                          dataVisibility: { ...prev.dataVisibility, balanceEnd: checked },
+                        }));
+                      }}
+                      data-testid="switch-balance-end-visibility"
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -2272,10 +2315,16 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 <CardContent>
                   {/* Visible Data Series Legend */}
                   <div className="flex flex-wrap gap-4 mb-4 p-3 bg-gray-50 rounded-lg" data-testid="chart-legend">
-                    {filters.dataVisibility.balance && (
+                    {filters.dataVisibility.balanceStart && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+                        <span className="text-sm font-medium">Balance (Start of Period)</span>
+                      </div>
+                    )}
+                    {filters.dataVisibility.balanceEnd && (
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                        <span className="text-sm font-medium">Balance</span>
+                        <span className="text-sm font-medium">Balance (End of Period)</span>
                       </div>
                     )}
                     {filters.dataVisibility.revenue && (
@@ -2321,7 +2370,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             formatter={(value: any, name: string) => {
                               const formattedValue = `$${Math.abs(value).toLocaleString()}${value < 0 ? ' (deficit)' : ''}`;
                               const nameMapping: { [key: string]: string } = {
-                                balance: 'Balance',
+                                balanceStart: 'Balance (Start of Period)',
+                                balanceEnd: 'Balance (End of Period)',
                                 revenue: 'Revenue', 
                                 spending: 'Spending',
                                 netCashFlow: 'Net Cash Flow',
@@ -2332,15 +2382,27 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             labelFormatter={(label) => `Period: ${label}`}
                           />
                           
-                          {/* Balance Line - Blue */}
-                          {filters.dataVisibility.balance && (
+                          {/* Balance (Start of Period) Line - Cyan */}
+                          {filters.dataVisibility.balanceStart && (
                             <RechartsLine
                               type="monotone"
-                              dataKey="balance"
+                              dataKey="balanceStart"
+                              stroke="#06b6d4"
+                              strokeWidth={2}
+                              dot={{ fill: '#06b6d4', strokeWidth: 2, r: 4 }}
+                              name="Balance (Start of Period)"
+                            />
+                          )}
+                          
+                          {/* Balance (End of Period) Line - Blue */}
+                          {filters.dataVisibility.balanceEnd && (
+                            <RechartsLine
+                              type="monotone"
+                              dataKey="balanceEnd"
                               stroke="#3b82f6"
                               strokeWidth={2}
                               dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                              name="balance"
+                              name="Balance (End of Period)"
                             />
                           )}
                           
@@ -2432,7 +2494,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         </span>
                       </div>
                       <div className="text-muted-foreground">
-                        {Object.values(filters.dataVisibility).filter(Boolean).length} of 6 series visible
+                        {Object.values(filters.dataVisibility).filter(Boolean).length} of 7 series visible
                       </div>
                     </div>
                   </div>
