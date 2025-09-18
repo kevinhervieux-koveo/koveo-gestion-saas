@@ -1,7 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { db } from '../db';
-import { budgets, monthlyBudgets, buildings, bills, residences } from '@shared/schema';
+import { budgets, monthlyBudgets, buildings, bills, residences, capitalInvestments, insertCapitalInvestmentSchema } from '@shared/schema';
 import { requireAuth } from '../auth';
 import { and, eq, gte, lte, sql, desc, asc } from 'drizzle-orm';
 
@@ -642,6 +642,122 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     res.status(500).json({ 
       _error: 'Internal server error',
       message: 'Failed to generate budget forecast'
+    });
+  }
+});
+
+/**
+ * GET /api/budgets/:buildingId/investments - Get capital investments for a building
+ */
+router.get('/:buildingId/investments', requireAuth, async (req, res) => {
+  try {
+    const { buildingId } = req.params;
+    
+    debugLog('GET /:buildingId/investments', { buildingId });
+
+    // Validate building access
+    const building = await db.query.buildings.findFirst({
+      where: eq(buildings.id, buildingId),
+      columns: { id: true },
+    });
+
+    if (!building) {
+      return res.status(404).json({ _error: 'Building not found' });
+    }
+
+    // Get capital investments for the building
+    const investments = await db
+      .select()
+      .from(capitalInvestments)
+      .where(eq(capitalInvestments.buildingId, buildingId))
+      .orderBy(asc(capitalInvestments.targetDate));
+
+    debugLog('GET /:buildingId/investments - Response', { 
+      buildingId, 
+      count: investments.length,
+      timestamp: new Date().toISOString() 
+    });
+
+    res.json(investments);
+  } catch (error: any) {
+    console.error('❌ Error fetching capital investments:', error);
+    res.status(500).json({ _error: 'Internal server error' });
+  }
+});
+
+/**
+ * PUT /api/budgets/:buildingId/investments - Save capital investments for a building
+ */
+router.put('/:buildingId/investments', requireAuth, async (req, res) => {
+  try {
+    const { buildingId } = req.params;
+    const { investments } = req.body;
+    
+    debugLog('PUT /:buildingId/investments', { 
+      buildingId, 
+      count: investments?.length || 0,
+      timestamp: new Date().toISOString() 
+    });
+
+    // Validate building access
+    const building = await db.query.buildings.findFirst({
+      where: eq(buildings.id, buildingId),
+      columns: { id: true },
+    });
+
+    if (!building) {
+      return res.status(404).json({ _error: 'Building not found' });
+    }
+
+    // Validate investments array
+    if (!Array.isArray(investments)) {
+      return res.status(400).json({ _error: 'Investments must be an array' });
+    }
+
+    // Delete existing custom investments for this building (keep auto-generated)
+    await db
+      .delete(capitalInvestments)
+      .where(
+        and(
+          eq(capitalInvestments.buildingId, buildingId),
+          eq(capitalInvestments.type, 'custom')
+        )
+      );
+
+    // Insert new custom investments
+    if (investments.length > 0) {
+      const validatedInvestments = investments.map((investment: any) => {
+        const validated = insertCapitalInvestmentSchema.parse({
+          ...investment,
+          buildingId,
+        });
+        // Convert fields to proper database types
+        return {
+          ...validated,
+          amount: validated.amount.toString(),
+          targetDate: validated.targetDate.toISOString().split('T')[0], // Convert Date to YYYY-MM-DD string
+        };
+      });
+
+      await db.insert(capitalInvestments).values(validatedInvestments);
+    }
+
+    debugLog('PUT /:buildingId/investments - Success', { 
+      buildingId, 
+      savedCount: investments.length,
+      timestamp: new Date().toISOString() 
+    });
+
+    res.json({
+      message: 'Capital investments saved successfully',
+      count: investments.length,
+      buildingId,
+    });
+  } catch (error: any) {
+    console.error('❌ Error saving capital investments:', error);
+    res.status(500).json({ 
+      _error: 'Internal server error',
+      message: 'Failed to save capital investments'
     });
   }
 });

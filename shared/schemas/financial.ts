@@ -70,6 +70,22 @@ export const paymentStatusEnum = pgEnum('payment_status', [
   'cancelled',
 ]);
 
+export const investmentUrgencyEnum = pgEnum('investment_urgency', [
+  'not_urgent',
+  'urgent', 
+  'suggested',
+]);
+
+export const investmentTypeEnum = pgEnum('investment_type', [
+  'auto_generated',
+  'custom',
+]);
+
+export const investmentOwnershipEnum = pgEnum('investment_ownership', [
+  'residences',
+  'owner',
+]);
+
 // Financial tables
 /**
  * Enhanced bills table for tracking financial obligations with advanced scheduling.
@@ -216,6 +232,29 @@ export const monthlyBudgets = pgTable('monthly_budgets', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+/**
+ * Capital investments table for tracking building infrastructure investments and improvements.
+ * Supports both auto-generated suggestions and custom user-defined investments.
+ */
+export const capitalInvestments = pgTable('capital_investments', {
+  id: varchar('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  buildingId: varchar('building_id')
+    .notNull()
+    .references(() => buildings.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  targetDate: date('target_date').notNull(),
+  urgency: investmentUrgencyEnum('urgency').notNull(),
+  type: investmentTypeEnum('type').notNull(),
+  ownershipType: investmentOwnershipEnum('ownership_type').notNull(),
+  category: text('category'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Insert schemas
 // Removed insertMoneyFlowSchema - money flow table deleted
 
@@ -291,6 +330,20 @@ export const insertPaymentSchema = createInsertSchema(payments, {
   updatedAt: true 
 });
 
+export const insertCapitalInvestmentSchema = createInsertSchema(capitalInvestments, {
+  title: z.string().min(1, "Title is required"),
+  amount: z.coerce.number().positive("Amount must be positive"),
+  targetDate: z.coerce.date(),
+  urgency: z.enum(['not_urgent', 'urgent', 'suggested']),
+  type: z.enum(['auto_generated', 'custom']),
+  ownershipType: z.enum(['residences', 'owner']),
+  category: z.string().optional(),
+}).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
 // Types
 
 /**
@@ -337,6 +390,15 @@ export type InsertPayment = z.infer<typeof insertPaymentSchema>;
  *
  */
 export type Payment = typeof payments.$inferSelect;
+
+/**
+ * Capital investment insert and select types.
+ */
+export type InsertCapitalInvestment = z.infer<typeof insertCapitalInvestmentSchema>;
+/**
+ *
+ */
+export type CapitalInvestment = typeof capitalInvestments.$inferSelect;
 
 // Relations - temporarily commented out due to drizzle-orm version compatibility
 // Removed moneyFlow relations
