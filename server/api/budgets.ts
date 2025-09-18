@@ -338,6 +338,8 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       globalBillsInflationRate,
       unplannedBillsAmount,
       categoryInflationRates,
+      // Financial year configuration
+      financialYearStart,
     } = req.body;
 
     // Validate building exists
@@ -385,6 +387,7 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
         generalInflationRate,
         revenueInflationRate,
         unplannedBillsAmount: unplannedBillsAmount?.toString(), // Save unplanned bills amount
+        financialYearStart: financialYearStart ? new Date(financialYearStart) : null, // Save financial year start
         amenities: extendedConfig, // Using amenities jsonb field for extended config
         bankAccountUpdatedAt: new Date(),
       })
@@ -451,6 +454,7 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
         revenueInflationRate: true,
         bankAccountUpdatedAt: true,
         unplannedBillsAmount: true, // Include unplanned bills amount
+        financialYearStart: true, // Include financial year start
         amenities: true, // Contains extended configuration
       },
     });
@@ -490,6 +494,7 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       revenueInflationRate: building.revenueInflationRate,
       bankAccountUpdatedAt: building.bankAccountUpdatedAt,
       unplannedBillsAmount: building.unplannedBillsAmount, // Include unplanned bills amount
+      financialYearStart: building.financialYearStart, // Include financial year start
       // Separate starting balance and minimum requirement
       startingBalance: building.bankAccountStartAmount,
       minimumRequirement: minimumRequirement,
