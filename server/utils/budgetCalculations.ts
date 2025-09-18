@@ -101,7 +101,19 @@ export function calculateBaselineMonthlyIncome(baselineIncome: BaselineBudgetDat
  * @returns Inflated amount
  */
 export function applyInflation(baseAmount: number, inflationRate: number, yearsElapsed: number): number {
-  return baseAmount * Math.pow(1 + inflationRate, yearsElapsed);
+  // DEFENSIVE VALIDATION: Warn if inflation rate seems too high (likely a percentage instead of decimal)
+  if (inflationRate > 1.0) {
+    console.warn(`⚠️  [BUDGET CALCULATIONS] applyInflation received suspiciously high rate: ${inflationRate} (${inflationRate * 100}%). Expected decimal 0-1 range. This may indicate a percentage-to-decimal conversion bug.`);
+    console.warn(`⚠️  [BUDGET CALCULATIONS] Formula will use: ${baseAmount} * (1 + ${inflationRate})^${yearsElapsed} = ${baseAmount} * ${(1 + inflationRate).toFixed(4)}^${yearsElapsed}`);
+  }
+  
+  // DEFENSIVE VALIDATION: Warn about extreme inflation scenarios
+  const inflationFactor = Math.pow(1 + inflationRate, yearsElapsed);
+  if (inflationFactor > 10) {
+    console.warn(`⚠️  [BUDGET CALCULATIONS] Extreme inflation detected: ${(inflationRate * 100).toFixed(2)}% over ${yearsElapsed} years results in ${inflationFactor.toFixed(2)}x multiplier`);
+  }
+  
+  return baseAmount * inflationFactor;
 }
 
 /**

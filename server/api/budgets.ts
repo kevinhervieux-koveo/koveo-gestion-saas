@@ -682,22 +682,68 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     
     // Use the calculated minimum requirement, or fallback to old logic if no requirement is set
     const minimumFund = minimumRequirement > 0 ? minimumRequirement : fallbackMinimumFund;
-    const generalInflation = parseFloat(String(generalInflationRate || building.generalInflationRate || '2.0')) / 100;
     
-    // FIX: Use revenueGrowthRate from extended config instead of revenueInflationRate for annual compounding
-    // Priority: request override -> stored revenueGrowthRate -> request revenueInflationRate -> stored revenueInflationRate -> default 2.5%
-    const revenueGrowthRate = extendedConfig.revenueGrowthRate;
-    const revenueInflation = revenueGrowthRate !== undefined 
-      ? parseFloat(String(revenueGrowthRate)) / 100
-      : parseFloat(String(revenueInflationRate || building.revenueInflationRate || '2.5')) / 100;
+    // DEFENSIVE CONVERSION: Ensure inflation rates are properly converted from percentage to decimal
+    // Input validation expects values 0-100 (percentages), convert to 0-1 (decimals) for calculations
+    const rawGeneralInflationRate = parseFloat(String(generalInflationRate || building.generalInflationRate || '2.0'));
+    const generalInflation = rawGeneralInflationRate / 100;
     
-    debugLog('Revenue growth rate configuration', {
+    // FIX: Handle revenueGrowthRate more carefully - it might already be stored as decimal or percentage
+    const storedRevenueGrowthRate = extendedConfig.revenueGrowthRate;
+    const requestRevenueInflationRate = parseFloat(String(revenueInflationRate || building.revenueInflationRate || '2.5'));
+    
+    let revenueInflation: number;
+    let revenueInflationSource: string;
+    
+    if (storedRevenueGrowthRate !== undefined) {
+      const storedRate = parseFloat(String(storedRevenueGrowthRate));
+      // DEFENSIVE CHECK: If stored rate is > 1, assume it's stored as percentage and convert
+      // If stored rate is <= 1, assume it's already a decimal
+      if (storedRate > 1) {
+        revenueInflation = storedRate / 100;
+        revenueInflationSource = 'stored_growth_rate_as_percentage';
+      } else {
+        revenueInflation = storedRate;
+        revenueInflationSource = 'stored_growth_rate_as_decimal';
+      }
+    } else {
+      // Use request/building default (always treat as percentage)
+      revenueInflation = requestRevenueInflationRate / 100;
+      revenueInflationSource = 'request_or_building_default_as_percentage';
+    }
+    
+    // DEFENSIVE VALIDATION: Warn if rates seem too high (> 100% = 1.0 decimal)
+    if (generalInflation > 1.0) {
+      console.warn(`⚠️  [BUDGET FORECAST] General inflation rate suspiciously high: ${generalInflation * 100}% (${generalInflation} decimal). Expected 0-1 range.`);
+    }
+    if (revenueInflation > 1.0) {
+      console.warn(`⚠️  [BUDGET FORECAST] Revenue inflation rate suspiciously high: ${revenueInflation * 100}% (${revenueInflation} decimal). Expected 0-1 range.`);
+    }
+    
+    // ENHANCED DEFENSIVE LOGGING: Print effective rates being used in calculations
+    debugLog('✅ [BUDGET FORECAST] Final inflation rates after conversion and validation', {
       buildingId,
-      storedRevenueGrowthRate: revenueGrowthRate,
-      requestRevenueInflationRate: revenueInflationRate,
-      finalRevenueInflationUsed: revenueInflation * 100,
-      source: revenueGrowthRate !== undefined ? 'revenueGrowthRate' : 'revenueInflationRate',
-      compoundingFormula: `revenue = baseRevenue * (1 + ${revenueInflation * 100}%)^years`
+      inputs: {
+        rawGeneralInflationRate: rawGeneralInflationRate,
+        requestRevenueInflationRate: requestRevenueInflationRate,
+        storedRevenueGrowthRate: storedRevenueGrowthRate
+      },
+      effectiveRates: {
+        generalInflationDecimal: generalInflation,
+        generalInflationPercentage: generalInflation * 100,
+        revenueInflationDecimal: revenueInflation,
+        revenueInflationPercentage: revenueInflation * 100
+      },
+      revenueInflationSource: revenueInflationSource,
+      compoundingFormulas: {
+        expenses: `expenses = baseExpenses * (1 + ${generalInflation})^years = baseExpenses * ${(1 + generalInflation).toFixed(4)}^years`,
+        revenue: `revenue = baseRevenue * (1 + ${revenueInflation})^years = baseRevenue * ${(1 + revenueInflation).toFixed(4)}^years`
+      },
+      validation: {
+        generalInflationValid: generalInflation <= 1.0,
+        revenueInflationValid: revenueInflation <= 1.0,
+        expectedRange: '0-1 (decimal) for calculations'
+      }
     });
     
     // Use input override, calculated suggestion, or existing building value (in priority order)
@@ -985,11 +1031,11 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       startingBalance: startAmount,
       minimumRequirement: minimumRequirement,
       minimumFund, // Keep for backward compatibility
-      generalInflationRate: generalInflation * 100,
-      // UPDATED: Now showing the actual revenue growth rate being used with proper labeling
-      revenueGrowthRate: revenueInflation * 100,
-      revenueInflationRate: revenueInflation * 100, // Keep for backward compatibility
-      revenueGrowthRateSource: revenueGrowthRate !== undefined ? 'stored_growth_rate' : 'fallback_inflation_rate',
+      // CORRECTED: Return the properly converted decimal rates as percentages for display
+      generalInflationRate: Math.round(generalInflation * 100 * 100) / 100, // Round to 2 decimal places
+      revenueGrowthRate: Math.round(revenueInflation * 100 * 100) / 100,
+      revenueInflationRate: Math.round(revenueInflation * 100 * 100) / 100, // Keep for backward compatibility
+      revenueGrowthRateSource: revenueInflationSource,
       baselineMonthlyIncome: monthlyBaselineIncome,
       baselineMonthlyExpenses: monthlyRecurringCosts,
       recurrentBillsCount: recurrentBills.length,
@@ -1002,6 +1048,25 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       },
       // Capital investment scenario information
       capitalInvestmentMode: capitalInvestmentMode,
+      // DIAGNOSTIC: Include inflation rate conversion details for debugging
+      inflationRatesDiagnostic: {
+        inputRatesReceived: {
+          generalInflationRate: generalInflationRate || 'undefined (using default)',
+          revenueInflationRate: revenueInflationRate || 'undefined (using default)'
+        },
+        effectiveDecimalRates: {
+          generalInflation: generalInflation,
+          revenueInflation: revenueInflation
+        },
+        conversionSource: {
+          generalInflation: 'percentage_input_divided_by_100',
+          revenueInflation: revenueInflationSource
+        },
+        formulaUsed: {
+          generalInflation: `(1 + ${generalInflation})^years`,
+          revenueInflation: `(1 + ${revenueInflation})^years`
+        }
+      },
       // Include calculated unplanned bills information
       unplannedBillsCalculation: {
         suggestedAmount: unplannedBillsCalculation.amount,
