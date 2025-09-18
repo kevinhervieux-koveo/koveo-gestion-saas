@@ -1331,7 +1331,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     });
   };
 
-  // Robust current balance calculation with multiple fallback sources
+  // Robust current balance calculation with saved bank account data prioritized
   const getCurrentBalanceWithFallbacks = () => {
     // Helper function to safely format currency
     const formatCurrency = (value: number) => {
@@ -1339,34 +1339,34 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       return `$${value.toLocaleString()}`;
     };
 
-    // Try primary source: summaryMetrics.currentBalance (when forecast data is available)
-    const summaryMetrics = calculateSummaryMetrics();
-    if (summaryMetrics && Number.isFinite(summaryMetrics.currentBalance)) {
-      return {
-        value: summaryMetrics.currentBalance,
-        formatted: formatCurrency(summaryMetrics.currentBalance),
-        source: 'forecast',
-        available: true
-      };
-    }
+    // Helper function to format date for display
+    const formatSavedDate = (dateString: string) => {
+      try {
+        return new Date(dateString).toLocaleDateString();
+      } catch {
+        return 'Unknown date';
+      }
+    };
 
-    // Fallback 1: forecastData.startingBalance (Fixed: accepts 0 values)
-    if (Number.isFinite(Number(forecastData?.startingBalance))) {
-      return {
-        value: Number(forecastData.startingBalance),
-        formatted: formatCurrency(Number(forecastData.startingBalance)),
-        source: 'forecast_starting',
-        available: true
-      };
-    }
-
-    // Fallback 2: bankAccountData.bankAccountStartAmount
+    // PRIMARY SOURCE: Saved bank account data (prioritized over forecast)
     if (bankAccountData) {
       const data = bankAccountData as any; // Type assertion for bank account data
       const startAmount = typeof data.bankAccountStartAmount === 'string' 
         ? parseFloat(data.bankAccountStartAmount) 
         : data.bankAccountStartAmount;
       
+      // Check if we have both saved amount and updated date to confirm it's saved data
+      if (Number.isFinite(startAmount) && data.bankAccountUpdatedAt) {
+        return {
+          value: startAmount,
+          formatted: formatCurrency(startAmount),
+          source: 'saved_balance',
+          savedDate: formatSavedDate(data.bankAccountUpdatedAt),
+          available: true
+        };
+      }
+      
+      // If we have amount but no update date, still show it but mark as unsaved
       if (Number.isFinite(startAmount)) {
         return {
           value: startAmount,
@@ -1377,7 +1377,28 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       }
     }
 
-    // Fallback 3: localSettings.bankAccountStartAmount (Fixed: accepts 0 values)
+    // Fallback 1: summaryMetrics.currentBalance (forecast data)
+    const summaryMetrics = calculateSummaryMetrics();
+    if (summaryMetrics && Number.isFinite(summaryMetrics.currentBalance)) {
+      return {
+        value: summaryMetrics.currentBalance,
+        formatted: formatCurrency(summaryMetrics.currentBalance),
+        source: 'forecast',
+        available: true
+      };
+    }
+
+    // Fallback 2: forecastData.startingBalance
+    if (Number.isFinite(Number(forecastData?.startingBalance))) {
+      return {
+        value: Number(forecastData.startingBalance),
+        formatted: formatCurrency(Number(forecastData.startingBalance)),
+        source: 'forecast_starting',
+        available: true
+      };
+    }
+
+    // Fallback 3: localSettings.bankAccountStartAmount
     if (Number.isFinite(Number(localSettings.bankAccountStartAmount))) {
       return {
         value: Number(localSettings.bankAccountStartAmount),
@@ -2053,10 +2074,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                     </span>
                                     <span className='flex items-center gap-1 text-xs text-muted-foreground'>
                                       <span>
-                                        ({currentBalanceInfo.source === 'forecast' ? 'from forecast' :
-                                          currentBalanceInfo.source === 'forecast_starting' ? 'from forecast start' : 
-                                          currentBalanceInfo.source === 'bank_account' ? 'from bank data' : 
-                                          currentBalanceInfo.source === 'local_settings' ? 'from settings' : 'no data'})
+                                        {currentBalanceInfo.source === 'saved_balance' ? `(saved on ${currentBalanceInfo.savedDate})` :
+                                         currentBalanceInfo.source === 'forecast' ? '(from forecast)' :
+                                         currentBalanceInfo.source === 'forecast_starting' ? '(from forecast start)' : 
+                                         currentBalanceInfo.source === 'bank_account' ? '(from bank data)' : 
+                                         currentBalanceInfo.source === 'local_settings' ? '(from settings)' : '(no data)'}
                                       </span>
                                     </span>
                                   </span>
@@ -2117,6 +2139,32 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                           data-testid="input-balance-date"
                         />
                       </div>
+                    </div>
+
+                    {/* Save Account Balance Button */}
+                    <div className='flex items-center justify-between pt-3 border-t'>
+                      <div className='text-sm text-muted-foreground'>
+                        Save the current Starting Balance and Balance Date to the server
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={() => saveBankAccountMutation.mutate()}
+                        disabled={saveBankAccountMutation.isPending}
+                        className='flex items-center gap-2'
+                        data-testid="button-save-account-balance"
+                      >
+                        {saveBankAccountMutation.isPending ? (
+                          <>
+                            <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin'></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <PiggyBank className='w-4 h-4' />
+                            Save Account Balance
+                          </>
+                        )}
+                      </Button>
                     </div>
 
                     {/* Bank Account Summary */}
