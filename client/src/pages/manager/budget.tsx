@@ -105,9 +105,11 @@ interface ForecastData {
   spending: number;
   netCashFlow: number;
   balance: number;
+  capitalInvestment: number;
   status: 'red' | 'yellow' | 'green';
   inflatedIncome: number;
-  inflatedExpenses: number;
+  inflatedRecurringExpenses: number;
+  inflatedUnplannedBills: number;
 }
 
 interface BudgetForecastResponse {
@@ -1284,12 +1286,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         // Recalculate net cash flow with combined revenue and total spending
         yearlyData[item.year].netCashFlow += (combinedRevenue - totalSpending);
         
-        // Calculate capital investments for this year
-        const yearStart = new Date(item.year, 0, 1);
-        const yearEnd = new Date(item.year + 1, 0, 1);
-        if (yearlyData[item.year].count === 0) { // Only calculate once per year
-          yearlyData[item.year].capitalInvestments = calculateCapitalInvestmentsForPeriod(yearStart, yearEnd);
-        }
+        // Fix: Use actual capital investment data from forecast (automatic balance management)
+        yearlyData[item.year].capitalInvestments += item.capitalInvestment || 0;
         
         yearlyData[item.year].count++;
         // Use last month's balance for the year
@@ -1315,11 +1313,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       // Include unplanned bills in spending calculation for consistency
       const totalSpending = item.spending + (localSettings.unplannedBillsAmount || 0);
       
-      // Calculate capital investments for this month
-      const monthStart = new Date(item.year, item.month - 1, 1);
-      const monthEnd = new Date(item.year, item.month, 1);
-      const monthlyCapitalInvestments = calculateCapitalInvestmentsForPeriod(monthStart, monthEnd);
-      
       return {
         month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
         balance: item.balance,
@@ -1327,7 +1320,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
         spending: totalSpending, // Include unplanned bills
         netCashFlow: combinedRevenue - totalSpending, // Recalculate with combined revenue and total spending
-        capitalInvestments: monthlyCapitalInvestments,
+        // Fix: Use actual capital investment data from forecast (automatic balance management)
+        capitalInvestments: item.capitalInvestment || 0,
       };
     });
   };
@@ -1774,6 +1768,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-purple-500"></div>
                         <span className="text-sm font-medium">Net Cash Flow</span>
+                      </div>
+                    )}
+                    {filters.dataVisibility.capitalInvestments && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                        <span className="text-sm font-medium">Capital Investments</span>
                       </div>
                     )}
                   </div>

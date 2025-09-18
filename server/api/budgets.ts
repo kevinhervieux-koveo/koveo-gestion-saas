@@ -582,10 +582,13 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       calculation: unplannedBillsCalculation
     });
 
-    // Use request overrides or fallback to building defaults
+    // Use request overrides or fallback to building defaults with proper number validation
     const startAmount = parseFloat(bankAccountStartAmount || building.bankAccountStartAmount || '0');
     const minimums = bankAccountMinimums || building.bankAccountMinimums || '0';
-    const minimumFund = parseFloat(minimums);
+    
+    // Fix: Ensure minimumFund is a valid number to prevent NaN in Math.max operations
+    const parsedMinimumFund = parseFloat(minimums);
+    const minimumFund = Number.isFinite(parsedMinimumFund) ? parsedMinimumFund : 0;
     const generalInflation = parseFloat(generalInflationRate || building.generalInflationRate || '2.0') / 100;
     const revenueInflation = parseFloat(revenueInflationRate || building.revenueInflationRate || '2.0') / 100;
     
@@ -815,16 +818,34 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       const totalSpending = inflatedRecurringExpenses + inflatedUnplannedBills;
       const netCashFlow = totalRevenue - totalSpending;
 
-      // Update bank balance
-      currentBalance += netCashFlow;
+      // Implement proper bank account balance management with automatic capital investments
+      // Bank account balance = revenue + capital investment - expenses + previous period's bank account balance
+      let capitalInvestment = 0;
+      let newBalance = currentBalance + netCashFlow;
+      
+      // If balance would go negative or below minimum threshold, inject capital investment
+      if (newBalance < Math.max(0, minimumFund)) {
+        // Calculate required capital investment to maintain minimum balance (or 0 if no minimum set)
+        const targetBalance = Math.max(0, minimumFund);
+        capitalInvestment = targetBalance - newBalance;
+        
+        // Round capital investment to nearest 100 for realistic injection amounts
+        capitalInvestment = Math.ceil(capitalInvestment / 100) * 100;
+        
+        // Update balance with capital investment
+        newBalance += capitalInvestment;
+      }
+      
+      // Update current balance for next period
+      currentBalance = newBalance;
 
-      // Determine status based on balance
+      // Determine status based on final balance
       let status = 'green';
-      if (currentBalance < 0) {
-        status = 'red';
-      } else if (currentBalance < minimumFund) {
+      // Fix: Use proper number comparison to avoid NaN issues
+      if (Number.isFinite(minimumFund) && currentBalance < minimumFund) {
         status = 'yellow';
       }
+      // Balance should never be red now since we inject capital investment
 
       // Add to forecast data
       forecastData.push({
@@ -834,6 +855,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         spending: Math.round(totalSpending * 100) / 100,
         netCashFlow: Math.round(netCashFlow * 100) / 100,
         balance: Math.round(currentBalance * 100) / 100,
+        capitalInvestment: Math.round(capitalInvestment * 100) / 100,
         status,
         inflatedIncome: Math.round(inflatedIncome * 100) / 100,
         inflatedRecurringExpenses: Math.round(inflatedRecurringExpenses * 100) / 100,
