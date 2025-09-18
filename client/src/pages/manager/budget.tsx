@@ -168,8 +168,6 @@ interface CapitalInvestment {
 
 interface InvestmentFilters {
   urgency?: 'not_urgent' | 'urgent' | 'suggested' | 'all';
-  ownershipType: 'residences' | 'owner' | 'all';
-  showWithinWindow: boolean;
 }
 
 interface InvestmentSummary {
@@ -270,8 +268,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const [capitalInvestments, setCapitalInvestments] = useState<CapitalInvestment[]>([]);
   const [investmentFilters, setInvestmentFilters] = useState<InvestmentFilters>({
     urgency: 'all',
-    ownershipType: 'all',
-    showWithinWindow: true,
   });
   const [newInvestment, setNewInvestment] = useState<{
     title: string;
@@ -968,13 +964,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       filtered = filtered.filter(inv => inv.urgency === investmentFilters.urgency);
     }
     
-    // Apply ownership type filter
-    if (investmentFilters.ownershipType !== 'all') {
-      filtered = filtered.filter(inv => inv.ownershipType === investmentFilters.ownershipType);
-    }
-    
-    // Apply date window filter if enabled
-    if (investmentFilters.showWithinWindow && filters.startMonth && filters.startYear) {
+    // Always apply date window filter (within time window is always on)
+    if (filters.startMonth && filters.startYear) {
       const windowStart = new Date(filters.startYear, filters.startMonth - 1, 1);
       const periodMonths = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
       const windowEnd = new Date(windowStart.getTime() + periodMonths * 30 * 24 * 60 * 60 * 1000);
@@ -2494,42 +2485,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             <SelectItem value="not_urgent">Not Urgent Only</SelectItem>
                           </SelectContent>
                         </Select>
-
-                        {/* Ownership Type Filter */}
-                        <Select 
-                          value={investmentFilters.ownershipType} 
-                          onValueChange={(value) => 
-                            setInvestmentFilters(prev => ({ 
-                              ...prev, 
-                              ownershipType: value as any 
-                            }))
-                          }
-                        >
-                          <SelectTrigger className="w-[140px]" data-testid="select-ownership-filter">
-                            <Building className='w-4 h-4 mr-2' />
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Types</SelectItem>
-                            <SelectItem value="residences">For Residences</SelectItem>
-                            <SelectItem value="owner">For Owner</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        {/* Window Filter Toggle */}
-                        <div className='flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-900 rounded-md'>
-                          <Switch
-                            checked={investmentFilters.showWithinWindow}
-                            onCheckedChange={(checked) =>
-                              setInvestmentFilters(prev => ({ 
-                                ...prev, 
-                                showWithinWindow: checked 
-                              }))
-                            }
-                            data-testid="switch-window-filter"
-                          />
-                          <Label className='text-sm'>Within time window</Label>
-                        </div>
                       </div>
 
                       {/* Add Investment Button */}
