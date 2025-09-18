@@ -7,6 +7,23 @@ import { and, eq, gte, lte, sql, desc, asc, sum, count } from 'drizzle-orm';
 
 const router = express.Router();
 
+// TypeScript interface for building amenities/extended configuration
+interface ExtendedBuildingConfig {
+  emergencyFundMinimum?: number;
+  operatingCashMinimum?: number;
+  revenueGrowthRate?: number;
+  revenueInflation?: number;
+  reserveFundTarget?: number;
+  utilityInflationRate?: number;
+  maintenanceInflationRate?: number;
+  costInflationRate?: number;
+  specialInvestmentBudget?: number;
+  investmentHorizonYears?: number;
+  capitalProjectReserve?: number;
+  customBankFields?: Record<string, number>;
+  [key: string]: any; // Allow additional properties
+}
+
 // Development debug logging
 const isDev = process.env.NODE_ENV === 'development';
 const debugLog = (endpoint: string, data: any) => {
@@ -29,6 +46,42 @@ const updateUnplannedBillsSchema = z.object({
   unplannedBillsAmount: z.coerce.number().min(0),
   notes: z.string().optional(),
 });
+
+/**
+ * Calculate the total minimum requirement from all minimum fields
+ * @param emergencyFundMinimum Emergency fund minimum amount
+ * @param operatingCashMinimum Operating cash minimum amount
+ * @param customBankFields Object containing custom bank field values
+ * @returns Total minimum requirement amount
+ */
+function calculateMinimumRequirement(
+  emergencyFundMinimum?: number,
+  operatingCashMinimum?: number,
+  customBankFields?: Record<string, number>
+): number {
+  let totalMinimumRequirement = 0;
+
+  // Add emergency fund minimum
+  if (emergencyFundMinimum && Number.isFinite(emergencyFundMinimum) && emergencyFundMinimum > 0) {
+    totalMinimumRequirement += emergencyFundMinimum;
+  }
+
+  // Add operating cash minimum
+  if (operatingCashMinimum && Number.isFinite(operatingCashMinimum) && operatingCashMinimum > 0) {
+    totalMinimumRequirement += operatingCashMinimum;
+  }
+
+  // Add all custom bank fields
+  if (customBankFields && typeof customBankFields === 'object') {
+    Object.values(customBankFields).forEach((value) => {
+      if (Number.isFinite(value) && value > 0) {
+        totalMinimumRequirement += value;
+      }
+    });
+  }
+
+  return totalMinimumRequirement;
+}
 
 /**
  * Get budgets and monthly budgets for a building with date range.
@@ -385,12 +438,24 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       return res.status(404).json({ _error: 'Building not found' });
     }
 
-    // Extract extended configuration from amenities field
-    const extendedConfig = (building.amenities && typeof building.amenities === 'object') ? building.amenities : {};
+    // Extract extended configuration from amenities field with proper typing
+    const extendedConfig: ExtendedBuildingConfig = (building.amenities && typeof building.amenities === 'object') ? building.amenities as ExtendedBuildingConfig : {};
+    
+    // Calculate minimum requirement from all minimum fields
+    const emergencyFundMinimum = extendedConfig.emergencyFundMinimum;
+    const operatingCashMinimum = extendedConfig.operatingCashMinimum;
+    const customBankFields = extendedConfig.customBankFields;
+    
+    const minimumRequirement = calculateMinimumRequirement(
+      emergencyFundMinimum,
+      operatingCashMinimum,
+      customBankFields
+    );
     
     debugLog('GET /:buildingId/bank-account - Response data', { 
       buildingId, 
       extendedConfig,
+      minimumRequirement,
       timestamp: new Date().toISOString() 
     });
 
@@ -403,6 +468,9 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       generalInflationRate: building.generalInflationRate,
       revenueInflationRate: building.revenueInflationRate,
       bankAccountUpdatedAt: building.bankAccountUpdatedAt,
+      // Separate starting balance and minimum requirement
+      startingBalance: building.bankAccountStartAmount,
+      minimumRequirement: minimumRequirement,
       // Extended configuration fields
       ...(extendedConfig as Record<string, any>),
     });
@@ -556,7 +624,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       lookbackYears,
     } = validatedInput;
 
-    // Retrieve building settings
+    // Retrieve building settings including extended configuration
     const building = await db.query.buildings.findFirst({
       where: eq(buildings.id, buildingId),
       columns: {
@@ -567,6 +635,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         generalInflationRate: true,
         revenueInflationRate: true,
         unplannedBillsAmount: true,
+        amenities: true, // Contains extended configuration
       },
     });
 
@@ -583,14 +652,27 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     });
 
     // Use request overrides or fallback to building defaults with proper number validation
-    const startAmount = parseFloat(bankAccountStartAmount || building.bankAccountStartAmount || '0');
-    const minimums = bankAccountMinimums || building.bankAccountMinimums || '0';
+    const startAmount = parseFloat(String(bankAccountStartAmount || building.bankAccountStartAmount || '0'));
     
-    // Fix: Ensure minimumFund is a valid number to prevent NaN in Math.max operations
-    const parsedMinimumFund = parseFloat(minimums);
-    const minimumFund = Number.isFinite(parsedMinimumFund) ? parsedMinimumFund : 0;
-    const generalInflation = parseFloat(generalInflationRate || building.generalInflationRate || '2.0') / 100;
-    const revenueInflation = parseFloat(revenueInflationRate || building.revenueInflationRate || '2.0') / 100;
+    // Extract extended configuration from amenities field with proper typing
+    const extendedConfig: ExtendedBuildingConfig = (building.amenities && typeof building.amenities === 'object') ? building.amenities as ExtendedBuildingConfig : {};
+    
+    // Calculate minimum requirement using new logic instead of old bankAccountMinimums
+    const minimumRequirement = calculateMinimumRequirement(
+      extendedConfig.emergencyFundMinimum,
+      extendedConfig.operatingCashMinimum,
+      extendedConfig.customBankFields
+    );
+    
+    // For backward compatibility, fall back to old bankAccountMinimums if no minimum requirement is calculated
+    const minimums = bankAccountMinimums || building.bankAccountMinimums || '0';
+    const parsedMinimumFund = parseFloat(String(minimums));
+    const fallbackMinimumFund = Number.isFinite(parsedMinimumFund) ? parsedMinimumFund : 0;
+    
+    // Use the calculated minimum requirement, or fallback to old logic if no requirement is set
+    const minimumFund = minimumRequirement > 0 ? minimumRequirement : fallbackMinimumFund;
+    const generalInflation = parseFloat(String(generalInflationRate || building.generalInflationRate || '2.0')) / 100;
+    const revenueInflation = parseFloat(String(revenueInflationRate || building.revenueInflationRate || '2.0')) / 100;
     
     // Use input override, calculated suggestion, or existing building value (in priority order)
     const unplannedBills = unplannedBillsAmount !== undefined
@@ -867,8 +949,10 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       buildingId,
       buildingName: building.name,
       forecastPeriod: '25 years',
+      // Clearly separate starting balance from minimum requirement
       startingBalance: startAmount,
-      minimumFund,
+      minimumRequirement: minimumRequirement,
+      minimumFund, // Keep for backward compatibility
       generalInflationRate: generalInflation * 100,
       revenueInflationRate: revenueInflation * 100,
       baselineMonthlyIncome: monthlyBaselineIncome,
