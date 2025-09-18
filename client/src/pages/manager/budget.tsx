@@ -2266,10 +2266,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                           ${customBankFields.reduce((total, field) => total + field.fieldValue, 0).toLocaleString()}
                         </span>
                       </div>
-                      <div className='flex justify-between text-base font-semibold pt-2 border-t'>
-                        <span>Current Balance:</span>
-                        <span className='text-blue-600'>${summaryMetrics.currentBalance.toLocaleString()}</span>
-                      </div>
                     </div>
 
                     {/* Save Bank Account Settings Button */}
