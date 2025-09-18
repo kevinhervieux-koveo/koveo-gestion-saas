@@ -52,7 +52,8 @@ import {
   YAxis as RechartsYAxis,
   CartesianGrid as RechartsCartesianGrid,
   Tooltip as RechartsTooltip,
-  ResponsiveContainer as RechartsResponsiveContainer
+  ResponsiveContainer as RechartsResponsiveContainer,
+  ReferenceLine as RechartsReferenceLine
 } from 'recharts';
 
 interface BudgetProps {
@@ -138,6 +139,7 @@ interface BudgetFilters {
     balance: boolean;
     netCashFlow: boolean;
     capitalInvestments: boolean;
+    minimumRequirement: boolean;
   };
 }
 
@@ -244,6 +246,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       balance: true,
       netCashFlow: false,
       capitalInvestments: true,
+      minimumRequirement: true,
     },
   });
   
@@ -1608,7 +1611,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="toggle-capital-investments" className="text-sm cursor-pointer flex items-center gap-2">
                       <PiggyBank className="w-4 h-4 text-orange-500" />
-                      Capital Investments
+                      Capital Investments ({capitalInvestmentMode})
                     </Label>
                     <Switch 
                       id="toggle-capital-investments"
@@ -1620,6 +1623,23 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         }));
                       }}
                       data-testid="switch-capital-investments-visibility"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="toggle-minimum-requirement" className="text-sm cursor-pointer flex items-center gap-2">
+                      <Target className="w-4 h-4 text-amber-600" />
+                      Minimum Requirement
+                    </Label>
+                    <Switch 
+                      id="toggle-minimum-requirement"
+                      checked={filters.dataVisibility.minimumRequirement}
+                      onCheckedChange={(checked) => {
+                        setFilters(prev => ({
+                          ...prev,
+                          dataVisibility: { ...prev.dataVisibility, minimumRequirement: checked },
+                        }));
+                      }}
+                      data-testid="switch-minimum-requirement-visibility"
                     />
                   </div>
                 </div>
@@ -1774,8 +1794,14 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     )}
                     {filters.dataVisibility.capitalInvestments && (
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                        <span className="text-sm font-medium">Capital Investments</span>
+                        <div className={`w-3 h-3 rounded-full ${capitalInvestmentMode === 'urgent' ? 'bg-red-600' : 'bg-orange-500'}`}></div>
+                        <span className="text-sm font-medium">Capital Investments ({capitalInvestmentMode})</span>
+                      </div>
+                    )}
+                    {filters.dataVisibility.minimumRequirement && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 border-2 border-amber-600 border-dashed"></div>
+                        <span className="text-sm font-medium">Minimum Requirement</span>
                       </div>
                     )}
                   </div>
@@ -1795,7 +1821,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                 revenue: 'Revenue', 
                                 spending: 'Spending',
                                 netCashFlow: 'Net Cash Flow',
-                                capitalInvestments: 'Capital Investments'
+                                capitalInvestments: `Capital Investments (${capitalInvestmentMode})`
                               };
                               return [formattedValue, nameMapping[name] || name];
                             }}
@@ -1850,15 +1876,31 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             />
                           )}
 
-                          {/* Capital Investments Line - Orange */}
+                          {/* Capital Investments Line - Color based on scenario mode */}
                           {filters.dataVisibility.capitalInvestments && (
                             <RechartsLine
                               type="monotone"
                               dataKey="capitalInvestments"
-                              stroke="#f59e0b"
+                              stroke={capitalInvestmentMode === 'urgent' ? '#dc2626' : '#f59e0b'}
                               strokeWidth={2}
-                              dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
+                              strokeDasharray={capitalInvestmentMode === 'urgent' ? '5,5' : undefined}
+                              dot={{ fill: capitalInvestmentMode === 'urgent' ? '#dc2626' : '#f59e0b', strokeWidth: 2, r: 4 }}
                               name="capitalInvestments"
+                            />
+                          )}
+                          
+                          {/* Minimum Requirement Reference Line */}
+                          {filters.dataVisibility.minimumRequirement && forecastData?.minimumFund && (
+                            <RechartsReferenceLine
+                              y={forecastData.minimumFund}
+                              stroke="#d97706"
+                              strokeDasharray="8,4"
+                              strokeWidth={2}
+                              label={{ 
+                                value: `Min Req: $${forecastData.minimumFund.toLocaleString()}`, 
+                                position: 'right',
+                                style: { fill: '#d97706', fontSize: '12px', fontWeight: 'bold' }
+                              }}
                             />
                           )}
                         </RechartsLineChart>
@@ -1886,7 +1928,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         </span>
                       </div>
                       <div className="text-muted-foreground">
-                        {Object.values(filters.dataVisibility).filter(Boolean).length} of 5 series visible
+                        {Object.values(filters.dataVisibility).filter(Boolean).length} of 6 series visible
                       </div>
                     </div>
                   </div>
