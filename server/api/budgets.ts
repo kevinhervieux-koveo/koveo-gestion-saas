@@ -1032,9 +1032,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       minimumRequirement: minimumRequirement,
       minimumFund, // Keep for backward compatibility
       // CORRECTED: Return the properly converted decimal rates as percentages for display
-      generalInflationRate: Math.round(generalInflation * 100 * 100) / 100, // Round to 2 decimal places
-      revenueGrowthRate: Math.round(revenueInflation * 100 * 100) / 100,
-      revenueInflationRate: Math.round(revenueInflation * 100 * 100) / 100, // Keep for backward compatibility
+      generalInflationRate: Math.round(generalInflation * 100) / 100, // Round to 2 decimal places
+      revenueGrowthRate: Math.round(revenueInflation * 100) / 100,
+      revenueInflationRate: Math.round(revenueInflation * 100) / 100, // Keep for backward compatibility
       revenueGrowthRateSource: revenueInflationSource,
       baselineMonthlyIncome: monthlyBaselineIncome,
       baselineMonthlyExpenses: monthlyRecurringCosts,
