@@ -3105,12 +3105,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     {/* Save Bills Configuration Button */}
                     <div className='pt-4 border-t'>
                       <Button
-                        onClick={() => saveUnplannedBillsMutation.mutate(localSettings.unplannedBillsAmount || 0)}
-                        disabled={saveUnplannedBillsMutation.isPending}
+                        onClick={() => saveBankAccountMutation.mutate()}
+                        disabled={saveBankAccountMutation.isPending}
                         className='w-full'
                         data-testid="button-save-unplanned-bills"
                       >
-                        {saveUnplannedBillsMutation.isPending ? (
+                        {saveBankAccountMutation.isPending ? (
                           <>
                             <div className='animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2'></div>
                             Saving...

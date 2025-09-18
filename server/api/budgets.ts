@@ -333,6 +333,11 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       customBankFields,
       // Custom revenue lines from frontend
       customRevenueLines,
+      // Bills configuration fields
+      useGlobalBillsInflation,
+      globalBillsInflationRate,
+      unplannedBillsAmount,
+      categoryInflationRates,
     } = req.body;
 
     // Validate building exists
@@ -362,6 +367,10 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       customBankFields: customBankFields || {},
       // Include custom revenue lines for persistence
       customRevenueLines: customRevenueLines || [],
+      // Include bills configuration for persistence
+      useGlobalBillsInflation,
+      globalBillsInflationRate,
+      categoryInflationRates,
     };
 
     // Update building with bank account info and extended configuration
@@ -375,6 +384,7 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
         bankAccountMinimums,
         generalInflationRate,
         revenueInflationRate,
+        unplannedBillsAmount: unplannedBillsAmount?.toString(), // Save unplanned bills amount
         amenities: extendedConfig, // Using amenities jsonb field for extended config
         bankAccountUpdatedAt: new Date(),
       })
@@ -440,6 +450,7 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
         generalInflationRate: true,
         revenueInflationRate: true,
         bankAccountUpdatedAt: true,
+        unplannedBillsAmount: true, // Include unplanned bills amount
         amenities: true, // Contains extended configuration
       },
     });
@@ -478,6 +489,7 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       generalInflationRate: building.generalInflationRate,
       revenueInflationRate: building.revenueInflationRate,
       bankAccountUpdatedAt: building.bankAccountUpdatedAt,
+      unplannedBillsAmount: building.unplannedBillsAmount, // Include unplanned bills amount
       // Separate starting balance and minimum requirement
       startingBalance: building.bankAccountStartAmount,
       minimumRequirement: minimumRequirement,
