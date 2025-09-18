@@ -560,9 +560,32 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const saveBankAccountMutation = useMutation({
     mutationFn: async () => {
       debugLog('Saving bank account settings', { buildingId, settings: localSettings });
+      
+      // Calculate what will be sent to prevent double-counting
+      const coreFieldsTotal = (localSettings.emergencyFundMinimum || 0) + (localSettings.operatingCashMinimum || 0);
+      const customFieldsOnly = customBankFields
+        .filter(field => 
+          field.fieldName !== 'Emergency Fund Minimum' && 
+          field.fieldName !== 'Operating Cash Minimum'
+        );
+      const customFieldsTotal = customFieldsOnly.reduce((total, field) => total + field.fieldValue, 0);
+      const expectedBackendTotal = coreFieldsTotal + customFieldsTotal;
+      
+      debugLog('Minimum Requirement Calculation Debug', {
+        emergencyFundMinimum: localSettings.emergencyFundMinimum,
+        operatingCashMinimum: localSettings.operatingCashMinimum,
+        coreFieldsTotal,
+        customFieldsOnly: customFieldsOnly.length,
+        customFieldsTotal,
+        expectedBackendTotal,
+        uiDisplayTotal: customBankFields.reduce((total, field) => total + field.fieldValue, 0)
+      });
+      
       const bankAccountPayload = {
         ...localSettings,
-        customBankFields: customBankFields.reduce((acc, field) => {
+        // Exclude Emergency Fund and Operating Cash from customBankFields to prevent double-counting
+        // since they're already included as separate emergencyFundMinimum and operatingCashMinimum fields
+        customBankFields: customFieldsOnly.reduce((acc, field) => {
           acc[field.fieldName] = field.fieldValue;
           return acc;
         }, {} as { [key: string]: number })
@@ -2309,10 +2332,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     {/* Minimum Requirement Summary */}
                     <div className='pt-2 border-t space-y-2'>
                       <div className='flex justify-between text-sm'>
-                        <span className='text-muted-foreground'>Total Custom Fields:</span>
+                        <span className='text-muted-foreground'>Total Minimum Requirement:</span>
                         <span className='font-medium'>
                           ${customBankFields.reduce((total, field) => total + field.fieldValue, 0).toLocaleString()}
                         </span>
+                      </div>
+                      <div className='text-xs text-muted-foreground'>
+                        Includes Emergency Fund + Operating Cash + Custom Fields
                       </div>
                     </div>
 
