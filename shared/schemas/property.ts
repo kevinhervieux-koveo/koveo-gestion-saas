@@ -69,6 +69,7 @@ export const buildings = pgTable('buildings', {
   bankAccountStartDate: timestamp('bank_account_start_date'), // Date when account started tracking
   bankAccountStartAmount: numeric('bank_account_start_amount', { precision: 10, scale: 2 }), // Starting balance
   bankAccountMinimums: text('bank_account_minimums'), // JSON string of minimum balance settings
+  unplannedBillsAmount: decimal('unplanned_bills_amount', { precision: 10, scale: 2 }).default('0'), // Monthly unplanned bills budget
   inflationSettings: text('inflation_settings'), // JSON string of inflation configuration by category
   generalInflationRate: decimal('general_inflation_rate', { precision: 5, scale: 2 }).notNull().default('2.0'),
   revenueInflationRate: decimal('revenue_inflation_rate', { precision: 5, scale: 2 }).notNull().default('2.0'),
@@ -248,6 +249,7 @@ export const insertBuildingSchema = z.object({
   bankAccountStartDate: z.date().optional(),
   bankAccountStartAmount: z.number().optional(),
   bankAccountMinimums: z.record(z.string(), z.number()).optional(),
+  unplannedBillsAmount: z.number().optional(),
 });
 
 export const insertResidenceSchema = z.object({

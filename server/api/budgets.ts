@@ -398,6 +398,77 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
 });
 
 /**
+ * Calculate suggested unplanned bills amount based on historical unique bills data
+ */
+async function calculateUnplannedBillsSuggestion(buildingId: string): Promise<number> {
+  try {
+    const currentYear = new Date().getFullYear();
+    const startYear = currentYear - 3; // Look back 3 years for historical data
+    
+    debugLog('Calculating unplanned bills suggestion', { buildingId, startYear, currentYear });
+    
+    // Fetch historical unique bills from the last 3 years
+    const historicalUniqueBills = await db
+      .select({
+        startDate: bills.startDate,
+        totalAmount: bills.totalAmount,
+        category: bills.category,
+      })
+      .from(bills)
+      .where(
+        and(
+          eq(bills.buildingId, buildingId),
+          eq(bills.paymentType, 'unique'),
+          gte(bills.startDate, new Date(`${startYear}-01-01`)),
+          lte(bills.startDate, new Date(`${currentYear}-12-31`))
+        )
+      );
+
+    debugLog('Historical unique bills fetched', { count: historicalUniqueBills.length });
+
+    if (historicalUniqueBills.length === 0) {
+      // No historical data - return default fallback
+      debugLog('No historical data found, using fallback', { fallback: 0 });
+      return 0;
+    }
+
+    // Group bills by year and calculate yearly totals
+    const billsByYear: Record<number, number> = {};
+    historicalUniqueBills.forEach((bill) => {
+      const year = new Date(bill.startDate).getFullYear();
+      billsByYear[year] = (billsByYear[year] || 0) + parseFloat(bill.totalAmount);
+    });
+
+    debugLog('Bills grouped by year', billsByYear);
+
+    // Calculate average yearly amount
+    const years = Object.keys(billsByYear);
+    if (years.length === 0) {
+      return 0;
+    }
+
+    const totalYearlyAmount = Object.values(billsByYear).reduce((sum, amount) => sum + amount, 0);
+    const averageYearlyAmount = totalYearlyAmount / years.length;
+    
+    // Convert to monthly average
+    const monthlyAverageAmount = averageYearlyAmount / 12;
+    
+    debugLog('Calculated unplanned bills suggestion', { 
+      totalYearlyAmount,
+      averageYearlyAmount,
+      monthlyAverageAmount,
+      yearsAnalyzed: years.length
+    });
+
+    // Round to 2 decimal places
+    return Math.round(monthlyAverageAmount * 100) / 100;
+  } catch (error) {
+    console.error('❌ Error calculating unplanned bills suggestion:', error);
+    return 0; // Return fallback on error
+  }
+}
+
+/**
  * POST /api/budgets/:buildingId/forecast - Generate 25-year budget forecast
  * Replaces sample data generation with actual financial forecasting logic
  */
@@ -428,11 +499,31 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         bankAccountMinimums: true,
         generalInflationRate: true,
         revenueInflationRate: true,
+        unplannedBillsAmount: true,
       },
     });
 
     if (!building) {
       return res.status(404).json({ _error: 'Building not found' });
+    }
+
+    // Calculate suggested unplanned bills amount based on historical data
+    const calculatedUnplannedBillsAmount = await calculateUnplannedBillsSuggestion(buildingId);
+    
+    // Update building with the calculated suggestion (only if there's historical data to base it on)
+    if (calculatedUnplannedBillsAmount > 0) {
+      await db
+        .update(buildings)
+        .set({ 
+          unplannedBillsAmount: calculatedUnplannedBillsAmount.toString(),
+          updatedAt: new Date()
+        })
+        .where(eq(buildings.id, buildingId));
+      
+      debugLog('Updated building unplannedBillsAmount', { 
+        buildingId, 
+        newAmount: calculatedUnplannedBillsAmount 
+      });
     }
 
     // Use request overrides or fallback to building defaults
@@ -441,6 +532,11 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     const minimumFund = parseFloat(minimums);
     const generalInflation = parseFloat(generalInflationRate || building.generalInflationRate || '2.0') / 100;
     const revenueInflation = parseFloat(revenueInflationRate || building.revenueInflationRate || '2.0') / 100;
+    
+    // Use the calculated suggestion or fall back to existing values
+    const unplannedBills = calculatedUnplannedBillsAmount > 0 
+      ? calculatedUnplannedBillsAmount
+      : parseFloat(req.body.unplannedBillsAmount || building.unplannedBillsAmount || '0');
 
     // Fetch recurrent bills for ongoing monthly expenses
     const recurrentBills = await db
@@ -584,9 +680,12 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       const inflatedIncome = monthlyBaselineIncome * Math.pow(1 + revenueInflation, yearsElapsed);
       const inflatedExpenses = monthlyRecurringCosts * Math.pow(1 + generalInflation, yearsElapsed);
 
-      // Add unplanned spending from unique bills (distributed monthly for the year)
+      // Add unplanned spending from unique bills (use calculated suggestion as baseline)
+      // For forecast years with no specific unique bills, use the calculated monthly average
       const yearlyUnplannedSpending = uniqueBillsByYear[currentYear] || 0;
-      const monthlyUnplannedSpending = yearlyUnplannedSpending / 12;
+      const monthlyUnplannedSpending = yearlyUnplannedSpending > 0 
+        ? yearlyUnplannedSpending / 12 
+        : unplannedBills;
 
       // Special one-time incomes (special_cotisations) - could be added from monthly_budgets
       let specialIncomes = 0;
@@ -634,6 +733,12 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       baselineMonthlyExpenses: monthlyRecurringCosts,
       recurrentBillsCount: recurrentBills.length,
       uniqueBillsCount: uniqueBills.length,
+      // Include calculated unplanned bills information
+      calculatedUnplannedBillsAmount: calculatedUnplannedBillsAmount,
+      monthlyUnplannedBillsUsed: unplannedBills,
+      unplannedBillsCalculationMethod: calculatedUnplannedBillsAmount > 0 
+        ? 'historical_average' 
+        : 'fallback_or_manual',
       forecast: forecastData,
     });
 
