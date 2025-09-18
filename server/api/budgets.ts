@@ -21,6 +21,11 @@ interface ExtendedBuildingConfig {
   investmentHorizonYears?: number;
   capitalProjectReserve?: number;
   customBankFields?: Record<string, number>;
+  customRevenueLines?: Array<{
+    id: string;
+    description: string;
+    monthlyAmount: number;
+  }>;
   [key: string]: any; // Allow additional properties
 }
 
@@ -326,6 +331,8 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       capitalProjectReserve,
       // Dynamic custom bank fields from frontend
       customBankFields,
+      // Custom revenue lines from frontend
+      customRevenueLines,
     } = req.body;
 
     // Validate building exists
@@ -338,7 +345,7 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       return res.status(404).json({ _error: 'Building not found' });
     }
 
-    // Prepare extended configuration object including custom bank fields
+    // Prepare extended configuration object including custom bank fields and revenue lines
     const extendedConfig = {
       emergencyFundMinimum,
       operatingCashMinimum,
@@ -353,6 +360,8 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
       capitalProjectReserve,
       // Include dynamic custom bank fields for persistence
       customBankFields: customBankFields || {},
+      // Include custom revenue lines for persistence
+      customRevenueLines: customRevenueLines || [],
     };
 
     // Update building with bank account info and extended configuration

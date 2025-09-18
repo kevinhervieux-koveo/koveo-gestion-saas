@@ -485,6 +485,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         syncCustomFieldsToLocalSettings(coreFields);
       }, 0);
     }
+    
+    // Initialize custom revenue lines from server data
+    if (data.customRevenueLines && Array.isArray(data.customRevenueLines)) {
+      setCustomRevenueLines(data.customRevenueLines);
+      debugLog('Custom revenue lines loaded from server', { count: data.customRevenueLines.length });
+    } else {
+      // Initialize with empty array if no custom revenue lines from server
+      setCustomRevenueLines([]);
+    }
   }, [bankAccountData]);
 
   // Initialize capital investments from server data
@@ -623,6 +632,52 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       toast({
         title: 'Error',
         description: error?.message || 'Failed to save bank account settings',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Save revenue configuration mutation (including custom revenue lines)
+  const saveRevenueConfigurationMutation = useMutation({
+    mutationFn: async () => {
+      debugLog('Saving revenue configuration', { buildingId, customRevenueLines, revenueGrowthRate: localSettings.revenueGrowthRate });
+      
+      const revenueConfigPayload = {
+        // Only send the fields needed for revenue configuration
+        revenueGrowthRate: localSettings.revenueGrowthRate,
+        customRevenueLines: customRevenueLines,
+        // Include current settings to prevent data loss
+        ...localSettings,
+        // Exclude Emergency Fund and Operating Cash from customBankFields to prevent double-counting
+        customBankFields: customBankFields
+          .filter(field => 
+            field.fieldName !== 'Emergency Fund Minimum' && 
+            field.fieldName !== 'Operating Cash Minimum'
+          )
+          .reduce((acc, field) => {
+            acc[field.fieldName] = field.fieldValue;
+            return acc;
+          }, {} as { [key: string]: number })
+      };
+      
+      const response = await apiRequest('PUT', `/api/budgets/${buildingId}/bank-account`, revenueConfigPayload);
+      const data = await response.json();
+      debugLog('Revenue configuration save response', { buildingId, responseStatus: response.status, data });
+      return data;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success', 
+        description: 'Revenue configuration saved successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
+      refetchForecast();
+    },
+    onError: (error: any) => {
+      debugLog('Revenue configuration save error', { buildingId, error });
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to save revenue configuration',
         variant: 'destructive',
       });
     },
@@ -2861,6 +2916,28 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         <span>Total Monthly Revenue:</span>
                         <span className='text-green-600'>${calculateTotalRevenue().toLocaleString()}</span>
                       </div>
+                    </div>
+
+                    {/* Save Revenue Configuration Button */}
+                    <div className='pt-4 border-t'>
+                      <Button 
+                        onClick={() => saveRevenueConfigurationMutation.mutate()}
+                        disabled={saveRevenueConfigurationMutation.isPending}
+                        className='w-full'
+                        data-testid="button-save-revenue-config"
+                      >
+                        {saveRevenueConfigurationMutation.isPending ? (
+                          <>
+                            <div className='animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2'></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <TrendingUpIcon className='w-4 h-4 mr-2' />
+                            Save Revenue Configuration
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </CardContent>
                   </Card>
