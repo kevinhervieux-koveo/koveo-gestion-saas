@@ -540,6 +540,9 @@ export default function UserManagement() {
         description: 'All user information and assignments saved successfully',
       });
 
+      // Allow database to achieve consistency after multiple mutations
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Comprehensive cache invalidation to ensure UI updates
       // Clear all user-related cache entries to force fresh data
       queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
