@@ -516,12 +516,16 @@ export default function UserManagement() {
       userId: string;
       organizationIds: string[];
     }) => {
+      console.log('🔧 [ORG MUTATION] Starting organization update:', { userId, organizationIds });
       const response = await apiRequest('PUT', `/api/users/${userId}/organizations`, {
         organizationIds,
       });
-      return response.json();
+      const result = await response.json();
+      console.log('🔧 [ORG MUTATION] Update successful:', result);
+      return result;
     },
     onSuccess: () => {
+      console.log('🔧 [ORG MUTATION] Success callback triggered');
       toast({
         title: t('success'),
         description: t('organizationAssignmentsUpdated'),
@@ -533,6 +537,7 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
     },
     onError: (error: Error) => {
+      console.error('🔧 [ORG MUTATION] Error callback triggered:', error);
       toast({
         title: t('error'),
         description: getErrorMessage(error, 'organization assignments'),
@@ -550,12 +555,16 @@ export default function UserManagement() {
       userId: string;
       buildingIds: string[];
     }) => {
+      console.log('🔧 [BUILDING MUTATION] Starting building update:', { userId, buildingIds });
       const response = await apiRequest('PUT', `/api/users/${userId}/buildings`, {
         buildingIds,
       });
-      return response.json();
+      const result = await response.json();
+      console.log('🔧 [BUILDING MUTATION] Update successful:', result);
+      return result;
     },
     onSuccess: () => {
+      console.log('🔧 [BUILDING MUTATION] Success callback triggered');
       toast({
         title: t('success'),
         description: t('buildingAssignmentsUpdated'),
@@ -565,6 +574,7 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
     onError: (error: Error) => {
+      console.error('🔧 [BUILDING MUTATION] Error callback triggered:', error);
       toast({
         title: t('error'),
         description: getErrorMessage(error, 'building assignments'),
@@ -1284,11 +1294,15 @@ export default function UserManagement() {
                     currentUser={currentUser}
                     currentUserOrganizations={currentUserAccess.organizationIds}
                     onSave={(organizationIds) => {
+                      console.log('🔧 [ORG SAVE] onSave callback triggered:', { editingUser: editingUser?.id, organizationIds });
                       if (editingUser) {
+                        console.log('🔧 [ORG SAVE] Calling editOrganizationsMutation.mutate');
                         editOrganizationsMutation.mutate({
                           userId: editingUser.id,
                           organizationIds
                         });
+                      } else {
+                        console.warn('🔧 [ORG SAVE] No editingUser found!');
                       }
                     }}
                     onSelectionChange={setSelectedOrganizationIds}
@@ -1306,11 +1320,15 @@ export default function UserManagement() {
                   currentUserBuildingIds={currentUserAccess.buildingIds}
                   selectedOrganizationIds={selectedOrganizationIds}
                   onSave={(buildingIds) => {
+                    console.log('🔧 [BUILDING SAVE] onSave callback triggered:', { editingUser: editingUser?.id, buildingIds });
                     if (editingUser) {
+                      console.log('🔧 [BUILDING SAVE] Calling editBuildingsMutation.mutate');
                       editBuildingsMutation.mutate({
                         userId: editingUser.id,
                         buildingIds
                       });
+                    } else {
+                      console.warn('🔧 [BUILDING SAVE] No editingUser found!');
                     }
                   }}
                   onSelectionChange={setSelectedBuildingIds}
