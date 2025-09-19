@@ -531,9 +531,6 @@ export default function UserManagement() {
         });
       }
 
-      // Close dialog on success
-      setEditingUser(null);
-      
       // Show success message
       toast({
         title: t('success'),
@@ -552,6 +549,9 @@ export default function UserManagement() {
       queryClient.removeQueries({ queryKey: ['/api/residences'], exact: false });
       queryClient.removeQueries({ queryKey: ['/api/admin/all-user-organizations'], exact: false });
       queryClient.removeQueries({ queryKey: ['/api/admin/all-user-residences'], exact: false });
+      
+      // Close dialog after successful save and cache invalidation
+      setEditingUser(null);
       
       // Force immediate refetch to update the table
       queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
