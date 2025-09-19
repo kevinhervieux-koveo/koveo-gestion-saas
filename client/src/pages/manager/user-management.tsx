@@ -1431,9 +1431,16 @@ export default function UserManagement() {
               <Button
                 type="button"
                 onClick={(e) => {
+                  console.log('🖱️ [CRITICAL DEBUG] Save Changes button CLICKED!');
                   e.preventDefault();
                   e.stopPropagation();
-                  handleUnifiedSave();
+                  
+                  if (typeof handleUnifiedSave === 'function') {
+                    console.log('🚀 [FUNCTION CHECK] handleUnifiedSave is a function, calling it...');
+                    handleUnifiedSave();
+                  } else {
+                    console.error('❌ [FUNCTION ERROR] handleUnifiedSave is not a function:', typeof handleUnifiedSave);
+                  }
                 }}
                 disabled={editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending}
                 data-testid='button-save-all'
