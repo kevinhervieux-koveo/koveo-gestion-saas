@@ -537,12 +537,31 @@ export default function UserManagement() {
         description: 'All user information and assignments saved successfully',
       });
 
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      // Update cache immediately with new data for instant feedback
+      const updatedUserData = { 
+        id: editingUser.id, 
+        ...formValues,
+        // Preserve other user data that might not be in the form
+        username: editingUser.username,
+        createdAt: editingUser.createdAt,
+        updatedAt: new Date().toISOString(),
+        lastLoginAt: editingUser.lastLoginAt
+      };
       
-      // Force a complete refresh to ensure changes are visible
-      window.location.reload();
+      // Patch all user query caches with updated data
+      queryClient.setQueriesData({ queryKey: ['/api/users'] }, (old: any) => {
+        if (!old || !old.users) return old;
+        return {
+          ...old,
+          users: old.users.map((user: any) => 
+            user.id === editingUser.id ? { ...user, ...updatedUserData } : user
+          )
+        };
+      });
+
+      // Then invalidate and refetch to ensure data consistency
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], refetchType: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], refetchType: 'active' });
       
     } catch (error) {
       console.error('Unified save failed:', error);
