@@ -365,25 +365,21 @@ export class OptimizedDatabaseStorage implements IStorage {
             ),
             user_buildings AS (
               SELECT 
-                uo.user_id,
+                ur.user_id,
                 COALESCE(
                   json_agg(
-                    json_build_object(
-                      'id', buildings_distinct.id,
-                      'name', buildings_distinct.name
+                    DISTINCT json_build_object(
+                      'id', b.id,
+                      'name', b.name
                     )
                   ),
                   '[]'::json
                 ) as buildings
-              FROM user_organizations uo
-              INNER JOIN (
-                SELECT DISTINCT uo2.user_id, b.id, b.name
-                FROM user_organizations uo2
-                INNER JOIN buildings b ON uo2.organization_id = b.organization_id
-                WHERE uo2.is_active = true AND b.is_active = true
-              ) buildings_distinct ON uo.user_id = buildings_distinct.user_id
-              WHERE uo.is_active = true
-              GROUP BY uo.user_id
+              FROM user_residences ur
+              INNER JOIN residences r ON ur.residence_id = r.id
+              INNER JOIN buildings b ON r.building_id = b.id
+              WHERE ur.is_active = true AND r.is_active = true AND b.is_active = true
+              GROUP BY ur.user_id
             ),
             user_residences AS (
               SELECT 
@@ -617,25 +613,21 @@ export class OptimizedDatabaseStorage implements IStorage {
             ),
             user_buildings AS (
               SELECT 
-                uo.user_id,
+                ur.user_id,
                 COALESCE(
                   json_agg(
-                    json_build_object(
-                      'id', buildings_distinct.id,
-                      'name', buildings_distinct.name
+                    DISTINCT json_build_object(
+                      'id', b.id,
+                      'name', b.name
                     )
                   ),
                   '[]'::json
                 ) as buildings
-              FROM user_organizations uo
-              INNER JOIN (
-                SELECT DISTINCT uo2.user_id, b.id, b.name
-                FROM user_organizations uo2
-                INNER JOIN buildings b ON uo2.organization_id = b.organization_id
-                WHERE uo2.is_active = true AND b.is_active = true
-              ) buildings_distinct ON uo.user_id = buildings_distinct.user_id
-              WHERE uo.is_active = true
-              GROUP BY uo.user_id
+              FROM user_residences ur
+              INNER JOIN residences r ON ur.residence_id = r.id
+              INNER JOIN buildings b ON r.building_id = b.id
+              WHERE ur.is_active = true AND r.is_active = true AND b.is_active = true
+              GROUP BY ur.user_id
             ),
             user_residences AS (
               SELECT 
