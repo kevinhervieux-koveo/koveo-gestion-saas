@@ -60,6 +60,14 @@ const config = {
     
     // ES Module mocks to prevent import issues
     'wouter': '<rootDir>/__mocks__/wouter.js',
+    
+    // Child process and exec mocks to prevent hanging
+    '^child_process$': '<rootDir>/__mocks__/child_process.js',
+    '^util$': '<rootDir>/__mocks__/util.js',
+    
+    // File system mocks for safer testing
+    '^fs$': '<rootDir>/__mocks__/fs.js',
+    '^fs/promises$': '<rootDir>/__mocks__/fs-promises.js',
   },
   
   testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
@@ -93,20 +101,25 @@ const config = {
     'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud|react-router-dom|drizzle-orm|drizzle-zod|@neondatabase))'
   ],
   
-  // Performance settings - optimized for large test suites
-  testTimeout: 20000,
-  maxWorkers: 3,
+  // Performance settings - optimized for large test suites with strict timeouts
+  testTimeout: 15000,
+  maxWorkers: 2,
   cache: true,
   cacheDirectory: '<rootDir>/.jest-cache',
-  detectOpenHandles: false,
+  detectOpenHandles: true,
   forceExit: true,
   clearMocks: true,
   restoreMocks: true,
-  resetMocks: false,
-  resetModules: false,
+  resetMocks: true,
+  resetModules: true,
   verbose: false,
   passWithNoTests: false,
   bail: false,
+  
+  // Strict cleanup and isolation settings
+  sandboxInjectedGlobals: [
+    'Math'
+  ],
   
   // Enhanced module resolution for better mock handling
   moduleDirectories: ['node_modules', '<rootDir>'],
