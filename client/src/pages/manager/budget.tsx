@@ -1134,13 +1134,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       }
     }
     
-    // Add specific capital investments as requested
+    // Add specific capital investments for 2025 January and February
     suggestions.push({
       id: `specific-investment-1-${Date.now()}`,
       title: 'Capital Investment #1',
-      description: 'Specific capital investment requirement',
-      amount: 3500,
-      targetDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 6 months from now
+      description: 'Specific capital investment payment for January 2025',
+      amount: 1500,
+      targetDate: '2025-01-15', // January 2025
       urgency: 'suggested',
       type: 'auto_generated',
       ownershipType: 'owner',
@@ -1151,9 +1151,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     suggestions.push({
       id: `specific-investment-2-${Date.now()}`,
       title: 'Capital Investment #2',
-      description: 'Specific capital investment requirement',
-      amount: 600,
-      targetDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 6 months from now
+      description: 'Specific capital investment payment for February 2025',
+      amount: 1700,
+      targetDate: '2025-02-15', // February 2025
       urgency: 'suggested',
       type: 'auto_generated',
       ownershipType: 'owner',
