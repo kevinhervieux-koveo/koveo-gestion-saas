@@ -1433,7 +1433,13 @@ export default function UserManagement() {
                 {t('cancel')}
               </Button>
               <Button
-                onClick={handleUnifiedSave}
+                type="button"
+                onClick={(e) => {
+                  console.log('🖱️ [Button Click] Save Changes button clicked!', e);
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleUnifiedSave();
+                }}
                 disabled={editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending}
                 data-testid='button-save-all'
               >
