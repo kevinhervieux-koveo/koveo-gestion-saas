@@ -30,4 +30,6 @@ const BudgetMock = ({ buildingId, organizationId }: { buildingId?: string; organ
   );
 };
 
+// Export as both default and named export to match the real component structure
+export const BudgetInner = BudgetMock;
 export default BudgetMock;
