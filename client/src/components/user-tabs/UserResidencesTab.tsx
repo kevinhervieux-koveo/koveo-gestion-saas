@@ -214,7 +214,7 @@ export function UserResidencesTab({
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-4 ml-2 mt-2">
                   {orgGroup.buildings.map((buildingGroup, buildingIndex) => (
-                    <Collapsible key={buildingGroup.building.id || buildingIndex} defaultOpen>
+                    <Collapsible key={`residences-tab-${buildingGroup.building.id || buildingIndex}`} defaultOpen>
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left hover:bg-muted rounded">
                         <h4 className="text-sm font-medium">
                           {buildingGroup.building.name}

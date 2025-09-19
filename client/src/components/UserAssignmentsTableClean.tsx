@@ -136,7 +136,7 @@ export function UserAssignmentsTable({
                   {Array.isArray(user.buildings) && user.buildings.length > 0 ? (
                     user.buildings.slice(0, 3).map((building, idx) => (
                       <div
-                        key={building.id || idx}
+                        key={`table-${user.id}-${building.id || idx}`}
                         className="text-xs bg-purple-50 px-2 py-1 rounded"
                         data-testid={`building-${user.id}-${idx}`}
                       >

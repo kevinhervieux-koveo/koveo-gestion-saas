@@ -65,7 +65,7 @@ export function BuildingSelectionGrid({
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {buildings.map((building) => (
               <BuildingCard
-                key={building.id}
+                key={`selection-grid-${building.id}`}
                 building={building}
                 onSelect={() => onBuildingSelect(building.id)}
               />

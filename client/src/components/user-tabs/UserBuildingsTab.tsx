@@ -139,7 +139,7 @@ export function UserBuildingsTab({
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 ml-4 mt-2">
                   {group.buildings.map((building) => (
-                    <div key={building.id} className="flex items-center space-x-2 p-2 border rounded">
+                    <div key={`buildings-tab-${building.id}`} className="flex items-center space-x-2 p-2 border rounded">
                       <Checkbox
                         id={`building-${building.id}`}
                         checked={selectedBuildings.includes(building.id)}
