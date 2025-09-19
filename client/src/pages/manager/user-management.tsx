@@ -544,14 +544,17 @@ export default function UserManagement() {
       await new Promise(resolve => setTimeout(resolve, 100));
       
       // Comprehensive cache invalidation to ensure UI updates
-      // Use invalidateQueries for immediate updates
-      await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/organizations'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/buildings'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/residences'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'], exact: false });
+      // Remove all cached queries first for immediate effect
+      queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/organizations'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/buildings'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/residences'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-organizations'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-residences'], exact: false });
+      
+      // Force immediate refetch to update the table
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
       
     } catch (error) {
       console.error('Unified save failed:', error);
