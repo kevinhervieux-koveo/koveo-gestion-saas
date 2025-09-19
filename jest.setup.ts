@@ -87,8 +87,8 @@ Object.entries(testEnvDefaults).forEach(([key, value]) => {
 // PERFORMANCE AND TIMEOUT CONFIGURATION
 // =============================================================================
 
-// Performance optimizations - increased timeout for async setup
-jest.setTimeout(20000); // 20 second timeout per test for current async needs
+// Note: Jest timeout is configured in jest.config.cjs (15000ms)
+// Keeping setup focused on environment configuration
 
 // Configure React Query to suppress console errors during tests
 // Note: React Query v5 uses a different approach for logger configuration
