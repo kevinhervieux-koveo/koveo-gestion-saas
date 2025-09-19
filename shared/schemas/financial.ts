@@ -27,13 +27,6 @@ export const billStatusEnum = pgEnum('bill_status', [
   'cancelled',
 ]);
 
-export const oldBillTypeEnum = pgEnum('old_bill_type', [
-  'condo_fees',
-  'special_assessment',
-  'utility',
-  'maintenance',
-  'other',
-]);
 
 export const billCategoryEnum = pgEnum('bill_category', [
   'insurance',
@@ -148,35 +141,6 @@ export const payments = pgTable('payments', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-/**
- * Legacy bills table - keeping for backward compatibility.
- * Will be migrated to new bills table structure.
- */
-export const oldBills = pgTable('old_bills', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  residenceId: varchar('residence_id')
-    .notNull()
-    .references(() => residences.id),
-  billNumber: text('bill_number').notNull().unique(),
-  type: oldBillTypeEnum('type').notNull(),
-  description: text('description').notNull(),
-  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
-  dueDate: date('due_date').notNull(),
-  issueDate: date('issue_date').notNull(),
-  status: billStatusEnum('status').notNull().default('draft'),
-  notes: text('notes'),
-  lateFeeAmount: decimal('late_fee_amount', { precision: 10, scale: 2 }),
-  discountAmount: decimal('discount_amount', { precision: 10, scale: 2 }),
-  finalAmount: decimal('final_amount', { precision: 12, scale: 2 }).notNull(),
-  paymentReceivedDate: date('payment_received_date'),
-  createdBy: varchar('created_by')
-    .notNull()
-    .references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
 
 /**
  * Budgets table for tracking financial planning by building and category.
@@ -283,22 +247,6 @@ export const insertBillSchema = createInsertSchema(bills, {
   updatedAt: true 
 });
 
-export const insertOldBillSchema = z.object({
-  residenceId: z.string().uuid(),
-  billNumber: z.string(),
-  type: z.string(),
-  description: z.string().optional(),
-  amount: z.number(),
-  dueDate: z.date(),
-  issueDate: z.date().optional(),
-  status: z.string().default('unpaid'),
-  notes: z.string().optional(),
-  lateFeeAmount: z.number().optional(),
-  discountAmount: z.number().optional(),
-  finalAmount: z.number().optional(),
-  paymentReceivedDate: z.date().optional(),
-  createdBy: z.string().uuid(),
-});
 
 export const insertBudgetSchema = z.object({
   buildingId: z.string().uuid(),
@@ -355,14 +303,6 @@ export type InsertBill = typeof bills.$inferInsert;
  */
 export type Bill = typeof bills.$inferSelect;
 
-/**
- * Legacy bills types for backward compatibility.
- */
-export type InsertOldBill = z.infer<typeof insertOldBillSchema>;
-/**
- *
- */
-export type OldBill = typeof oldBills.$inferSelect;
 
 /**
  * Budget insert and select types.
@@ -428,16 +368,6 @@ export type CapitalInvestment = typeof capitalInvestments.$inferSelect;
 //   (removed money flow relations),
 // }));
 
-// export const oldBillsRelations = relations(oldBills, ({ one }) => ({
-//   residence: one(residences, {
-//     fields: [oldBills.residenceId],
-//     references: [residences.id],
-//   }),
-//   createdBy: one(users, {
-//     fields: [oldBills.createdBy],
-//     references: [users.id],
-//   }),
-// }));
 
 // export const budgetsRelations = relations(budgets, ({ one }) => ({
 //   building: one(buildings, {
