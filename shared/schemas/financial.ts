@@ -91,11 +91,11 @@ export const bills = pgTable('bills', {
   buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id),
-  billNumber: text('bill_number').notNull().unique(),
-  title: text('title').notNull(),
+  billNumber: varchar('bill_number', { length: 50 }).notNull().unique(),
+  title: varchar('title', { length: 200 }).notNull(),
   description: text('description'),
   category: billCategoryEnum('category').notNull(),
-  vendor: text('vendor'), // Company or service provider
+  vendor: varchar('vendor', { length: 200 }), // Company or service provider
   paymentType: paymentTypeEnum('payment_type').notNull(), // unique or recurrent
   schedulePayment: schedulePaymentEnum('schedule_payment'), // Only for recurrent payments
   scheduleCustom: date('schedule_custom').array(), // Custom dates for custom schedules

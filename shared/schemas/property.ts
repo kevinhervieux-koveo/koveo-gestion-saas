@@ -50,11 +50,11 @@ export const buildings = pgTable('buildings', {
   organizationId: varchar('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
+  name: varchar('name', { length: 200 }).notNull(),
   address: text('address').notNull(),
-  city: text('city').notNull(),
-  province: text('province').notNull().default('QC'),
-  postalCode: text('postal_code').notNull(),
+  city: varchar('city', { length: 100 }).notNull(),
+  province: varchar('province', { length: 3 }).notNull().default('QC'),
+  postalCode: varchar('postal_code', { length: 10 }).notNull(),
   buildingType: buildingTypeEnum('building_type').notNull(),
   yearBuilt: integer('year_built'),
   totalUnits: integer('total_units').notNull(),
@@ -90,7 +90,7 @@ export const residences = pgTable('residences', {
   buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
-  unitNumber: text('unit_number').notNull(),
+  unitNumber: varchar('unit_number', { length: 20 }).notNull(),
   floor: integer('floor'),
   squareFootage: decimal('square_footage', { precision: 8, scale: 2 }),
   bedrooms: integer('bedrooms'),

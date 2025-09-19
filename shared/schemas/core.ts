@@ -52,13 +52,13 @@ export const users = pgTable('users', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   username: text('username').notNull().unique(), // Username field required by database
-  email: text('email').notNull().unique(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
   password: text('password').notNull(),
-  firstName: text('first_name').notNull(),
-  lastName: text('last_name').notNull(),
-  phone: text('phone'),
+  firstName: varchar('first_name', { length: 100 }).notNull(),
+  lastName: varchar('last_name', { length: 100 }).notNull(),
+  phone: varchar('phone', { length: 20 }),
   profileImage: text('profile_image'),
-  language: text('language').notNull().default('fr'), // Default to French for Quebec
+  language: varchar('language', { length: 10 }).notNull().default('fr'), // Default to French for Quebec
   role: userRoleEnum('role').notNull().default('tenant'),
   isActive: boolean('is_active').notNull().default(true),
   lastLoginAt: timestamp('last_login_at'),
@@ -74,14 +74,14 @@ export const organizations = pgTable('organizations', {
   id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
-  name: text('name').notNull(),
+  name: varchar('name', { length: 200 }).notNull(),
   type: text('type').notNull(), // 'management_company', 'syndicate', 'cooperative', 'condo_association', 'demo'
   address: text('address').notNull(),
-  city: text('city').notNull(),
-  province: text('province').notNull().default('QC'),
-  postalCode: text('postal_code').notNull(),
+  city: varchar('city', { length: 100 }).notNull(),
+  province: varchar('province', { length: 3 }).notNull().default('QC'),
+  postalCode: varchar('postal_code', { length: 10 }).notNull(),
   phone: text('phone'),
-  email: text('email'),
+  email: varchar('email', { length: 255 }),
   website: text('website'),
   registrationNumber: text('registration_number'), // Quebec business registration
   isActive: boolean('is_active').notNull().default(true),
