@@ -16,6 +16,7 @@ interface UserResidencesTabProps {
   currentUserResidenceIds: string[];
   selectedBuildingIds: string[];
   onSave: (residenceAssignments: any[]) => void;
+  onSelectionChange?: (residenceAssignments: any[]) => void;
   isLoading?: boolean;
 }
 
@@ -28,6 +29,7 @@ export function UserResidencesTab({
   currentUserResidenceIds,
   selectedBuildingIds,
   onSave, 
+  onSelectionChange,
   isLoading = false 
 }: UserResidencesTabProps) {
   const [selectedResidences, setSelectedResidences] = useState<{ 
@@ -57,22 +59,47 @@ export function UserResidencesTab({
   const handleResidenceToggle = (residenceId: string) => {
     setSelectedResidences(prev => {
       const exists = prev.find(r => r.residenceId === residenceId);
+      let newSelection;
       if (exists) {
-        return prev.filter(r => r.residenceId !== residenceId);
+        newSelection = prev.filter(r => r.residenceId !== residenceId);
       } else {
-        return [...prev, { residenceId, relationshipType: 'tenant' }];
+        newSelection = [...prev, { residenceId, relationshipType: 'tenant' }];
       }
+      
+      // Notify parent component of the selection change
+      if (onSelectionChange) {
+        onSelectionChange(newSelection.map(assignment => ({
+          ...assignment,
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: null,
+          isActive: true
+        })));
+      }
+      
+      return newSelection;
     });
   };
 
   const handleRelationshipTypeChange = (residenceId: string, relationshipType: string) => {
-    setSelectedResidences(prev =>
-      prev.map(r => 
+    setSelectedResidences(prev => {
+      const newSelection = prev.map(r => 
         r.residenceId === residenceId 
           ? { ...r, relationshipType }
           : r
-      )
-    );
+      );
+      
+      // Notify parent component of the selection change
+      if (onSelectionChange) {
+        onSelectionChange(newSelection.map(assignment => ({
+          ...assignment,
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: null,
+          isActive: true
+        })));
+      }
+      
+      return newSelection;
+    });
   };
 
   const handleSave = () => {

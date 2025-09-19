@@ -92,6 +92,7 @@ export default function UserManagement() {
   // Cascading filter states for user edit tabs
   const [selectedOrganizationIds, setSelectedOrganizationIds] = useState<string[]>([]);
   const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
+  const [selectedResidenceAssignments, setSelectedResidenceAssignments] = useState<any[]>([]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -485,6 +486,61 @@ export default function UserManagement() {
       return;
     }
     await editUserMutation.mutateAsync({ ...values, id: editingUser.id });
+  };
+
+  // Unified save function that saves all user data at once
+  const handleUnifiedSave = async () => {
+    if (!editingUser) return;
+
+    try {
+      // Get form values for basic info
+      const formValues = editForm.getValues();
+      
+      // Save all data sequentially to ensure consistency
+      await editUserMutation.mutateAsync({ ...formValues, id: editingUser.id });
+      
+      if (canEditOrganizations && selectedOrganizationIds.length > 0) {
+        await editOrganizationsMutation.mutateAsync({
+          userId: editingUser.id,
+          organizationIds: selectedOrganizationIds
+        });
+      }
+      
+      if (selectedBuildingIds.length > 0) {
+        await editBuildingsMutation.mutateAsync({
+          userId: editingUser.id,
+          buildingIds: selectedBuildingIds
+        });
+      }
+      
+      if (canEditResidences && selectedResidenceAssignments.length > 0) {
+        await editResidencesMutation.mutateAsync({
+          userId: editingUser.id,
+          residenceAssignments: selectedResidenceAssignments
+        });
+      }
+
+      // Close dialog on success
+      setEditingUser(null);
+      
+      // Show success message
+      toast({
+        title: t('success'),
+        description: 'All user information and assignments saved successfully',
+      });
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      
+    } catch (error) {
+      console.error('Unified save failed:', error);
+      toast({
+        title: t('error'), 
+        description: 'Failed to save all changes. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const openEditDialog = (user: User) => {
@@ -1255,23 +1311,6 @@ export default function UserManagement() {
                       )}
                     />
 
-                    <DialogFooter>
-                      <Button
-                        type='button'
-                        variant='outline'
-                        onClick={() => setEditingUser(null)}
-                        data-testid='button-cancel-edit'
-                      >
-                        {t('cancel')}
-                      </Button>
-                      <Button
-                        type='submit'
-                        disabled={editUserMutation.isPending}
-                        data-testid='button-save-edit'
-                      >
-                        {editUserMutation.isPending ? (t('saving') || 'Saving...') : t('saveChanges')}
-                      </Button>
-                    </DialogFooter>
                   </form>
                 </Form>
               </TabsContent>
@@ -1336,11 +1375,34 @@ export default function UserManagement() {
                         });
                       }
                     }}
+                    onSelectionChange={setSelectedResidenceAssignments}
                     isLoading={editResidencesMutation.isPending}
                   />
                 </TabsContent>
               )}
             </Tabs>
+
+            {/* Unified Save Footer */}
+            <DialogFooter className="mt-6">
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => setEditingUser(null)}
+                data-testid='button-cancel-edit'
+              >
+                {t('cancel')}
+              </Button>
+              <Button
+                onClick={handleUnifiedSave}
+                disabled={editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending}
+                data-testid='button-save-all'
+              >
+                {(editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending) 
+                  ? (t('saving') || 'Saving...') 
+                  : (t('saveChanges') || 'Save Changes')
+                }
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
