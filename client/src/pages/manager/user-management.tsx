@@ -240,16 +240,13 @@ export default function UserManagement() {
   // Role filtering function
   const getAvailableRoles = useMemo(() => {
     if (!currentUser) {
-      console.log('🔍 [ROLE DEBUG] No current user');
       return [];
     }
 
     const { role } = currentUser;
-    console.log('🔍 [ROLE DEBUG] Current user role:', role);
 
     // Admin can assign any role regardless of organization context
     if (role === 'admin') {
-      console.log('🔍 [ROLE DEBUG] Admin detected, returning all roles');
       return [
         { value: 'admin', label: 'Admin' },
         { value: 'manager', label: 'Manager' },
@@ -263,13 +260,6 @@ export default function UserManagement() {
 
     // For non-admin users, we need organization context
     if (!userOrganizationContext) {
-      console.log('🔍 [ROLE DEBUG] Missing userOrganizationContext for non-admin user:', { 
-        hasCurrentUser: !!currentUser, 
-        hasUserOrganizationContext: !!userOrganizationContext,
-        currentUserRole: role,
-        organizationsLength: organizations?.length,
-        usersLength: users?.length,
-      });
       return [];
     }
 
