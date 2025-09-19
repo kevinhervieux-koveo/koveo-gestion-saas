@@ -294,7 +294,7 @@ export default function UserManagement() {
     onError: (_error: Error) => {
       toast({
         title: t('error'),
-        description: _error.message,
+        description: getErrorMessage(_error, 'bulk user actions'),
         variant: 'destructive',
       });
     },
@@ -323,7 +323,7 @@ export default function UserManagement() {
     onError: (error: Error) => {
       toast({
         title: t('error'),
-        description: error.message,
+        description: getErrorMessage(error, 'user profile updates'),
         variant: 'destructive',
       });
     },
@@ -380,9 +380,18 @@ export default function UserManagement() {
     }
   }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
-  // Reset cascading filter states only when dialog closes
+  // Initialize and reset cascading filter states when user changes
   React.useEffect(() => {
-    if (!editingUser) {
+    if (editingUser) {
+      // Initialize states with user's current assignments when dialog opens
+      const userWithAssignments = findUserWithAssignments(editingUser.id);
+      if (userWithAssignments) {
+        const currentOrgIds = userWithAssignments.organizations?.map((org: any) => org.id) || [];
+        const currentBuildingIds = userWithAssignments.buildings?.map((building: any) => building.id) || [];
+        setSelectedOrganizationIds(currentOrgIds);
+        setSelectedBuildingIds(currentBuildingIds);
+      }
+    } else {
       // Reset states when dialog closes
       setSelectedOrganizationIds([]);
       setSelectedBuildingIds([]);
@@ -420,6 +429,36 @@ export default function UserManagement() {
       residenceIds
     };
   }, [currentUser, users, organizations, buildings, residences]);
+
+  // Helper function to provide user-friendly error messages
+  const getErrorMessage = (error: Error, context: string = '') => {
+    const message = error.message.toLowerCase();
+    
+    // Demo user specific restrictions
+    if (message.includes('demo') && message.includes('restrict')) {
+      return `Demo users have limited permissions. ${context ? `For ${context}, ` : ''}please contact an administrator for full access.`;
+    }
+    
+    if (message.includes('permission') || message.includes('unauthorized')) {
+      return `You don't have permission to perform this action. ${context ? `For ${context}, ` : ''}please contact your manager or administrator.`;
+    }
+    
+    if (message.includes('not found')) {
+      return `The requested ${context || 'resource'} could not be found. It may have been deleted or you may not have access to it.`;
+    }
+    
+    if (message.includes('already exists') || message.includes('duplicate')) {
+      return `This ${context || 'item'} already exists. Please check your selection and try again.`;
+    }
+    
+    // For validation errors, make them more user-friendly
+    if (message.includes('validation') || message.includes('invalid')) {
+      return `Please check your input and make sure all required fields are filled correctly.`;
+    }
+    
+    // Default to original message if no specific patterns match
+    return error.message;
+  };
 
   const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
     if (!editingUser) {
@@ -476,7 +515,7 @@ export default function UserManagement() {
     onError: (error: Error) => {
       toast({
         title: t('error'),
-        description: error.message,
+        description: getErrorMessage(error, 'organization assignments'),
         variant: 'destructive',
       });
     },
@@ -508,7 +547,7 @@ export default function UserManagement() {
     onError: (error: Error) => {
       toast({
         title: t('error'),
-        description: error.message,
+        description: getErrorMessage(error, 'building assignments'),
         variant: 'destructive',
       });
     },
@@ -542,7 +581,7 @@ export default function UserManagement() {
     onError: (error: Error) => {
       toast({
         title: t('error'),
-        description: error.message,
+        description: getErrorMessage(error, 'residence assignments'),
         variant: 'destructive',
       });
     },
@@ -627,15 +666,24 @@ export default function UserManagement() {
       
       toast({
         title: t('deletionFailed'),
-        description: error.message || t('deletionFailedDescription'),
+        description: getErrorMessage(error, 'user deletion'),
         variant: 'destructive',
       });
     },
   });
 
   // Permission checks
-  const canEditOrganizations = currentUser?.role === 'admin';
-  const canEditResidences = currentUser?.role === 'admin' || currentUser?.role === 'manager';
+  const canEditOrganizations = useMemo(() => {
+    if (!currentUser) return false;
+    // Only show organizations tab if user has access to multiple organizations
+    if (currentUser.role === 'admin') return true;
+    // For managers and demo_managers, only show if they have access to multiple organizations
+    return currentUserAccess.organizationIds.length > 1;
+  }, [currentUser, currentUserAccess.organizationIds]);
+  
+  const canEditResidences = currentUser?.role === 'admin' || 
+                           currentUser?.role === 'manager' || 
+                           currentUser?.role === 'demo_manager';
   const canDeleteUsers = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
   // Filter configuration - temporarily simplified
@@ -764,7 +812,7 @@ export default function UserManagement() {
       console.error('💥 [FRONTEND] Delete orphans mutation failed:', error);
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to delete orphan users',
+        description: getErrorMessage(error instanceof Error ? error : new Error('Failed to delete orphan users'), 'orphan user deletion'),
         variant: 'destructive',
       });
     },
@@ -1084,10 +1132,10 @@ export default function UserManagement() {
 
             <Tabs defaultValue='basic' className='w-full'>
               <TabsList className={`grid w-full ${canEditOrganizations && canEditResidences ? 'grid-cols-4' : canEditOrganizations || canEditResidences ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                <TabsTrigger value='basic'>{t('basicInfo') || 'Basic Info'}</TabsTrigger>
-                {canEditOrganizations && <TabsTrigger value='organizations'>{t('organizations')}</TabsTrigger>}
-                <TabsTrigger value='buildings'>{t('buildings') || 'Buildings'}</TabsTrigger>
-                {canEditResidences && <TabsTrigger value='residences'>{t('residences') || 'Residences'}</TabsTrigger>}
+                <TabsTrigger value='basic' data-testid='tab-basic'>{t('basicInfo') || 'Basic Info'}</TabsTrigger>
+                {canEditOrganizations && <TabsTrigger value='organizations' data-testid='tab-organizations'>{t('organizations')}</TabsTrigger>}
+                <TabsTrigger value='buildings' data-testid='tab-buildings'>{t('buildings') || 'Buildings'}</TabsTrigger>
+                {canEditResidences && <TabsTrigger value='residences' data-testid='tab-residences'>{t('residences') || 'Residences'}</TabsTrigger>}
               </TabsList>
 
               <TabsContent value='basic' className='space-y-4'>
