@@ -365,7 +365,7 @@ export class OptimizedDatabaseStorage implements IStorage {
             ),
             user_buildings AS (
               SELECT 
-                ur.user_id,
+                buildings_distinct.user_id,
                 COALESCE(
                   json_agg(
                     json_build_object(
@@ -616,7 +616,7 @@ export class OptimizedDatabaseStorage implements IStorage {
             ),
             user_buildings AS (
               SELECT 
-                ur.user_id,
+                buildings_distinct.user_id,
                 COALESCE(
                   json_agg(
                     json_build_object(
@@ -751,18 +751,20 @@ export class OptimizedDatabaseStorage implements IStorage {
                 )
               );
 
-            // Get user buildings (through organization relationships)
+            // Get user buildings (through residence assignments only)
             const userBuildings = await db
-              .select({
+              .selectDistinct({
                 id: schema.buildings.id,
                 name: schema.buildings.name,
               })
-              .from(schema.userOrganizations)
-              .innerJoin(schema.buildings, eq(schema.userOrganizations.organizationId, schema.buildings.organizationId))
+              .from(schema.userResidences)
+              .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
               .where(
                 and(
-                  eq(schema.userOrganizations.userId, user.id),
-                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.userResidences.userId, user.id),
+                  eq(schema.userResidences.isActive, true),
+                  eq(schema.residences.isActive, true),
                   eq(schema.buildings.isActive, true)
                 )
               );
@@ -979,18 +981,20 @@ export class OptimizedDatabaseStorage implements IStorage {
                 )
               );
 
-            // Get user buildings (through organization relationships)
+            // Get user buildings (through residence assignments only)
             const userBuildings = await db
-              .select({
+              .selectDistinct({
                 id: schema.buildings.id,
                 name: schema.buildings.name,
               })
-              .from(schema.userOrganizations)
-              .innerJoin(schema.buildings, eq(schema.userOrganizations.organizationId, schema.buildings.organizationId))
+              .from(schema.userResidences)
+              .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
               .where(
                 and(
-                  eq(schema.userOrganizations.userId, user.id),
-                  eq(schema.userOrganizations.isActive, true),
+                  eq(schema.userResidences.userId, user.id),
+                  eq(schema.userResidences.isActive, true),
+                  eq(schema.residences.isActive, true),
                   eq(schema.buildings.isActive, true)
                 )
               );
