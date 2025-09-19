@@ -56,8 +56,6 @@ export function UserOrganizationsTab({
   };
 
   const handleSave = () => {
-    console.log('🔧 [ORGS TAB] Save button clicked!', { selectedOrganizations, user: user?.id });
-    console.log('🔧 [ORGS TAB] onSave function:', typeof onSave, onSave);
     onSave(selectedOrganizations);
   };
 
@@ -108,11 +106,6 @@ export function UserOrganizationsTab({
           )}
         </div>
         
-        <div className="flex justify-end pt-4">
-          <Button onClick={handleSave} disabled={isLoading} data-testid="save-organizations">
-            {isLoading ? 'Saving...' : 'Save Organization Assignments'}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

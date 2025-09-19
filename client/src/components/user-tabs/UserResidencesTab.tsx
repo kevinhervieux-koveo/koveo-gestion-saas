@@ -242,11 +242,6 @@ export function UserResidencesTab({
           )}
         </div>
         
-        <div className="flex justify-end pt-4">
-          <Button onClick={handleSave} disabled={isLoading} data-testid="save-residences">
-            {isLoading ? 'Saving...' : 'Save Residence Assignments'}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );
