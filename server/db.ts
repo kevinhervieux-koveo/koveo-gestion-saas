@@ -87,11 +87,14 @@ const schema = {
 };
 
 /**
- * Drizzle ORM database instance with table definitions only.
+ * Drizzle ORM database instance with table definitions and query support.
  * Provides type-safe database operations for the Quebec property management system.
  * Uses HTTP connection for better compatibility with serverless environments.
  */
-export const db = drizzle(sql, { schema });
+export const db = drizzle(sql, { 
+  schema,
+  logger: process.env.NODE_ENV === 'development' 
+});
 
 // Database schema initialized
 
