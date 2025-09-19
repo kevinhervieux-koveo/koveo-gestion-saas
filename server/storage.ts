@@ -55,6 +55,14 @@ export interface IStorage {
   // User operations
   getUsers(): Promise<User[]>;
   getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>>;
+  getUsersWithAssignmentsPaginated(
+    offset?: number, 
+    limit?: number, 
+    filters?: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string }
+  ): Promise<{
+    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    total: number;
+  }>;
   getUsersByOrganizations(_userId: string): Promise<User[]>;
   getUser(_id: string): Promise<User | undefined>;
   getUserOrganizations(_userId: string): Promise<Array<{ organizationId: string }>>;

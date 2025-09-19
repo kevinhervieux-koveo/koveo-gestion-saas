@@ -50,7 +50,15 @@ export function registerUserRoutes(app: Express): void {
       const offset = (page - 1) * limit;
 
       // Parse filter parameters
-      const filters = {
+      const filters: {
+        role?: string;
+        status?: string;
+        organization?: string;
+        orphan?: string;
+        search?: string;
+        demoOnly?: string;
+        managerOrganizations?: string;
+      } = {
         role: req.query.role as string,
         status: req.query.status as string,
         organization: req.query.organization as string,
@@ -76,17 +84,32 @@ export function registerUserRoutes(app: Express): void {
       
       console.log(`🔐 [USER FILTER] Current user role: ${currentUser.role}, applying role-based filters...`);
       
-      if (currentUser.role === 'admin' || currentUser.role === 'demo_manager') {
-        // Admin and demo_manager can see all users - no additional filtering
-        console.log('🔓 [ADMIN] No role-based filtering applied - admin/demo_manager can see all users');
-      } else if (['demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see other demo users in their organizations
-        if (!roleBasedFilters.role) {
+      if (currentUser.role === 'admin') {
+        // Only admin can see all users - no additional filtering
+        console.log('🔓 [ADMIN] No role-based filtering applied - admin can see all users');
+      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // All demo users (including demo_manager) can only see other demo users in their organizations
+        // SECURITY: Validate role parameter against whitelist for demo users
+        const allowedDemoRoles = ['demo_manager', 'demo_tenant', 'demo_resident'];
+        
+        if (roleBasedFilters.role) {
+          // If demo user provided a role filter, validate it against whitelist
+          if (!allowedDemoRoles.includes(roleBasedFilters.role)) {
+            // SECURITY: Demo user trying to access non-demo role - block and force demo-only
+            console.log(`🚫 [SECURITY] Demo user ${currentUser.role} attempted to access role "${roleBasedFilters.role}" - blocking and forcing demo-only`);
+            roleBasedFilters.role = undefined; // Remove invalid role filter
+            roleBasedFilters.demoOnly = 'true'; // Force demo-only restriction
+          } else {
+            // Valid demo role requested, but still restrict to demo users only
+            console.log(`✅ [SECURITY] Demo user ${currentUser.role} requesting valid demo role "${roleBasedFilters.role}"`);
+            roleBasedFilters.demoOnly = 'true'; // Ensure demo-only restriction is always applied
+          }
+        } else {
           // If no role filter is applied, restrict to demo roles only
           roleBasedFilters.demoOnly = 'true';
         }
         
-        // Also restrict to users from their organizations (like regular managers)
+        // Also restrict to users from their organizations
         console.log('🎭 [DEMO] Restricting to users from demo user\'s organizations');
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
         console.log(`   → Demo user organizations: [${userOrgIds.join(', ')}]`);
@@ -186,8 +209,8 @@ export function registerUserRoutes(app: Express): void {
       let organizations = [];
       let allowedRoles = [];
       
-      if (currentUser.role === 'admin' || currentUser.role === 'demo_manager') {
-        // Admin and demo_manager can see all organizations and all roles
+      if (currentUser.role === 'admin') {
+        // Only admin can see all organizations and all roles
         const orgsResult = await db
           .select({ id: schema.organizations.id, name: schema.organizations.name })
           .from(schema.organizations)
@@ -195,15 +218,15 @@ export function registerUserRoutes(app: Express): void {
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
         
-        // Admin and demo_manager see all roles
+        // Admin sees all roles
         const rolesResult = await db
           .selectDistinct({ role: schema.users.role })
           .from(schema.users)
           .orderBy(schema.users.role);
         allowedRoles = rolesResult.map(r => r.role).filter(Boolean);
         
-      } else if (['demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see demo organizations and demo roles
+      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // All demo users (including demo_manager) can only see demo organizations and demo roles
         const orgsResult = await db
           .select({ id: schema.organizations.id, name: schema.organizations.name })
           .from(schema.organizations)
@@ -216,7 +239,7 @@ export function registerUserRoutes(app: Express): void {
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
         
-        // Demo users only see demo roles
+        // All demo users only see demo roles
         allowedRoles = ['demo_manager', 'demo_tenant', 'demo_resident'];
         
       } else {
@@ -265,7 +288,7 @@ export function registerUserRoutes(app: Express): void {
         }))
       ];
 
-      const orphanOptions = (currentUser.role === 'admin' || currentUser.role === 'demo_manager') ? [
+      const orphanOptions = (currentUser.role === 'admin') ? [
         { value: '', label: 'All Users' },
         { value: 'true', label: 'Orphan Users' },
         { value: 'false', label: 'Assigned Users' }

@@ -150,6 +150,172 @@ export class OptimizedDatabaseStorage implements IStorage {
     console.log(`[${timestamp}] ${emoji} [STORAGE ${operation.toUpperCase()}] ${level}:`, data);
   }
 
+  /**
+   * SECURITY: Sanitizes and validates filter inputs to prevent SQL injection
+   */
+  private sanitizeFilters(filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string }) {
+    const sanitized: any = {};
+
+    // Validate and sanitize role
+    if (filters.role) {
+      const allowedRoles = ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident', 'null'];
+      if (allowedRoles.includes(filters.role)) {
+        sanitized.role = filters.role;
+      } else {
+        console.log(`🚫 [SECURITY] Invalid role filter rejected: ${filters.role}`);
+      }
+    }
+
+    // Validate and sanitize status
+    if (filters.status) {
+      const allowedStatuses = ['true', 'false', 'null'];
+      if (allowedStatuses.includes(filters.status)) {
+        sanitized.status = filters.status;
+      } else {
+        console.log(`🚫 [SECURITY] Invalid status filter rejected: ${filters.status}`);
+      }
+    }
+
+    // Validate and sanitize organization UUID
+    if (filters.organization) {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(filters.organization.trim())) {
+        sanitized.organization = filters.organization.trim();
+      } else {
+        console.log(`🚫 [SECURITY] Invalid organization UUID rejected: ${filters.organization}`);
+      }
+    }
+
+    // Validate and sanitize orphan filter
+    if (filters.orphan) {
+      const allowedOrphan = ['true', 'false'];
+      if (allowedOrphan.includes(filters.orphan)) {
+        sanitized.orphan = filters.orphan;
+      } else {
+        console.log(`🚫 [SECURITY] Invalid orphan filter rejected: ${filters.orphan}`);
+      }
+    }
+
+    // Validate and sanitize demoOnly
+    if (filters.demoOnly) {
+      const allowedDemoOnly = ['true', 'false'];
+      if (allowedDemoOnly.includes(filters.demoOnly)) {
+        sanitized.demoOnly = filters.demoOnly;
+      } else {
+        console.log(`🚫 [SECURITY] Invalid demoOnly filter rejected: ${filters.demoOnly}`);
+      }
+    }
+
+    // Validate and sanitize manager organizations (comma-separated UUIDs)
+    if (filters.managerOrganizations) {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const orgIds = filters.managerOrganizations.split(',').map(id => id.trim()).filter(id => uuidRegex.test(id));
+      if (orgIds.length > 0) {
+        sanitized.managerOrganizations = orgIds;
+      } else {
+        console.log(`🚫 [SECURITY] Invalid manager organization UUIDs rejected: ${filters.managerOrganizations}`);
+      }
+    }
+
+    // Validate and sanitize search (basic XSS prevention)
+    if (filters.search) {
+      const searchTerm = filters.search.trim();
+      // Remove potentially dangerous characters but allow basic search characters
+      const sanitizedSearch = searchTerm
+        .replace(/[<>'"&%]/g, '') // Remove XSS-prone characters
+        .replace(/[;]/g, '') // Remove SQL statement terminators
+        .substring(0, 100); // Limit length
+      if (sanitizedSearch.length > 0) {
+        sanitized.search = sanitizedSearch.toLowerCase();
+      } else {
+        console.log(`🚫 [SECURITY] Invalid or dangerous search term rejected: ${filters.search}`);
+      }
+    }
+
+    return sanitized;
+  }
+
+  /**
+   * SECURITY: Builds secure WHERE clause conditions for the main query
+   */
+  private buildSecureWhereClause(filters: any): any {
+    const conditions = [];
+
+    // Always default to active users unless explicitly filtered
+    if (!filters.status) {
+      conditions.push(sql`u.is_active = true`);
+    } else if (filters.status === 'null') {
+      conditions.push(sql`u.is_active IS NULL`);
+    } else {
+      const isActive = filters.status === 'true';
+      conditions.push(sql`u.is_active = ${isActive}`);
+    }
+
+    // Role filter with parameterized conditions
+    if (filters.role && filters.role !== 'null') {
+      conditions.push(sql`u.role = ${filters.role}`);
+    } else if (filters.role === 'null') {
+      conditions.push(sql`u.role IS NULL`);
+    }
+
+    // Demo-only filter
+    if (filters.demoOnly === 'true') {
+      conditions.push(sql`u.role IN ('demo_manager', 'demo_tenant', 'demo_resident')`);
+    }
+
+    // Search filter with parameterized LIKE
+    if (filters.search) {
+      const searchPattern = `%${filters.search}%`;
+      conditions.push(sql`(
+        LOWER(u.first_name || ' ' || u.last_name) LIKE ${searchPattern} OR 
+        LOWER(u.email) LIKE ${searchPattern} OR 
+        LOWER(u.username) LIKE ${searchPattern}
+      )`);
+    }
+
+    // Manager organizations filter
+    if (filters.managerOrganizations && filters.managerOrganizations.length > 0) {
+      const orgIds = filters.managerOrganizations;
+      conditions.push(sql`EXISTS (
+        SELECT 1 FROM user_organizations uo_mgr 
+        WHERE uo_mgr.user_id = u.id 
+        AND uo_mgr.organization_id = ANY(${orgIds})
+        AND uo_mgr.is_active = true
+      )`);
+    }
+
+    // Organization filter
+    if (filters.organization) {
+      conditions.push(sql`EXISTS (
+        SELECT 1 FROM user_organizations uo_filter 
+        WHERE uo_filter.user_id = u.id 
+        AND uo_filter.organization_id = ${filters.organization}
+        AND uo_filter.is_active = true
+      )`);
+    }
+
+    // Orphan filter
+    if (filters.orphan === 'true' && !filters.organization) {
+      conditions.push(sql`NOT EXISTS (
+        SELECT 1 FROM user_organizations uo_orphan 
+        WHERE uo_orphan.user_id = u.id AND uo_orphan.is_active = true
+      ) AND NOT EXISTS (
+        SELECT 1 FROM user_residences ur_orphan 
+        WHERE ur_orphan.user_id = u.id AND ur_orphan.is_active = true
+      )`);
+    } else if (filters.orphan === 'false' && !filters.organization) {
+      conditions.push(sql`(EXISTS (
+        SELECT 1 FROM user_organizations uo_assigned 
+        WHERE uo_assigned.user_id = u.id AND uo_assigned.is_active = true
+      ) OR EXISTS (
+        SELECT 1 FROM user_residences ur_assigned 
+        WHERE ur_assigned.user_id = u.id AND ur_assigned.is_active = true
+      ))`);
+    }
+
+    return conditions.length > 0 ? sql.join(conditions, sql` AND `) : sql`1=1`;
+  }
+
   // User operations with optimization
 
   /**
@@ -292,7 +458,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves paginated active users with their assignments (organizations, buildings, residences).
-   * OPTIMIZED: Uses single query with JOINs, aggregation, and LIMIT/OFFSET for pagination.
+   * SECURITY HARDENED: Uses parameterized queries and input validation to prevent SQL injection.
    */
   async getUsersWithAssignmentsPaginated(
     offset: number = 0, 
@@ -304,119 +470,133 @@ export class OptimizedDatabaseStorage implements IStorage {
   }> {
     return this.withOptimizations(
       'getUsersWithAssignmentsPaginated',
-      `paginated_users_${offset}_${limit}_${JSON.stringify(filters)}_v4`,
+      `paginated_users_${offset}_${limit}_${JSON.stringify(filters)}_secure_v1`,
       'users',
       async () => {
         try {
           console.log('🔍 [DB FILTER] Input filters:', JSON.stringify(filters, null, 2));
           
-          // Build WHERE conditions for filtering
-          let whereConditions = [];
-          let countWhereConditions = [];
+          // SECURITY: Input validation and sanitization
+          const sanitizedFilters = this.sanitizeFilters(filters);
+          console.log('🛡️ [SECURITY] Sanitized filters:', JSON.stringify(sanitizedFilters, null, 2));
           
-          if (filters.role) {
-            if (filters.role === 'null') {
-              whereConditions.push('u.role IS NULL');
-              countWhereConditions.push('role IS NULL');
-            } else {
-              whereConditions.push(`u.role = '${filters.role}'`);
-              countWhereConditions.push(`role = '${filters.role}'`);
-            }
-          }
+          // Build base conditions using Drizzle query builders (secure)
+          const baseConditions = [];
           
-          if (filters.status) {
-            if (filters.status === 'null') {
-              whereConditions.push('u.is_active IS NULL');
-              countWhereConditions.push('is_active IS NULL');
-            } else {
-              const isActive = filters.status === 'true';
-              whereConditions.push(`u.is_active = ${isActive}`);
-              countWhereConditions.push(`is_active = ${isActive}`);
-            }
+          // Always default to active users unless explicitly filtered
+          if (!sanitizedFilters.status) {
+            baseConditions.push(eq(schema.users.isActive, true));
+          } else if (sanitizedFilters.status === 'null') {
+            baseConditions.push(isNull(schema.users.isActive));
           } else {
-            // Default: only show active users if no status filter is applied
-            whereConditions.push('u.is_active = true');
-            countWhereConditions.push('is_active = true');
+            const isActive = sanitizedFilters.status === 'true';
+            baseConditions.push(eq(schema.users.isActive, isActive));
+          }
+
+          // Role filter with security validation
+          if (sanitizedFilters.role && sanitizedFilters.role !== 'null') {
+            baseConditions.push(eq(schema.users.role, sanitizedFilters.role));
+          } else if (sanitizedFilters.role === 'null') {
+            baseConditions.push(isNull(schema.users.role));
           }
 
           // Demo-only filter for demo users
-          if (filters.demoOnly === 'true') {
-            whereConditions.push("(u.role IN ('demo_manager', 'demo_tenant', 'demo_resident'))");
-            countWhereConditions.push("(role IN ('demo_manager', 'demo_tenant', 'demo_resident'))");
+          if (sanitizedFilters.demoOnly === 'true') {
+            baseConditions.push(inArray(schema.users.role, ['demo_manager', 'demo_tenant', 'demo_resident']));
           }
 
-          // Search filter for name/email
-          if (filters.search && filters.search.trim()) {
-            const searchTerm = filters.search.trim().toLowerCase();
-            whereConditions.push(`(
-              LOWER(u.first_name || ' ' || u.last_name) LIKE '%${searchTerm}%' OR 
-              LOWER(u.email) LIKE '%${searchTerm}%' OR 
-              LOWER(u.username) LIKE '%${searchTerm}%'
-            )`);
-            countWhereConditions.push(`(
-              LOWER(first_name || ' ' || last_name) LIKE '%${searchTerm}%' OR 
-              LOWER(email) LIKE '%${searchTerm}%' OR 
-              LOWER(username) LIKE '%${searchTerm}%'
-            )`);
-            console.log('🔍 [SEARCH FILTER] Applied search for:', searchTerm);
+          // Search filter using parameterized queries (secure)
+          if (sanitizedFilters.search) {
+            const searchPattern = `%${sanitizedFilters.search}%`;
+            baseConditions.push(
+              or(
+                like(sql`LOWER(${schema.users.firstName} || ' ' || ${schema.users.lastName})`, searchPattern),
+                like(sql`LOWER(${schema.users.email})`, searchPattern),
+                like(sql`LOWER(${schema.users.username})`, searchPattern)
+              )
+            );
           }
 
-          // Manager organizations filter - only show users from specific organizations
-          if (filters.managerOrganizations && filters.managerOrganizations.trim()) {
-            const orgIds = filters.managerOrganizations.split(',').map(id => `'${id.trim()}'`).join(',');
-            whereConditions.push(`EXISTS (
-              SELECT 1 FROM user_organizations uo_mgr 
-              WHERE uo_mgr.user_id = u.id 
-              AND uo_mgr.organization_id IN (${orgIds})
-              AND uo_mgr.is_active = true
-            )`);
-            countWhereConditions.push(`EXISTS (
-              SELECT 1 FROM user_organizations uo_mgr 
-              WHERE uo_mgr.user_id = users.id 
-              AND uo_mgr.organization_id IN (${orgIds})
-              AND uo_mgr.is_active = true
-            )`);
-            console.log('👔 [MANAGER FILTER] Applied organization filter for:', orgIds);
+          // Get total count first using secure Drizzle query
+          let countQuery = db
+            .select({ count: count() })
+            .from(schema.users);
+
+          if (baseConditions.length > 0) {
+            countQuery = countQuery.where(and(...baseConditions));
           }
 
-          // First get total count for pagination metadata with filters
-          const countQuery = `
-            SELECT COUNT(*) as total 
-            FROM users 
-            WHERE ${countWhereConditions.length > 0 ? countWhereConditions.join(' AND ') : '1=1'}
-            ${filters.organization && filters.organization.trim() ? `AND EXISTS (
-              SELECT 1 FROM user_organizations uo_filter 
-              WHERE uo_filter.user_id = users.id 
-              AND uo_filter.organization_id = '${filters.organization.trim()}'
-              AND uo_filter.is_active = true
-            )` : ''}
-            ${!filters.organization && filters.orphan === 'true' ? `AND NOT EXISTS (
-              SELECT 1 FROM user_organizations uo_count_orphan 
-              WHERE uo_count_orphan.user_id = users.id AND uo_count_orphan.is_active = true
-            ) AND NOT EXISTS (
-              SELECT 1 FROM user_residences ur_count_orphan 
-              WHERE ur_count_orphan.user_id = users.id AND ur_count_orphan.is_active = true
-            )` : ''}
-            ${!filters.organization && filters.orphan === 'false' ? `AND (EXISTS (
-              SELECT 1 FROM user_organizations uo_count_assigned 
-              WHERE uo_count_assigned.user_id = users.id AND uo_count_assigned.is_active = true
-            ) OR EXISTS (
-              SELECT 1 FROM user_residences ur_count_assigned 
-              WHERE ur_count_assigned.user_id = users.id AND ur_count_assigned.is_active = true
-            ))` : ''}
-            ${filters.search && filters.search.trim() ? `AND (
-              LOWER(first_name || ' ' || last_name) LIKE '%${filters.search.trim().toLowerCase()}%' OR 
-              LOWER(email) LIKE '%${filters.search.trim().toLowerCase()}%' OR 
-              LOWER(username) LIKE '%${filters.search.trim().toLowerCase()}%'
-            )` : ''}
-          `;
-          console.log('📊 [COUNT SQL]:', countQuery);
-          const countResult = await db.execute(sql.raw(countQuery));
-          const total = parseInt(countResult.rows[0]?.total || '0');
+          // Add organization filter to count query if needed
+          if (sanitizedFilters.organization) {
+            countQuery = countQuery.where(
+              exists(
+                db
+                  .select()
+                  .from(schema.userOrganizations)
+                  .where(
+                    and(
+                      eq(schema.userOrganizations.userId, schema.users.id),
+                      eq(schema.userOrganizations.organizationId, sanitizedFilters.organization),
+                      eq(schema.userOrganizations.isActive, true)
+                    )
+                  )
+              )
+            );
+          }
+
+          // Add manager organizations filter to count query if needed
+          if (sanitizedFilters.managerOrganizations) {
+            countQuery = countQuery.where(
+              exists(
+                db
+                  .select()
+                  .from(schema.userOrganizations)
+                  .where(
+                    and(
+                      eq(schema.userOrganizations.userId, schema.users.id),
+                      inArray(schema.userOrganizations.organizationId, sanitizedFilters.managerOrganizations),
+                      eq(schema.userOrganizations.isActive, true)
+                    )
+                  )
+              )
+            );
+          }
+
+          // Add orphan filter to count query if needed
+          if (sanitizedFilters.orphan === 'true' && !sanitizedFilters.organization) {
+            countQuery = countQuery.where(
+              and(
+                sql`NOT EXISTS (
+                  SELECT 1 FROM user_organizations uo 
+                  WHERE uo.user_id = ${schema.users.id} AND uo.is_active = true
+                )`,
+                sql`NOT EXISTS (
+                  SELECT 1 FROM user_residences ur 
+                  WHERE ur.user_id = ${schema.users.id} AND ur.is_active = true
+                )`
+              )
+            );
+          } else if (sanitizedFilters.orphan === 'false' && !sanitizedFilters.organization) {
+            countQuery = countQuery.where(
+              or(
+                sql`EXISTS (
+                  SELECT 1 FROM user_organizations uo 
+                  WHERE uo.user_id = ${schema.users.id} AND uo.is_active = true
+                )`,
+                sql`EXISTS (
+                  SELECT 1 FROM user_residences ur 
+                  WHERE ur.user_id = ${schema.users.id} AND ur.is_active = true
+                )`
+              )
+            );
+          }
+
+          const countResult = await countQuery;
+          const total = countResult[0]?.count || 0;
           console.log('📊 [COUNT RESULT]:', total);
 
-          // Single optimized query using CTEs and aggregation with pagination and filters
-          const mainQuery = `
+          // Main query using secure parameterized CTE approach
+          const mainQuery = sql`
             WITH user_orgs AS (
               SELECT 
                 uo.user_id,
@@ -486,52 +666,13 @@ export class OptimizedDatabaseStorage implements IStorage {
             LEFT JOIN user_orgs uo ON u.id = uo.user_id
             LEFT JOIN user_buildings ub ON u.id = ub.user_id
             LEFT JOIN user_residences ur ON u.id = ur.user_id
-            WHERE ${whereConditions.length > 0 ? whereConditions.join(' AND ') : '1=1'}
-            ${filters.organization && filters.organization.trim() ? (() => {
-              console.log('🏢 [ORG FILTER] Applying organization filter:', filters.organization.trim());
-              return `AND EXISTS (
-                SELECT 1 FROM user_organizations uo_filter 
-                WHERE uo_filter.user_id = u.id 
-                AND uo_filter.organization_id = '${filters.organization.trim()}'
-                AND uo_filter.is_active = true
-              )`;
-            })() : (() => {
-              console.log('🏢 [ORG FILTER] No organization filter applied (empty or undefined)');
-              return '';
-            })()
-            }
-            ${!filters.organization && filters.orphan === 'true' ? (() => {
-              console.log('👻 [ORPHAN FILTER] Applying orphan filter: true (users with no assignments)');
-              return `AND NOT EXISTS (
-                SELECT 1 FROM user_organizations uo_filter_orphan 
-                WHERE uo_filter_orphan.user_id = u.id AND uo_filter_orphan.is_active = true
-              ) AND NOT EXISTS (
-                SELECT 1 FROM user_residences ur_filter_orphan 
-                WHERE ur_filter_orphan.user_id = u.id AND ur_filter_orphan.is_active = true
-              )`;
-            })() : !filters.organization && filters.orphan === 'false' ? (() => {
-              console.log('👻 [ORPHAN FILTER] Applying orphan filter: false (users with assignments)');
-              return `AND (EXISTS (
-                SELECT 1 FROM user_organizations uo_filter_assigned 
-                WHERE uo_filter_assigned.user_id = u.id AND uo_filter_assigned.is_active = true
-              ) OR EXISTS (
-                SELECT 1 FROM user_residences ur_filter_assigned 
-                WHERE ur_filter_assigned.user_id = u.id AND ur_filter_assigned.is_active = true
-              ))`;
-            })() : filters.organization && filters.orphan ? (() => {
-              console.log('👻 [ORPHAN FILTER] Ignoring orphan filter - conflicts with organization filter');
-              return '';
-            })() : (() => {
-              console.log('👻 [ORPHAN FILTER] No orphan filter applied (empty or undefined)');
-              return '';
-            })()
-            }
+            WHERE ${this.buildSecureWhereClause(sanitizedFilters)}
             ORDER BY u.created_at DESC
-            LIMIT ${limit} OFFSET ${offset}
+            LIMIT ${sql.raw(limit.toString())} OFFSET ${sql.raw(offset.toString())}
           `;
           
-          console.log('📊 [MAIN SQL]:', mainQuery);
-          const result = await db.execute(sql.raw(mainQuery));
+          console.log('📊 [SECURE MAIN QUERY] Built with parameterized conditions');
+          const result = await db.execute(mainQuery);
           console.log('📊 [MAIN RESULT]:', result.rows.length, 'users found');
 
           // Transform the raw SQL result to match the expected TypeScript types
