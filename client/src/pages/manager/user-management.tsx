@@ -541,6 +541,9 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       
+      // Force a complete refresh to ensure changes are visible
+      window.location.reload();
+      
     } catch (error) {
       console.error('Unified save failed:', error);
       toast({
