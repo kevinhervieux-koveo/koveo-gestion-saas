@@ -1445,18 +1445,18 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return { startingBalance: baselineStartingBalance, monthlyNetFlows };
   };
 
-  // Calculate monthly payment for urgent scenario - Fixed value based on specific capital investments
+  // Calculate monthly payment for urgent scenario - $0 since urgent capital only injects when balance goes below $0
   const calculateUrgentMonthlyPayment = (): number => {
-    // Two specific payments: 3500 + 600 = 4100
-    // Monthly payment: 4100 / 12 = 341.66
-    return 341.66;
+    // Urgent capital mode only injects when balance would go below $0 (emergency injection)
+    // No regular monthly payments are needed
+    return 0;
   };
 
-  // Calculate monthly payment for suggested scenario - Fixed value based on specific capital investments
+  // Calculate monthly payment for suggested scenario - Based on specific capital investments
   const calculateSuggestedMonthlyPayment = (): number => {
-    // Two specific payments: 3500 + 600 = 4100
-    // Monthly payment: 4100 / 12 = 341.66
-    return 341.66;
+    // Two specific payments: 1500 + 1700 = 3200
+    // Monthly payment: 3200 / 12 = 266.67
+    return 266.67;
   };
 
   // Auto-generate investments when forecast data changes (with proper deduplication)
