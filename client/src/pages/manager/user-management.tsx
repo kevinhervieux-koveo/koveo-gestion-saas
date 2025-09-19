@@ -1379,14 +1379,7 @@ export default function UserManagement() {
                     organizations={organizations}
                     currentUser={currentUser}
                     currentUserOrganizations={currentUserAccess.organizationIds}
-                    onSave={(organizationIds) => {
-                      if (editingUser) {
-                        editOrganizationsMutation.mutate({
-                          userId: editingUser.id,
-                          organizationIds
-                        });
-                      }
-                    }}
+                    onSave={() => {}} // No individual save - only unified save button
                     onSelectionChange={setSelectedOrganizationIds}
                     isLoading={editOrganizationsMutation.isPending}
                   />
@@ -1401,14 +1394,7 @@ export default function UserManagement() {
                   currentUser={currentUser}
                   currentUserBuildingIds={currentUserAccess.buildingIds}
                   selectedOrganizationIds={selectedOrganizationIds}
-                  onSave={(buildingIds) => {
-                    if (editingUser) {
-                      editBuildingsMutation.mutate({
-                        userId: editingUser.id,
-                        buildingIds
-                      });
-                    }
-                  }}
+                  onSave={() => {}} // No individual save - only unified save button
                   onSelectionChange={setSelectedBuildingIds}
                   isLoading={editBuildingsMutation.isPending}
                 />
@@ -1424,14 +1410,7 @@ export default function UserManagement() {
                     currentUser={currentUser}
                     currentUserResidenceIds={currentUserAccess.residenceIds}
                     selectedBuildingIds={selectedBuildingIds}
-                    onSave={(residenceAssignments) => {
-                      if (editingUser) {
-                        editResidencesMutation.mutate({
-                          userId: editingUser.id,
-                          residenceAssignments
-                        });
-                      }
-                    }}
+                    onSave={() => {}} // No individual save - only unified save button
                     onSelectionChange={setSelectedResidenceAssignments}
                     isLoading={editResidencesMutation.isPending}
                   />
