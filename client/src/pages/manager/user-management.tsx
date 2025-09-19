@@ -288,7 +288,7 @@ export default function UserManagement() {
   }, [currentUser, userOrganizationContext]);
 
   // Dynamic edit user schema based on available roles
-  const editUserSchema = useMemo(() => createEditUserSchema(getAvailableRoles), [getAvailableRoles]);
+  const editUserSchema = useMemo(() => createEditUserSchema(getAvailableRoles()), [getAvailableRoles]);
 
   // Bulk action handler
   const bulkActionMutation = useMutation({
@@ -1218,7 +1218,7 @@ export default function UserManagement() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {getAvailableRoles?.map((role) => (
+                              {getAvailableRoles()?.map((role) => (
                                 <SelectItem key={role.value} value={role.value}>
                                   {role.label}
                                 </SelectItem>
