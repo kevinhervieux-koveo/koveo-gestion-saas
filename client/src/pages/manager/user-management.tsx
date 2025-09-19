@@ -649,16 +649,20 @@ export default function UserManagement() {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      console.log('✅ [editOrganizationsMutation] Organization assignments saved, starting cache invalidation...');
+      
+      // CRITICAL: Same comprehensive cache invalidation as unified save
+      await queryClient.removeQueries({ queryKey: ['/api/users'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+      
+      console.log('🔄 [editOrganizationsMutation] Cache invalidation completed, table should refresh now');
+      
       toast({
         title: t('success'),
         description: t('organizationAssignmentsUpdated'),
       });
-      
-      // Invalidate cache to refresh the table after individual save
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-organizations'] });
       
       if (editingUserOrganizations) {
         setEditingUserOrganizations(null);
@@ -687,15 +691,20 @@ export default function UserManagement() {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      console.log('✅ [editBuildingsMutation] Building assignments saved, starting cache invalidation...');
+      
+      // CRITICAL: Same comprehensive cache invalidation as unified save
+      await queryClient.removeQueries({ queryKey: ['/api/users'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+      
+      console.log('🔄 [editBuildingsMutation] Cache invalidation completed, table should refresh now');
+      
       toast({
         title: t('success'),
         description: t('buildingAssignmentsUpdated'),
       });
-      
-      // Invalidate cache to refresh the table after individual save
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
     onError: (error: Error) => {
       toast({
@@ -720,16 +729,20 @@ export default function UserManagement() {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      console.log('✅ [editResidencesMutation] Residence assignments saved, starting cache invalidation...');
+      
+      // CRITICAL: Same comprehensive cache invalidation as unified save
+      await queryClient.removeQueries({ queryKey: ['/api/users'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+      
+      console.log('🔄 [editResidencesMutation] Cache invalidation completed, table should refresh now');
+      
       toast({
         title: t('success'),
         description: t('residenceAssignmentsUpdated'),
       });
-      
-      // Invalidate cache to refresh the table after individual save
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-residences'] });
       
       if (editingUserResidences) {
         setEditingUserResidences(null);
