@@ -496,7 +496,31 @@ export default function UserManagement() {
     if (!editingUser) {
       return;
     }
-    await editUserMutation.mutateAsync({ ...values, id: editingUser.id });
+    
+    try {
+      await editUserMutation.mutateAsync({ ...values, id: editingUser.id });
+      
+      console.log('✅ [handleEditUser] User basic info saved, starting cache invalidation...');
+      
+      // CRITICAL: Same cache invalidation as unified save
+      await queryClient.removeQueries({ queryKey: ['/api/users'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+      
+      console.log('🔄 [handleEditUser] Cache invalidation completed, table should refresh now');
+      
+      toast({
+        title: "Success",
+        description: "User information updated successfully"
+      });
+    } catch (error) {
+      console.error('❌ [handleEditUser] Error saving user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update user information",
+        variant: "destructive"
+      });
+    }
   };
 
   // Unified save function that saves all user data at once
