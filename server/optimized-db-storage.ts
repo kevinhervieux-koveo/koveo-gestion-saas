@@ -368,18 +368,21 @@ export class OptimizedDatabaseStorage implements IStorage {
                 ur.user_id,
                 COALESCE(
                   json_agg(
-                    DISTINCT json_build_object(
-                      'id', b.id,
-                      'name', b.name
+                    json_build_object(
+                      'id', buildings_distinct.id,
+                      'name', buildings_distinct.name
                     )
                   ),
                   '[]'::json
                 ) as buildings
-              FROM user_residences ur
-              INNER JOIN residences r ON ur.residence_id = r.id
-              INNER JOIN buildings b ON r.building_id = b.id
-              WHERE ur.is_active = true AND r.is_active = true AND b.is_active = true
-              GROUP BY ur.user_id
+              FROM (
+                SELECT DISTINCT ur.user_id, b.id, b.name
+                FROM user_residences ur
+                INNER JOIN residences r ON ur.residence_id = r.id
+                INNER JOIN buildings b ON r.building_id = b.id
+                WHERE ur.is_active = true AND r.is_active = true AND b.is_active = true
+              ) buildings_distinct
+              GROUP BY buildings_distinct.user_id
             ),
             user_residences AS (
               SELECT 
@@ -616,18 +619,21 @@ export class OptimizedDatabaseStorage implements IStorage {
                 ur.user_id,
                 COALESCE(
                   json_agg(
-                    DISTINCT json_build_object(
-                      'id', b.id,
-                      'name', b.name
+                    json_build_object(
+                      'id', buildings_distinct.id,
+                      'name', buildings_distinct.name
                     )
                   ),
                   '[]'::json
                 ) as buildings
-              FROM user_residences ur
-              INNER JOIN residences r ON ur.residence_id = r.id
-              INNER JOIN buildings b ON r.building_id = b.id
-              WHERE ur.is_active = true AND r.is_active = true AND b.is_active = true
-              GROUP BY ur.user_id
+              FROM (
+                SELECT DISTINCT ur.user_id, b.id, b.name
+                FROM user_residences ur
+                INNER JOIN residences r ON ur.residence_id = r.id
+                INNER JOIN buildings b ON r.building_id = b.id
+                WHERE ur.is_active = true AND r.is_active = true AND b.is_active = true
+              ) buildings_distinct
+              GROUP BY buildings_distinct.user_id
             ),
             user_residences AS (
               SELECT 
