@@ -626,19 +626,15 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: () => {
-      // Show success message for individual tab saves
       toast({
         title: t('success'),
         description: t('organizationAssignmentsUpdated'),
       });
       
-      // Always invalidate cache for individual saves to refresh the table
-      console.log('🔄 [Organizations Save] Invalidating cache after successful save');
-      queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.removeQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-organizations'] });
+      // Invalidate cache to refresh the table after individual save
       queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-organizations'] });
       
       if (editingUserOrganizations) {
         setEditingUserOrganizations(null);
@@ -668,16 +664,12 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: () => {
-      // Show success message for individual tab saves
       toast({
         title: t('success'),
         description: t('buildingAssignmentsUpdated'),
       });
       
-      // Always invalidate cache for individual saves to refresh the table
-      console.log('🔄 [Buildings Save] Invalidating cache after successful save');
-      queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.removeQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      // Invalidate cache to refresh the table after individual save
       queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
@@ -705,19 +697,15 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: () => {
-      // Show success message for individual tab saves
       toast({
         title: t('success'),
         description: t('residenceAssignmentsUpdated'),
       });
       
-      // Always invalidate cache for individual saves to refresh the table
-      console.log('🔄 [Residences Save] Invalidating cache after successful save');
-      queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.removeQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-residences'] });
+      // Invalidate cache to refresh the table after individual save
       queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-residences'] });
       
       if (editingUserResidences) {
         setEditingUserResidences(null);
@@ -1464,32 +1452,9 @@ export default function UserManagement() {
               <Button
                 type="button"
                 onClick={(e) => {
-                  console.log('🖱️ [Button Click] Save Changes button clicked!', {
-                    target: e.target,
-                    currentTarget: e.currentTarget,
-                    timestamp: new Date().toISOString()
-                  });
-                  console.log('🔍 [Button State] Button states:', {
-                    editUserPending: editUserMutation.isPending,
-                    editOrgsPending: editOrganizationsMutation.isPending,
-                    editBuildingsPending: editBuildingsMutation.isPending,
-                    editResidencesPending: editResidencesMutation.isPending,
-                    isDisabled: editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending,
-                    editingUser: !!editingUser
-                  });
-                  
-                  // Force prevent any default behavior
                   e.preventDefault();
                   e.stopPropagation();
-                  
-                  // Force the function call
-                  try {
-                    console.log('🚀 [Attempting] About to call handleUnifiedSave...');
-                    handleUnifiedSave();
-                    console.log('✅ [Success] handleUnifiedSave called successfully');
-                  } catch (error) {
-                    console.error('❌ [Button Click] Error calling handleUnifiedSave:', error);
-                  }
+                  handleUnifiedSave();
                 }}
                 disabled={editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending}
                 data-testid='button-save-all'
