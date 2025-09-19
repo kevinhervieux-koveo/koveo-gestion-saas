@@ -675,7 +675,7 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
             <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'>
               {filteredBuildings.map((building) => (
                 <BuildingCard
-                  key={building.id}
+                  key={`buildings-page-${building.id}`}
                   building={building}
                   userRole={user?.role}
                   onEdit={handleEditBuilding}
