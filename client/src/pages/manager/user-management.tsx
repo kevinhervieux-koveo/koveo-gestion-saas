@@ -507,6 +507,14 @@ export default function UserManagement() {
       return;
     }
 
+    console.log('🎯 [Unified Save] Current selections:', {
+      organizationIds: selectedOrganizationIds,
+      buildingIds: selectedBuildingIds,
+      residenceAssignments: selectedResidenceAssignments,
+      canEditOrganizations,
+      canEditResidences
+    });
+
     try {
       // Get form values for basic info
       const formValues = editForm.getValues();
@@ -536,6 +544,8 @@ export default function UserManagement() {
         });
       }
 
+      console.log('✅ [Unified Save] All mutations completed successfully');
+
       // Show success message
       toast({
         title: t('success'),
@@ -543,7 +553,10 @@ export default function UserManagement() {
       });
 
       // Allow database to achieve consistency after multiple mutations
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('⏳ [Unified Save] Waiting for database consistency...');
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log('🗑️ [Unified Save] Starting comprehensive cache invalidation...');
       
       // Comprehensive cache invalidation to ensure UI updates
       // Remove all cached queries first for immediate effect
@@ -555,11 +568,18 @@ export default function UserManagement() {
       queryClient.removeQueries({ queryKey: ['/api/admin/all-user-organizations'], exact: false });
       queryClient.removeQueries({ queryKey: ['/api/admin/all-user-residences'], exact: false });
       
+      console.log('🔄 [Unified Save] Cache cleared, invalidating queries for refetch...');
+      
+      // Force immediate refetch to update the table
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      
+      console.log('🎉 [Unified Save] Cache invalidation completed');
+      
       // Close dialog after successful save and cache invalidation
       setEditingUser(null);
       
-      // Force immediate refetch to update the table
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      console.log('💾 [Unified Save] Unified save process completed successfully');
       
     } catch (error) {
       console.error('Unified save failed:', error);
@@ -1436,9 +1456,21 @@ export default function UserManagement() {
                 type="button"
                 onClick={(e) => {
                   console.log('🖱️ [Button Click] Save Changes button clicked!', e);
+                  console.log('🔍 [Button State] Button states:', {
+                    editUserPending: editUserMutation.isPending,
+                    editOrgsPending: editOrganizationsMutation.isPending,
+                    editBuildingsPending: editBuildingsMutation.isPending,
+                    editResidencesPending: editResidencesMutation.isPending,
+                    isDisabled: editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending,
+                    editingUser: !!editingUser
+                  });
                   e.preventDefault();
                   e.stopPropagation();
-                  handleUnifiedSave();
+                  try {
+                    handleUnifiedSave();
+                  } catch (error) {
+                    console.error('❌ [Button Click] Error calling handleUnifiedSave:', error);
+                  }
                 }}
                 disabled={editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending}
                 data-testid='button-save-all'
