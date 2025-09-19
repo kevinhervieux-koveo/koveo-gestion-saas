@@ -14,11 +14,9 @@ interface AuthenticatedUser {
 }
 
 // Extend Express Request type to include user property
-declare global {
-  namespace Express {
-    interface Request {
-      user?: AuthenticatedUser;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: AuthenticatedUser;
   }
 }
 
@@ -31,7 +29,7 @@ import budgetRouter from '../../../server/api/budgets';
 
 describe('Budget API Tests', () => {
   let app: express.Application;
-  let agent: request.SuperAgentTest;
+  let agent: any;
 
   beforeEach(() => {
     app = express();

@@ -45,91 +45,91 @@ export const mockDb = {
   // Query interface for table operations
   query: {
     users: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     organizations: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     buildings: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     residences: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     bills: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     budgets: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     monthlyBudgets: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     invitations: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     userOrganizations: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     documents: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     maintenanceRequests: {
-      findFirst: jest.fn().mockResolvedValue(null as any),
-      findMany: jest.fn().mockResolvedValue([] as any[]),
+      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
+      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
   },
   
   // Direct operation methods
-  select: jest.fn().mockReturnValue({
-    from: jest.fn().mockReturnValue({
-      where: jest.fn().mockReturnValue({
-        limit: jest.fn().mockResolvedValue([] as any[]),
-        orderBy: jest.fn().mockReturnValue({
-          limit: jest.fn().mockResolvedValue([] as any[])
+  select: jest.fn<() => any>().mockReturnValue({
+    from: jest.fn<() => any>().mockReturnValue({
+      where: jest.fn<() => any>().mockReturnValue({
+        limit: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
+        orderBy: jest.fn<() => any>().mockReturnValue({
+          limit: jest.fn<() => Promise<any[]>>().mockResolvedValue([])
         })
       }),
-      limit: jest.fn().mockResolvedValue([] as any[]),
-      orderBy: jest.fn().mockReturnValue({
-        limit: jest.fn().mockResolvedValue([] as any[])
+      limit: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
+      orderBy: jest.fn<() => any>().mockReturnValue({
+        limit: jest.fn<() => Promise<any[]>>().mockResolvedValue([])
       })
     })
   }),
   
-  insert: jest.fn().mockReturnValue({
-    values: jest.fn().mockReturnValue({
-      returning: jest.fn().mockResolvedValue([] as any[]),
-      onConflictDoUpdate: jest.fn().mockReturnValue({
-        returning: jest.fn().mockResolvedValue([] as any[])
+  insert: jest.fn<(table: any) => any>().mockReturnValue({
+    values: jest.fn<(values: any) => any>().mockReturnValue({
+      returning: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
+      onConflictDoUpdate: jest.fn<() => any>().mockReturnValue({
+        returning: jest.fn<() => Promise<any[]>>().mockResolvedValue([])
       })
     }),
-    returning: jest.fn().mockResolvedValue([] as any[])
+    returning: jest.fn<() => Promise<any[]>>().mockResolvedValue([])
   }),
   
-  update: jest.fn().mockReturnValue({
-    set: jest.fn().mockReturnValue({
-      where: jest.fn().mockReturnValue({
-        returning: jest.fn().mockResolvedValue([] as any[])
+  update: jest.fn<() => any>().mockReturnValue({
+    set: jest.fn<() => any>().mockReturnValue({
+      where: jest.fn<() => any>().mockReturnValue({
+        returning: jest.fn<() => Promise<any[]>>().mockResolvedValue([])
       })
     })
   }),
   
-  delete: jest.fn().mockReturnValue({
-    where: jest.fn().mockResolvedValue([] as any[])
+  delete: jest.fn<() => any>().mockReturnValue({
+    where: jest.fn<() => Promise<any[]>>().mockResolvedValue([])
   }),
 
   // Transaction support
-  transaction: jest.fn().mockImplementation(async (callback: any) => {
+  transaction: jest.fn<(callback: any) => Promise<any>>().mockImplementation(async (callback: any) => {
     return await callback(mockDb);
   })
 };

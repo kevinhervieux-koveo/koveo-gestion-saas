@@ -11,11 +11,21 @@ import { mockDb, testUtils, mockSchema } from '../../mocks/unified-database-mock
 // Using unified database mock for consistency
 
 // Mock request for API testing (simplified for unit testing)
+interface MockResponse {
+  status: number;
+  body: any;
+}
+
+interface MockRequestChain {
+  set: (header: string, value: string) => MockRequestChain;
+  expect: (status: number) => Promise<MockResponse>;
+}
+
 const mockRequest = {
-  post: jest.fn(),
-  get: jest.fn(),
-  put: jest.fn(),
-  delete: jest.fn()
+  post: jest.fn<(url: string) => MockRequestChain>(),
+  get: jest.fn<(url: string) => MockRequestChain>(),
+  put: jest.fn<(url: string) => MockRequestChain>(),
+  delete: jest.fn<(url: string) => MockRequestChain>()
 };
 
 describe('Invitation Management API', () => {
@@ -345,7 +355,6 @@ describe('Invitation Management API', () => {
         invitedByUserId: adminUser.id,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       }).returning() as any;
-    managerUser = manager;
 
       const response = await mockRequest
         .get('/api/invitations/pending')
