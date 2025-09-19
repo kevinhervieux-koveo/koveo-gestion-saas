@@ -569,6 +569,7 @@ export default function UserManagement() {
         title: t('success'),
         description: t('buildingAssignmentsUpdated'),
       });
+      setEditingUserBuildings(null);
       // Invalidate all user queries regardless of filters
       queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });

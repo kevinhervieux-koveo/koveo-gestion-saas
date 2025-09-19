@@ -56,6 +56,8 @@ export function UserOrganizationsTab({
   };
 
   const handleSave = () => {
+    console.log('🔧 [ORGS TAB] Save button clicked!', { selectedOrganizations, user: user?.id });
+    console.log('🔧 [ORGS TAB] onSave function:', typeof onSave, onSave);
     onSave(selectedOrganizations);
   };
 

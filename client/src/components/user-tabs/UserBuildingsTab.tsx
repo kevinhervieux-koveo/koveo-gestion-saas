@@ -62,6 +62,8 @@ export function UserBuildingsTab({
   };
 
   const handleSave = () => {
+    console.log('🔧 [BUILDINGS TAB] Save button clicked!', { selectedBuildings, user: user?.id });
+    console.log('🔧 [BUILDINGS TAB] onSave function:', typeof onSave, onSave);
     onSave(selectedBuildings);
   };
 
