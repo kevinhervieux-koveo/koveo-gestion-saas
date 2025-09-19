@@ -3,32 +3,8 @@
  * Comprehensive test setup with MSW, polyfills, and optimized mocking
  */
 
-// Verify database mocks are properly loaded
-try {
-  const path = require('path');
-  const mockPath = path.resolve(__dirname, '__mocks__/enhanced-database-mock.js');
-  const enhancedMock = require(mockPath);
-  
-  console.log('✅ Enhanced mock verification:');
-  console.log('  - Mock path:', mockPath);
-  console.log('  - mockDb available:', !!enhancedMock.mockDb);
-  console.log('  - testUtils available:', !!enhancedMock.testUtils);
-  console.log('  - pg-core functions available:', !!(enhancedMock.pgTable && enhancedMock.text && enhancedMock.varchar));
-  
-  if (!enhancedMock.mockDb) {
-    console.warn('⚠️  mockDb not found in enhanced mock, continuing with module mapping approach');
-  } else {
-    // Test basic mock functionality
-    if (typeof enhancedMock.mockDb.query !== 'function') {
-      throw new Error('CRITICAL: mockDb.query is not a function');
-    }
-    console.log('✅ Database mocks verified successfully');
-  }
-} catch (error) {
-  console.error('❌ Mock verification failed:', error.message);
-  console.log('⚠️  Continuing with module mapping approach for database mocks');
-  // Don't throw during import to prevent test environment failures
-}
+// Database mocks are now handled entirely through Jest's moduleNameMapper
+// No direct require needed - Jest will handle module resolution automatically
 
 import '@testing-library/jest-dom';
 import { afterEach, beforeAll, afterAll } from '@jest/globals';

@@ -20,7 +20,7 @@ const config = {
     '^drizzle-orm$': '<rootDir>/__mocks__/drizzle-orm/index.js',
     '^drizzle-zod(?:\\.js)?$': '<rootDir>/__mocks__/enhanced-database-mock.js',
     
-    // Server module mocks to prevent real imports
+    // Server module mocks to prevent real imports - relative paths
     '^../server/db$': '<rootDir>/__mocks__/server/db.ts',
     '^../server/storage$': '<rootDir>/__mocks__/server/storage.ts',
     '^../../server/db$': '<rootDir>/__mocks__/server/db.ts', 
@@ -31,6 +31,25 @@ const config = {
     '^../../../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
     '^../../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
     '^../server/auth$': '<rootDir>/__mocks__/server/auth.ts',
+    
+    // Server module mocks to prevent real imports - absolute paths
+    '^server/auth(?:/index\\.ts)?$': '<rootDir>/__mocks__/server/auth.ts',
+    '^server/db(?:/index\\.ts)?$': '<rootDir>/__mocks__/server/db.ts',
+    '^server/storage(?:/index\\.ts)?$': '<rootDir>/__mocks__/server/storage.ts',
+    '^server/routes(?:/index\\.ts)?$': '<rootDir>/__mocks__/server/routes.ts',
+    
+    // Critical: Server internal imports (from within server directory) 
+    // These patterns catch imports within server files themselves
+    '^\\./db(?:\\.ts)?$': '<rootDir>/__mocks__/server/db.ts',
+    '^\\./storage(?:\\.ts)?$': '<rootDir>/__mocks__/server/storage.ts',
+    '^\\./auth(?:\\.ts)?$': '<rootDir>/__mocks__/server/auth.ts',
+    '^\\./routes(?:\\.ts)?$': '<rootDir>/__mocks__/server/routes.ts',
+    
+    // Server subdirectory imports (from server/api/, server/services/, etc.)
+    '^\\.\\./db(?:\\.ts)?$': '<rootDir>/__mocks__/server/db.ts',
+    '^\\.\\./storage(?:\\.ts)?$': '<rootDir>/__mocks__/server/storage.ts',
+    '^\\.\\./auth(?:\\.ts)?$': '<rootDir>/__mocks__/server/auth.ts',
+    '^\\.\\./routes(?:\\.ts)?$': '<rootDir>/__mocks__/server/routes.ts',
     
     // Schema mocks to prevent drizzle-orm imports - robust directory-agnostic pattern
     '^(.*/)?shared/schema(?:\\.(ts|js))?$': '<rootDir>/__mocks__/shared/schema.ts',

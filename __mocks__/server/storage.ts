@@ -1,13 +1,96 @@
 /**
  * Mock for server/storage.ts - Provides test-ready storage implementation
- * Uses MemStorage automatically for all tests
+ * Uses MemStorage automatically for all tests - SELF-CONTAINED MOCK
  */
 
-import { MemStorage } from '../../server/storage';
+// Mock IStorage interface
+export interface IStorage {
+  users: Map<string, any>;
+  organizations: Map<string, any>;
+  buildings: Map<string, any>;
+  residences: Map<string, any>;
+  pillars: Map<string, any>;
+  workspaceStatuses: Map<string, any>;
+  qualityMetrics: Map<string, any>;
+  frameworkConfigs: Map<string, any>;
+  improvementSuggestions: Map<string, any>;
+  features: Map<string, any>;
+  actionableItems: Map<string, any>;
+  invitations: Map<string, any>;
+  invitationAuditLogs: Map<string, any>;
+  bugs: Map<string, any>;
+  featureRequests: Map<string, any>;
+  featureRequestUpvotes: Map<string, any>;
+  invoices: Map<string, any>;
+  
+  // Common storage methods
+  clear(): void;
+  get(collection: string, id: string): any;
+  set(collection: string, id: string, data: any): void;
+  delete(collection: string, id: string): void;
+  list(collection: string): any[];
+}
 
-// Export the MemStorage class for tests - this ensures in-memory storage during tests
-export { MemStorage } from '../../server/storage';
-export { IStorage } from '../../server/storage';
+// Mock MemStorage class - completely self-contained
+export class MemStorage implements IStorage {
+  users = new Map<string, any>();
+  organizations = new Map<string, any>();
+  buildings = new Map<string, any>();
+  residences = new Map<string, any>();
+  pillars = new Map<string, any>();
+  workspaceStatuses = new Map<string, any>();
+  qualityMetrics = new Map<string, any>();
+  frameworkConfigs = new Map<string, any>();
+  improvementSuggestions = new Map<string, any>();
+  features = new Map<string, any>();
+  actionableItems = new Map<string, any>();
+  invitations = new Map<string, any>();
+  invitationAuditLogs = new Map<string, any>();
+  bugs = new Map<string, any>();
+  featureRequests = new Map<string, any>();
+  featureRequestUpvotes = new Map<string, any>();
+  invoices = new Map<string, any>();
+
+  clear(): void {
+    this.users.clear();
+    this.organizations.clear();
+    this.buildings.clear();
+    this.residences.clear();
+    this.pillars.clear();
+    this.workspaceStatuses.clear();
+    this.qualityMetrics.clear();
+    this.frameworkConfigs.clear();
+    this.improvementSuggestions.clear();
+    this.features.clear();
+    this.actionableItems.clear();
+    this.invitations.clear();
+    this.invitationAuditLogs.clear();
+    this.bugs.clear();
+    this.featureRequests.clear();
+    this.featureRequestUpvotes.clear();
+    this.invoices.clear();
+  }
+
+  get(collection: string, id: string): any {
+    const map = (this as any)[collection];
+    return map ? map.get(id) : undefined;
+  }
+
+  set(collection: string, id: string, data: any): void {
+    const map = (this as any)[collection];
+    if (map) map.set(id, data);
+  }
+
+  delete(collection: string, id: string): void {
+    const map = (this as any)[collection];
+    if (map) map.delete(id);
+  }
+
+  list(collection: string): any[] {
+    const map = (this as any)[collection];
+    return map ? Array.from(map.values()) : [];
+  }
+}
 
 // Create a default mock storage instance
 const mockStorage = new MemStorage();
@@ -19,22 +102,5 @@ export default mockStorage;
 // Additional storage utilities for tests
 export const createTestStorage = () => new MemStorage();
 export const clearTestStorage = (storage: MemStorage) => {
-  // Clear all internal maps in MemStorage for clean test state
-  (storage as any).users.clear();
-  (storage as any).organizations.clear();
-  (storage as any).buildings.clear();
-  (storage as any).residences.clear();
-  (storage as any).pillars.clear();
-  (storage as any).workspaceStatuses.clear();
-  (storage as any).qualityMetrics.clear();
-  (storage as any).frameworkConfigs.clear();
-  (storage as any).improvementSuggestions.clear();
-  (storage as any).features.clear();
-  (storage as any).actionableItems.clear();
-  (storage as any).invitations.clear();
-  (storage as any).invitationAuditLogs.clear();
-  (storage as any).bugs.clear();
-  (storage as any).featureRequests.clear();
-  (storage as any).featureRequestUpvotes.clear();
-  (storage as any).invoices.clear();
+  storage.clear();
 };
