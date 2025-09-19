@@ -201,9 +201,21 @@ export default function UserManagement() {
   const userOrganizationContext = useMemo(() => {
     if (!currentUser || !organizations || !users) return null;
 
-    // Get current user's organization assignments
+    // Get current user's organization assignments - if not in current page, we'll skip for admin
     const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
-    if (!currentUserWithAssignments?.organizations) return null;
+    if (!currentUserWithAssignments?.organizations) {
+      // For admin users, we don't need organization context to assign roles
+      if (currentUser.role === 'admin') {
+        return {
+          isDemoUser: false,
+          hasDemoOrganizations: false,
+          hasRegularOrganizations: true,
+          userOrganizations: [],
+          organizationTypes: []
+        };
+      }
+      return null;
+    }
 
     const userOrganizations = currentUserWithAssignments.organizations;
     const isDemoUser = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role);
@@ -227,13 +239,17 @@ export default function UserManagement() {
 
   // Role filtering function
   const getAvailableRoles = useMemo(() => {
-    if (!currentUser || !userOrganizationContext) return [];
+    if (!currentUser) {
+      console.log('🔍 [ROLE DEBUG] No current user');
+      return [];
+    }
 
     const { role } = currentUser;
-    const { isDemoUser, hasDemoOrganizations, hasRegularOrganizations } = userOrganizationContext;
+    console.log('🔍 [ROLE DEBUG] Current user role:', role);
 
-    // Admin can assign any role
+    // Admin can assign any role regardless of organization context
     if (role === 'admin') {
+      console.log('🔍 [ROLE DEBUG] Admin detected, returning all roles');
       return [
         { value: 'admin', label: 'Admin' },
         { value: 'manager', label: 'Manager' },
@@ -244,6 +260,20 @@ export default function UserManagement() {
         { value: 'demo_resident', label: 'Demo Resident' },
       ];
     }
+
+    // For non-admin users, we need organization context
+    if (!userOrganizationContext) {
+      console.log('🔍 [ROLE DEBUG] Missing userOrganizationContext for non-admin user:', { 
+        hasCurrentUser: !!currentUser, 
+        hasUserOrganizationContext: !!userOrganizationContext,
+        currentUserRole: role,
+        organizationsLength: organizations?.length,
+        usersLength: users?.length,
+      });
+      return [];
+    }
+
+    const { isDemoUser, hasDemoOrganizations, hasRegularOrganizations } = userOrganizationContext;
 
     // Manager role assignment restrictions
     if (role === 'manager') {
