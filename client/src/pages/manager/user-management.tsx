@@ -537,14 +537,20 @@ export default function UserManagement() {
         description: 'All user information and assignments saved successfully',
       });
 
-      // Since buildings and residences are derived from complex joins (organizations → buildings, residences),
-      // we can't easily patch the cache with the correct derived data. 
-      // Instead, invalidate immediately to trigger a fresh fetch that includes all the updated relationships
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], refetchType: 'active' });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], refetchType: 'active' });
+      // Comprehensive cache invalidation to ensure UI updates
+      // Invalidate all user-related queries with exact: false to catch all variations
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['/api/organizations'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['/api/buildings'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['/api/residences'], exact: false });
       
-      // Force an immediate refetch to ensure changes are visible right away
-      await queryClient.refetchQueries({ queryKey: ['/api/users'], type: 'active' });
+      // Force immediate refetch of the current user query to update the table
+      await queryClient.refetchQueries({ 
+        queryKey: ['/api/users'], 
+        exact: false,
+        type: 'active'
+      });
       
     } catch (error) {
       console.error('Unified save failed:', error);
@@ -1160,20 +1166,7 @@ export default function UserManagement() {
                       {t('users')} ({filteredTotal} of {totalUsers} {t('users').toLowerCase()})
                     </h3>
 
-                    {/* User Table - Completely Rebuilt */}
-                    {(() => {
-                      console.log('🔍 [USER-MANAGEMENT] Rendering UserAssignmentsTable', {
-                        currentUsersLength: currentUsers?.length,
-                        currentUsers: currentUsers?.map(u => ({
-                          id: u.id,
-                          name: `${u.firstName} ${u.lastName}`,
-                          buildingsCount: u.buildings?.length || 0,
-                          buildings: u.buildings?.map(b => ({ id: b.id, name: b.name }))
-                        })),
-                        timestamp: new Date().toISOString()
-                      });
-                      return null;
-                    })()}
+                    {/* User Table */}
                     <UserAssignmentsTable 
                       users={currentUsers} 
                       isLoading={usersLoading}
@@ -1375,19 +1368,6 @@ export default function UserManagement() {
               )}
 
               <TabsContent value='buildings' className='space-y-4'>
-                {(() => {
-                  console.log('🏗️ [USER-MANAGEMENT] Rendering UserBuildingsTab', {
-                    editingUser: editingUser ? {
-                      id: editingUser.id,
-                      name: `${editingUser.firstName} ${editingUser.lastName}`
-                    } : null,
-                    buildingsCount: buildings?.length,
-                    buildings: buildings?.map(b => ({ id: b.id, name: b.name })),
-                    selectedOrganizationIds,
-                    timestamp: new Date().toISOString()
-                  });
-                  return null;
-                })()}
                 <UserBuildingsTab 
                   user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                   buildings={buildings}
@@ -1530,7 +1510,7 @@ export default function UserManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        {t('confirmEmailLabel')}:{' '}
+                        {t('confirmEmail') || 'Confirm Email'}:{' '}
                         <span className='font-mono text-sm'>{deletingUser?.email}</span>
                       </FormLabel>
                       <FormControl>
