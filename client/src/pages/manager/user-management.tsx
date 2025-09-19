@@ -1455,7 +1455,11 @@ export default function UserManagement() {
               <Button
                 type="button"
                 onClick={(e) => {
-                  console.log('🖱️ [Button Click] Save Changes button clicked!', e);
+                  console.log('🖱️ [Button Click] Save Changes button clicked!', {
+                    target: e.target,
+                    currentTarget: e.currentTarget,
+                    timestamp: new Date().toISOString()
+                  });
                   console.log('🔍 [Button State] Button states:', {
                     editUserPending: editUserMutation.isPending,
                     editOrgsPending: editOrganizationsMutation.isPending,
@@ -1464,10 +1468,16 @@ export default function UserManagement() {
                     isDisabled: editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending,
                     editingUser: !!editingUser
                   });
+                  
+                  // Force prevent any default behavior
                   e.preventDefault();
                   e.stopPropagation();
+                  
+                  // Force the function call
                   try {
+                    console.log('🚀 [Attempting] About to call handleUnifiedSave...');
                     handleUnifiedSave();
+                    console.log('✅ [Success] handleUnifiedSave called successfully');
                   } catch (error) {
                     console.error('❌ [Button Click] Error calling handleUnifiedSave:', error);
                   }
