@@ -1066,8 +1066,9 @@ export function registerUserRoutes(app: Express): void {
 
   /**
    * PUT /api/users/:id/organizations - Updates user's organization assignments.
+   * SECURITY FIX: Implements proper scope validation for managers
    * Admin: can assign/remove any organization
-   * Manager: cannot modify organization assignments.
+   * Manager: can only assign/remove organizations within their scope, preserves out-of-scope assignments
    */
   app.put('/api/users/:id/organizations', requireAuth, async (req: any, res) => {
     try {
@@ -1082,10 +1083,10 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Only admins can modify organization assignments
-      if (currentUser.role !== 'admin') {
+      // Only admins and managers can modify organization assignments
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
         return res.status(403).json({
-          message: 'Only administrators can modify organization assignments',
+          message: 'Only administrators and managers can modify organization assignments',
           code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
@@ -1106,19 +1107,114 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Remove existing organization assignments
-      await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, userId));
+      // SECURITY FIX: For managers, validate they can modify this user and validate scope
+      if (['manager', 'demo_manager'].includes(currentUser.role)) {
+        // Get current user's accessible organizations
+        const currentUserOrgs = await storage.getUserOrganizations(currentUser.id);
+        const currentUserOrgIds = currentUserOrgs.map(org => org.organizationId);
+        
+        if (currentUserOrgIds.length === 0) {
+          return res.status(403).json({
+            message: 'Manager has no organization access',
+            code: 'NO_ORGANIZATION_ACCESS',
+          });
+        }
 
-      // Add new organization assignments
-      if (organizationIds.length > 0) {
-        const newAssignments = organizationIds.map((orgId: string) => ({
-          userId,
-          organizationId: orgId,
-          organizationRole: user.role,
-          isActive: true,
-        }));
+        // SECURITY FIX: Validate manager can modify this user - target user must have overlap with manager's organizations
+        const targetUserOrgs = await storage.getUserOrganizations(userId);
+        const targetUserOrgIds = targetUserOrgs.map(org => org.organizationId);
+        
+        const hasOverlap = targetUserOrgIds.some(orgId => currentUserOrgIds.includes(orgId));
+        
+        if (!hasOverlap && targetUserOrgIds.length > 0) {
+          console.warn(`🚨 [SECURITY] Manager ${currentUser.id} attempted to modify user ${userId} with no organizational overlap`);
+          return res.status(403).json({
+            message: 'Cannot modify users outside your organization scope',
+            code: 'USER_SCOPE_VIOLATION',
+          });
+        }
 
-        await db.insert(schema.userOrganizations).values(newAssignments);
+        // SECURITY FIX: Validate new assignments are within manager's scope
+        if (organizationIds.length > 0) {
+          const invalidOrgIds = organizationIds.filter((orgId: string) => 
+            !currentUserOrgIds.includes(orgId)
+          );
+          
+          if (invalidOrgIds.length > 0) {
+            console.warn(`🚨 [SECURITY] Manager ${currentUser.id} attempted to assign out-of-scope organizations:`, invalidOrgIds);
+            return res.status(403).json({
+              message: 'Cannot assign organizations outside your scope',
+              code: 'ORGANIZATION_SCOPE_VIOLATION',
+              invalidOrganizations: invalidOrgIds,
+            });
+          }
+        }
+
+        // SECURITY FIX: Scoped deletion - only delete assignments within manager's scope, preserve out-of-scope assignments
+        console.log(`🔐 [SECURITY] Manager ${currentUser.id} updating user ${userId} organizations - using scoped deletion`);
+        
+        // Get current user's organization assignments to understand what can be modified
+        const currentAssignments = await db
+          .select()
+          .from(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.userId, userId));
+
+        // Separate assignments into in-scope and out-of-scope
+        const inScopeAssignments = currentAssignments.filter(assignment => 
+          currentUserOrgIds.includes(assignment.organizationId)
+        );
+        const outOfScopeAssignments = currentAssignments.filter(assignment => 
+          !currentUserOrgIds.includes(assignment.organizationId)
+        );
+
+        console.log(`🔍 [SECURITY] User ${userId} has ${inScopeAssignments.length} in-scope and ${outOfScopeAssignments.length} out-of-scope assignments`);
+
+        // Delete only in-scope assignments - preserve out-of-scope assignments
+        if (inScopeAssignments.length > 0) {
+          const inScopeOrgIds = inScopeAssignments.map(assignment => assignment.organizationId);
+          await db
+            .delete(schema.userOrganizations)
+            .where(
+              and(
+                eq(schema.userOrganizations.userId, userId),
+                inArray(schema.userOrganizations.organizationId, inScopeOrgIds)
+              )
+            );
+          console.log(`🗑️ [SECURITY] Deleted ${inScopeAssignments.length} in-scope assignments, preserved ${outOfScopeAssignments.length} out-of-scope assignments`);
+        }
+
+        // Add new organization assignments (only in-scope ones - already validated above)
+        if (organizationIds.length > 0) {
+          const newAssignments = organizationIds.map((orgId: string) => ({
+            userId,
+            organizationId: orgId,
+            organizationRole: user.role,
+            isActive: true,
+          }));
+
+          await db.insert(schema.userOrganizations).values(newAssignments);
+          console.log(`➕ [SECURITY] Added ${newAssignments.length} new in-scope assignments for user ${userId}`);
+        }
+
+        console.log(`✅ [SECURITY] Manager ${currentUser.id} successfully updated user ${userId} organizations within scope`);
+      } else {
+        // Admin can modify any assignments - original behavior preserved
+        console.log(`🔓 [ADMIN] Admin ${currentUser.id} updating user ${userId} organizations - full access`);
+        
+        // Remove all existing organization assignments (admin has full access)
+        await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, userId));
+
+        // Add new organization assignments
+        if (organizationIds.length > 0) {
+          const newAssignments = organizationIds.map((orgId: string) => ({
+            userId,
+            organizationId: orgId,
+            organizationRole: user.role,
+            isActive: true,
+          }));
+
+          await db.insert(schema.userOrganizations).values(newAssignments);
+        }
       }
 
       res.json({
@@ -2696,7 +2792,7 @@ export function registerUserRoutes(app: Express): void {
           userId: newUser.id,
           residenceId: invitation.residenceId,
           relationshipType: invitation.role === 'tenant' ? 'tenant' : 'occupant',
-          startDate: new Date(),
+          startDate: new Date().toISOString().split('T')[0], // Convert Date to YYYY-MM-DD string format
           isActive: true,
         });
         console.log('✅ User assigned to residence:', {
