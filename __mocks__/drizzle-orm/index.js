@@ -56,6 +56,41 @@ const relations = jest.fn().mockImplementation((table, relationCallback) => ({
   relations: relationCallback || {}
 }));
 
+// Ordering functions
+const desc = jest.fn().mockImplementation((column) => ({
+  type: 'desc', column
+}));
+
+const asc = jest.fn().mockImplementation((column) => ({
+  type: 'asc', column
+}));
+
+// Aggregation functions
+const sum = jest.fn().mockImplementation((column) => ({
+  type: 'sum', column
+}));
+
+const count = jest.fn().mockImplementation((column) => ({
+  type: 'count', column
+}));
+
+const avg = jest.fn().mockImplementation((column) => ({
+  type: 'avg', column
+}));
+
+const max = jest.fn().mockImplementation((column) => ({
+  type: 'max', column
+}));
+
+const min = jest.fn().mockImplementation((column) => ({
+  type: 'min', column
+}));
+
+// Additional functions the budget API uses
+const ne = jest.fn().mockImplementation((column, value) => ({
+  type: 'ne', column, value
+}));
+
 module.exports = {
   // Basic operators
   eq,
@@ -66,6 +101,7 @@ module.exports = {
   lte,
   gt,
   lt,
+  ne,
   
   // Null checks
   isNull,
@@ -88,6 +124,17 @@ module.exports = {
   // Subquery operators
   exists,
   notExists,
+  
+  // Ordering functions
+  desc,
+  asc,
+  
+  // Aggregation functions
+  sum,
+  count,
+  avg,
+  max,
+  min,
   
   // Relations
   relations

@@ -23,30 +23,63 @@ const createChainableColumn = (type, name, options = {}) => {
     sqlName: name
   };
   
-  // Comprehensive list of all drizzle column methods that need to be chainable
-  const chainableMethods = [
-    'primaryKey', 'notNull', 'unique', 'default', 'references', 
-    'onDelete', 'onUpdate', 'array', '$default', '$type',
-    // Additional constraint methods
-    'check', 'foreignKey', 'index'
-  ];
+  // Create chainable methods as direct functions (not jest.fn())
+  column.primaryKey = function(...args) {
+    const newOptions = { ...options, primaryKey: true, primaryKeyArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
   
-  // Create each chainable method that returns a new column instance
-  chainableMethods.forEach(method => {
-    column[method] = jest.fn((...args) => {
-      // Create a new column instance with the applied method
-      const newOptions = { ...options, [method]: true };
-      if (args.length > 0) {
-        newOptions[`${method}Args`] = args;
-      }
-      const newColumn = createChainableColumn(type, name, newOptions);
-      return newColumn;
-    });
-  });
+  column.notNull = function(...args) {
+    const newOptions = { ...options, notNull: true, notNullArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.unique = function(...args) {
+    const newOptions = { ...options, unique: true, uniqueArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.default = function(...args) {
+    const newOptions = { ...options, default: true, defaultArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.defaultNow = function(...args) {
+    const newOptions = { ...options, defaultNow: true, defaultNowArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.references = function(...args) {
+    const newOptions = { ...options, references: true, referencesArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.onDelete = function(...args) {
+    const newOptions = { ...options, onDelete: true, onDeleteArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.onUpdate = function(...args) {
+    const newOptions = { ...options, onUpdate: true, onUpdateArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.array = function(...args) {
+    const newOptions = { ...options, array: true, arrayArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
   
   // Add special methods that may have different behavior
-  column.$inferSelect = jest.fn(() => ({}));
-  column.$inferInsert = jest.fn(() => ({}));
+  column.$inferSelect = () => ({});
+  column.$inferInsert = () => ({});
+  column.$default = function(...args) {
+    const newOptions = { ...options, $default: true, $defaultArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  column.$type = function(...args) {
+    const newOptions = { ...options, $type: true, $typeArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
   
   return column;
 };

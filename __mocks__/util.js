@@ -49,6 +49,21 @@ class MockTextDecoder {
   }
 }
 
+// Mock inherits function for legacy compatibility
+const mockInherits = (constructor, superConstructor) => {
+  if (superConstructor) {
+    constructor.super_ = superConstructor;
+    constructor.prototype = Object.create(superConstructor.prototype, {
+      constructor: {
+        value: constructor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  }
+};
+
 module.exports = {
   promisify: mockPromisify,
   inspect: mockInspect,
@@ -58,6 +73,7 @@ module.exports = {
   deprecate: (fn) => fn,
   debuglog: () => () => {},
   isDeepStrictEqual: () => true,
+  inherits: mockInherits,
   callbackify: (fn) => {
     return (...args) => {
       const callback = args.pop();

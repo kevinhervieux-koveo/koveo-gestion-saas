@@ -53,20 +53,33 @@ export const mockDb = {
       findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     buildings: {
-      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
-      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
+      findFirst: jest.fn<() => Promise<any>>().mockImplementation(() => {
+        return Promise.resolve(mockBudgetData.buildings[0] || null);
+      }),
+      findMany: jest.fn<() => Promise<any[]>>().mockImplementation(() => {
+        return Promise.resolve(mockBudgetData.buildings);
+      }),
     },
     residences: {
       findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
       findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
     },
     bills: {
-      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
-      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
+      findFirst: jest.fn<() => Promise<any>>().mockImplementation(() => {
+        const allBills = [...mockBudgetData.recurrentBills, ...mockBudgetData.uniqueBills];
+        return Promise.resolve(allBills[0] || null);
+      }),
+      findMany: jest.fn<() => Promise<any[]>>().mockImplementation(() => {
+        return Promise.resolve([...mockBudgetData.recurrentBills, ...mockBudgetData.uniqueBills]);
+      }),
     },
     budgets: {
-      findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
-      findMany: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
+      findFirst: jest.fn<() => Promise<any>>().mockImplementation(() => {
+        return Promise.resolve(mockBudgetData.budgets[0] || null);
+      }),
+      findMany: jest.fn<() => Promise<any[]>>().mockImplementation(() => {
+        return Promise.resolve(mockBudgetData.budgets);
+      }),
     },
     monthlyBudgets: {
       findFirst: jest.fn<() => Promise<any>>().mockResolvedValue(null),
@@ -90,21 +103,77 @@ export const mockDb = {
     },
   },
   
-  // Direct operation methods
-  select: jest.fn<() => any>().mockReturnValue({
-    from: jest.fn<() => any>().mockReturnValue({
-      where: jest.fn<() => any>().mockReturnValue({
-        limit: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
+  // Direct operation methods  
+  select: jest.fn<() => any>().mockImplementation(() => ({
+    from: jest.fn<() => any>().mockImplementation((table: any) => {
+      const tableName = table?._?.name || table?.name || 'unknown';
+      
+      return {
+        where: jest.fn<() => any>().mockImplementation((condition: any) => ({
+          limit: jest.fn<() => Promise<any[]>>().mockImplementation((limitCount: number = 1) => {
+            // Return appropriate mock data based on table
+            if (tableName === 'buildings') {
+              return Promise.resolve(mockBudgetData.buildings.slice(0, limitCount));
+            }
+            if (tableName === 'budgets') {
+              return Promise.resolve(mockBudgetData.budgets.slice(0, limitCount));
+            }
+            if (tableName === 'bills') {
+              // Check if looking for recurrent or unique bills based on condition
+              if (condition && condition.column && condition.column.name === 'isRecurrent' && condition.value === true) {
+                return Promise.resolve(mockBudgetData.recurrentBills.slice(0, limitCount));
+              }
+              if (condition && condition.column && condition.column.name === 'isRecurrent' && condition.value === false) {
+                return Promise.resolve(mockBudgetData.uniqueBills.slice(0, limitCount));
+              }
+              return Promise.resolve([...mockBudgetData.recurrentBills, ...mockBudgetData.uniqueBills].slice(0, limitCount));
+            }
+            return Promise.resolve([]);
+          }),
+          orderBy: jest.fn<() => any>().mockReturnValue({
+            limit: jest.fn<() => Promise<any[]>>().mockImplementation((limitCount: number = 1) => {
+              if (tableName === 'buildings') {
+                return Promise.resolve(mockBudgetData.buildings.slice(0, limitCount));
+              }
+              if (tableName === 'budgets') {
+                return Promise.resolve(mockBudgetData.budgets.slice(0, limitCount));
+              }
+              if (tableName === 'bills') {
+                return Promise.resolve([...mockBudgetData.recurrentBills, ...mockBudgetData.uniqueBills].slice(0, limitCount));
+              }
+              return Promise.resolve([]);
+            })
+          })
+        })),
+        limit: jest.fn<() => Promise<any[]>>().mockImplementation((limitCount: number = 1) => {
+          if (tableName === 'buildings') {
+            return Promise.resolve(mockBudgetData.buildings.slice(0, limitCount));
+          }
+          if (tableName === 'budgets') {
+            return Promise.resolve(mockBudgetData.budgets.slice(0, limitCount));
+          }
+          if (tableName === 'bills') {
+            return Promise.resolve([...mockBudgetData.recurrentBills, ...mockBudgetData.uniqueBills].slice(0, limitCount));
+          }
+          return Promise.resolve([]);
+        }),
         orderBy: jest.fn<() => any>().mockReturnValue({
-          limit: jest.fn<() => Promise<any[]>>().mockResolvedValue([])
+          limit: jest.fn<() => Promise<any[]>>().mockImplementation((limitCount: number = 1) => {
+            if (tableName === 'buildings') {
+              return Promise.resolve(mockBudgetData.buildings.slice(0, limitCount));
+            }
+            if (tableName === 'budgets') {
+              return Promise.resolve(mockBudgetData.budgets.slice(0, limitCount));
+            }
+            if (tableName === 'bills') {
+              return Promise.resolve([...mockBudgetData.recurrentBills, ...mockBudgetData.uniqueBills].slice(0, limitCount));
+            }
+            return Promise.resolve([]);
+          })
         })
-      }),
-      limit: jest.fn<() => Promise<any[]>>().mockResolvedValue([]),
-      orderBy: jest.fn<() => any>().mockReturnValue({
-        limit: jest.fn<() => Promise<any[]>>().mockResolvedValue([])
-      })
+      };
     })
-  }),
+  })),
   
   insert: jest.fn<(table: any) => any>().mockReturnValue({
     values: jest.fn<(values: any) => any>().mockReturnValue({
@@ -238,6 +307,127 @@ export const mockSchema = {
     organizationId: { name: 'organizationId' },
     createdAt: { name: 'createdAt' }
   }
+};
+
+// Mock data store for budget API tests
+const mockBudgetData = {
+  // Test buildings with proper financial configuration
+  buildings: [
+    {
+      id: 'test-building-id',
+      name: 'Test Building',
+      organizationId: 'test-org-id',
+      address: '123 Test St',
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H1A 1A1',
+      bankAccountStartAmount: '100000',
+      bankAccountMinimums: '10000',
+      generalInflationRate: '2.0',
+      revenueInflationRate: '2.0',
+      createdAt: new Date('2024-01-01'),
+    },
+    {
+      id: 'negative-balance-building',
+      name: 'Negative Balance Test Building',
+      organizationId: 'test-org-id',
+      address: '456 Test Ave',
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H1B 1B1',
+      bankAccountStartAmount: '50000',
+      bankAccountMinimums: '100000',
+      generalInflationRate: '5.0',
+      revenueInflationRate: '1.0',
+      createdAt: new Date('2024-01-01'),
+    }
+  ],
+  
+  // Test budgets with income and spending data
+  budgets: [
+    {
+      id: 'budget-1',
+      buildingId: 'test-building-id',
+      year: 2024,
+      incomeTypes: ['monthly_fees'],
+      incomes: ['50000'],
+      spendingTypes: ['maintenance'],
+      spendings: ['30000'],
+      totalBudget: '20000',
+      createdAt: new Date('2024-01-01'),
+    },
+    {
+      id: 'budget-2',
+      buildingId: 'test-building-id',
+      year: 2025,
+      incomeTypes: ['monthly_fees'],
+      incomes: ['60000'],
+      spendingTypes: ['utilities'],
+      spendings: ['20000'],
+      totalBudget: '40000',
+      createdAt: new Date('2024-01-01'),
+    },
+    {
+      id: 'budget-negative',
+      buildingId: 'negative-balance-building',
+      year: 2025,
+      incomeTypes: ['monthly_fees'],
+      incomes: ['60000'],
+      spendingTypes: ['maintenance'],
+      spendings: ['80000'],
+      totalBudget: '-20000',
+      createdAt: new Date('2024-01-01'),
+    }
+  ],
+  
+  // Test recurrent bills
+  recurrentBills: [
+    {
+      id: 'bill-1',
+      buildingId: 'negative-balance-building',
+      category: 'maintenance',
+      costs: ['80000'],
+      schedulePayment: 'monthly',
+      startDate: new Date('2025-01-01'),
+      endDate: null,
+    },
+    {
+      id: 'yearly-bill',
+      buildingId: 'test-building-id',
+      category: 'insurance',
+      costs: ['12000'],
+      schedulePayment: 'yearly',
+      startDate: new Date('2025-01-01'),
+      endDate: null,
+    },
+    {
+      id: 'quarterly-bill',
+      buildingId: 'test-building-id',
+      category: 'maintenance',
+      costs: ['9000'],
+      schedulePayment: 'quarterly',
+      startDate: new Date('2025-01-01'),
+      endDate: null,
+    }
+  ],
+  
+  // Test unique bills (one-time expenses)
+  uniqueBills: [
+    {
+      id: 'unique-1',
+      buildingId: 'test-building-id',
+      startDate: new Date('2025-01-01'),
+      totalAmount: '500000',
+      category: 'special_assessment',
+    },
+    {
+      id: 'unique-2',
+      buildingId: 'test-building-id',
+      startDate: new Date('2026-01-01'),
+      totalAmount: '750000',
+      category: 'major_renovation',
+    }
+  ]
 };
 
 // Test utilities for managing mock state
