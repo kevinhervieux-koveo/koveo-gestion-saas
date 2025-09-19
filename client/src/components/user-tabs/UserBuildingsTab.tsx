@@ -138,8 +138,18 @@ export function UserBuildingsTab({
                   <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:rotate-[-90deg]" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 ml-4 mt-2">
-                  {group.buildings.map((building) => (
-                    <div key={`buildings-tab-${building.id}`} className="flex items-center space-x-2 p-2 border rounded">
+                  {group.buildings.map((building) => {
+                    const generatedKey = `buildings-tab-${building.id}`;
+                    console.log('🏗️ [UserBuildingsTab] Generating building key', {
+                      buildingId: building.id,
+                      buildingName: building.name,
+                      generatedKey,
+                      groupOrg: group.organization?.name,
+                      timestamp: new Date().toISOString()
+                    });
+                    
+                    return (
+                      <div key={generatedKey} className="flex items-center space-x-2 p-2 border rounded">
                       <Checkbox
                         id={`building-${building.id}`}
                         checked={selectedBuildings.includes(building.id)}
@@ -157,7 +167,8 @@ export function UserBuildingsTab({
                         <p className="text-xs text-muted-foreground">{building.totalUnits} units</p>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </CollapsibleContent>
               </Collapsible>
             ))

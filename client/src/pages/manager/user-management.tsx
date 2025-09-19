@@ -1161,6 +1161,19 @@ export default function UserManagement() {
                     </h3>
 
                     {/* User Table - Completely Rebuilt */}
+                    {(() => {
+                      console.log('🔍 [USER-MANAGEMENT] Rendering UserAssignmentsTable', {
+                        currentUsersLength: currentUsers?.length,
+                        currentUsers: currentUsers?.map(u => ({
+                          id: u.id,
+                          name: `${u.firstName} ${u.lastName}`,
+                          buildingsCount: u.buildings?.length || 0,
+                          buildings: u.buildings?.map(b => ({ id: b.id, name: b.name }))
+                        })),
+                        timestamp: new Date().toISOString()
+                      });
+                      return null;
+                    })()}
                     <UserAssignmentsTable 
                       users={currentUsers} 
                       isLoading={usersLoading}
@@ -1362,6 +1375,19 @@ export default function UserManagement() {
               )}
 
               <TabsContent value='buildings' className='space-y-4'>
+                {(() => {
+                  console.log('🏗️ [USER-MANAGEMENT] Rendering UserBuildingsTab', {
+                    editingUser: editingUser ? {
+                      id: editingUser.id,
+                      name: `${editingUser.firstName} ${editingUser.lastName}`
+                    } : null,
+                    buildingsCount: buildings?.length,
+                    buildings: buildings?.map(b => ({ id: b.id, name: b.name })),
+                    selectedOrganizationIds,
+                    timestamp: new Date().toISOString()
+                  });
+                  return null;
+                })()}
                 <UserBuildingsTab 
                   user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                   buildings={buildings}

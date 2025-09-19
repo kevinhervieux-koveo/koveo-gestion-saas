@@ -24,6 +24,19 @@ export function UserAssignmentsTable({
   canEditResidences = false,
   canDeleteUsers = false
 }: UserAssignmentsTableProps) {
+  
+  // Debug: Track component rendering and users data
+  console.log('🏢 [UserAssignmentsTable] Component rendering', {
+    usersCount: users?.length,
+    isLoading,
+    timestamp: new Date().toISOString(),
+    users: users?.map(u => ({
+      id: u.id,
+      name: `${u.firstName} ${u.lastName}`,
+      buildingsCount: u.buildings?.length || 0,
+      buildings: u.buildings?.map(b => ({ id: b.id, name: b.name }))
+    }))
+  });
 
   if (isLoading) {
     return (
@@ -134,15 +147,27 @@ export function UserAssignmentsTable({
               <td className="border border-gray-300 px-4 py-2" data-testid={`buildings-${user.id}`}>
                 <div className="space-y-1">
                   {Array.isArray(user.buildings) && user.buildings.length > 0 ? (
-                    user.buildings.slice(0, 3).map((building, idx) => (
-                      <div
-                        key={`table-${user.id}-${building.id}-${idx}`}
-                        className="text-xs bg-purple-50 px-2 py-1 rounded"
-                        data-testid={`building-${user.id}-${idx}`}
-                      >
-                        {building.name}
-                      </div>
-                    ))
+                    user.buildings.slice(0, 3).map((building, idx) => {
+                      const generatedKey = `table-${user.id}-${building.id}-${idx}`;
+                      console.log('🔑 [UserAssignmentsTable] Generating building key', {
+                        userId: user.id,
+                        buildingId: building.id,
+                        idx,
+                        generatedKey,
+                        buildingName: building.name,
+                        timestamp: new Date().toISOString()
+                      });
+                      
+                      return (
+                        <div
+                          key={generatedKey}
+                          className="text-xs bg-purple-50 px-2 py-1 rounded"
+                          data-testid={`building-${user.id}-${idx}`}
+                        >
+                          {building.name}
+                        </div>
+                      );
+                    })
                   ) : (
                     <div className="text-gray-400 text-xs" data-testid={`no-buildings-${user.id}`}>
                       No buildings
