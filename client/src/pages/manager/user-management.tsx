@@ -630,13 +630,12 @@ export default function UserManagement() {
     },
     onSuccess: () => {
       // Note: Toast and cache invalidation are handled by unified save when called from there
-      // Only show toast for individual saves
-      if (editingUserBuildings) {
+      // Only show toast for individual saves (buildings don't have their own editing state)
+      if (!editingUser) {
         toast({
           title: t('success'),
           description: t('buildingAssignmentsUpdated'),
         });
-        setEditingUserBuildings(null);
         // Only invalidate for individual saves, not unified save
         queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
         queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
