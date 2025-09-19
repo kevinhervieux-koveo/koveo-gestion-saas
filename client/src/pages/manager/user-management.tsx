@@ -332,14 +332,17 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('userUpdatedSuccess'),
-      });
-      setEditingUser(null);
-      // Invalidate all user queries regardless of filters
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      // Only show toast and close dialog for individual saves
+      // Cache invalidation is handled by unified save
+      if (!editingUser) {
+        toast({
+          title: t('success'),
+          description: t('userUpdatedSuccess'),
+        });
+        setEditingUser(null);
+        queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
+        queryClient.removeQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -538,16 +541,16 @@ export default function UserManagement() {
       });
 
       // Comprehensive cache invalidation to ensure UI updates
-      // Invalidate all user-related queries with exact: false to catch all variations
-      await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/organizations'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/buildings'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/residences'], exact: false });
+      // Clear all user-related cache entries to force fresh data
+      queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/organizations'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/buildings'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/residences'], exact: false });
       
-      // Force immediate refetch of the current user query to update the table
+      // Force immediate refetch of all user queries to update the table
       await queryClient.refetchQueries({ 
-        queryKey: ['/api/users'], 
+        queryKey: ['/api/users'],
         exact: false,
         type: 'active'
       });
