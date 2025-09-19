@@ -1,0 +1,314 @@
+/**
+ * Unified Database Mock for Koveo Gestion Test Suite
+ * Provides centralized mock implementation for all database operations
+ * Used by unit tests to prevent real database connections
+ */
+
+import { jest } from '@jest/globals';
+
+// Mock drizzle-orm operators
+export const eq = jest.fn().mockImplementation((column, value) => ({
+  type: 'eq', 
+  column, 
+  value
+}));
+
+export const and = jest.fn().mockImplementation((...conditions) => ({
+  type: 'and', 
+  conditions
+}));
+
+export const or = jest.fn().mockImplementation((...conditions) => ({
+  type: 'or', 
+  conditions
+}));
+
+export const sql = jest.fn().mockImplementation((strings, ...values) => ({
+  sql: Array.isArray(strings) ? strings.join('?') : strings,
+  params: values
+}));
+
+export const gte = jest.fn().mockImplementation((column, value) => ({
+  type: 'gte',
+  column,
+  value
+}));
+
+export const lte = jest.fn().mockImplementation((column, value) => ({
+  type: 'lte', 
+  column,
+  value
+}));
+
+// Mock database query interface
+export const mockDb = {
+  // Query interface for table operations
+  query: {
+    users: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    organizations: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    buildings: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    residences: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    bills: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    budgets: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    monthlyBudgets: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    invitations: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    userOrganizations: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    documents: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+    maintenanceRequests: {
+      findFirst: jest.fn().mockResolvedValue(null as any),
+      findMany: jest.fn().mockResolvedValue([] as any[]),
+    },
+  },
+  
+  // Direct operation methods
+  select: jest.fn().mockReturnValue({
+    from: jest.fn().mockReturnValue({
+      where: jest.fn().mockReturnValue({
+        limit: jest.fn().mockResolvedValue([] as any[]),
+        orderBy: jest.fn().mockReturnValue({
+          limit: jest.fn().mockResolvedValue([] as any[])
+        })
+      }),
+      limit: jest.fn().mockResolvedValue([] as any[]),
+      orderBy: jest.fn().mockReturnValue({
+        limit: jest.fn().mockResolvedValue([] as any[])
+      })
+    })
+  }),
+  
+  insert: jest.fn().mockReturnValue({
+    values: jest.fn().mockReturnValue({
+      returning: jest.fn().mockResolvedValue([] as any[]),
+      onConflictDoUpdate: jest.fn().mockReturnValue({
+        returning: jest.fn().mockResolvedValue([] as any[])
+      })
+    }),
+    returning: jest.fn().mockResolvedValue([] as any[])
+  }),
+  
+  update: jest.fn().mockReturnValue({
+    set: jest.fn().mockReturnValue({
+      where: jest.fn().mockReturnValue({
+        returning: jest.fn().mockResolvedValue([] as any[])
+      })
+    })
+  }),
+  
+  delete: jest.fn().mockReturnValue({
+    where: jest.fn().mockResolvedValue([] as any[])
+  }),
+
+  // Transaction support
+  transaction: jest.fn().mockImplementation(async (callback: any) => {
+    return await callback(mockDb);
+  })
+};
+
+// Mock schema objects - simple objects that behave like drizzle tables
+export const mockSchema = {
+  users: {
+    id: { name: 'id' },
+    email: { name: 'email' },
+    username: { name: 'username' },
+    firstName: { name: 'firstName' },
+    lastName: { name: 'lastName' },
+    role: { name: 'role' },
+    organizationId: { name: 'organizationId' },
+    isActive: { name: 'isActive' },
+    createdAt: { name: 'createdAt' },
+    updatedAt: { name: 'updatedAt' }
+  },
+  
+  organizations: {
+    id: { name: 'id' },
+    name: { name: 'name' },
+    type: { name: 'type' },
+    address: { name: 'address' },
+    city: { name: 'city' },
+    province: { name: 'province' },
+    postalCode: { name: 'postalCode' },
+    createdAt: { name: 'createdAt' }
+  },
+  
+  buildings: {
+    id: { name: 'id' },
+    name: { name: 'name' },
+    organizationId: { name: 'organizationId' },
+    address: { name: 'address' },
+    city: { name: 'city' },
+    province: { name: 'province' },
+    postalCode: { name: 'postalCode' },
+    bankAccountStartAmount: { name: 'bankAccountStartAmount' },
+    bankAccountMinimums: { name: 'bankAccountMinimums' },
+    generalInflationRate: { name: 'generalInflationRate' },
+    revenueInflationRate: { name: 'revenueInflationRate' },
+    createdAt: { name: 'createdAt' }
+  },
+  
+  residences: {
+    id: { name: 'id' },
+    buildingId: { name: 'buildingId' },
+    unit: { name: 'unit' },
+    floor: { name: 'floor' },
+    type: { name: 'type' },
+    squareFootage: { name: 'squareFootage' },
+    createdAt: { name: 'createdAt' }
+  },
+  
+  bills: {
+    id: { name: 'id' },
+    buildingId: { name: 'buildingId' },
+    name: { name: 'name' },
+    description: { name: 'description' },
+    amount: { name: 'amount' },
+    dueDate: { name: 'dueDate' },
+    isRecurrent: { name: 'isRecurrent' },
+    frequency: { name: 'frequency' },
+    createdAt: { name: 'createdAt' }
+  },
+  
+  budgets: {
+    id: { name: 'id' },
+    buildingId: { name: 'buildingId' },
+    year: { name: 'year' },
+    totalBudget: { name: 'totalBudget' },
+    createdAt: { name: 'createdAt' }
+  },
+  
+  monthlyBudgets: {
+    id: { name: 'id' },
+    budgetId: { name: 'budgetId' },
+    month: { name: 'month' },
+    year: { name: 'year' },
+    plannedRevenue: { name: 'plannedRevenue' },
+    actualRevenue: { name: 'actualRevenue' },
+    plannedExpenses: { name: 'plannedExpenses' },
+    actualExpenses: { name: 'actualExpenses' },
+    bankAccountBalance: { name: 'bankAccountBalance' },
+    createdAt: { name: 'createdAt' }
+  },
+  
+  invitations: {
+    id: { name: 'id' },
+    email: { name: 'email' },
+    token: { name: 'token' },
+    tokenHash: { name: 'tokenHash' },
+    role: { name: 'role' },
+    status: { name: 'status' },
+    organizationId: { name: 'organizationId' },
+    invitedByUserId: { name: 'invitedByUserId' },
+    expiresAt: { name: 'expiresAt' },
+    acceptedAt: { name: 'acceptedAt' },
+    createdAt: { name: 'createdAt' }
+  },
+  
+  userOrganizations: {
+    id: { name: 'id' },
+    userId: { name: 'userId' },
+    organizationId: { name: 'organizationId' },
+    createdAt: { name: 'createdAt' }
+  }
+};
+
+// Test utilities for managing mock state
+export const testUtils = {
+  // Reset all mocks to clean state
+  resetMocks: jest.fn().mockImplementation(() => {
+    jest.clearAllMocks();
+    
+    // Reset all query mocks
+    Object.values(mockDb.query).forEach(table => {
+      if (typeof table === 'object') {
+        Object.values(table).forEach(method => {
+          if (jest.isMockFunction(method)) {
+            method.mockClear();
+          }
+        });
+      }
+    });
+    
+    // Reset operation method mocks
+    if (jest.isMockFunction(mockDb.select)) mockDb.select.mockClear();
+    if (jest.isMockFunction(mockDb.insert)) mockDb.insert.mockClear();
+    if (jest.isMockFunction(mockDb.update)) mockDb.update.mockClear();
+    if (jest.isMockFunction(mockDb.delete)) mockDb.delete.mockClear();
+    if (jest.isMockFunction(mockDb.transaction)) mockDb.transaction.mockClear();
+  }),
+  
+  // Setup mock data for specific tables
+  setupMockData: jest.fn().mockImplementation((tableName: string, data: any[]) => {
+    if (mockDb.query[tableName as keyof typeof mockDb.query]) {
+      const table = mockDb.query[tableName as keyof typeof mockDb.query] as any;
+      table.findMany.mockResolvedValue(data);
+      if (data.length > 0) {
+        table.findFirst.mockResolvedValue(data[0]);
+      }
+    }
+  }),
+  
+  // Setup mock queries with custom implementations
+  setupMockQuery: jest.fn().mockImplementation((tableName: string, method: string, implementation: any) => {
+    if (mockDb.query[tableName as keyof typeof mockDb.query]) {
+      const table = mockDb.query[tableName as keyof typeof mockDb.query] as any;
+      if (table[method] && jest.isMockFunction(table[method])) {
+        table[method].mockImplementation(implementation);
+      }
+    }
+  }),
+  
+  // Verify mock calls
+  verifyMockCalls: jest.fn().mockImplementation((tableName: string, method: string, expectedCalls: number) => {
+    if (mockDb.query[tableName as keyof typeof mockDb.query]) {
+      const table = mockDb.query[tableName as keyof typeof mockDb.query] as any;
+      if (table[method] && jest.isMockFunction(table[method])) {
+        expect(table[method]).toHaveBeenCalledTimes(expectedCalls);
+      }
+    }
+  })
+};
+
+// Export all drizzle-orm operators for test compatibility
+export * from 'drizzle-orm';
+
+// Default export for convenience
+export default {
+  mockDb,
+  mockSchema,
+  testUtils,
+  eq,
+  and,
+  or,
+  sql,
+  gte,
+  lte
+};

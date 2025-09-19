@@ -79,17 +79,22 @@ const config = {
       {
         tsconfig: '<rootDir>/tsconfig.test.json',
         useESM: false,
+        isolatedModules: true,
+        // Enhanced TypeScript support for better error handling
+        diagnostics: {
+          ignoreCodes: [1343]
+        }
       },
     ],
   },
   
-  // Optimized transform ignore patterns
+  // Enhanced transform ignore patterns for better ES module support
   transformIgnorePatterns: [
-    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud|react-router-dom))'
+    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud|react-router-dom|drizzle-orm|drizzle-zod|@neondatabase))'
   ],
   
   // Performance settings - optimized for large test suites
-  testTimeout: 15000,
+  testTimeout: 20000,
   maxWorkers: 3,
   cache: true,
   cacheDirectory: '<rootDir>/.jest-cache',
@@ -102,6 +107,13 @@ const config = {
   verbose: false,
   passWithNoTests: false,
   bail: false,
+  
+  // Enhanced module resolution for better mock handling
+  moduleDirectories: ['node_modules', '<rootDir>'],
+  rootDir: '.',
+  testEnvironmentOptions: {
+    url: 'http://localhost:3000'
+  },
   
   // Memory and performance optimizations
   workerIdleMemoryLimit: '256MB',

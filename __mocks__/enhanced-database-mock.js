@@ -59,21 +59,55 @@ const sql = jest.fn().mockImplementation((strings, ...values) => ({
   sql: Array.isArray(strings) ? strings.join('?') : strings,
   params: values
 }));
+const gte = jest.fn().mockImplementation((column, value) => ({
+  type: 'gte', column, value
+}));
+const lte = jest.fn().mockImplementation((column, value) => ({
+  type: 'lte', column, value
+}));
+const gt = jest.fn().mockImplementation((column, value) => ({
+  type: 'gt', column, value
+}));
+const lt = jest.fn().mockImplementation((column, value) => ({
+  type: 'lt', column, value
+}));
 
-// Mock pg-core functions with chainable methods
+// Enhanced chainable column mock with proper method chaining support
 const createChainableColumn = (type, name, options = {}) => {
   const column = {
     type,
     name,
-    ...options
+    ...options,
+    // Add common column properties
+    isColumn: true,
+    columnType: type,
+    sqlName: name
   };
   
-  // Add all chainable methods that return the same object
-  const chainableMethods = ['primaryKey', 'notNull', 'unique', 'default', 'references', 'onDelete', 'onUpdate', 'array'];
+  // Comprehensive list of all drizzle column methods that need to be chainable
+  const chainableMethods = [
+    'primaryKey', 'notNull', 'unique', 'default', 'references', 
+    'onDelete', 'onUpdate', 'array', '$default', '$type',
+    // Additional constraint methods
+    'check', 'foreignKey', 'index'
+  ];
   
+  // Create each chainable method that returns a new column instance
   chainableMethods.forEach(method => {
-    column[method] = jest.fn(() => createChainableColumn(type, name, { ...options, [method]: true }));
+    column[method] = jest.fn((...args) => {
+      // Create a new column instance with the applied method
+      const newOptions = { ...options, [method]: true };
+      if (args.length > 0) {
+        newOptions[`${method}Args`] = args;
+      }
+      const newColumn = createChainableColumn(type, name, newOptions);
+      return newColumn;
+    });
   });
+  
+  // Add special methods that may have different behavior
+  column.$inferSelect = jest.fn(() => ({}));
+  column.$inferInsert = jest.fn(() => ({}));
   
   return column;
 };
@@ -326,6 +360,10 @@ module.exports = {
   and, 
   or,
   sql,
+  gte,
+  lte,
+  gt,
+  lt,
   
   // Database mocks for module mapping
   drizzle: jest.fn().mockReturnValue(mockDb),
