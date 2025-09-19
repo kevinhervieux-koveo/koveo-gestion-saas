@@ -61,6 +61,14 @@ const config = {
     // ES Module mocks to prevent import issues
     'wouter': '<rootDir>/__mocks__/wouter.js',
     
+    // Mock components that use import.meta.env to prevent syntax errors
+    '^@/pages/manager/budget$': '<rootDir>/__mocks__/client/src/pages/manager/budget.tsx',
+    '^@/pages/admin/documentation$': '<rootDir>/__mocks__/client/src/pages/admin/documentation.tsx',
+    '^client/src/pages/manager/budget$': '<rootDir>/__mocks__/client/src/pages/manager/budget.tsx',
+    '^client/src/pages/admin/documentation$': '<rootDir>/__mocks__/client/src/pages/admin/documentation.tsx',
+    '^\\.\\./\\.\\./client/src/pages/manager/budget$': '<rootDir>/__mocks__/client/src/pages/manager/budget.tsx',
+    '^\\.\\./\\.\\./client/src/pages/admin/documentation$': '<rootDir>/__mocks__/client/src/pages/admin/documentation.tsx',
+    
     // Child process and exec mocks to prevent hanging
     '^child_process$': '<rootDir>/__mocks__/child_process.js',
     '^util$': '<rootDir>/__mocks__/util.js',
@@ -120,6 +128,7 @@ const config = {
   sandboxInjectedGlobals: [
     'Math'
   ],
+
   
   // Enhanced module resolution for better mock handling
   moduleDirectories: ['node_modules', '<rootDir>'],

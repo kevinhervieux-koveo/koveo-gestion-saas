@@ -8,8 +8,16 @@
 
 import '@testing-library/jest-dom';
 import { afterEach, beforeAll, afterAll } from '@jest/globals';
-
 import { cleanup } from '@testing-library/react';
+
+// Ensure jest-dom matchers are properly typed
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R;
+    }
+  }
+}
 
 // =============================================================================
 // MSW SERVER SETUP - DISABLED DUE TO V2 COMPATIBILITY ISSUES
@@ -104,6 +112,10 @@ if (typeof TextEncoder === 'undefined') {
   (global as any).TextEncoder = TextEncoder;
   (global as any).TextDecoder = TextDecoder;
 }
+
+// Note: import.meta.env issues are now handled via Jest moduleNameMapper mocking
+// Components that use import.meta.env are mocked in __mocks__ directory
+// This approach avoids syntax errors in CommonJS Jest environment
 
 // Web Streams API polyfills - Enhanced for environment compatibility
 try {
