@@ -591,15 +591,19 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('organizationAssignmentsUpdated'),
-      });
-      setEditingUserOrganizations(null);
-      // Invalidate all user queries regardless of filters
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
+      // Note: Toast and cache invalidation are handled by unified save when called from there
+      // Only show toast for individual saves
+      if (editingUserOrganizations) {
+        toast({
+          title: t('success'),
+          description: t('organizationAssignmentsUpdated'),
+        });
+        setEditingUserOrganizations(null);
+        // Only invalidate for individual saves, not unified save
+        queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -625,13 +629,18 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('buildingAssignmentsUpdated'),
-      });
-      // Invalidate all user queries regardless of filters
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      // Note: Toast and cache invalidation are handled by unified save when called from there
+      // Only show toast for individual saves
+      if (editingUserBuildings) {
+        toast({
+          title: t('success'),
+          description: t('buildingAssignmentsUpdated'),
+        });
+        setEditingUserBuildings(null);
+        // Only invalidate for individual saves, not unified save
+        queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -657,15 +666,19 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('residenceAssignmentsUpdated'),
-      });
-      setEditingUserResidences(null);
-      // Invalidate all user queries regardless of filters
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
+      // Note: Toast and cache invalidation are handled by unified save when called from there
+      // Only show toast for individual saves
+      if (editingUserResidences) {
+        toast({
+          title: t('success'),
+          description: t('residenceAssignmentsUpdated'),
+        });
+        setEditingUserResidences(null);
+        // Only invalidate for individual saves, not unified save
+        queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+        queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
+      }
     },
     onError: (error: Error) => {
       toast({
