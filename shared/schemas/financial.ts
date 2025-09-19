@@ -99,8 +99,8 @@ export const bills = pgTable('bills', {
   paymentType: paymentTypeEnum('payment_type').notNull(), // unique or recurrent
   schedulePayment: schedulePaymentEnum('schedule_payment'), // Only for recurrent payments
   scheduleCustom: date('schedule_custom').array(), // Custom dates for custom schedules
-  costs: decimal('costs', { precision: 12, scale: 2 }).array().notNull(), // Array of costs for payment plan
-  totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
+  costs: decimal('costs', { precision: 10, scale: 2 }).array().notNull(), // Array of costs for payment plan
+  totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
   startDate: date('start_date').notNull(), // When the bill series starts
   endDate: date('end_date'), // For recurrent bills, when they end (optional for ongoing)
   status: billStatusEnum('status').notNull().default('draft'),
@@ -134,7 +134,7 @@ export const payments = pgTable('payments', {
   paymentNumber: integer('payment_number').notNull(), // 1, 2, 3... for recurring bills
   scheduledDate: date('scheduled_date').notNull(),
   paidDate: date('paid_date'), // nullable - set when payment is confirmed
-  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   status: paymentStatusEnum('status').notNull().default('pending'),
   notes: text('notes'), // Optional notes for this specific payment
   createdAt: timestamp('created_at').defaultNow(),
