@@ -501,11 +501,16 @@ export default function UserManagement() {
 
   // Unified save function that saves all user data at once
   const handleUnifiedSave = async () => {
-    if (!editingUser) return;
+    console.log('🚀 [Unified Save] Starting unified save function');
+    if (!editingUser) {
+      console.log('❌ [Unified Save] No editing user found, exiting');
+      return;
+    }
 
     try {
       // Get form values for basic info
       const formValues = editForm.getValues();
+      console.log('📝 [Unified Save] Form values:', formValues);
       
       // Save all data sequentially to ensure consistency
       await editUserMutation.mutateAsync({ ...formValues, id: editingUser.id });
