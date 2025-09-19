@@ -537,31 +537,14 @@ export default function UserManagement() {
         description: 'All user information and assignments saved successfully',
       });
 
-      // Update cache immediately with new data for instant feedback
-      const updatedUserData = { 
-        id: editingUser.id, 
-        ...formValues,
-        // Preserve other user data that might not be in the form
-        username: editingUser.username,
-        createdAt: editingUser.createdAt,
-        updatedAt: new Date().toISOString(),
-        lastLoginAt: editingUser.lastLoginAt
-      };
-      
-      // Patch all user query caches with updated data
-      queryClient.setQueriesData({ queryKey: ['/api/users'] }, (old: any) => {
-        if (!old || !old.users) return old;
-        return {
-          ...old,
-          users: old.users.map((user: any) => 
-            user.id === editingUser.id ? { ...user, ...updatedUserData } : user
-          )
-        };
-      });
-
-      // Then invalidate and refetch to ensure data consistency
+      // Since buildings and residences are derived from complex joins (organizations → buildings, residences),
+      // we can't easily patch the cache with the correct derived data. 
+      // Instead, invalidate immediately to trigger a fresh fetch that includes all the updated relationships
       queryClient.invalidateQueries({ queryKey: ['/api/users'], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], refetchType: 'active' });
+      
+      // Force an immediate refetch to ensure changes are visible right away
+      await queryClient.refetchQueries({ queryKey: ['/api/users'], type: 'active' });
       
     } catch (error) {
       console.error('Unified save failed:', error);
