@@ -371,12 +371,20 @@ export default function UserManagement() {
     },
   });
 
+  // Helper function to decode HTML entities
+  const decodeHtmlEntities = (str: string): string => {
+    if (!str) return str;
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = str;
+    return textarea.value;
+  };
+
   // Reset form when editing user changes
   React.useEffect(() => {
     if (editingUser) {
       editForm.reset({
-        firstName: editingUser.firstName || '',
-        lastName: editingUser.lastName || '',
+        firstName: decodeHtmlEntities(editingUser.firstName || ''),
+        lastName: decodeHtmlEntities(editingUser.lastName || ''),
         email: editingUser.email,
         role: editingUser.role,
         isActive: editingUser.isActive,
