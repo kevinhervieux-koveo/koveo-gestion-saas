@@ -1999,7 +1999,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     // Helper function to format date for display
     const formatSavedDate = (dateString: string) => {
       try {
-        return new Date(dateString).toLocaleDateString();
+        if (!dateString) return 'Unknown date';
+        // If already YYYY-MM-DD, return as-is
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+        return new Date(dateString).toLocaleDateString('en-CA', { timeZone: 'UTC' });
       } catch {
         return 'Unknown date';
       }
@@ -4053,7 +4056,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                     </span>
                                     <span className={`${config.text} opacity-75`}>
                                       <Calendar className='w-3 h-3 inline mr-1' />
-                                      {targetDate.toLocaleDateString()}
+                                      {targetDate.toLocaleDateString('en-CA', { timeZone: 'UTC' })}
                                     </span>
                                     <span className={`${config.text} opacity-75`}>
                                       <Building className='w-3 h-3 inline mr-1' />
