@@ -1283,14 +1283,29 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     if (capitalInvestmentMode === 'suggested') {
       // Suggested Capital: Use actual backend-calculated investment amounts from forecast data
       // The forecast contains the real calculated capitalInvestment values (~$900) from the backend
+      debugLog('🔍 Checking forecast data for investments', {
+        hasForecastData: !!forecastData,
+        hasForecast: !!forecastData?.forecast,
+        forecastLength: forecastData?.forecast?.length || 0,
+        mode: capitalInvestmentMode
+      });
+      
       if (forecastData?.forecast && forecastData.forecast.length > 0) {
         // Get the filtered forecast data based on current view settings
         const filteredForecast = getFilteredForecastData();
         
+        debugLog('🔍 Raw forecast data sample', {
+          samplePeriods: forecastData.forecast.slice(0, 3).map(p => ({
+            period: `${p.year}-${p.month}`,
+            capitalInvestment: p.capitalInvestment,
+            balance: p.balance
+          }))
+        });
+        
         // Find periods that need capital investments (where capitalInvestment > 0)
         const periodsWithInvestments = filteredForecast.filter(period => period.capitalInvestment > 0);
         
-        debugLog('Periods with capital investments from forecast', {
+        debugLog('🔍 Periods with capital investments from forecast', {
           totalPeriods: filteredForecast.length,
           periodsWithInvestments: periodsWithInvestments.length,
           investments: periodsWithInvestments.map(p => ({
