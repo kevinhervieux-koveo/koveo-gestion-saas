@@ -908,23 +908,32 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       const currentDate = new Date(currentYear, currentMonth - 1, 1);
       
       // Apply inflation separately for monthly fees and other income, respecting financial year start date
-      const yearsElapsed = Math.floor(monthIndex / 12);
-      
-      // Check if inflation should be applied based on financial year start date
       const financialYearStartDate = safeConvertFinancialYearStart(building.financialYearStart);
       const shouldInflate = shouldApplyInflation(currentDate, financialYearStartDate);
+      
+      // Calculate years elapsed from financial year start (not forecast start)
+      let yearsElapsed = 0;
+      if (shouldInflate && financialYearStartDate) {
+        // Calculate actual years elapsed since financial year start
+        const monthsSinceFinancialStart = (currentDate.getFullYear() - financialYearStartDate.getFullYear()) * 12 + 
+          (currentDate.getMonth() - financialYearStartDate.getMonth());
+        yearsElapsed = Math.max(0, Math.floor(monthsSinceFinancialStart / 12));
+      } else {
+        // Fallback to forecast-based calculation if no financial year start date
+        yearsElapsed = Math.floor(monthIndex / 12);
+      }
       
       let inflatedMonthlyFees = monthlyFeesRevenue;
       let inflatedOtherIncome = otherMonthlyIncome;
       
-      if (shouldInflate && yearsElapsed > 0) {
+      if (shouldInflate) {
         // Get the correct inflation rate for monthly fees based on bills configuration
         const monthlyFeesInflationRate = getMonthlyFeesInflationRate(extendedConfig, revenueInflation, generalInflation);
         
-        // Apply bills inflation to monthly fees
+        // Apply bills inflation to monthly fees (apply inflation from start if financial year allows)
         inflatedMonthlyFees = applyInflation(monthlyFeesRevenue, monthlyFeesInflationRate, yearsElapsed);
         
-        // Apply revenue inflation to other income sources
+        // Apply revenue inflation to other income sources (apply from start if financial year allows)
         inflatedOtherIncome = applyInflation(otherMonthlyIncome, revenueInflation, yearsElapsed);
       }
       
