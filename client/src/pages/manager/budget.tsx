@@ -16,6 +16,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Residence } from '@shared/schema';
+import { stripLeadingZeros, normalizeMoney } from '@/utils/number';
 import { 
   PieChart, 
   BarChart, 
@@ -84,6 +85,10 @@ interface BankAccountSettings {
   globalBillsInflationRate?: number;
   unplannedBillsAmount?: number;
   unplannedBillsStartDate?: string;
+  // Historical unique bills data from server
+  historicalUniqueBillsAmount?: number;
+  historicalUniqueBillsConfidence?: string;
+  historicalUniqueBillsYearsAnalyzed?: number;
   // Per-category inflation rates (used when useGlobalBillsInflation is false)
   categoryInflationRates?: {
     utilities?: number;
@@ -477,6 +482,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       globalBillsInflationRate: parseNumericValue(data.globalBillsInflationRate, 2.5),
       unplannedBillsAmount: parseNumericValue(data.unplannedBillsAmount, 0),
       unplannedBillsStartDate: data.unplannedBillsStartDate || new Date().toISOString().split('T')[0],
+      // Historical unique bills data
+      historicalUniqueBillsAmount: parseNumericValue(data.historicalUniqueBillsAmount, 0),
+      historicalUniqueBillsConfidence: data.historicalUniqueBillsConfidence || 'no_data',
+      historicalUniqueBillsYearsAnalyzed: parseNumericValue(data.historicalUniqueBillsYearsAnalyzed, 0),
       categoryInflationRates: {
         utilities: parseNumericValue(data.categoryInflationRates?.utilities, 3.0),
         maintenance: parseNumericValue(data.categoryInflationRates?.maintenance, 2.5),
@@ -508,6 +517,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         globalBillsInflationRate: prev.globalBillsInflationRate,
         unplannedBillsAmount: prev.unplannedBillsAmount,
         unplannedBillsStartDate: prev.unplannedBillsStartDate,
+        historicalUniqueBillsAmount: prev.historicalUniqueBillsAmount,
+        historicalUniqueBillsConfidence: prev.historicalUniqueBillsConfidence,
+        historicalUniqueBillsYearsAnalyzed: prev.historicalUniqueBillsYearsAnalyzed,
         categoryInflationRates: prev.categoryInflationRates,
         customBankFields: prev.customBankFields,
       }) !== JSON.stringify(nextSettings);
@@ -2807,12 +2819,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             id="starting-amount"
                             type="number"
                             value={localSettings.bankAccountStartAmount}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const normalizedValue = normalizeMoney(e.target.value);
                               setLocalSettings(prev => ({
                                 ...prev,
-                                bankAccountStartAmount: parseFloat(e.target.value) || 0,
+                                bankAccountStartAmount: parseFloat(normalizedValue) || 0,
                               }))
-                            }
+                            }}
                             className="pl-9"
                             placeholder="0"
                             data-testid="input-starting-balance"
@@ -3588,12 +3601,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             min="0"
                             step="0.01"
                             value={localSettings.unplannedBillsAmount}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const normalizedValue = normalizeMoney(e.target.value);
                               setLocalSettings(prev => ({
                                 ...prev,
-                                unplannedBillsAmount: parseFloat(e.target.value) || 0,
+                                unplannedBillsAmount: parseFloat(normalizedValue) || 0,
                               }))
-                            }
+                            }}
                             className="pl-9"
                             placeholder="0.00"
                             data-testid="input-unplanned-bills"
@@ -3625,13 +3639,26 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         <p className='text-xs text-orange-600 dark:text-orange-400'>
                           Additional budget for unexpected expenses each month
                         </p>
+                        
+                        {/* Always show historical data */}
+                        {localSettings.historicalUniqueBillsAmount !== undefined && localSettings.historicalUniqueBillsAmount > 0 ? (
+                          <p className='text-xs text-blue-600 dark:text-blue-400'>
+                            📊 Historical average ({localSettings.historicalUniqueBillsYearsAnalyzed} years): ${localSettings.historicalUniqueBillsAmount.toLocaleString()}/month
+                          </p>
+                        ) : (
+                          <p className='text-xs text-muted-foreground'>
+                            📊 Historical average: No data available
+                          </p>
+                        )}
+                        
+                        {/* Show manual override status */}
                         {localSettings.unplannedBillsAmount > 0 ? (
                           <p className='text-xs text-orange-700 dark:text-orange-300 font-medium'>
                             ✓ Manual override: ${localSettings.unplannedBillsAmount.toLocaleString()}/month
                           </p>
                         ) : (
-                          <p className='text-xs text-muted-foreground'>
-                            💡 Based on historical data (set to 0 for manual control)
+                          <p className='text-xs text-green-600 dark:text-green-400'>
+                            🤖 Using historical data for forecast
                           </p>
                         )}
                       </div>

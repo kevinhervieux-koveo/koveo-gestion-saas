@@ -472,10 +472,14 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       customBankFields
     );
     
+    // Calculate historical unique bills average
+    const historicalUniqueBills = await calculateUnplannedBillsSuggestion(buildingId, 3);
+    
     debugLog('GET /:buildingId/bank-account - Response data', { 
       buildingId, 
       extendedConfig,
       minimumRequirement,
+      historicalUniqueBills,
       timestamp: new Date().toISOString() 
     });
 
@@ -490,6 +494,10 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       bankAccountUpdatedAt: building.bankAccountUpdatedAt,
       unplannedBillsAmount: building.unplannedBillsAmount, // Include unplanned bills amount
       financialYearStart: building.financialYearStart, // Include financial year start
+      // Historical unique bills data
+      historicalUniqueBillsAmount: historicalUniqueBills.amount,
+      historicalUniqueBillsConfidence: historicalUniqueBills.confidence,
+      historicalUniqueBillsYearsAnalyzed: historicalUniqueBills.yearsAnalyzed,
       // Separate starting balance and minimum requirement
       startingBalance: building.bankAccountStartAmount,
       minimumRequirement: minimumRequirement,
