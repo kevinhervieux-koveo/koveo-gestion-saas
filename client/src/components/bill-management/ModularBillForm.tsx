@@ -453,8 +453,41 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
         setIsExtracting(true);
       }
     } else if (text) {
-      // Handle text content - could save as text document
+      // Handle text content - create a virtual file for text document
       console.log('Text content received:', text);
+      
+      // Create a Blob from the text content
+      const textBlob = new Blob([text], { type: 'text/plain' });
+      const textFile = new File([textBlob], `bill-notes-${Date.now()}.txt`, { type: 'text/plain' });
+      
+      const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const newAttachment: AttachedFile = {
+        id: fileId,
+        file: textFile,
+        preview: undefined, // No preview for text files
+        uploadProgress: 0,
+        aiAnalyzed: false, // Text documents don't get AI analyzed
+        category: 'document'
+      };
+      
+      setAttachedFiles(prev => [...prev, newAttachment]);
+      
+      // Simulate upload progress for consistency
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 30;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+        }
+        setUploadProgress(prev => ({ ...prev, [fileId]: progress }));
+      }, 200);
+      
+      toast({
+        title: 'Text Document Added',
+        description: 'Your text content has been prepared for saving with the bill.',
+      });
     }
   };
 
