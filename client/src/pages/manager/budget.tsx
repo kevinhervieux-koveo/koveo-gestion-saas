@@ -1261,7 +1261,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     
     // Custom mode: No auto-generation
     if (capitalInvestmentMode === 'custom') {
-      debugLog('Custom mode: No auto-generated investments');
+      debugLog('Custom mode: No auto-generated investments', { mode: capitalInvestmentMode });
       return suggestions;
     }
     
@@ -1327,7 +1327,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         }
       });
     } else {
-      debugLog('No forecast data available for auto-generation');
+      debugLog('No forecast data available for auto-generation', { mode: capitalInvestmentMode });
     }
     
     debugLog('Auto-generation completed', {
