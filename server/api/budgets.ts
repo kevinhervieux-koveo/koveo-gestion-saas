@@ -898,13 +898,12 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     // Generate forecast only for selected time window with proper recurrent bill scheduling  
     const forecastData = [];
     let currentBalance = startAmount;
-    const startYear = effectiveStartYear;
     const startMonthIndex = effectiveStartMonth - 1; // Convert to 0-based index
 
     for (let monthIndex = 0; monthIndex < totalMonthsToCalculate; monthIndex++) {
       // Calculate actual year and month considering the start month offset
       const totalMonthsFromStart = startMonthIndex + monthIndex;
-      const currentYear = startYear + Math.floor(totalMonthsFromStart / 12);
+      const currentYear = effectiveStartYear + Math.floor(totalMonthsFromStart / 12);
       const currentMonth = (totalMonthsFromStart % 12) + 1;
       const currentDate = new Date(currentYear, currentMonth - 1, 1);
       
