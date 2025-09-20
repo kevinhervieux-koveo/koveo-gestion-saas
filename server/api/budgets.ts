@@ -1114,25 +1114,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
           });
         }
         
-        // 2. Then consider additional investments from extended config
-        if (extendedConfig) {
-          const specialBudgetMonthly = (extendedConfig.specialInvestmentBudget || 0) / 12;
-          const capitalReserveMonthly = (extendedConfig.capitalProjectReserve || 0) / (12 * (extendedConfig.investmentHorizonYears || 5));
-          
-          // Suggest investment if we have available capacity above minimum + buffer
-          const bufferAmount = minimumFund * 0.1; // 10% buffer above minimum
-          const targetWithBuffer = minimumFund + bufferAmount;
-          
-          if (balanceWithoutAutoInvestment + suggestedInvestment > targetWithBuffer) {
-            // Available capacity for special investments
-            const availableForInvestment = balanceWithoutAutoInvestment + suggestedInvestment - targetWithBuffer;
-            const monthlyInvestmentCapacity = Math.min(specialBudgetMonthly, capitalReserveMonthly, availableForInvestment);
-            
-            if (monthlyInvestmentCapacity > 0) {
-              suggestedInvestment += monthlyInvestmentCapacity;
-            }
-          }
-        }
+        // Note: Additional investment logic for capital reserves removed
+        // Only suggest investments when balance is below minimum requirement
+        // User can manually add capital investments through the UI when needed
         
         if (suggestedInvestment > 0) {
           // Round to nearest 100 for realistic amounts
