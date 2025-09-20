@@ -526,12 +526,12 @@ async function calculateUnplannedBillsSuggestion(
     debugLog('Calculating unplanned bills suggestion', { buildingId, lookbackYears, startDate });
     
     // Use single grouped SQL query for better performance
-    // Get payments for unique bills only, filter by paid status and paidDate
+    // Get payments for unique bills only, filter by paid status and scheduled_date
     const historicalPayments = await db
       .select({
-        year: sql<number>`EXTRACT(YEAR FROM ${payments.paidDate})`.
+        year: sql<number>`EXTRACT(YEAR FROM ${payments.scheduledDate})`.
           mapWith(Number),
-        month: sql<number>`EXTRACT(MONTH FROM ${payments.paidDate})`.
+        month: sql<number>`EXTRACT(MONTH FROM ${payments.scheduledDate})`.
           mapWith(Number),
         totalAmount: sum(payments.amount).mapWith(Number),
         paymentCount: count(payments.id).mapWith(Number),
@@ -543,17 +543,17 @@ async function calculateUnplannedBillsSuggestion(
           eq(bills.buildingId, buildingId),
           eq(bills.paymentType, 'unique'),
           eq(payments.status, 'paid'),
-          gte(payments.paidDate, startDate.toISOString().split('T')[0]),
-          lte(payments.paidDate, currentDate.toISOString().split('T')[0])
+          gte(payments.scheduledDate, startDate.toISOString().split('T')[0]),
+          lte(payments.scheduledDate, currentDate.toISOString().split('T')[0])
         )
       )
       .groupBy(
-        sql`EXTRACT(YEAR FROM ${payments.paidDate})`,
-        sql`EXTRACT(MONTH FROM ${payments.paidDate})`
+        sql`EXTRACT(YEAR FROM ${payments.scheduledDate})`,
+        sql`EXTRACT(MONTH FROM ${payments.scheduledDate})`
       )
       .orderBy(
-        sql`EXTRACT(YEAR FROM ${payments.paidDate})`,
-        sql`EXTRACT(MONTH FROM ${payments.paidDate})`
+        sql`EXTRACT(YEAR FROM ${payments.scheduledDate})`,
+        sql`EXTRACT(MONTH FROM ${payments.scheduledDate})`
       );
 
     debugLog('Historical payments fetched', { count: historicalPayments.length });
