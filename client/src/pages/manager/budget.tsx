@@ -1167,7 +1167,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       // No specific capital investments are added unless there's an urgent need
     } else if (capitalInvestmentMode === 'custom') {
       // Custom mode: No auto-generated investments
-      debugLog('Custom capital mode active - no auto-generated investments');
+      debugLog('Custom capital mode active - no auto-generated investments', { mode: capitalInvestmentMode });
       return suggestions; // Return early, no auto-generation
     }
     
