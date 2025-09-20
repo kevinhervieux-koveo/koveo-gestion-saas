@@ -3,6 +3,8 @@
  * @description Pure functions for budget forecasting calculations, extracted from API routes
  */
 
+import { getFinancialYearsElapsed } from './inflation';
+
 export interface ForecastMonth {
   year: number;
   month: number;
@@ -154,6 +156,8 @@ export function generateBudgetForecast(params: {
   monthlyRecurringCosts: number;
   uniqueBillsByYear: Record<number, number>;
   startYear: number;
+  startMonth?: number;
+  financialYearStartMonth?: number;
 }): ForecastMonth[] {
   const {
     startAmount,
@@ -164,6 +168,8 @@ export function generateBudgetForecast(params: {
     monthlyRecurringCosts,
     uniqueBillsByYear,
     startYear,
+    startMonth = 1,
+    financialYearStartMonth = 1,
   } = params;
 
   const forecastData: ForecastMonth[] = [];
@@ -172,11 +178,26 @@ export function generateBudgetForecast(params: {
   for (let monthIndex = 0; monthIndex < 300; monthIndex++) {
     const currentYear = startYear + Math.floor(monthIndex / 12);
     const currentMonth = (monthIndex % 12) + 1;
+    const currentDate = new Date(currentYear, currentMonth - 1, 1);
     
-    // Apply annual inflation for both revenue and expenses
-    const yearsElapsed = Math.floor(monthIndex / 12);
+    // Create anchor date for financial year calculations
+    const anchorDate = new Date(startYear, startMonth - 1, 1);
+    
+    // Apply annual inflation based on financial year boundaries
+    const yearsElapsed = getFinancialYearsElapsed(currentDate, anchorDate, financialYearStartMonth);
+    
+    // Debug logging for the first few months to verify inflation logic
+    if (monthIndex < 3 || (monthIndex < 60 && monthIndex % 12 === 0)) {
+      console.log(`📊 [BUDGET FORECAST] Month ${monthIndex}: ${currentYear}-${String(currentMonth).padStart(2, '0')}, FY Years: ${yearsElapsed}, Base income: ${monthlyBaselineIncome.toFixed(2)}`);
+    }
+    
     const inflatedIncome = applyInflation(monthlyBaselineIncome, revenueInflation, yearsElapsed);
     const inflatedExpenses = applyInflation(monthlyRecurringCosts, generalInflation, yearsElapsed);
+    
+    // Additional debug logging for inflation application
+    if (monthIndex < 3 || (monthIndex < 60 && monthIndex % 12 === 0)) {
+      console.log(`📊 [BUDGET FORECAST] Inflated income: ${inflatedIncome.toFixed(2)} (${revenueInflation > 0 ? `${(revenueInflation * 100).toFixed(1)}% over ${yearsElapsed} FY` : 'no inflation'})`);
+    }
 
     // Add unplanned spending from unique bills (distributed monthly for the year)
     const yearlyUnplannedSpending = uniqueBillsByYear[currentYear] || 0;

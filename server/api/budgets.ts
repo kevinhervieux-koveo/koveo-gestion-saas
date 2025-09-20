@@ -1006,6 +1006,19 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         yearsElapsed = Math.floor(monthIndex / 12);
       }
       
+      // Debug logging for revenue inflation (first few months and financial year boundaries)
+      if (monthIndex < 3 || (monthIndex < 60 && monthIndex % 12 === 0)) {
+        debugLog('Revenue inflation debug', {
+          monthIndex,
+          currentDate: currentDate.toISOString().slice(0, 7),
+          shouldInflate,
+          yearsElapsed,
+          revenueInflationRate: Math.round(revenueInflation * 100 * 100) / 100, // Show as percentage with 2 decimals
+          monthlyFeesRevenue: Math.round(monthlyFeesRevenue * 100) / 100,
+          otherMonthlyIncome: Math.round(otherMonthlyIncome * 100) / 100,
+        });
+      }
+      
       let inflatedMonthlyFees = monthlyFeesRevenue;
       let inflatedOtherIncome = otherMonthlyIncome;
       
@@ -1018,6 +1031,26 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         
         // Apply revenue inflation to other income sources (apply from start if financial year allows)
         inflatedOtherIncome = applyInflation(otherMonthlyIncome, revenueInflation, yearsElapsed);
+        
+        // Debug logging for applied inflation (first few months and financial year boundaries)
+        if (monthIndex < 3 || (monthIndex < 60 && monthIndex % 12 === 0)) {
+          debugLog('Applied revenue inflation', {
+            monthIndex,
+            baseValues: {
+              monthlyFeesRevenue: Math.round(monthlyFeesRevenue * 100) / 100,
+              otherMonthlyIncome: Math.round(otherMonthlyIncome * 100) / 100,
+            },
+            inflatedValues: {
+              inflatedMonthlyFees: Math.round(inflatedMonthlyFees * 100) / 100,
+              inflatedOtherIncome: Math.round(inflatedOtherIncome * 100) / 100,
+            },
+            rates: {
+              monthlyFeesInflationRate: Math.round(monthlyFeesInflationRate * 100 * 100) / 100,
+              revenueInflation: Math.round(revenueInflation * 100 * 100) / 100,
+            },
+            inflationMultiplier: Math.round(Math.pow(1 + revenueInflation, yearsElapsed) * 1000) / 1000,
+          });
+        }
       }
       
       // Total inflated income
