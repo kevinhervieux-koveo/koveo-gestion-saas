@@ -554,6 +554,11 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       unplannedBillsAmount,
       lookbackYears,
       capitalInvestmentMode,
+      // Time window parameters
+      viewType,
+      periodLength,
+      startMonth,
+      startYear
     } = validatedInput;
 
     // Retrieve building settings including extended configuration
@@ -871,14 +876,36 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       investments: userCapitalInvestments
     });
 
-    // Generate 25-year forecast (300 months) with proper recurrent bill scheduling
+    // Calculate time window for forecast based on user selection
+    const effectiveViewType = viewType || 'month';
+    const effectivePeriodLength = periodLength || 12; // Default to 12 months
+    const effectiveStartYear = startYear || latestYear;
+    const effectiveStartMonth = startMonth || 1; // Default to January
+    
+    // Calculate number of months to process based on view type and period length
+    const totalMonthsToCalculate = effectiveViewType === 'year' 
+      ? effectivePeriodLength * 12  // Years to months
+      : effectivePeriodLength;      // Already in months
+      
+    debugLog('Time window calculation for forecast', {
+      buildingId,
+      userSelection: { viewType, periodLength, startMonth, startYear },
+      effective: { effectiveViewType, effectivePeriodLength, effectiveStartYear, effectiveStartMonth },
+      totalMonthsToCalculate,
+      note: 'Only calculating within selected time window instead of 25 years'
+    });
+
+    // Generate forecast only for selected time window with proper recurrent bill scheduling  
     const forecastData = [];
     let currentBalance = startAmount;
-    const startYear = latestYear;
+    const startYear = effectiveStartYear;
+    const startMonthIndex = effectiveStartMonth - 1; // Convert to 0-based index
 
-    for (let monthIndex = 0; monthIndex < 300; monthIndex++) {
-      const currentYear = startYear + Math.floor(monthIndex / 12);
-      const currentMonth = (monthIndex % 12) + 1;
+    for (let monthIndex = 0; monthIndex < totalMonthsToCalculate; monthIndex++) {
+      // Calculate actual year and month considering the start month offset
+      const totalMonthsFromStart = startMonthIndex + monthIndex;
+      const currentYear = startYear + Math.floor(totalMonthsFromStart / 12);
+      const currentMonth = (totalMonthsFromStart % 12) + 1;
       const currentDate = new Date(currentYear, currentMonth - 1, 1);
       
       // Apply inflation separately for monthly fees and other income, respecting financial year start date
