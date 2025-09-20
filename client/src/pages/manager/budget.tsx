@@ -2621,13 +2621,24 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
               <div className='grid grid-cols-1 gap-6'>
                 {/* Bank Account Configuration */}
                 <Card data-testid="card-bank-account-config">
-                  <CardHeader>
-                    <CardTitle className='flex items-center gap-2'>
-                      <Building className='w-5 h-5' />
-                      Bank Account Configuration
+                  <CardHeader 
+                    className="cursor-pointer"
+                    onClick={() => toggleCard('bankAccount')}
+                  >
+                    <CardTitle className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <Building className='w-5 h-5' />
+                        Bank Account Configuration
+                      </div>
+                      {cardsCollapsed.bankAccount ? (
+                        <ChevronDown className='w-5 h-5' />
+                      ) : (
+                        <ChevronUp className='w-5 h-5' />
+                      )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className='space-y-4'>
+                  {!cardsCollapsed.bankAccount && (
+                    <CardContent className='space-y-4'>
                     {/* Starting Balance with Date */}
                     <div className='grid grid-cols-2 gap-4'>
                       <div className='space-y-2'>
@@ -2804,17 +2815,29 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </Button>
                     </div>
                   </CardContent>
+                  )}
                 </Card>
 
                 {/* Minimum requirement */}
                 <Card data-testid="card-minimum-requirement-config">
-                  <CardHeader>
-                    <CardTitle className='flex items-center gap-2'>
-                      <Target className='w-5 h-5' />
-                      Minimum requirement
+                  <CardHeader 
+                    className="cursor-pointer"
+                    onClick={() => toggleCard('minimumRequirement')}
+                  >
+                    <CardTitle className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <Target className='w-5 h-5' />
+                        Minimum requirement
+                      </div>
+                      {cardsCollapsed.minimumRequirement ? (
+                        <ChevronDown className='w-5 h-5' />
+                      ) : (
+                        <ChevronUp className='w-5 h-5' />
+                      )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className='space-y-4'>
+                  {!cardsCollapsed.minimumRequirement && (
+                    <CardContent className='space-y-4'>
 
                     {/* Dynamic Custom Bank Account Fields */}
                     <div className='space-y-3'>
@@ -2956,18 +2979,30 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </Button>
                     </div>
                   </CardContent>
+                  )}
                 </Card>
 
                 {/* Revenue Configuration */}
                 <div className="w-full mb-6">
                   <Card data-testid="card-revenue-config">
-                  <CardHeader>
-                    <CardTitle className='flex items-center gap-2'>
-                      <TrendingUpIcon className='w-5 h-5' />
-                      Revenue Configuration
+                  <CardHeader 
+                    className="cursor-pointer"
+                    onClick={() => toggleCard('revenue')}
+                  >
+                    <CardTitle className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <TrendingUpIcon className='w-5 h-5' />
+                        Revenue Configuration
+                      </div>
+                      {cardsCollapsed.revenue ? (
+                        <ChevronDown className='w-5 h-5' />
+                      ) : (
+                        <ChevronUp className='w-5 h-5' />
+                      )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className='space-y-4'>
+                  {!cardsCollapsed.revenue && (
+                    <CardContent className='space-y-4'>
                     {/* Revenue Growth Rate (keep existing) */}
                     <div className='space-y-2'>
                       <Label htmlFor="revenue-growth">Revenue Growth Rate (%)</Label>
@@ -3153,19 +3188,31 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </Button>
                     </div>
                   </CardContent>
+                  )}
                   </Card>
                 </div>
 
                 {/* Bills Configuration */}
                 <div className="w-full mb-6">
                   <Card data-testid="card-bills-config">
-                  <CardHeader>
-                    <CardTitle className='flex items-center gap-2'>
-                      <Receipt className='w-5 h-5' />
-                      Bills Configuration
+                  <CardHeader 
+                    className="cursor-pointer"
+                    onClick={() => toggleCard('bills')}
+                  >
+                    <CardTitle className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <Receipt className='w-5 h-5' />
+                        Bills Configuration
+                      </div>
+                      {cardsCollapsed.bills ? (
+                        <ChevronDown className='w-5 h-5' />
+                      ) : (
+                        <ChevronUp className='w-5 h-5' />
+                      )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className='space-y-4'>
+                  {!cardsCollapsed.bills && (
+                    <CardContent className='space-y-4'>
                     <div className='grid grid-cols-2 gap-4'>
                       <div className='text-center p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg'>
                         <div className='text-lg font-semibold text-blue-600'>
@@ -3456,19 +3503,31 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </Button>
                     </div>
                   </CardContent>
+                  )}
                 </Card>
                 </div>
 
 
                 {/* Capital Investment Scenarios */}
                 <Card data-testid="card-capital-investment-scenarios">
-                  <CardHeader>
-                    <CardTitle className='flex items-center gap-2'>
-                      <Building2 className='w-5 h-5' />
-                      Capital Investment Scenarios
+                  <CardHeader 
+                    className="cursor-pointer"
+                    onClick={() => toggleCard('capitalInvestment')}
+                  >
+                    <CardTitle className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <Building2 className='w-5 h-5' />
+                        Capital Investment Scenarios
+                      </div>
+                      {cardsCollapsed.capitalInvestment ? (
+                        <ChevronDown className='w-5 h-5' />
+                      ) : (
+                        <ChevronUp className='w-5 h-5' />
+                      )}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className='space-y-6'>
+                  {!cardsCollapsed.capitalInvestment && (
+                    <CardContent className='space-y-6'>
                     {/* Capital Investment Mode Selection */}
                     <div className='bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4'>
                       <div className='flex flex-col space-y-3'>
@@ -3970,6 +4029,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </DialogContent>
                     </Dialog>
                   </CardContent>
+                  )}
                 </Card>
               </div>
             </>
