@@ -96,7 +96,7 @@ function containsDangerousPatterns(input: string): boolean {
 export function sanitizeInputMiddleware(req: Request, res: Response, next: NextFunction): void {
   try {
     // Skip sanitization for certain routes that need raw data or have their own validation
-    const skipRoutes = ['/api/upload', '/api/documents/upload', '/api/bills', '/api/invoices'];
+    const skipRoutes = ['/api/upload', '/api/documents/upload', '/api/bills', '/api/invoices', '/api/budgets'];
     if (skipRoutes.some(route => req.path.includes(route))) {
       return next();
     }
