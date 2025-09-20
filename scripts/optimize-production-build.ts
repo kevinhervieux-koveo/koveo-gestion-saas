@@ -3,7 +3,7 @@
  * Production build optimization script
  * Reduces bundle sizes and improves static file serving
  */
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
@@ -79,7 +79,11 @@ try {
     files.forEach((file) => {
       if (file.endsWith('.js') || file.endsWith('.css')) {
         const filePath = path.resolve(assetsDir, file);
-        execSync(`gzip -k -f "${filePath}"`, { stdio: 'inherit' });
+        // Sanitize file path to prevent command injection by using spawnSync with array arguments
+        const result = spawnSync('gzip', ['-k', '-f', filePath], { stdio: 'inherit' });
+        if (result.error) {
+          throw result.error;
+        }
       }
     });
     console.log('✅ Compressed versions created');
