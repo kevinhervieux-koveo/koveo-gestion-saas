@@ -138,3 +138,35 @@ export function shouldApplyInflation(currentDate: Date, financialYearStart: Date
   // Apply inflation only if current date is after financial year start
   return currentDate >= financialYearStart;
 }
+
+/**
+ * Calculate the financial year for a given date
+ * @param currentDate Date to calculate financial year for
+ * @param fyStartMonth Financial year start month (1-12)
+ * @returns Financial year (e.g., if FY starts May 2027, April 2028 returns 2027)
+ */
+export function getFinancialYear(currentDate: Date, fyStartMonth: number): number {
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth() + 1; // getMonth() returns 0-11, we need 1-12
+  
+  // If current month is before FY start month, we're in the previous financial year
+  if (month < fyStartMonth) {
+    return year - 1;
+  } else {
+    return year;
+  }
+}
+
+/**
+ * Calculate years elapsed between two financial years
+ * @param currentDate Current forecast date
+ * @param anchorDate Anchor date (typically the start of forecasting)
+ * @param fyStartMonth Financial year start month (1-12)
+ * @returns Number of full financial years elapsed
+ */
+export function getFinancialYearsElapsed(currentDate: Date, anchorDate: Date, fyStartMonth: number): number {
+  const currentFY = getFinancialYear(currentDate, fyStartMonth);
+  const anchorFY = getFinancialYear(anchorDate, fyStartMonth);
+  
+  return Math.max(0, currentFY - anchorFY);
+}

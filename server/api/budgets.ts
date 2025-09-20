@@ -9,7 +9,8 @@ import {
   ExtendedBuildingConfig,
   getMonthlyFeesInflationRate,
   safeConvertFinancialYearStart,
-  shouldApplyInflation
+  shouldApplyInflation,
+  getFinancialYearsElapsed
 } from '../utils/inflation';
 import { ScenarioEngine, ScenarioInput } from '../utils/scenarios.js';
 
@@ -989,13 +990,17 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       const financialYearStartDate = safeConvertFinancialYearStart(building.financialYearStart);
       const shouldInflate = shouldApplyInflation(currentDate, financialYearStartDate);
       
-      // Calculate years elapsed from financial year start (not forecast start)
+      // Calculate years elapsed based on financial year boundaries (not continuous months)
       let yearsElapsed = 0;
       if (shouldInflate && financialYearStartDate) {
-        // Calculate actual years elapsed since financial year start
-        const monthsSinceFinancialStart = (currentDate.getFullYear() - financialYearStartDate.getFullYear()) * 12 + 
-          (currentDate.getMonth() - financialYearStartDate.getMonth());
-        yearsElapsed = Math.max(0, Math.floor(monthsSinceFinancialStart / 12));
+        // Get financial year start month for boundary calculations
+        const fyStartMonth = financialYearStartDate.getMonth() + 1; // Convert to 1-12
+        
+        // Use the anchor date as the first forecast month for consistency
+        const anchorDate = new Date(startYear, startMonth - 1, 1);
+        
+        // Calculate financial years elapsed from anchor to current date
+        yearsElapsed = getFinancialYearsElapsed(currentDate, anchorDate, fyStartMonth);
       } else {
         // Fallback to forecast-based calculation if no financial year start date
         yearsElapsed = Math.floor(monthIndex / 12);
