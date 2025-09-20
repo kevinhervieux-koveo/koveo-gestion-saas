@@ -1873,12 +1873,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         // Recalculate net cash flow with combined revenue and total spending
         yearlyData[item.year].netCashFlow += (combinedRevenue - totalSpending);
         
-        // Use forecast data's capitalInvestment directly for chart display
+        // Use backend forecast capitalInvestment (auto-generated investment for selected scenario)
         const forecastCapitalInvestment = item.capitalInvestment || 0;
+        
         yearlyData[item.year].capitalInvestments += forecastCapitalInvestment;
-        yearlyData[item.year].urgentInvestments += 0; // No urgency data in forecast
-        yearlyData[item.year].suggestedInvestments += forecastCapitalInvestment;
-        yearlyData[item.year].notUrgentInvestments += 0; // No urgency data in forecast
+        yearlyData[item.year].urgentInvestments += 0; // Will be scenario-specific later
+        yearlyData[item.year].suggestedInvestments += forecastCapitalInvestment; // Show as suggested for now
+        yearlyData[item.year].notUrgentInvestments += 0;
         
         yearlyData[item.year].count++;
         // For yearly view: Use first month's balance as start, last month's balance as end
@@ -1929,7 +1930,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         balanceStart = localSettings.bankAccountStartAmount || 0;
       }
       
-      // Use forecast data's capitalInvestment directly for chart display
+      // Use backend forecast capitalInvestment (auto-generated investment for selected scenario)
       const forecastCapitalInvestment = item.capitalInvestment || 0;
       
       return {
@@ -1941,9 +1942,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         spending: totalSpending, // Include unplanned bills
         netCashFlow: combinedRevenue - totalSpending, // Recalculate with combined revenue and total spending
         capitalInvestments: forecastCapitalInvestment,
-        urgentInvestments: 0, // No urgency data in forecast
-        suggestedInvestments: forecastCapitalInvestment,
-        notUrgentInvestments: 0, // No urgency data in forecast
+        urgentInvestments: 0, // Will be scenario-specific later
+        suggestedInvestments: forecastCapitalInvestment, // Show as suggested for now
+        notUrgentInvestments: 0,
       };
     });
   };

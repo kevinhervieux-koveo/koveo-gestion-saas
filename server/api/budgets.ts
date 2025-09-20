@@ -11,6 +11,7 @@ import {
   safeConvertFinancialYearStart,
   shouldApplyInflation
 } from '../utils/inflation';
+import { ScenarioEngine, ScenarioInput } from '../utils/scenarios.js';
 
 const router = express.Router();
 
