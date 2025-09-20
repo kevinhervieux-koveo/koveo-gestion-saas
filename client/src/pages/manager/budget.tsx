@@ -1304,13 +1304,26 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         // Get the filtered forecast data based on current view settings
         const filteredForecast = getFilteredForecastData();
         
-        debugLog('🔍 Raw forecast data sample', {
-          samplePeriods: forecastData.forecast.slice(0, 3).map(p => ({
+        console.log('🔍 RAW FORECAST DATA SAMPLE - First 5 periods:', 
+          forecastData.forecast.slice(0, 5).map(p => ({
             period: `${p.year}-${p.month}`,
             capitalInvestment: p.capitalInvestment,
-            balance: p.balance
+            balance: p.balance,
+            revenue: p.revenue,
+            spending: p.spending
           }))
-        });
+        );
+        
+        console.log('🔍 ALL PERIODS WITH CAPITAL INVESTMENT > 0:', 
+          forecastData.forecast
+            .filter(p => p.capitalInvestment > 0)
+            .slice(0, 10) // First 10 periods with capital investment
+            .map(p => ({
+              period: `${p.year}-${p.month}`,
+              capitalInvestment: p.capitalInvestment,
+              balance: p.balance
+            }))
+        );
         
         // Find periods that need capital investments (where capitalInvestment > 0)
         const periodsWithInvestments = filteredForecast.filter(period => period.capitalInvestment > 0);
