@@ -472,8 +472,9 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       customBankFields
     );
     
-    // Calculate historical unique bills average
-    const historicalUniqueBills = await calculateUnplannedBillsSuggestion(buildingId, 3);
+    // Temporarily disable historical unique bills calculation to fix performance issues
+    // const historicalUniqueBills = await calculateUnplannedBillsSuggestion(buildingId, 3);
+    const historicalUniqueBills = { amount: 0, confidence: 'disabled', yearsAnalyzed: 0 };
     
     debugLog('GET /:buildingId/bank-account - Response data', { 
       buildingId, 
@@ -685,8 +686,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       return res.status(404).json({ _error: 'Building not found' });
     }
 
-    // Calculate suggested unplanned bills amount based on historical data (READ-ONLY)
-    const unplannedBillsCalculation = await calculateUnplannedBillsSuggestion(buildingId, lookbackYears);
+    // Temporarily disable historical unique bills calculation to fix performance issues
+    // const unplannedBillsCalculation = await calculateUnplannedBillsSuggestion(buildingId, lookbackYears);
+    const unplannedBillsCalculation = { amount: 0, confidence: 'disabled', yearsAnalyzed: 0 };
     
     debugLog('Calculated unplanned bills suggestion (read-only)', { 
       buildingId, 
