@@ -1801,27 +1801,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return getBudgetCategories().allCategories;
   };
 
-  // Calculate capital investments for chart - separated by urgency
-  const calculateCapitalInvestmentsForPeriod = (startDate: Date, endDate: Date) => {
-    const filteredInvestments = getFilteredInvestments();
-    const periodInvestments = filteredInvestments.filter(investment => {
-      const investmentDate = new Date(investment.targetDate);
-      return investmentDate >= startDate && investmentDate < endDate;
-    });
-
-    // Helper function to ensure amount is a number
-    const getAmount = (inv: any) => {
-      const amount = typeof inv.amount === 'string' ? parseFloat(inv.amount) : inv.amount;
-      return isNaN(amount) ? 0 : amount;
-    };
-
-    return {
-      urgent: periodInvestments.filter(inv => inv.urgency === 'urgent').reduce((sum, inv) => sum + getAmount(inv), 0),
-      suggested: periodInvestments.filter(inv => inv.urgency === 'suggested').reduce((sum, inv) => sum + getAmount(inv), 0),
-      notUrgent: periodInvestments.filter(inv => inv.urgency === 'not_urgent').reduce((sum, inv) => sum + getAmount(inv), 0),
-      total: periodInvestments.reduce((sum, inv) => sum + getAmount(inv), 0)
-    };
-  };
+  // REMOVED: calculateCapitalInvestmentsForPeriod - now using backend forecast data directly
 
   // Prepare chart data with filters applied
   const getChartData = () => {
