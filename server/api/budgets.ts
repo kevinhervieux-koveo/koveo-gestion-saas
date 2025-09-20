@@ -782,7 +782,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         and(
           eq(bills.buildingId, buildingId),
           eq(bills.paymentType, 'recurrent'),
-          inArray(bills.status, ['sent', 'paid', 'overdue']), // Only active recurrent bills (sent, paid, overdue)
+          inArray(bills.status, ['draft', 'sent', 'paid', 'overdue']), // Include draft, sent, paid, and overdue bills (exclude only cancelled)
           or(isNull(bills.endDate), gte(bills.endDate, currentDate.toISOString().split('T')[0])) // Exclude past-ended recurrent bills
         )
       );
