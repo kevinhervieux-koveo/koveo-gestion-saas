@@ -32,7 +32,7 @@ const forecastInputSchema = z.object({
   revenueInflationRate: z.coerce.number().min(0).max(100).optional(),
   unplannedBillsAmount: z.coerce.number().min(0).optional(),
   lookbackYears: z.coerce.number().min(1).max(10).optional().default(3),
-  capitalInvestmentMode: z.enum(['urgent', 'suggested']).optional().default('suggested'),
+  capitalInvestmentMode: z.enum(['urgent', 'suggested', 'custom']).optional().default('suggested'),
 });
 
 const updateUnplannedBillsSchema = z.object({
@@ -1015,7 +1015,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
           // Update balance with capital investment
           newBalance += capitalInvestment;
         }
-      } else {
+      } else if (capitalInvestmentMode === 'suggested') {
         // Suggested Capital Mode: Inject capital to maintain minimum requirement threshold
         if (newBalance < Math.max(0, minimumFund)) {
           // Calculate required capital investment to maintain minimum balance (or 0 if no minimum set)
@@ -1028,6 +1028,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
           // Update balance with capital investment
           newBalance += capitalInvestment;
         }
+      } else if (capitalInvestmentMode === 'custom') {
+        // Custom Capital Mode: No automatic capital injections - allow negative balances
+        // capitalInvestment remains 0, newBalance can go negative
       }
       
       // Update current balance for next period
