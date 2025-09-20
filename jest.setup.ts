@@ -691,33 +691,67 @@ jest.mock('bcryptjs', () => ({
   genSalt: jest.fn().mockResolvedValue('mock-salt'),
 }));
 
+// Mock problematic Node.js modules that cause test issues
+jest.mock('glob', () => ({
+  glob: jest.fn().mockResolvedValue([]),
+  globSync: jest.fn().mockReturnValue([]),
+  Glob: jest.fn().mockImplementation(() => ({
+    found: [],
+    walk: jest.fn(),
+  })),
+}));
+
 // =============================================================================
 // DATABASE AND ORM MOCKS
 // =============================================================================
 
 // Mock pg-core functions BEFORE drizzle-orm to prevent schema import issues
-jest.mock('drizzle-orm/pg-core', () => ({
-  pgEnum: jest.fn().mockImplementation((name, values) => ({
-    name,
-    enumValues: values,
-    enumName: name
-  })),
-  pgTable: jest.fn().mockImplementation((name, schema) => ({
-    name,
-    ...schema,
-    _: { name, columns: schema }
-  })),
-  text: jest.fn().mockImplementation(() => ({ type: 'text' })),
-  varchar: jest.fn().mockImplementation((length) => ({ type: 'varchar', length })),
-  boolean: jest.fn().mockImplementation(() => ({ type: 'boolean' })),
-  timestamp: jest.fn().mockImplementation(() => ({ type: 'timestamp' })),
-  integer: jest.fn().mockImplementation(() => ({ type: 'integer' })),
-  uuid: jest.fn().mockImplementation(() => ({ type: 'uuid' })),
-  serial: jest.fn().mockImplementation(() => ({ type: 'serial' })),
-  primaryKey: jest.fn().mockImplementation(() => ({ type: 'primaryKey' })),
-  unique: jest.fn().mockImplementation(() => ({ type: 'unique' })),
-  index: jest.fn().mockImplementation(() => ({ type: 'index' })),
-}));
+jest.mock('drizzle-orm/pg-core', () => {
+  // Create chainable mock column object
+  const createMockColumn = (type: string, options?: any) => ({
+    type,
+    ...options,
+    primaryKey: jest.fn().mockReturnThis(),
+    default: jest.fn().mockReturnThis(),
+    defaultNow: jest.fn().mockReturnThis(),  // For timestamp columns
+    notNull: jest.fn().mockReturnThis(),
+    unique: jest.fn().mockReturnThis(),
+    references: jest.fn().mockReturnThis(),
+    array: jest.fn().mockReturnThis(),
+    onDelete: jest.fn().mockReturnThis(),   // For foreign key references
+    onUpdate: jest.fn().mockReturnThis(),   // For foreign key references
+  });
+
+  return {
+    pgEnum: jest.fn().mockImplementation((name, values) => {
+      // Return a function that can be called like userRoleEnum('role')
+      const enumFn = jest.fn().mockImplementation(() => createMockColumn('enum', { name, values }));
+      enumFn.enumName = name;
+      enumFn.enumValues = values;
+      return enumFn;
+    }),
+    pgTable: jest.fn().mockImplementation((name, schema, config) => ({
+      name,
+      ...schema,
+      _: { name, columns: schema }
+    })),
+    primaryKey: jest.fn().mockImplementation((options) => ({ type: 'primaryKey', ...options })),
+    text: jest.fn().mockImplementation(() => createMockColumn('text')),
+    varchar: jest.fn().mockImplementation((options) => createMockColumn('varchar', options)),
+    boolean: jest.fn().mockImplementation(() => createMockColumn('boolean')),
+    timestamp: jest.fn().mockImplementation(() => createMockColumn('timestamp')),
+    integer: jest.fn().mockImplementation(() => createMockColumn('integer')),
+    uuid: jest.fn().mockImplementation(() => createMockColumn('uuid')),
+    serial: jest.fn().mockImplementation(() => createMockColumn('serial')),
+    decimal: jest.fn().mockImplementation((options) => createMockColumn('decimal', options)),
+    numeric: jest.fn().mockImplementation((options) => createMockColumn('numeric', options)),
+    jsonb: jest.fn().mockImplementation(() => createMockColumn('jsonb')),
+    json: jest.fn().mockImplementation(() => createMockColumn('json')),
+    date: jest.fn().mockImplementation(() => createMockColumn('date')),
+    uniqueIndex: jest.fn().mockImplementation(() => ({ type: 'uniqueIndex' })),
+    index: jest.fn().mockImplementation(() => ({ type: 'index' })),
+  };
+});
 
 // Mock Drizzle ORM functions first to prevent import issues
 jest.mock('drizzle-orm', () => ({
