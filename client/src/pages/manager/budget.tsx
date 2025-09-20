@@ -1343,11 +1343,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     if (filters.startMonth && filters.startYear) {
       const windowStart = new Date(filters.startYear, filters.startMonth - 1, 1);
       const periodMonths = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
-      const windowEnd = new Date(windowStart.getTime() + periodMonths * 30 * 24 * 60 * 60 * 1000);
+      // Use proper month arithmetic instead of multiplying by 30 days
+      const windowEnd = new Date(filters.startYear, filters.startMonth - 1 + periodMonths, 1);
       
       filtered = filtered.filter(inv => {
         const invDate = new Date(inv.targetDate);
-        return invDate >= windowStart && invDate <= windowEnd;
+        return invDate >= windowStart && invDate < windowEnd;
       });
     }
     
