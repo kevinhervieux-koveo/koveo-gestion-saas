@@ -677,7 +677,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       return billResponse;
     },
     onSuccess: (data) => {
+      // Invalidate all bill-related queries to ensure proper refresh
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+      if (buildingId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/bills', buildingId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/bills/year-range', buildingId] });
+      }
       toast({
         title: 'Success',
         description: `Bill ${bill ? 'updated' : 'created'} successfully`,
@@ -700,7 +705,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       return apiRequest('DELETE', `/api/bills/${bill.id}`, null);
     },
     onSuccess: () => {
+      // Invalidate all bill-related queries to ensure proper refresh
       queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+      if (buildingId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/bills', buildingId] });
+        queryClient.invalidateQueries({ queryKey: ['/api/bills/year-range', buildingId] });
+      }
       toast({
         title: 'Success',
         description: 'Bill deleted successfully',
