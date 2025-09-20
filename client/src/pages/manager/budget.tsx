@@ -1199,24 +1199,18 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }));
   };
 
-  // Auto-generation logic for capital investments based on budget analysis (with non-overlapping recommendations)
+  // Auto-generation logic for capital investments based on budget forecast data
   const generateSuggestedInvestments = (): CapitalInvestment[] => {
-    // Force console log regardless of isDev mode to debug the issue
-    console.log('🔍 generateSuggestedInvestments called', {
-      timestamp: new Date().toISOString(),
-      capitalInvestmentMode,
-      hasForecastData: !!forecastData,
-      forecastLength: forecastData?.forecast?.length || 0
-    });
-    
     const suggestions: CapitalInvestment[] = [];
     const metrics = calculateSummaryMetrics();
     const emergencyMin = localSettings.emergencyFundMinimum || 10000;
     const operatingMin = localSettings.operatingCashMinimum || 5000;
     const currentBalance = metrics.currentBalance;
     
-    // Calculate discrete, non-overlapping funding needs
-    let cumulativeTarget = 0;
+    // Only generate suggestions if we're in suggested mode
+    if (capitalInvestmentMode !== 'suggested') {
+      return suggestions;
+    }
     
     // 1. Emergency Fund - most critical
     if (currentBalance < emergencyMin) {
@@ -1226,155 +1220,33 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         title: 'Emergency Fund Replenishment',
         description: `Current balance (${currentBalance.toLocaleString()}) is below emergency fund minimum (${emergencyMin.toLocaleString()})`,
         amount: emergencyShortfall,
-        targetDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days from now
-        urgency: 'urgent', // More critical than operating cash
+        targetDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        urgency: 'urgent',
         type: 'auto_generated',
         ownershipType: 'owner',
         category: 'Emergency Fund',
         createdAt: new Date().toISOString(),
       });
-      cumulativeTarget += emergencyShortfall;
     }
     
-    // 2. Operating Cash - additional buffer beyond emergency fund
+    // 2. Operating Cash Buffer
     const totalRecommendedCash = emergencyMin + operatingMin;
     if (currentBalance < totalRecommendedCash) {
-      // Only suggest the operating cash portion that's not already covered by emergency fund
       const operatingShortfall = totalRecommendedCash - Math.max(currentBalance, emergencyMin);
       if (operatingShortfall > 0) {
         suggestions.push({
           id: `auto-operating-${Date.now()}`,
           title: 'Operating Cash Buffer',
-          description: `Additional operating cash needed beyond emergency fund for smooth operations (${operatingMin.toLocaleString()} buffer)`,
+          description: `Additional operating cash needed for smooth operations (${operatingMin.toLocaleString()} buffer)`,
           amount: operatingShortfall,
-          targetDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 60 days from now
+          targetDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           urgency: 'suggested',
           type: 'auto_generated',
           ownershipType: 'owner',
           category: 'Operating Cash',
           createdAt: new Date().toISOString(),
         });
-        cumulativeTarget += operatingShortfall;
       }
-    }
-    
-    // 3. Cash Flow Support - based on forecast projections (independent of static minimums)
-    if (forecastData?.forecast) {
-      const filteredForecast = getFilteredForecastData();
-      const negativeMonths = filteredForecast.filter(month => month.balance < 0);
-      
-      if (negativeMonths.length > 0) {
-        const firstNegative = negativeMonths[0];
-        const maxDeficit = Math.abs(Math.min(...negativeMonths.map(m => m.balance)));
-        
-        // Only suggest if forecast deficit exceeds our current cash targets
-        const projectedBalanceAfterTargets = currentBalance + cumulativeTarget;
-        if (maxDeficit > projectedBalanceAfterTargets) {
-          const additionalCashFlowNeeded = maxDeficit - projectedBalanceAfterTargets; // Removed hardcoded safety buffer
-          suggestions.push({
-            id: `auto-cashflow-${Date.now()}`,
-            title: 'Cash Flow Support',
-            description: `Additional funds needed for projected negative balance of ${maxDeficit.toLocaleString()} in ${firstNegative.month}/${firstNegative.year}`,
-            amount: additionalCashFlowNeeded,
-            targetDate: new Date(firstNegative.year, firstNegative.month - 1, 1).toISOString().split('T')[0],
-            urgency: 'urgent',
-            type: 'auto_generated',
-            ownershipType: 'owner',
-            category: 'Cash Flow',
-            createdAt: new Date().toISOString(),
-          });
-        }
-      }
-    }
-    
-    // Add capital investments based on selected strategy
-    if (capitalInvestmentMode === 'suggested') {
-      // Suggested Capital: Use actual backend-calculated investment amounts from forecast data
-      // The forecast contains the real calculated capitalInvestment values (~$900) from the backend
-      // Force console log to debug the issue
-      console.log('🔍 CAPITAL INVESTMENT MODE: SUGGESTED - Checking forecast data', {
-        hasForecastData: !!forecastData,
-        hasForecast: !!forecastData?.forecast,
-        forecastLength: forecastData?.forecast?.length || 0,
-        mode: capitalInvestmentMode,
-        timestamp: new Date().toISOString()
-      });
-      
-      if (forecastData?.forecast && forecastData.forecast.length > 0) {
-        // Get the filtered forecast data based on current view settings
-        const filteredForecast = getFilteredForecastData();
-        
-        console.log('🔍 RAW FORECAST DATA SAMPLE - First 5 periods:', 
-          forecastData.forecast.slice(0, 5).map(p => ({
-            period: `${p.year}-${p.month}`,
-            capitalInvestment: p.capitalInvestment,
-            balance: p.balance,
-            revenue: p.revenue,
-            spending: p.spending
-          }))
-        );
-        
-        console.log('🔍 ALL PERIODS WITH CAPITAL INVESTMENT > 0:', 
-          forecastData.forecast
-            .filter(p => p.capitalInvestment > 0)
-            .slice(0, 10) // First 10 periods with capital investment
-            .map(p => ({
-              period: `${p.year}-${p.month}`,
-              capitalInvestment: p.capitalInvestment,
-              balance: p.balance
-            }))
-        );
-        
-        // Find periods that need capital investments (where capitalInvestment > 0)
-        const periodsWithInvestments = filteredForecast.filter(period => period.capitalInvestment > 0);
-        
-        debugLog('🔍 Periods with capital investments from forecast', {
-          totalPeriods: filteredForecast.length,
-          periodsWithInvestments: periodsWithInvestments.length,
-          investments: periodsWithInvestments.map(p => ({
-            period: `${p.year}-${p.month}`,
-            amount: p.capitalInvestment
-          }))
-        });
-        
-        // Create investment suggestions based on forecast calculations
-        periodsWithInvestments.forEach((period, index) => {
-          if (period.capitalInvestment > 0) {
-            const targetDate = new Date(period.year, period.month - 1, 15).toISOString().split('T')[0];
-            suggestions.push({
-              id: `forecast-investment-${period.year}-${period.month}-${Date.now()}`,
-              title: `Investment for ${new Date(period.year, period.month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
-              description: `Capital investment calculated by forecast to maintain minimum requirements`,
-              amount: Math.round(period.capitalInvestment * 100) / 100, // Round to 2 decimal places
-              targetDate: targetDate,
-              urgency: 'suggested',
-              type: 'auto_generated',
-              ownershipType: 'owner',
-              category: `Forecast Investment ${period.year}-${String(period.month).padStart(2, '0')}`,
-              createdAt: new Date().toISOString(),
-            });
-          }
-        });
-        
-        debugLog('Generated investment suggestions from forecast data', {
-          suggestionsCount: periodsWithInvestments.length,
-          totalInvestmentAmount: periodsWithInvestments.reduce((sum, p) => sum + p.capitalInvestment, 0)
-        });
-      } else {
-        console.log('🔍 FORECAST DATA NOT AVAILABLE - falling back to no suggestions', { 
-          forecastData: !!forecastData,
-          forecastLength: forecastData?.forecast?.length || 0,
-          timestamp: new Date().toISOString()
-        });
-      }
-    } else if (capitalInvestmentMode === 'urgent') {
-      // Urgent Capital Only: Only add investments when budget balance would go below $0
-      // This mode only injects capital when absolutely necessary (emergency injection)
-      // No specific capital investments are added unless there's an urgent need
-    } else if (capitalInvestmentMode === 'custom') {
-      // Custom mode: No auto-generated investments
-      debugLog('Custom capital mode active - no auto-generated investments', { mode: capitalInvestmentMode });
-      return suggestions; // Return early, no auto-generation
     }
     
     return suggestions;
@@ -2001,15 +1873,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         // Recalculate net cash flow with combined revenue and total spending
         yearlyData[item.year].netCashFlow += (combinedRevenue - totalSpending);
         
-        // Calculate capital investments for this month
-        const monthStart = new Date(item.year, item.month - 1, 1);
-        const monthEnd = new Date(item.year, item.month, 0, 23, 59, 59, 999);
-        const monthlyInvestments = calculateCapitalInvestmentsForPeriod(monthStart, monthEnd);
-        
-        yearlyData[item.year].capitalInvestments += monthlyInvestments.total;
-        yearlyData[item.year].urgentInvestments += monthlyInvestments.urgent;
-        yearlyData[item.year].suggestedInvestments += monthlyInvestments.suggested;
-        yearlyData[item.year].notUrgentInvestments += monthlyInvestments.notUrgent;
+        // Use forecast data's capitalInvestment directly for chart display
+        const forecastCapitalInvestment = item.capitalInvestment || 0;
+        yearlyData[item.year].capitalInvestments += forecastCapitalInvestment;
+        yearlyData[item.year].urgentInvestments += 0; // No urgency data in forecast
+        yearlyData[item.year].suggestedInvestments += forecastCapitalInvestment;
+        yearlyData[item.year].notUrgentInvestments += 0; // No urgency data in forecast
         
         yearlyData[item.year].count++;
         // For yearly view: Use first month's balance as start, last month's balance as end
@@ -2060,10 +1929,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         balanceStart = localSettings.bankAccountStartAmount || 0;
       }
       
-      // Calculate capital investments for this month
-      const monthStart = new Date(item.year, item.month - 1, 1);
-      const monthEnd = new Date(item.year, item.month, 0, 23, 59, 59, 999);
-      const monthlyInvestments = calculateCapitalInvestmentsForPeriod(monthStart, monthEnd);
+      // Use forecast data's capitalInvestment directly for chart display
+      const forecastCapitalInvestment = item.capitalInvestment || 0;
       
       return {
         month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
@@ -2073,10 +1940,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
         spending: totalSpending, // Include unplanned bills
         netCashFlow: combinedRevenue - totalSpending, // Recalculate with combined revenue and total spending
-        capitalInvestments: monthlyInvestments.total,
-        urgentInvestments: monthlyInvestments.urgent,
-        suggestedInvestments: monthlyInvestments.suggested,
-        notUrgentInvestments: monthlyInvestments.notUrgent,
+        capitalInvestments: forecastCapitalInvestment,
+        urgentInvestments: 0, // No urgency data in forecast
+        suggestedInvestments: forecastCapitalInvestment,
+        notUrgentInvestments: 0, // No urgency data in forecast
       };
     });
   };
