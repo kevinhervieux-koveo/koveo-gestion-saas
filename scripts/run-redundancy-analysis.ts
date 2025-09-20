@@ -36,7 +36,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
       ],
       {
         stdio: 'pipe',
-        shell: true,
+        shell: false,
       }
     );
 
@@ -98,7 +98,7 @@ const runStyleAnalysis = (): Promise<TestResult> => {
       ['jest', 'tests/code-analysis/style-consolidation.test.ts', '--verbose', '--silent'],
       {
         stdio: 'pipe',
-        shell: true,
+        shell: false,
       }
     );
 
