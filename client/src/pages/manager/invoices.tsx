@@ -269,7 +269,7 @@ export default function Invoices() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All types</SelectItem>
-                      <SelectItem value="one-time">One-time</SelectItem>
+                      <SelectItem value="one-time">One-Time Bill</SelectItem>
                       <SelectItem value="recurring">Recurring</SelectItem>
                     </SelectContent>
                   </Select>
@@ -454,7 +454,7 @@ export default function Invoices() {
                     <CardTitle className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <FileText className="w-5 h-5" />
-                        One-time Invoices
+                        One-Time Bills
                         <Badge variant="secondary">{invoicesByType['one-time'].length}</Badge>
                       </div>
                     </CardTitle>

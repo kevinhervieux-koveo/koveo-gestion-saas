@@ -137,7 +137,7 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
               </span>
             </div>
             <Badge variant={getPaymentTypeVariant(invoice.paymentType)}>
-              {invoice.paymentType === 'recurring' ? 'Recurring' : 'One-time'}
+              {invoice.paymentType === 'recurring' ? 'Recurring' : 'One-Time Bill'}
             </Badge>
           </div>
 

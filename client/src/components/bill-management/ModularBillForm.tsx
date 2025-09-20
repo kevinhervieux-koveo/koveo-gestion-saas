@@ -89,7 +89,7 @@ const billFormSchema = z.object({
     if (!data.totalAmount || data.totalAmount.trim() === '') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Total amount is required for unique payments',
+        message: 'Total amount is required for one-time bills',
         path: ['totalAmount']
       });
     }
@@ -1013,7 +1013,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="unique">One-time Payment</SelectItem>
+                      <SelectItem value="unique">One-Time Bill</SelectItem>
                       <SelectItem value="recurrent">Recurring Payment</SelectItem>
                     </SelectContent>
                   </Select>
@@ -1034,7 +1034,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                       <Input placeholder="0.00" type="number" step="0.01" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Complete amount for this one-time payment
+                      Complete amount for this one-time bill
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

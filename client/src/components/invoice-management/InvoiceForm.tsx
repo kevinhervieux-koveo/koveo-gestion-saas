@@ -52,7 +52,7 @@ const INVOICE_CATEGORIES = [
 ];
 
 const PAYMENT_TYPES = [
-  { value: 'one-time', label: 'One-time Payment' },
+  { value: 'one-time', label: 'One-Time Bill' },
   { value: 'recurring', label: 'Recurring Payment' },
 ];
 
