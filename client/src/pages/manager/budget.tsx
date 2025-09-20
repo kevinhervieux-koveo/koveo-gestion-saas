@@ -936,30 +936,59 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   };
 
   // Handle complete page refresh
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
   const handleRefreshPage = async () => {
+    if (isRefreshing) return;
+    
     try {
+      setIsRefreshing(true);
       debugLog('Starting page refresh', { buildingId });
       
-      // Invalidate all relevant queries to force refetch
-      await queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/buildings', buildingId, 'residences'] });
-      await queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/investments`] });
-      await queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/forecast`] });
+      // Invalidate all relevant queries with partial keys for better matching
+      await Promise.all([
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/budgets', buildingId, 'bank-account'], 
+          refetchType: 'active' 
+        }),
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/buildings', buildingId, 'residences'], 
+          refetchType: 'active' 
+        }),
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/budgets', buildingId, 'investments'], 
+          refetchType: 'active' 
+        }),
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/budgets', buildingId, 'forecast'], 
+          refetchType: 'active' 
+        }),
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/bills', buildingId], 
+          refetchType: 'active' 
+        }),
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/budgets', buildingId, 'scenarios'], 
+          refetchType: 'active' 
+        })
+      ]);
       
       // Show success toast
       toast({
-        title: t('refreshComplete') || 'Refresh Complete',
-        description: t('budgetDataUpdated') || 'Budget data has been refreshed with the latest information.',
+        title: 'Refresh Complete',
+        description: 'Budget data has been refreshed with the latest information.',
       });
       
       debugLog('Page refresh completed successfully', { buildingId });
     } catch (error) {
       debugLog('Error during page refresh', { buildingId, error });
       toast({
-        title: t('refreshError') || 'Refresh Error',
-        description: t('refreshErrorDescription') || 'Failed to refresh budget data. Please try again.',
+        title: 'Refresh Error',
+        description: 'Failed to refresh budget data. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -2065,11 +2094,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
           <Button
             variant="outline"
             onClick={handleRefreshPage}
+            disabled={isRefreshing}
             className="flex items-center gap-2"
             data-testid="button-refresh-budget"
           >
-            <RefreshCw className="w-4 h-4" />
-            {t('refresh') || 'Refresh'}
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : (t('refresh') || 'Refresh')}
           </Button>
         </div>
       )}
