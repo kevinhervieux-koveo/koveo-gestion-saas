@@ -29,8 +29,16 @@ class DevDatabaseChecker {
   }
 
   private execQuery(db: string, query: string): string {
+    // Validate database URL format to prevent injection
+    if (!db || typeof db !== 'string' || !db.startsWith('postgres')) {
+      throw new Error('Invalid database URL format');
+    }
+    
     try {
-      return execSync(`psql "${db}" -t -c "${query}"`, { 
+      // Escape shell arguments to prevent injection
+      const escapedDb = db.replace(/'/g, "'\"'\"'");
+      const escapedQuery = query.replace(/'/g, "'\"'\"'");
+      return execSync(`psql '${escapedDb}' -t -c '${escapedQuery}'`, { 
         encoding: 'utf8',
         stdio: 'pipe'
       }).trim();
