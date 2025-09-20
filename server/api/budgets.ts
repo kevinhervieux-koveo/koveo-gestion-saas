@@ -1140,9 +1140,21 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         // Suggested Capital Mode: Inject capital for minimum requirements AND special investments
         let suggestedInvestment = 0;
         
-        // 1. First ensure minimum requirement is met
-        if (balanceWithoutAutoInvestment < Math.max(0, minimumFund)) {
-          suggestedInvestment = Math.max(0, minimumFund) - balanceWithoutAutoInvestment;
+        // 1. First ensure minimum requirement is met (only if balance is below minimum)
+        const minimumRequired = Math.max(0, minimumFund);
+        if (balanceWithoutAutoInvestment < minimumRequired) {
+          suggestedInvestment = minimumRequired - balanceWithoutAutoInvestment;
+          debugLog('Investment needed to reach minimum requirement', {
+            balanceWithoutAutoInvestment,
+            minimumRequired,
+            suggestedInvestment
+          });
+        } else {
+          debugLog('Balance already above minimum requirement', {
+            balanceWithoutAutoInvestment,
+            minimumRequired,
+            surplus: balanceWithoutAutoInvestment - minimumRequired
+          });
         }
         
         // 2. Then consider additional investments from extended config
