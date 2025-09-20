@@ -83,6 +83,7 @@ interface BankAccountSettings {
   useGlobalBillsInflation?: boolean;
   globalBillsInflationRate?: number;
   unplannedBillsAmount?: number;
+  unplannedBillsStartDate?: string;
   // Per-category inflation rates (used when useGlobalBillsInflation is false)
   categoryInflationRates?: {
     utilities?: number;
@@ -276,6 +277,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     useGlobalBillsInflation: true,
     globalBillsInflationRate: 2.5,
     unplannedBillsAmount: 0,
+    unplannedBillsStartDate: new Date().toISOString().split('T')[0], // Default to today
     categoryInflationRates: {
       utilities: 3.0,
       maintenance: 2.5,
@@ -474,6 +476,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       useGlobalBillsInflation: parseBooleanValue(data.useGlobalBillsInflation, true),
       globalBillsInflationRate: parseNumericValue(data.globalBillsInflationRate, 2.5),
       unplannedBillsAmount: parseNumericValue(data.unplannedBillsAmount, 0),
+      unplannedBillsStartDate: data.unplannedBillsStartDate || new Date().toISOString().split('T')[0],
       categoryInflationRates: {
         utilities: parseNumericValue(data.categoryInflationRates?.utilities, 3.0),
         maintenance: parseNumericValue(data.categoryInflationRates?.maintenance, 2.5),
@@ -504,6 +507,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         useGlobalBillsInflation: prev.useGlobalBillsInflation,
         globalBillsInflationRate: prev.globalBillsInflationRate,
         unplannedBillsAmount: prev.unplannedBillsAmount,
+        unplannedBillsStartDate: prev.unplannedBillsStartDate,
         categoryInflationRates: prev.categoryInflationRates,
         customBankFields: prev.customBankFields,
       }) !== JSON.stringify(nextSettings);
@@ -856,6 +860,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       debugLog('Saving unplanned bills amount', { buildingId, amount });
       const payload = {
         unplannedBillsAmount: amount,
+        unplannedBillsStartDate: localSettings.unplannedBillsStartDate,
         notes: 'Updated via budget configuration'
       };
       const response = await apiRequest('PUT', `/api/budgets/${buildingId}/unplanned-bills`, payload);
@@ -3593,6 +3598,27 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             placeholder="0.00"
                             data-testid="input-unplanned-bills"
                           />
+                        </div>
+                        <div className='space-y-1'>
+                          <Label htmlFor="unplanned-bills-start-date" className='text-xs text-orange-700 dark:text-orange-300'>
+                            Start Date (when to begin applying unplanned bills)
+                          </Label>
+                          <div className='relative'>
+                            <Calendar className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                            <Input
+                              id="unplanned-bills-start-date"
+                              type="date"
+                              value={localSettings.unplannedBillsStartDate || ''}
+                              onChange={(e) =>
+                                setLocalSettings(prev => ({
+                                  ...prev,
+                                  unplannedBillsStartDate: e.target.value,
+                                }))
+                              }
+                              className="pl-9"
+                              data-testid="input-unplanned-bills-start-date"
+                            />
+                          </div>
                         </div>
                       </div>
                       <div className='space-y-1'>
