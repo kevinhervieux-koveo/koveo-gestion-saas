@@ -316,6 +316,29 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     localStorage.setItem('budget-filters-collapsed', JSON.stringify(filtersCollapsed));
   }, [filtersCollapsed]);
 
+  // Configuration cards collapsible state - all collapsed by default
+  const [cardsCollapsed, setCardsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('budget-cards-collapsed');
+    return saved ? JSON.parse(saved) : {
+      bankAccount: true,
+      minimumRequirement: true,
+      revenue: true,
+      bills: true,
+      capitalInvestment: true,
+    };
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem('budget-cards-collapsed', JSON.stringify(cardsCollapsed));
+  }, [cardsCollapsed]);
+
+  const toggleCard = (cardName: keyof typeof cardsCollapsed) => {
+    setCardsCollapsed(prev => ({
+      ...prev,
+      [cardName]: !prev[cardName]
+    }));
+  };
+
   // Custom revenue lines state
   const [customRevenueLines, setCustomRevenueLines] = useState<CustomRevenueLine[]>([]);
   const [newRevenueLine, setNewRevenueLine] = useState<{description: string; monthlyAmount: string}>({
@@ -2149,14 +2172,14 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
               </div>
             </Card>
 
-            {/* Data Visibility Toggles Section */}
-            <Card className="p-4">
-              <div className="space-y-3">
+            {/* Data Visibility Toggles Section - Full Width with 2 Columns */}
+            <Card className="p-4 w-full">
+              <div className="space-y-4">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <Eye className="w-4 h-4" />
                   Data Visibility
                 </Label>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="toggle-revenue" className="text-sm cursor-pointer flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-green-500" />
