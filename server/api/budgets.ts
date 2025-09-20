@@ -795,6 +795,33 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         )
       );
 
+    // Fetch unique bills for Bills Configuration display count
+    const uniqueBills = await db
+      .select({
+        id: bills.id,
+        category: bills.category,
+        status: bills.status,
+      })
+      .from(bills)
+      .where(
+        and(
+          eq(bills.buildingId, buildingId),
+          eq(bills.paymentType, 'unique'),
+          inArray(bills.status, ['draft', 'sent', 'paid', 'overdue'])
+        )
+      );
+
+    debugLog('Bills counts for configuration display', {
+      buildingId,
+      recurrentBillsCount: recurrentBills.length,
+      uniqueBillsCount: uniqueBills.length,
+      uniqueBillsFound: uniqueBills.map(bill => ({
+        id: bill.id,
+        category: bill.category,
+        status: bill.status
+      }))
+    });
+
     // REMOVED: Historical expenses query - spending calculations now only use bills data
     // No historical expenses or other data sources are used in spending calculations
     debugLog('Spending calculation sources', {
@@ -1134,6 +1161,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       baselineMonthlyIncome: monthlyBaselineIncome,
       baselineMonthlyExpenses: monthlyRecurringCosts,
       recurrentBillsCount: recurrentBills.length,
+      uniqueBillsCount: uniqueBills.length,
       // CLARIFICATION: Spending calculations use ONLY bills data
       dataSourcesUsed: {
         recurrentBills: true,
