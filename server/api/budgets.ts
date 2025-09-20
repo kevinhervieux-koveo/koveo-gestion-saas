@@ -546,7 +546,7 @@ async function calculateUnplannedBillsSuggestion(
           lt(bills.startDate, currentDate.toISOString().split('T')[0]) // Only bills before today
         )
       )
-      .orderBy(asc(bills.startDate)); // Order by start date to find the earliest
+      .orderBy(asc(bills.createdAt)); // Order by created date to find the earliest recorded bill
 
     if (uniqueBills.length === 0) {
       return { amount: 0, confidence: 'no_data', yearsAnalyzed: 0 };
@@ -558,9 +558,9 @@ async function calculateUnplannedBillsSuggestion(
       return sum + (Number.isFinite(amount) ? amount : 0);
     }, 0);
 
-    // Calculate months from the first unique bill's start date to today
-    const earliestBillDate = new Date(uniqueBills[0].startDate);
-    const monthsDifference = Math.max(1, Math.floor((currentDate.getTime() - earliestBillDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000))); 
+    // Calculate months from the first unique bill's recorded date (created_at) to today
+    const earliestBillDate = new Date(uniqueBills[0].createdAt);
+    const monthsDifference = Math.max(1, Math.floor((currentDate.getTime() - earliestBillDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000)));
     
     const monthlyAverage = totalAmount / monthsDifference;
 
@@ -577,7 +577,7 @@ async function calculateUnplannedBillsSuggestion(
       buildingId,
       uniqueBillsCount: uniqueBills.length,
       totalAmount,
-      earliestBillDate: earliestBillDate.toISOString().split('T')[0],
+      earliestBillRecordedDate: earliestBillDate.toISOString().split('T')[0],
       monthsDifference,
       monthlyAverage,
       confidence,
