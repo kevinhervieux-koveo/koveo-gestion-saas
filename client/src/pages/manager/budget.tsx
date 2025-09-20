@@ -1201,6 +1201,14 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   // Auto-generation logic for capital investments based on budget analysis (with non-overlapping recommendations)
   const generateSuggestedInvestments = (): CapitalInvestment[] => {
+    // Force console log regardless of isDev mode to debug the issue
+    console.log('🔍 generateSuggestedInvestments called', {
+      timestamp: new Date().toISOString(),
+      capitalInvestmentMode,
+      hasForecastData: !!forecastData,
+      forecastLength: forecastData?.forecast?.length || 0
+    });
+    
     const suggestions: CapitalInvestment[] = [];
     const metrics = calculateSummaryMetrics();
     const emergencyMin = localSettings.emergencyFundMinimum || 10000;
@@ -1283,11 +1291,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     if (capitalInvestmentMode === 'suggested') {
       // Suggested Capital: Use actual backend-calculated investment amounts from forecast data
       // The forecast contains the real calculated capitalInvestment values (~$900) from the backend
-      debugLog('🔍 Checking forecast data for investments', {
+      // Force console log to debug the issue
+      console.log('🔍 CAPITAL INVESTMENT MODE: SUGGESTED - Checking forecast data', {
         hasForecastData: !!forecastData,
         hasForecast: !!forecastData?.forecast,
         forecastLength: forecastData?.forecast?.length || 0,
-        mode: capitalInvestmentMode
+        mode: capitalInvestmentMode,
+        timestamp: new Date().toISOString()
       });
       
       if (forecastData?.forecast && forecastData.forecast.length > 0) {
@@ -1338,7 +1348,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
           totalInvestmentAmount: periodsWithInvestments.reduce((sum, p) => sum + p.capitalInvestment, 0)
         });
       } else {
-        debugLog('Forecast data not available for investment calculation', { forecastData: !!forecastData });
+        console.log('🔍 FORECAST DATA NOT AVAILABLE - falling back to no suggestions', { 
+          forecastData: !!forecastData,
+          forecastLength: forecastData?.forecast?.length || 0,
+          timestamp: new Date().toISOString()
+        });
       }
     } else if (capitalInvestmentMode === 'urgent') {
       // Urgent Capital Only: Only add investments when budget balance would go below $0
