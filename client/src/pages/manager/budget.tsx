@@ -1637,15 +1637,26 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return getBudgetCategories().allCategories;
   };
 
-  // Calculate capital investments for chart
+  // Calculate capital investments for chart - separated by urgency
   const calculateCapitalInvestmentsForPeriod = (startDate: Date, endDate: Date) => {
     const filteredInvestments = getFilteredInvestments();
-    return filteredInvestments
-      .filter(investment => {
-        const investmentDate = new Date(investment.targetDate);
-        return investmentDate >= startDate && investmentDate < endDate;
-      })
-      .reduce((total, investment) => total + investment.amount, 0);
+    const periodInvestments = filteredInvestments.filter(investment => {
+      const investmentDate = new Date(investment.targetDate);
+      return investmentDate >= startDate && investmentDate < endDate;
+    });
+
+    // Helper function to ensure amount is a number
+    const getAmount = (inv: any) => {
+      const amount = typeof inv.amount === 'string' ? parseFloat(inv.amount) : inv.amount;
+      return isNaN(amount) ? 0 : amount;
+    };
+
+    return {
+      urgent: periodInvestments.filter(inv => inv.urgency === 'urgent').reduce((sum, inv) => sum + getAmount(inv), 0),
+      suggested: periodInvestments.filter(inv => inv.urgency === 'suggested').reduce((sum, inv) => sum + getAmount(inv), 0),
+      notUrgent: periodInvestments.filter(inv => inv.urgency === 'not_urgent').reduce((sum, inv) => sum + getAmount(inv), 0),
+      total: periodInvestments.reduce((sum, inv) => sum + getAmount(inv), 0)
+    };
   };
 
   // Prepare chart data with filters applied
@@ -1680,12 +1691,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         balanceEnd: number; 
         netCashFlow: number; 
         capitalInvestments: number;
+        urgentInvestments: number;
+        suggestedInvestments: number;
+        notUrgentInvestments: number;
         count: number 
       } } = {};
 
       filteredData.forEach((item, index) => {
         if (!yearlyData[item.year]) {
-          yearlyData[item.year] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, count: 0 };
+          yearlyData[item.year] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, urgentInvestments: 0, suggestedInvestments: 0, notUrgentInvestments: 0, count: 0 };
         }
         // Use combined revenue instead of forecast revenue
         yearlyData[item.year].revenue += combinedRevenue;
@@ -1695,8 +1709,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         // Recalculate net cash flow with combined revenue and total spending
         yearlyData[item.year].netCashFlow += (combinedRevenue - totalSpending);
         
-        // Fix: Use actual capital investment data from forecast (automatic balance management)
-        yearlyData[item.year].capitalInvestments += item.capitalInvestment || 0;
+        // Calculate capital investments for this month
+        const monthStart = new Date(item.year, item.month - 1, 1);
+        const monthEnd = new Date(item.year, item.month, 0, 23, 59, 59, 999);
+        const monthlyInvestments = calculateCapitalInvestmentsForPeriod(monthStart, monthEnd);
+        
+        yearlyData[item.year].capitalInvestments += monthlyInvestments.total;
+        yearlyData[item.year].urgentInvestments += monthlyInvestments.urgent;
+        yearlyData[item.year].suggestedInvestments += monthlyInvestments.suggested;
+        yearlyData[item.year].notUrgentInvestments += monthlyInvestments.notUrgent;
         
         yearlyData[item.year].count++;
         // For yearly view: Use first month's balance as start, last month's balance as end
@@ -1725,6 +1746,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
           spending: data.spending,
           netCashFlow: data.netCashFlow,
           capitalInvestments: data.capitalInvestments,
+          urgentInvestments: data.urgentInvestments,
+          suggestedInvestments: data.suggestedInvestments,
+          notUrgentInvestments: data.notUrgentInvestments,
           status: 'green' as const, // TODO: Calculate status based on yearly data
         }));
     }
@@ -1744,6 +1768,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         balanceStart = localSettings.bankAccountStartAmount || 0;
       }
       
+      // Calculate capital investments for this month
+      const monthStart = new Date(item.year, item.month - 1, 1);
+      const monthEnd = new Date(item.year, item.month, 0, 23, 59, 59, 999);
+      const monthlyInvestments = calculateCapitalInvestmentsForPeriod(monthStart, monthEnd);
+      
       return {
         month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
         balanceStart: balanceStart,
@@ -1752,8 +1781,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
         spending: totalSpending, // Include unplanned bills
         netCashFlow: combinedRevenue - totalSpending, // Recalculate with combined revenue and total spending
-        // Fix: Use actual capital investment data from forecast (automatic balance management)
-        capitalInvestments: item.capitalInvestment || 0,
+        capitalInvestments: monthlyInvestments.total,
+        urgentInvestments: monthlyInvestments.urgent,
+        suggestedInvestments: monthlyInvestments.suggested,
+        notUrgentInvestments: monthlyInvestments.notUrgent,
       };
     });
   };
@@ -2332,10 +2363,20 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </div>
                     )}
                     {filters.dataVisibility.capitalInvestments && (
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${capitalInvestmentMode === 'urgent' ? 'bg-red-600' : 'bg-orange-500'}`}></div>
-                        <span className="text-sm font-medium">Capital Investments ({capitalInvestmentMode})</span>
-                      </div>
+                      <>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-red-600"></div>
+                          <span className="text-sm font-medium">Urgent Investments</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                          <span className="text-sm font-medium">Suggested Investments</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                          <span className="text-sm font-medium">Not Urgent Investments</span>
+                        </div>
+                      </>
                     )}
                     {filters.dataVisibility.minimumRequirement && (
                       <div className="flex items-center gap-2">
@@ -2361,7 +2402,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                 revenue: 'Revenue', 
                                 spending: 'Spending',
                                 netCashFlow: 'Net Cash Flow',
-                                capitalInvestments: `Capital Investments (${capitalInvestmentMode})`
+                                capitalInvestments: 'Capital Investments (Total)',
+                                urgentInvestments: 'Urgent Investments',
+                                suggestedInvestments: 'Suggested Investments',
+                                notUrgentInvestments: 'Not Urgent Investments'
                               };
                               return [formattedValue, nameMapping[name] || name];
                             }}
@@ -2428,17 +2472,39 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             />
                           )}
 
-                          {/* Capital Investments Line - Color based on scenario mode */}
+                          {/* Capital Investments Lines - Separate by urgency */}
                           {filters.dataVisibility.capitalInvestments && (
-                            <RechartsLine
-                              type="monotone"
-                              dataKey="capitalInvestments"
-                              stroke={capitalInvestmentMode === 'urgent' ? '#dc2626' : '#f59e0b'}
-                              strokeWidth={2}
-                              strokeDasharray={capitalInvestmentMode === 'urgent' ? '5,5' : undefined}
-                              dot={{ fill: capitalInvestmentMode === 'urgent' ? '#dc2626' : '#f59e0b', strokeWidth: 2, r: 4 }}
-                              name="capitalInvestments"
-                            />
+                            <>
+                              {/* Urgent Investments - Red solid line */}
+                              <RechartsLine
+                                type="monotone"
+                                dataKey="urgentInvestments"
+                                stroke="#dc2626"
+                                strokeWidth={2}
+                                dot={{ fill: '#dc2626', strokeWidth: 2, r: 4 }}
+                                name="urgentInvestments"
+                              />
+                              
+                              {/* Suggested Investments - Orange solid line */}
+                              <RechartsLine
+                                type="monotone"
+                                dataKey="suggestedInvestments"
+                                stroke="#f59e0b"
+                                strokeWidth={2}
+                                dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
+                                name="suggestedInvestments"
+                              />
+                              
+                              {/* Not Urgent Investments - Green solid line */}
+                              <RechartsLine
+                                type="monotone"
+                                dataKey="notUrgentInvestments"
+                                stroke="#10b981"
+                                strokeWidth={2}
+                                dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                                name="notUrgentInvestments"
+                              />
+                            </>
                           )}
                           
                           {/* Minimum Requirement Reference Line */}
