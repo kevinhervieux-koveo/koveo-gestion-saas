@@ -33,7 +33,7 @@ import { cn } from '@/lib/utils';
 import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from './GeminiBillExtractor';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
-import { StandardDocumentAttachments, type AttachedFile } from '@/components/common/StandardDocumentAttachments';
+import type { AttachedFile } from '@/components/common/StandardDocumentAttachments';
 import type { Bill, Document } from '@shared/schema';
 import type { UploadContext } from '@shared/config/upload-config';
 
@@ -809,35 +809,6 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
         )}
       </div>
 
-      {/* Document Attachments Section */}
-      <StandardDocumentAttachments
-        onDocumentChange={handleFileUpload}
-        attachedFiles={attachedFiles}
-        onRemoveFile={removeAttachedFile}
-        uploadProgress={uploadProgress}
-        uploadContext={uploadContext}
-        allowedFileTypes={[
-          'application/pdf',
-          'image/jpeg',
-          'image/jpg',
-          'image/png',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          'application/vnd.ms-excel',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ]}
-        maxFileSize={25}
-        aiEnabled={!bill && aiEnabled}
-        onAiToggle={handleAiToggle}
-        onAiExtractionComplete={handleAiAnalysisComplete}
-        aiExtractionLoading={isExtracting}
-        aiExtractionData={aiExtractionData}
-        showAiToggle={false}
-        title="Document Attachments"
-        showUploadTabs={true}
-        defaultUploadTab="file"
-        showSection={true}
-      />
 
       {!bill && (
         <Tabs defaultValue="manual" className="space-y-4">
