@@ -1281,32 +1281,42 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     
     // Add capital investments based on selected strategy
     if (capitalInvestmentMode === 'suggested') {
-      // Suggested Capital: Add specific investments for January and February 2025
-      suggestions.push({
-        id: `specific-investment-1-${Date.now()}`,
-        title: 'Capital Investment #1',
-        description: 'Specific capital investment payment for January 2025',
-        amount: 1700,
-        targetDate: '2025-01-15', // January 2025
-        urgency: 'suggested',
-        type: 'auto_generated',
-        ownershipType: 'owner',
-        category: 'Capital Investment January 2025', // Unique category
-        createdAt: new Date().toISOString(),
-      });
-      
-      suggestions.push({
-        id: `specific-investment-2-${Date.now()}`,
-        title: 'Capital Investment #2',
-        description: 'Specific capital investment payment for February 2025',
-        amount: 1500,
-        targetDate: '2025-02-15', // February 2025
-        urgency: 'suggested',
-        type: 'auto_generated',
-        ownershipType: 'owner',
-        category: 'Capital Investment February 2025', // Unique category
-        createdAt: new Date().toISOString(),
-      });
+      // Suggested Capital: Use backend-calculated investment amounts based on minimum requirements
+      // Instead of hardcoded values, calculate the investment needed dynamically
+      if (bankAccountData && typeof bankAccountData === 'object' && 'startingBalance' in bankAccountData && 'minimumRequirement' in bankAccountData) {
+        const accountData = bankAccountData as { startingBalance: number; minimumRequirement: number };
+        const investmentNeeded = Math.max(0, accountData.minimumRequirement - accountData.startingBalance);
+        
+        if (investmentNeeded > 0) {
+          // Add a single calculated investment based on backend minimum requirement calculations
+          suggestions.push({
+            id: `calculated-investment-${Date.now()}`,
+            title: 'Minimum Requirement Investment',
+            description: `Investment needed to reach minimum requirement of $${accountData.minimumRequirement.toLocaleString()}`,
+            amount: Math.round(investmentNeeded * 100) / 100, // Round to 2 decimal places
+            targetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 15).toISOString().split('T')[0], // Next month 15th
+            urgency: 'suggested',
+            type: 'auto_generated',
+            ownershipType: 'owner',
+            category: 'Minimum Requirement Investment',
+            createdAt: new Date().toISOString(),
+          });
+          
+          debugLog('Generated investment suggestion based on backend calculation', {
+            startingBalance: accountData.startingBalance,
+            minimumRequirement: accountData.minimumRequirement,
+            investmentNeeded,
+            roundedInvestment: Math.round(investmentNeeded * 100) / 100
+          });
+        } else {
+          debugLog('No investment needed - balance already above minimum requirement', {
+            startingBalance: accountData.startingBalance,
+            minimumRequirement: accountData.minimumRequirement
+          });
+        }
+      } else {
+        debugLog('Bank account data not available for investment calculation', { bankAccountData });
+      }
     } else if (capitalInvestmentMode === 'urgent') {
       // Urgent Capital Only: Only add investments when budget balance would go below $0
       // This mode only injects capital when absolutely necessary (emergency injection)
