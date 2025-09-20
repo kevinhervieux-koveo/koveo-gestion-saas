@@ -948,10 +948,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       setIsRefreshing(true);
       debugLog('Starting page refresh', { buildingId });
       
-      // Invalidate all relevant queries with partial keys for better matching
+      // Invalidate all relevant queries using exact keys from component
       await Promise.all([
         queryClient.invalidateQueries({ 
-          queryKey: ['/api/budgets', buildingId, 'bank-account'], 
+          queryKey: [`/api/budgets/${buildingId}/bank-account`], 
           refetchType: 'active' 
         }),
         queryClient.invalidateQueries({ 
@@ -959,19 +959,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
           refetchType: 'active' 
         }),
         queryClient.invalidateQueries({ 
-          queryKey: ['/api/budgets', buildingId, 'investments'], 
+          queryKey: [`/api/budgets/${buildingId}/investments`], 
           refetchType: 'active' 
         }),
         queryClient.invalidateQueries({ 
-          queryKey: ['/api/budgets', buildingId, 'forecast'], 
-          refetchType: 'active' 
-        }),
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/bills', buildingId], 
-          refetchType: 'active' 
-        }),
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/budgets', buildingId, 'scenarios'], 
+          queryKey: ['budgetForecast', buildingId], 
           refetchType: 'active' 
         })
       ]);
@@ -2145,17 +2137,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
           >
             <ArrowLeft className="w-4 h-4" />
             {buildingId ? t('building') : t('organization')}
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={handleRefreshPage}
-            disabled={isRefreshing}
-            className="flex items-center gap-2"
-            data-testid="button-refresh-budget"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : (t('refresh') || 'Refresh')}
           </Button>
         </div>
       )}
