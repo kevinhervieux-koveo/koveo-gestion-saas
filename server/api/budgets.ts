@@ -933,6 +933,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       
       // Calculate expenses from actual recurrent bill schedules for this specific month
       let monthlyRecurringExpenses = 0;
+      const appliedBillsThisMonth = [];
       
       recurrentBills.forEach((bill) => {
         const billStartDate = new Date(bill.startDate);
@@ -971,6 +972,12 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
           
           if (isPaymentDue && bill.schedulePayment !== 'weekly') {
             monthlyRecurringExpenses += totalBillCost;
+            appliedBillsThisMonth.push({
+              category: bill.category,
+              schedule: bill.schedulePayment,
+              cost: totalBillCost,
+              startDate: bill.startDate
+            });
           }
         }
       });
@@ -1058,6 +1065,15 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
           plannedInvestments,
           balanceWithoutAutoInvestment,
           note: 'Starting balance should remain unchanged from user configuration'
+        });
+        
+        debugLog('First period spending breakdown', {
+          inflatedRecurringExpenses: Math.round(inflatedRecurringExpenses * 100) / 100,
+          appliedUnplannedBills: Math.round(appliedUnplannedBills * 100) / 100,
+          monthlyUniqueBillsPayments: Math.round(monthlyUniqueBillsPayments * 100) / 100,
+          appliedBillsThisMonth,
+          rawMonthlyRecurringExpenses: Math.round(monthlyRecurringExpenses * 100) / 100,
+          note: 'Breakdown of what contributes to total spending'
         });
       }
 
