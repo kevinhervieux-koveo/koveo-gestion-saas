@@ -420,6 +420,21 @@ export function registerBillRoutes(app: Express) {
         .where(whereClause)
         .orderBy(desc(bills.startDate));
 
+      console.log('📋 [BILLS API DEBUG] Bills fetched:', {
+        buildingId: req.query.buildingId,
+        totalBills: billsList.length,
+        categories: [...new Set(billsList.map(b => b.category))],
+        paymentTypes: [...new Set(billsList.map(b => b.paymentType))],
+        statuses: [...new Set(billsList.map(b => b.status))],
+        billDetails: billsList.map(b => ({ 
+          id: b.id, 
+          title: b.title, 
+          category: b.category, 
+          paymentType: b.paymentType, 
+          status: b.status 
+        }))
+      });
+
       res.json(billsList);
     } catch (_error: any) {
       console.error('❌ Error fetching bills:', _error);
