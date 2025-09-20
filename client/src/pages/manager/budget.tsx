@@ -1542,7 +1542,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   };
 
   // Calculate monthly payment for urgent scenario - Based on actual urgent investments
-  const calculateUrgentMonthlyPayment = (): number => {
+  const calculateUrgentMonthlyPayment = useMemo((): number => {
     const urgentInvestments = getFilteredInvestments().filter(inv => 
       (inv.type === 'auto_generated' && inv.urgency === 'urgent') ||
       (inv.type === 'custom' && inv.urgency === 'urgent')
@@ -1553,11 +1553,18 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     const totalAmount = urgentInvestments.reduce((sum, inv) => sum + inv.amount, 0);
     const monthsInPeriod = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
     
+    debugLog('Urgent Monthly Payment Calculation', {
+      urgentInvestments: urgentInvestments.length,
+      totalAmount,
+      monthsInPeriod,
+      monthlyPayment: monthsInPeriod > 0 ? totalAmount / monthsInPeriod : 0
+    });
+    
     return monthsInPeriod > 0 ? totalAmount / monthsInPeriod : 0;
-  };
+  }, [capitalInvestments, capitalInvestmentMode, filters.viewType, filters.periodLength]);
 
   // Calculate monthly payment for suggested scenario - Based on actual suggested investments
-  const calculateSuggestedMonthlyPayment = (): number => {
+  const calculateSuggestedMonthlyPayment = useMemo((): number => {
     const suggestedInvestments = getFilteredInvestments().filter(inv => 
       (inv.type === 'auto_generated' && (inv.urgency === 'suggested' || inv.urgency === 'urgent')) ||
       (inv.type === 'custom' && (inv.urgency === 'suggested' || inv.urgency === 'urgent'))
@@ -1568,8 +1575,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     const totalAmount = suggestedInvestments.reduce((sum, inv) => sum + inv.amount, 0);
     const monthsInPeriod = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
     
+    debugLog('Suggested Monthly Payment Calculation', {
+      suggestedInvestments: suggestedInvestments.length,
+      totalAmount,
+      monthsInPeriod,
+      monthlyPayment: monthsInPeriod > 0 ? totalAmount / monthsInPeriod : 0
+    });
+    
     return monthsInPeriod > 0 ? totalAmount / monthsInPeriod : 0;
-  };
+  }, [capitalInvestments, capitalInvestmentMode, filters.viewType, filters.periodLength]);
 
   // Auto-generate investments when forecast data changes (with proper deduplication)
   React.useEffect(() => {
@@ -3588,18 +3602,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                               <div className='flex-1'>
                                 <div className='font-medium text-gray-900 dark:text-gray-100'>Urgent Capital Only</div>
                                 <div className='text-sm text-gray-600 dark:text-gray-400'>Only inject capital when balance would go below $0 (emergency injection)</div>
-                                {(() => {
-                                  const monthlyPayment = calculateUrgentMonthlyPayment();
-                                  return monthlyPayment > 0 ? (
-                                    <div className='text-sm font-medium text-red-600 dark:text-red-400 mt-1' data-testid="text-urgent-monthly-payment">
-                                      Monthly Payment: ${monthlyPayment.toLocaleString()}
-                                    </div>
-                                  ) : (
-                                    <div className='text-sm font-medium text-green-600 dark:text-green-400 mt-1'>
-                                      No payment needed
-                                    </div>
-                                  );
-                                })()}
+                                {calculateUrgentMonthlyPayment > 0 ? (
+                                  <div className='text-sm font-medium text-red-600 dark:text-red-400 mt-1' data-testid="text-urgent-monthly-payment">
+                                    Monthly Payment: ${calculateUrgentMonthlyPayment.toLocaleString()}
+                                  </div>
+                                ) : (
+                                  <div className='text-sm font-medium text-green-600 dark:text-green-400 mt-1'>
+                                    No payment needed
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </label>
@@ -3625,18 +3636,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                               <div className='flex-1'>
                                 <div className='font-medium text-gray-900 dark:text-gray-100'>Suggested Capital</div>
                                 <div className='text-sm text-gray-600 dark:text-gray-400'>Inject capital to maintain minimum requirement threshold</div>
-                                {(() => {
-                                  const monthlyPayment = calculateSuggestedMonthlyPayment();
-                                  return monthlyPayment > 0 ? (
-                                    <div className='text-sm font-medium text-yellow-600 dark:text-yellow-400 mt-1' data-testid="text-suggested-monthly-payment">
-                                      Monthly Payment: ${monthlyPayment.toLocaleString()}
-                                    </div>
-                                  ) : (
-                                    <div className='text-sm font-medium text-green-600 dark:text-green-400 mt-1'>
-                                      No payment needed
-                                    </div>
-                                  );
-                                })()}
+                                {calculateSuggestedMonthlyPayment > 0 ? (
+                                  <div className='text-sm font-medium text-yellow-600 dark:text-yellow-400 mt-1' data-testid="text-suggested-monthly-payment">
+                                    Monthly Payment: ${calculateSuggestedMonthlyPayment.toLocaleString()}
+                                  </div>
+                                ) : (
+                                  <div className='text-sm font-medium text-green-600 dark:text-green-400 mt-1'>
+                                    No payment needed
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </label>
