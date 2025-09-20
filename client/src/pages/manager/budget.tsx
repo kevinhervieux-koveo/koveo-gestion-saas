@@ -1541,18 +1541,34 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return { startingBalance: baselineStartingBalance, monthlyNetFlows };
   };
 
-  // Calculate monthly payment for urgent scenario - $0 since urgent capital only injects when balance goes below $0
+  // Calculate monthly payment for urgent scenario - Based on actual urgent investments
   const calculateUrgentMonthlyPayment = (): number => {
-    // Urgent capital mode only injects when balance would go below $0 (emergency injection)
-    // No regular monthly payments are needed
-    return 0;
+    const urgentInvestments = getFilteredInvestments().filter(inv => 
+      (inv.type === 'auto_generated' && inv.urgency === 'urgent') ||
+      (inv.type === 'custom' && inv.urgency === 'urgent')
+    );
+    
+    if (urgentInvestments.length === 0) return 0;
+    
+    const totalAmount = urgentInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+    const monthsInPeriod = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
+    
+    return monthsInPeriod > 0 ? totalAmount / monthsInPeriod : 0;
   };
 
-  // Calculate monthly payment for suggested scenario - Based on specific capital investments
+  // Calculate monthly payment for suggested scenario - Based on actual suggested investments
   const calculateSuggestedMonthlyPayment = (): number => {
-    // Two specific payments: 1500 + 1700 = 3200
-    // Monthly payment: 3200 / 12 = 266.67
-    return 266.67;
+    const suggestedInvestments = getFilteredInvestments().filter(inv => 
+      (inv.type === 'auto_generated' && (inv.urgency === 'suggested' || inv.urgency === 'urgent')) ||
+      (inv.type === 'custom' && (inv.urgency === 'suggested' || inv.urgency === 'urgent'))
+    );
+    
+    if (suggestedInvestments.length === 0) return 0;
+    
+    const totalAmount = suggestedInvestments.reduce((sum, inv) => sum + inv.amount, 0);
+    const monthsInPeriod = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
+    
+    return monthsInPeriod > 0 ? totalAmount / monthsInPeriod : 0;
   };
 
   // Auto-generate investments when forecast data changes (with proper deduplication)
@@ -1568,7 +1584,18 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         return [...customInvestments, ...deduplicatedSuggestions];
       });
     }
-  }, [forecastData, localSettings.emergencyFundMinimum, localSettings.operatingCashMinimum, buildingId, capitalInvestmentMode]);
+  }, [
+    forecastData, 
+    localSettings.emergencyFundMinimum, 
+    localSettings.operatingCashMinimum, 
+    buildingId, 
+    capitalInvestmentMode,
+    // Add filter dependencies so monthly payments recalculate when time period changes
+    filters.viewType,
+    filters.periodLength,
+    filters.startMonth,
+    filters.startYear
+  ]);
 
   // Calculate summary metrics from forecast data with filters applied
   const calculateSummaryMetrics = () => {
