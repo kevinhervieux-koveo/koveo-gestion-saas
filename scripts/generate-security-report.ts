@@ -7,7 +7,7 @@
  * including Quebec Law 25 compliance status.
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { writeFileSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -82,7 +82,7 @@ class SecurityReportGenerator {
 
     try {
       // Run npm audit and parse results
-      const auditOutput = execSync('npm audit --json 2>/dev/null || echo "{}"', {
+      const auditOutput = execFileSync('npm', ['audit', '--json'], {
         encoding: 'utf-8',
       });
 
@@ -114,7 +114,7 @@ class SecurityReportGenerator {
 
     try {
       // Try to run Quebec compliance check
-      execSync('tsx scripts/quebec-security-check.ts', {
+      execFileSync('tsx', ['scripts/quebec-security-check.ts'], {
         stdio: 'pipe',
         timeout: 30000,
       });
@@ -411,7 +411,7 @@ ${
 if (require.main === module) {
   const generator = new SecurityReportGenerator();
   generator.generateReport().catch((error) => {
-    console.error('❌ Security report generation failed:', _error);
+    console.error('❌ Security report generation failed:', error);
     process.exit(1);
   });
 }

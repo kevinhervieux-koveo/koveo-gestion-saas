@@ -4,18 +4,10 @@
  * Integrates with npm validation workflow.
  */
 
-import { execSync } from 'child_process';
-import { readdirSync, statSync } from 'fs';
+import { execFileSync } from 'child_process';
+import { readdirSync, statSync, readFileSync } from 'fs';
 import { join } from 'path';
 
-/**
- * Safely escape shell arguments to prevent command injection.
- * @param arg - The argument to escape
- * @returns Escaped argument safe for shell execution
- */
-function escapeShellArg(arg: string): string {
-  return "'" + arg.replace(/'/g, "'\\''") + "'";
-}
 
 /**
  * Check JSDoc coverage for TypeScript files.
@@ -41,15 +33,21 @@ function checkJSDocCoverage(): number {
         } else if (item.endsWith('.ts') || item.endsWith('.tsx')) {
           // Basic check for exported functions without JSDoc
           try {
-            execSync(`grep -l "export.*function\\|export.*class" ${escapeShellArg(fullPath)}`, { stdio: 'pipe' });
-            try {
-              execSync(`grep -L "/\\*\\*" ${escapeShellArg(fullPath)}`, { stdio: 'pipe' });
-              missingDocs++;
-            } catch {
-              // File has JSDoc comments
+            const fileContent = readFileSync(fullPath, 'utf-8');
+            
+            // Check if file has exported functions or classes
+            const hasExports = /export\s+.*(function|class)/.test(fileContent);
+            
+            if (hasExports) {
+              // Check if file has JSDoc comments
+              const hasJSDoc = /\/\*\*/.test(fileContent);
+              
+              if (!hasJSDoc) {
+                missingDocs++;
+              }
             }
           } catch {
-            // No exported functions/classes
+            // Skip files that can't be read
           }
         }
       }
@@ -82,7 +80,8 @@ function validateTypeDoc(): number {
   console.warn('📖 Validating TypeDoc generation...');
 
   try {
-    execSync('npm run docs:generate', { stdio: 'pipe' });
+    // Use execFileSync with argument array for npm commands
+    execFileSync('npm', ['run', 'docs:generate'], { stdio: 'pipe' });
     console.warn('✅ TypeDoc validation passed');
     return 0;
   } catch (_error) {

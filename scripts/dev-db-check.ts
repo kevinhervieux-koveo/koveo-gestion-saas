@@ -4,7 +4,7 @@
  * Fast validation for development workflow
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import chalk from 'chalk';
 
 const DEV_DB = process.env.DATABASE_URL;
@@ -35,14 +35,18 @@ class DevDatabaseChecker {
     }
     
     try {
-      // Escape shell arguments to prevent injection
-      const escapedDb = db.replace(/'/g, "'\"'\"'");
-      const escapedQuery = query.replace(/'/g, "'\"'\"'");
-      return execSync(`psql '${escapedDb}' -t -c '${escapedQuery}'`, { 
+      // Use execFileSync with argument array to prevent command injection
+      // This is much safer than string concatenation
+      const result = execFileSync('psql', [
+        '--dbname', db,
+        '--tuples-only',
+        '--command', query
+      ], { 
         encoding: 'utf8',
         stdio: 'pipe'
-      }).trim();
-    } catch (error) {
+      });
+      return result.toString().trim();
+    } catch (error: any) {
       throw new Error(`Query failed: ${error.message}`);
     }
   }

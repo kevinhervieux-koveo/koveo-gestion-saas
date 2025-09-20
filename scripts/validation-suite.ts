@@ -5,7 +5,6 @@
  * Consolidates all validation functionality into a single comprehensive tool
  */
 
-import { execSync } from 'child_process';
 import chalk from 'chalk';
 import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';

@@ -266,15 +266,17 @@ program
       console.warn(chalk.green(`✅ Dashboard saved to: ${dashboardPath}`));
 
       if (options.open) {
-        const { execSync } = require('child_process');
+        const { execFileSync } = require('child_process');
         try {
-          const command =
-            process.platform === 'darwin'
-              ? 'open'
-              : process.platform === 'win32'
-                ? 'start'
-                : 'xdg-open';
-          execSync(`${command} ${dashboardPath}`);
+          // Use execFileSync with argument array to prevent command injection
+          if (process.platform === 'darwin') {
+            execFileSync('open', [dashboardPath], { stdio: 'ignore' });
+          } else if (process.platform === 'win32') {
+            // Windows requires cmd /c start for proper file opening
+            execFileSync('cmd', ['/c', 'start', '', dashboardPath], { stdio: 'ignore' });
+          } else {
+            execFileSync('xdg-open', [dashboardPath], { stdio: 'ignore' });
+          }
           console.warn(chalk.green('🌐 Opening dashboard in browser...'));
         } catch (_error) {
           console.warn(

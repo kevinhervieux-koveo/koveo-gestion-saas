@@ -4,7 +4,7 @@
  * Complete build script that builds both client and server.
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 /**
  * Runs the complete build process for client and server.
@@ -20,11 +20,11 @@ async function runBuild() {
   try {
     // Build client
     console.warn('📦 Building client...');
-    execSync('npm run build:client', { stdio: 'inherit' });
+    execFileSync('npm', ['run', 'build:client'], { stdio: 'inherit' });
 
     // Build server with config copying
     console.warn('🔨 Building server...');
-    execSync('tsx scripts/build-server.ts', { stdio: 'inherit' });
+    execFileSync('tsx', ['scripts/build-server.ts'], { stdio: 'inherit' });
 
     console.warn('✅ Build completed successfully!');
   } catch (_error) {

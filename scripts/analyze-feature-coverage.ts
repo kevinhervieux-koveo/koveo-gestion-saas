@@ -8,6 +8,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
+import glob from 'fast-glob';
 
 /**
  *
@@ -156,39 +157,22 @@ async function findFiles(patterns: string[]): Promise<string[]> {
 
   for (const pattern of patterns) {
     try {
-      const { spawn } = await import('child_process');
-      const files = await new Promise<string[]>((resolve, reject) => {
-        const find = spawn(
-          'find',
-          ['.', '-path', './node_modules', '-prune', '-o', '-name', pattern, '-print'],
-          {
-            stdio: ['pipe', 'pipe', 'pipe'],
-          }
-        );
+      // Validate pattern to prevent command injection
+      if (!pattern || typeof pattern !== 'string' || pattern.includes(';') || pattern.includes('|') || pattern.includes('&')) {
+        console.warn(`Invalid pattern skipped: ${pattern}`);
+        continue;
+      }
 
-        let output = '';
-        find.stdout.on('data', (_data) => {
-          output += data.toString();
-        });
-
-        find.on('close', (code) => {
-          if (code === 0) {
-            const fileList = output
-              .trim()
-              .split('\n')
-              .filter((f) => f && !f.includes('node_modules'));
-            resolve(fileList);
-          } else {
-            resolve([]);
-          }
-        });
-
-        find.on('error', () => resolve([]));
+      // Use fast-glob for cross-platform file searching
+      const files = await glob(pattern, {
+        ignore: ['**/node_modules/**'],
+        dot: false,
+        absolute: false,
       });
 
       allFiles.push(...files);
-    } catch (_error) {
-      console.warn(`Could not search for pattern ${pattern}: ${error}`);
+    } catch (error: any) {
+      console.warn(`Could not search for pattern ${pattern}: ${error.message}`);
     }
   }
 
@@ -390,7 +374,7 @@ Total features analyzed: **${features.length}**
 
 ${features
   .map(
-    (feature, _index) => `
+    (feature, index) => `
 ### ${index + 1}. ${feature.feature}
 
 **Coverage Status:** ${

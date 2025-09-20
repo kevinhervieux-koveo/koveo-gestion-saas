@@ -8,6 +8,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
+import * as glob from 'fast-glob';
 
 /**
  *
@@ -84,7 +85,7 @@ async function runConsolidationAnalysis() {
 
     return redundancies.length === 0;
   } catch (_error) {
-    console.error(chalk.red(`❌ Error during consolidation analysis: ${error}`));
+    console.error(chalk.red(`❌ Error during consolidation analysis: ${_error}`));
     return false;
   }
 }
@@ -96,31 +97,28 @@ async function runConsolidationAnalysis() {
  */
 async function findFilesWithPattern(pattern: string): Promise<string[]> {
   try {
-    const { spawn } = await import('child_process');
-    return new Promise((resolve, reject) => {
-      const grep = spawn('grep', ['-r', '-l', pattern, 'client/src', 'server'], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-      });
-
-      let output = '';
-      grep.stdout.on('data', (_data) => {
-        output += data.toString();
-      });
-
-      grep.on('close', (code) => {
-        if (code === 0 || code === 1) {
-          // 1 means no matches found, which is fine
-          const files = output.trim().split('\n').filter(Boolean);
-          resolve(files);
-        } else {
-          reject(new Error(`grep exited with code ${code}`));
+    // Use fast-glob to find files, then search content for pattern
+    const allFiles = await glob.glob(['client/src/**/*.{ts,tsx,js,jsx}', 'server/**/*.{ts,js}'], 
+      { absolute: true, onlyFiles: true });
+    
+    const matchingFiles: string[] = [];
+    const regex = new RegExp(pattern, 'i');
+    
+    for (const file of allFiles) {
+      try {
+        const content = await fs.readFile(file, 'utf-8');
+        if (regex.test(content)) {
+          matchingFiles.push(file);
         }
-      });
-
-      grep.on('error', reject);
-    });
+      } catch (error) {
+        // Skip files that can't be read
+        continue;
+      }
+    }
+    
+    return matchingFiles;
   } catch (_error) {
-    console.warn(`Could not search for pattern ${pattern}: ${error}`);
+    console.warn(`Could not search for pattern ${pattern}: ${_error}`);
     return [];
   }
 }
@@ -148,7 +146,7 @@ Found **${redundancies.length}** consolidation opportunities across the codebase
 ${redundancies
   .map(
     (redundancy, _index) => `
-### ${index + 1}. ${redundancy.pattern} (${redundancy.type})
+### ${_index + 1}. ${redundancy.pattern} (${redundancy.type})
 
 **Files affected:** ${redundancy.files.length}
 ${redundancy.files.map((file) => `- \`${file}\``).join('\n')}

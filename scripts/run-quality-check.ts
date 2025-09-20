@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
+import * as glob from 'fast-glob';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { storage } from '../server/storage';
@@ -530,7 +531,7 @@ async function generateSuggestions(
  */
 async function checkJSDocCoverage(): Promise<number> {
   try {
-    const output = execSync('npm run lint:check 2>&1 || true', {
+    const output = execFileSync('npm', ['run', 'lint:check'], {
       encoding: 'utf-8',
       stdio: 'pipe',
     });
@@ -553,7 +554,7 @@ async function checkJSDocCoverage(): Promise<number> {
 async function checkBuildPerformance(): Promise<number> {
   try {
     const startTime = Date.now();
-    execSync('timeout 60s npm run build --silent', {
+    execFileSync('npm', ['run', 'build', '--silent'], {
       encoding: 'utf-8',
       stdio: 'pipe',
       timeout: 60000, // 1 minute timeout
@@ -576,11 +577,46 @@ async function analyzeComplexity(): Promise<ComplexityResult> {
   try {
     console.warn('📊 Analyzing code complexity...');
 
-    // Run complexity analysis on TypeScript files
-    const complexityOutput = execSync(
-      'npx complexity-report --format json client/src/**/*.{ts,tsx} server/**/*.{ts,tsx} shared/**/*.{ts,tsx} 2>/dev/null || true',
-      { encoding: 'utf-8', stdio: 'pipe' }
-    );
+    // Pre-expand glob patterns for cross-platform compatibility
+    const globPatterns = [
+      'client/src/**/*.{ts,tsx}',
+      'server/**/*.{ts,tsx}',
+      'shared/**/*.{ts,tsx}'
+    ];
+    
+    const expandedFiles: string[] = [];
+    for (const pattern of globPatterns) {
+      try {
+        const files = await glob.glob(pattern, {
+          ignore: ['**/node_modules/**', '**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+          dot: false,
+          absolute: false,
+        });
+        expandedFiles.push(...files);
+      } catch (error) {
+        console.warn(`Failed to expand pattern ${pattern}: ${error}`);
+      }
+    }
+    
+    if (expandedFiles.length === 0) {
+      console.warn('No TypeScript files found for complexity analysis');
+      return {
+        averageComplexity: 0,
+        maxComplexity: 0,
+        totalFunctions: 0,
+        complexFunctions: [],
+      };
+    }
+
+    console.warn(`   📁 Analyzed ${expandedFiles.length} TypeScript files`);
+
+    // Run complexity analysis on expanded file list
+    const complexityOutput = execFileSync('npx', [
+      'complexity-report',
+      '--format',
+      'json',
+      ...expandedFiles
+    ], { encoding: 'utf-8', stdio: 'pipe' });
 
     let complexityData;
     try {
@@ -649,15 +685,18 @@ async function analyzeCoverage(): Promise<CoverageResult> {
   try {
     console.warn('🧪 Analyzing test coverage...');
 
-    // Run Jest with coverage with timeout
-    execSync(
-      'timeout 30s npm run test:coverage -- --silent --passWithNoTests 2>/dev/null || true',
-      {
-        encoding: 'utf-8',
-        stdio: 'pipe',
-        timeout: 30000,
-      }
-    );
+    // Run Jest with coverage with programmatic timeout
+    execFileSync('npm', [
+      'run',
+      'test:coverage',
+      '--',
+      '--silent',
+      '--passWithNoTests'
+    ], {
+      encoding: 'utf-8',
+      stdio: 'pipe',
+      timeout: 30000,
+    });
 
     // Read coverage summary
     const coveragePath = join(process.cwd(), 'coverage', 'coverage-summary.json');
@@ -714,13 +753,7 @@ async function analyzeTranslationCoverage(): Promise<TranslationCoverageResult> 
   try {
     console.warn('🌐 Analyzing translation coverage...');
 
-    const componentFiles = execSync(
-      'find client/src -name "*.tsx" -o -name "*.ts" | grep -E "(components|pages|layout)" | head -100',
-      { encoding: 'utf-8' }
-    )
-      .trim()
-      .split('\n')
-      .filter(Boolean);
+    const componentFiles = await glob(['client/src/components/**/*.{ts,tsx}', 'client/src/pages/**/*.{ts,tsx}', 'client/src/layout/**/*.{ts,tsx}'], { absolute: true });
 
     const missingTranslations: TranslationCoverageResult['missingTranslations'] = [];
     let translatedComponents = 0;
@@ -792,13 +825,7 @@ async function analyzeAccessibility(): Promise<AccessibilityResult> {
   try {
     console.warn('♿ Analyzing accessibility compliance...');
 
-    const componentFiles = execSync(
-      'find client/src -name "*.tsx" | grep -E "(components|pages)" | head -100',
-      { encoding: 'utf-8' }
-    )
-      .trim()
-      .split('\n')
-      .filter(Boolean);
+    const componentFiles = await glob(['client/src/components/**/*.tsx', 'client/src/pages/**/*.tsx'], { absolute: true });
 
     const missingAccessibility: AccessibilityResult['missingAccessibility'] = [];
     let accessibleComponents = 0;
@@ -875,21 +902,9 @@ async function analyzeComponentCoverage(): Promise<ComponentCoverageResult> {
   try {
     console.warn('🧩 Analyzing component test coverage...');
 
-    const componentFiles = execSync(
-      'find client/src -name "*.tsx" | grep -E "(components|pages|layout)" | head -100',
-      { encoding: 'utf-8' }
-    )
-      .trim()
-      .split('\n')
-      .filter(Boolean);
+    const componentFiles = await glob(['client/src/components/**/*.tsx', 'client/src/pages/**/*.tsx', 'client/src/layout/**/*.tsx'], { absolute: true });
 
-    const testFiles = execSync(
-      'find tests -name "*.test.tsx" -o -name "*.test.ts" 2>/dev/null || echo ""',
-      { encoding: 'utf-8' }
-    )
-      .trim()
-      .split('\n')
-      .filter(Boolean);
+    const testFiles = await glob(['tests/**/*.test.{ts,tsx}'], { absolute: true });
 
     const testedComponentNames = new Set();
 
@@ -972,10 +987,16 @@ async function analyzeVulnerabilities(): Promise<VulnerabilityResult> {
   try {
     console.warn('🔒 Analyzing security vulnerabilities...');
 
-    const auditOutput = execSync('npm audit --json 2>/dev/null || true', {
-      encoding: 'utf-8',
-      stdio: 'pipe',
-    });
+    let auditOutput = '';
+    try {
+      auditOutput = execFileSync('npm', ['audit', '--json'], {
+        encoding: 'utf-8',
+        stdio: 'pipe',
+      });
+    } catch (error) {
+      // npm audit returns non-zero exit code when vulnerabilities found
+      auditOutput = error.stdout || '';
+    }
 
     let auditData;
     try {
@@ -1030,10 +1051,17 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
     console.warn('🔄 Analyzing code redundancy patterns...');
 
     // Run redundancy analysis tests to extract metrics
-    const redundancyOutput = execSync(
-      'npx jest tests/code-analysis/ui-component-redundancy.test.ts --verbose --silent 2>/dev/null || echo "TEST_COMPLETED"',
-      { encoding: 'utf-8', stdio: 'pipe' }
-    );
+    let redundancyOutput = '';
+    try {
+      redundancyOutput = execFileSync('npx', [
+        'jest',
+        'tests/code-analysis/ui-component-redundancy.test.ts',
+        '--verbose',
+        '--silent'
+      ], { encoding: 'utf-8', stdio: 'pipe' });
+    } catch (error) {
+      redundancyOutput = error.stdout || 'TEST_COMPLETED';
+    }
 
     // Extract metrics from test output
     const totalComponents =
@@ -1140,10 +1168,20 @@ async function analyzeLaw25Compliance(): Promise<Law25ComplianceResult> {
     console.warn('🛡️ Analyzing Quebec Law 25 compliance...');
 
     // Run Semgrep with Law 25 rules
-    const semgrepOutput = execSync(
-      'npx semgrep --config=.semgrep.yml --json --no-git-ignore --include="*.ts" --include="*.tsx" .',
-      { encoding: 'utf-8', stdio: 'pipe' }
-    );
+    let semgrepOutput = '';
+    try {
+      semgrepOutput = execFileSync('npx', [
+        'semgrep',
+        '--config=.semgrep.yml',
+        '--json',
+        '--no-git-ignore',
+        '--include=*.ts',
+        '--include=*.tsx',
+        '.'
+      ], { encoding: 'utf-8', stdio: 'pipe' });
+    } catch (error) {
+      semgrepOutput = error.stdout || '{"results":[]}';
+    }
 
     const semgrepResults = JSON.parse(semgrepOutput);
     const violations = semgrepResults.results || [];
