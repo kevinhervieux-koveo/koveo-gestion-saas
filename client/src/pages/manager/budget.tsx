@@ -1139,7 +1139,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       id: `specific-investment-1-${Date.now()}`,
       title: 'Capital Investment #1',
       description: 'Specific capital investment payment for January 2025',
-      amount: 1500,
+      amount: 1700,
       targetDate: '2025-01-15', // January 2025
       urgency: 'suggested',
       type: 'auto_generated',
@@ -1152,7 +1152,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       id: `specific-investment-2-${Date.now()}`,
       title: 'Capital Investment #2',
       description: 'Specific capital investment payment for February 2025',
-      amount: 1700,
+      amount: 1500,
       targetDate: '2025-02-15', // February 2025
       urgency: 'suggested',
       type: 'auto_generated',
