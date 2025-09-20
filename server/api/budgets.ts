@@ -1016,16 +1016,37 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
           newBalance += capitalInvestment;
         }
       } else if (capitalInvestmentMode === 'suggested') {
-        // Suggested Capital Mode: Inject capital to maintain minimum requirement threshold
+        // Suggested Capital Mode: Inject capital for minimum requirements AND special investments
+        let suggestedInvestment = 0;
+        
+        // 1. First ensure minimum requirement is met
         if (newBalance < Math.max(0, minimumFund)) {
-          // Calculate required capital investment to maintain minimum balance (or 0 if no minimum set)
-          const targetBalance = Math.max(0, minimumFund);
-          capitalInvestment = targetBalance - newBalance;
+          suggestedInvestment = Math.max(0, minimumFund) - newBalance;
+        }
+        
+        // 2. Then consider additional investments from extended config
+        if (extendedConfig) {
+          const specialBudgetMonthly = (extendedConfig.specialInvestmentBudget || 0) / 12;
+          const capitalReserveMonthly = (extendedConfig.capitalProjectReserve || 0) / (12 * (extendedConfig.investmentHorizonYears || 5));
           
-          // Round capital investment to nearest 100 for realistic injection amounts
-          capitalInvestment = Math.ceil(capitalInvestment / 100) * 100;
+          // Suggest investment if we have available capacity above minimum + buffer
+          const bufferAmount = minimumFund * 0.1; // 10% buffer above minimum
+          const targetWithBuffer = minimumFund + bufferAmount;
           
-          // Update balance with capital investment
+          if (newBalance + suggestedInvestment > targetWithBuffer) {
+            // Available capacity for special investments
+            const availableForInvestment = newBalance + suggestedInvestment - targetWithBuffer;
+            const monthlyInvestmentCapacity = Math.min(specialBudgetMonthly, capitalReserveMonthly, availableForInvestment);
+            
+            if (monthlyInvestmentCapacity > 0) {
+              suggestedInvestment += monthlyInvestmentCapacity;
+            }
+          }
+        }
+        
+        if (suggestedInvestment > 0) {
+          // Round to nearest 100 for realistic amounts
+          capitalInvestment = Math.ceil(suggestedInvestment / 100) * 100;
           newBalance += capitalInvestment;
         }
       } else if (capitalInvestmentMode === 'custom') {
