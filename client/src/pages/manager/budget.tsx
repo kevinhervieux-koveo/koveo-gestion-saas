@@ -1499,17 +1499,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         return true;
       }
       
-      // For auto-generated investments, filter by strategy
+      // For auto-generated investments, show all in urgent/suggested modes, none in custom mode
       if (inv.type === 'auto_generated') {
         if (capitalInvestmentMode === 'custom') {
           // Custom mode: Never show auto-generated investments
           return false;
-        } else if (capitalInvestmentMode === 'urgent') {
-          // Only show urgent auto-generated investments
-          return inv.urgency === 'urgent';
-        } else if (capitalInvestmentMode === 'suggested') {
-          // Show suggested and urgent auto-generated investments
-          return inv.urgency === 'suggested' || inv.urgency === 'urgent';
+        } else {
+          // Urgent and Suggested modes: Show ALL auto-generated investments regardless of urgency
+          // This allows users to see all scenario investments at once
+          return true;
         }
       }
       
@@ -1646,9 +1644,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return { startingBalance: baselineStartingBalance, monthlyNetFlows };
   };
 
-  // Calculate monthly payment for urgent scenario - Based on actual urgent investments
+  // Calculate monthly payment for urgent scenario - Independent of current filter mode
   const calculateUrgentMonthlyPayment = useMemo((): number => {
-    const urgentInvestments = getFilteredInvestments().filter(inv => 
+    const urgentInvestments = capitalInvestments.filter(inv => 
       (inv.type === 'auto_generated' && inv.urgency === 'urgent') ||
       (inv.type === 'custom' && inv.urgency === 'urgent')
     );
@@ -1666,11 +1664,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     });
     
     return monthsInPeriod > 0 ? totalAmount / monthsInPeriod : 0;
-  }, [capitalInvestments, capitalInvestmentMode, filters.viewType, filters.periodLength]);
+  }, [capitalInvestments, filters.viewType, filters.periodLength]);
 
-  // Calculate monthly payment for suggested scenario - Based on actual suggested investments
+  // Calculate monthly payment for suggested scenario - Independent of current filter mode
   const calculateSuggestedMonthlyPayment = useMemo((): number => {
-    const suggestedInvestments = getFilteredInvestments().filter(inv => 
+    const suggestedInvestments = capitalInvestments.filter(inv => 
       (inv.type === 'auto_generated' && (inv.urgency === 'suggested' || inv.urgency === 'urgent')) ||
       (inv.type === 'custom' && (inv.urgency === 'suggested' || inv.urgency === 'urgent'))
     );
@@ -1688,7 +1686,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     });
     
     return monthsInPeriod > 0 ? totalAmount / monthsInPeriod : 0;
-  }, [capitalInvestments, capitalInvestmentMode, filters.viewType, filters.periodLength]);
+  }, [capitalInvestments, filters.viewType, filters.periodLength]);
 
   // Auto-generate investments when forecast data changes (with proper deduplication)
   React.useEffect(() => {
