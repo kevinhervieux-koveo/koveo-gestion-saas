@@ -2619,8 +2619,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <CardTitle className='text-sm font-medium'>Current Balance</CardTitle>
                     <DollarSign className='h-4 w-4 text-muted-foreground' />
                   </CardHeader>
-                  <CardContent>
-                    <div className='text-2xl font-bold'>
+                  <CardContent className='card-content-safe'>
+                    <div className='financial-value-large' title={`$${summaryMetrics.currentBalance.toLocaleString()}`} data-testid='value-current-balance'>
                       ${summaryMetrics.currentBalance.toLocaleString()}
                     </div>
                   </CardContent>
@@ -2631,8 +2631,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <CardTitle className='text-sm font-medium'>Monthly Revenue</CardTitle>
                     <TrendingUp className='h-4 w-4 text-muted-foreground' />
                   </CardHeader>
-                  <CardContent>
-                    <div className='text-2xl font-bold'>
+                  <CardContent className='card-content-safe'>
+                    <div className='financial-value-large' title={`$${calculateTotalRevenue().toLocaleString()}`} data-testid='value-monthly-revenue'>
                       ${calculateTotalRevenue().toLocaleString()}
                     </div>
                   </CardContent>
@@ -2643,8 +2643,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <CardTitle className='text-sm font-medium'>Monthly Spending</CardTitle>
                     <Calculator className='h-4 w-4 text-muted-foreground' />
                   </CardHeader>
-                  <CardContent>
-                    <div className='text-2xl font-bold'>
+                  <CardContent className='card-content-safe'>
+                    <div className='financial-value-large' title={`$${summaryMetrics.monthlySpending.toLocaleString()}`} data-testid='value-monthly-spending'>
                       ${summaryMetrics.monthlySpending.toLocaleString()}
                     </div>
                   </CardContent>
@@ -2655,8 +2655,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <CardTitle className='text-sm font-medium'>Year End Projection</CardTitle>
                     <TrendingDown className='h-4 w-4 text-muted-foreground' />
                   </CardHeader>
-                  <CardContent>
-                    <div className='text-2xl font-bold'>
+                  <CardContent className='card-content-safe'>
+                    <div className='financial-value-large' title={`$${summaryMetrics.yearEndBalance.toLocaleString()}`} data-testid='value-year-end-projection'>
                       ${summaryMetrics.yearEndBalance.toLocaleString()}
                     </div>
                   </CardContent>
@@ -2667,8 +2667,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <CardTitle className='text-sm font-medium'>Total Investment</CardTitle>
                     <TrendingUp className='h-4 w-4 text-muted-foreground' />
                   </CardHeader>
-                  <CardContent>
-                    <div className='text-2xl font-bold'>
+                  <CardContent className='card-content-safe'>
+                    <div className='financial-value-large' title={`$${calculateInvestmentSummary().totalAmount.toLocaleString()}`} data-testid='value-total-investment'>
                       ${calculateInvestmentSummary().totalAmount.toLocaleString()}
                     </div>
                   </CardContent>
