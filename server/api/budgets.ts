@@ -520,13 +520,18 @@ async function calculateUnplannedBillsSuggestion(
 ): Promise<{amount: number, confidence: string, yearsAnalyzed: number}> {
   try {
     const currentDate = new Date();
-    const startDate = new Date(currentDate);
-    startDate.setFullYear(currentDate.getFullYear() - lookbackYears);
+    const currentYear = currentDate.getFullYear();
+    const startYear = currentYear - lookbackYears;
     
-    debugLog('Calculating unplanned bills suggestion', { buildingId, lookbackYears, startDate });
+    debugLog('Calculating unplanned bills suggestion', { 
+      buildingId, 
+      lookbackYears, 
+      startYear,
+      currentYear
+    });
     
-    // Use single grouped SQL query for better performance
-    // Get payments for unique bills only, filter by paid status and scheduled_date
+    // Use more restrictive year-based filtering to prevent future date queries
+    // Get payments for unique bills only, filter by paid status and reasonable date range
     const historicalPayments = await db
       .select({
         year: sql<number>`EXTRACT(YEAR FROM ${payments.scheduledDate})`.
@@ -543,8 +548,11 @@ async function calculateUnplannedBillsSuggestion(
           eq(bills.buildingId, buildingId),
           eq(bills.paymentType, 'unique'),
           eq(payments.status, 'paid'),
-          gte(payments.scheduledDate, startDate.toISOString().split('T')[0]),
-          lte(payments.scheduledDate, currentDate.toISOString().split('T')[0])
+          // Use year-based filtering to prevent future date issues
+          sql`EXTRACT(YEAR FROM ${payments.scheduledDate}) >= ${startYear}`,
+          sql`EXTRACT(YEAR FROM ${payments.scheduledDate}) <= ${currentYear}`,
+          // Additional safety check to prevent future dates
+          sql`${payments.scheduledDate} <= CURRENT_DATE`
         )
       )
       .groupBy(
@@ -554,7 +562,8 @@ async function calculateUnplannedBillsSuggestion(
       .orderBy(
         sql`EXTRACT(YEAR FROM ${payments.scheduledDate})`,
         sql`EXTRACT(MONTH FROM ${payments.scheduledDate})`
-      );
+      )
+      .limit(500); // Add safety limit to prevent infinite results
 
     debugLog('Historical payments fetched', { count: historicalPayments.length });
 
