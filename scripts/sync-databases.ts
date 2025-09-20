@@ -4,7 +4,7 @@
  * Ensures schema changes are applied to both development and production databases
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import chalk from 'chalk';
 
 const DEV_DB = process.env.DATABASE_URL;
@@ -25,14 +25,20 @@ async function executeDualQuery(sql: string, description: string) {
   console.log(chalk.yellow(`\n📝 ${description}`));
   
   try {
-    // Execute on development database
+    // Execute on development database using stdin to prevent command injection
     console.log(chalk.cyan('  → Development database...'));
-    execSync(`psql "${DEV_DB}" -c "${sql}"`, { stdio: 'pipe' });
+    execFileSync('psql', ['--dbname', DEV_DB, '-f', '-'], { 
+      input: sql,
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
     console.log(chalk.green('    ✓ Development: Success'));
     
     // Execute on production database
     console.log(chalk.cyan('  → Production database...'));
-    execSync(`psql "${PROD_DB}" -c "${sql}"`, { stdio: 'pipe' });
+    execFileSync('psql', ['--dbname', PROD_DB, '-f', '-'], { 
+      input: sql,
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
     console.log(chalk.green('    ✓ Production: Success'));
     
     console.log(chalk.green(`  ✅ ${description} completed on both databases`));
@@ -53,13 +59,13 @@ async function pushDrizzleSchema() {
     // Push to development
     console.log(chalk.cyan('  → Pushing to development database...'));
     process.env.DATABASE_URL = DEV_DB;
-    execSync('npm run db:push', { stdio: 'inherit' });
+    execFileSync('npm', ['run', 'db:push'], { stdio: 'inherit' });
     console.log(chalk.green('    ✓ Development schema updated'));
     
     // Push to production
     console.log(chalk.cyan('  → Pushing to production database...'));
     process.env.DATABASE_URL = PROD_DB;
-    execSync('npm run db:push', { stdio: 'inherit' });
+    execFileSync('npm', ['run', 'db:push'], { stdio: 'inherit' });
     console.log(chalk.green('    ✓ Production schema updated'));
     
     // Restore original DATABASE_URL
@@ -87,8 +93,17 @@ async function verifySchemaSync() {
   `;
   
   try {
-    const devResult = execSync(`psql "${DEV_DB}" -t -c "${checkQuery}"`, { encoding: 'utf8' });
-    const prodResult = execSync(`psql "${PROD_DB}" -t -c "${checkQuery}"`, { encoding: 'utf8' });
+    const devResult = execFileSync('psql', ['--dbname', DEV_DB, '-t', '-f', '-'], { 
+      input: checkQuery,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+    
+    const prodResult = execFileSync('psql', ['--dbname', PROD_DB, '-t', '-f', '-'], { 
+      input: checkQuery,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
     
     if (devResult.trim() === prodResult.trim()) {
       console.log(chalk.green('  ✅ Schemas are synchronized'));
