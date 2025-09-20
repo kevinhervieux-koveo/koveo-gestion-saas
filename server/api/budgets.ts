@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { db } from '../db';
 import { budgets, monthlyBudgets, buildings, bills, payments, residences, capitalInvestments, insertCapitalInvestmentSchema } from '@shared/schema';
 import { requireAuth } from '../auth';
-import { and, eq, gte, lte, sql, desc, asc, sum, count, ne, inArray, or, isNull } from 'drizzle-orm';
+import { and, eq, gte, lte, lt, sql, desc, asc, sum, count, ne, inArray, or, isNull } from 'drizzle-orm';
 import { applyInflation } from '../utils/budgetCalculations';
 import {
   ExtendedBuildingConfig,
@@ -528,9 +528,9 @@ async function calculateUnplannedBillsSuggestion(
     debugLog('calculateUnplannedBillsSuggestion called', { buildingId, lookbackYears });
     
     const currentDate = new Date();
-    const startDate = new Date(currentDate.getFullYear() - lookbackYears, currentDate.getMonth(), currentDate.getDate());
     
-    // Get unique (one-time) bills from the past years that are not draft or cancelled
+    // Get ALL unique (one-time) bills for this building that are not draft or cancelled
+    // User requirement: sum of all unique cost before today / number of months since first unique bill
     const uniqueBills = await db
       .select({
         totalAmount: bills.totalAmount,
@@ -543,28 +543,33 @@ async function calculateUnplannedBillsSuggestion(
           eq(bills.buildingId, buildingId),
           eq(bills.paymentType, 'unique'),
           inArray(bills.status, ['sent', 'paid', 'overdue']), // Exclude draft and cancelled bills
-          gte(bills.createdAt, startDate.toISOString())
+          lt(bills.startDate, currentDate.toISOString().split('T')[0]) // Only bills before today
         )
-      );
+      )
+      .orderBy(asc(bills.startDate)); // Order by start date to find the earliest
 
     if (uniqueBills.length === 0) {
-      return { amount: 0, confidence: 'no_data', yearsAnalyzed: lookbackYears };
+      return { amount: 0, confidence: 'no_data', yearsAnalyzed: 0 };
     }
 
-    // Calculate total amount and average per month
+    // Calculate total amount of all unique bills
     const totalAmount = uniqueBills.reduce((sum, bill) => {
       const amount = parseFloat(bill.totalAmount || '0');
       return sum + (Number.isFinite(amount) ? amount : 0);
     }, 0);
 
-    const monthsAnalyzed = Math.max(1, Math.floor((currentDate.getTime() - startDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000))); // Average days per month
-    const monthlyAverage = totalAmount / monthsAnalyzed;
+    // Calculate months from the first unique bill's start date to today
+    const earliestBillDate = new Date(uniqueBills[0].startDate);
+    const monthsDifference = Math.max(1, Math.floor((currentDate.getTime() - earliestBillDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000))); 
+    
+    const monthlyAverage = totalAmount / monthsDifference;
 
-    // Determine confidence based on number of bills and time period
+    // Determine confidence based on number of bills and time span
     let confidence = 'low';
-    if (uniqueBills.length >= 12 && lookbackYears >= 2) {
+    const yearsDifference = monthsDifference / 12;
+    if (uniqueBills.length >= 10 && yearsDifference >= 2) {
       confidence = 'high';
-    } else if (uniqueBills.length >= 6 && lookbackYears >= 1) {
+    } else if (uniqueBills.length >= 5 && yearsDifference >= 1) {
       confidence = 'medium';
     }
 
@@ -572,20 +577,21 @@ async function calculateUnplannedBillsSuggestion(
       buildingId,
       uniqueBillsCount: uniqueBills.length,
       totalAmount,
-      monthsAnalyzed,
+      earliestBillDate: earliestBillDate.toISOString().split('T')[0],
+      monthsDifference,
       monthlyAverage,
       confidence,
-      yearsAnalyzed: lookbackYears
+      yearsAnalyzed: Math.round(yearsDifference * 10) / 10
     });
 
     return {
       amount: Math.round(monthlyAverage * 100) / 100, // Round to 2 decimal places
       confidence,
-      yearsAnalyzed: lookbackYears
+      yearsAnalyzed: Math.round(yearsDifference * 10) / 10
     };
   } catch (error) {
     console.error('Error calculating unplanned bills suggestion:', error);
-    return { amount: 0, confidence: 'error', yearsAnalyzed: lookbackYears };
+    return { amount: 0, confidence: 'error', yearsAnalyzed: 0 };
   }
 }
 
