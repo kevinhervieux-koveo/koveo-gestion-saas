@@ -23,6 +23,7 @@ export * from './schemas/invoices';
 export * from './schemas/development';
 export * from './schemas/monitoring';
 export * from './schemas/infrastructure';
+export * from './schemas/financial-views';
 
 // For backward compatibility, we also export commonly used tables and types
 // These are the most frequently imported items across the codebase

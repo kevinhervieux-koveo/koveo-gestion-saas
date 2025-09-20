@@ -2,15 +2,21 @@ import { sql } from 'drizzle-orm';
 import {
   pgMaterializedView,
   pgView,
+  pgTable,
   text,
   timestamp,
-  uuid,
+  varchar,
   boolean,
   integer,
   decimal,
   date,
   jsonb,
+  uuid,
+  uniqueIndex,
+  index,
 } from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
+import { z } from 'zod';
 import { residences, buildings } from './property';
 import { bills } from './financial';
 
@@ -20,6 +26,8 @@ import { bills } from './financial';
  */
 
 // Materialized view for active financial sources (bills + residences)
+// Temporarily disabled for drizzle-kit compatibility - will create manually
+/*
 export const activeFinancialSources = pgMaterializedView('active_financial_sources').as((qb) => {
   return qb
     .select({
@@ -55,11 +63,11 @@ export const activeFinancialSources = pgMaterializedView('active_financial_sourc
           title: sql<string>`CONCAT('Monthly fees - Unit ', ${residences.unitNumber})`.as('title'),
           amount: residences.monthlyFees,
           costs: sql<string[]>`ARRAY[${residences.monthlyFees}]`.as('costs'),
-          schedulePayment: sql<string>`'monthly'`.as('schedule_payment'),
+          schedulePayment: sql<'monthly'>`'monthly'`.as('schedule_payment'),
           scheduleCustom: sql<string[]>`NULL`.as('schedule_custom'),
           startDate: sql<string>`CURRENT_DATE`.as('start_date'),
           endDate: sql<string>`NULL`.as('end_date'),
-          paymentType: sql<string>`'recurrent'`.as('payment_type'),
+          paymentType: sql<'recurrent'>`'recurrent'`.as('payment_type'),
           flowType: sql<string>`'income'`.as('flow_type'),
           isActive: sql<boolean>`${residences.isActive} AND ${residences.monthlyFees} > 0`.as(
             'is_active'
@@ -74,8 +82,11 @@ export const activeFinancialSources = pgMaterializedView('active_financial_sourc
         .where(sql`${residences.isActive} = true AND ${buildings.isActive} = true`)
     );
 });
+*/
 
 // View for current month financial summary (fast lookup)
+// Temporarily disabled for drizzle-kit compatibility - will create manually
+/*
 export const currentMonthFinancials = pgView('current_month_financials').as((qb) => {
   return qb
     .select({
@@ -106,26 +117,35 @@ export const currentMonthFinancials = pgView('current_month_financials').as((qb)
     .where(sql`${activeFinancialSources.isActive} = true`)
     .groupBy(activeFinancialSources.buildingId);
 });
+*/
 
 // Cache table for frequently accessed financial calculations
-export const financialCache = sql`
-  CREATE TABLE IF NOT EXISTS financial_cache (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    building_id UUID NOT NULL REFERENCES buildings(id),
-    cache_key VARCHAR(255) NOT NULL,
-    cache_data JSONB NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    expires_at TIMESTAMP NOT NULL,
-    UNIQUE(building_id, cache_key, start_date, end_date)
-  );
-  
-  CREATE INDEX IF NOT EXISTS idx_financial_cache_lookup 
-    ON financial_cache(building_id, cache_key, expires_at);
-  CREATE INDEX IF NOT EXISTS idx_financial_cache_expires 
-    ON financial_cache(expires_at) WHERE expires_at < NOW();
-`;
+export const financialCache = pgTable('financial_cache', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  buildingId: varchar('building_id')
+    .notNull()
+    .references(() => buildings.id),
+  cacheKey: text('cache_key').notNull(),
+  cacheData: jsonb('cache_data').notNull(),
+  startDate: date('start_date').notNull(),
+  endDate: date('end_date').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  expiresAt: timestamp('expires_at').notNull(),
+}, (table) => ({
+  unqFinancialCache: uniqueIndex('unq_financial_cache').on(
+    table.buildingId,
+    table.cacheKey,
+    table.startDate,
+    table.endDate
+  ),
+  idxFinancialCacheLookup: index('idx_financial_cache_lookup').on(
+    table.buildingId,
+    table.cacheKey,
+    table.expiresAt
+  ),
+}));
 
 // Types for the new system
 /**
@@ -166,3 +186,16 @@ export interface FinancialCacheEntry {
   createdAt: Date;
   expiresAt: Date;
 }
+
+// Insert schema and types for financialCache table
+export const insertFinancialCacheSchema = createInsertSchema(financialCache, {
+  buildingId: z.string().uuid('Building ID must be a valid UUID'),
+  cacheKey: z.string().min(1, 'Cache key is required'),
+  cacheData: z.any(), // JSONB data
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be in YYYY-MM-DD format'),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format'),
+  expiresAt: z.date(),
+}).omit({ id: true, createdAt: true });
+
+export type InsertFinancialCache = z.infer<typeof insertFinancialCacheSchema>;
+export type FinancialCache = typeof financialCache.$inferSelect;
