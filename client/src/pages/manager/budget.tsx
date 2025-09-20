@@ -332,7 +332,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   // Capital investments state management
   const [capitalInvestments, setCapitalInvestments] = useState<CapitalInvestment[]>([]);
-  const [capitalInvestmentMode, setCapitalInvestmentMode] = useState<'urgent' | 'suggested'>('suggested');
+  const [capitalInvestmentMode, setCapitalInvestmentMode] = useState<'urgent' | 'suggested' | 'custom'>('suggested');
   const [investmentFilters, setInvestmentFilters] = useState<InvestmentFilters>({
     urgency: 'all',
   });
@@ -3446,7 +3446,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                           <Target className='w-4 h-4 text-blue-600 dark:text-blue-400' />
                           <span className='text-sm font-medium text-blue-700 dark:text-blue-300'>Capital Investment Strategy</span>
                         </div>
-                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-3'>
+                        <div className='grid grid-cols-1 lg:grid-cols-3 gap-3'>
                           <label 
                             className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
                               capitalInvestmentMode === 'urgent' 
@@ -3461,7 +3461,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                 name="capitalInvestmentMode"
                                 value="urgent"
                                 checked={capitalInvestmentMode === 'urgent'}
-                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested')}
+                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested' | 'custom')}
                                 className='text-blue-600 focus:ring-blue-500'
                                 data-testid="radio-urgent-capital-mode"
                               />
@@ -3498,7 +3498,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                 name="capitalInvestmentMode"
                                 value="suggested"
                                 checked={capitalInvestmentMode === 'suggested'}
-                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested')}
+                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested' | 'custom')}
                                 className='text-blue-600 focus:ring-blue-500'
                                 data-testid="radio-suggested-capital-mode"
                               />
@@ -3517,6 +3517,34 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                     </div>
                                   );
                                 })()}
+                              </div>
+                            </div>
+                          </label>
+                          
+                          <label 
+                            className={`cursor-pointer rounded-lg border-2 p-3 transition-all ${
+                              capitalInvestmentMode === 'custom' 
+                                ? 'border-blue-500 bg-blue-100 dark:bg-blue-900/30' 
+                                : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                            }`}
+                            data-testid="label-custom-capital-mode"
+                          >
+                            <div className='flex items-center space-x-3'>
+                              <input
+                                type="radio"
+                                name="capitalInvestmentMode"
+                                value="custom"
+                                checked={capitalInvestmentMode === 'custom'}
+                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested' | 'custom')}
+                                className='text-blue-600 focus:ring-blue-500'
+                                data-testid="radio-custom-capital-mode"
+                              />
+                              <div className='flex-1'>
+                                <div className='font-medium text-gray-900 dark:text-gray-100'>Custom</div>
+                                <div className='text-sm text-gray-600 dark:text-gray-400'>No auto-suggested investments. Full manual control allowing negative balances.</div>
+                                <div className='text-sm font-medium text-blue-600 dark:text-blue-400 mt-1'>
+                                  No automatic capital injections
+                                </div>
                               </div>
                             </div>
                           </label>
