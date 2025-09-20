@@ -1860,7 +1860,53 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return getBudgetCategories().allCategories;
   };
 
-  // REMOVED: calculateCapitalInvestmentsForPeriod - now using backend forecast data directly
+  // Helper function to aggregate capital investments by month and urgency
+  const aggregateInvestmentsByMonth = (year: number, month: number) => {
+    // Find all investments that target this specific month
+    const monthInvestments = capitalInvestments.filter(investment => {
+      const targetDate = new Date(investment.targetDate);
+      return targetDate.getFullYear() === year && targetDate.getMonth() + 1 === month;
+    });
+
+    const result = {
+      urgent: 0,
+      suggested: 0,
+      notUrgent: 0,
+      total: 0
+    };
+
+    monthInvestments.forEach(investment => {
+      const amount = investment.amount;
+      result.total += amount;
+      
+      switch (investment.urgency) {
+        case 'urgent':
+          result.urgent += amount;
+          break;
+        case 'suggested':
+          result.suggested += amount;
+          break;
+        case 'not_urgent':
+          result.notUrgent += amount;
+          break;
+      }
+    });
+
+    debugLog('Investment aggregation for month', {
+      year,
+      month,
+      monthInvestments: monthInvestments.length,
+      result,
+      investments: monthInvestments.map(inv => ({ 
+        id: inv.id, 
+        amount: inv.amount, 
+        urgency: inv.urgency,
+        title: inv.title 
+      }))
+    });
+
+    return result;
+  };
 
   // Prepare chart data with filters applied
   const getChartData = () => {
@@ -1912,13 +1958,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         // Recalculate net cash flow with combined revenue and total spending
         yearlyData[item.year].netCashFlow += (combinedRevenue - totalSpending);
         
-        // Use backend forecast capitalInvestment (auto-generated investment for selected scenario)
-        const forecastCapitalInvestment = item.capitalInvestment || 0;
+        // Aggregate all capital investments (custom + auto-generated) for this month
+        const monthlyInvestments = aggregateInvestmentsByMonth(item.year, item.month);
         
-        yearlyData[item.year].capitalInvestments += forecastCapitalInvestment;
-        yearlyData[item.year].urgentInvestments += 0; // Will be scenario-specific later
-        yearlyData[item.year].suggestedInvestments += forecastCapitalInvestment; // Show as suggested for now
-        yearlyData[item.year].notUrgentInvestments += 0;
+        yearlyData[item.year].capitalInvestments += monthlyInvestments.total;
+        yearlyData[item.year].urgentInvestments += monthlyInvestments.urgent;
+        yearlyData[item.year].suggestedInvestments += monthlyInvestments.suggested;
+        yearlyData[item.year].notUrgentInvestments += monthlyInvestments.notUrgent;
         
         yearlyData[item.year].count++;
         // For yearly view: Use first month's balance as start, last month's balance as end
@@ -1969,8 +2015,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         balanceStart = localSettings.bankAccountStartAmount || 0;
       }
       
-      // Use backend forecast capitalInvestment (auto-generated investment for selected scenario)
-      const forecastCapitalInvestment = item.capitalInvestment || 0;
+      // Aggregate all capital investments (custom + auto-generated) for this month
+      const monthlyInvestments = aggregateInvestmentsByMonth(item.year, item.month);
       
       return {
         month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
@@ -1980,10 +2026,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
         spending: totalSpending, // Include unplanned bills
         netCashFlow: combinedRevenue - totalSpending, // Recalculate with combined revenue and total spending
-        capitalInvestments: forecastCapitalInvestment,
-        urgentInvestments: 0, // Will be scenario-specific later
-        suggestedInvestments: forecastCapitalInvestment, // Show as suggested for now
-        notUrgentInvestments: 0,
+        capitalInvestments: monthlyInvestments.total,
+        urgentInvestments: monthlyInvestments.urgent,
+        suggestedInvestments: monthlyInvestments.suggested,
+        notUrgentInvestments: monthlyInvestments.notUrgent,
       };
     });
   };
