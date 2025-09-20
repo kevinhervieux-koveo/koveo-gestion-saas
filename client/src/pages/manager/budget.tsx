@@ -938,6 +938,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   // Handle complete page refresh
   const [isRefreshing, setIsRefreshing] = useState(false);
   
+  // Floating refresh button scroll detection
+  const [showFloatingRefresh, setShowFloatingRefresh] = useState(false);
+  
   const handleRefreshPage = async () => {
     if (isRefreshing) return;
     
@@ -991,6 +994,59 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       setIsRefreshing(false);
     }
   };
+
+  // Intersection Observer for floating refresh button visibility
+  const sentinelRef = React.useRef<HTMLDivElement>(null);
+  
+  React.useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    // Find the actual scroll container
+    const findScrollContainer = (element: Element): Element | null => {
+      let parent = element.parentElement;
+      while (parent) {
+        const computedStyle = window.getComputedStyle(parent);
+        if (
+          computedStyle.overflowY === 'auto' || 
+          computedStyle.overflowY === 'scroll' ||
+          computedStyle.overflow === 'auto' ||
+          computedStyle.overflow === 'scroll' ||
+          parent.hasAttribute('data-scroll-container')
+        ) {
+          return parent;
+        }
+        parent = parent.parentElement;
+      }
+      return null;
+    };
+
+    const scrollContainer = findScrollContainer(sentinel);
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show floating button when sentinel is out of view (scrolled past it)
+        setShowFloatingRefresh(!entry.isIntersecting);
+      },
+      {
+        root: scrollContainer,
+        threshold: 0,
+        // Use a smaller margin for better responsiveness
+        rootMargin: '-50px 0px 0px 0px'
+      }
+    );
+
+    observer.observe(sentinel);
+
+    // Set initial state
+    const rect = sentinel.getBoundingClientRect();
+    const containerRect = scrollContainer?.getBoundingClientRect() || { top: 0 };
+    setShowFloatingRefresh(rect.top < containerRect.top - 50);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
 
   // Calculate residence revenue from monthly fees
@@ -2104,6 +2160,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         </div>
       )}
 
+      {/* Scroll Sentinel for Floating Button */}
+      <div ref={sentinelRef} className="h-px w-full pointer-events-none" aria-hidden="true" />
+      
       {/* Comprehensive Filter Controls */}
       <div className="p-4 border-b border-gray-200 bg-gray-50/50">
         <div className="max-w-7xl mx-auto space-y-4">
@@ -4143,6 +4202,26 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
           )}
         </div>
       </div>
+
+      {/* Floating Refresh Button */}
+      <Button
+        variant="default"
+        size="lg"
+        onClick={handleRefreshPage}
+        disabled={isRefreshing}
+        tabIndex={showFloatingRefresh ? 0 : -1}
+        className={`fixed bottom-8 right-8 z-50 rounded-full shadow-lg transition-all duration-300 bg-primary hover:bg-primary/90 ${
+          showFloatingRefresh 
+            ? 'opacity-100 scale-100 pointer-events-auto' 
+            : 'opacity-0 scale-95 pointer-events-none'
+        }`}
+        style={{ bottom: 'calc(2rem + env(safe-area-inset-bottom))' }}
+        aria-hidden={!showFloatingRefresh}
+        data-testid="button-floating-refresh"
+      >
+        <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+        <span className="sr-only">Refresh budget data</span>
+      </Button>
     </div>
   );
 }
