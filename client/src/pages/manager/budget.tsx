@@ -2721,20 +2721,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       </div>
                     )}
                     {filters.dataVisibility.capitalInvestments && (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-red-600"></div>
-                          <span className="text-sm font-medium">Urgent Investments</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                          <span className="text-sm font-medium">Suggested Investments</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                          <span className="text-sm font-medium">Not Urgent Investments</span>
-                        </div>
-                      </>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                        <span className="text-sm font-medium">Investments</span>
+                      </div>
                     )}
                     {filters.dataVisibility.minimumRequirement && (
                       <div className="flex items-center gap-2">
@@ -2830,39 +2820,16 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                             />
                           )}
 
-                          {/* Capital Investments Lines - Separate by urgency */}
+                          {/* Capital Investments - Consolidated line */}
                           {filters.dataVisibility.capitalInvestments && (
-                            <>
-                              {/* Urgent Investments - Red solid line */}
-                              <RechartsLine
-                                type="monotone"
-                                dataKey="urgentInvestments"
-                                stroke="#dc2626"
-                                strokeWidth={2}
-                                dot={{ fill: '#dc2626', strokeWidth: 2, r: 4 }}
-                                name="urgentInvestments"
-                              />
-                              
-                              {/* Suggested Investments - Orange solid line */}
-                              <RechartsLine
-                                type="monotone"
-                                dataKey="suggestedInvestments"
-                                stroke="#f59e0b"
-                                strokeWidth={2}
-                                dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }}
-                                name="suggestedInvestments"
-                              />
-                              
-                              {/* Not Urgent Investments - Green solid line */}
-                              <RechartsLine
-                                type="monotone"
-                                dataKey="notUrgentInvestments"
-                                stroke="#10b981"
-                                strokeWidth={2}
-                                dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                                name="notUrgentInvestments"
-                              />
-                            </>
+                            <RechartsLine
+                              type="monotone"
+                              dataKey="capitalInvestments"
+                              stroke="#6366f1"
+                              strokeWidth={2}
+                              dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
+                              name="capitalInvestments"
+                            />
                           )}
                           
                           {/* Minimum Requirement Reference Line */}
