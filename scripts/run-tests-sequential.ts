@@ -144,7 +144,7 @@ class SequentialTestRunner {
       const [cmd, ...args] = command.split(' ');
       const process = spawn(cmd, args, { 
         stdio: ['pipe', 'pipe', 'pipe'],
-        shell: true
+        shell: false
       });
       
       let output = '';
