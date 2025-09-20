@@ -44,7 +44,8 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
-  Trash2
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 import {
   LineChart as RechartsLineChart,
@@ -932,6 +933,34 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   const handleBackToBuilding = () => {
     navigate(`/manager/budget?organization=${organizationId}`);
+  };
+
+  // Handle complete page refresh
+  const handleRefreshPage = async () => {
+    try {
+      debugLog('Starting page refresh', { buildingId });
+      
+      // Invalidate all relevant queries to force refetch
+      await queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/bank-account`] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/buildings', buildingId, 'residences'] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/investments`] });
+      await queryClient.invalidateQueries({ queryKey: [`/api/budgets/${buildingId}/forecast`] });
+      
+      // Show success toast
+      toast({
+        title: t('refreshComplete') || 'Refresh Complete',
+        description: t('budgetDataUpdated') || 'Budget data has been refreshed with the latest information.',
+      });
+      
+      debugLog('Page refresh completed successfully', { buildingId });
+    } catch (error) {
+      debugLog('Error during page refresh', { buildingId, error });
+      toast({
+        title: t('refreshError') || 'Refresh Error',
+        description: t('refreshErrorDescription') || 'Failed to refresh budget data. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
 
@@ -2033,6 +2062,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
             {buildingId ? t('building') : t('organization')}
           </Button>
 
+          <Button
+            variant="outline"
+            onClick={handleRefreshPage}
+            className="flex items-center gap-2"
+            data-testid="button-refresh-budget"
+          >
+            <RefreshCw className="w-4 h-4" />
+            {t('refresh') || 'Refresh'}
+          </Button>
         </div>
       )}
 
