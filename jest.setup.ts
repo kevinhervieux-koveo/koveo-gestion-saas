@@ -234,7 +234,7 @@ const createMockHistory = () => ({
 });
 
 // Only define history if it's not already properly mocked
-if (!window.history || !window.history.pushState || typeof window.history.pushState !== 'function') {
+if (typeof window !== 'undefined' && (!window.history || !window.history.pushState || typeof window.history.pushState !== 'function')) {
   Object.defineProperty(window, 'history', {
     value: createMockHistory(),
     writable: true,
@@ -243,19 +243,21 @@ if (!window.history || !window.history.pushState || typeof window.history.pushSt
 }
 
 // Mock navigation API to prevent "Not implemented" errors
-Object.defineProperty(window, 'navigation', {
-  value: {
-    navigate: jest.fn().mockResolvedValue(undefined),
-    reload: jest.fn().mockResolvedValue(undefined),
-    canGoBack: false,
-    canGoForward: false,
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn()
-  },
-  writable: true,
-  configurable: true
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'navigation', {
+    value: {
+      navigate: jest.fn().mockResolvedValue(undefined),
+      reload: jest.fn().mockResolvedValue(undefined),
+      canGoBack: false,
+      canGoForward: false,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn()
+    },
+    writable: true,
+    configurable: true
+  });
+}
 
 // Mock PopStateEvent for navigation events
 (global as any).PopStateEvent = class MockPopStateEvent extends Event {
@@ -267,28 +269,34 @@ Object.defineProperty(window, 'navigation', {
 };
 
 // Mock matchMedia for responsive design tests
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(), // deprecated
+      removeListener: jest.fn(), // deprecated
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  });
+}
 
 // Mock scrollTo for navigation tests
-Object.defineProperty(window, 'scrollTo', {
-  writable: true,
-  value: jest.fn(),
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'scrollTo', {
+    writable: true,
+    value: jest.fn(),
+  });
+}
 
 // Mock scrollIntoView for element navigation tests
-Element.prototype.scrollIntoView = jest.fn();
+if (typeof Element !== 'undefined') {
+  Element.prototype.scrollIntoView = jest.fn();
+}
 
 // Mock storage APIs
 const createMockStorage = () => {
@@ -311,13 +319,15 @@ const createMockStorage = () => {
   };
 };
 
-Object.defineProperty(window, 'sessionStorage', {
-  value: createMockStorage(),
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'sessionStorage', {
+    value: createMockStorage(),
+  });
 
-Object.defineProperty(window, 'localStorage', {
-  value: createMockStorage(),
-});
+  Object.defineProperty(window, 'localStorage', {
+    value: createMockStorage(),
+  });
+}
 
 // Mock URL.createObjectURL and revokeObjectURL for file handling tests
 global.URL.createObjectURL = jest.fn(() => 'mock-object-url');

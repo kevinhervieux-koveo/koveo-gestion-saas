@@ -95,7 +95,6 @@ const config = {
       {
         tsconfig: '<rootDir>/tsconfig.test.json',
         useESM: false,
-        isolatedModules: true,
         // Enhanced TypeScript support for better error handling
         diagnostics: {
           ignoreCodes: [1343]
