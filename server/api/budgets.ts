@@ -31,12 +31,14 @@ const forecastInputSchema = z.object({
   generalInflationRate: z.coerce.number().min(0).max(100).optional(),
   revenueInflationRate: z.coerce.number().min(0).max(100).optional(),
   unplannedBillsAmount: z.coerce.number().min(0).optional(),
+  unplannedBillsStartDate: z.string().optional(),
   lookbackYears: z.coerce.number().min(1).max(10).optional().default(3),
   capitalInvestmentMode: z.enum(['urgent', 'suggested', 'custom']).optional().default('suggested'),
 });
 
 const updateUnplannedBillsSchema = z.object({
   unplannedBillsAmount: z.coerce.number().min(0),
+  unplannedBillsStartDate: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -656,6 +658,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         generalInflationRate: true,
         revenueInflationRate: true,
         unplannedBillsAmount: true,
+        unplannedBillsStartDate: true,
         financialYearStart: true, // Financial year start date for inflation timing
         amenities: true, // Contains extended configuration
       },
@@ -1039,8 +1042,48 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       // Apply inflation to recurring expenses
       const inflatedRecurringExpenses = monthlyRecurringExpenses * Math.pow(1 + generalInflation, yearsElapsed);
 
-      // Apply inflation to unplanned bills
-      const inflatedUnplannedBills = unplannedBills * Math.pow(1 + generalInflation, yearsElapsed);
+      // Calculate unique bills payments for this month
+      let monthlyUniqueBillsPayments = 0;
+      
+      // Get unique bills payments that are due this month
+      const uniqueBillsPayments = await db
+        .select({
+          amount: payments.amount,
+          scheduledDate: payments.scheduledDate,
+          status: payments.status,
+        })
+        .from(payments)
+        .innerJoin(bills, eq(payments.billId, bills.id))
+        .where(
+          and(
+            eq(bills.buildingId, buildingId),
+            eq(bills.paymentType, 'unique'),
+            eq(payments.status, 'paid'),
+            // Filter payments for this specific month/year
+            sql`EXTRACT(YEAR FROM ${payments.scheduledDate}) = ${currentYear}`,
+            sql`EXTRACT(MONTH FROM ${payments.scheduledDate}) = ${currentMonth}`
+          )
+        );
+      
+      // Sum up unique bills payments for this month
+      monthlyUniqueBillsPayments = uniqueBillsPayments.reduce((total, payment) => {
+        return total + parseFloat(payment.amount);
+      }, 0);
+
+      // Check if unplanned bills should be applied based on start date
+      let appliedUnplannedBills = 0;
+      if (validatedInput.unplannedBillsStartDate || building.unplannedBillsStartDate) {
+        const startDate = new Date(validatedInput.unplannedBillsStartDate || building.unplannedBillsStartDate);
+        const currentForecastDate = new Date(currentYear, currentMonth - 1, 1);
+        
+        // Only apply unplanned bills if current forecast date is >= start date
+        if (currentForecastDate >= startDate) {
+          appliedUnplannedBills = unplannedBills * Math.pow(1 + generalInflation, yearsElapsed);
+        }
+      } else {
+        // If no start date is set, apply unplanned bills immediately
+        appliedUnplannedBills = unplannedBills * Math.pow(1 + generalInflation, yearsElapsed);
+      }
 
       // Special one-time incomes (special_cotisations) - could be added from monthly_budgets
       let specialIncomes = 0;
@@ -1060,7 +1103,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
 
       // STEP 1: Account start + Revenue + planned investments - spending = Account end without auto-investment
       const totalRevenue = inflatedIncome + specialIncomes;
-      const totalSpending = inflatedRecurringExpenses + inflatedUnplannedBills;
+      const totalSpending = inflatedRecurringExpenses + appliedUnplannedBills + monthlyUniqueBillsPayments;
       const balanceWithoutAutoInvestment = currentBalance + totalRevenue + plannedInvestments - totalSpending;
 
       // STEP 2: Calculate auto-generated investment based on balance without auto-investment  
@@ -1141,7 +1184,8 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         status,
         inflatedIncome: Math.round(inflatedIncome * 100) / 100,
         inflatedRecurringExpenses: Math.round(inflatedRecurringExpenses * 100) / 100,
-        inflatedUnplannedBills: Math.round(inflatedUnplannedBills * 100) / 100,
+        appliedUnplannedBills: Math.round(appliedUnplannedBills * 100) / 100,
+        monthlyUniqueBillsPayments: Math.round(monthlyUniqueBillsPayments * 100) / 100,
       });
     }
 
@@ -1198,6 +1242,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         method: unplannedBillsCalculation.amount > 0 ? 'payments_historical' : 'no_data'
       },
       monthlyUnplannedBillsUsed: unplannedBills,
+      unplannedBillsStartDate: validatedInput.unplannedBillsStartDate || building.unplannedBillsStartDate || null,
       unplannedBillsSource: unplannedBillsAmount !== undefined 
         ? 'user_input' 
         : unplannedBillsCalculation.amount > 0 
@@ -1234,7 +1279,7 @@ router.put('/:buildingId/unplanned-bills', requireAuth, async (req, res) => {
     
     // Validate input data
     const validatedInput = updateUnplannedBillsSchema.parse(req.body);
-    const { unplannedBillsAmount, notes } = validatedInput;
+    const { unplannedBillsAmount, unplannedBillsStartDate, notes } = validatedInput;
 
     // Validate building exists
     const building = await db.query.buildings.findFirst({
@@ -1246,26 +1291,29 @@ router.put('/:buildingId/unplanned-bills', requireAuth, async (req, res) => {
       return res.status(404).json({ _error: 'Building not found' });
     }
 
-    // Update building with new unplanned bills amount
+    // Update building with new unplanned bills amount and start date
     await db
       .update(buildings)
       .set({ 
         unplannedBillsAmount: unplannedBillsAmount.toString(),
+        unplannedBillsStartDate: unplannedBillsStartDate || null,
         bankAccountNotes: notes || null,
         updatedAt: new Date()
       })
       .where(eq(buildings.id, buildingId));
       
-    debugLog('Updated building unplannedBillsAmount', { 
+    debugLog('Updated building unplanned bills settings', { 
       buildingId, 
       newAmount: unplannedBillsAmount,
+      newStartDate: unplannedBillsStartDate,
       notes 
     });
 
     res.json({
-      message: 'Unplanned bills amount updated successfully',
+      message: 'Unplanned bills settings updated successfully',
       buildingId,
       unplannedBillsAmount,
+      unplannedBillsStartDate,
       notes,
       updatedAt: new Date(),
     });
