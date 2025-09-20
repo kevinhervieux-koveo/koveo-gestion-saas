@@ -892,6 +892,29 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         .reduce((sum, income) => sum + parseFloat(income), 0);
     }
     
+    // Add custom revenue lines to other monthly income
+    if (extendedConfig.customRevenueLines && Array.isArray(extendedConfig.customRevenueLines)) {
+      const customMonthlyRevenue = extendedConfig.customRevenueLines
+        .reduce((total, line) => {
+          if (line.monthlyAmount && typeof line.monthlyAmount === 'number') {
+            return total + line.monthlyAmount;
+          }
+          // Handle string amounts
+          if (line.monthlyAmount && typeof line.monthlyAmount === 'string') {
+            const parsedAmount = parseFloat(line.monthlyAmount);
+            return total + (isNaN(parsedAmount) ? 0 : parsedAmount);
+          }
+          return total;
+        }, 0);
+      otherMonthlyIncome += customMonthlyRevenue;
+      
+      debugLog('Custom revenue lines included in forecast', {
+        customRevenueLines: extendedConfig.customRevenueLines,
+        customMonthlyRevenue,
+        totalOtherMonthlyIncome: otherMonthlyIncome
+      });
+    }
+    
     // Total baseline income (for backward compatibility and fallback)
     const totalBaselineIncome = monthlyFeesRevenue + otherMonthlyIncome;
     
