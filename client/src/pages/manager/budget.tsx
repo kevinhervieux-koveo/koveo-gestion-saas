@@ -1281,41 +1281,49 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     
     // Add capital investments based on selected strategy
     if (capitalInvestmentMode === 'suggested') {
-      // Suggested Capital: Use backend-calculated investment amounts based on minimum requirements
-      // Instead of hardcoded values, calculate the investment needed dynamically
-      if (bankAccountData && typeof bankAccountData === 'object' && 'startingBalance' in bankAccountData && 'minimumRequirement' in bankAccountData) {
-        const accountData = bankAccountData as { startingBalance: number; minimumRequirement: number };
-        const investmentNeeded = Math.max(0, accountData.minimumRequirement - accountData.startingBalance);
+      // Suggested Capital: Use actual backend-calculated investment amounts from forecast data
+      // The forecast contains the real calculated capitalInvestment values (~$900) from the backend
+      if (forecastData?.forecast && forecastData.forecast.length > 0) {
+        // Get the filtered forecast data based on current view settings
+        const filteredForecast = getFilteredForecastData();
         
-        if (investmentNeeded > 0) {
-          // Add a single calculated investment based on backend minimum requirement calculations
-          suggestions.push({
-            id: `calculated-investment-${Date.now()}`,
-            title: 'Minimum Requirement Investment',
-            description: `Investment needed to reach minimum requirement of $${accountData.minimumRequirement.toLocaleString()}`,
-            amount: Math.round(investmentNeeded * 100) / 100, // Round to 2 decimal places
-            targetDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 15).toISOString().split('T')[0], // Next month 15th
-            urgency: 'suggested',
-            type: 'auto_generated',
-            ownershipType: 'owner',
-            category: 'Minimum Requirement Investment',
-            createdAt: new Date().toISOString(),
-          });
-          
-          debugLog('Generated investment suggestion based on backend calculation', {
-            startingBalance: accountData.startingBalance,
-            minimumRequirement: accountData.minimumRequirement,
-            investmentNeeded,
-            roundedInvestment: Math.round(investmentNeeded * 100) / 100
-          });
-        } else {
-          debugLog('No investment needed - balance already above minimum requirement', {
-            startingBalance: accountData.startingBalance,
-            minimumRequirement: accountData.minimumRequirement
-          });
-        }
+        // Find periods that need capital investments (where capitalInvestment > 0)
+        const periodsWithInvestments = filteredForecast.filter(period => period.capitalInvestment > 0);
+        
+        debugLog('Periods with capital investments from forecast', {
+          totalPeriods: filteredForecast.length,
+          periodsWithInvestments: periodsWithInvestments.length,
+          investments: periodsWithInvestments.map(p => ({
+            period: `${p.year}-${p.month}`,
+            amount: p.capitalInvestment
+          }))
+        });
+        
+        // Create investment suggestions based on forecast calculations
+        periodsWithInvestments.forEach((period, index) => {
+          if (period.capitalInvestment > 0) {
+            const targetDate = new Date(period.year, period.month - 1, 15).toISOString().split('T')[0];
+            suggestions.push({
+              id: `forecast-investment-${period.year}-${period.month}-${Date.now()}`,
+              title: `Investment for ${new Date(period.year, period.month - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
+              description: `Capital investment calculated by forecast to maintain minimum requirements`,
+              amount: Math.round(period.capitalInvestment * 100) / 100, // Round to 2 decimal places
+              targetDate: targetDate,
+              urgency: 'suggested',
+              type: 'auto_generated',
+              ownershipType: 'owner',
+              category: `Forecast Investment ${period.year}-${String(period.month).padStart(2, '0')}`,
+              createdAt: new Date().toISOString(),
+            });
+          }
+        });
+        
+        debugLog('Generated investment suggestions from forecast data', {
+          suggestionsCount: periodsWithInvestments.length,
+          totalInvestmentAmount: periodsWithInvestments.reduce((sum, p) => sum + p.capitalInvestment, 0)
+        });
       } else {
-        debugLog('Bank account data not available for investment calculation', { bankAccountData });
+        debugLog('Forecast data not available for investment calculation', { forecastData: !!forecastData });
       }
     } else if (capitalInvestmentMode === 'urgent') {
       // Urgent Capital Only: Only add investments when budget balance would go below $0
