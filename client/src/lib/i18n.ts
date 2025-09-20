@@ -638,6 +638,9 @@ export interface Translations {
   deleting: string;
   page: string;
   of: string;
+  filtered: string;
+  onThisPage: string;
+  confirmEmail: string;
   settings: string;
   manageAccountSettings: string;
   generalSettings: string;
@@ -1681,6 +1684,9 @@ export const translations: Record<Language, Translations> = {
     deleting: 'Deleting...',
     page: 'Page',
     of: 'of',
+    filtered: 'Filtered',
+    onThisPage: 'On this page',
+    confirmEmail: 'Confirm Email',
     settings: 'Settings',
     manageAccountSettings: 'Manage your account and application settings',
     generalSettings: 'General Settings',
@@ -2650,6 +2656,9 @@ export const translations: Record<Language, Translations> = {
     deleting: 'Suppression...',
     page: 'Page',
     of: 'de',
+    filtered: 'Filtré',
+    onThisPage: 'Sur cette page',
+    confirmEmail: 'Confirmer le courriel',
     settings: 'Paramètres',
     generalSettings: 'Paramètres généraux',
     securitySettings: 'Paramètres de sécurité',
