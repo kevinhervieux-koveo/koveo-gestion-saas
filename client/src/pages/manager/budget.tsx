@@ -3477,31 +3477,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     </div>
 
                     {/* Investment Controls */}
-                    <div className='flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between'>
-                      <div className='flex flex-wrap gap-2'>
-                        {/* Urgency Filter */}
-                        <Select 
-                          value={investmentFilters.urgency || 'all'} 
-                          onValueChange={(value) => 
-                            setInvestmentFilters(prev => ({ 
-                              ...prev, 
-                              urgency: value as any 
-                            }))
-                          }
-                        >
-                          <SelectTrigger className="w-[140px]" data-testid="select-urgency-filter">
-                            <Filter className='w-4 h-4 mr-2' />
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Urgency</SelectItem>
-                            <SelectItem value="urgent">Urgent Only</SelectItem>
-                            <SelectItem value="suggested">Suggested Only</SelectItem>
-                            <SelectItem value="not_urgent">Not Urgent Only</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
+                    <div className='flex justify-end'>
                       {/* Add Investment Button */}
                       <Dialog open={addInvestmentDialogOpen} onOpenChange={setAddInvestmentDialogOpen}>
                         <DialogTrigger asChild>
