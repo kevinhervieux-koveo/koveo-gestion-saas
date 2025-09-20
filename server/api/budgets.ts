@@ -32,6 +32,11 @@ const forecastInputSchema = z.object({
   generalInflationRate: z.coerce.number().min(0).max(100).optional(),
   revenueInflationRate: z.coerce.number().min(0).max(100).optional(),
   unplannedBillsAmount: z.coerce.number().min(0).optional(),
+  // Time window parameters
+  viewType: z.enum(['month', 'year']).optional(),
+  periodLength: z.coerce.number().positive().optional(),
+  startMonth: z.coerce.number().min(1).max(12).optional(),
+  startYear: z.coerce.number().optional(),
   unplannedBillsStartDate: z.string().optional(),
   lookbackYears: z.coerce.number().min(1).max(10).optional().default(3),
   capitalInvestmentMode: z.enum(['urgent', 'suggested', 'custom']).optional().default('suggested'),
