@@ -1046,13 +1046,13 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       let inflatedOtherIncome = otherMonthlyIncome;
       
       if (shouldInflate) {
-        // Get the correct inflation rate for monthly fees based on bills configuration
-        const monthlyFeesInflationRate = getMonthlyFeesInflationRate(extendedConfig, revenueInflation, generalInflation);
+        // UNIFIED REVENUE INFLATION: Apply the same revenue inflation rate to ALL revenue sources
+        // This ensures consistent 4.8% (or whatever the user sets) across residence fees AND custom revenue
         
-        // Apply bills inflation to monthly fees (apply inflation from start if financial year allows)
-        inflatedMonthlyFees = applyInflation(monthlyFeesRevenue, monthlyFeesInflationRate, yearsElapsed);
+        // Apply revenue inflation to monthly fees (residence fees)
+        inflatedMonthlyFees = applyInflation(monthlyFeesRevenue, revenueInflation, yearsElapsed);
         
-        // Apply revenue inflation to other income sources (apply from start if financial year allows)
+        // Apply revenue inflation to other income sources (custom revenue)
         inflatedOtherIncome = applyInflation(otherMonthlyIncome, revenueInflation, yearsElapsed);
         
         // Debug logging for applied inflation (first few months and financial year boundaries)
@@ -1068,8 +1068,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
               inflatedOtherIncome: Math.round(inflatedOtherIncome * 100) / 100,
             },
             rates: {
-              monthlyFeesInflationRate: Math.round(monthlyFeesInflationRate * 100 * 100) / 100,
-              revenueInflation: Math.round(revenueInflation * 100 * 100) / 100,
+              unifiedRevenueInflation: Math.round(revenueInflation * 100 * 100) / 100, // Same rate for all revenue
+              appliedToResidenceFees: Math.round(revenueInflation * 100 * 100) / 100,
+              appliedToCustomRevenue: Math.round(revenueInflation * 100 * 100) / 100,
             },
             inflationMultiplier: Math.round(Math.pow(1 + revenueInflation, yearsElapsed) * 1000) / 1000,
           });
