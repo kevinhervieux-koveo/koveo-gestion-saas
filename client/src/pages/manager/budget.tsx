@@ -341,14 +341,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     amount: string;
     targetDate: string;
     urgency: 'not_urgent' | 'urgent' | 'suggested';
-    ownershipType: 'residences' | 'owner';
   }>({
-    title: '',
+    title: 'Investment 1',
     description: '',
     amount: '',
     targetDate: '',
     urgency: 'not_urgent',
-    ownershipType: 'residences',
   });
   const [editingInvestment, setEditingInvestment] = useState<CapitalInvestment | null>(null);
   const [addInvestmentDialogOpen, setAddInvestmentDialogOpen] = useState(false);
@@ -1236,7 +1234,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       targetDate: newInvestment.targetDate,
       urgency: newInvestment.urgency,
       type: 'custom',
-      ownershipType: newInvestment.ownershipType,
+      ownershipType: 'owner', // Default to owner since field is removed
       createdAt: new Date().toISOString(),
     };
     
@@ -1248,12 +1246,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     });
     
     setNewInvestment({
-      title: '',
+      title: 'Investment 1',
       description: '',
       amount: '',
       targetDate: '',
       urgency: 'not_urgent',
-      ownershipType: 'residences',
     });
     setAddInvestmentDialogOpen(false);
     
@@ -3569,22 +3566,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                   </SelectContent>
                                 </Select>
                               </div>
-                              
-                              <div className='space-y-2'>
-                                <Label htmlFor="investment-ownership">Ownership Type</Label>
-                                <Select 
-                                  value={newInvestment.ownershipType} 
-                                  onValueChange={(value) => setNewInvestment(prev => ({ ...prev, ownershipType: value as any }))}
-                                >
-                                  <SelectTrigger data-testid="select-investment-ownership">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="residences">For Residences</SelectItem>
-                                    <SelectItem value="owner">For Owner</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
                             </div>
                             
                             <div className='flex gap-2 pt-4'>
@@ -3790,22 +3771,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                     <SelectItem value="not_urgent">Not Urgent</SelectItem>
                                     <SelectItem value="suggested">Suggested</SelectItem>
                                     <SelectItem value="urgent">Urgent</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              
-                              <div className='space-y-2'>
-                                <Label htmlFor="edit-investment-ownership">Ownership Type</Label>
-                                <Select 
-                                  value={editingInvestment.ownershipType} 
-                                  onValueChange={(value) => setEditingInvestment(prev => prev ? ({ ...prev, ownershipType: value as any }) : null)}
-                                >
-                                  <SelectTrigger data-testid="select-edit-investment-ownership">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="residences">For Residences</SelectItem>
-                                    <SelectItem value="owner">For Owner</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
