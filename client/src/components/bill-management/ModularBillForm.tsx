@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
@@ -230,6 +230,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [customPayments, setCustomPayments] = useState<CustomPayment[]>(parsedPaymentData.customPayments);
   
+  // Auto-save functionality
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<string | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedDataRef = useRef<string>('');
+  
   
   // Upload context for secure storage
   const uploadContext: UploadContext = {
@@ -308,6 +314,18 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       form.setValue('customPayments', newParsedData.customPayments);
     }
   }, [bill?.id, form]);
+
+  // Watch for form changes and trigger auto-save
+  useEffect(() => {
+    const subscription = form.watch((data) => {
+      // Trigger auto-save on any form change (with 1.5 second debounce)
+      if (data && Object.keys(data).length > 0) {
+        debouncedAutoSave(data as BillFormData);
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form, debouncedAutoSave]);
 
 
   // Handle AI extraction results
@@ -488,6 +506,129 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     if (lower.includes('quote') || lower.includes('estimate')) return 'quote';
     return 'document';
   };
+
+  // Auto-save function with 1.5 second delay
+  const performAutoSave = useCallback(async (formData: BillFormData) => {
+    try {
+      setIsAutoSaving(true);
+      setAutoSaveStatus('Saving...');
+      
+      const currentDataString = JSON.stringify(formData);
+      
+      // Skip save if data hasn't changed
+      if (currentDataString === lastSavedDataRef.current) {
+        setIsAutoSaving(false);
+        setAutoSaveStatus('No changes');
+        setTimeout(() => setAutoSaveStatus(null), 2000);
+        return;
+      }
+
+      // Only auto-save if we're editing an existing bill
+      if (bill?.id) {
+        // Calculate costs array based on payment structure (same logic as main submit)
+        let costs: string[] = [];
+        let calculatedTotalAmount = formData.totalAmount;
+        
+        if (formData.paymentType === 'unique') {
+          costs = [formData.totalAmount || '0'];
+        } else if (formData.paymentType === 'recurrent') {
+          if (formData.recurringPaymentsEqual) {
+            const maxPayments = 12;
+            
+            if (formData.hasInitialPayment && formData.initialPaymentAmount) {
+              costs.push(formData.initialPaymentAmount);
+              if (formData.recurringPaymentAmount) {
+                for (let i = 1; i < maxPayments; i++) {
+                  costs.push(formData.recurringPaymentAmount);
+                }
+              }
+            } else if (formData.recurringPaymentAmount) {
+              for (let i = 0; i < maxPayments; i++) {
+                costs.push(formData.recurringPaymentAmount);
+              }
+            }
+          } else if (formData.customPayments && formData.customPayments.length > 0) {
+            costs = formData.customPayments.map(p => p.amount).filter(a => a && a.trim() !== '');
+          }
+          
+          if (!calculatedTotalAmount || calculatedTotalAmount.trim() === '') {
+            const total = costs.reduce((sum, cost) => sum + parseFloat(cost || '0'), 0);
+            calculatedTotalAmount = total.toString();
+          }
+        }
+        
+        let scheduleCustom: string[] = [];
+        if (formData.paymentType === 'recurrent' && !formData.recurringPaymentsEqual && formData.customPayments) {
+          scheduleCustom = formData.customPayments
+            .map(p => p.date)
+            .filter(d => d && d.trim() !== '');
+        }
+        
+        const billData = {
+          ...formData,
+          buildingId: buildingId || bill.buildingId,
+          totalAmount: calculatedTotalAmount,
+          costs,
+          scheduleCustom,
+          paymentStructure: {
+            hasInitialPayment: formData.hasInitialPayment,
+            recurringPaymentsEqual: formData.recurringPaymentsEqual,
+            initialPaymentAmount: formData.initialPaymentAmount,
+            recurringPaymentAmount: formData.recurringPaymentAmount,
+            customPayments: formData.customPayments,
+          },
+        };
+
+        const response = await apiRequest('PUT', `/api/bills/${bill.id}`, billData);
+        
+        if (response.ok) {
+          lastSavedDataRef.current = currentDataString;
+          setAutoSaveStatus('Saved');
+          
+          // Invalidate queries to refresh any related data
+          queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+        } else {
+          throw new Error('Failed to auto-save');
+        }
+      } else {
+        // For new bills, just update the status
+        setAutoSaveStatus('Draft');
+      }
+      
+      setIsAutoSaving(false);
+      
+      // Clear status after 3 seconds
+      setTimeout(() => setAutoSaveStatus(null), 3000);
+      
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      setIsAutoSaving(false);
+      setAutoSaveStatus('Save failed');
+      setTimeout(() => setAutoSaveStatus(null), 3000);
+    }
+  }, [bill?.id, buildingId, queryClient, apiRequest]);
+
+  // Debounced auto-save function with 1.5 second delay
+  const debouncedAutoSave = useCallback((formData: BillFormData) => {
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    
+    // Set new timer for 1.5 seconds (1500ms)
+    autoSaveTimerRef.current = setTimeout(() => {
+      performAutoSave(formData);
+    }, 1500);
+  }, [performAutoSave]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, []);
 
   // Create/Update bill mutation
   const billMutation = useMutation({
@@ -916,6 +1057,24 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       {/* Bill Form */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Auto-save status indicator */}
+          {(isAutoSaving || autoSaveStatus) && (
+            <div className="flex items-center justify-center gap-2 p-2 text-sm bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              {isAutoSaving && (
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              )}
+              <span className={cn(
+                "font-medium",
+                autoSaveStatus === 'Saved' && "text-green-600 dark:text-green-400",
+                autoSaveStatus === 'Save failed' && "text-red-600 dark:text-red-400",
+                (isAutoSaving || autoSaveStatus === 'Saving...') && "text-blue-600 dark:text-blue-400",
+                autoSaveStatus === 'Draft' && "text-gray-600 dark:text-gray-400"
+              )}>
+                {isAutoSaving ? 'Auto-saving...' : autoSaveStatus}
+              </span>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Title */}
             <FormField
