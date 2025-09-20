@@ -1514,21 +1514,37 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       return true;
     });
     
-    // Apply date window filter ONLY to custom investments, not to auto-generated scenario investments
+    // Apply date window filter to show investments within the selected time period
     if (filters.startMonth && filters.startYear) {
       const windowStart = new Date(filters.startYear, filters.startMonth - 1, 1);
       const periodMonths = filters.viewType === 'month' ? filters.periodLength : filters.periodLength * 12;
-      const windowEnd = new Date(filters.startYear, filters.startMonth - 1 + periodMonths, 1);
+      // Make windowEnd inclusive by going to the last day of the final month
+      const windowEndMonth = filters.startMonth - 1 + periodMonths;
+      const windowEnd = new Date(filters.startYear, windowEndMonth, 0); // Last day of the previous month gives us the last day of target month
+      
+      debugLog('Investment date filtering', {
+        windowStart: windowStart.toISOString(),
+        windowEnd: windowEnd.toISOString(),
+        startMonth: filters.startMonth,
+        startYear: filters.startYear,
+        periodMonths,
+        viewType: filters.viewType,
+        periodLength: filters.periodLength
+      });
       
       filtered = filtered.filter(inv => {
-        // Always include auto-generated investments regardless of date
-        if (inv.type === 'auto_generated') {
-          return true;
-        }
-        
-        // Apply date filter to custom investments
         const invDate = new Date(inv.targetDate);
-        return invDate >= windowStart && invDate < windowEnd;
+        const isInWindow = invDate >= windowStart && invDate <= windowEnd;
+        
+        debugLog('Investment date check', {
+          investmentId: inv.id,
+          targetDate: inv.targetDate,
+          invDate: invDate.toISOString(),
+          isInWindow,
+          title: inv.title
+        });
+        
+        return isInWindow;
       });
     }
     
