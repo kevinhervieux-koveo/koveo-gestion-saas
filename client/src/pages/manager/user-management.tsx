@@ -377,9 +377,29 @@ export default function UserManagement() {
   // Helper function to decode HTML entities
   const decodeHtmlEntities = (str: string): string => {
     if (!str) return str;
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = str;
-    return textarea.value;
+    
+    // Named entities map
+    const namedEntities: Record<string, string> = {
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&apos;': "'"
+    };
+    
+    return str
+      // First decode named entities
+      .replace(/&(?:amp|lt|gt|quot|apos);/g, (match) => namedEntities[match] || match)
+      // Then decode decimal numeric entities (&#39;)
+      .replace(/&#(\d+);/g, (match, num) => {
+        const code = parseInt(num, 10);
+        return code > 0 && code < 1114112 ? String.fromCharCode(code) : match;
+      })
+      // Finally decode hexadecimal numeric entities (&#x27;)
+      .replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => {
+        const code = parseInt(hex, 16);
+        return code > 0 && code < 1114112 ? String.fromCharCode(code) : match;
+      });
   };
 
   // Reset form when editing user changes
