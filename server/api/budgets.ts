@@ -478,9 +478,8 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
       customBankFields
     );
     
-    // Temporarily disable historical unique bills calculation to fix performance issues
-    // const historicalUniqueBills = await calculateUnplannedBillsSuggestion(buildingId, 3);
-    const historicalUniqueBills = { amount: 0, confidence: 'disabled', yearsAnalyzed: 0 };
+    // Calculate historical unique bills suggestion based on past data
+    const historicalUniqueBills = await calculateUnplannedBillsSuggestion(buildingId, 3);
     
     debugLog('GET /:buildingId/bank-account - Response data', { 
       buildingId, 
@@ -525,9 +524,69 @@ async function calculateUnplannedBillsSuggestion(
   buildingId: string, 
   lookbackYears: number = 3
 ): Promise<{amount: number, confidence: string, yearsAnalyzed: number}> {
-  // Function completely disabled to fix infinite query issues
-  debugLog('calculateUnplannedBillsSuggestion called but disabled', { buildingId, lookbackYears });
-  return { amount: 0, confidence: 'disabled', yearsAnalyzed: 0 };
+  try {
+    debugLog('calculateUnplannedBillsSuggestion called', { buildingId, lookbackYears });
+    
+    const currentDate = new Date();
+    const startDate = new Date(currentDate.getFullYear() - lookbackYears, currentDate.getMonth(), currentDate.getDate());
+    
+    // Get unique (one-time) bills from the past years that are not draft or cancelled
+    const uniqueBills = await db
+      .select({
+        totalAmount: bills.totalAmount,
+        startDate: bills.startDate,
+        createdAt: bills.createdAt,
+      })
+      .from(bills)
+      .where(
+        and(
+          eq(bills.buildingId, buildingId),
+          eq(bills.paymentType, 'unique'),
+          inArray(bills.status, ['sent', 'paid', 'overdue']), // Exclude draft and cancelled bills
+          gte(bills.createdAt, startDate.toISOString())
+        )
+      );
+
+    if (uniqueBills.length === 0) {
+      return { amount: 0, confidence: 'no_data', yearsAnalyzed: lookbackYears };
+    }
+
+    // Calculate total amount and average per month
+    const totalAmount = uniqueBills.reduce((sum, bill) => {
+      const amount = parseFloat(bill.totalAmount || '0');
+      return sum + (Number.isFinite(amount) ? amount : 0);
+    }, 0);
+
+    const monthsAnalyzed = Math.max(1, Math.floor((currentDate.getTime() - startDate.getTime()) / (30.44 * 24 * 60 * 60 * 1000))); // Average days per month
+    const monthlyAverage = totalAmount / monthsAnalyzed;
+
+    // Determine confidence based on number of bills and time period
+    let confidence = 'low';
+    if (uniqueBills.length >= 12 && lookbackYears >= 2) {
+      confidence = 'high';
+    } else if (uniqueBills.length >= 6 && lookbackYears >= 1) {
+      confidence = 'medium';
+    }
+
+    debugLog('Historical unique bills calculation completed', {
+      buildingId,
+      uniqueBillsCount: uniqueBills.length,
+      totalAmount,
+      monthsAnalyzed,
+      monthlyAverage,
+      confidence,
+      yearsAnalyzed: lookbackYears
+    });
+
+    return {
+      amount: Math.round(monthlyAverage * 100) / 100, // Round to 2 decimal places
+      confidence,
+      yearsAnalyzed: lookbackYears
+    };
+  } catch (error) {
+    console.error('Error calculating unplanned bills suggestion:', error);
+    return { amount: 0, confidence: 'error', yearsAnalyzed: lookbackYears };
+  }
 }
 
 /**
@@ -582,9 +641,8 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       return res.status(404).json({ _error: 'Building not found' });
     }
 
-    // Temporarily disable historical unique bills calculation to fix performance issues
-    // const unplannedBillsCalculation = await calculateUnplannedBillsSuggestion(buildingId, lookbackYears);
-    const unplannedBillsCalculation = { amount: 0, confidence: 'disabled', yearsAnalyzed: 0 };
+    // Calculate unplanned bills suggestion based on historical data
+    const unplannedBillsCalculation = await calculateUnplannedBillsSuggestion(buildingId, lookbackYears);
     
     debugLog('Calculated unplanned bills suggestion (read-only)', { 
       buildingId, 
