@@ -956,8 +956,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
               isPaymentDue = monthsSinceStart >= 0 && monthsSinceStart % 3 === 0;
               break;
             case 'yearly':
-              // Same month as start date each year
-              isPaymentDue = currentMonth === billStartDate.getMonth() + 1;
+              // For forecasting, spread yearly bills evenly across 12 months instead of one lump sum
+              // This provides a more realistic monthly spending projection
+              isPaymentDue = true; // Always apply yearly bills monthly
               break;
             case 'weekly':
               // Approximate weekly as 4.33 times per month
@@ -971,11 +972,13 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
           }
           
           if (isPaymentDue && bill.schedulePayment !== 'weekly') {
-            monthlyRecurringExpenses += totalBillCost;
+            // For yearly bills, spread cost across 12 months for more realistic forecasting
+            const monthlyBillCost = bill.schedulePayment === 'yearly' ? totalBillCost / 12 : totalBillCost;
+            monthlyRecurringExpenses += monthlyBillCost;
             appliedBillsThisMonth.push({
               category: bill.category,
               schedule: bill.schedulePayment,
-              cost: totalBillCost,
+              cost: monthlyBillCost,
               startDate: bill.startDate
             });
           }
