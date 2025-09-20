@@ -1165,6 +1165,10 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       // Urgent Capital Only: Only add investments when budget balance would go below $0
       // This mode only injects capital when absolutely necessary (emergency injection)
       // No specific capital investments are added unless there's an urgent need
+    } else if (capitalInvestmentMode === 'custom') {
+      // Custom mode: No auto-generated investments
+      debugLog('Custom capital mode active - no auto-generated investments');
+      return suggestions; // Return early, no auto-generation
     }
     
     return suggestions;
@@ -1375,6 +1379,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         } else if (capitalInvestmentMode === 'suggested') {
           // Show suggested and urgent auto-generated investments
           return inv.urgency === 'suggested' || inv.urgency === 'urgent';
+        } else if (capitalInvestmentMode === 'custom') {
+          // Custom mode: No auto-generated investments
+          return false;
         }
       }
       
