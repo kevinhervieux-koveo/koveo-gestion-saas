@@ -9,6 +9,15 @@ import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
 /**
+ * Safely escape shell arguments to prevent command injection.
+ * @param arg - The argument to escape
+ * @returns Escaped argument safe for shell execution
+ */
+function escapeShellArg(arg: string): string {
+  return "'" + arg.replace(/'/g, "'\\''") + "'";
+}
+
+/**
  * Check JSDoc coverage for TypeScript files.
  * @returns Number of files with missing JSDoc.
  */
@@ -32,9 +41,9 @@ function checkJSDocCoverage(): number {
         } else if (item.endsWith('.ts') || item.endsWith('.tsx')) {
           // Basic check for exported functions without JSDoc
           try {
-            execSync(`grep -l "export.*function\\|export.*class" "${fullPath}"`, { stdio: 'pipe' });
+            execSync(`grep -l "export.*function\\|export.*class" ${escapeShellArg(fullPath)}`, { stdio: 'pipe' });
             try {
-              execSync(`grep -L "/\\*\\*" "${fullPath}"`, { stdio: 'pipe' });
+              execSync(`grep -L "/\\*\\*" ${escapeShellArg(fullPath)}`, { stdio: 'pipe' });
               missingDocs++;
             } catch {
               // File has JSDoc comments
