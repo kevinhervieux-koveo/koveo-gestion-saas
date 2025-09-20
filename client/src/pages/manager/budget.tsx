@@ -1373,15 +1373,15 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       
       // For auto-generated investments, filter by strategy
       if (inv.type === 'auto_generated') {
-        if (capitalInvestmentMode === 'urgent') {
+        if (capitalInvestmentMode === 'custom') {
+          // Custom mode: Never show auto-generated investments
+          return false;
+        } else if (capitalInvestmentMode === 'urgent') {
           // Only show urgent auto-generated investments
           return inv.urgency === 'urgent';
         } else if (capitalInvestmentMode === 'suggested') {
           // Show suggested and urgent auto-generated investments
           return inv.urgency === 'suggested' || inv.urgency === 'urgent';
-        } else if (capitalInvestmentMode === 'custom') {
-          // Custom mode: No auto-generated investments
-          return false;
         }
       }
       
