@@ -2021,8 +2021,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const getChartData = () => {
     if (!forecastData?.forecast) return [];
 
-    // Calculate combined revenue once for consistent display
-    const combinedRevenue = calculateTotalRevenue();
+    // Use actual inflated revenue from forecast instead of hardcoded values
+    // const combinedRevenue = calculateTotalRevenue(); // REMOVED: This was using fixed values
 
     // Calculate start index based on start date selection
     let startIndex = 0;
@@ -2063,13 +2063,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         if (!yearlyData[financialYear]) {
           yearlyData[financialYear] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, urgentInvestments: 0, suggestedInvestments: 0, notUrgentInvestments: 0, count: 0, monthsInYear: 0 };
         }
-        // Use combined revenue instead of forecast revenue
-        yearlyData[financialYear].revenue += combinedRevenue;
+        // Use actual inflated revenue from forecast data
+        yearlyData[financialYear].revenue += item.revenue;
         // Use bills-only spending data from API
         const totalSpending = item.spending;
         yearlyData[financialYear].spending += totalSpending;
-        // Recalculate net cash flow with combined revenue and total spending
-        yearlyData[financialYear].netCashFlow += (combinedRevenue - totalSpending);
+        // Recalculate net cash flow with inflated revenue and total spending
+        yearlyData[financialYear].netCashFlow += (item.revenue - totalSpending);
         
         // Aggregate all capital investments (custom + auto-generated) for this month
         const monthlyInvestments = aggregateInvestmentsByMonth(item.year, item.month);
@@ -2138,9 +2138,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         balanceStart: balanceStart,
         balanceEnd: item.balance, // Current period's ending balance
         status: item.status,
-        revenue: combinedRevenue, // Use combined revenue instead of forecast revenue
+        revenue: item.revenue, // Use actual inflated revenue from forecast data
         spending: totalSpending, // Include unplanned bills
-        netCashFlow: combinedRevenue - totalSpending, // Recalculate with combined revenue and total spending
+        netCashFlow: item.revenue - totalSpending, // Recalculate with inflated revenue and total spending
         capitalInvestments: monthlyInvestments.total,
         urgentInvestments: monthlyInvestments.urgent,
         suggestedInvestments: monthlyInvestments.suggested,
