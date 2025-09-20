@@ -1381,11 +1381,17 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const calculateInvestmentSummary = (): InvestmentSummary => {
     const filtered = getFilteredInvestments();
     
+    // Helper function to ensure amount is a number
+    const getAmount = (inv: any) => {
+      const amount = typeof inv.amount === 'string' ? parseFloat(inv.amount) : inv.amount;
+      return isNaN(amount) ? 0 : amount;
+    };
+    
     return {
-      totalAmount: filtered.reduce((sum, inv) => sum + inv.amount, 0),
-      urgentAmount: filtered.filter(inv => inv.urgency === 'urgent').reduce((sum, inv) => sum + inv.amount, 0),
-      suggestedAmount: filtered.filter(inv => inv.urgency === 'suggested').reduce((sum, inv) => sum + inv.amount, 0),
-      notUrgentAmount: filtered.filter(inv => inv.urgency === 'not_urgent').reduce((sum, inv) => sum + inv.amount, 0),
+      totalAmount: filtered.reduce((sum, inv) => sum + getAmount(inv), 0),
+      urgentAmount: filtered.filter(inv => inv.urgency === 'urgent').reduce((sum, inv) => sum + getAmount(inv), 0),
+      suggestedAmount: filtered.filter(inv => inv.urgency === 'suggested').reduce((sum, inv) => sum + getAmount(inv), 0),
+      notUrgentAmount: filtered.filter(inv => inv.urgency === 'not_urgent').reduce((sum, inv) => sum + getAmount(inv), 0),
       count: filtered.length,
       urgentCount: filtered.filter(inv => inv.urgency === 'urgent').length,
       suggestedCount: filtered.filter(inv => inv.urgency === 'suggested').length,
@@ -3433,7 +3439,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                 <span className='text-sm font-medium text-red-700 dark:text-red-300'>Urgent</span>
                               </div>
                               <div className='text-2xl font-bold text-red-900 dark:text-red-100' data-testid="text-urgent-amount">
-                                ${summary.urgentAmount.toLocaleString()}
+                                ${Math.round(summary.urgentAmount).toLocaleString()}
                               </div>
                               <div className='text-xs text-red-600 dark:text-red-400'>
                                 {summary.urgentCount} investment{summary.urgentCount !== 1 ? 's' : ''}
@@ -3446,7 +3452,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                 <span className='text-sm font-medium text-yellow-700 dark:text-yellow-300'>Suggested</span>
                               </div>
                               <div className='text-2xl font-bold text-yellow-900 dark:text-yellow-100' data-testid="text-suggested-amount">
-                                ${summary.suggestedAmount.toLocaleString()}
+                                ${Math.round(summary.suggestedAmount).toLocaleString()}
                               </div>
                               <div className='text-xs text-yellow-600 dark:text-yellow-400'>
                                 {summary.suggestedCount} investment{summary.suggestedCount !== 1 ? 's' : ''}
@@ -3459,7 +3465,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                 <span className='text-sm font-medium text-green-700 dark:text-green-300'>Not Urgent</span>
                               </div>
                               <div className='text-2xl font-bold text-green-900 dark:text-green-100' data-testid="text-not-urgent-amount">
-                                ${summary.notUrgentAmount.toLocaleString()}
+                                ${Math.round(summary.notUrgentAmount).toLocaleString()}
                               </div>
                               <div className='text-xs text-green-600 dark:text-green-400'>
                                 {summary.notUrgentCount} investment{summary.notUrgentCount !== 1 ? 's' : ''}
@@ -3472,7 +3478,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                                 <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>Total</span>
                               </div>
                               <div className='text-2xl font-bold text-gray-900 dark:text-gray-100' data-testid="text-total-amount">
-                                ${summary.totalAmount.toLocaleString()}
+                                ${Math.round(summary.totalAmount).toLocaleString()}
                               </div>
                               <div className='text-xs text-gray-600 dark:text-gray-400'>
                                 {summary.count} investment{summary.count !== 1 ? 's' : ''}
