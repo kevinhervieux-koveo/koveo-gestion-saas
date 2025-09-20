@@ -1344,20 +1344,25 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   // Deduplication helper to prevent overlapping auto-generated investments
   const deduplicateInvestments = (suggestions: CapitalInvestment[]): CapitalInvestment[] => {
     const deduped: CapitalInvestment[] = [];
-    const seenCategories = new Set<string>();
+    const seenCombinations = new Set<string>();
     
-    // Sort by urgency priority (urgent first) to keep most important suggestions
+    // Sort by urgency priority (urgent first), then by target date (earliest first)
     const sorted = [...suggestions].sort((a, b) => {
       const urgencyOrder = { urgent: 0, suggested: 1, not_urgent: 2 };
-      return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+      const urgencyCompare = urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+      if (urgencyCompare !== 0) return urgencyCompare;
+      
+      // If same urgency, sort by date
+      return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
     });
     
     for (const suggestion of sorted) {
-      const categoryKey = `${suggestion.category || 'general'}-${suggestion.ownershipType}`;
+      // Include target date in the key so investments in different months are treated as separate items
+      const combinationKey = `${suggestion.category || 'general'}-${suggestion.ownershipType}-${suggestion.targetDate}`;
       
-      // Only add if we haven't seen this category/ownership combination
-      if (!seenCategories.has(categoryKey)) {
-        seenCategories.add(categoryKey);
+      // Only add if we haven't seen this exact combination (including date)
+      if (!seenCombinations.has(combinationKey)) {
+        seenCombinations.add(combinationKey);
         deduped.push(suggestion);
       }
     }
