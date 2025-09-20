@@ -35,7 +35,7 @@ export const invoiceFrequencyEnum = pgEnum('invoice_frequency', [
  * with standard frequencies (monthly, quarterly, annually) and custom scheduling.
  */
 export const invoices = pgTable('invoices', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   

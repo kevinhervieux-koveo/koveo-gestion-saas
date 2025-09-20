@@ -12,7 +12,7 @@ import { buildings, residences } from './property';
  * Enhanced with file metadata, content type, and attachment relationships.
  */
 export const documents = pgTable('documents', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: text('name').notNull(),

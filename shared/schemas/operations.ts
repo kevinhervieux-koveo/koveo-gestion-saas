@@ -141,7 +141,7 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
  * Supports various notification types with read tracking.
  */
 export const notifications = pgTable('notifications', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   userId: varchar('user_id')
@@ -215,7 +215,7 @@ export const demandComments = pgTable('demands_comments', {
  * Now supports single file attachment per bug like document management.
  */
 export const bugs = pgTable('bugs', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   createdBy: varchar('created_by')
@@ -247,7 +247,7 @@ export const bugs = pgTable('bugs', {
  * Supports upvoting and merging similar requests.
  */
 export const featureRequests = pgTable('feature_requests', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   createdBy: varchar('created_by')
@@ -278,7 +278,7 @@ export const featureRequests = pgTable('feature_requests', {
  * Each user can only upvote a feature request once.
  */
 export const featureRequestUpvotes = pgTable('feature_request_upvotes', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   featureRequestId: varchar('feature_request_id')

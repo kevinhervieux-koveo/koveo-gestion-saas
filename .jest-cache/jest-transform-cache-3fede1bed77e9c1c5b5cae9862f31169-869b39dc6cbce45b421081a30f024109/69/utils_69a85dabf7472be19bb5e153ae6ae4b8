@@ -1,0 +1,25 @@
+901fa9d2b7e4624dc196b00293f72c64
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.cn = cn;
+const clsx_1 = require("clsx");
+const tailwind_merge_1 = require("tailwind-merge");
+/**
+ * Combines class names using clsx and merges conflicting Tailwind classes with tailwind-merge.
+ * This utility ensures proper Tailwind CSS class precedence and removes duplicate classes.
+ *
+ * Updated: September 09, 2025 for Koveo Gestion Quebec property management platform.
+ *
+ * @param inputs - Class names to combine (strings, objects, arrays, etc.)
+ * @returns Merged and optimized class name string
+ * @example
+ * ```typescript
+ * cn('px-4', 'px-2') // Returns 'px-2' (tailwind-merge removes conflicting px-4)
+ * cn('text-red-500', { 'font-bold': true }) // Returns 'text-red-500 font-bold'
+ * cn('border', 'border-red-500', isError && 'border-red-600') // Quebec form styling
+ * ```
+ */
+function cn(...inputs) {
+    return (0, tailwind_merge_1.twMerge)((0, clsx_1.clsx)(inputs));
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2xpYi91dGlscy50cyIsIm1hcHBpbmdzIjoiOztBQWtCQSxnQkFFQztBQXBCRCwrQkFBNkM7QUFDN0MsbURBQXlDO0FBRXpDOzs7Ozs7Ozs7Ozs7OztHQWNHO0FBQ0gsU0FBZ0IsRUFBRSxDQUFDLEdBQUcsTUFBb0I7SUFDeEMsT0FBTyxJQUFBLHdCQUFPLEVBQUMsSUFBQSxXQUFJLEVBQUMsTUFBTSxDQUFDLENBQUMsQ0FBQztBQUMvQixDQUFDIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9ob21lL3J1bm5lci93b3Jrc3BhY2UvY2xpZW50L3NyYy9saWIvdXRpbHMudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgY2xzeCwgdHlwZSBDbGFzc1ZhbHVlIH0gZnJvbSAnY2xzeCc7XG5pbXBvcnQgeyB0d01lcmdlIH0gZnJvbSAndGFpbHdpbmQtbWVyZ2UnO1xuXG4vKipcbiAqIENvbWJpbmVzIGNsYXNzIG5hbWVzIHVzaW5nIGNsc3ggYW5kIG1lcmdlcyBjb25mbGljdGluZyBUYWlsd2luZCBjbGFzc2VzIHdpdGggdGFpbHdpbmQtbWVyZ2UuXG4gKiBUaGlzIHV0aWxpdHkgZW5zdXJlcyBwcm9wZXIgVGFpbHdpbmQgQ1NTIGNsYXNzIHByZWNlZGVuY2UgYW5kIHJlbW92ZXMgZHVwbGljYXRlIGNsYXNzZXMuXG4gKiBcbiAqIFVwZGF0ZWQ6IFNlcHRlbWJlciAwOSwgMjAyNSBmb3IgS292ZW8gR2VzdGlvbiBRdWViZWMgcHJvcGVydHkgbWFuYWdlbWVudCBwbGF0Zm9ybS5cbiAqXG4gKiBAcGFyYW0gaW5wdXRzIC0gQ2xhc3MgbmFtZXMgdG8gY29tYmluZSAoc3RyaW5ncywgb2JqZWN0cywgYXJyYXlzLCBldGMuKVxuICogQHJldHVybnMgTWVyZ2VkIGFuZCBvcHRpbWl6ZWQgY2xhc3MgbmFtZSBzdHJpbmdcbiAqIEBleGFtcGxlXG4gKiBgYGB0eXBlc2NyaXB0XG4gKiBjbigncHgtNCcsICdweC0yJykgLy8gUmV0dXJucyAncHgtMicgKHRhaWx3aW5kLW1lcmdlIHJlbW92ZXMgY29uZmxpY3RpbmcgcHgtNClcbiAqIGNuKCd0ZXh0LXJlZC01MDAnLCB7ICdmb250LWJvbGQnOiB0cnVlIH0pIC8vIFJldHVybnMgJ3RleHQtcmVkLTUwMCBmb250LWJvbGQnXG4gKiBjbignYm9yZGVyJywgJ2JvcmRlci1yZWQtNTAwJywgaXNFcnJvciAmJiAnYm9yZGVyLXJlZC02MDAnKSAvLyBRdWViZWMgZm9ybSBzdHlsaW5nXG4gKiBgYGBcbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIGNuKC4uLmlucHV0czogQ2xhc3NWYWx1ZVtdKSB7XG4gIHJldHVybiB0d01lcmdlKGNsc3goaW5wdXRzKSk7XG59XG4iXSwidmVyc2lvbiI6M30=

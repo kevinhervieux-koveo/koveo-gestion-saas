@@ -10,6 +10,7 @@ import {
   date,
   integer,
   json,
+  primaryKey,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -48,9 +49,7 @@ export const invitationStatusEnum = pgEnum('invitation_status', [
  * Supports Quebec-specific language preferences and role-based access.
  */
 export const users = pgTable('users', {
-  id: varchar('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   username: text('username').notNull().unique(), // Username field required by database
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: text('password').notNull(),
@@ -71,9 +70,7 @@ export const users = pgTable('users', {
  * Represents the legal entities responsible for property management in Quebec.
  */
 export const organizations = pgTable('organizations', {
-  id: varchar('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   name: varchar('name', { length: 200 }).notNull(),
   type: text('type').notNull(), // 'management_company', 'syndicate', 'cooperative', 'condo_association', 'demo'
   address: text('address').notNull(),

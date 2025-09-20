@@ -104,7 +104,7 @@ export const investmentOwnershipEnum = pgEnum('investment_ownership', [
  * Supports unique and recurrent payments with custom scheduling options.
  */
 export const bills = pgTable('bills', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   buildingId: varchar('building_id')
@@ -144,7 +144,7 @@ export const bills = pgTable('bills', {
  * Supports both unique and recurring payment schedules with automatic generation.
  */
 export const payments = pgTable('payments', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   billId: varchar('bill_id')
@@ -166,7 +166,7 @@ export const payments = pgTable('payments', {
  * Supports operational, reserve, and special project budgets.
  */
 export const budgets = pgTable('budgets', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   buildingId: varchar('building_id')
@@ -195,7 +195,7 @@ export const budgets = pgTable('budgets', {
  * Updated monthly on the 1st and supports approval workflow.
  */
 export const monthlyBudgets = pgTable('monthly_budgets', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   buildingId: varchar('building_id')
@@ -220,7 +220,7 @@ export const monthlyBudgets = pgTable('monthly_budgets', {
  * Supports both auto-generated suggestions and custom user-defined investments.
  */
 export const capitalInvestments = pgTable('capital_investments', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   buildingId: varchar('building_id')

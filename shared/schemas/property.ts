@@ -44,9 +44,7 @@ export const bookingStatusEnum = pgEnum('booking_status', ['confirmed', 'cancell
  * Each building represents a distinct property managed by an organization.
  */
 export const buildings = pgTable('buildings', {
-  id: varchar('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   organizationId: varchar('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
@@ -85,9 +83,7 @@ export const buildings = pgTable('buildings', {
  * Represents apartments, condos, or units that can be occupied by tenants.
  */
 export const residences = pgTable('residences', {
-  id: varchar('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
