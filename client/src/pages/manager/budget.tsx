@@ -219,6 +219,19 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     debugLog('Component initialized', { organizationId, buildingId });
   }, [organizationId, buildingId]);
 
+  // Helper function to convert calendar date to financial year
+  const getFinancialYear = (calendarYear: number, calendarMonth: number, financialYearStart?: string): number => {
+    const fyStart = parseFinancialYearStart(financialYearStart);
+    
+    // If the calendar month is before the financial year start month, 
+    // it belongs to the previous financial year
+    if (calendarMonth < fyStart.month) {
+      return calendarYear - 1;
+    } else {
+      return calendarYear;
+    }
+  };
+
   // Helper function to parse financial year start date and extract month/year
   const parseFinancialYearStart = (financialYearStart?: string): { month: number; year: number } => {
     try {
@@ -2028,7 +2041,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     const filteredData = forecastData.forecast.slice(startIndex, endIndex);
 
     if (filters.viewType === 'year') {
-      // Group monthly data into yearly data
+      // Group monthly data into financial yearly data
       const yearlyData: { [key: number]: { 
         revenue: number; 
         spending: number; 
@@ -2039,43 +2052,49 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         urgentInvestments: number;
         suggestedInvestments: number;
         notUrgentInvestments: number;
-        count: number 
+        count: number;
+        monthsInYear: number;
       } } = {};
 
       filteredData.forEach((item, index) => {
-        if (!yearlyData[item.year]) {
-          yearlyData[item.year] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, urgentInvestments: 0, suggestedInvestments: 0, notUrgentInvestments: 0, count: 0 };
+        // Convert calendar date to financial year
+        const financialYear = getFinancialYear(item.year, item.month, localSettings.financialYearStart);
+        
+        if (!yearlyData[financialYear]) {
+          yearlyData[financialYear] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, urgentInvestments: 0, suggestedInvestments: 0, notUrgentInvestments: 0, count: 0, monthsInYear: 0 };
         }
         // Use combined revenue instead of forecast revenue
-        yearlyData[item.year].revenue += combinedRevenue;
+        yearlyData[financialYear].revenue += combinedRevenue;
         // Use bills-only spending data from API
         const totalSpending = item.spending;
-        yearlyData[item.year].spending += totalSpending;
+        yearlyData[financialYear].spending += totalSpending;
         // Recalculate net cash flow with combined revenue and total spending
-        yearlyData[item.year].netCashFlow += (combinedRevenue - totalSpending);
+        yearlyData[financialYear].netCashFlow += (combinedRevenue - totalSpending);
         
         // Aggregate all capital investments (custom + auto-generated) for this month
         const monthlyInvestments = aggregateInvestmentsByMonth(item.year, item.month);
         
-        yearlyData[item.year].capitalInvestments += monthlyInvestments.total;
-        yearlyData[item.year].urgentInvestments += monthlyInvestments.urgent;
-        yearlyData[item.year].suggestedInvestments += monthlyInvestments.suggested;
-        yearlyData[item.year].notUrgentInvestments += monthlyInvestments.notUrgent;
+        yearlyData[financialYear].capitalInvestments += monthlyInvestments.total;
+        yearlyData[financialYear].urgentInvestments += monthlyInvestments.urgent;
+        yearlyData[financialYear].suggestedInvestments += monthlyInvestments.suggested;
+        yearlyData[financialYear].notUrgentInvestments += monthlyInvestments.notUrgent;
         
-        yearlyData[item.year].count++;
+        yearlyData[financialYear].count++;
+        yearlyData[financialYear].monthsInYear++;
+        
         // For yearly view: Use first month's balance as start, last month's balance as end
-        if (yearlyData[item.year].count === 1) {
-          // First month of the year - get start of period balance
+        if (yearlyData[financialYear].count === 1) {
+          // First month of the financial year - get start of period balance
           const prevIndex = startIndex + index - 1;
           if (prevIndex >= 0 && forecastData.forecast[prevIndex]) {
-            yearlyData[item.year].balanceStart = forecastData.forecast[prevIndex].balance;
+            yearlyData[financialYear].balanceStart = forecastData.forecast[prevIndex].balance;
           } else {
             // First period overall - use starting balance from settings
-            yearlyData[item.year].balanceStart = localSettings.bankAccountStartAmount || 0;
+            yearlyData[financialYear].balanceStart = localSettings.bankAccountStartAmount || 0;
           }
         }
-        // Always update end balance to the latest month in the year
-        yearlyData[item.year].balanceEnd = item.balance;
+        // Always update end balance to the latest month in the financial year
+        yearlyData[financialYear].balanceEnd = item.balance;
       });
 
       // Sort yearly data chronologically after Object.entries
@@ -2226,6 +2245,20 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   const budgetData = getBudgetCategories();
   const chartData = getChartData();
+
+  // Calculate display text for financial years (account for incomplete years)
+  const getYearlyDisplayText = () => {
+    if (filters.viewType !== 'year' || !chartData.length) return `${chartData.length} years`;
+    
+    // Count complete vs incomplete years based on months in each financial year
+    const financialYearStart = parseFinancialYearStart(localSettings.financialYearStart);
+    let completeYears = 0;
+    let totalYears = chartData.length;
+    
+    // Check if first or last years are incomplete (less than 12 months)
+    // This is a simplified check - we could enhance this further with actual month counting
+    return `${totalYears} years`;
+  };
 
   // Custom chart line color based on status
   const getLineColor = (status: string) => {
@@ -2864,7 +2897,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-4">
                         <span className="font-medium">
-                          Displaying: {chartData.length} {filters.viewType === 'month' ? 'months' : 'years'}
+                          Displaying: {filters.viewType === 'month' ? `${chartData.length} months` : getYearlyDisplayText()}
                         </span>
                         <span className="text-muted-foreground">
                           View: {filters.viewType === 'month' ? 'Monthly' : 'Yearly'}
