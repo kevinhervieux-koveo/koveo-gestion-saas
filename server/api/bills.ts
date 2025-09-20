@@ -19,6 +19,7 @@ import fs from 'fs';
 import * as schema from '@shared/schema';
 import { secureFileStorage } from '../services/secure-file-storage';
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
+import { BILL_CATEGORIES } from '@shared/schemas/financial';
 
 const { buildings, bills, documents } = schema;
 
@@ -37,23 +38,7 @@ const createBillSchema = z.object({
   buildingId: z.string().uuid(),
   title: z.string().min(1),
   description: z.string().optional(),
-  category: z.enum([
-    'insurance',
-    'maintenance',
-    'salary',
-    'utilities',
-    'cleaning',
-    'security',
-    'landscaping',
-    'professional_services',
-    'administration',
-    'repairs',
-    'supplies',
-    'taxes',
-    'technology',
-    'reserves',
-    'other',
-  ]),
+  category: z.enum(BILL_CATEGORIES),
   vendor: z.string().optional(),
   paymentType: z.enum(['unique', 'recurrent']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
@@ -2175,11 +2160,7 @@ export function registerBillRoutes(app: Express) {
         const validation = z.object({
           title: z.string().min(1),
           description: z.string().optional(),
-          category: z.enum([
-            'insurance', 'maintenance', 'salary', 'utilities', 'cleaning',
-            'security', 'landscaping', 'professional_services', 'administration',
-            'repairs', 'supplies', 'taxes', 'technology', 'reserves', 'other'
-          ]),
+          category: z.enum(BILL_CATEGORIES),
           vendor: z.string().optional(),
           totalAmount: z.number(),
           startDate: z.string(),

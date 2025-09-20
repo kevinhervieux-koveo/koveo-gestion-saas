@@ -62,23 +62,7 @@ import { useToast } from '@/hooks/use-toast';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 import { useLocation } from 'wouter';
 import type { Bill } from '@shared/schema';
-
-const BILL_CATEGORIES = [
-  'insurance',
-  'maintenance',
-  'salary',
-  'utilities',
-  'cleaning',
-  'security',
-  'landscaping',
-  'professional_services',
-  'administration',
-  'repairs',
-  'supplies',
-  'taxes',
-  'technology',
-  'other',
-] as const;
+import { BILL_CATEGORIES } from '@shared/schemas/financial';
 
 const MONTHS = [
   { value: '1', label: 'January' },

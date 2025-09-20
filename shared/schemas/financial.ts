@@ -46,6 +46,25 @@ export const billCategoryEnum = pgEnum('bill_category', [
   'other',
 ]);
 
+// Shared constant array for use in frontend components - SINGLE SOURCE OF TRUTH
+export const BILL_CATEGORIES = [
+  'insurance',
+  'maintenance',
+  'salary',
+  'utilities',
+  'cleaning',
+  'security',
+  'landscaping',
+  'professional_services',
+  'administration',
+  'repairs',
+  'supplies',
+  'taxes',
+  'technology',
+  'reserves',
+  'other',
+] as const;
+
 export const paymentTypeEnum = pgEnum('payment_type', ['unique', 'recurrent']);
 
 export const schedulePaymentEnum = pgEnum('schedule_payment', [

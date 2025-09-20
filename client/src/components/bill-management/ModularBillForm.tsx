@@ -36,28 +36,13 @@ import { AttachedFileSection } from '@/components/common/AttachedFileSection';
 import type { AttachedFile } from '@/components/common/StandardDocumentAttachments';
 import type { Bill, Document } from '@shared/schema';
 import type { UploadContext } from '@shared/config/upload-config';
+import { BILL_CATEGORIES } from '@shared/schemas/financial';
 
 // Unified form schema with smart payment logic
 const billFormSchema = z.object({
   title: z.string().min(1, 'Bill title is required').max(200, 'Title must be less than 200 characters'),
   description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
-  category: z.enum([
-    'insurance',
-    'maintenance',
-    'salary',
-    'utilities',
-    'cleaning',
-    'security',
-    'landscaping',
-    'professional_services',
-    'administration',
-    'repairs',
-    'supplies',
-    'taxes',
-    'technology',
-    'reserves',
-    'other',
-  ]),
+  category: z.enum(BILL_CATEGORIES),
   vendor: z.string().max(150, 'Vendor name must be less than 150 characters').optional(),
   paymentType: z.enum(['unique', 'recurrent']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
@@ -149,23 +134,11 @@ interface ModularBillFormProps {
   buildingId?: string;
 }
 
-const BILL_CATEGORIES = [
-  { value: 'utilities', label: 'Utilities' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'cleaning', label: 'Cleaning' },
-  { value: 'security', label: 'Security' },
-  { value: 'landscaping', label: 'Landscaping' },
-  { value: 'professional_services', label: 'Professional Services' },
-  { value: 'administration', label: 'Administration' },
-  { value: 'repairs', label: 'Repairs' },
-  { value: 'supplies', label: 'Supplies' },
-  { value: 'taxes', label: 'Taxes' },
-  { value: 'technology', label: 'Technology' },
-  { value: 'salary', label: 'Salary' },
-  { value: 'reserves', label: 'Reserves' },
-  { value: 'other', label: 'Other' },
-];
+// Create dropdown options from shared categories
+const CATEGORY_OPTIONS = BILL_CATEGORIES.map(category => ({
+  value: category,
+  label: category.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+}));
 
 // Helper function to parse existing bill payment data for form initialization
 function parseBillPaymentData(bill: Bill | null | undefined) {
@@ -988,7 +961,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {BILL_CATEGORIES.map((category) => (
+                      {CATEGORY_OPTIONS.map((category) => (
                         <SelectItem key={category.value} value={category.value}>
                           {category.label}
                         </SelectItem>
