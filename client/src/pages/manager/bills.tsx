@@ -76,6 +76,7 @@ const BILL_CATEGORIES = [
   'repairs',
   'supplies',
   'taxes',
+  'technology',
   'other',
 ] as const;
 
@@ -109,6 +110,7 @@ const getCategoryLabel = (category: string, t: (key: string) => string) => {
     repairs: 'repairs',
     supplies: 'supplies',
     taxes: 'taxes',
+    technology: 'technology',
     other: 'other'
   };
   return t(categoryTranslationKeys[category] || category);
