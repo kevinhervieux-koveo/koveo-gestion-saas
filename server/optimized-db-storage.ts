@@ -4044,6 +4044,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         SELECT COUNT(*) as total 
         FROM users u
         WHERE u.is_active = true
+          AND u.role NOT IN ('demo_manager', 'demo_tenant', 'demo_resident')
           AND NOT EXISTS (
             SELECT 1 FROM user_organizations uo 
             WHERE uo.user_id = u.id AND uo.is_active = true
@@ -4208,6 +4209,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         FROM users u
         WHERE u.is_active = true
           AND u.id != ${excludeUserId}
+          AND u.role NOT IN ('demo_manager', 'demo_tenant', 'demo_resident')
           AND NOT EXISTS (
             SELECT 1 FROM user_organizations uo 
             WHERE uo.user_id = u.id AND uo.is_active = true
@@ -4227,6 +4229,7 @@ export class OptimizedDatabaseStorage implements IStorage {
             updated_at = CURRENT_TIMESTAMP
         WHERE is_active = true
           AND id != ${excludeUserId}
+          AND role NOT IN ('demo_manager', 'demo_tenant', 'demo_resident')
           AND NOT EXISTS (
             SELECT 1 FROM user_organizations uo 
             WHERE uo.user_id = id AND uo.is_active = true
@@ -4251,6 +4254,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         FROM users u
         WHERE u.is_active = false
           AND u.id != ${excludeUserId}
+          AND u.role NOT IN ('demo_manager', 'demo_tenant', 'demo_resident')
           AND u.updated_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute'
           AND NOT EXISTS (
             SELECT 1 FROM user_organizations uo 
