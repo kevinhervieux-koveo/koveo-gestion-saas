@@ -63,6 +63,7 @@ import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSele
 import { useLocation } from 'wouter';
 import type { Bill } from '@shared/schema';
 import { BILL_CATEGORIES } from '@shared/schemas/financial';
+import { sanitizeFileName } from '@/utils/sanitize';
 
 const MONTHS = [
   { value: '1', label: 'January' },
@@ -1423,7 +1424,7 @@ function BillDetail({
               <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
                 <div className='flex items-center gap-2'>
                   <FileText className='w-4 h-4 text-blue-600' />
-                  <span className='text-sm'>{currentBill.fileName}</span>
+                  <span className='text-sm'>{sanitizeFileName(currentBill.fileName)}</span>
                   {currentBill.isAiAnalyzed && (
                     <Badge variant='outline' className='text-xs'>
                       AI Analyzed

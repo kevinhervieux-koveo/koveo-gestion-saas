@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Edit2, CheckCircle, XCircle, Building2, Home, User, Clock } from 'lucide-react';
+import { sanitizeDescription } from '@/utils/sanitize';
 
 // Common demand interface
 /**
@@ -233,7 +234,7 @@ export function DemandCard({
           className='text-base line-clamp-2'
           data-testid={`demand-description-${demand.id}`}
         >
-          {demand.description.substring(0, 100)}
+          {sanitizeDescription(demand.description.substring(0, 100))}
           {demand.description.length > 100 && '...'}
         </CardTitle>
       </CardHeader>

@@ -11,6 +11,7 @@ import {
 import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from '@/components/bill-management/GeminiBillExtractor';
 import type { UploadContext } from '@shared/config/upload-config';
+import { sanitizeFileName } from '@/utils/sanitize';
 
 export interface AttachedFile {
   id: string;
@@ -249,7 +250,7 @@ export function StandardDocumentAttachments({
                             <div className="w-12 h-12 rounded overflow-hidden border">
                               <img 
                                 src={attachment.preview} 
-                                alt={attachment.file.name}
+                                alt={sanitizeFileName(attachment.file.name)}
                                 className="w-full h-full object-cover"
                               />
                             </div>
@@ -264,7 +265,7 @@ export function StandardDocumentAttachments({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                              {attachment.file.name}
+                              {sanitizeFileName(attachment.file.name)}
                             </p>
                             {attachment.aiAnalyzed && (
                               <Badge variant="outline" className="flex items-center gap-1 text-xs">

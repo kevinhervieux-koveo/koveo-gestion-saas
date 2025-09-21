@@ -31,6 +31,7 @@ import {
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { toastUtils } from '@/lib/toastUtils';
+import { sanitizeDescription } from '@/utils/sanitize';
 import { Header } from '@/components/layout/header';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { SearchInput } from '@/components/common/SearchInput';
@@ -138,7 +139,7 @@ export default function /**
  */
 
 ResidentDemandsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -257,7 +258,7 @@ ResidentDemandsPage() {
       toastUtils.createSuccess('Demand');
     },
     onError: (error: any) => {
-      handleApiError(error, t.language, t('failedToCreateDemand'));
+      handleApiError(error, language, t('failedToCreateDemand'));
     },
   });
 
@@ -369,7 +370,7 @@ ResidentDemandsPage() {
             </div>
           </div>
           <CardTitle className='text-base line-clamp-2'>
-            {demand.description.substring(0, 100)}
+            {sanitizeDescription(demand.description.substring(0, 100))}
             {demand.description.length > 100 && '...'}
           </CardTitle>
         </CardHeader>

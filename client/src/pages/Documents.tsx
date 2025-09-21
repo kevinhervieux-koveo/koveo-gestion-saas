@@ -51,6 +51,7 @@ import {
 import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { schemas, enumFields } from '@/lib/validations';
+import { sanitizeFileName, sanitizeDescription } from '@/utils/sanitize';
 
 // Simple translation function for placeholder texts
 const t = (key: string) => {
@@ -688,7 +689,7 @@ Documents() {
                   <CardTitle className='text-lg line-clamp-2 break-words'>{document.title}</CardTitle>
                   {document.description && (
                     <CardDescription className='mt-1 line-clamp-2'>
-                      {document.description}
+                      {sanitizeDescription(document.description)}
                     </CardDescription>
                   )}
                 </div>
@@ -725,7 +726,7 @@ Documents() {
               {document.fileName ? (
                 <div className='flex items-center gap-2 text-sm text-gray-600'>
                   <FileText className='w-4 h-4' />
-                  <span className='line-clamp-2 break-words flex-1'>{document.fileName}</span>
+                  <span className='line-clamp-2 break-words flex-1'>{sanitizeFileName(document.fileName)}</span>
                   {document.fileSize && (
                     <span className='text-xs'>
                       ({(document.fileSize / 1024 / 1024).toFixed(1)} MB)

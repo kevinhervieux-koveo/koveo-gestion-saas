@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getUploadConfig, isAiAnalysisEnabled, type UploadContext } from '@shared/config/upload-config';
+import { sanitizeFileName } from '@/utils/sanitize';
 
 interface SharedUploaderProps {
   onDocumentChange: (file: File | null, text: string | null) => void;
@@ -501,7 +502,7 @@ export function SharedUploader({
                   
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {selectedFile.file.name}
+                      {sanitizeFileName(selectedFile.file.name)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {formatFileSize(selectedFile.file.size)}

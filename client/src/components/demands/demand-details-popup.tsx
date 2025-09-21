@@ -28,6 +28,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
+import { sanitizeComment, sanitizeDescription } from '@/utils/sanitize';
 
 // Types
 /**
@@ -516,7 +517,7 @@ export default function DemandDetailsPopup({
                 <div className='space-y-4'>
                   <div>
                     <Label>Description</Label>
-                    <p className='mt-1 text-sm whitespace-pre-wrap'>{demand.description}</p>
+                    <p className='mt-1 text-sm whitespace-pre-wrap'>{sanitizeDescription(demand.description)}</p>
                   </div>
 
                   {/* Attachments Section */}
@@ -644,7 +645,7 @@ export default function DemandDetailsPopup({
                         {new Date(comment.createdAt).toLocaleString()}
                       </div>
                     </div>
-                    <p className='text-sm whitespace-pre-wrap'>{comment.commentText}</p>
+                    <p className='text-sm whitespace-pre-wrap'>{sanitizeComment(comment.commentText)}</p>
                   </CardContent>
                 </Card>
               ))}
