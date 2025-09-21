@@ -428,7 +428,7 @@ export default function ModularDocumentPageWrapper({
         canDownload: !isUserTenant,
         canEdit: !isUserTenant,
         canDelete: !isUserTenant,
-        canCreate: !isUserTenant,
+        canCreate: false, // Residents cannot create documents
       };
 
   // Filter and search documents
