@@ -1399,7 +1399,7 @@ export default function CommunicationDashboard() {
                       <CollapsibleContent>
                         <CardContent>
                           <div className="space-y-6">
-                            {types.map((type) => {
+                            {types.map((type, index) => {
                               const formIndex = notificationTypes.findIndex(nt => nt.key === type.key);
                               const IconComponent = type.icon;
                               
