@@ -66,6 +66,7 @@ const documentCreateSchema = z.object({
     'inspection',
     'other'
   ]),
+  effectiveDate: z.string().optional(),
 });
 
 type DocumentCreateData = z.infer<typeof documentCreateSchema>;
@@ -110,6 +111,7 @@ export function DocumentCreateForm({
       name: '',
       description: '',
       category: 'other',
+      effectiveDate: '',
     }
   });
 
@@ -123,6 +125,9 @@ export function DocumentCreateForm({
       formData.append('documentType', data.category);
       if (data.description) {
         formData.append('description', data.description);
+      }
+      if (data.effectiveDate) {
+        formData.append('effectiveDate', data.effectiveDate);
       }
       
       // Add entity association
@@ -283,6 +288,26 @@ export function DocumentCreateForm({
                   )}
                 />
               </div>
+
+              {/* Effective Date */}
+              <FormField
+                control={form.control}
+                name="effectiveDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Effective Date (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        placeholder="Select effective date"
+                        {...field}
+                        data-testid="input-document-effective-date"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Description */}
               <FormField
