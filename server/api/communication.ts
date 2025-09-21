@@ -1386,6 +1386,120 @@ export function registerCommunicationRoutes(app: Express): void {
   });
 
   /**
+   * POST /api/communication/preferences/test-combined-email - Send combined test notification email
+   * Sends all enabled notification types in a single combined email for preview.
+   */
+  app.post('/api/communication/preferences/test-combined-email', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const testEmailSchema = z.object({
+        language: z.enum(['fr', 'en']).default('fr'),
+      });
+
+      const { language } = testEmailSchema.parse(req.body);
+
+      console.log(`📧 Sending combined test email to user ${currentUser.email} in ${language}`);
+
+      // Get user's organization for context
+      const [userOrganization] = await db
+        .select({
+          id: organizations.id,
+          name: organizations.name,
+        })
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(eq(userOrganizations.userId, currentUser.id))
+        .limit(1);
+
+      if (!userOrganization) {
+        return res.status(404).json({
+          message: 'No organization found for user',
+          code: 'ORG_NOT_FOUND',
+        });
+      }
+
+      // Get user's notification preferences to see which ones are enabled
+      const preferences = await db
+        .select()
+        .from(userNotificationPreferences)
+        .where(eq(userNotificationPreferences.userId, currentUser.id));
+
+      // Get all notification types that are enabled
+      const enabledNotificationTypes = preferences
+        .filter(pref => pref.isEnabled)
+        .map(pref => pref.notificationType);
+
+      if (enabledNotificationTypes.length === 0) {
+        return res.status(400).json({
+          message: 'No notification types are enabled',
+          code: 'NO_ENABLED_NOTIFICATIONS',
+        });
+      }
+
+      // Generate test content for all enabled notification types
+      const notificationsData = enabledNotificationTypes.map(notificationType => {
+        const template = generateTestNotificationContent(notificationType, currentUser, userOrganization, language);
+        return {
+          type: notificationType,
+          title: template.subject.replace(` - ${userOrganization.name}`, ''), // Remove org name from title since it's added later
+          message: template.message,
+        };
+      });
+
+      // Create recipient object
+      const recipients = [{
+        email: currentUser.email,
+        name: `${currentUser.firstName} ${currentUser.lastName}`,
+        language: language as 'fr' | 'en',
+      }];
+
+      // Send combined test email
+      const success = await emailService.sendCombinedNotifications(
+        notificationsData,
+        userOrganization.name,
+        recipients,
+        true // isTestEmail
+      );
+
+      if (success) {
+        console.log(`✅ Combined test email sent successfully to ${currentUser.email}`);
+        res.json({
+          success: true,
+          message: `Combined test email sent to ${currentUser.email}`,
+        });
+      } else {
+        console.error(`❌ Failed to send combined test email to ${currentUser.email}`);
+        res.status(500).json({
+          success: false,
+          message: 'Failed to send combined test email',
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Error sending combined test email:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          _error: 'Validation error',
+          message: 'Invalid test email parameters provided',
+          details: error.errors,
+        });
+      }
+
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to send combined test email',
+      });
+    }
+  });
+
+  /**
    * POST /api/communication/preferences/test-email - Send test notification email
    * Sends a sample notification email to the user with their real data for preview.
    */

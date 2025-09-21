@@ -896,33 +896,33 @@ export default function CommunicationDashboard() {
     },
   });
 
-  // Test email mutation
-  const testEmailMutation = useMutation({
-    mutationFn: async ({ notificationType, language: emailLanguage }: { notificationType: string, language: 'fr' | 'en' }) => {
-      const response = await apiRequest('POST', '/api/communication/preferences/test-email', { 
-        notificationType,
+  // Combined test email mutation
+  const combinedTestEmailMutation = useMutation({
+    mutationFn: async ({ language: emailLanguage }: { language: 'fr' | 'en' }) => {
+      const response = await apiRequest('POST', '/api/communication/preferences/test-combined-email', { 
         language: emailLanguage 
       });
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: language === 'fr' ? 'Email de test envoyé' : 'Test email sent',
+        title: language === 'fr' ? 'Email de test combiné envoyé' : 'Combined test email sent',
         description: language === 'fr' 
-          ? 'Un aperçu de votre notification a été envoyé à votre adresse email.'
-          : 'A preview of your notification has been sent to your email address.',
+          ? 'Un aperçu combiné de toutes vos notifications activées a été envoyé à votre adresse email.'
+          : 'A combined preview of all your enabled notifications has been sent to your email address.',
       });
     },
     onError: (error: any) => {
       toast({
         title: language === 'fr' ? 'Erreur' : 'Error',
         description: error.message || (language === 'fr' 
-          ? 'Échec de l\'envoi de l\'email de test'
-          : 'Failed to send test email'),
+          ? 'Échec de l\'envoi de l\'email de test combiné'
+          : 'Failed to send combined test email'),
         variant: 'destructive',
       });
     },
   });
+
 
   // Settings save mutation
   const saveSettingsMutation = useMutation({
@@ -1212,6 +1212,44 @@ export default function CommunicationDashboard() {
           {/* Notification Preferences Form */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+              {/* Combined Test Email Section */}
+              <Card className="border-2 border-blue-200 bg-blue-50/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TestTube className="w-5 h-5 text-blue-600" />
+                    {language === 'fr' ? 'Test des notifications' : 'Test Notifications'}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {language === 'fr'
+                      ? 'Envoyez un aperçu combiné de toutes vos notifications activées à votre adresse email.'
+                      : 'Send a combined preview of all your enabled notifications to your email address.'
+                    }
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => combinedTestEmailMutation.mutate({ language })}
+                    disabled={combinedTestEmailMutation.isPending}
+                    className="w-full sm:w-auto"
+                    data-testid="button-combined-test-email"
+                  >
+                    {combinedTestEmailMutation.isPending ? (
+                      <>
+                        <LoadingSpinner />
+                        {language === 'fr' ? 'Envoi en cours...' : 'Sending...'}
+                      </>
+                    ) : (
+                      <>
+                        <TestTube className="h-4 w-4 mr-2" />
+                        {language === 'fr' ? 'Envoyer un test combiné' : 'Send Combined Test'}
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
               {Object.entries(groupedNotifications).map(([category, types]) => {
                 const CategoryIcon = categoryIcons[category as keyof typeof categoryIcons];
                 const categoryLabel = categoryLabels[category as keyof typeof categoryLabels];
@@ -1294,37 +1332,6 @@ export default function CommunicationDashboard() {
                                       </FormItem>
                                     )}
                                   />
-                                </div>
-
-                                {/* Test Button */}
-                                <div className="flex flex-col">
-                                  <label className="text-xs text-muted-foreground mb-1">
-                                    {language === 'fr' ? 'Aperçu' : 'Preview'}
-                                  </label>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => testEmailMutation.mutate({ 
-                                      notificationType: type.key, 
-                                      language: language 
-                                    })}
-                                    disabled={testEmailMutation.isPending}
-                                    className="text-xs"
-                                    data-testid={`button-${type.key}-test-email`}
-                                  >
-                                    {testEmailMutation.isPending ? (
-                                      <>
-                                        <LoadingSpinner />
-                                        {language === 'fr' ? 'Envoi...' : 'Sending...'}
-                                      </>
-                                    ) : (
-                                      <>
-                                        <TestTube className="h-3 w-3 mr-1" />
-                                        {language === 'fr' ? 'Test' : 'Test'}
-                                      </>
-                                    )}
-                                  </Button>
                                 </div>
                               </div>
                             </div>

@@ -684,6 +684,244 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
   }
 
   /**
+   * Sends multiple combined notifications in a single email.
+   * Groups recipients by building and language, combines multiple notification types
+   * into one consolidated email per recipient.
+   *
+   * @param {Array} notificationsData - Array of notification objects to combine.
+   * @param {string} notificationsData[].type - Notification type for tracking.
+   * @param {string} notificationsData[].title - Notification title.
+   * @param {string} notificationsData[].message - Notification message content.
+   * @param {string} organizationName - Organization name for context.
+   * @param {Array} recipients - Array of recipient objects.
+   * @param {string} recipients[].email - Recipient email address.
+   * @param {string} recipients[].name - Recipient full name.
+   * @param {'fr' | 'en'} recipients[].language - Recipient language preference.
+   * @param {string} [recipients[].buildingName] - Building name for splitting notifications.
+   * @param {boolean} [isTestEmail=false] - Whether this is a test email.
+   * @returns {Promise<boolean>} Promise resolving to true if combined email sent successfully.
+   */
+  async sendCombinedNotifications(
+    notificationsData: Array<{
+      type: string;
+      title: string;
+      message: string;
+    }>,
+    organizationName: string,
+    recipients: Array<{
+      email: string;
+      name: string;
+      language: 'fr' | 'en';
+      buildingName?: string;
+    }>,
+    isTestEmail: boolean = false
+  ): Promise<boolean> {
+    try {
+      // Filter out empty notifications (except for test emails)
+      const validNotifications = isTestEmail 
+        ? notificationsData 
+        : notificationsData.filter(notification => 
+            notification.message && notification.message.trim() !== ''
+          );
+
+      if (validNotifications.length === 0) {
+        console.log('📧 No valid notifications to send');
+        return true;
+      }
+
+      if (recipients.length === 0) {
+        console.log('📧 No recipients for combined notifications');
+        return true;
+      }
+
+      // Group recipients by building first, then by language
+      const recipientsByBuilding = recipients.reduce((acc, recipient) => {
+        const building = recipient.buildingName || 'General';
+        if (!acc[building]) acc[building] = [];
+        acc[building].push(recipient);
+        return acc;
+      }, {} as Record<string, typeof recipients>);
+
+      console.log(`📧 Sending combined notifications to ${Object.keys(recipientsByBuilding).length} building(s)`);
+
+      // Smart environment detection for URLs
+      const isDevelopment = process.env.NODE_ENV !== 'production';
+      let baseUrl;
+
+      if (isDevelopment) {
+        const replitUrl = process.env.REPLIT_DOMAINS
+          ? `https://${process.env.REPLIT_DOMAINS}`
+          : null;
+        baseUrl = replitUrl || 'http://localhost:5000';
+      } else {
+        baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
+      }
+      const demandCenterUrl = `${baseUrl}/dashboard/demands`;
+      const notificationSettingsUrl = `${baseUrl}/dashboard/settings`;
+
+      // Process each building separately
+      for (const [buildingName, buildingRecipients] of Object.entries(recipientsByBuilding)) {
+        console.log(`📧 Processing building: ${buildingName} (${buildingRecipients.length} recipients)`);
+
+        // Group building recipients by language
+        const recipientsByLanguage = buildingRecipients.reduce((acc, recipient) => {
+          const lang = recipient.language || 'fr';
+          if (!acc[lang]) acc[lang] = [];
+          acc[lang].push(recipient);
+          return acc;
+        }, {} as Record<string, typeof buildingRecipients>);
+
+        // Send combined notifications for each language group within this building
+        for (const [language, langRecipients] of Object.entries(recipientsByLanguage)) {
+          const isFrench = language === 'fr';
+          
+          // Create combined subject
+          const subjectPrefix = isFrench ? 'Notifications' : 'Notifications';
+          let subject = `${subjectPrefix} - ${organizationName}`;
+          if (Object.keys(recipientsByBuilding).length > 1 && buildingName !== 'General') {
+            subject = `${subjectPrefix} - ${buildingName} - ${organizationName}`;
+          }
+
+          // Create combined message content
+          const combinedMessage = validNotifications.map((notification, index) => 
+            `<div style="background: white; padding: 20px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #2563eb;">
+              <h3 style="margin: 0 0 10px 0; color: #374151; font-size: 16px;">${notification.title}</h3>
+              <p style="margin: 0; line-height: 1.6;">${notification.message}</p>
+            </div>`
+          ).join('');
+
+          const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>${subject}</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: #f8f9fa; padding: 30px; border-radius: 8px;">
+                <h1 style="color: #2563eb; margin-bottom: 20px;">Koveo Gestion</h1>
+                
+                <h2 style="color: #374151;">${isFrench ? 'Notifications du jour' : 'Daily Notifications'}</h2>
+                
+                <p>${isFrench ? 'Bonjour,' : 'Hello,'}</p>
+                
+                <p>${isFrench 
+                  ? `Voici vos notifications pour aujourd'hui concernant ${organizationName}:` 
+                  : `Here are your notifications for today regarding ${organizationName}:`}</p>
+                
+                ${combinedMessage}
+                
+                <p>
+                  <strong>${isFrench ? 'Organisation :' : 'Organization:'}</strong> ${organizationName}
+                </p>
+                ${buildingName !== 'General' ? `
+                <p>
+                  <strong>${isFrench ? 'Bâtiment :' : 'Building:'}</strong> ${buildingName}
+                </p>
+                ` : ''}
+                
+                <div style="margin: 20px 0; padding: 15px; background: #f3f4f6; border-radius: 6px;">
+                  <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                    <strong>${isFrench ? 'Centre de demandes:' : 'Demand Center:'}</strong>
+                    <a href="${demandCenterUrl}" style="color: #2563eb; text-decoration: none; margin-left: 5px;">
+                      ${isFrench ? 'Voir les demandes' : 'View Demands'}
+                    </a>
+                  </p>
+                  <p style="margin: 10px 0 0 0; font-size: 14px; color: #6b7280;">
+                    <strong>${isFrench ? 'Paramètres de notification:' : 'Notification Settings:'}</strong>
+                    <a href="${notificationSettingsUrl}" style="color: #2563eb; text-decoration: none; margin-left: 5px;">
+                      ${isFrench ? 'Gérer les préférences' : 'Manage Preferences'}
+                    </a>
+                  </p>
+                </div>
+                
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+                
+                <div style="font-size: 12px; color: #6b7280;">
+                  <p><strong>${isFrench ? 'Confidentialité & Sécurité' : 'Privacy & Security'}</strong></p>
+                  <p>${isFrench 
+                    ? 'Conforme à la Loi 25 du Québec. Vos données personnelles sont protégées selon les normes de sécurité les plus strictes.' 
+                    : 'Compliant with Quebec Law 25. Your personal data is protected according to the strictest security standards.'}</p>
+                  <p>© 2025 Koveo Gestion. ${isFrench ? 'Tous droits réservés.' : 'All rights reserved.'}</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `;
+
+          // Create text version
+          const textContent = `
+${isFrench ? 'Notifications du jour' : 'Daily Notifications'} - Koveo Gestion
+
+${isFrench ? 'Bonjour,' : 'Hello,'}
+
+${isFrench 
+  ? `Voici vos notifications pour aujourd'hui concernant ${organizationName}:` 
+  : `Here are your notifications for today regarding ${organizationName}:`}
+
+${validNotifications.map(notification => `
+${notification.title}
+${notification.message}
+`).join('\n---\n')}
+
+${isFrench ? 'Organisation :' : 'Organization:'} ${organizationName}
+${buildingName !== 'General' ? `${isFrench ? 'Bâtiment :' : 'Building:'} ${buildingName}` : ''}
+
+${isFrench ? 'Centre de demandes:' : 'Demand Center:'} ${demandCenterUrl}
+${isFrench ? 'Paramètres de notification:' : 'Notification Settings:'} ${notificationSettingsUrl}
+
+---
+${isFrench ? 'Confidentialité & Sécurité' : 'Privacy & Security'}
+${isFrench 
+  ? 'Conforme à la Loi 25 du Québec. Vos données personnelles sont protégées selon les normes de sécurité les plus strictes.' 
+  : 'Compliant with Quebec Law 25. Your personal data is protected according to the strictest security standards.'}
+© 2025 Koveo Gestion. ${isFrench ? 'Tous droits réservés.' : 'All rights reserved.'}
+          `;
+
+          // Send to all recipients in this language group
+          const emailPromises = langRecipients.map(recipient => {
+            const msg = {
+              to: recipient.email,
+              from: {
+                email: this.fromEmail,
+                name: this.fromName,
+              },
+              subject,
+              html: htmlContent,
+              text: textContent,
+              trackingSettings: {
+                clickTracking: {
+                  enable: false,
+                },
+                openTracking: {
+                  enable: false,
+                },
+              },
+              mailSettings: {
+                bypassListManagement: {
+                  enable: false,
+                },
+              },
+            };
+
+            return this.mailService.send(msg);
+          });
+
+          // Wait for all emails in this group to be sent
+          await Promise.all(emailPromises);
+          console.log(`📧 Combined notifications sent to ${langRecipients.length} recipients in ${language} for building ${buildingName}`);
+        }
+      }
+
+      console.log('📧 All combined notifications sent successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Error sending combined notifications:', error);
+      return false;
+    }
+  }
+
+  /**
    * Sends scheduled notifications with building-specific splitting and empty notification filtering.
    * Groups recipients by building and language for efficient delivery.
    * Includes Quebec Law 25 compliance footer and unsubscribe functionality.
