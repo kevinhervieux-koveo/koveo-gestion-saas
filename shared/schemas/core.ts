@@ -49,7 +49,7 @@ export const invitationStatusEnum = pgEnum('invitation_status', [
  * Supports Quebec-specific language preferences and role-based access.
  */
 export const users = pgTable('users', {
-  id: text('id').default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   username: text('username').notNull().unique(), // Username field required by database
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: text('password').notNull(),
@@ -63,16 +63,14 @@ export const users = pgTable('users', {
   lastLoginAt: timestamp('last_login_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => [
-  primaryKey({ columns: [table.id] }),
-]);
+});
 
 /**
  * Organizations table storing management companies, syndicates, and co-ownership entities.
  * Represents the legal entities responsible for property management in Quebec.
  */
 export const organizations = pgTable('organizations', {
-  id: text('id').default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   name: varchar('name', { length: 200 }).notNull(),
   type: text('type').notNull(), // 'management_company', 'syndicate', 'cooperative', 'condo_association', 'demo'
   address: text('address').notNull(),
@@ -86,9 +84,7 @@ export const organizations = pgTable('organizations', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => [
-  primaryKey({ columns: [table.id] }),
-]);
+});
 
 /**
  * User-Organization relationship table to manage users belonging to organizations.
