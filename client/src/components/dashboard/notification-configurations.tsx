@@ -380,9 +380,9 @@ function ConfigurationForm({
       };
 
       if (isEditing) {
-        return apiRequest(`/api/communication/notification-configs/${config.id}`, 'PATCH', payload);
+        return apiRequest('PATCH', `/api/communication/notification-configs/${config.id}`, payload);
       } else {
-        return apiRequest('/api/communication/notification-configs', 'POST', payload);
+        return apiRequest('POST', '/api/communication/notification-configs', payload);
       }
     },
     onSuccess: (_, variables) => {
@@ -624,7 +624,7 @@ function ConfigurationForm({
                       data-testid="button-start-date"
                     >
                       {field.value ? (
-                        format(field.value, "PPP", { locale: language === 'en' ? enUS : fr })
+                        format(field.value as Date, "PPP", { locale: language === 'en' ? enUS : fr })
                       ) : (
                         <span className="text-muted-foreground">
                           {language === 'en' ? 'Pick a date' : 'Choisir une date'}
@@ -637,7 +637,7 @@ function ConfigurationForm({
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value}
+                    selected={field.value as Date | undefined}
                     onSelect={field.onChange}
                     disabled={(date) => date < new Date()}
                     initialFocus
@@ -671,7 +671,7 @@ function ConfigurationForm({
                       data-testid="button-end-date"
                     >
                       {field.value ? (
-                        format(field.value, "PPP", { locale: language === 'en' ? enUS : fr })
+                        format(field.value as Date, "PPP", { locale: language === 'en' ? enUS : fr })
                       ) : (
                         <span className="text-muted-foreground">
                           {language === 'en' ? 'Pick a date (optional)' : 'Choisir une date (optionnel)'}
@@ -684,7 +684,7 @@ function ConfigurationForm({
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value}
+                    selected={field.value as Date | undefined}
                     onSelect={field.onChange}
                     disabled={(date) => date < new Date()}
                     initialFocus
@@ -839,7 +839,7 @@ export function NotificationConfigurations({
   // Delete configuration mutation
   const deleteMutation = useMutation({
     mutationFn: async (config: NotificationConfiguration) => {
-      return apiRequest(`/api/communication/notification-configs/${config.id}`, 'DELETE');
+      return apiRequest('DELETE', `/api/communication/notification-configs/${config.id}`);
     },
     onSuccess: (_, config) => {
       // Invalidate scoped cache keys for proper cache management
@@ -864,7 +864,7 @@ export function NotificationConfigurations({
   // Preview mutation
   const previewMutation = useMutation({
     mutationFn: async (configId: string) => {
-      return apiRequest(`/api/communication/notification-configs/${configId}/preview`, 'POST');
+      return apiRequest('POST', `/api/communication/notification-configs/${configId}/preview`);
     },
     onSuccess: () => {
       toast({
