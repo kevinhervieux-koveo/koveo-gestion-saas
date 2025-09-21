@@ -55,7 +55,6 @@ import {
   VolumeX,
   Mail,
   Smartphone,
-  Calendar,
   AlertTriangle,
   FileText,
   DollarSign,
@@ -277,14 +276,18 @@ type FrequencyType = 'immediate' | 'weekly' | '2weeks' | 'monthly' | 'quarterly'
 // Use shared notification preference type from @shared/schemas
 type NotificationPreference = UserNotificationPreference;
 
-// Form schema matching shared schema types
+// Form schema for notification preferences (without individual starting dates)
 const preferencesSchema = z.object({
   preferences: z.array(z.object({
     notificationType: z.string(),
     frequency: z.enum(['immediate', 'weekly', '2weeks', 'monthly', 'quarterly', 'bi-annually', 'annually']),
     isEnabled: z.boolean(),
-    startingDate: z.date().optional(),
   })),
+});
+
+// Form schema for notification settings (global starting date)
+const settingsSchema = z.object({
+  startingDate: z.date(),
 });
 
 // Helper function to ensure frequency is valid - moved outside component to prevent re-renders
@@ -296,6 +299,7 @@ const ensureValidFrequency = (frequency: string | undefined, defaultFreq: Freque
 };
 
 type PreferencesFormData = z.infer<typeof preferencesSchema>;
+type SettingsFormData = z.infer<typeof settingsSchema>;
 
 // Urgency level definitions for general communications
 interface UrgencyLevel {
@@ -795,9 +799,15 @@ export default function CommunicationDashboard() {
     enabled: !!user,
   });
 
+  // Fetch notification settings (global starting date)
+  const { data: settings, isLoading: loadingSettings } = useQuery<{ startingDate: string }>({
+    queryKey: ['/api/communication/settings'],
+    enabled: !!user,
+  });
+
   // No longer needed - moved outside component
 
-  // Form setup with default values
+  // Form setup for preferences (without starting dates)
   const form = useForm<PreferencesFormData>({
     resolver: zodResolver(preferencesSchema),
     defaultValues: {
@@ -807,9 +817,16 @@ export default function CommunicationDashboard() {
           notificationType: type.key,
           frequency: ensureValidFrequency(existing?.frequency, type.defaultFrequency),
           isEnabled: existing?.isEnabled ?? true,
-          startingDate: existing?.startingDate ? new Date(existing.startingDate) : new Date(),
         };
       }),
+    },
+  });
+
+  // Form setup for settings (global starting date)
+  const settingsForm = useForm<SettingsFormData>({
+    resolver: zodResolver(settingsSchema),
+    defaultValues: {
+      startingDate: settings?.startingDate ? new Date(settings.startingDate) : new Date(),
     },
   });
 
@@ -822,7 +839,6 @@ export default function CommunicationDashboard() {
           notificationType: type.key,
           frequency: ensureValidFrequency(existing?.frequency, type.defaultFrequency),
           isEnabled: existing?.isEnabled ?? true,
-          startingDate: existing?.startingDate ? new Date(existing.startingDate) : new Date(),
         };
       });
       
@@ -830,7 +846,16 @@ export default function CommunicationDashboard() {
       setHasUnsavedChanges(false);
       formInitializedRef.current = true;
     }
-  }, [preferences, form]); // Removed unstable ensureValidFrequency dependency
+  }, [preferences, form]);
+
+  // Update settings form when settings are loaded
+  React.useEffect(() => {
+    if (settings?.startingDate) {
+      settingsForm.reset({
+        startingDate: new Date(settings.startingDate),
+      }, { keepDirty: false });
+    }
+  }, [settings, settingsForm]); // Removed unstable ensureValidFrequency dependency
 
   // Track form changes
   React.useEffect(() => {
@@ -894,6 +919,34 @@ export default function CommunicationDashboard() {
         description: error.message || (language === 'fr' 
           ? 'Échec de l\'envoi de l\'email de test'
           : 'Failed to send test email'),
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Settings save mutation
+  const saveSettingsMutation = useMutation({
+    mutationFn: async (data: SettingsFormData) => {
+      const response = await apiRequest('PUT', '/api/communication/settings', { 
+        startingDate: data.startingDate.toISOString().split('T')[0] // Convert to YYYY-MM-DD format
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'fr' ? 'Paramètres mis à jour' : 'Settings updated',
+        description: language === 'fr' 
+          ? 'Votre date de début pour les notifications a été enregistrée avec succès.'
+          : 'Your notification starting date has been saved successfully.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/communication/settings'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' 
+          ? 'Échec de la mise à jour des paramètres'
+          : 'Failed to update settings'),
         variant: 'destructive',
       });
     },
@@ -1030,6 +1083,86 @@ export default function CommunicationDashboard() {
               </p>
             </CardHeader>
             <CardContent>
+              {/* Global Starting Date Section */}
+              <div className="mb-6 p-4 bg-muted/50 rounded-lg">
+                <Form {...settingsForm}>
+                  <form onSubmit={settingsForm.handleSubmit((data) => saveSettingsMutation.mutate(data))} className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium mb-1">
+                          {language === 'fr' ? 'Date de début pour toutes les notifications' : 'Starting Date for All Notifications'}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {language === 'fr' 
+                            ? 'Cette date sera utilisée pour calculer la fréquence de toutes vos notifications.'
+                            : 'This date will be used to calculate the frequency for all your notifications.'
+                          }
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <FormField
+                          control={settingsForm.control}
+                          name="startingDate"
+                          render={({ field }) => (
+                            <FormItem className="w-40">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full pl-3 text-left font-normal"
+                                      data-testid="button-global-starting-date"
+                                    >
+                                      {field.value ? (
+                                        format(field.value, "dd/MM/yyyy")
+                                      ) : (
+                                        <span className="text-muted-foreground">
+                                          {language === 'fr' ? 'Sélectionnez...' : 'Select...'}
+                                        </span>
+                                      )}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) =>
+                                      date < new Date("1900-01-01")
+                                    }
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="submit"
+                          disabled={saveSettingsMutation.isPending}
+                          size="sm"
+                          data-testid="button-save-settings"
+                        >
+                          {saveSettingsMutation.isPending ? (
+                            <>
+                              <LoadingSpinner />
+                              {language === 'fr' ? 'Enregistrement...' : 'Saving...'}
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-4 h-4 mr-1" />
+                              {language === 'fr' ? 'Enregistrer' : 'Save'}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </form>
+                </Form>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <div className="flex items-center gap-4">
                   <Button
@@ -1163,80 +1296,35 @@ export default function CommunicationDashboard() {
                                   />
                                 </div>
 
-                                {/* Bottom row: Starting Date and Test Button */}
-                                <div className="flex items-center gap-4">
-                                  <FormField
-                                    control={form.control}
-                                    name={`preferences.${formIndex}.startingDate`}
-                                    render={({ field }) => (
-                                      <FormItem className="w-40">
-                                        <FormLabel className="text-xs text-muted-foreground">
-                                          {language === 'fr' ? 'Date de début' : 'Starting Date'}
-                                        </FormLabel>
-                                        <Popover>
-                                          <PopoverTrigger asChild>
-                                            <FormControl>
-                                              <Button
-                                                variant="outline"
-                                                className="w-full pl-3 text-left font-normal"
-                                                data-testid={`button-${type.key}-starting-date`}
-                                              >
-                                                {field.value ? (
-                                                  format(field.value, "dd/MM/yyyy")
-                                                ) : (
-                                                  <span className="text-muted-foreground">
-                                                    {language === 'fr' ? 'Sélectionnez...' : 'Select...'}
-                                                  </span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                              </Button>
-                                            </FormControl>
-                                          </PopoverTrigger>
-                                          <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                              mode="single"
-                                              selected={field.value}
-                                              onSelect={field.onChange}
-                                              disabled={(date) =>
-                                                date < new Date("1900-01-01")
-                                              }
-                                              initialFocus
-                                            />
-                                          </PopoverContent>
-                                        </Popover>
-                                      </FormItem>
+                                {/* Test Button */}
+                                <div className="flex flex-col">
+                                  <label className="text-xs text-muted-foreground mb-1">
+                                    {language === 'fr' ? 'Aperçu' : 'Preview'}
+                                  </label>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => testEmailMutation.mutate({ 
+                                      notificationType: type.key, 
+                                      language: language 
+                                    })}
+                                    disabled={testEmailMutation.isPending}
+                                    className="text-xs"
+                                    data-testid={`button-${type.key}-test-email`}
+                                  >
+                                    {testEmailMutation.isPending ? (
+                                      <>
+                                        <LoadingSpinner />
+                                        {language === 'fr' ? 'Envoi...' : 'Sending...'}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <TestTube className="h-3 w-3 mr-1" />
+                                        {language === 'fr' ? 'Test' : 'Test'}
+                                      </>
                                     )}
-                                  />
-                                  
-                                  <div className="flex flex-col">
-                                    <label className="text-xs text-muted-foreground mb-1">
-                                      {language === 'fr' ? 'Aperçu' : 'Preview'}
-                                    </label>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => testEmailMutation.mutate({ 
-                                        notificationType: type.key, 
-                                        language: language 
-                                      })}
-                                      disabled={testEmailMutation.isPending}
-                                      className="text-xs"
-                                      data-testid={`button-${type.key}-test-email`}
-                                    >
-                                      {testEmailMutation.isPending ? (
-                                        <>
-                                          <LoadingSpinner />
-                                          {language === 'fr' ? 'Envoi...' : 'Sending...'}
-                                        </>
-                                      ) : (
-                                        <>
-                                          <TestTube className="h-3 w-3 mr-1" />
-                                          {language === 'fr' ? 'Test' : 'Test'}
-                                        </>
-                                      )}
-                                    </Button>
-                                  </div>
+                                  </Button>
                                 </div>
                               </div>
                             </div>
