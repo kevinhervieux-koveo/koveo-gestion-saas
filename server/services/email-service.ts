@@ -1,4 +1,10 @@
 import { MailService } from '@sendgrid/mail';
+import {
+  generateAllCalendarLinks,
+  generateCalendarButtonsHTML,
+  generateCalendarInstructionsText,
+  generateEnhancedICS
+} from './outlook-integration';
 
 /**
  * Email service for Quebec-compliant transactional emails using SendGrid.
@@ -977,16 +983,33 @@ ${isFrench
     try {
       const isFrench = language === 'fr';
       
-      // Generate calendar invite
-      const icsContent = this.generateCalendarInvite({
+      // Generate all calendar integration options for maximum compatibility
+      const calendarLinks = generateAllCalendarLinks({
         title: meetingData.title,
         description: meetingData.description,
         location: meetingData.location,
-        startDate: meetingData.scheduledDate,
+        scheduledDate: meetingData.scheduledDate,
         duration: meetingData.duration,
-        organizerName: meetingData.organizerName,
-        organizerEmail: meetingData.organizerEmail,
-      }, recipients, language);
+        organizationName: meetingData.organizationName,
+        attendeeEmails: recipients
+      }, language);
+      
+      // Generate enhanced .ics content with Outlook optimizations
+      const icsContent = generateEnhancedICS({
+        title: meetingData.title,
+        description: meetingData.description,
+        location: meetingData.location,
+        scheduledDate: meetingData.scheduledDate,
+        duration: meetingData.duration,
+        organizationName: meetingData.organizationName,
+        attendeeEmails: recipients
+      }, language);
+      
+      // Generate calendar integration buttons for HTML email
+      const calendarButtonsHTML = generateCalendarButtonsHTML(calendarLinks, language);
+      
+      // Generate calendar instructions for text email
+      const calendarInstructionsText = generateCalendarInstructionsText(calendarLinks, language);
 
       // Format date for display
       const meetingDateTime = meetingData.scheduledDate.toLocaleString(
@@ -1064,12 +1087,7 @@ ${isFrench
               ` : ''}
             </div>
             
-            <p style="background: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-              <strong style="color: #92400e;">📅 ${isFrench ? 'Calendrier' : 'Calendar'}:</strong><br>
-              ${isFrench 
-                ? 'Un fichier de calendrier (.ics) est joint à cet email. Téléchargez-le et ouvrez-le avec votre application de calendrier pour ajouter automatiquement cette réunion.'
-                : 'A calendar file (.ics) is attached to this email. Download and open it with your calendar application to automatically add this meeting.'}
-            </p>
+            ${calendarButtonsHTML}
             
             <p>
               <strong>${isFrench ? 'Organisé par :' : 'Organized by:'}</strong> ${meetingData.organizerName}<br>
@@ -1120,10 +1138,7 @@ ${isFrench ? 'LIEU :' : 'LOCATION:'} ${meetingData.location}
 
 ${meetingData.description ? `${isFrench ? 'DESCRIPTION :' : 'DESCRIPTION:'}\n${meetingData.description}\n` : ''}
 
-${isFrench ? 'CALENDRIER :' : 'CALENDAR:'}
-${isFrench 
-  ? 'Un fichier de calendrier (.ics) est joint à cet email. Téléchargez-le et ouvrez-le avec votre application de calendrier pour ajouter automatiquement cette réunion.'
-  : 'A calendar file (.ics) is attached to this email. Download and open it with your calendar application to automatically add this meeting.'}
+${calendarInstructionsText}
 
 ${isFrench ? 'Organisé par :' : 'Organized by:'} ${meetingData.organizerName}
 ${isFrench ? 'Organisation :' : 'Organization:'} ${meetingData.organizationName}
@@ -1151,7 +1166,7 @@ ${isFrench
           {
             content: Buffer.from(icsContent).toString('base64'),
             filename: `${meetingData.title.replace(/[^a-zA-Z0-9]/g, '_')}.ics`,
-            type: 'text/calendar',
+            type: 'text/calendar; method=REQUEST; charset=UTF-8',
             disposition: 'attachment',
           },
         ],
