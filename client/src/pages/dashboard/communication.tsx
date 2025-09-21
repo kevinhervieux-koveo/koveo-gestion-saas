@@ -1458,77 +1458,76 @@ export default function CommunicationDashboard() {
                         <CardContent>
                           <div className="space-y-6">
                             {types.map((type) => {
-                          const formIndex = notificationTypes.findIndex(nt => nt.key === type.key);
-                          const IconComponent = type.icon;
-                          
-                          return (
-                            <div key={type.key} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border rounded-lg">
-                              <div className="flex items-start gap-3 flex-1 min-w-0">
-                                <div className="p-2 bg-muted rounded-lg shrink-0">
-                                  <IconComponent className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-medium">
-                                    {language === 'fr' ? type.labelFr : type.labelEn}
-                                  </h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    {language === 'fr' ? type.descriptionFr : type.descriptionEn}
-                                  </p>
-                                </div>
-                              </div>
+                              const formIndex = notificationTypes.findIndex(nt => nt.key === type.key);
+                              const IconComponent = type.icon;
                               
-                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0">
-                                {/* Top row: Switch and Frequency */}
-                                <div className="flex items-center gap-4">
-                                  <FormField
-                                    control={form.control}
-                                    name={`preferences.${formIndex}.isEnabled`}
-                                    render={({ field }) => (
-                                      <FormItem className="flex items-center gap-2">
-                                        <FormControl>
-                                          <Switch
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                            data-testid={`switch-${type.key}-enabled`}
-                                          />
-                                        </FormControl>
-                                        <FormLabel className="text-sm">
-                                          {language === 'fr' ? 'Activé' : 'Enabled'}
-                                        </FormLabel>
-                                      </FormItem>
-                                    )}
-                                  />
+                              return (
+                                <div key={type.key} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border rounded-lg">
+                                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                                    <div className="p-2 bg-muted rounded-lg shrink-0">
+                                      <IconComponent className="w-4 h-4" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-medium">
+                                        {language === 'fr' ? type.labelFr : type.labelEn}
+                                      </h4>
+                                      <p className="text-sm text-muted-foreground">
+                                        {language === 'fr' ? type.descriptionFr : type.descriptionEn}
+                                      </p>
+                                    </div>
+                                  </div>
                                   
-                                  <FormField
-                                    control={form.control}
-                                    name={`preferences.${formIndex}.frequency`}
-                                    render={({ field }) => (
-                                      <FormItem className="w-40">
-                                        <Select
-                                          onValueChange={field.onChange}
-                                          value={field.value}
-                                          data-testid={`select-${type.key}-frequency`}
-                                        >
-                                          <FormControl>
-                                            <SelectTrigger>
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                          </FormControl>
-                                          <SelectContent>
-                                            {frequencyOptions.map((option) => (
-                                              <SelectItem key={option.value} value={option.value}>
-                                                {language === 'fr' ? option.labelFr : option.labelEn}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                      </FormItem>
-                                    )}
-                                  />
+                                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0">
+                                    <div className="flex items-center gap-4">
+                                      <FormField
+                                        control={form.control}
+                                        name={`preferences.${formIndex}.isEnabled`}
+                                        render={({ field }) => (
+                                          <FormItem className="flex items-center gap-2">
+                                            <FormControl>
+                                              <Switch
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                                data-testid={`switch-${type.key}-enabled`}
+                                              />
+                                            </FormControl>
+                                            <FormLabel className="text-sm">
+                                              {language === 'fr' ? 'Activé' : 'Enabled'}
+                                            </FormLabel>
+                                          </FormItem>
+                                        )}
+                                      />
+                                      
+                                      <FormField
+                                        control={form.control}
+                                        name={`preferences.${formIndex}.frequency`}
+                                        render={({ field }) => (
+                                          <FormItem className="w-40">
+                                            <Select
+                                              onValueChange={field.onChange}
+                                              value={field.value}
+                                              data-testid={`select-${type.key}-frequency`}
+                                            >
+                                              <FormControl>
+                                                <SelectTrigger>
+                                                  <SelectValue />
+                                                </SelectTrigger>
+                                              </FormControl>
+                                              <SelectContent>
+                                                {frequencyOptions.map((option) => (
+                                                  <SelectItem key={option.value} value={option.value}>
+                                                    {language === 'fr' ? option.labelFr : option.labelEn}
+                                                  </SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </FormItem>
+                                        )}
+                                      />
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
-                          );
+                              );
                             })}
                           </div>
                         </CardContent>
