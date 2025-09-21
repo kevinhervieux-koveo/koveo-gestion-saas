@@ -216,6 +216,13 @@ const DashboardCalendarPage = createOptimizedLoader(
   { preloadDelay: 200, enableMemoryCleanup: true }
 );
 
+// Dashboard Communication page
+const DashboardCommunicationPage = createOptimizedLoader(
+  () => import('@/pages/dashboard/communication'),
+  'dashboard-communication-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
+
 // Invitation acceptance page (public route)
 const InvitationAcceptancePage = createOptimizedLoader(
   () => import('@/pages/auth/invitation-acceptance'),
@@ -320,6 +327,7 @@ function Router() {
             {/* Main Dashboard */}
             <Route path='/dashboard/quick-actions' component={DashboardPage} />
             <Route path='/dashboard/calendar' component={DashboardCalendarPage} />
+            <Route path='/dashboard/communication' component={DashboardCommunicationPage} />
 
             {/* Admin routes */}
             <Route path='/admin/organizations' component={AdminOrganizations} />
