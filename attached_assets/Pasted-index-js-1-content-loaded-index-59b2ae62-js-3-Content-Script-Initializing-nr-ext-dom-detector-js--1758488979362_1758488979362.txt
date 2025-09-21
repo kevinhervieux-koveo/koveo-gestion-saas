@@ -1,0 +1,80 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-BtNbLgYT.js:1 🖱️ [CRITICAL DEBUG] Save Changes button CLICKED!
+user-management-BtNbLgYT.js:1 🚀 [FUNCTION CHECK] handleUnifiedSave is a function, calling it...
+user-management-BtNbLgYT.js:1 🚀 [Unified Save] Starting unified save function
+user-management-BtNbLgYT.js:1 🎯 [Unified Save] Current selections (before cascade filtering): {organizationIds: Array(1), buildingIds: Array(0), residenceAssignments: Array(0), canEditOrganizations: true, canEditResidences: true}
+user-management-BtNbLgYT.js:1 🔄 [Unified Save] After cascade filtering: {organizationIds: Array(1), buildingIds: Array(0), residenceAssignments: Array(0), removedBuildings: 0, removedResidences: 0}
+user-management-BtNbLgYT.js:1 🚩 [Unified Save] Set isUnifiedSaving = true to prevent race conditions
+user-management-BtNbLgYT.js:1 📝 [Unified Save] Form values: {firstName: 'Kevin', lastName: 'Hervieux', email: 'kevin.hervieux@koveo-gestion.com', role: 'admin', isActive: true}
+user-management-BtNbLgYT.js:1 ✅ [editUserMutation] User update successful
+user-management-BtNbLgYT.js:1 ⏳ [editUserMutation] Part of unified save - skipping individual cache invalidation
+user-management-BtNbLgYT.js:1 ✅ [editOrganizationsMutation] Organization assignments saved
+user-management-BtNbLgYT.js:1 ⏳ [editOrganizationsMutation] Part of unified save - skipping individual cache invalidation
+user-management-BtNbLgYT.js:1 ✅ [editBuildingsMutation] Building assignments saved
+user-management-BtNbLgYT.js:1 ⏳ [editBuildingsMutation] Part of unified save - skipping individual cache invalidation
+user-management-BtNbLgYT.js:1 ✅ [editResidencesMutation] Residence assignments saved
+user-management-BtNbLgYT.js:1 ⏳ [editResidencesMutation] Part of unified save - skipping individual cache invalidation
+user-management-BtNbLgYT.js:1 ✅ [Unified Save] All mutations completed successfully
+user-management-BtNbLgYT.js:1 ⏳ [Unified Save] Waiting for database consistency...
+user-management-BtNbLgYT.js:1 🗑️ [Unified Save] Starting comprehensive cache invalidation...
+user-management-BtNbLgYT.js:1 🔄 [Unified Save] Cache cleared, invalidating queries for refetch...
+user-management-BtNbLgYT.js:1 🎉 [Unified Save] Cache invalidation completed
+user-management-BtNbLgYT.js:1 💾 [Unified Save] Unified save process completed successfully
+user-management-BtNbLgYT.js:1 🏁 [Unified Save] Reset isUnifiedSaving = false
+index-DcTpm94b.js:136 Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at Cs (index-DcTpm94b.js:83:16795)
+    at Lu (index-DcTpm94b.js:83:16313)
+    at ol (index-DcTpm94b.js:120:18325)
+    at $p (index-DcTpm94b.js:120:17921)
+    at xo (vendor-ui-HN6VFtDE.js:14:1708)
+    at vendor-ui-HN6VFtDE.js:14:1800
+    at Array.map (<anonymous>)
+    at vendor-ui-HN6VFtDE.js:14:1784
+    at xo (vendor-ui-HN6VFtDE.js:14:1708)
+    at vendor-ui-HN6VFtDE.js:14:1800
+
+The above error occurred in the <button> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, uR.
+
+overrideMethod @ hook.js:608
+oh @ index-DcTpm94b.js:136
+lh @ index-DcTpm94b.js:141
+q @ index-DcTpm94b.js:45
+l.componentDidCatch.e.callback @ index-DcTpm94b.js:141
+Dp @ index-DcTpm94b.js:107
+Ep @ index-DcTpm94b.js:107
+q @ index-DcTpm94b.js:45
+Dh @ index-DcTpm94b.js:163
+Nh @ index-DcTpm94b.js:163
+Qn @ index-DcTpm94b.js:163
+Nh @ index-DcTpm94b.js:163
+Qn @ index-DcTpm94b.js:163
+Nh @ index-DcTpm94b.js:163
+Qn @ index-DcTpm94b.js:163
+Nh @ index-DcTpm94b.js:163
+Qn @ index-DcTpm94b.js:163
+Nh @ index-DcTpm94b.js:163
+Qn @ index-DcTpm94b.js:163
+Nh @ index-DcTpm94b.js:163
+Qn @ index-DcTpm94b.js:163
+Nh @ index-DcTpm94b.js:163
+ng @ index-DcTpm94b.js:163
+ed @ index-DcTpm94b.js:163
+Xh @ index-DcTpm94b.js:163
+Ih @ index-DcTpm94b.js:163
+mg @ index-DcTpm94b.js:185
+ml @ index-DcTpm94b.js:185
+ag @ index-DcTpm94b.js:163
+ed @ index-DcTpm94b.js:163
+Xh @ index-DcTpm94b.js:163
+Ih @ index-DcTpm94b.js:163
+fg @ index-DcTpm94b.js:185
+d @ index-DcTpm94b.js:23
+index-DcTpm94b.js:23 [Violation] 'message' handler took 465ms

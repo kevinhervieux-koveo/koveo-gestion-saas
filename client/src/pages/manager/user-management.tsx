@@ -407,11 +407,9 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: async () => {
-      console.log('✅ [editUserMutation] User update successful');
       
       // Only invalidate cache if NOT part of unified save to prevent race conditions
       if (!isUnifiedSaving) {
-        console.log('🔄 [editUserMutation] Individual save - invalidating cache immediately...');
         await queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
         await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
         await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
@@ -424,7 +422,6 @@ export default function UserManagement() {
         // Close dialog after successful update
         setEditingUser(null);
       } else {
-        console.log('⏳ [editUserMutation] Part of unified save - skipping individual cache invalidation');
       }
     },
     onError: (error: Error) => {
@@ -497,7 +494,7 @@ export default function UserManagement() {
         isActive: editingUser.isActive,
       });
     }
-  }, [editingUser, editForm]);
+  }, [editingUser]);
 
   // Reset delete form when deleting user changes
   React.useEffect(() => {
@@ -507,7 +504,7 @@ export default function UserManagement() {
         reason: '',
       });
     }
-  }, [deletingUser, deleteForm]);
+  }, [deletingUser]);
 
   // Reset to page 1 when filters change (excluding search since it's disabled)
   React.useEffect(() => {
@@ -604,14 +601,12 @@ export default function UserManagement() {
     try {
       await editUserMutation.mutateAsync({ ...values, id: editingUser.id });
       
-      console.log('✅ [handleEditUser] User basic info saved, starting cache invalidation...');
       
       // CRITICAL: Same cache invalidation as unified save
       await queryClient.removeQueries({ queryKey: ['/api/users'] });
       await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       await queryClient.refetchQueries({ queryKey: ['/api/users'] });
       
-      console.log('🔄 [handleEditUser] Cache invalidation completed, table should refresh now');
       
       toast({
         title: "Success",
@@ -629,19 +624,10 @@ export default function UserManagement() {
 
   // Unified save function that saves all user data at once
   const handleUnifiedSave = async () => {
-    console.log('🚀 [Unified Save] Starting unified save function');
     if (!editingUser) {
-      console.log('❌ [Unified Save] No editing user found, exiting');
       return;
     }
 
-    console.log('🎯 [Unified Save] Current selections (before cascade filtering):', {
-      organizationIds: selectedOrganizationIds,
-      buildingIds: selectedBuildingIds,
-      residenceAssignments: selectedResidenceAssignments,
-      canEditOrganizations,
-      canEditResidences
-    });
 
     // Apply cascade filtering before saving
     // Filter buildings: only include buildings that belong to selected organizations
@@ -656,22 +642,13 @@ export default function UserManagement() {
       return residence && filteredBuildingIds.includes(residence.buildingId);
     });
 
-    console.log('🔄 [Unified Save] After cascade filtering:', {
-      organizationIds: selectedOrganizationIds,
-      buildingIds: filteredBuildingIds,
-      residenceAssignments: filteredResidenceAssignments,
-      removedBuildings: selectedBuildingIds.length - filteredBuildingIds.length,
-      removedResidences: selectedResidenceAssignments.length - filteredResidenceAssignments.length
-    });
 
     try {
       // Set unified saving flag to prevent individual cache invalidations
       setIsUnifiedSaving(true);
-      console.log('🚩 [Unified Save] Set isUnifiedSaving = true to prevent race conditions');
       
       // Get form values for basic info
       const formValues = editForm.getValues();
-      console.log('📝 [Unified Save] Form values:', formValues);
       
       // Save all data sequentially to ensure consistency
       await editUserMutation.mutateAsync({ ...formValues, id: editingUser.id });
@@ -700,7 +677,6 @@ export default function UserManagement() {
         });
       }
 
-      console.log('✅ [Unified Save] All mutations completed successfully');
 
       // Show success message
       toast({
@@ -709,10 +685,8 @@ export default function UserManagement() {
       });
 
       // Allow database to achieve consistency after multiple mutations
-      console.log('⏳ [Unified Save] Waiting for database consistency...');
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      console.log('🗑️ [Unified Save] Starting comprehensive cache invalidation...');
       
       // Comprehensive cache invalidation to ensure UI updates
       // Remove all cached queries first for immediate effect
@@ -724,18 +698,15 @@ export default function UserManagement() {
       queryClient.removeQueries({ queryKey: ['/api/admin/all-user-organizations'], exact: false });
       queryClient.removeQueries({ queryKey: ['/api/admin/all-user-residences'], exact: false });
       
-      console.log('🔄 [Unified Save] Cache cleared, invalidating queries for refetch...');
       
       // Force immediate refetch to update the table
       await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
       await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       
-      console.log('🎉 [Unified Save] Cache invalidation completed');
       
       // Close dialog after successful save and cache invalidation
       setEditingUser(null);
       
-      console.log('💾 [Unified Save] Unified save process completed successfully');
       
     } catch (error) {
       console.error('❌ [Unified Save] Unified save failed:', error);
@@ -747,7 +718,6 @@ export default function UserManagement() {
     } finally {
       // Always reset the unified saving flag
       setIsUnifiedSaving(false);
-      console.log('🏁 [Unified Save] Reset isUnifiedSaving = false');
     }
   };
 
@@ -786,11 +756,9 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: async () => {
-      console.log('✅ [editOrganizationsMutation] Organization assignments saved');
       
       // Only invalidate cache if NOT part of unified save to prevent race conditions
       if (!isUnifiedSaving) {
-        console.log('🔄 [editOrganizationsMutation] Individual save - invalidating cache...');
         await queryClient.removeQueries({ queryKey: ['/api/users'] });
         await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
         await queryClient.refetchQueries({ queryKey: ['/api/users'] });
@@ -804,7 +772,6 @@ export default function UserManagement() {
           setEditingUserOrganizations(null);
         }
       } else {
-        console.log('⏳ [editOrganizationsMutation] Part of unified save - skipping individual cache invalidation');
       }
     },
     onError: (error: Error) => {
@@ -831,11 +798,9 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: async () => {
-      console.log('✅ [editBuildingsMutation] Building assignments saved');
       
       // Only invalidate cache if NOT part of unified save to prevent race conditions
       if (!isUnifiedSaving) {
-        console.log('🔄 [editBuildingsMutation] Individual save - invalidating cache...');
         await queryClient.removeQueries({ queryKey: ['/api/users'] });
         await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
         await queryClient.refetchQueries({ queryKey: ['/api/users'] });
@@ -845,7 +810,6 @@ export default function UserManagement() {
           description: t('buildingAssignmentsUpdated'),
         });
       } else {
-        console.log('⏳ [editBuildingsMutation] Part of unified save - skipping individual cache invalidation');
       }
     },
     onError: (error: Error) => {
@@ -872,11 +836,9 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: async () => {
-      console.log('✅ [editResidencesMutation] Residence assignments saved');
       
       // Only invalidate cache if NOT part of unified save to prevent race conditions
       if (!isUnifiedSaving) {
-        console.log('🔄 [editResidencesMutation] Individual save - invalidating cache...');
         await queryClient.removeQueries({ queryKey: ['/api/users'] });
         await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
         await queryClient.refetchQueries({ queryKey: ['/api/users'] });
@@ -890,7 +852,6 @@ export default function UserManagement() {
           setEditingUserResidences(null);
         }
       } else {
-        console.log('⏳ [editResidencesMutation] Part of unified save - skipping individual cache invalidation');
       }
     },
     onError: (error: Error) => {
@@ -1092,14 +1053,11 @@ export default function UserManagement() {
   // Delete orphan users mutation (admin only)
   const deleteOrphanUsersMutation = useMutation({
     mutationFn: async () => {
-      console.log('🗑️ [FRONTEND] Delete orphans mutation started');
-      console.log('🔍 [FRONTEND] Current user:', currentUser?.email, 'role:', currentUser?.role);
       
       const response = await fetch('/api/users/orphans', {
         method: 'DELETE',
       });
       
-      console.log('📡 [FRONTEND] API response status:', response.status, response.statusText);
       
       if (!response.ok) {
         const error = await response.json();
@@ -1108,17 +1066,14 @@ export default function UserManagement() {
       }
       
       const result = await response.json();
-      console.log('✅ [FRONTEND] API Success response:', result);
       return result;
     },
     onSuccess: (data) => {
-      console.log('🎉 [FRONTEND] Delete orphans mutation succeeded:', data);
       toast({
         title: 'Success',
         description: data.message || `Deleted ${data.deletedCount} orphan users`,
       });
       
-      console.log('🔄 [FRONTEND] Refreshing users list...');
       // Refresh the users list
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       setShowDeleteOrphansDialog(false);
