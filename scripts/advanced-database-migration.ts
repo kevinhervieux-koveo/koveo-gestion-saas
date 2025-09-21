@@ -29,6 +29,7 @@ import { sql } from 'drizzle-orm';
 import inquirer from 'inquirer';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 
 // Import all schemas
 import * as schema from '../shared/schema.js';
@@ -87,10 +88,13 @@ class AdvancedDatabaseMigrator {
   private dryRun = false;
   private devOnly = false;
   private productionForce = false;
+  private secureBackupDir: string;
 
   constructor() {
     this.program = new Command();
     this.setupCommands();
+    // Use OS temp directory for secure backup storage outside repo
+    this.secureBackupDir = path.join(os.tmpdir(), 'koveo-db-backups');
   }
 
   private setupCommands() {
@@ -206,7 +210,7 @@ class AdvancedDatabaseMigrator {
       // Expected tables from schema
       const expectedTables = [
         'users', 'organizations', 'buildings', 'residences', 'documents',
-        'bills', 'old_bills', 'budgets', 'monthly_budgets', 'notifications',
+        'bills', 'budgets', 'monthly_budgets', 'notifications',
         'demands', 'demands_comments', 'maintenance_requests', 'contacts',
         'common_spaces', 'bookings', 'user_booking_restrictions', 'user_time_limits',
         'feature_requests', 'feature_request_upvotes', 'bugs', 'improvement_suggestions',
@@ -547,7 +551,8 @@ class AdvancedDatabaseMigrator {
       'Monitor database performance during migration',
       'Automated backups created for production rollback capability',
       'Coordinate with team for production downtime window',
-      'Check backup files in ./backups directory if rollback needed'
+      `Check backup files in secure temp directory if rollback needed`,
+      'Backup files are stored outside repository for security'
     ];
 
     return plan;
@@ -604,6 +609,24 @@ class AdvancedDatabaseMigrator {
         // For production databases, create automated backup before dangerous operations
         if (database.name === 'Production' && !this.dryRun) {
           await this.createProductionBackup(database, spinner);
+          
+          // Additional production safety warning for force operations
+          console.log(chalk.red.bold('\n🚨 PRODUCTION FORCE OPERATION WARNING:'));
+          console.log(chalk.red('   You are about to execute a FORCE schema push on PRODUCTION database!'));
+          console.log(chalk.red('   This operation can cause IRREVERSIBLE data loss if schema conflicts exist.'));
+          console.log(chalk.yellow('   Backup has been created, but proceed with extreme caution.'));
+          
+          const { confirmForce } = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'confirmForce',
+            message: 'Do you understand the risks and want to proceed with PRODUCTION force push?',
+            default: false
+          }]);
+          
+          if (!confirmForce) {
+            spinner.fail('Production force operation cancelled for safety');
+            throw new Error('Production migration cancelled by user due to force operation risks');
+          }
         }
         
         // Use drizzle-kit push for schema synchronization
@@ -614,6 +637,11 @@ class AdvancedDatabaseMigrator {
         // Set the appropriate database URL for this operation
         const env = { ...process.env };
         env.DATABASE_URL = database.url;
+        
+        // Add production-specific warning in command execution
+        if (database.name === 'Production') {
+          spinner.text = `🚨 Executing PRODUCTION schema sync with --force flag...`;
+        }
         
         const { stdout, stderr } = await execAsync('npx drizzle-kit push --force', { env });
         
@@ -661,13 +689,20 @@ class AdvancedDatabaseMigrator {
       
       // Extract database details for backup
       const dbUrl = new URL(database.url);
-      const backupCommand = `PGPASSWORD="${dbUrl.password}" pg_dump -h ${dbUrl.hostname} -p ${dbUrl.port || 5432} -U ${dbUrl.username} -d ${dbUrl.pathname.slice(1)} --no-password --clean --if-exists > ./backups/${backupFileName}`;
       
-      // Ensure backups directory exists
-      await fs.mkdir('./backups', { recursive: true });
+      // Ensure secure backups directory exists (outside repo)
+      await fs.mkdir(this.secureBackupDir, { recursive: true });
       
-      // Execute backup command
-      const { stdout, stderr } = await execAsync(backupCommand);
+      // Create secure backup command with environment variables
+      const backupPath = path.join(this.secureBackupDir, backupFileName);
+      const backupCommand = `pg_dump -h ${dbUrl.hostname} -p ${dbUrl.port || 5432} -U ${dbUrl.username} -d ${dbUrl.pathname.slice(1)} --no-password --clean --if-exists > "${backupPath}"`;
+      
+      // Execute backup command with secure environment variables
+      const backupEnv = {
+        ...process.env,
+        PGPASSWORD: dbUrl.password
+      };
+      const { stdout, stderr } = await execAsync(backupCommand, { env: backupEnv });
       
       if (stderr && !stderr.includes('NOTICE')) {
         console.warn(chalk.yellow(`Backup warnings: ${stderr}`));
@@ -675,14 +710,21 @@ class AdvancedDatabaseMigrator {
       
       spinner.text = `Backup created successfully: ${backupFileName}`;
       
-      // Store backup info for potential rollback
-      await fs.writeFile(`./backups/${backupFileName}.info`, JSON.stringify({
+      // Store backup info for potential rollback (with credential redaction for security)
+      const redactedBackupInfo = {
         timestamp,
         database: database.name,
-        url: database.url,
+        host: dbUrl.hostname,
+        port: dbUrl.port || 5432,
+        databaseName: dbUrl.pathname.slice(1),
         backupFile: backupFileName,
+        backupPath: backupPath,
         createdAt: new Date().toISOString()
-      }, null, 2));
+        // NOTE: username and password intentionally excluded for security
+      };
+      
+      const infoPath = path.join(this.secureBackupDir, `${backupFileName}.info`);
+      await fs.writeFile(infoPath, JSON.stringify(redactedBackupInfo, null, 2));
       
     } catch (error) {
       spinner.fail(`Failed to create backup for ${database.name}`);
@@ -703,6 +745,23 @@ class AdvancedDatabaseMigrator {
         if (!backupExists) {
           await this.createProductionBackup(database, spinner);
         }
+        
+        // Additional security confirmation for production data migration
+        console.log(chalk.red.bold('\n🚨 PRODUCTION DATA MIGRATION WARNING:'));
+        console.log(chalk.red('   You are about to perform data migration on PRODUCTION database!'));
+        console.log(chalk.yellow('   This operation can modify or affect existing production data.'));
+        
+        const { confirmDataMigration } = await inquirer.prompt([{
+          type: 'confirm',
+          name: 'confirmDataMigration',
+          message: 'Do you understand the risks and want to proceed with PRODUCTION data migration?',
+          default: false
+        }]);
+        
+        if (!confirmDataMigration) {
+          spinner.fail('Production data migration cancelled for safety');
+          return;
+        }
       }
       
       // Implementation would depend on specific data migration needs
@@ -720,12 +779,11 @@ class AdvancedDatabaseMigrator {
    */
   private async verifyRecentBackup(database: DatabaseConfig): Promise<boolean> {
     try {
-      const backupDir = './backups';
-      const files = await fs.readdir(backupDir);
+      const files = await fs.readdir(this.secureBackupDir);
       const infoFiles = files.filter(f => f.endsWith('.info'));
       
       for (const infoFile of infoFiles) {
-        const infoPath = path.join(backupDir, infoFile);
+        const infoPath = path.join(this.secureBackupDir, infoFile);
         const info = JSON.parse(await fs.readFile(infoPath, 'utf8'));
         
         if (info.database === database.name) {
@@ -825,9 +883,11 @@ class AdvancedDatabaseMigrator {
         const prodDatabase = databasesToMigrate.find(db => db.name === 'Production');
         if (prodDatabase && !this.dryRun) {
           console.log(chalk.blue('\n💾 Backup Information:'));
-          console.log(chalk.white('   Automated backups created in ./backups directory'));
+          console.log(chalk.white(`   Automated backups created in secure directory`));
+          console.log(chalk.white('   Backup location is outside repository for security'));
           console.log(chalk.white('   Use backup files for rollback if needed'));
-          console.log(chalk.white('   Backup files include .info files with metadata'));
+          console.log(chalk.white('   Backup files include .info files with redacted metadata (no credentials)'));
+          console.log(chalk.gray(`   Backup directory: ${this.secureBackupDir}`));
         }
         
         console.log(chalk.green.bold('\n✅ Migration completed successfully!\n'));
