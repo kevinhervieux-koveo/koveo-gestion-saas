@@ -1596,7 +1596,7 @@ export const translations: Record<Language, Translations> = {
     supplies: 'Supplies',
     taxes: 'Taxes',
     salary: 'Salary',
-    billsManagement: 'Bills Management',
+    billsManagement: 'Building Management',
     billsSubtitle: 'Manage building expenses and revenue tracking',
     filters: 'Filters',
     year: 'Year',
