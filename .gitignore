@@ -3,4 +3,14 @@ dist
 .DS_Store
 server/public
 vite.config.ts.*
-*.tar.gzuploads/
+*.tar.gz
+
+# Backup files and directories - CRITICAL SECURITY
+backups/
+*backup*/
+*.sql
+*.dump
+*.bak
+*_backup_*
+uploads_backup_*
+uploads/
