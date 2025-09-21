@@ -47,7 +47,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import {
   Bell,
   Settings,
@@ -995,11 +995,17 @@ export default function CommunicationDashboard() {
     },
   });
 
+  // Helper function to get January 1st of current year
+  const getDefaultStartingDate = () => {
+    const currentYear = new Date().getFullYear();
+    return new Date(currentYear, 0, 1); // January 1st of current year
+  };
+
   // Form setup for settings (global starting date)
   const settingsForm = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      startingDate: settings?.startingDate ? new Date(settings.startingDate) : new Date(),
+      startingDate: settings?.startingDate ? parse(settings.startingDate, 'yyyy-MM-dd', new Date()) : getDefaultStartingDate(),
     },
   });
 
@@ -1025,7 +1031,7 @@ export default function CommunicationDashboard() {
   React.useEffect(() => {
     if (settings?.startingDate) {
       settingsForm.reset({
-        startingDate: new Date(settings.startingDate),
+        startingDate: parse(settings.startingDate, 'yyyy-MM-dd', new Date()),
       }, { keepDirty: false });
     }
   }, [settings, settingsForm]); // Removed unstable ensureValidFrequency dependency
@@ -1101,7 +1107,7 @@ export default function CommunicationDashboard() {
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: SettingsFormData) => {
       const response = await apiRequest('PUT', '/api/communication/settings', { 
-        startingDate: data.startingDate.toISOString().split('T')[0] // Convert to YYYY-MM-DD format
+        startingDate: format(data.startingDate, 'yyyy-MM-dd') // Convert to YYYY-MM-DD format safely
       });
       return response.json();
     },
