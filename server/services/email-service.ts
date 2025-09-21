@@ -1420,6 +1420,9 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
     language: 'fr' | 'en' = 'fr'
   ): Promise<boolean> {
     try {
+      // Sanitize message content to prevent XSS
+      const sanitizedMessage = this.sanitizeHtmlContent(message);
+      
       const htmlContent = `
         <!DOCTYPE html>
         <html>
