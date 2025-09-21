@@ -1365,15 +1365,41 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const result = await dbPerformanceMonitor.trackQuery('updateUser', async () => {
+      // Whitelist allowed fields and ensure security best practices
+      const updateFields: any = {
+        updatedAt: new Date(),
+      };
+
+      // Only allow safe user fields - block security-sensitive fields
+      if (updates.firstName !== undefined) updateFields.firstName = updates.firstName;
+      if (updates.lastName !== undefined) updateFields.lastName = updates.lastName;
+      if (updates.email !== undefined) {
+        // Normalize email (lowercase and trim)
+        updateFields.email = updates.email.toLowerCase().trim();
+      }
+      if (updates.phone !== undefined) updateFields.phone = updates.phone;
+      if (updates.role !== undefined) updateFields.role = updates.role;
+      if (updates.language !== undefined) updateFields.language = updates.language;
+      if (updates.isActive !== undefined) updateFields.isActive = updates.isActive;
+      if (updates.profileImage !== undefined) updateFields.profileImage = updates.profileImage;
+      
+      // SECURITY: Block lastLoginAt and password updates in generic updates
+      // - lastLoginAt should only be updated through auth flow
+      // - password should only be updated through dedicated hashing endpoint
+      
+      console.log('🔧 [updateUser] Updating user', id, 'with fields:', Object.keys(updateFields));
+      console.log('🔧 [updateUser] Update values:', updateFields);
+      
       return db
         .update(schema.users)
-        .set({ ...updates, updatedAt: new Date() })
+        .set(updateFields)
         .where(eq(schema.users.id, id))
         .returning();
     });
 
-    // Invalidate specific user caches
+    // Enhanced cache invalidation to prevent stale reads
     CacheInvalidator.invalidateUserCaches(id);
+    CacheInvalidator.invalidateUserCaches('*'); // Invalidate user list caches
 
     return result[0];
   }
