@@ -68,6 +68,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
+      console.log(
         `📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`
       );
 
@@ -116,6 +117,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
+      console.log(
         `✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`
       );
 
@@ -218,7 +220,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       } catch (_validationError: unknown) {
         return res.status(400).json({
           _error: 'Validation error',
-          message: validationError.message || 'Invalid building data',
+          message: _validationError instanceof Error ? _validationError.message : 'Invalid building data',
         });
       }
 
@@ -274,7 +276,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       } catch (_validationError: unknown) {
         return res.status(400).json({
           _error: 'Validation error',
-          message: validationError.message || 'Invalid building data',
+          message: _validationError instanceof Error ? _validationError.message : 'Invalid building data',
         });
       }
 
