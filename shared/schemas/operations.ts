@@ -326,6 +326,7 @@ export const userNotificationPreferences = pgTable('user_notification_preference
   notificationType: notificationTypeEnum('notification_type').notNull(),
   frequency: frequencyEnum('frequency').notNull().default('monthly'),
   isEnabled: boolean('is_enabled').notNull().default(true),
+  startingDate: timestamp('starting_date').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -535,6 +536,7 @@ export const insertUserNotificationPreferenceSchema = z.object({
   ]),
   frequency: z.enum(['immediate', 'weekly', '2weeks', 'monthly', 'quarterly', 'bi-annually', 'annually']).default('monthly'),
   isEnabled: z.boolean().default(true),
+  startingDate: z.date().optional(),
 });
 
 export const insertGeneralCommunicationSchema = z.object({
