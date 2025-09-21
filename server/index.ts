@@ -78,15 +78,6 @@ if (isNaN(port) || port < 1 || port > 65535) {
 // Trust proxy for deployment
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
-// HTTPS enforcement middleware
-app.use((req, res, next) => {
-  // Force HTTPS in production
-  if (process.env.NODE_ENV === 'production' && !req.secure && req.get('X-Forwarded-Proto') !== 'https') {
-    return res.redirect(`https://${req.get('Host')}${req.url}`);
-  }
-  next();
-});
-
 // Security headers middleware using Helmet with enhanced configuration
 app.use(helmet({
   contentSecurityPolicy: {
@@ -253,6 +244,14 @@ app.get('/api', (req, res) => {
   });
 });
 
+// HTTPS enforcement middleware - AFTER health checks to ensure health checks always work
+app.use((req, res, next) => {
+  // Force HTTPS in production
+  if (process.env.NODE_ENV === 'production' && !req.secure && req.get('X-Forwarded-Proto') !== 'https') {
+    return res.redirect(`https://${req.get('Host')}${req.url}`);
+  }
+  next();
+});
 
 // Static file serving will be configured after API routes are loaded
 

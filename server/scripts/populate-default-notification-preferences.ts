@@ -183,15 +183,8 @@ export async function populateDefaultPreferences(): Promise<{
   }
 }
 
-// Run the script if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().then(() => {
-    console.log('🔚 Script completed');
-    process.exit(0);
-  }).catch((error) => {
-    console.error('💥 Script failed:', error);
-    process.exit(1);
-  });
-}
+// NOTE: Automatic execution disabled for bundled environments
+// To run this script manually: tsx server/scripts/populate-default-notification-preferences.ts
+// Or call via API: POST /api/communication/populate-defaults
 
 export { main };
