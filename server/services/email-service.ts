@@ -1423,6 +1423,134 @@ ${isFrench
       return false;
     }
   }
+
+  /**
+   * Sends a test notification email to preview how emails will look.
+   * 
+   * @param {string} to - Recipient email address.
+   * @param {string} userName - User's display name for personalization.
+   * @param {string} subject - Email subject line.
+   * @param {string} message - Email message content.
+   * @param {string} notificationType - Type of notification for context.
+   * @param {'fr' | 'en'} [language='fr'] - Email language.
+   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully.
+   */
+  async sendTestNotificationEmail(
+    to: string,
+    userName: string,
+    subject: string,
+    message: string,
+    notificationType: string,
+    language: 'fr' | 'en' = 'fr'
+  ): Promise<boolean> {
+    try {
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${subject}</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: #f8f9fa; padding: 30px; border-radius: 8px;">
+            <h1 style="color: #2563eb; margin-bottom: 20px;">Koveo Gestion</h1>
+            
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px;">
+              <strong style="color: #856404;">📧 ${language === 'fr' ? 'Email de test' : 'Test Email'}</strong>
+              <p style="margin: 5px 0 0 0; color: #856404; font-size: 14px;">
+                ${language === 'fr' 
+                  ? 'Ceci est un aperçu de votre notification. Aucune action n\'est requise.' 
+                  : 'This is a preview of your notification. No action is required.'}
+              </p>
+            </div>
+            
+            <h2 style="color: #374151;">${subject}</h2>
+            
+            <div style="background: white; padding: 20px; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <p style="line-height: 1.6;">${message}</p>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 6px;">
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                <strong>${language === 'fr' ? 'Type de notification:' : 'Notification type:'}</strong> ${notificationType}
+              </p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+            
+            <div style="font-size: 12px; color: #6b7280;">
+              <p><strong>${language === 'fr' ? 'Confidentialité & Sécurité' : 'Privacy & Security'}</strong></p>
+              <p>
+                ${language === 'fr' 
+                  ? 'Conforme à la Loi 25 du Québec. Vos données personnelles sont protégées selon les normes de sécurité les plus strictes.' 
+                  : 'Quebec Law 25 compliant. Your personal data is protected according to the highest security standards.'}
+              </p>
+              <p>© 2025 Koveo Gestion. ${language === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const textContent = `
+${language === 'fr' ? 'EMAIL DE TEST' : 'TEST EMAIL'} - Koveo Gestion
+
+${language === 'fr' ? 'Ceci est un aperçu de votre notification. Aucune action n\'est requise.' : 'This is a preview of your notification. No action is required.'}
+
+${subject}
+
+${message}
+
+${language === 'fr' ? 'Type de notification:' : 'Notification type:'} ${notificationType}
+
+${language === 'fr' ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
+© 2025 Koveo Gestion
+      `;
+
+      await this.mailService.send({
+        to,
+        from: {
+          email: this.fromEmail,
+          name: this.fromName,
+        },
+        subject: `[${language === 'fr' ? 'TEST' : 'TEST'}] ${subject}`,
+        text: textContent.trim(),
+        html: htmlContent,
+        mailSettings: {
+          bypassListManagement: {
+            enable: false,
+          },
+          footer: {
+            enable: false,
+          },
+          sandboxMode: {
+            enable: false,
+          },
+        },
+        trackingSettings: {
+          clickTracking: {
+            enable: false,
+            enableText: false,
+          },
+          openTracking: {
+            enable: false,
+          },
+          subscriptionTracking: {
+            enable: false,
+          },
+          ganalytics: {
+            enable: false,
+          },
+        },
+      });
+
+      console.log(`✅ Test notification email sent to ${to}`);
+      return true;
+    } catch (error: any) {
+      console.error('❌ Error sending test notification email:', error);
+      return false;
+    }
+  }
 }
 
 // Create singleton instance

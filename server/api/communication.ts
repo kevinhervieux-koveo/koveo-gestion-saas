@@ -108,6 +108,7 @@ export function registerCommunicationRoutes(app: Express): void {
           notificationType: type as any,
           frequency: 'monthly' as any,
           isEnabled: true,
+          startingDate: new Date(),
         }));
 
         await db.insert(userNotificationPreferences).values(defaultPreferences);
@@ -176,6 +177,7 @@ export function registerCommunicationRoutes(app: Express): void {
         ]),
         frequency: z.enum(['immediate', 'weekly', '2weeks', 'monthly', 'quarterly', 'bi-annually', 'annually']),
         isEnabled: z.boolean(),
+        startingDate: z.date().optional(),
       }));
 
       const validatedUpdates = updateSchema.parse(req.body);
@@ -191,12 +193,14 @@ export function registerCommunicationRoutes(app: Express): void {
             notificationType: update.notificationType,
             frequency: update.frequency,
             isEnabled: update.isEnabled,
+            startingDate: update.startingDate || new Date(),
           })
           .onConflictDoUpdate({
             target: [userNotificationPreferences.userId, userNotificationPreferences.notificationType],
             set: {
               frequency: update.frequency,
               isEnabled: update.isEnabled,
+              startingDate: update.startingDate || sql`starting_date`,
               updatedAt: sql`now()`,
             },
           });
@@ -1160,4 +1164,168 @@ export function registerCommunicationRoutes(app: Express): void {
       });
     }
   });
+
+  /**
+   * POST /api/communication/preferences/test-email - Send test notification email
+   * Sends a sample notification email to the user with their real data for preview.
+   */
+  app.post('/api/communication/preferences/test-email', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Validate request body
+      const testEmailSchema = z.object({
+        notificationType: z.enum([
+          'bill_reminder',
+          'maintenance_update',
+          'announcement',
+          'system',
+          'emergency',
+          'upcoming_payment',
+          'upcoming_bills',
+          'bill_paid_last_month',
+          'bills_overdue',
+          'payment_overdue',
+          'new_building_document',
+          'general_communication',
+          'meeting_invite',
+          'maintenance_completed',
+          'budget_update',
+          'policy_change',
+          'seasonal_reminder',
+        ]),
+        language: z.enum(['fr', 'en']).default('fr'),
+      });
+
+      const { notificationType, language } = testEmailSchema.parse(req.body);
+
+      console.log(`📧 Sending test email for ${notificationType} to user ${currentUser.email} in ${language}`);
+
+      // Get user's organization for context
+      const [userOrganization] = await db
+        .select({
+          id: organizations.id,
+          name: organizations.name,
+        })
+        .from(userOrganizations)
+        .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
+        .where(eq(userOrganizations.userId, currentUser.id))
+        .limit(1);
+
+      // Generate sample notification content based on type
+      const notificationContent = generateTestNotificationContent(notificationType, currentUser, userOrganization, language);
+
+      // Send the test email using the email service
+      const success = await emailService.sendTestNotificationEmail(
+        currentUser.email,
+        `${currentUser.firstName} ${currentUser.lastName}`,
+        notificationContent.subject,
+        notificationContent.message,
+        notificationType,
+        language
+      );
+
+      if (success) {
+        console.log(`✅ Test email sent successfully to ${currentUser.email}`);
+        res.json({
+          success: true,
+          message: `Test email sent to ${currentUser.email}`,
+          notificationType,
+          language,
+        });
+      } else {
+        console.error(`❌ Failed to send test email to ${currentUser.email}`);
+        res.status(500).json({
+          success: false,
+          message: 'Failed to send test email',
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Error sending test email:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          _error: 'Validation error',
+          message: 'Invalid test email parameters provided',
+          details: error.errors,
+        });
+      }
+
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to send test email',
+      });
+    }
+  });
+}
+
+/**
+ * Generates test notification content based on notification type and user data.
+ */
+function generateTestNotificationContent(
+  notificationType: string,
+  user: any,
+  organization: any,
+  language: 'fr' | 'en'
+) {
+  const userName = `${user.firstName} ${user.lastName}`;
+  const orgName = organization?.name || 'Votre immeuble';
+
+  const templates = {
+    fr: {
+      bill_reminder: {
+        subject: `Rappel de facture - ${orgName}`,
+        message: `Bonjour ${userName}, votre facture mensuelle de ${orgName} sera due dans 3 jours. Montant: 850,00 $. Connectez-vous pour effectuer le paiement.`,
+      },
+      maintenance_update: {
+        subject: `Mise à jour maintenance - ${orgName}`,
+        message: `Bonjour ${userName}, les travaux de réparation de l'ascenseur dans ${orgName} sont maintenant terminés. Merci pour votre patience.`,
+      },
+      announcement: {
+        subject: `Annonce importante - ${orgName}`,
+        message: `Bonjour ${userName}, une assemblée générale aura lieu le 15 février 2025 à 19h00 dans la salle communautaire de ${orgName}.`,
+      },
+      upcoming_payment: {
+        subject: `Paiement à venir - ${orgName}`,
+        message: `Bonjour ${userName}, votre paiement de 850,00 $ pour ${orgName} est dû dans 2 jours. N'oubliez pas d'effectuer votre paiement.`,
+      },
+      budget_update: {
+        subject: `Mise à jour budgétaire - ${orgName}`,
+        message: `Bonjour ${userName}, le rapport budgétaire trimestriel de ${orgName} est maintenant disponible. Consultez-le dans votre espace personnel.`,
+      },
+    },
+    en: {
+      bill_reminder: {
+        subject: `Bill Reminder - ${orgName}`,
+        message: `Hello ${userName}, your monthly bill for ${orgName} is due in 3 days. Amount: $850.00. Please log in to make your payment.`,
+      },
+      maintenance_update: {
+        subject: `Maintenance Update - ${orgName}`,
+        message: `Hello ${userName}, the elevator repair work at ${orgName} is now complete. Thank you for your patience.`,
+      },
+      announcement: {
+        subject: `Important Announcement - ${orgName}`,
+        message: `Hello ${userName}, a general assembly will be held on February 15, 2025 at 7:00 PM in the community room at ${orgName}.`,
+      },
+      upcoming_payment: {
+        subject: `Upcoming Payment - ${orgName}`,
+        message: `Hello ${userName}, your payment of $850.00 for ${orgName} is due in 2 days. Please don't forget to make your payment.`,
+      },
+      budget_update: {
+        subject: `Budget Update - ${orgName}`,
+        message: `Hello ${userName}, the quarterly budget report for ${orgName} is now available. View it in your personal dashboard.`,
+      },
+    },
+  };
+
+  const langTemplates = templates[language];
+  const template = langTemplates[notificationType as keyof typeof langTemplates] || langTemplates.announcement;
+
+  return template;
 }
