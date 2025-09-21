@@ -10,6 +10,7 @@ import {
   decimal,
   integer,
   varchar,
+  unique,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -37,7 +38,7 @@ export const maintenancePriorityEnum = pgEnum('maintenance_priority', [
 export const frequencyEnum = pgEnum('frequency', [
   'immediate',
   'weekly',
-  '2weeks',
+  'bi_weekly',
   'monthly',
   'quarterly',
   'bi-annually',
@@ -376,6 +377,56 @@ export const meetings = pgTable('meetings', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+/**
+ * Notification configurations table for storing building-specific automated notifications.
+ * Supports scheduled notifications with frequency settings and timezone support.
+ */
+export const notificationConfigurations = pgTable('notification_configurations', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  organizationId: varchar('organization_id')
+    .notNull()
+    .references(() => organizations.id),
+  buildingId: varchar('building_id')
+    .notNull()
+    .references(() => buildings.id),
+  createdBy: varchar('created_by')
+    .notNull()
+    .references(() => users.id),
+  type: notificationTypeEnum('type').notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  frequency: frequencyEnum('frequency').notNull(),
+  startDate: timestamp('start_date').notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+  endsAt: timestamp('ends_at'),
+  timezone: text('timezone'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * Notification dispatch log table for tracking sent notifications.
+ * Records when notifications are sent and to which users.
+ */
+export const notificationDispatchLog = pgTable('notification_dispatch_log', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  configurationId: uuid('configuration_id')
+    .notNull()
+    .references(() => notificationConfigurations.id),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id),
+  periodKey: text('period_key').notNull(),
+  sentAt: timestamp('sent_at').notNull().defaultNow(),
+}, (table) => ({
+  // Unique constraint to prevent duplicate dispatch records
+  uniqueDispatchRecord: unique().on(table.configurationId, table.userId, table.periodKey),
+}));
+
 // Insert schemas
 export const insertMaintenanceRequestSchema = z.object({
   residenceId: z.string().uuid(),
@@ -528,7 +579,7 @@ export const insertUserNotificationPreferenceSchema = z.object({
     'policy_change',
     'seasonal_reminder',
   ]),
-  frequency: z.enum(['immediate', 'weekly', '2weeks', 'monthly', 'quarterly', 'bi-annually', 'annually']).default('monthly'),
+  frequency: z.enum(['immediate', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']).default('monthly'),
   isEnabled: z.boolean().default(true),
   startingDate: z.date().optional(),
 });
@@ -552,6 +603,34 @@ export const insertMeetingSchema = z.object({
   scheduledDate: z.date(),
   duration: z.number().int().positive('Duration must be a positive number'),
   invitedRoles: z.array(z.string()).optional(),
+});
+
+export const insertNotificationConfigurationSchema = z.object({
+  organizationId: z.string().uuid(),
+  buildingId: z.string().uuid(),
+  createdBy: z.string().uuid(),
+  type: z.enum(['seasonal_reminder', 'announcement']),
+  title: z.string().min(1, 'Title is required'),
+  message: z.string().min(1, 'Message is required'),
+  frequency: z.enum(['weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']),
+  startDate: z.date(),
+  isActive: z.boolean().default(true),
+  endsAt: z.date().optional(),
+  timezone: z.string().optional(),
+}).refine((data) => {
+  if (data.endsAt && data.startDate) {
+    return data.endsAt >= data.startDate;
+  }
+  return true;
+}, {
+  message: 'End date must be on or after the start date',
+  path: ['endsAt'],
+});
+
+export const insertNotificationDispatchLogSchema = z.object({
+  configurationId: z.string().uuid(),
+  userId: z.string().uuid(),
+  periodKey: z.string().min(1, 'Period key is required'),
 });
 
 // Types
@@ -644,6 +723,24 @@ export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
  *
  */
 export type Meeting = typeof meetings.$inferSelect;
+
+/**
+ *
+ */
+export type InsertNotificationConfiguration = z.infer<typeof insertNotificationConfigurationSchema>;
+/**
+ *
+ */
+export type NotificationConfiguration = typeof notificationConfigurations.$inferSelect;
+
+/**
+ *
+ */
+export type InsertNotificationDispatchLog = z.infer<typeof insertNotificationDispatchLogSchema>;
+/**
+ *
+ */
+export type NotificationDispatchLog = typeof notificationDispatchLog.$inferSelect;
 
 // Relations
 // Relations - temporarily commented out due to drizzle-orm version compatibility
