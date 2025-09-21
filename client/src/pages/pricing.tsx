@@ -186,12 +186,12 @@ export default function PricingPage() {
             title={t('professionalPlan')}
             description={t('perfectForPropertyManagers')}
             className='max-w-lg mx-auto shadow-xl border-2 border-koveo-navy/20'
-            headerClassName='bg-koveo-navy text-white rounded-t-lg'
+            headerClassName='bg-koveo-navy text-white rounded-t-lg [&_.text-muted-foreground]:text-white [&_[data-slot=description]]:text-white'
             contentClassName='p-8'
           >
               <div className='text-center mb-8'>
                 <div className='text-5xl font-bold text-koveo-navy mb-2'>
-                  $9.50
+                  $9.75
                 </div>
                 <div className='text-lg text-gray-600 mb-2'>CAD + taxes</div>
                 <div className='text-gray-600'>{t('perDoorPerMonth')}</div>
@@ -353,7 +353,7 @@ export default function PricingPage() {
                         : 'This feature is included in our professional plan'}
                     </p>
                     <div className="text-2xl font-bold text-koveo-navy">
-                      $9.50
+                      $9.75
                     </div>
                     <div className="text-sm text-gray-600">
                       {language === 'fr' ? 'CAD + taxes par porte par mois' : 'CAD + taxes per door per month'}
