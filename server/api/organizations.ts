@@ -117,6 +117,142 @@ export function registerOrganizationRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/organizations/accessible-building-counts - Get accessible building counts per organization for current user
+   * Used for bottom-up filtering in hierarchical selection components
+   */
+  app.get('/api/organizations/accessible-building-counts', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const { checkResidenceAccess } = req.query;
+      console.log(`🏗️ Fetching accessible building counts for user ${currentUser.id}, checkResidenceAccess: ${checkResidenceAccess}`);
+
+      // Get user's accessible organizations first
+      let accessibleOrgs;
+      if (currentUser.role === 'admin') {
+        accessibleOrgs = await db
+          .select({ id: organizations.id })
+          .from(organizations)
+          .where(eq(organizations.isActive, true));
+      } else {
+        accessibleOrgs = await db
+          .select({ id: organizations.id })
+          .from(organizations)
+          .innerJoin(userOrganizations, eq(organizations.id, userOrganizations.organizationId))
+          .where(
+            and(
+              eq(organizations.isActive, true),
+              eq(userOrganizations.userId, currentUser.id),
+              eq(userOrganizations.isActive, true)
+            )
+          );
+      }
+
+      const counts: Record<string, number> = {};
+
+      // For each organization, count accessible buildings
+      for (const org of accessibleOrgs) {
+        try {
+          let accessibleBuildingCount = 0;
+
+          if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(currentUser.role)) {
+            // For residents/tenants, count buildings they have residences in
+            const userBuildingsInOrg = await db
+              .selectDistinct({ buildingId: residences.buildingId })
+              .from(userResidences)
+              .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+              .innerJoin(buildings, eq(residences.buildingId, buildings.id))
+              .where(
+                and(
+                  eq(userResidences.userId, currentUser.id),
+                  eq(userResidences.isActive, true),
+                  eq(residences.isActive, true),
+                  eq(buildings.isActive, true),
+                  eq(buildings.organizationId, org.id)
+                )
+              );
+
+            // If we need to check residence access (for residence pages), filter further
+            if (checkResidenceAccess === 'true') {
+              // Only count buildings where user has accessible residences
+              for (const buildingRef of userBuildingsInOrg) {
+                const residenceCount = await db
+                  .select({ count: count(residences.id) })
+                  .from(userResidences)
+                  .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+                  .where(
+                    and(
+                      eq(userResidences.userId, currentUser.id),
+                      eq(userResidences.isActive, true),
+                      eq(residences.isActive, true),
+                      eq(residences.buildingId, buildingRef.buildingId)
+                    )
+                  );
+
+                if (residenceCount[0]?.count > 0) {
+                  accessibleBuildingCount++;
+                }
+              }
+            } else {
+              accessibleBuildingCount = userBuildingsInOrg.length;
+            }
+          } else {
+            // For managers/admins, count all buildings in their organizations
+            const buildingsInOrg = await db
+              .select({ count: count(buildings.id) })
+              .from(buildings)
+              .where(
+                and(
+                  eq(buildings.organizationId, org.id),
+                  eq(buildings.isActive, true)
+                )
+              );
+
+            // If we need to check residence access, filter buildings with residences
+            if (checkResidenceAccess === 'true') {
+              const buildingsWithResidences = await db
+                .selectDistinct({ buildingId: buildings.id })
+                .from(buildings)
+                .innerJoin(residences, eq(buildings.id, residences.buildingId))
+                .where(
+                  and(
+                    eq(buildings.organizationId, org.id),
+                    eq(buildings.isActive, true),
+                    eq(residences.isActive, true)
+                  )
+                );
+              accessibleBuildingCount = buildingsWithResidences.length;
+            } else {
+              accessibleBuildingCount = buildingsInOrg[0]?.count || 0;
+            }
+          }
+
+          counts[org.id] = accessibleBuildingCount;
+          console.log(`   → Org ${org.id}: ${accessibleBuildingCount} accessible buildings`);
+        } catch (error) {
+          console.error(`❌ Error counting buildings for org ${org.id}:`, error);
+          counts[org.id] = 0;
+        }
+      }
+
+      console.log(`✅ Building counts calculated:`, counts);
+      res.json(counts);
+    } catch (error: any) {
+      console.error('❌ Error fetching accessible building counts:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch accessible building counts',
+      });
+    }
+  });
+
+  /**
    * GET /api/admin/organizations - Retrieves all organizations for admin users
    * Only admin users can access all organizations.
    */
