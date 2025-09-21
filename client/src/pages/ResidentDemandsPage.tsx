@@ -158,12 +158,6 @@ ResidentDemandsPage() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Fetch buildings
-  const { data: buildings = [] } = useQuery<Building[]>({
-    queryKey: ['/api/manager/buildings'],
-    select: (data: any) => data?.buildings || [],
-  });
-
   // Fetch current user
   const { data: currentUser } = useQuery({
     queryKey: ['/api/auth/user'],
@@ -190,6 +184,22 @@ ResidentDemandsPage() {
           lastName?: string;
         })
       : { id: '', role: 'tenant', email: '' };
+
+  // Fetch buildings based on user role
+  const { data: buildings = [] } = useQuery<Building[]>({
+    queryKey: defaultUser?.role === 'admin' 
+      ? ['/api/buildings'] 
+      : defaultUser?.role === 'manager' 
+        ? ['/api/manager/buildings']
+        : ['/api/users/me/buildings'],
+    enabled: !!defaultUser?.role,
+    select: (data: any) => {
+      if (!data) return [];
+      // Handle different response formats from different endpoints
+      if (Array.isArray(data)) return data;
+      return data?.buildings || [];
+    },
+  });
 
   // Upload context for secure storage (using useMemo to ensure it updates with defaultUser)
   const uploadContext: UploadContext = useMemo(() => ({
@@ -278,25 +288,31 @@ ResidentDemandsPage() {
   // Fetch residences - filter based on selected building and user role
   const selectedBuildingId = newDemandForm.watch('buildingId');
   const { data: residences = [] } = useQuery<Residence[]>({
-    queryKey: ['/api/residences', selectedBuildingId, defaultUser?.role],
-    enabled: !!selectedBuildingId,
+    queryKey: defaultUser?.role === 'admin' 
+      ? ['/api/residences', selectedBuildingId]
+      : defaultUser?.role === 'manager'
+        ? ['/api/residences', selectedBuildingId] // Use admin endpoint for managers too
+        : ['/api/users/me/residences', { building_id: selectedBuildingId }],
+    enabled: !!selectedBuildingId && !!defaultUser?.role,
+    queryFn: async () => {
+      if (defaultUser?.role === 'admin' || defaultUser?.role === 'manager') {
+        const response = await fetch(`/api/residences?buildingId=${selectedBuildingId}`, {
+          credentials: 'include',
+        });
+        return response.json();
+      } else {
+        const response = await fetch(`/api/users/me/residences?building_id=${selectedBuildingId}`, {
+          credentials: 'include',
+        });
+        return response.json();
+      }
+    },
     select: (data: any) => {
       if (!data) return [];
       const allResidences = Array.isArray(data) ? data : data.residences || [];
       
-      // Filter by selected building
-      const buildingResidences = allResidences.filter((r: any) => r.buildingId === selectedBuildingId);
-      
-      // Apply role-based filtering
-      if (defaultUser?.role === 'admin') {
-        return buildingResidences; // Admin can assign to any residence
-      } else if (defaultUser?.role === 'manager') {
-        return buildingResidences; // Manager can assign to all residences in their buildings
-      } else {
-        // Resident/tenant can only assign to their own residences
-        // This will be further filtered by backend based on user assignments
-        return buildingResidences;
-      }
+      // Filter by selected building if needed (API should already handle this)
+      return allResidences.filter((r: any) => r.buildingId === selectedBuildingId);
     },
   });
 

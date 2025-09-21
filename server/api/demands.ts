@@ -10,7 +10,7 @@ import {
   userOrganizations,
   organizations,
 } from '../../shared/schema';
-import { eq, and, or, inArray, desc, asc } from 'drizzle-orm';
+import { eq, and, or, inArray, desc, asc, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
 import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/schemas/operations';
 import { z } from 'zod';
@@ -32,7 +32,7 @@ export function registerDemandRoutes(app: Express) {
       const user = req.user;
       const { buildingId, residenceId, type, status, search } = req.query;
 
-      // Base query with joins
+      // Base query with joins - use left joins to handle optional residence relationships
       let query = db
         .select({
           id: demands.id,
@@ -71,7 +71,7 @@ export function registerDemandRoutes(app: Express) {
         })
         .from(demands)
         .innerJoin(users, eq(demands.submitterId, users.id))
-        .innerJoin(residences, eq(demands.residenceId, residences.id))
+        .leftJoin(residences, eq(demands.residenceId, residences.id))
         .innerJoin(buildings, eq(demands.buildingId, buildings.id));
 
       // Apply role-based access control
@@ -107,8 +107,30 @@ export function registerDemandRoutes(app: Express) {
           conditions.push(eq(demands.id, 'never-match'));
         }
       } else {
-        // Residents and tenants can only see demands they created
-        conditions.push(eq(demands.submitterId, user.id));
+        // Residents and tenants can see demands they created OR demands addressed to their residence
+        
+        // Get user's residences
+        const userResidenceData = await db
+          .select({ residenceId: userResidences.residenceId })
+          .from(userResidences)
+          .where(eq(userResidences.userId, user.id));
+          
+        const userResidenceIds = userResidenceData.map(ur => ur.residenceId);
+        
+        // Create conditions: demands they created OR demands addressed to their residences
+        if (userResidenceIds.length > 0) {
+          // User has residences - check both created and addressed conditions
+          conditions.push(
+            or(
+              eq(demands.submitterId, user.id), // Demands they created
+              inArray(demands.residenceId, userResidenceIds), // Addressed via residenceId
+              inArray(demands.assignationResidenceId, userResidenceIds) // Addressed via assignationResidenceId
+            )
+          );
+        } else {
+          // User has no residences - only see demands they created
+          conditions.push(eq(demands.submitterId, user.id));
+        }
       }
 
       // Add filter conditions
@@ -116,7 +138,13 @@ export function registerDemandRoutes(app: Express) {
         conditions.push(eq(demands.buildingId, buildingId));
       }
       if (residenceId) {
-        conditions.push(eq(demands.residenceId, residenceId));
+        // Filter by both residenceId and assignationResidenceId
+        conditions.push(
+          or(
+            eq(demands.residenceId, residenceId),
+            eq(demands.assignationResidenceId, residenceId)
+          )
+        );
       }
       if (type) {
         conditions.push(eq(demands.type, type));
@@ -135,6 +163,38 @@ export function registerDemandRoutes(app: Express) {
 
       const results = await finalQuery.orderBy(desc(demands.createdAt));
 
+      // Post-process to fetch residence data for demands with assignationResidenceId but null residence
+      const demandsNeedingResidenceData = results.filter(
+        demand => !demand.residence.id && demand.assignationResidenceId
+      );
+      
+      if (demandsNeedingResidenceData.length > 0) {
+        const assignationResidenceIds = demandsNeedingResidenceData.map(d => d.assignationResidenceId);
+        
+        // Fetch assignation residence data in a single query
+        const assignationResidencesData = await db
+          .select({
+            id: residences.id,
+            unitNumber: residences.unitNumber,
+            buildingId: residences.buildingId,
+          })
+          .from(residences)
+          .where(inArray(residences.id, assignationResidenceIds));
+        
+        // Create a map for quick lookup
+        const residenceMap = new Map(
+          assignationResidencesData.map(r => [r.id, r])
+        );
+        
+        // Update residence data for demands that need it
+        demandsNeedingResidenceData.forEach(demand => {
+          const residenceData = residenceMap.get(demand.assignationResidenceId);
+          if (residenceData) {
+            demand.residence = residenceData;
+          }
+        });
+      }
+
       // Filter by search term if provided
       let filteredResults = results;
       if (search) {
@@ -144,7 +204,7 @@ export function registerDemandRoutes(app: Express) {
             demand.description.toLowerCase().includes(searchTerm) ||
             demand.submitter.firstName?.toLowerCase().includes(searchTerm) ||
             demand.submitter.lastName?.toLowerCase().includes(searchTerm) ||
-            demand.residence.unitNumber.toLowerCase().includes(searchTerm) ||
+            demand.residence.unitNumber?.toLowerCase().includes(searchTerm) ||
             demand.building.name.toLowerCase().includes(searchTerm)
         );
       }
@@ -199,7 +259,7 @@ export function registerDemandRoutes(app: Express) {
         })
         .from(demands)
         .innerJoin(users, eq(demands.submitterId, users.id))
-        .innerJoin(residences, eq(demands.residenceId, residences.id))
+        .leftJoin(residences, eq(demands.residenceId, residences.id))
         .innerJoin(buildings, eq(demands.buildingId, buildings.id))
         .where(eq(demands.id, id))
         .limit(1);
@@ -238,12 +298,45 @@ export function registerDemandRoutes(app: Express) {
           }
         }
       } else {
-        // Residents and tenants can only view their own demands
-        hasAccess = demandData.submitterId === user.id;
+        // Residents and tenants can view demands they created OR demands addressed to their residence
+        if (demandData.submitterId === user.id) {
+          hasAccess = true;
+        } else {
+          // Check if the demand is addressed to one of the user's residences (check both fields)
+          const userResidenceData = await db
+            .select({ residenceId: userResidences.residenceId })
+            .from(userResidences)
+            .where(eq(userResidences.userId, user.id));
+            
+          const userResidenceIds = userResidenceData.map(ur => ur.residenceId);
+          
+          if (demandData.residenceId && userResidenceIds.includes(demandData.residenceId)) {
+            hasAccess = true;
+          } else if (demandData.assignationResidenceId && userResidenceIds.includes(demandData.assignationResidenceId)) {
+            hasAccess = true;
+          }
+        }
       }
       
       if (!hasAccess) {
         return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // Post-process to fetch residence data if needed
+      if (!demandData.residence.id && demandData.assignationResidenceId) {
+        const assignationResidenceData = await db
+          .select({
+            id: residences.id,
+            unitNumber: residences.unitNumber,
+            buildingId: residences.buildingId,
+          })
+          .from(residences)
+          .where(eq(residences.id, demandData.assignationResidenceId))
+          .limit(1);
+        
+        if (assignationResidenceData.length > 0) {
+          demandData.residence = assignationResidenceData[0];
+        }
       }
 
       res.json(demandData);
