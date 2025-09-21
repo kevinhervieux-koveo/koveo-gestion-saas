@@ -15,6 +15,7 @@ interface UserResidencesTabProps {
   currentUser: User | null;
   currentUserResidenceIds: string[];
   selectedBuildingIds: string[];
+  selectedResidenceAssignments: any[]; // Pass selected assignments directly from parent
   onSave: (residenceAssignments: any[]) => void;
   onSelectionChange?: (residenceAssignments: any[]) => void;
   isLoading?: boolean;
@@ -28,87 +29,111 @@ export function UserResidencesTab({
   currentUser,
   currentUserResidenceIds,
   selectedBuildingIds,
+  selectedResidenceAssignments, // Accept selected assignments from parent
   onSave, 
   onSelectionChange,
   isLoading = false 
 }: UserResidencesTabProps) {
-  const [selectedResidences, setSelectedResidences] = useState<{ 
-    residenceId: string; 
-    relationshipType: string; 
-  }[]>([]);
-  const initializedRef = useRef<string | null>(null);
+  // Remove internal state - component is now fully controlled by parent
+  // const [selectedResidences, setSelectedResidences] = useState<{ 
+  //   residenceId: string; 
+  //   relationshipType: string; 
+  // }[]>([]);
+  // const initializedRef = useRef<string | null>(null);
 
+  // Helper to extract simple residence assignments from parent's formatted assignments
+  const selectedResidences = useMemo(() => {
+    return selectedResidenceAssignments.map(assignment => ({
+      residenceId: assignment.residenceId,
+      relationshipType: assignment.relationshipType || 'tenant'
+    }));
+  }, [selectedResidenceAssignments]);
+
+  // Create lookup maps for performance (O(1) lookups)
+  const residenceLookup = useMemo(() => {
+    if (!residences) return new Map();
+    return new Map(residences.map(residence => [residence.id, residence]));
+  }, [residences]);
+
+  const buildingLookup = useMemo(() => {
+    if (!buildings) return new Map();
+    return new Map(buildings.map(building => [building.id, building]));
+  }, [buildings]);
+
+  const organizationLookup = useMemo(() => {
+    if (!organizations) return new Map();
+    return new Map(organizations.map(org => [org.id, org]));
+  }, [organizations]);
+
+  // Initialize selections when user changes - notify parent of current user's residences
   useEffect(() => {
     if (user) {
-      // Only initialize if we haven't initialized for this user yet
-      if (initializedRef.current !== user.id) {
-        const residenceAssignments = user.residences?.map((residence: any) => ({
-          residenceId: residence.id,
-          relationshipType: residence.relationshipType || 'tenant'
-        })) || [];
-        setSelectedResidences(residenceAssignments);
-        initializedRef.current = user.id;
-      }
+      const residenceAssignments = user.residences?.map((residence: any) => ({
+        residenceId: residence.id,
+        relationshipType: residence.relationshipType || 'tenant',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: null,
+        isActive: true
+      })) || [];
+      // Only notify parent of initial state, don't manage internal state
+      onSelectionChange?.(residenceAssignments);
     } else {
       // Reset when dialog is closed (no user)
-      setSelectedResidences([]);
-      initializedRef.current = null;
+      onSelectionChange?.([]);
     }
-  }, [user]);
+  }, [user?.id, onSelectionChange]); // Only depend on user ID to avoid unnecessary calls
+
+  // REMOVED: Cascade filtering is now handled by parent component
+  // Child component is fully controlled - no internal cascade logic
 
   const handleResidenceToggle = (residenceId: string) => {
-    setSelectedResidences(prev => {
-      const exists = prev.find(r => r.residenceId === residenceId);
-      let newSelection;
-      if (exists) {
-        newSelection = prev.filter(r => r.residenceId !== residenceId);
-      } else {
-        newSelection = [...prev, { residenceId, relationshipType: 'tenant' }];
-      }
-      
-      // Notify parent component of the selection change
-      if (onSelectionChange) {
-        onSelectionChange(newSelection.map(assignment => ({
-          ...assignment,
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: null,
-          isActive: true
-        })));
-      }
-      
-      return newSelection;
-    });
+    // Gate interactions until data is loaded
+    if (!residences || !buildings || !organizations || isLoading) return;
+    
+    // Fully controlled - work with parent's selection state
+    const exists = selectedResidences.find(r => r.residenceId === residenceId);
+    let newSelection;
+    if (exists) {
+      newSelection = selectedResidences.filter(r => r.residenceId !== residenceId);
+    } else {
+      newSelection = [...selectedResidences, { residenceId, relationshipType: 'tenant' }];
+    }
+    
+    // Notify parent component of the selection change
+    if (onSelectionChange) {
+      onSelectionChange(newSelection.map(assignment => ({
+        ...assignment,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: null,
+        isActive: true
+      })));
+    }
   };
 
   const handleRelationshipTypeChange = (residenceId: string, relationshipType: string) => {
-    setSelectedResidences(prev => {
-      const newSelection = prev.map(r => 
-        r.residenceId === residenceId 
-          ? { ...r, relationshipType }
-          : r
-      );
-      
-      // Notify parent component of the selection change
-      if (onSelectionChange) {
-        onSelectionChange(newSelection.map(assignment => ({
-          ...assignment,
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: null,
-          isActive: true
-        })));
-      }
-      
-      return newSelection;
-    });
+    // Gate interactions until data is loaded
+    if (!residences || !buildings || !organizations || isLoading) return;
+    
+    // Fully controlled - work with parent's selection state
+    const newSelection = selectedResidences.map(r => 
+      r.residenceId === residenceId 
+        ? { ...r, relationshipType }
+        : r
+    );
+    
+    // Notify parent component of the selection change
+    if (onSelectionChange) {
+      onSelectionChange(newSelection.map(assignment => ({
+        ...assignment,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: null,
+        isActive: true
+      })));
+    }
   };
 
   const handleSave = () => {
-    const assignments = selectedResidences.map(assignment => ({
-      ...assignment,
-      startDate: new Date().toISOString().split('T')[0],
-      isActive: true
-    }));
-    onSave(assignments);
+    onSave(selectedResidenceAssignments);
   };
 
   // Group residences by building and organization with filters
@@ -176,9 +201,22 @@ export function UserResidencesTab({
             )
           }))
       }));
-  }, [residences, buildings, organizations, selectedBuildingIds, currentUser, currentUserResidenceIds]);
+  }, [residences, buildings, organizations, selectedBuildingIds, currentUser, currentUserResidenceIds, buildingLookup, organizationLookup]);
 
+  // Gate rendering until data is loaded to prevent undefined errors
   if (!user) return null;
+  if (!residences || !buildings || !organizations) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Residence Assignments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Loading residences...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const isResidenceSelected = (residenceId: string) => 
     selectedResidences.some(r => r.residenceId === residenceId);
@@ -228,6 +266,7 @@ export function UserResidencesTab({
                               id={`residence-${residence.id}`}
                               checked={isResidenceSelected(residence.id)}
                               onCheckedChange={() => handleResidenceToggle(residence.id)}
+                              disabled={isLoading || !residences || !buildings || !organizations}
                               data-testid={`checkbox-residence-${residence.id}`}
                             />
                             <div className="flex-1">

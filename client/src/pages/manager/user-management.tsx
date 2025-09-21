@@ -94,6 +94,62 @@ export default function UserManagement() {
   const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
   const [selectedResidenceAssignments, setSelectedResidenceAssignments] = useState<any[]>([]);
 
+  // Cascading unselection handlers - centralized with memoized lookups
+  const handleOrganizationSelectionChange = (newOrganizationIds: string[]) => {
+    setSelectedOrganizationIds(newOrganizationIds);
+    
+    // Find organizations that were unselected
+    const unselectedOrganizationIds = selectedOrganizationIds.filter(
+      orgId => !newOrganizationIds.includes(orgId)
+    );
+    
+    if (unselectedOrganizationIds.length > 0) {
+      // Remove buildings that belong to unselected organizations using O(1) lookups
+      const unselectedOrgSet = new Set(unselectedOrganizationIds);
+      const remainingBuildingIds = selectedBuildingIds.filter(buildingId => {
+        const building = buildingLookup.get(buildingId);
+        // Keep unknowns to handle race conditions - only remove if building exists and is unselected
+        return !building || !unselectedOrgSet.has(building.organizationId);
+      });
+      
+      setSelectedBuildingIds(remainingBuildingIds);
+      
+      // Remove residences that belong to buildings in unselected organizations using O(1) lookups
+      const remainingResidenceAssignments = selectedResidenceAssignments.filter(assignment => {
+        const residence = residenceLookup.get(assignment.residenceId);
+        // Keep unknowns to handle race conditions - only remove if residence exists
+        if (!residence) return true;
+        
+        const building = buildingLookup.get(residence.buildingId);
+        // Keep unknowns to handle race conditions - only remove if building exists and is unselected
+        return !building || !unselectedOrgSet.has(building.organizationId);
+      });
+      
+      setSelectedResidenceAssignments(remainingResidenceAssignments);
+    }
+  };
+  
+  const handleBuildingSelectionChange = (newBuildingIds: string[]) => {
+    setSelectedBuildingIds(newBuildingIds);
+    
+    // Find buildings that were unselected
+    const unselectedBuildingIds = selectedBuildingIds.filter(
+      buildingId => !newBuildingIds.includes(buildingId)
+    );
+    
+    if (unselectedBuildingIds.length > 0) {
+      // Remove residences that belong to unselected buildings using O(1) lookups
+      const unselectedBuildingSet = new Set(unselectedBuildingIds);
+      const remainingResidenceAssignments = selectedResidenceAssignments.filter(assignment => {
+        const residence = residenceLookup.get(assignment.residenceId);
+        // Keep unknowns to handle race conditions - only remove if residence exists and building is unselected
+        return !residence || !unselectedBuildingSet.has(residence.buildingId);
+      });
+      
+      setSelectedResidenceAssignments(remainingResidenceAssignments);
+    }
+  };
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 10;
@@ -197,6 +253,22 @@ export default function UserManagement() {
   const { data: currentUser } = useQuery<User>({
     queryKey: ['/api/auth/user'],
   });
+
+  // Memoized lookup maps for O(1) performance
+  const buildingLookup = useMemo(() => {
+    if (!buildings) return new Map();
+    return new Map(buildings.map(building => [building.id, building]));
+  }, [buildings]);
+
+  const residenceLookup = useMemo(() => {
+    if (!residences) return new Map();
+    return new Map(residences.map(residence => [residence.id, residence]));
+  }, [residences]);
+
+  const organizationLookup = useMemo(() => {
+    if (!organizations) return new Map();
+    return new Map(organizations.map(org => [org.id, org]));
+  }, [organizations]);
 
   // Organization context detection for role filtering
   const userOrganizationContext = useMemo(() => {
@@ -1469,7 +1541,7 @@ export default function UserManagement() {
                     currentUser={currentUser}
                     currentUserOrganizations={currentUserAccess.organizationIds}
                     onSave={() => {}} // No individual save - only unified save button
-                    onSelectionChange={setSelectedOrganizationIds}
+                    onSelectionChange={handleOrganizationSelectionChange}
                     isLoading={editOrganizationsMutation.isPending}
                   />
                 </TabsContent>
@@ -1483,8 +1555,9 @@ export default function UserManagement() {
                   currentUser={currentUser}
                   currentUserBuildingIds={currentUserAccess.buildingIds}
                   selectedOrganizationIds={selectedOrganizationIds}
+                  selectedBuildingIds={selectedBuildingIds} // Pass selected IDs from parent
                   onSave={() => {}} // No individual save - only unified save button
-                  onSelectionChange={setSelectedBuildingIds}
+                  onSelectionChange={handleBuildingSelectionChange}
                   isLoading={editBuildingsMutation.isPending}
                 />
               </TabsContent>
@@ -1499,6 +1572,7 @@ export default function UserManagement() {
                     currentUser={currentUser}
                     currentUserResidenceIds={currentUserAccess.residenceIds}
                     selectedBuildingIds={selectedBuildingIds}
+                    selectedResidenceAssignments={selectedResidenceAssignments} // Pass selected assignments from parent
                     onSave={() => {}} // No individual save - only unified save button
                     onSelectionChange={setSelectedResidenceAssignments}
                     isLoading={editResidencesMutation.isPending}

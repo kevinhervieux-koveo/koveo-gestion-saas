@@ -13,6 +13,7 @@ interface UserBuildingsTabProps {
   currentUser: User | null;
   currentUserBuildingIds: string[];
   selectedOrganizationIds: string[];
+  selectedBuildingIds: string[]; // Pass selected IDs directly from parent
   onSave: (buildingIds: string[]) => void;
   onSelectionChange?: (buildingIds: string[]) => void;
   isLoading?: boolean;
@@ -25,44 +26,56 @@ export function UserBuildingsTab({
   currentUser,
   currentUserBuildingIds,
   selectedOrganizationIds,
+  selectedBuildingIds, // Accept selected IDs from parent
   onSave, 
   onSelectionChange,
   isLoading = false 
 }: UserBuildingsTabProps) {
-  const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
-  const initializedRef = useRef<string | null>(null);
+  // Remove internal state - component is now fully controlled by parent
+  // const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
+  // const initializedRef = useRef<string | null>(null);
 
+  // Create lookup maps for performance (O(1) lookups)
+  const buildingLookup = useMemo(() => {
+    if (!buildings) return new Map();
+    return new Map(buildings.map(building => [building.id, building]));
+  }, [buildings]);
+
+  const organizationLookup = useMemo(() => {
+    if (!organizations) return new Map();
+    return new Map(organizations.map(org => [org.id, org]));
+  }, [organizations]);
+
+  // Initialize selections when user changes - notify parent of current user's buildings
   useEffect(() => {
     if (user) {
-      // Only initialize if we haven't initialized for this user yet
-      if (initializedRef.current !== user.id) {
-        const buildingIds = user.buildings?.map((building: any) => building.id) || [];
-        setSelectedBuildings(buildingIds);
-        onSelectionChange?.(buildingIds);
-        initializedRef.current = user.id;
-      }
+      const buildingIds = user.buildings?.map((building: any) => building.id) || [];
+      // Only notify parent of initial state, don't manage internal state
+      onSelectionChange?.(buildingIds);
     } else {
       // Reset when dialog is closed (no user)
-      setSelectedBuildings([]);
       onSelectionChange?.([]);
-      initializedRef.current = null;
     }
-  }, [user, onSelectionChange]);
+  }, [user?.id, onSelectionChange]); // Only depend on user ID to avoid unnecessary calls
+
+  // REMOVED: Cascade filtering is now handled by parent component
+  // Child component is fully controlled - no internal cascade logic
 
   const handleBuildingToggle = (buildingId: string) => {
-    setSelectedBuildings(prev => {
-      const newSelection = prev.includes(buildingId)
-        ? prev.filter(id => id !== buildingId)
-        : [...prev, buildingId];
-      
-      // Notify parent of selection change for cascading filters
-      onSelectionChange?.(newSelection);
-      return newSelection;
-    });
+    // Gate interactions until data is loaded
+    if (!buildings || !organizations || isLoading) return;
+    
+    // Fully controlled - work with parent's selection state
+    const newSelection = selectedBuildingIds.includes(buildingId)
+      ? selectedBuildingIds.filter(id => id !== buildingId)
+      : [...selectedBuildingIds, buildingId];
+    
+    // Notify parent of selection change
+    onSelectionChange?.(newSelection);
   };
 
   const handleSave = () => {
-    onSave(selectedBuildings);
+    onSave(selectedBuildingIds);
   };
 
   // Group buildings by organization and apply filters
@@ -107,9 +120,22 @@ export function UserBuildingsTab({
         ...group,
         buildings: group.buildings.sort((a, b) => a.name.localeCompare(b.name))
       }));
-  }, [buildings, organizations, selectedOrganizationIds, currentUser, currentUserBuildingIds]);
+  }, [buildings, organizations, selectedOrganizationIds, currentUser, currentUserBuildingIds, organizationLookup]);
 
+  // Gate rendering until data is loaded to prevent undefined errors
   if (!user) return null;
+  if (!buildings || !organizations) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Building Access</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Loading buildings...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -138,22 +164,13 @@ export function UserBuildingsTab({
                   <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:rotate-[-90deg]" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 ml-4 mt-2">
-                  {group.buildings.map((building) => {
-                    const generatedKey = `buildings-tab-${building.id}`;
-                    console.log('🏗️ [UserBuildingsTab] Generating building key', {
-                      buildingId: building.id,
-                      buildingName: building.name,
-                      generatedKey,
-                      groupOrg: group.organization?.name,
-                      timestamp: new Date().toISOString()
-                    });
-                    
-                    return (
-                      <div key={generatedKey} className="flex items-center space-x-2 p-2 border rounded">
+                  {group.buildings.map((building) => (
+                    <div key={`buildings-tab-${building.id}`} className="flex items-center space-x-2 p-2 border rounded">
                       <Checkbox
                         id={`building-${building.id}`}
-                        checked={selectedBuildings.includes(building.id)}
+                        checked={selectedBuildingIds.includes(building.id)}
                         onCheckedChange={() => handleBuildingToggle(building.id)}
+                        disabled={isLoading || !buildings || !organizations}
                         data-testid={`checkbox-building-${building.id}`}
                       />
                       <div className="flex-1">
@@ -167,8 +184,7 @@ export function UserBuildingsTab({
                         <p className="text-xs text-muted-foreground">{building.totalUnits} units</p>
                       </div>
                     </div>
-                    );
-                  })}
+                  ))}
                 </CollapsibleContent>
               </Collapsible>
             ))
