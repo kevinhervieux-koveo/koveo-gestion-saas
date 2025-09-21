@@ -194,3 +194,43 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   }
 }
+
+/* Fix for react-day-picker scattered numbers issue */
+/* Override react-day-picker z-index values to prevent elements from escaping popover containers */
+[data-radix-popper-content-wrapper] .rdp-caption_label,
+[data-state="open"] .rdp-caption_label {
+  z-index: 0 !important;
+}
+
+[data-radix-popper-content-wrapper] .rdp-dropdown,
+[data-state="open"] .rdp-dropdown {
+  z-index: 0 !important;
+}
+
+[data-radix-popper-content-wrapper] .rdp-button_next,
+[data-radix-popper-content-wrapper] .rdp-button_previous,
+[data-state="open"] .rdp-button_next,
+[data-state="open"] .rdp-button_previous {
+  z-index: 0 !important;
+}
+
+/* Ensure calendar elements stay contained within popovers and dialogs */
+[data-radix-popover-content] .rdp-root *,
+[data-radix-dialog-content] .rdp-root *,
+.popover-content .rdp-root * {
+  z-index: unset !important;
+}
+
+/* Reset all react-day-picker z-index values globally to prevent escaping */
+.rdp-caption_label {
+  z-index: unset !important;
+}
+
+.rdp-dropdown {
+  z-index: unset !important;
+}
+
+.rdp-button_next,
+.rdp-button_previous {
+  z-index: unset !important;
+}
