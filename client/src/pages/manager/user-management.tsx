@@ -331,20 +331,26 @@ export default function UserManagement() {
       const response = await apiRequest('PUT', `/api/users/${userData.id}`, userData);
       return response.json();
     },
-    onSuccess: () => {
-      // Only show toast and close dialog for individual saves
-      // Cache invalidation is handled by unified save
-      if (!editingUser) {
-        toast({
-          title: t('success'),
-          description: t('userUpdatedSuccess'),
-        });
-        setEditingUser(null);
-        queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
-        queryClient.removeQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      }
+    onSuccess: async () => {
+      console.log('✅ [editUserMutation] User update successful, invalidating cache...');
+      
+      // ALWAYS invalidate cache for immediate table refresh
+      await queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      
+      console.log('🔄 [editUserMutation] Cache invalidated, table should refresh immediately');
+      
+      toast({
+        title: t('success'),
+        description: t('userUpdatedSuccess'),
+      });
+      
+      // Close dialog after successful update
+      setEditingUser(null);
     },
     onError: (error: Error) => {
+      console.error('❌ [editUserMutation] User update failed:', error);
       toast({
         title: t('error'),
         description: getErrorMessage(error, 'user profile updates'),
