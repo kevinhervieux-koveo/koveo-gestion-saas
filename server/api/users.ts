@@ -740,44 +740,307 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
-   * DELETE /api/users/:id - Deactivates a user (soft delete).
+   * DELETE /api/users/:id - Deletes a user account with proper authorization and data cleanup.
+   * - Admin: Can delete any user (hard delete)
+   * - Manager: Can only delete users within their organizations (hard delete)
+   * - Other roles: Cannot delete users
    */
-  app.delete('/api/users/:id', async (req, res) => {
+  app.delete('/api/users/:id', requireAuth, async (req: any, res) => {
+    const startTime = Date.now();
+    const deleteId = `DELETE_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    
+    console.log(`🔥 [DELETE USER API] ===== DELETE USER REQUEST STARTED (${deleteId}) =====`);
+    console.log(`⏰ [DELETE USER API] Request timestamp: ${new Date().toISOString()}`);
+    
     try {
       const { id } = req.params;
+      const currentUser = req.user || req.session?.user;
+
+      if (!currentUser) {
+        console.log(`❌ [DELETE USER API] ${deleteId}: No authenticated user found`);
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      console.log(`🛡️ [DELETE USER API] ${deleteId}: Request authentication info:`, {
+        requesterId: currentUser.id,
+        requesterEmail: currentUser.email,
+        requesterRole: currentUser.role,
+        targetUserId: id,
+        sessionExists: !!req.session,
+      });
 
       if (!id) {
+        console.log(`❌ [DELETE USER API] ${deleteId}: Missing user ID parameter`);
         return res.status(400).json({
-          _error: 'Bad request',
+          error: 'Bad request',
           message: 'User ID is required',
         });
       }
 
-      // Soft delete by setting isActive to false
-      const user = await storage.updateUser(id, {
-        isActive: false,
-        updatedAt: new Date(),
-      });
+      // Validate user ID format
+      if (typeof id !== 'string' || id.trim().length === 0) {
+        console.log(`❌ [DELETE USER API] ${deleteId}: Invalid user ID format:`, id);
+        return res.status(400).json({
+          error: 'Bad request',
+          message: 'Invalid user ID format',
+        });
+      }
 
-      if (!user) {
+      // Get the target user to delete
+      const targetUser = await storage.getUser(id);
+      if (!targetUser) {
+        console.log(`❌ [DELETE USER API] ${deleteId}: Target user not found:`, id);
         return res.status(404).json({
-          _error: 'Not found',
+          error: 'Not found',
           message: 'User not found',
         });
       }
 
-      res.json({
-        message: 'User deactivated successfully',
-        id: user.id,
+      console.log(`👤 [DELETE USER API] ${deleteId}: Target user found:`, {
+        targetId: targetUser.id,
+        targetEmail: targetUser.email,
+        targetRole: targetUser.role,
+        targetIsActive: targetUser.isActive,
       });
+
+      // Prevent self-deletion
+      if (targetUser.id === currentUser.id) {
+        console.log(`🚫 [DELETE USER API] ${deleteId}: Self-deletion attempt blocked`);
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You cannot delete your own account',
+        });
+      }
+
+      // Role-based authorization
+      const hasDeletePermission = await checkDeletePermission(currentUser, targetUser, deleteId);
+      if (!hasDeletePermission.allowed) {
+        console.log(`🚫 [DELETE USER API] ${deleteId}: Authorization failed:`, hasDeletePermission.reason);
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: hasDeletePermission.reason,
+        });
+      }
+
+      console.log(`✅ [DELETE USER API] ${deleteId}: Authorization passed - ${hasDeletePermission.reason}`);
+
+      // Perform hard delete with comprehensive cleanup
+      console.log(`🗑️ [DELETE USER API] ${deleteId}: Starting hard delete process...`);
+      const deletionResult = await performHardDelete(targetUser.id, currentUser.id, deleteId);
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      console.log(`✅ [DELETE USER API] ${deleteId}: Deletion completed successfully:`, {
+        ...deletionResult,
+        duration: `${duration}ms`,
+      });
+
+      // Security audit log
+      console.log(`🔐 [SECURITY AUDIT] User deletion completed:`, {
+        operationId: deleteId,
+        deletedUserId: targetUser.id,
+        deletedUserEmail: targetUser.email,
+        deletedUserRole: targetUser.role,
+        deletedByUserId: currentUser.id,
+        deletedByUserEmail: currentUser.email,
+        deletedByUserRole: currentUser.role,
+        timestamp: new Date().toISOString(),
+        duration: `${duration}ms`,
+      });
+
+      console.log(`🔥 [DELETE USER API] ===== DELETE USER REQUEST COMPLETED (${deleteId}) =====`);
+
+      res.json({
+        success: true,
+        message: 'User deleted successfully',
+        deletedUserId: targetUser.id,
+        deletedUserEmail: targetUser.email,
+        operationId: deleteId,
+        timestamp: new Date().toISOString(),
+        ...deletionResult,
+      });
+      
     } catch (error: any) {
-      console.error('❌ Error deactivating user:', error);
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      console.error(`💥 [DELETE USER API] ${deleteId}: ===== CRITICAL ERROR =====`);
+      console.error(`❌ [DELETE USER API] ${deleteId}: Error details:`, {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined,
+        duration: `${duration}ms`,
+        timestamp: new Date().toISOString(),
+      });
+      console.error(`💥 [DELETE USER API] ${deleteId}: ===== END CRITICAL ERROR =====`);
+      
       res.status(500).json({
         error: 'Internal server error',
-        message: 'Failed to deactivate user',
+        message: 'Failed to delete user',
+        operationId: deleteId,
+        timestamp: new Date().toISOString(),
       });
     }
   });
+
+  /**
+   * Check if the current user has permission to delete the target user.
+   */
+  async function checkDeletePermission(currentUser: User, targetUser: User, operationId: string): Promise<{allowed: boolean, reason: string}> {
+    console.log(`🔍 [PERMISSION CHECK] ${operationId}: Checking delete permissions...`);
+    
+    // Admin can delete any user
+    if (currentUser.role === 'admin') {
+      console.log(`👑 [PERMISSION CHECK] ${operationId}: Admin access granted`);
+      return { allowed: true, reason: 'Admin has full delete access' };
+    }
+
+    // Only admin, manager, and demo_manager can delete users
+    if (!['manager', 'demo_manager'].includes(currentUser.role)) {
+      console.log(`🚫 [PERMISSION CHECK] ${operationId}: Role ${currentUser.role} has no delete permissions`);
+      return { allowed: false, reason: 'Your role does not have permission to delete users' };
+    }
+
+    // Managers can only delete users within their organizations
+    if (currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
+      console.log(`👔 [PERMISSION CHECK] ${operationId}: Checking manager permissions...`);
+      
+      // Get manager's organizations
+      const managerOrgs = await storage.getUserOrganizations(currentUser.id);
+      const managerOrgIds = managerOrgs.map(org => org.organizationId);
+      
+      console.log(`📊 [PERMISSION CHECK] ${operationId}: Manager organizations:`, managerOrgIds);
+      
+      if (managerOrgIds.length === 0) {
+        console.log(`🚫 [PERMISSION CHECK] ${operationId}: Manager has no organizations`);
+        return { allowed: false, reason: 'Manager has no assigned organizations' };
+      }
+
+      // Get target user's organizations
+      const targetOrgs = await storage.getUserOrganizations(targetUser.id);
+      const targetOrgIds = targetOrgs.map(org => org.organizationId);
+      
+      console.log(`📊 [PERMISSION CHECK] ${operationId}: Target user organizations:`, targetOrgIds);
+
+      // Check if any of the target user's organizations match the manager's organizations
+      const hasCommonOrg = targetOrgIds.some(orgId => managerOrgIds.includes(orgId));
+      
+      if (!hasCommonOrg) {
+        console.log(`🚫 [PERMISSION CHECK] ${operationId}: No common organizations between manager and target user`);
+        return { allowed: false, reason: 'You can only delete users within your assigned organizations' };
+      }
+
+      // Demo managers can only delete demo users
+      if (currentUser.role === 'demo_manager') {
+        const demoRoles = ['demo_manager', 'demo_tenant', 'demo_resident'];
+        if (!demoRoles.includes(targetUser.role)) {
+          console.log(`🚫 [PERMISSION CHECK] ${operationId}: Demo manager trying to delete non-demo user`);
+          return { allowed: false, reason: 'Demo managers can only delete demo users' };
+        }
+      }
+      
+      // Regular managers cannot delete admin users
+      if (currentUser.role === 'manager' && targetUser.role === 'admin') {
+        console.log(`🚫 [PERMISSION CHECK] ${operationId}: Manager trying to delete admin user`);
+        return { allowed: false, reason: 'Managers cannot delete admin users' };
+      }
+
+      console.log(`✅ [PERMISSION CHECK] ${operationId}: Manager permission granted for common organization`);
+      return { allowed: true, reason: 'Manager has access to user within shared organization' };
+    }
+
+    return { allowed: false, reason: 'Permission denied' };
+  }
+
+  /**
+   * Perform hard delete of user and all associated data.
+   * The database handles most cascading deletes automatically via foreign key constraints.
+   */
+  async function performHardDelete(userId: string, deletedByUserId: string, operationId: string): Promise<any> {
+    console.log(`🗑️ [HARD DELETE] ${operationId}: Starting hard delete for user:`, userId);
+
+    const deletionSummary = {
+      userDeleted: false,
+      cascadeTablesAffected: [],
+      manualCleanupPerformed: [],
+      errors: [] as string[],
+    };
+
+    try {
+      // Get user data before deletion for logging
+      const userData = await storage.getUser(userId);
+      if (!userData) {
+        throw new Error('User not found at deletion time');
+      }
+
+      console.log(`📋 [HARD DELETE] ${operationId}: User data before deletion:`, {
+        id: userData.id,
+        email: userData.email,
+        role: userData.role,
+        isActive: userData.isActive,
+      });
+
+      // The database will automatically handle cascade deletes for:
+      // - userOrganizations (onDelete: 'cascade')
+      // - passwordResetTokens (onDelete: 'cascade') 
+      // - userResidences (onDelete: 'cascade')
+      // - bookings (onDelete: 'cascade')
+      // - userBookingRestrictions (onDelete: 'cascade')
+      // - userTimeLimits (onDelete: 'cascade')
+      // - userPermissions (references users.id)
+      // - commonSpaces.contactPersonId (onDelete: 'set null')
+
+      deletionSummary.cascadeTablesAffected = [
+        'userOrganizations',
+        'passwordResetTokens',
+        'userResidences', 
+        'bookings',
+        'userBookingRestrictions',
+        'userTimeLimits',
+        'userPermissions',
+        'invitations (invitedByUserId, acceptedBy)',
+        'invitationAuditLog (performedBy)',
+        'commonSpaces (contactPersonId set to null)',
+      ];
+
+      // Perform the hard delete using raw database query to ensure complete removal
+      console.log(`💥 [HARD DELETE] ${operationId}: Executing hard delete from database...`);
+      
+      const deleteResult = await db
+        .delete(schema.users)
+        .where(eq(schema.users.id, userId))
+        .returning({ id: schema.users.id, email: schema.users.email });
+
+      if (deleteResult.length === 0) {
+        throw new Error('Failed to delete user from database');
+      }
+
+      deletionSummary.userDeleted = true;
+      console.log(`✅ [HARD DELETE] ${operationId}: User successfully deleted from database:`, deleteResult[0]);
+
+      // Clear any cached data related to this user
+      try {
+        queryCache.invalidateUserCache(userId);
+        deletionSummary.manualCleanupPerformed.push('Query cache cleared');
+        console.log(`🧹 [HARD DELETE] ${operationId}: User cache invalidated`);
+      } catch (cacheError) {
+        console.error(`⚠️ [HARD DELETE] ${operationId}: Cache invalidation failed:`, cacheError);
+        deletionSummary.errors.push('Cache invalidation failed');
+      }
+
+      console.log(`✅ [HARD DELETE] ${operationId}: Hard delete completed successfully`);
+      return deletionSummary;
+
+    } catch (error: any) {
+      console.error(`❌ [HARD DELETE] ${operationId}: Hard delete failed:`, error);
+      deletionSummary.errors.push(error.message || 'Unknown error during deletion');
+      throw new Error(`Hard delete failed: ${error.message}`);
+    }
+  }
 
   /**
    * GET /api/user-organizations - Get current user's organizations.
