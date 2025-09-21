@@ -45,9 +45,8 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { format, parse } from 'date-fns';
+import { parse } from 'date-fns';
 import {
   Bell,
   Settings,
@@ -72,7 +71,6 @@ import {
   Shield,
   Zap,
   Check,
-  CalendarIcon,
   TestTube,
   ChevronDown,
 } from 'lucide-react';
@@ -139,7 +137,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     labelFr: 'Paiements à venir',
     descriptionEn: 'Notifications about payments due in the next few days',
     descriptionFr: 'Notifications concernant les paiements dus dans les prochains jours',
-    icon: Calendar,
+    icon: Clock,
     category: 'financial',
     defaultFrequency: 'monthly',
   },
@@ -199,7 +197,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     labelFr: 'Invitations aux réunions',
     descriptionEn: 'Invitations to building meetings and assemblies',
     descriptionFr: 'Invitations aux réunions et assemblées de l\'immeuble',
-    icon: Calendar,
+    icon: Clock,
     category: 'communication',
     defaultFrequency: 'monthly',
   },
@@ -1129,7 +1127,7 @@ export default function CommunicationDashboard() {
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: SettingsFormData) => {
       const response = await apiRequest('PUT', '/api/communication/settings', { 
-        startingDate: format(data.startingDate, 'yyyy-MM-dd') // Convert to YYYY-MM-DD format safely
+        startingDate: data.startingDate.toISOString().split('T')[0] // Convert to YYYY-MM-DD format safely
       });
       return response.json();
     },
@@ -1301,45 +1299,6 @@ export default function CommunicationDashboard() {
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
-                        <FormField
-                          control={settingsForm.control}
-                          name="startingDate"
-                          render={({ field }) => (
-                            <FormItem className="w-40">
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant="outline"
-                                      className="w-full pl-3 text-left font-normal"
-                                      data-testid="button-global-starting-date"
-                                    >
-                                      {field.value ? (
-                                        format(field.value, "dd/MM/yyyy")
-                                      ) : (
-                                        <span className="text-muted-foreground">
-                                          {language === 'fr' ? 'Sélectionnez...' : 'Select...'}
-                                        </span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0 z-50" align="start" side="bottom">
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                      date < new Date("1900-01-01")
-                                    }
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            </FormItem>
-                          )}
-                        />
                         <Button
                           type="submit"
                           disabled={saveSettingsMutation.isPending}
