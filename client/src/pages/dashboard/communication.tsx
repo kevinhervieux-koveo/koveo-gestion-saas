@@ -593,8 +593,8 @@ function GeneralCommunicationForm({
         organizationId: data.organizationId,
         title: data.title,
         content: data.content,
-        isUrgent: data.urgencyLevel === 'high' || data.urgencyLevel === 'urgent',
-        scheduledFor: data.scheduledFor,
+        isUrgent: data.urgencyLevel === 'urgent',
+        scheduledFor: data.urgencyLevel === 'urgent' ? undefined : data.scheduledFor, // Clear scheduling for urgent communications
         recipientRoles: data.recipientRoles,
         createdBy: '', // Will be set server-side from authenticated user
       };
@@ -830,6 +830,19 @@ function GeneralCommunicationForm({
                   <FormDescription>
                     {language === 'en' ? selectedUrgency.descriptionEn : selectedUrgency.descriptionFr}
                   </FormDescription>
+                )}
+                {selectedUrgency?.value === 'urgent' && (
+                  <div className="mt-2 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-md" data-testid="text-urgent-warning">
+                    <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+                      <Zap className="h-4 w-4" />
+                      <span className="text-sm font-medium">
+                        {language === 'en' 
+                          ? 'This type of communication will be sent right now'
+                          : 'Ce type de communication sera envoyé immédiatement'
+                        }
+                      </span>
+                    </div>
+                  </div>
                 )}
                 <FormMessage />
               </FormItem>
