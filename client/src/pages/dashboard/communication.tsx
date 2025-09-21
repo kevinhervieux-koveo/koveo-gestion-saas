@@ -1391,44 +1391,6 @@ export default function CommunicationDashboard() {
           {/* Notification Preferences Form */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-              {/* Combined Test Email Section */}
-              <Card className="border-2 border-blue-200 bg-blue-50/30">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TestTube className="w-5 h-5 text-blue-600" />
-                    {language === 'fr' ? 'Test des notifications' : 'Test Notifications'}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {language === 'fr'
-                      ? 'Envoyez un aperçu combiné de toutes vos notifications activées à votre adresse email.'
-                      : 'Send a combined preview of all your enabled notifications to your email address.'
-                    }
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => combinedTestEmailMutation.mutate({ language })}
-                    disabled={combinedTestEmailMutation.isPending}
-                    className="w-full sm:w-auto"
-                    data-testid="button-combined-test-email"
-                  >
-                    {combinedTestEmailMutation.isPending ? (
-                      <>
-                        <LoadingSpinner />
-                        {language === 'fr' ? 'Envoi en cours...' : 'Sending...'}
-                      </>
-                    ) : (
-                      <>
-                        <TestTube className="h-4 w-4 mr-2" />
-                        {language === 'fr' ? 'Envoyer un test combiné' : 'Send Combined Test'}
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-
               {Object.entries(groupedNotifications).map(([category, types]) => {
                 const CategoryIcon = categoryIcons[category as keyof typeof categoryIcons];
                 const categoryLabel = categoryLabels[category as keyof typeof categoryLabels];
@@ -1611,6 +1573,44 @@ export default function CommunicationDashboard() {
               </Card>
             </>
           )}
+
+          {/* Combined Test Email Section */}
+          <Card className="border-2 border-blue-200 bg-blue-50/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TestTube className="w-5 h-5 text-blue-600" />
+                {language === 'fr' ? 'Test des notifications' : 'Test Notifications'}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {language === 'fr'
+                  ? 'Envoyez un aperçu combiné de toutes vos notifications activées à votre adresse email.'
+                  : 'Send a combined preview of all your enabled notifications to your email address.'
+                }
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => combinedTestEmailMutation.mutate({ language })}
+                disabled={combinedTestEmailMutation.isPending}
+                className="w-full sm:w-auto"
+                data-testid="button-combined-test-email"
+              >
+                {combinedTestEmailMutation.isPending ? (
+                  <>
+                    <LoadingSpinner />
+                    {language === 'fr' ? 'Envoi en cours...' : 'Sending...'}
+                  </>
+                ) : (
+                  <>
+                    <TestTube className="h-4 w-4 mr-2" />
+                    {language === 'fr' ? 'Envoyer un test combiné' : 'Send Combined Test'}
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Quebec Law 25 Compliance Notice */}
           <Card>
