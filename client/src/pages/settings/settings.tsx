@@ -568,7 +568,7 @@ export default function Settings() {
                   {t('yourDataRights')}
                 </h4>
                 <p className='text-blue-700 dark:text-blue-300 text-sm mb-3'>
-                  {t('dataRightsDescription')}
+                  {t('exportDataDescription')}
                 </p>
               </div>
 

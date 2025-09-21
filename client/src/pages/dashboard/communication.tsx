@@ -429,7 +429,7 @@ function RecipientManagement({
   // Fetch real organization member counts
   const { data: memberCounts = {}, isLoading: loadingMembers } = useQuery({
     queryKey: ['organization-member-counts', organizationContext?.id],
-    queryFn: () => apiRequest(`/api/communication/organizations/${organizationContext?.id}/member-counts`),
+    queryFn: () => apiRequest('GET', `/api/communication/organizations/${organizationContext?.id}/member-counts`),
     enabled: !!organizationContext?.id,
   });
 
@@ -463,12 +463,12 @@ function RecipientManagement({
     if (selectedRoles.length === 0) return 0;
     
     if (selectedRoles.includes('all')) {
-      return memberCounts.all || 0;
+      return (memberCounts as any)?.all || 0;
     }
     
     // Count members based on selected roles
     return selectedRoles.reduce((total, role) => {
-      return total + (memberCounts[role] || 0);
+      return total + ((memberCounts as any)?.[role] || 0);
     }, 0);
   };
 
