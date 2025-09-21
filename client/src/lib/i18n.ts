@@ -1048,6 +1048,14 @@ export interface Translations {
   close: string;
   edit: string;
   delete: string;
+  deleteOrphanUsers: string;
+  deleteOrphanUsersConfirmTitle: string;
+  deleteOrphanUsersConfirmDescription: string;
+  deleteOrphanUsersWarning: string;
+  deleteOrphanUsersWarningList1: string;
+  deleteOrphanUsersWarningList2: string;
+  deleteOrphanUsersWarningList3: string;
+  deleteOrphanUsersWarningList4: string;
 }
 
 /**
@@ -1233,6 +1241,14 @@ export const translations: Record<Language, Translations> = {
     deactivateUser: 'Deactivate User',
     activateUser: 'Activate User',
     deleteUser: 'Delete User',
+    deleteOrphanUsers: 'Delete Orphan Users',
+    deleteOrphanUsersConfirmTitle: 'Delete Orphan Users',
+    deleteOrphanUsersConfirmDescription: 'This will permanently mark all orphan users (users with no organization or residence assignments) as inactive.',
+    deleteOrphanUsersWarning: 'Warning: This action will:',
+    deleteOrphanUsersWarningList1: 'Mark all orphan users as inactive (they will be hidden from the interface)',
+    deleteOrphanUsersWarningList2: 'Preserve their data for audit purposes but remove access',
+    deleteOrphanUsersWarningList3: 'Only affect users with no organization or residence assignments',
+    deleteOrphanUsersWarningList4: 'Cannot be undone through the interface',
     noUsersFound: 'No users found',
     editUserDescription: 'Update user information and permissions',
     confirmDeleteUser: 'Are you sure you want to delete {name}?',
@@ -2170,6 +2186,14 @@ export const translations: Record<Language, Translations> = {
     exportSelectedUsersData: 'Exporter les données des utilisateurs sélectionnés',
     deleteUsers: 'Supprimer les utilisateurs',
     deleteSelectedUsers: 'Supprimer les utilisateurs sélectionnés',
+    deleteOrphanUsers: 'Supprimer les utilisateurs orphelins',
+    deleteOrphanUsersConfirmTitle: 'Supprimer les utilisateurs orphelins',
+    deleteOrphanUsersConfirmDescription: 'Ceci marquera définitivement tous les utilisateurs orphelins (utilisateurs sans affectation d\'organisation ou de résidence) comme inactifs.',
+    deleteOrphanUsersWarning: 'Avertissement : Cette action va :',
+    deleteOrphanUsersWarningList1: 'Marquer tous les utilisateurs orphelins comme inactifs (ils seront cachés de l\'interface)',
+    deleteOrphanUsersWarningList2: 'Préserver leurs données à des fins d\'audit mais supprimer l\'accès',
+    deleteOrphanUsersWarningList3: 'Affecter uniquement les utilisateurs sans affectation d\'organisation ou de résidence',
+    deleteOrphanUsersWarningList4: 'Ne peut pas être annulé via l\'interface',
     users: 'Utilisateurs',
     usersSelected: 'utilisateurs sélectionnés',
     bulkActions: 'Actions en lot',

@@ -1149,7 +1149,7 @@ export default function UserManagement() {
                   data-testid="button-delete-orphans"
                 >
                   <Trash2 className='h-4 w-4 mr-2' />
-                  Delete Orphan Users
+                  {t('deleteOrphanUsers')}
                 </Button>
               )}
             </div>
@@ -1516,21 +1516,21 @@ export default function UserManagement() {
         <AlertDialog open={showDeleteOrphansDialog} onOpenChange={setShowDeleteOrphansDialog}>
           <AlertDialogContent className='sm:max-w-[500px]'>
             <AlertDialogHeader>
-              <AlertDialogTitle className='text-red-600'>Delete All Orphan Users</AlertDialogTitle>
+              <AlertDialogTitle className='text-red-600'>{t('deleteOrphanUsersConfirmTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently mark all orphan users (users with no organization or residence assignments) as inactive.
+                {t('deleteOrphanUsersConfirmDescription')}
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             <div className='bg-red-50 dark:bg-red-950 p-4 rounded-lg border border-red-200 dark:border-red-800 mb-4'>
               <p className='text-red-700 dark:text-red-300 text-sm'>
-                <strong>Warning:</strong> This action will:
+                <strong>{t('deleteOrphanUsersWarning')}</strong>
               </p>
               <ul className='text-red-700 dark:text-red-300 text-sm mt-2 list-disc list-inside'>
-                <li>Mark all orphan users as inactive (they will be hidden from the interface)</li>
-                <li>Preserve their data for audit purposes but remove access</li>
-                <li>Only affect users with no organization or residence assignments</li>
-                <li>Cannot be undone through the interface</li>
+                <li>{t('deleteOrphanUsersWarningList1')}</li>
+                <li>{t('deleteOrphanUsersWarningList2')}</li>
+                <li>{t('deleteOrphanUsersWarningList3')}</li>
+                <li>{t('deleteOrphanUsersWarningList4')}</li>
               </ul>
             </div>
 
@@ -1540,7 +1540,7 @@ export default function UserManagement() {
                 onClick={() => setShowDeleteOrphansDialog(false)}
                 disabled={deleteOrphanUsersMutation.isPending}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button
                 variant='destructive'
@@ -1548,7 +1548,7 @@ export default function UserManagement() {
                 disabled={deleteOrphanUsersMutation.isPending}
                 data-testid="button-confirm-delete-orphans"
               >
-                {deleteOrphanUsersMutation.isPending ? 'Deleting...' : 'Delete Orphan Users'}
+                {deleteOrphanUsersMutation.isPending ? 'Deleting...' : t('deleteOrphanUsers')}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
