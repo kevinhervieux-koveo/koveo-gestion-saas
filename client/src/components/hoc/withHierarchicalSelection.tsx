@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 
 /**
  * Configuration for the hierarchical selection flow
@@ -60,6 +61,7 @@ export function withHierarchicalSelection<T extends object>(
     const [location, setLocation] = useLocation();
     const search = useSearch();
     const { t } = useLanguage();
+    const { user } = useAuth();
     
     // Force re-render when location changes
     React.useEffect(() => {

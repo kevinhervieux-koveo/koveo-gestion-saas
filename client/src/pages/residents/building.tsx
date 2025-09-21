@@ -224,7 +224,7 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
                           <div className='flex items-center gap-2 mt-1'>
                             <Car className='w-4 h-4 text-muted-foreground' />
                             <span className='text-sm text-gray-700'>
-                              {buildingData.parkingSpaces} {t('spaces')}
+                              {buildingData.parkingSpaces} spaces
                             </span>
                           </div>
                         </div>
@@ -235,7 +235,7 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
                           <div className='flex items-center gap-2 mt-1'>
                             <Package className='w-4 h-4 text-muted-foreground' />
                             <span className='text-sm text-gray-700'>
-                              {buildingData.storageSpaces} {t('units')}
+                              {buildingData.storageSpaces} units
                             </span>
                           </div>
                         </div>
