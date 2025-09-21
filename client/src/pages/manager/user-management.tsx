@@ -106,11 +106,11 @@ export default function UserManagement() {
   const [organizationFilter, setOrganizationFilter] = useState('');
   const [orphanFilter, setOrphanFilter] = useState('');
 
-  // Debounce search input - wait 3 seconds after user stops typing
+  // Debounce search input - wait 1.5 seconds after user stops typing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setSearch(searchInput);
-    }, 3000);
+    }, 1500);
 
     return () => clearTimeout(timeoutId);
   }, [searchInput]);
@@ -1163,9 +1163,82 @@ export default function UserManagement() {
                 ) : (
                   <div className='space-y-4'>
                     {/* Simple Search and Filters */}
-                    <div className='flex flex-col sm:flex-row gap-4 mb-4 p-4 bg-gray-50 rounded-lg'>
-                      {/* Search */}
-                      <div className='flex-1'>
+                    <div className='space-y-4 mb-4 p-4 bg-gray-50 rounded-lg'>
+                      {/* Filters Row */}
+                      <div className='flex flex-col sm:flex-row gap-4'>
+                        {/* Role Filter */}
+                        <select
+                          value={roleFilter}
+                          onChange={(e) => setRoleFilter(e.target.value)}
+                          className='px-3 py-2 border border-gray-300 rounded-md'
+                        >
+                          {filterOptions?.roles?.map((role) => (
+                            <option key={role.value} value={role.value}>
+                              {role.label}
+                            </option>
+                          )) || []}
+                        </select>
+
+                        {/* Status Filter */}
+                        <select
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value)}
+                          className='px-3 py-2 border border-gray-300 rounded-md'
+                        >
+                          {filterOptions?.statuses?.map((status) => (
+                            <option key={status.value} value={status.value}>
+                              {status.label}
+                            </option>
+                          )) || []}
+                        </select>
+
+                        {/* Organization Filter - Hidden for demo_manager since they can only see their own organization */}
+                        {filterOptions?.organizations && filterOptions.organizations.length > 0 && currentUser?.role !== 'demo_manager' && (
+                          <select
+                            value={organizationFilter}
+                            onChange={(e) => setOrganizationFilter(e.target.value)}
+                            className='px-3 py-2 border border-gray-300 rounded-md'
+                          >
+                            {filterOptions.organizations.map((org) => (
+                              <option key={org.value} value={org.value}>
+                                {org.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+
+                        {/* Orphan User Filter - Admin Only, Hidden when organization is selected or for demo users */}
+                        {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && currentUser?.role !== 'demo_manager' && (
+                          <select
+                            value={orphanFilter}
+                            onChange={(e) => setOrphanFilter(e.target.value)}
+                            className='px-3 py-2 border border-gray-300 rounded-md'
+                          >
+                            {filterOptions.orphanOptions.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        
+                        {/* Show explanation when orphan filter is disabled - not for demo users */}
+                        {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && currentUser?.role !== 'demo_manager' && (
+                          <div className="text-sm text-gray-500 italic px-3 py-2 border border-gray-200 rounded-md bg-gray-100">
+                            Orphan filter unavailable (organization selected)
+                          </div>
+                        )}
+
+                        {/* Clear Filters - adjust visibility for demo_manager */}
+                        {(searchInput || roleFilter || statusFilter || (currentUser?.role !== 'demo_manager' && organizationFilter) || orphanFilter) && (
+                          <Button variant='outline' onClick={handleClearFilters}>
+                            {t('clearFilters')}
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Search Row */}
+                      <div className='w-full'>
                         <Input
                           placeholder={t('searchUsers')}
                           value={searchInput}
@@ -1173,76 +1246,6 @@ export default function UserManagement() {
                           className='w-full'
                         />
                       </div>
-
-                      {/* Role Filter */}
-                      <select
-                        value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                        className='px-3 py-2 border border-gray-300 rounded-md'
-                      >
-                        {filterOptions?.roles?.map((role) => (
-                          <option key={role.value} value={role.value}>
-                            {role.label}
-                          </option>
-                        )) || []}
-                      </select>
-
-                      {/* Status Filter */}
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className='px-3 py-2 border border-gray-300 rounded-md'
-                      >
-                        {filterOptions?.statuses?.map((status) => (
-                          <option key={status.value} value={status.value}>
-                            {status.label}
-                          </option>
-                        )) || []}
-                      </select>
-
-                      {/* Organization Filter - Hidden for demo_manager since they can only see their own organization */}
-                      {filterOptions?.organizations && filterOptions.organizations.length > 0 && currentUser?.role !== 'demo_manager' && (
-                        <select
-                          value={organizationFilter}
-                          onChange={(e) => setOrganizationFilter(e.target.value)}
-                          className='px-3 py-2 border border-gray-300 rounded-md'
-                        >
-                          {filterOptions.organizations.map((org) => (
-                            <option key={org.value} value={org.value}>
-                              {org.label}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-
-                      {/* Orphan User Filter - Admin Only, Hidden when organization is selected or for demo users */}
-                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && currentUser?.role !== 'demo_manager' && (
-                        <select
-                          value={orphanFilter}
-                          onChange={(e) => setOrphanFilter(e.target.value)}
-                          className='px-3 py-2 border border-gray-300 rounded-md'
-                        >
-                          {filterOptions.orphanOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                      
-                      {/* Show explanation when orphan filter is disabled - not for demo users */}
-                      {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && currentUser?.role !== 'demo_manager' && (
-                        <div className="text-sm text-gray-500 italic px-3 py-2 border border-gray-200 rounded-md bg-gray-100">
-                          Orphan filter unavailable (organization selected)
-                        </div>
-                      )}
-
-                      {/* Clear Filters - adjust visibility for demo_manager */}
-                      {(searchInput || roleFilter || statusFilter || (currentUser?.role !== 'demo_manager' && organizationFilter) || orphanFilter) && (
-                        <Button variant='outline' onClick={handleClearFilters}>
-                          {t('clearFilters')}
-                        </Button>
-                      )}
                     </div>
 
                     <h3 className='text-lg font-semibold'>
