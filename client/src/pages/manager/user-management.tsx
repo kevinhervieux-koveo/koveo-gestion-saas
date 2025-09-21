@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { FilterSort } from '@/components/filter-sort/FilterSort';
@@ -93,61 +93,70 @@ export default function UserManagement() {
   const [selectedOrganizationIds, setSelectedOrganizationIds] = useState<string[]>([]);
   const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
   const [selectedResidenceAssignments, setSelectedResidenceAssignments] = useState<any[]>([]);
+  
+  // Track initialization to prevent re-initialization on unrelated renders
+  const lastInitializedUserIdRef = useRef<string | null>(null);
 
-  // Cascading unselection handlers - centralized with memoized lookups
+  // Cascading unselection handlers - centralized with memoized lookups and functional setState
   const handleOrganizationSelectionChange = (newOrganizationIds: string[]) => {
-    setSelectedOrganizationIds(newOrganizationIds);
-    
-    // Find organizations that were unselected
-    const unselectedOrganizationIds = selectedOrganizationIds.filter(
-      orgId => !newOrganizationIds.includes(orgId)
-    );
-    
-    if (unselectedOrganizationIds.length > 0) {
-      // Remove buildings that belong to unselected organizations using O(1) lookups
-      const unselectedOrgSet = new Set(unselectedOrganizationIds);
-      const remainingBuildingIds = selectedBuildingIds.filter(buildingId => {
-        const building = buildingLookup.get(buildingId);
-        // Keep unknowns to handle race conditions - only remove if building exists and is unselected
-        return !building || !unselectedOrgSet.has(building.organizationId);
-      });
+    // Use functional setState to ensure consistent diff calculations
+    setSelectedOrganizationIds(prevOrganizationIds => {
+      // Find organizations that were unselected using the current state
+      const unselectedOrganizationIds = prevOrganizationIds.filter(
+        orgId => !newOrganizationIds.includes(orgId)
+      );
       
-      setSelectedBuildingIds(remainingBuildingIds);
-      
-      // Remove residences that belong to buildings in unselected organizations using O(1) lookups
-      const remainingResidenceAssignments = selectedResidenceAssignments.filter(assignment => {
-        const residence = residenceLookup.get(assignment.residenceId);
-        // Keep unknowns to handle race conditions - only remove if residence exists
-        if (!residence) return true;
+      if (unselectedOrganizationIds.length > 0) {
+        // Remove buildings that belong to unselected organizations using O(1) lookups
+        const unselectedOrgSet = new Set(unselectedOrganizationIds);
+        setSelectedBuildingIds(prevBuildingIds => 
+          prevBuildingIds.filter(buildingId => {
+            const building = buildingLookup.get(buildingId);
+            // Keep unknowns to handle race conditions - only remove if building exists and is unselected
+            return !building || !unselectedOrgSet.has(building.organizationId);
+          })
+        );
         
-        const building = buildingLookup.get(residence.buildingId);
-        // Keep unknowns to handle race conditions - only remove if building exists and is unselected
-        return !building || !unselectedOrgSet.has(building.organizationId);
-      });
+        // Remove residences that belong to buildings in unselected organizations using O(1) lookups
+        setSelectedResidenceAssignments(prevResidences => 
+          prevResidences.filter(assignment => {
+            const residence = residenceLookup.get(assignment.residenceId);
+            // Keep unknowns to handle race conditions - only remove if residence exists
+            if (!residence) return true;
+            
+            const building = buildingLookup.get(residence.buildingId);
+            // Keep unknowns to handle race conditions - only remove if building exists and is unselected
+            return !building || !unselectedOrgSet.has(building.organizationId);
+          })
+        );
+      }
       
-      setSelectedResidenceAssignments(remainingResidenceAssignments);
-    }
+      return newOrganizationIds;
+    });
   };
   
   const handleBuildingSelectionChange = (newBuildingIds: string[]) => {
-    setSelectedBuildingIds(newBuildingIds);
-    
-    // Find buildings that were unselected
-    const unselectedBuildingIds = selectedBuildingIds.filter(
-      buildingId => !newBuildingIds.includes(buildingId)
-    );
-    
-    if (unselectedBuildingIds.length > 0) {
-      // Remove residences that belong to unselected buildings using O(1) lookups
-      const unselectedBuildingSet = new Set(unselectedBuildingIds);
-      const remainingResidenceAssignments = selectedResidenceAssignments.filter(assignment => {
-        const residence = residenceLookup.get(assignment.residenceId);
-        // Keep unknowns to handle race conditions - only remove if residence exists and building is unselected
-        return !residence || !unselectedBuildingSet.has(residence.buildingId);
-      });
+    // Use functional setState to ensure consistent diff calculations
+    setSelectedBuildingIds(prevBuildingIds => {
+      // Find buildings that were unselected using the current state
+      const unselectedBuildingIds = prevBuildingIds.filter(
+        buildingId => !newBuildingIds.includes(buildingId)
+      );
       
-      setSelectedResidenceAssignments(remainingResidenceAssignments);
-    }
+      if (unselectedBuildingIds.length > 0) {
+        // Remove residences that belong to unselected buildings using O(1) lookups
+        const unselectedBuildingSet = new Set(unselectedBuildingIds);
+        setSelectedResidenceAssignments(prevResidences => 
+          prevResidences.filter(assignment => {
+            const residence = residenceLookup.get(assignment.residenceId);
+            // Keep unknowns to handle race conditions - only remove if residence exists and building is unselected
+            return !residence || !unselectedBuildingSet.has(residence.buildingId);
+          })
+        );
+      }
+      
+      return newBuildingIds;
+    });
   };
 
   // Pagination state
@@ -513,23 +522,34 @@ export default function UserManagement() {
     }
   }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
-  // Initialize and reset cascading filter states when user changes
+  // Initialize states ONCE per user when dialog opens - guard against re-initialization
   React.useEffect(() => {
-    if (editingUser) {
-      // Initialize states with user's current assignments when dialog opens
+    if (editingUser && editingUser.id !== lastInitializedUserIdRef.current) {
+      // Only initialize once per user - prevent re-initialization on unrelated renders
       const userWithAssignments = findUserWithAssignments(editingUser.id);
       if (userWithAssignments) {
         const currentOrgIds = userWithAssignments.organizations?.map((org: any) => org.id) || [];
         const currentBuildingIds = userWithAssignments.buildings?.map((building: any) => building.id) || [];
+        const currentResidenceAssignments = userWithAssignments.residences?.map((residence: any) => ({
+          residenceId: residence.id,
+          relationshipType: residence.relationshipType || 'tenant',
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: null,
+          isActive: true
+        })) || [];
         setSelectedOrganizationIds(currentOrgIds);
         setSelectedBuildingIds(currentBuildingIds);
+        setSelectedResidenceAssignments(currentResidenceAssignments);
+        lastInitializedUserIdRef.current = editingUser.id;
       }
-    } else {
+    } else if (!editingUser) {
       // Reset states when dialog closes
       setSelectedOrganizationIds([]);
       setSelectedBuildingIds([]);
+      setSelectedResidenceAssignments([]);
+      lastInitializedUserIdRef.current = null;
     }
-  }, [editingUser]);
+  }, [editingUser?.id]);
 
   // Get current user's access information for role-based filtering
   const currentUserAccess = useMemo(() => {
@@ -1513,7 +1533,7 @@ export default function UserManagement() {
               </TabsContent>
 
               {canEditOrganizations && (
-                <TabsContent value='organizations' className='space-y-4'>
+                <TabsContent value='organizations' className='space-y-4' forceMount>
                   <UserOrganizationsTab 
                     user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                     organizations={organizations}
@@ -1526,7 +1546,7 @@ export default function UserManagement() {
                 </TabsContent>
               )}
 
-              <TabsContent value='buildings' className='space-y-4'>
+              <TabsContent value='buildings' className='space-y-4' forceMount>
                 <UserBuildingsTab 
                   user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                   buildings={buildings}
@@ -1542,7 +1562,7 @@ export default function UserManagement() {
               </TabsContent>
 
               {canEditResidences && (
-                <TabsContent value='residences' className='space-y-4'>
+                <TabsContent value='residences' className='space-y-4' forceMount>
                   <UserResidencesTab 
                     user={editingUser ? findUserWithAssignments(editingUser.id) : null}
                     residences={residences}

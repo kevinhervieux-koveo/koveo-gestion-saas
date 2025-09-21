@@ -65,29 +65,8 @@ export function UserResidencesTab({
     return new Map(organizations.map(org => [org.id, org]));
   }, [organizations]);
 
-  // Initialize selections when user changes - notify parent of current user's residences
-  // Use a ref to track if we've already initialized for this user
-  const initializedUserRef = useRef<string | null>(null);
-  
-  useEffect(() => {
-    if (user && user.id !== initializedUserRef.current) {
-      // Only initialize once per user - don't reinitialize when other state changes
-      const residenceAssignments = user.residences?.map((residence: any) => ({
-        residenceId: residence.id,
-        relationshipType: residence.relationshipType || 'tenant',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: null,
-        isActive: true
-      })) || [];
-      // Only notify parent of initial state, don't manage internal state
-      onSelectionChange?.(residenceAssignments);
-      initializedUserRef.current = user.id;
-    } else if (!user) {
-      // Reset when dialog is closed (no user)
-      onSelectionChange?.([]);
-      initializedUserRef.current = null;
-    }
-  }, [user?.id]); // Only depend on user ID to avoid infinite loops
+  // REMOVED: No initialization in child components - parent is sole source of truth
+  // Child components are now purely controlled - they only read from props and emit user interactions
 
   // REMOVED: Cascade filtering is now handled by parent component
   // Child component is fully controlled - no internal cascade logic
