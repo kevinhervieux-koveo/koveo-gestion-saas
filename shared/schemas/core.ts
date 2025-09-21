@@ -60,6 +60,7 @@ export const users = pgTable('users', {
   language: varchar('language', { length: 10 }).notNull().default('fr'), // Default to French for Quebec
   role: userRoleEnum('role').notNull().default('tenant'),
   isActive: boolean('is_active').notNull().default(true),
+  notificationsStartingDate: date('notifications_starting_date'), // Global starting date for all notifications
   lastLoginAt: timestamp('last_login_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
