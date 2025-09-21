@@ -1008,8 +1008,8 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
       } else {
         baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
       }
-      const demandCenterUrl = `${baseUrl}/dashboard/demands`;
-      const notificationSettingsUrl = `${baseUrl}/dashboard/settings`;
+      const demandCenterUrl = `${baseUrl}/residents/demands`;
+      const notificationSettingsUrl = `${baseUrl}/dashboard/communication`;
 
       // Process each building separately
       for (const [buildingName, buildingRecipients] of Object.entries(recipientsByBuilding)) {
@@ -1248,8 +1248,8 @@ ${isFrench
       } else {
         baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
       }
-      const demandCenterUrl = `${baseUrl}/dashboard/demands`;
-      const notificationSettingsUrl = `${baseUrl}/dashboard/settings`;
+      const demandCenterUrl = `${baseUrl}/residents/demands`;
+      const notificationSettingsUrl = `${baseUrl}/dashboard/communication`;
 
       // Process each building separately
       for (const [buildingName, buildingRecipients] of Object.entries(recipientsByBuilding)) {
