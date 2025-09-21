@@ -82,13 +82,36 @@ class SequentialTestRunner {
     for (const file of testFiles) {
       let category = 'Other';
       
+      // Priority-based categorization with specific rules for communication and budget tests
       if (file.startsWith('tests/critical/')) {
         category = 'Critical';
       } else if (file.startsWith('tests/security/')) {
         category = 'Security';
       } else if (file.startsWith('tests/unit/auth/')) {
         category = 'Authentication';
-      } else if (file.startsWith('tests/unit/')) {
+      } 
+      // Communication and Budget test specific categorization
+      else if (file.includes('/communication/') && file.includes('translation')) {
+        // Communication translation tests go to Unit category
+        category = 'Unit';
+      } else if (file.includes('/budget/') && file.includes('translation')) {
+        // Budget translation tests go to Unit category  
+        category = 'Unit';
+      } else if (file.includes('/communication/') && file.includes('page.test')) {
+        // Communication page tests go to Pages category
+        category = 'Pages';
+      } else if (file.includes('/budget') && file.includes('page') && file.includes('comprehensive')) {
+        // Budget page comprehensive tests go to Pages category
+        category = 'Pages';
+      } else if (file.startsWith('tests/integration/') && (file.includes('communication') || file.includes('budget'))) {
+        // Communication and budget integration tests
+        category = 'Integration';
+      } else if (file.startsWith('tests/unit/') && (file.includes('budget') || file.includes('communication'))) {
+        // Other communication and budget unit tests
+        category = 'Unit';
+      }
+      // Standard categorization rules
+      else if (file.startsWith('tests/unit/')) {
         category = 'Unit';
       } else if (file.startsWith('tests/integration/')) {
         category = 'Integration';
