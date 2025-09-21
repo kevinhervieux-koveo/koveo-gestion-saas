@@ -12,7 +12,7 @@ import { Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
-import { EmailService } from './services/email-service';
+import { emailService } from './services/email-service';
 import { queryCache } from './query-cache';
 
 /**
@@ -79,8 +79,7 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
   }
 }
 
-// Initialize email service
-const emailService = new EmailService();
+// Email service is imported as singleton instance
 
 // Database connection already imported at top of file
 
