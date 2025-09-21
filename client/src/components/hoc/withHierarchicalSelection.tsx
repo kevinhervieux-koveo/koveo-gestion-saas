@@ -106,7 +106,11 @@ export function withHierarchicalSelection<T extends object>(
       isLoading: isLoadingOrganizations
     } = useQuery<Organization[]>({
       queryKey: ['/api/users/me/organizations'],
-      enabled: currentLevel === 'organization'
+      enabled: currentLevel === 'organization',
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      retry: 2,
+      retryDelay: 1000
     });
 
     // Fetch accessible building counts for each organization (bottom up logic)
@@ -116,6 +120,10 @@ export function withHierarchicalSelection<T extends object>(
     } = useQuery<Record<string, number>>({
       queryKey: ['/api/organizations/accessible-building-counts', user?.role],
       enabled: currentLevel === 'organization' && organizations.length > 0,
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      retry: 2,
+      retryDelay: 1000,
       queryFn: async () => {
         const counts: Record<string, number> = {};
         
@@ -145,7 +153,9 @@ export function withHierarchicalSelection<T extends object>(
                       ? `/api/users/me/residences?building_id=${building.id}`
                       : `/api/buildings/${building.id}/residences`;
                       
-                    const residenceResponse = await fetch(residenceUrl);
+                    const residenceResponse = await fetch(residenceUrl, {
+                      credentials: 'include'
+                    });
                     if (residenceResponse.ok) {
                       const residences = await residenceResponse.json();
                       if (residences.length > 0) {
@@ -209,7 +219,9 @@ export function withHierarchicalSelection<T extends object>(
           fullUrl = `${url}?${params.toString()}`;
         }
         
-        const response = await fetch(fullUrl);
+        const response = await fetch(fullUrl, {
+          credentials: 'include'
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch buildings');
         }
@@ -226,7 +238,9 @@ export function withHierarchicalSelection<T extends object>(
                 ? `/api/users/me/residences?building_id=${building.id}`
                 : `/api/buildings/${building.id}/residences`;
                 
-              const residenceResponse = await fetch(residenceUrl);
+              const residenceResponse = await fetch(residenceUrl, {
+                credentials: 'include'
+              });
               if (residenceResponse.ok) {
                 const residences = await residenceResponse.json();
                 if (residences.length > 0) {
@@ -243,7 +257,10 @@ export function withHierarchicalSelection<T extends object>(
         return allBuildings;
       },
       enabled: (currentLevel === 'building' || currentLevel === 'complete') && (!!organizationId || config.hierarchy.length === 1),
-      staleTime: 0
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      retry: 2,
+      retryDelay: 1000
     });
 
     // Fetch residences using secure user-specific endpoint for residents
@@ -259,13 +276,19 @@ export function withHierarchicalSelection<T extends object>(
           ? `/api/users/me/residences?building_id=${buildingId}`
           : `/api/buildings/${buildingId}/residences`;
           
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          credentials: 'include'
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch residences');
         }
         return response.json();
       },
-      enabled: currentLevel === 'residence' && !!buildingId
+      enabled: currentLevel === 'residence' && !!buildingId,
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      retry: 2,
+      retryDelay: 1000
     });
 
     // Auto-forwarding logic
