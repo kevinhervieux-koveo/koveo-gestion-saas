@@ -7,12 +7,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { UserNotificationPreference, InsertUserNotificationPreference } from '@shared/schemas/operations';
+import { UserNotificationPreference, InsertUserNotificationPreference, InsertGeneralCommunication, insertGeneralCommunicationSchema } from '@shared/schemas/operations';
+import type { User, Organization } from '@shared/schema';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -57,6 +61,13 @@ import {
   MessageSquare,
   Info,
   RotateCcw,
+  Send,
+  Users,
+  User as UserIcon,
+  Clock,
+  Shield,
+  Zap,
+  Check,
 } from 'lucide-react';
 
 // Notification type definitions with user-friendly labels and descriptions
@@ -280,19 +291,497 @@ const ensureValidFrequency = (frequency: string | undefined, defaultFreq: Freque
 
 type PreferencesFormData = z.infer<typeof preferencesSchema>;
 
+// Urgency level definitions for general communications
+interface UrgencyLevel {
+  value: 'low' | 'medium' | 'high' | 'urgent';
+  labelEn: string;
+  labelFr: string;
+  descriptionEn: string;
+  descriptionFr: string;
+  icon: React.ComponentType<any>;
+  color: string;
+}
+
+const urgencyLevels: UrgencyLevel[] = [
+  {
+    value: 'low',
+    labelEn: 'Low Priority',
+    labelFr: 'Priorité faible',
+    descriptionEn: 'General information, no immediate action required',
+    descriptionFr: 'Information générale, aucune action immédiate requise',
+    icon: Info,
+    color: 'text-blue-600 dark:text-blue-400',
+  },
+  {
+    value: 'medium',
+    labelEn: 'Medium Priority',
+    labelFr: 'Priorité moyenne',
+    descriptionEn: 'Important information, residents should read when convenient',
+    descriptionFr: 'Information importante, les résidents devraient lire quand c\'est pratique',
+    icon: MessageSquare,
+    color: 'text-yellow-600 dark:text-yellow-400',
+  },
+  {
+    value: 'high',
+    labelEn: 'High Priority',
+    labelFr: 'Priorité élevée',
+    descriptionEn: 'Requires attention within 24-48 hours',
+    descriptionFr: 'Nécessite une attention dans les 24-48 heures',
+    icon: AlertTriangle,
+    color: 'text-orange-600 dark:text-orange-400',
+  },
+  {
+    value: 'urgent',
+    labelEn: 'Urgent',
+    labelFr: 'Urgent',
+    descriptionEn: 'Critical communication requiring immediate attention',
+    descriptionFr: 'Communication critique nécessitant une attention immédiate',
+    icon: Zap,
+    color: 'text-red-600 dark:text-red-400',
+  },
+];
+
+// Recipient role options
+interface RecipientRole {
+  value: string;
+  labelEn: string;
+  labelFr: string;
+}
+
+const recipientRoles: RecipientRole[] = [
+  { value: 'all', labelEn: 'All Members', labelFr: 'Tous les membres' },
+  { value: 'resident', labelEn: 'Residents', labelFr: 'Résidents' },
+  { value: 'tenant', labelEn: 'Tenants', labelFr: 'Locataires' },
+  { value: 'manager', labelEn: 'Managers', labelFr: 'Gestionnaires' },
+  { value: 'admin', labelEn: 'Administrators', labelFr: 'Administrateurs' },
+];
+
+// General communication form schema
+// Extend shared schema to include frontend-specific urgencyLevel field for UI
+const generalCommunicationFormSchema = insertGeneralCommunicationSchema.extend({
+  urgencyLevel: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+}).omit({
+  isUrgent: true, // We'll derive this from urgencyLevel
+  createdBy: true, // Will be set server-side
+});
+
+type GeneralCommunicationFormData = z.infer<typeof generalCommunicationFormSchema>;
+
+// Recipient selection interface
+interface RecipientInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  organizationId: string;
+  organizationName: string;
+}
+
+// Organization context interface  
+interface OrganizationContext {
+  id: string;
+  name: string;
+  canSendToAllOrganizations: boolean;
+}
+
+/**
+ * Recipient Management Component
+ * Handles organization filtering and recipient selection for communications
+ */
+function RecipientManagement({ 
+  selectedRoles, 
+  onRoleChange, 
+  organizationContext,
+  language
+}: {
+  selectedRoles: string[];
+  onRoleChange: (roles: string[]) => void;
+  organizationContext: OrganizationContext | null;
+  language: 'en' | 'fr';
+}) {
+  const { data: recipients = [], isLoading: loadingRecipients } = useQuery<RecipientInfo[]>({
+    queryKey: ['/api/communication/recipients', organizationContext?.id],
+    enabled: !!organizationContext?.id,
+  });
+
+  const handleRoleToggle = (roleValue: string) => {
+    if (roleValue === 'all') {
+      // If "all" is selected, clear other selections and select all
+      onRoleChange(['all']);
+    } else {
+      // Remove "all" if selecting specific roles
+      const newRoles = selectedRoles.includes(roleValue)
+        ? selectedRoles.filter(r => r !== roleValue && r !== 'all')
+        : [...selectedRoles.filter(r => r !== 'all'), roleValue];
+      onRoleChange(newRoles);
+    }
+  };
+
+  const getRecipientCount = () => {
+    if (!recipients.length) return 0;
+    if (selectedRoles.includes('all')) return recipients.length;
+    return recipients.filter(r => selectedRoles.includes(r.role)).length;
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <Users className="h-5 w-5 text-muted-foreground" />
+        <h3 className="text-lg font-medium">
+          {language === 'en' ? 'Recipients' : 'Destinataires'}
+        </h3>
+        {organizationContext && (
+          <Badge variant="outline" className="ml-auto">
+            {organizationContext.name}
+          </Badge>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {recipientRoles.map((role) => (
+          <div key={role.value} className="flex items-center space-x-2">
+            <Checkbox
+              id={`role-${role.value}`}
+              checked={selectedRoles.includes(role.value)}
+              onCheckedChange={() => handleRoleToggle(role.value)}
+              data-testid={`checkbox-recipient-${role.value}`}
+            />
+            <label
+              htmlFor={`role-${role.value}`}
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              {language === 'en' ? role.labelEn : role.labelFr}
+            </label>
+          </div>
+        ))}
+      </div>
+
+      {loadingRecipients ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <LoadingSpinner />
+          {language === 'en' ? 'Loading recipients...' : 'Chargement des destinataires...'}
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <UserIcon className="h-4 w-4" />
+          <span data-testid="text-recipient-count">
+            {language === 'en' 
+              ? `${getRecipientCount()} recipient${getRecipientCount() !== 1 ? 's' : ''} selected`
+              : `${getRecipientCount()} destinataire${getRecipientCount() !== 1 ? 's' : ''} sélectionné${getRecipientCount() !== 1 ? 's' : ''}`
+            }
+          </span>
+        </div>
+      )}
+
+      {selectedRoles.length === 0 && (
+        <div className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4" />
+          {language === 'en' 
+            ? 'Please select at least one recipient group'
+            : 'Veuillez sélectionner au moins un groupe de destinataires'
+          }
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * General Communication Form Component
+ * Allows managers/admins to send communications to organization members
+ */
+function GeneralCommunicationForm({ 
+  organizationContext,
+  language 
+}: {
+  organizationContext: OrganizationContext | null;
+  language: 'en' | 'fr';
+}) {
+  const { toast } = useToast();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  // Form setup
+  const communicationForm = useForm<GeneralCommunicationFormData>({
+    resolver: zodResolver(generalCommunicationFormSchema),
+    defaultValues: {
+      title: '',
+      content: '',
+      urgencyLevel: 'medium' as const,
+      recipientRoles: [],
+      scheduledFor: undefined,
+      organizationId: organizationContext?.id || '',
+    },
+  });
+
+  // Communication mutation
+  const sendCommunicationMutation = useMutation({
+    mutationFn: async (data: GeneralCommunicationFormData) => {
+      // Map form data to shared schema format
+      const payload: InsertGeneralCommunication = {
+        organizationId: organizationContext?.id || '',
+        title: data.title,
+        content: data.content,
+        isUrgent: data.urgencyLevel === 'high' || data.urgencyLevel === 'urgent',
+        scheduledFor: data.scheduledFor,
+        recipientRoles: data.recipientRoles,
+        createdBy: '', // Will be set server-side from authenticated user
+      };
+      
+      const response = await apiRequest('POST', '/api/communication/general', payload);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: language === 'en' ? 'Communication Sent' : 'Communication envoyée',
+        description: language === 'en' 
+          ? 'Your communication has been sent successfully.'
+          : 'Votre communication a été envoyée avec succès.',
+      });
+      
+      // Reset form
+      communicationForm.reset();
+      setShowConfirmDialog(false);
+      
+      // Invalidate communication cache
+      queryClient.invalidateQueries({ queryKey: ['/api/communication/general'] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: 'destructive',
+        title: language === 'en' ? 'Error' : 'Erreur',
+        description: error.message || (language === 'en' ? 'Failed to send communication' : 'Échec de l\'envoi de la communication'),
+      });
+    },
+  });
+
+  const handleSubmit = (data: GeneralCommunicationFormData) => {
+    // Show confirmation for high/urgent communications
+    if (data.urgencyLevel === 'high' || data.urgencyLevel === 'urgent') {
+      setShowConfirmDialog(true);
+      return;
+    }
+    
+    sendCommunicationMutation.mutate(data);
+  };
+
+  const selectedUrgency = urgencyLevels.find(u => u.value === communicationForm.watch('urgencyLevel'));
+  const UrgencyIcon = selectedUrgency?.icon || MessageSquare;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <MessageSquare className="h-5 w-5 text-muted-foreground" />
+        <h3 className="text-lg font-medium">
+          {language === 'en' ? 'Send Communication' : 'Envoyer une communication'}
+        </h3>
+      </div>
+
+      <Form {...communicationForm}>
+        <form onSubmit={communicationForm.handleSubmit(handleSubmit)} className="space-y-6">
+          {/* Title Field */}
+          <FormField
+            control={communicationForm.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {language === 'en' ? 'Title' : 'Titre'} *
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={language === 'en' ? 'Enter communication title...' : 'Entrez le titre de la communication...'}
+                    {...field}
+                    data-testid="input-communication-title"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Content Field */}
+          <FormField
+            control={communicationForm.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {language === 'en' ? 'Message Content' : 'Contenu du message'} *
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder={language === 'en' 
+                      ? 'Enter your message content...'
+                      : 'Entrez le contenu de votre message...'
+                    }
+                    className="min-h-[120px]"
+                    {...field}
+                    data-testid="textarea-communication-content"
+                  />
+                </FormControl>
+                <FormDescription>
+                  {language === 'en' 
+                    ? 'Maximum 5000 characters. Be clear and concise.'
+                    : 'Maximum 5000 caractères. Soyez clair et concis.'
+                  }
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Urgency Level */}
+          <FormField
+            control={communicationForm.control}
+            name="urgencyLevel"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {language === 'en' ? 'Urgency Level' : 'Niveau d\'urgence'}
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger data-testid="select-urgency-level">
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {urgencyLevels.map((urgency) => {
+                      const Icon = urgency.icon;
+                      return (
+                        <SelectItem key={urgency.value} value={urgency.value}>
+                          <div className="flex items-center gap-2">
+                            <Icon className={`h-4 w-4 ${urgency.color}`} />
+                            <span>{language === 'en' ? urgency.labelEn : urgency.labelFr}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                {selectedUrgency && (
+                  <FormDescription>
+                    {language === 'en' ? selectedUrgency.descriptionEn : selectedUrgency.descriptionFr}
+                  </FormDescription>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Recipients */}
+          <FormField
+            control={communicationForm.control}
+            name="recipientRoles"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {language === 'en' ? 'Recipients' : 'Destinataires'} *
+                </FormLabel>
+                <FormControl>
+                  <RecipientManagement
+                    selectedRoles={field.value}
+                    onRoleChange={field.onChange}
+                    organizationContext={organizationContext}
+                    language={language}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 pt-4">
+            <Button
+              type="submit"
+              disabled={sendCommunicationMutation.isPending}
+              className="min-w-[120px]"
+              data-testid="button-send-communication"
+            >
+              {sendCommunicationMutation.isPending ? (
+                <>
+                  <LoadingSpinner />
+                  {language === 'en' ? 'Sending...' : 'Envoi...'}
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  {language === 'en' ? 'Send Now' : 'Envoyer maintenant'}
+                </>
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => communicationForm.reset()}
+              disabled={sendCommunicationMutation.isPending}
+              data-testid="button-reset-communication"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              {language === 'en' ? 'Reset' : 'Réinitialiser'}
+            </Button>
+          </div>
+        </form>
+      </Form>
+
+      {/* Confirmation Dialog for Urgent Communications */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              {language === 'en' ? 'Confirm Urgent Communication' : 'Confirmer la communication urgente'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === 'en' 
+                ? 'You are about to send an urgent communication. This will notify all selected recipients immediately. Are you sure you want to proceed?'
+                : 'Vous êtes sur le point d\'envoyer une communication urgente. Cela notifiera immédiatement tous les destinataires sélectionnés. Êtes-vous sûr de vouloir continuer ?'
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              {language === 'en' ? 'Cancel' : 'Annuler'}
+            </Button>
+            <Button 
+              onClick={() => sendCommunicationMutation.mutate(communicationForm.getValues())}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              {language === 'en' ? 'Send Urgent' : 'Envoyer urgent'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
 /**
  * Communication Dashboard Page
  * Provides comprehensive notification preferences management with bilingual support
  * and Quebec Law 25 compliance for privacy settings.
  */
 export default function CommunicationDashboard() {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const { language, t } = useLanguage();
   const { toast } = useToast();
   const [showBulkDialog, setShowBulkDialog] = useState(false);
   const [bulkFrequency, setBulkFrequency] = useState<string>('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const formInitializedRef = useRef(false);
+
+  // Check if user can send communications (managers and admins only)
+  const canSendCommunications = hasRole(['admin', 'manager', 'demo_manager']);
+
+  // Fetch user's organization context for communication sending
+  const { data: organizationContext, isLoading: loadingOrganization } = useQuery<OrganizationContext>({
+    queryKey: ['/api/communication/organization-context'],
+    enabled: !!user && canSendCommunications,
+  });
 
   // Fetch current notification preferences
   const { data: preferences = [], isLoading, error } = useQuery<NotificationPreference[]>({
@@ -645,6 +1134,79 @@ export default function CommunicationDashboard() {
               })}
             </form>
           </Form>
+
+          {/* Communication Form Section - Only for Managers/Admins */}
+          {canSendCommunications && (
+            <>
+              <Separator className="my-8" />
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5" />
+                    {language === 'en' ? 'Send Communication to Organization' : 'Envoyer une communication à l\'organisation'}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {language === 'en'
+                      ? 'Send messages and announcements to members of your organization.'
+                      : 'Envoyez des messages et des annonces aux membres de votre organisation.'
+                    }
+                  </p>
+                  
+                  {/* RBAC and Organization Context Info */}
+                  <div className="flex items-center gap-4 pt-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Shield className="h-4 w-4 text-green-600" />
+                      <span className="text-muted-foreground">
+                        {language === 'en' 
+                          ? `Authorized: ${user?.role === 'admin' ? 'System Administrator' : 'Organization Manager'}`
+                          : `Autorisé: ${user?.role === 'admin' ? 'Administrateur système' : 'Gestionnaire d\'organisation'}`
+                        }
+                      </span>
+                    </div>
+                    
+                    {organizationContext && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Building className="h-4 w-4 text-blue-600" />
+                        <span className="text-muted-foreground">
+                          {language === 'en' ? 'Organization:' : 'Organisation:'} {organizationContext.name}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </CardHeader>
+                
+                <CardContent>
+                  {loadingOrganization ? (
+                    <div className="flex items-center justify-center py-8">
+                      <LoadingSpinner />
+                      <span className="text-muted-foreground">
+                        {language === 'en' ? 'Loading organization context...' : 'Chargement du contexte organisationnel...'}
+                      </span>
+                    </div>
+                  ) : organizationContext ? (
+                    <GeneralCommunicationForm 
+                      organizationContext={organizationContext}
+                      language={language}
+                    />
+                  ) : (
+                    <div className="text-center py-8">
+                      <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-3" />
+                      <h3 className="text-lg font-medium mb-2">
+                        {language === 'en' ? 'Organization Access Required' : 'Accès à l\'organisation requis'}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {language === 'en'
+                          ? 'You need to be associated with an organization to send communications. Please contact your administrator.'
+                          : 'Vous devez être associé à une organisation pour envoyer des communications. Veuillez contacter votre administrateur.'
+                        }
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
 
           {/* Quebec Law 25 Compliance Notice */}
           <Card>
