@@ -34,6 +34,13 @@ class SequentialTestRunner {
   private phases: TestPhase[] = [];
 
   async initializePhases(): Promise<void> {
+    // Check if we're in the correct working directory
+    const fs = await import('fs');
+    if (!fs.existsSync('package.json') || !fs.existsSync('tests')) {
+      console.error(chalk.red('❌ Error: Must be run from the project root directory (where package.json and tests/ exist)'));
+      process.exit(1);
+    }
+
     console.log(chalk.blue('🔍 Discovering test files...'));
     
     // Discover all test files
@@ -182,7 +189,7 @@ class SequentialTestRunner {
 
     return {
       name: `${category}-${name}`,
-      command: `npx jest "${filePath}" --maxWorkers=1 --testTimeout=10000 --passWithNoTests=true`,
+      command: `npx jest "${filePath}" --maxWorkers=1 --testTimeout=${timeout} --passWithNoTests=true`,
       description: `${category}: ${name}`,
       critical,
       timeout,

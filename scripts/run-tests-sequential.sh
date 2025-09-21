@@ -5,6 +5,12 @@
 
 set +e  # Don't exit on first failure, continue running all tests
 
+# Check if we're in the correct working directory
+if [ ! -f "package.json" ] || [ ! -d "tests" ]; then
+    echo "❌ Error: Must be run from the project root directory (where package.json and tests/ exist)"
+    exit 1
+fi
+
 echo "🧪 Koveo Gestion - Complete Sequential Test Suite"
 echo "================================================="
 echo ""
@@ -144,8 +150,7 @@ run_test_file "Integration-Budget-Forecast" "tests/integration/budgets.forecast.
 echo "Phase 5: Page Integration Tests"
 echo "==============================="
 run_test_directory "Page-Tests" "tests/pages/" "Page functionality tests"
-# Communication page tests
-run_test_file "Page-Communication" "tests/unit/communication/communication-page.test.tsx" "Communication page functionality tests"
+# Note: Communication page test already covered in Unit-Communication directory
 
 # Phase 6: i18n and Quebec Compliance Tests
 echo "Phase 6: i18n and Quebec Compliance Tests"
