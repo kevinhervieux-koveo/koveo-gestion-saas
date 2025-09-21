@@ -51,6 +51,7 @@ import {
   Users,
   ArrowLeft,
 } from 'lucide-react';
+import { BuildingCard, BuildingData as SharedBuildingData } from '@/components/buildings/BuildingCard';
 import { Header } from '@/components/layout/header';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 import { Link, useLocation } from 'wouter';
@@ -70,106 +71,10 @@ type BuildingFormData = {
   organizationId: string;
 };
 
-/**
- *
- */
-interface BuildingData {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  province: string;
-  postalCode: string;
-  buildingType: string;
-  totalUnits: number;
-  organizationId: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Use the shared BuildingData type
+type BuildingData = SharedBuildingData;
 
-/**
- *
- */
-interface BuildingCardProps {
-  building: BuildingData;
-  userRole?: string;
-  onEdit: (building: BuildingData) => void;
-  onDelete: (building: BuildingData) => void;
-  t: (key: string) => string;
-}
-
-/**
- *
- * @param root0
- * @param root0.building
- * @param root0.userRole
- * @param root0.onEdit
- * @param root0.onDelete
- */
-function BuildingCard({ building, userRole, onEdit, onDelete, t }: BuildingCardProps) {
-  const isAdmin = userRole === 'admin';
-  const canEdit = ['admin', 'manager'].includes(userRole || '');
-
-  return (
-    <Card className='h-full'>
-      <CardHeader>
-        <div className='flex items-start justify-between'>
-          <div className='flex items-center space-x-2'>
-            <Building className='h-5 w-5 text-blue-600' />
-            <CardTitle className='text-lg line-clamp-2 break-words'>{building.name}</CardTitle>
-          </div>
-          {canEdit && (
-            <div className='flex gap-1'>
-              <Button size='sm' variant='ghost' onClick={() => onEdit(building)}>
-                <Edit className='h-3 w-3' />
-              </Button>
-              {isAdmin && (
-                <Button
-                  size='sm'
-                  variant='ghost'
-                  onClick={() => onDelete(building)}
-                  className='text-red-600 hover:text-red-700'
-                >
-                  <Trash2 className='h-3 w-3' />
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className='space-y-2'>
-          <div className='flex items-center text-sm text-gray-600'>
-            <MapPin className='h-4 w-4 mr-2' />
-            <span className='line-clamp-2 break-words flex-1'>{building.address}</span>
-          </div>
-          <div className='flex items-center text-sm text-gray-600'>
-            <span>
-              {building.city}, {building.province} {building.postalCode}
-            </span>
-          </div>
-          <div className='flex items-center justify-between pt-2'>
-            <Badge variant='outline'>{building.totalUnits} {t('unitsCount')}</Badge>
-            <Badge variant='secondary'>{building.buildingType}</Badge>
-          </div>
-          <div className='pt-2 flex gap-2'>
-            <Link href={`/manager/buildings/${building.id}/documents`}>
-              <Button size='sm' variant='outline' className='flex-1'>
-                Documents
-              </Button>
-            </Link>
-            <Link href={`/manager/residences?building=${building.id}`}>
-              <Button size='sm' variant='outline' className='flex-1'>
-                Residences
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+// BuildingCard component is now imported from shared component
 
 /**
  *
@@ -681,6 +586,8 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
                   onEdit={handleEditBuilding}
                   onDelete={handleDeleteBuilding}
                   t={t}
+                  showEditButtons={true}
+                  showResidencesButton={true}
                 />
               ))}
             </div>
