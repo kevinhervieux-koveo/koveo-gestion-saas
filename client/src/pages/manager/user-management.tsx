@@ -89,75 +89,9 @@ export default function UserManagement() {
   const [editingUserResidences, setEditingUserResidences] = useState<UserWithAssignments | null>(null);
   const [showDeleteOrphansDialog, setShowDeleteOrphansDialog] = useState(false);
 
-  // Cascading filter states for user edit tabs
-  const [selectedOrganizationIds, setSelectedOrganizationIds] = useState<string[]>([]);
-  const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
-  const [selectedResidenceAssignments, setSelectedResidenceAssignments] = useState<any[]>([]);
-  
-  // Track initialization to prevent re-initialization on unrelated renders
-  const lastInitializedUserIdRef = useRef<string | null>(null);
+  // REMOVED: Cascading filter states no longer needed since we only have basic info
 
-  // Cascading unselection handlers - centralized with memoized lookups and functional setState
-  const handleOrganizationSelectionChange = (newOrganizationIds: string[]) => {
-    // Use functional setState to ensure consistent diff calculations
-    setSelectedOrganizationIds(prevOrganizationIds => {
-      // Find organizations that were unselected using the current state
-      const unselectedOrganizationIds = prevOrganizationIds.filter(
-        orgId => !newOrganizationIds.includes(orgId)
-      );
-      
-      if (unselectedOrganizationIds.length > 0) {
-        // Remove buildings that belong to unselected organizations using O(1) lookups
-        const unselectedOrgSet = new Set(unselectedOrganizationIds);
-        setSelectedBuildingIds(prevBuildingIds => 
-          prevBuildingIds.filter(buildingId => {
-            const building = buildingLookup.get(buildingId);
-            // Keep unknowns to handle race conditions - only remove if building exists and is unselected
-            return !building || !unselectedOrgSet.has(building.organizationId);
-          })
-        );
-        
-        // Remove residences that belong to buildings in unselected organizations using O(1) lookups
-        setSelectedResidenceAssignments(prevResidences => 
-          prevResidences.filter(assignment => {
-            const residence = residenceLookup.get(assignment.residenceId);
-            // Keep unknowns to handle race conditions - only remove if residence exists
-            if (!residence) return true;
-            
-            const building = buildingLookup.get(residence.buildingId);
-            // Keep unknowns to handle race conditions - only remove if building exists and is unselected
-            return !building || !unselectedOrgSet.has(building.organizationId);
-          })
-        );
-      }
-      
-      return newOrganizationIds;
-    });
-  };
-  
-  const handleBuildingSelectionChange = (newBuildingIds: string[]) => {
-    // Use functional setState to ensure consistent diff calculations
-    setSelectedBuildingIds(prevBuildingIds => {
-      // Find buildings that were unselected using the current state
-      const unselectedBuildingIds = prevBuildingIds.filter(
-        buildingId => !newBuildingIds.includes(buildingId)
-      );
-      
-      if (unselectedBuildingIds.length > 0) {
-        // Remove residences that belong to unselected buildings using O(1) lookups
-        const unselectedBuildingSet = new Set(unselectedBuildingIds);
-        setSelectedResidenceAssignments(prevResidences => 
-          prevResidences.filter(assignment => {
-            const residence = residenceLookup.get(assignment.residenceId);
-            // Keep unknowns to handle race conditions - only remove if residence exists and building is unselected
-            return !residence || !unselectedBuildingSet.has(residence.buildingId);
-          })
-        );
-      }
-      
-      return newBuildingIds;
-    });
-  };
+  // REMOVED: Cascading handlers no longer needed since we only have basic info
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -522,34 +456,7 @@ export default function UserManagement() {
     }
   }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
-  // Initialize states ONCE per user when dialog opens - guard against re-initialization
-  React.useEffect(() => {
-    if (editingUser && editingUser.id !== lastInitializedUserIdRef.current) {
-      // Only initialize once per user - prevent re-initialization on unrelated renders
-      const userWithAssignments = findUserWithAssignments(editingUser.id);
-      if (userWithAssignments) {
-        const currentOrgIds = userWithAssignments.organizations?.map((org: any) => org.id) || [];
-        const currentBuildingIds = userWithAssignments.buildings?.map((building: any) => building.id) || [];
-        const currentResidenceAssignments = userWithAssignments.residences?.map((residence: any) => ({
-          residenceId: residence.id,
-          relationshipType: residence.relationshipType || 'tenant',
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: null,
-          isActive: true
-        })) || [];
-        setSelectedOrganizationIds(currentOrgIds);
-        setSelectedBuildingIds(currentBuildingIds);
-        setSelectedResidenceAssignments(currentResidenceAssignments);
-        lastInitializedUserIdRef.current = editingUser.id;
-      }
-    } else if (!editingUser) {
-      // Reset states when dialog closes
-      setSelectedOrganizationIds([]);
-      setSelectedBuildingIds([]);
-      setSelectedResidenceAssignments([]);
-      lastInitializedUserIdRef.current = null;
-    }
-  }, [editingUser?.id]);
+  // REMOVED: State initialization no longer needed since we only have basic info
 
   // Get current user's access information for role-based filtering
   const currentUserAccess = useMemo(() => {
