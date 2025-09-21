@@ -5,6 +5,7 @@
 
 // SSL functionality temporarily disabled due to build issues
 // import { sslRenewalJob } from './ssl_renewal_job';
+import { notificationJobScheduler } from './notification-automation';
 
 /**
  * Start all background jobs.
@@ -14,7 +15,10 @@ export async function startJobs(): Promise<void> {
     // SSL renewal job temporarily disabled
     // await sslRenewalJob.start();
     
-    console.log('✅ Background jobs initialized (SSL disabled)');
+    // Initialize notification automation job
+    notificationJobScheduler.init();
+    
+    console.log('✅ Background jobs initialized (SSL disabled, notification automation enabled)');
   } catch (error) {
     console.error('❌ Error starting background jobs:', error);
     throw error;
@@ -28,18 +32,22 @@ export function stopJobs(): void {
   // SSL renewal job temporarily disabled
   // sslRenewalJob.stop();
   
+  // Stop notification automation job
+  notificationJobScheduler.destroy();
+  
   console.log('✅ Background jobs stopped');
 }
 
 /**
  * Get status of all background jobs.
  */
-export function getJobsStatus(): Record<string, any> {
+export async function getJobsStatus(): Promise<Record<string, any>> {
   return {
     // SSL renewal temporarily disabled
     // sslRenewal: sslRenewalJob.getStatus(),
+    notificationAutomation: await notificationJobScheduler.getJobStatus(),
     status: 'running',
-    message: 'SSL functionality temporarily disabled'
+    message: 'SSL functionality temporarily disabled, notification automation enabled'
   };
 }
 

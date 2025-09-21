@@ -492,13 +492,13 @@ async function loadFullApplication(): Promise<void> {
       log('✅ Production static file serving configured with API route protection');
     }
 
-    // Initialize bill auto-generation job scheduler
+    // Initialize all background jobs (including bill auto-generation and notification automation)
     try {
-      const { billJobScheduler } = await import('./jobs/bill-auto-generation-job');
-      billJobScheduler.init();
-      log('✅ Bill auto-generation job scheduler initialized');
+      const { startJobs } = await import('./jobs/index');
+      await startJobs();
+      log('✅ All background jobs initialized');
     } catch (jobError: any) {
-      log(`⚠️ Failed to initialize job scheduler: ${jobError.message}`, 'error');
+      log(`⚠️ Failed to initialize background jobs: ${jobError.message}`, 'error');
     }
 
     // Start heavy database work in background AFTER routes are ready

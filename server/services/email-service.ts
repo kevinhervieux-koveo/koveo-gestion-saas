@@ -249,6 +249,249 @@ Quebec Law 25 compliant.
   }
 
   /**
+   * Sanitizes HTML content to prevent XSS attacks.
+   * Removes potentially dangerous HTML tags and attributes.
+   */
+  private sanitizeHtmlContent(content: string): string {
+    if (!content) return '';
+    
+    // Remove script tags and their content
+    let sanitized = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    
+    // Remove potentially dangerous tags
+    sanitized = sanitized.replace(/<(iframe|object|embed|form|input|select|textarea|button|link|meta|style)[^>]*>/gi, '');
+    
+    // Remove event handlers (onclick, onload, etc.)
+    sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
+    
+    // Remove javascript: protocol
+    sanitized = sanitized.replace(/javascript:/gi, '');
+    
+    return sanitized.trim();
+  }
+
+  /**
+   * Sends notification emails for automated building-specific notifications.
+   * Email includes notification content with proper Quebec compliance settings.
+   *
+   * @param {string} to - Recipient email address.
+   * @param {string} userName - User's display name for personalization.
+   * @param {string} title - Notification title.
+   * @param {string} message - Notification message content.
+   * @param {string} notificationType - Type of notification (announcement, seasonal, etc.).
+   * @param {'fr' | 'en'} [language='fr'] - Email language (defaults to French for Quebec).
+   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully.
+   *
+   * @throws {Error} When SendGrid API fails or invalid parameters provided.
+   *
+   * @example
+   * ```typescript
+   * const emailService = new EmailService();
+   * const success = await emailService.sendNotificationEmail(
+   *   'resident@example.com',
+   *   'Jean Dupont',
+   *   'Rappel de paiement mensuel',
+   *   'Votre paiement mensuel est dû le 1er du mois...',
+   *   'bill_reminder',
+   *   'fr'
+   * );
+   * ```
+   */
+  async sendNotificationEmail(
+    to: string,
+    userName: string,
+    title: string,
+    message: string,
+    notificationType: string,
+    language: 'fr' | 'en' = 'fr'
+  ): Promise<boolean> {
+    try {
+      // Sanitize message content to prevent XSS
+      const sanitizedMessage = this.sanitizeHtmlContent(message);
+      
+      const notificationTypeTranslations = {
+        fr: {
+          bill_reminder: 'Rappel de facturation',
+          maintenance_update: 'Mise à jour de maintenance',
+          announcement: 'Annonce importante',
+          seasonal_reminder: 'Rappel saisonnier',
+          upcoming_payment: 'Paiement à venir',
+          policy_change: 'Changement de politique',
+          meeting_invite: 'Invitation à une réunion',
+          default: 'Notification'
+        },
+        en: {
+          bill_reminder: 'Billing Reminder',
+          maintenance_update: 'Maintenance Update',
+          announcement: 'Important Announcement',
+          seasonal_reminder: 'Seasonal Reminder',
+          upcoming_payment: 'Upcoming Payment',
+          policy_change: 'Policy Change',
+          meeting_invite: 'Meeting Invitation',
+          default: 'Notification'
+        }
+      };
+
+      const typeLabel = notificationTypeTranslations[language][notificationType] || 
+                       notificationTypeTranslations[language].default;
+
+      const templates = {
+        fr: {
+          subject: `${typeLabel} - Koveo Gestion`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>${title}</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: #f8f9fa; padding: 30px; border-radius: 8px;">
+                <h1 style="color: #2563eb; margin-bottom: 20px;">Koveo Gestion</h1>
+                
+                <div style="background: white; padding: 25px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  <h2 style="color: #374151; margin-bottom: 15px;">${title}</h2>
+                  
+                  <p>Bonjour ${userName},</p>
+                  
+                  <div style="background: #f3f4f6; padding: 20px; border-radius: 4px; margin: 20px 0;">
+                    ${sanitizedMessage.replace(/\n/g, '<br>')}
+                  </div>
+                  
+                  <p style="margin-top: 20px;">
+                    <small style="color: #6b7280;">
+                      Cette notification automatisée a été envoyée dans le cadre de la gestion de votre résidence.
+                    </small>
+                  </p>
+                </div>
+                
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+                
+                <div style="font-size: 12px; color: #6b7280;">
+                  <p><strong>Confidentialité & Sécurité</strong></p>
+                  <p>Conforme à la Loi 25 du Québec. Vos données personnelles sont protégées selon les normes de sécurité les plus strictes.</p>
+                  <p>© 2025 Koveo Gestion. Tous droits réservés.</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+          text: `
+${title} - Koveo Gestion
+
+Bonjour ${userName},
+
+${sanitizedMessage}
+
+Cette notification automatisée a été envoyée dans le cadre de la gestion de votre résidence.
+
+Conforme à la Loi 25 du Québec.
+© 2025 Koveo Gestion
+          `,
+        },
+        en: {
+          subject: `${typeLabel} - Koveo Gestion`,
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>${title}</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: #f8f9fa; padding: 30px; border-radius: 8px;">
+                <h1 style="color: #2563eb; margin-bottom: 20px;">Koveo Gestion</h1>
+                
+                <div style="background: white; padding: 25px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  <h2 style="color: #374151; margin-bottom: 15px;">${title}</h2>
+                  
+                  <p>Hello ${userName},</p>
+                  
+                  <div style="background: #f3f4f6; padding: 20px; border-radius: 4px; margin: 20px 0;">
+                    ${sanitizedMessage.replace(/\n/g, '<br>')}
+                  </div>
+                  
+                  <p style="margin-top: 20px;">
+                    <small style="color: #6b7280;">
+                      This automated notification was sent as part of your residence management.
+                    </small>
+                  </p>
+                </div>
+                
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+                
+                <div style="font-size: 12px; color: #6b7280;">
+                  <p><strong>Privacy & Security</strong></p>
+                  <p>Quebec Law 25 compliant. Your personal data is protected according to the highest security standards.</p>
+                  <p>© 2025 Koveo Gestion. All rights reserved.</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+          text: `
+${title} - Koveo Gestion
+
+Hello ${userName},
+
+${sanitizedMessage}
+
+This automated notification was sent as part of your residence management.
+
+Quebec Law 25 compliant.
+© 2025 Koveo Gestion
+          `,
+        },
+      };
+
+      const template = templates[language];
+
+      await this.mailService.send({
+        to,
+        from: {
+          email: this.fromEmail,
+          name: this.fromName,
+        },
+        subject: template.subject,
+        text: template.text.trim(),
+        html: template.html,
+        mailSettings: {
+          bypassListManagement: {
+            enable: false,
+          },
+          footer: {
+            enable: false,
+          },
+          sandboxMode: {
+            enable: false,
+          },
+        },
+        trackingSettings: {
+          clickTracking: {
+            enable: false,
+            enableText: false,
+          },
+          openTracking: {
+            enable: false,
+          },
+          subscriptionTracking: {
+            enable: false,
+          },
+          ganalytics: {
+            enable: false,
+          },
+        },
+      });
+
+      console.log(`✅ Notification email sent to ${to} (${notificationType}) in ${language}`);
+      return true;
+    } catch (error: any) {
+      console.error('❌ Error sending notification email:', error);
+      return false;
+    }
+  }
+
+  /**
    * Sends an invitation email to a new user with Quebec Law 25 compliance.
    * Email includes registration link and privacy notice.
    *
@@ -525,10 +768,19 @@ Quebec Law 25 compliant.
       const isFrench = language === 'fr';
       
       // Generate calendar attachments
-      const icsContent = await generateEnhancedICS(meetingData, recipients, language);
-      const calendarLinks = generateAllCalendarLinks(meetingData);
+      // Transform meetingData to match MeetingData interface
+      const meetingDataForCalendar = {
+        title: meetingData.title,
+        description: meetingData.description,
+        location: meetingData.location,
+        scheduledDate: meetingData.startTime,
+        duration: Math.round((meetingData.endTime.getTime() - meetingData.startTime.getTime()) / 60000), // in minutes
+        organizationName: meetingData.organizationName
+      };
+      const icsContent = generateEnhancedICS(meetingDataForCalendar, language);
+      const calendarLinks = generateAllCalendarLinks(meetingDataForCalendar, language);
       const calendarButtonsHTML = generateCalendarButtonsHTML(calendarLinks, language);
-      const calendarInstructions = generateCalendarInstructionsText(language);
+      const calendarInstructions = generateCalendarInstructionsText(calendarLinks, language);
 
       const formatDate = (date: Date) => {
         return date.toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -1191,7 +1443,7 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
             <h2 style="color: #374151;">${subject}</h2>
             
             <div style="background: white; padding: 20px; border-radius: 6px; border: 1px solid #e5e7eb;">
-              <p style="line-height: 1.6;">${message}</p>
+              <p style="line-height: 1.6;">${sanitizedMessage}</p>
             </div>
             
             
@@ -1218,7 +1470,7 @@ ${language === 'fr' ? 'Ceci est un aperçu de votre notification. Aucune action 
 
 ${subject}
 
-${message}
+${sanitizedMessage}
 
 ${language === 'fr' ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
 © 2025 Koveo Gestion

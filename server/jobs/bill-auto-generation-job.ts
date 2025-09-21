@@ -21,7 +21,6 @@ export class BillAutoGenerationJobScheduler {
     cron.schedule('0 2 1 1 *', async () => {
       await this.runMonthlyGeneration();
     }, {
-      scheduled: true,
       timezone: 'America/Montreal' // Quebec timezone
     });
 
@@ -29,7 +28,6 @@ export class BillAutoGenerationJobScheduler {
     cron.schedule('0 3 * * *', async () => {
       await this.runDailyCheck();
     }, {
-      scheduled: true,
       timezone: 'America/Montreal'
     });
 
