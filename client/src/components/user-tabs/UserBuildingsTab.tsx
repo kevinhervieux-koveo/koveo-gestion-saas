@@ -56,7 +56,7 @@ export function UserBuildingsTab({
       // Reset when dialog is closed (no user)
       onSelectionChange?.([]);
     }
-  }, [user?.id, onSelectionChange]); // Only depend on user ID to avoid unnecessary calls
+  }, [user?.id]); // Only depend on user ID to avoid infinite loops
 
   // REMOVED: Cascade filtering is now handled by parent component
   // Child component is fully controlled - no internal cascade logic

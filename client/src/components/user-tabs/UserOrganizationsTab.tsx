@@ -41,7 +41,7 @@ export function UserOrganizationsTab({
       onSelectionChange?.([]);
       initializedRef.current = null;
     }
-  }, [user, onSelectionChange]);
+  }, [user?.id]); // Only depend on user ID to avoid infinite loops
 
   const handleOrganizationToggle = (organizationId: string) => {
     setSelectedOrganizations(prev => {
