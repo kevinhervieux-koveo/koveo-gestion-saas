@@ -14,6 +14,7 @@ export interface BuildingData {
   buildingType: string;
   totalUnits: number;
   organizationId: string;
+  organization_id?: string; // Handle API response field naming variation
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -50,7 +51,9 @@ export function BuildingCard({
     ? `/manager/buildings/${building.id}/documents`
     : `/residents/building/documents?buildingId=${building.id}`;
     
-  const defaultResidencesPath = `/manager/residences?organization=${building.organizationId}&building=${building.id}`;
+  // Handle both organizationId and organization_id field naming conventions
+  const orgId = building.organizationId || building.organization_id;
+  const defaultResidencesPath = `/manager/residences?organization=${orgId}&building=${building.id}`;
 
   return (
     <Card className='h-full' data-testid={`card-building-${building.id}`}>
