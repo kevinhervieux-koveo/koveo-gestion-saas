@@ -140,7 +140,12 @@ export function withHierarchicalSelection<T extends object>(
                 let accessibleBuildingCount = 0;
                 for (const building of buildings) {
                   try {
-                    const residenceResponse = await fetch(`/api/buildings/${building.id}/residences`);
+                    // Use secure user-specific endpoint for residents when counting residences
+                    const residenceUrl = isResidentOrTenant 
+                      ? `/api/users/me/residences?building_id=${building.id}`
+                      : `/api/buildings/${building.id}/residences`;
+                      
+                    const residenceResponse = await fetch(residenceUrl);
                     if (residenceResponse.ok) {
                       const residences = await residenceResponse.json();
                       if (residences.length > 0) {
@@ -215,7 +220,13 @@ export function withHierarchicalSelection<T extends object>(
           const buildingsWithResidences = [];
           for (const building of allBuildings) {
             try {
-              const residenceResponse = await fetch(`/api/buildings/${building.id}/residences`);
+              // Use secure user-specific endpoint for residents to check if they have residences in this building
+              const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
+              const residenceUrl = isResidentOrTenant 
+                ? `/api/users/me/residences?building_id=${building.id}`
+                : `/api/buildings/${building.id}/residences`;
+                
+              const residenceResponse = await fetch(residenceUrl);
               if (residenceResponse.ok) {
                 const residences = await residenceResponse.json();
                 if (residences.length > 0) {
@@ -235,12 +246,25 @@ export function withHierarchicalSelection<T extends object>(
       staleTime: 0
     });
 
-    // Fetch residences
+    // Fetch residences using secure user-specific endpoint for residents
     const {
       data: residences = [],
       isLoading: isLoadingResidences
     } = useQuery<Residence[]>({
-      queryKey: ['/api/buildings', buildingId, 'residences'],
+      queryKey: ['residences', buildingId, user?.role],
+      queryFn: async () => {
+        const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
+        
+        const url = isResidentOrTenant 
+          ? `/api/users/me/residences?building_id=${buildingId}`
+          : `/api/buildings/${buildingId}/residences`;
+          
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error('Failed to fetch residences');
+        }
+        return response.json();
+      },
       enabled: currentLevel === 'residence' && !!buildingId
     });
 

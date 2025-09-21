@@ -1516,6 +1516,91 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/users/me/residences - Get current user's accessible residences, optionally filtered by building
+   */
+  app.get('/api/users/me/residences', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { building_id } = req.query;
+
+      // For residents and tenants, get only their assigned residences
+      if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(req.user.role)) {
+        
+        let whereConditions = [
+          eq(schema.userResidences.userId, userId),
+          eq(schema.userResidences.isActive, true),
+          eq(schema.residences.isActive, true)
+        ];
+
+        // Add building filter if specified
+        if (building_id) {
+          whereConditions.push(eq(schema.residences.buildingId, building_id));
+        }
+
+        const userResidences = await db
+          .select({
+            id: schema.residences.id,
+            unitNumber: schema.residences.unitNumber,
+            floor: schema.residences.floor,
+            buildingId: schema.residences.buildingId,
+            buildingName: schema.buildings.name,
+          })
+          .from(schema.userResidences)
+          .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+          .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+          .where(and(...whereConditions))
+          .orderBy(schema.buildings.name, schema.residences.unitNumber);
+
+        return res.json(userResidences);
+      }
+
+      // For managers and admins, get residences in their accessible buildings
+      const userOrgs = await db
+        .select({ organizationId: schema.userOrganizations.organizationId })
+        .from(schema.userOrganizations)
+        .where(eq(schema.userOrganizations.userId, userId));
+
+      const orgIds = userOrgs.map(org => org.organizationId);
+
+      if (orgIds.length === 0) {
+        return res.json([]);
+      }
+
+      let whereConditions = [
+        inArray(schema.buildings.organizationId, orgIds),
+        eq(schema.buildings.isActive, true),
+        eq(schema.residences.isActive, true)
+      ];
+
+      // Add building filter if specified
+      if (building_id) {
+        whereConditions.push(eq(schema.residences.buildingId, building_id));
+      }
+
+      const residences = await db
+        .select({
+          id: schema.residences.id,
+          unitNumber: schema.residences.unitNumber,
+          floor: schema.residences.floor,
+          buildingId: schema.residences.buildingId,
+          buildingName: schema.buildings.name,
+        })
+        .from(schema.residences)
+        .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+        .where(and(...whereConditions))
+        .orderBy(schema.buildings.name, schema.residences.unitNumber);
+
+      return res.json(residences);
+    } catch (error: any) {
+      console.error('❌ Error getting user residences:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to get user residences',
+      });
+    }
+  });
+
+  /**
    * GET /api/users/:id/buildings - Get user's accessible buildings based on their residences.
    */
   app.get('/api/users/:id/buildings', requireAuth, async (req: any, res) => {
