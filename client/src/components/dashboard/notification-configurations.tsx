@@ -775,15 +775,44 @@ export function NotificationConfigurations({
   const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingConfig, setEditingConfig] = useState<NotificationConfiguration | null>(null);
+  const [selectedOrganization, setSelectedOrganization] = useState<string>('');
   const [selectedBuilding, setSelectedBuilding] = useState<string>('all');
+
+  // Fetch available organizations
+  const { data: organizationsData } = useQuery<{organizations: Array<{id: string, name: string}>}>(
+    {
+      queryKey: ['/api/communication/organizations'],
+      queryFn: async () => {
+        const response = await fetch('/api/communication/organizations');
+        if (!response.ok) {
+          throw new Error('Failed to fetch organizations');
+        }
+        return response.json();
+      },
+    }
+  );
+
+  // Set default organization when data loads
+  React.useEffect(() => {
+    if (organizationsData?.organizations && !selectedOrganization) {
+      // Default to organizationContext if available, otherwise first organization
+      const defaultOrg = organizationsData.organizations.find(org => org.id === organizationContext.id) ||
+                         organizationsData.organizations[0];
+      if (defaultOrg) {
+        setSelectedOrganization(defaultOrg.id);
+      }
+    }
+  }, [organizationsData, organizationContext.id, selectedOrganization]);
 
   // Fetch notification configurations
   const { data: configs, isLoading, error } = useQuery<NotificationConfigurationWithDetails[]>({
-    queryKey: ['/api/communication/notification-configs', organizationContext.id, selectedBuilding],
+    queryKey: ['/api/communication/notification-configs', selectedOrganization, selectedBuilding],
     queryFn: async () => {
+      if (!selectedOrganization) return [];
+      
       // If a specific building is selected, fetch configs for that building only
       if (selectedBuilding !== 'all') {
-        const response = await fetch(`/api/communication/notification-configs?organizationId=${organizationContext.id}&buildingId=${selectedBuilding}`);
+        const response = await fetch(`/api/communication/notification-configs?organizationId=${selectedOrganization}&buildingId=${selectedBuilding}`);
         if (!response.ok) {
           throw new Error('Failed to fetch notification configurations');
         }
@@ -792,7 +821,7 @@ export function NotificationConfigurations({
       }
       
       // If 'all' is selected, we need to fetch configs for each building and combine them
-      const buildingsResponse = await fetch(`/api/communication/buildings/${organizationContext.id}`);
+      const buildingsResponse = await fetch(`/api/communication/buildings/${selectedOrganization}`);
       if (!buildingsResponse.ok) {
         throw new Error('Failed to fetch buildings');
       }
@@ -802,7 +831,7 @@ export function NotificationConfigurations({
       const allConfigs: NotificationConfigurationWithDetails[] = [];
       for (const building of buildingsData.buildings || []) {
         try {
-          const response = await fetch(`/api/communication/notification-configs?organizationId=${organizationContext.id}&buildingId=${building.id}`);
+          const response = await fetch(`/api/communication/notification-configs?organizationId=${selectedOrganization}&buildingId=${building.id}`);
           if (response.ok) {
             const data = await response.json();
             const configs = data.configurations || [];
@@ -820,14 +849,19 @@ export function NotificationConfigurations({
       
       return allConfigs;
     },
-    enabled: !!organizationContext.id,
+    enabled: !!selectedOrganization,
   });
 
   // Fetch buildings for filtering
   const { data: buildingsData } = useQuery<BuildingsResponse>({
-    queryKey: ['/api/communication/buildings', organizationContext.id],
-    enabled: !!organizationContext.id,
+    queryKey: ['/api/communication/buildings', selectedOrganization],
+    enabled: !!selectedOrganization,
   });
+
+  // Reset building selection when organization changes
+  React.useEffect(() => {
+    setSelectedBuilding('all');
+  }, [selectedOrganization]);
 
   // Filter configurations by selected building
   const filteredConfigs = useMemo(() => {
@@ -844,7 +878,7 @@ export function NotificationConfigurations({
     onSuccess: (_, config) => {
       // Invalidate scoped cache keys for proper cache management
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/communication/notification-configs', config.organizationId],
+        queryKey: ['/api/communication/notification-configs'],
         exact: false // This will invalidate all queries that start with this pattern
       });
       toast({
@@ -937,7 +971,24 @@ export function NotificationConfigurations({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Organization Filter */}
+          {organizationsData?.organizations && organizationsData.organizations.length > 1 && (
+            <Select value={selectedOrganization} onValueChange={setSelectedOrganization}>
+              <SelectTrigger className="w-[200px]" data-testid="select-organization-filter">
+                <Building className="w-4 h-4 mr-2" />
+                <SelectValue placeholder={language === 'en' ? 'Select Organization' : 'Sélectionner l\'organisation'} />
+              </SelectTrigger>
+              <SelectContent>
+                {organizationsData.organizations.map((organization) => (
+                  <SelectItem key={organization.id} value={organization.id}>
+                    {organization.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
           {/* Building Filter */}
           {buildingsData?.buildings && buildingsData.buildings.length > 0 && (
             <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
@@ -961,7 +1012,7 @@ export function NotificationConfigurations({
           {/* Create Button */}
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
-              <Button data-testid="button-create-config">
+              <Button data-testid="button-create-config" disabled={!selectedOrganization}>
                 <Plus className="w-4 h-4 mr-2" />
                 {language === 'en' ? 'Create Configuration' : 'Créer une configuration'}
               </Button>
