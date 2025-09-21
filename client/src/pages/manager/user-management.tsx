@@ -635,12 +635,33 @@ export default function UserManagement() {
       return;
     }
 
-    console.log('🎯 [Unified Save] Current selections:', {
+    console.log('🎯 [Unified Save] Current selections (before cascade filtering):', {
       organizationIds: selectedOrganizationIds,
       buildingIds: selectedBuildingIds,
       residenceAssignments: selectedResidenceAssignments,
       canEditOrganizations,
       canEditResidences
+    });
+
+    // Apply cascade filtering before saving
+    // Filter buildings: only include buildings that belong to selected organizations
+    const filteredBuildingIds = selectedBuildingIds.filter(buildingId => {
+      const building = buildingLookup.get(buildingId);
+      return building && selectedOrganizationIds.includes(building.organizationId);
+    });
+
+    // Filter residences: only include residences that belong to filtered buildings
+    const filteredResidenceAssignments = selectedResidenceAssignments.filter(assignment => {
+      const residence = residenceLookup.get(assignment.residenceId);
+      return residence && filteredBuildingIds.includes(residence.buildingId);
+    });
+
+    console.log('🔄 [Unified Save] After cascade filtering:', {
+      organizationIds: selectedOrganizationIds,
+      buildingIds: filteredBuildingIds,
+      residenceAssignments: filteredResidenceAssignments,
+      removedBuildings: selectedBuildingIds.length - filteredBuildingIds.length,
+      removedResidences: selectedResidenceAssignments.length - filteredResidenceAssignments.length
     });
 
     try {
@@ -655,24 +676,27 @@ export default function UserManagement() {
       // Save all data sequentially to ensure consistency
       await editUserMutation.mutateAsync({ ...formValues, id: editingUser.id });
       
-      if (canEditOrganizations && selectedOrganizationIds.length > 0) {
+      // Always save organization assignments (even if empty to clear them)
+      if (canEditOrganizations) {
         await editOrganizationsMutation.mutateAsync({
           userId: editingUser.id,
           organizationIds: selectedOrganizationIds
         });
       }
       
-      if (selectedBuildingIds.length > 0) {
-        await editBuildingsMutation.mutateAsync({
-          userId: editingUser.id,
-          buildingIds: selectedBuildingIds
-        });
-      }
+      // Always save building assignments (even if empty to clear them)
+      // Use filtered building IDs to respect cascade logic
+      await editBuildingsMutation.mutateAsync({
+        userId: editingUser.id,
+        buildingIds: filteredBuildingIds
+      });
       
-      if (canEditResidences && selectedResidenceAssignments.length > 0) {
+      // Always save residence assignments (even if empty to clear them)
+      // Use filtered residence assignments to respect cascade logic
+      if (canEditResidences) {
         await editResidencesMutation.mutateAsync({
           userId: editingUser.id,
-          residenceAssignments: selectedResidenceAssignments
+          residenceAssignments: filteredResidenceAssignments
         });
       }
 
