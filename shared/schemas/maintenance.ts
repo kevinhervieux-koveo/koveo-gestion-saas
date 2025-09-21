@@ -64,7 +64,7 @@ export const priorityEnum = pgEnum('priority', [
 /**
  * Enum for suggestion status
  */
-export const suggestionStatusEnum = pgEnum('suggestion_status', [
+export const evaluationStatusEnum = pgEnum('evaluation_status', [
   'pending',
   'scheduled',
   'postponed',
@@ -233,7 +233,7 @@ export const evaluationSuggestions = pgTable('evaluation_suggestions', {
   suggestedType: suggestionTypeEnum('suggested_type').notNull(),
   reason: text('reason').notNull(), // explanation for the suggestion
   priority: priorityEnum('priority').notNull().default('medium'),
-  status: suggestionStatusEnum('status').notNull().default('pending'),
+  status: evaluationStatusEnum('status').notNull().default('pending'),
   postponedTo: date('postponed_to'), // if postponed, new suggested date
   projectId: uuid('project_id').references((): any => maintenanceProjects.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow(),
