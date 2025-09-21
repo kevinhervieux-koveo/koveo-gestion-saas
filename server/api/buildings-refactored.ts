@@ -119,17 +119,13 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         `✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`
       );
 
-      res.json({
+      return res.json({
         buildings: buildingsWithStats,
         meta: {
           total: buildingsWithStats.length,
           userRole: currentUser.role,
           userId: currentUser.id,
         },
-      });
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch buildings',
       });
     }
   });
@@ -188,12 +184,8 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         accessType: accessCheck.accessType,
       });
 
-      res.json({
+      return res.json({
         building: buildingWithStats,
-      });
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch building details',
       });
     }
   });
@@ -235,13 +227,9 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       const newBuilding = await createBuilding(buildingData);
 
 
-      res.status(201).json({
+      return res.status(201).json({
         message: 'Building created successfully',
         building: newBuilding,
-      });
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to create building',
       });
     }
   });
@@ -303,13 +291,9 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       const updatedBuilding = await updateBuilding(buildingId, buildingData);
 
 
-      res.json({
+      return res.json({
         message: 'Building updated successfully',
         building: updatedBuilding,
-      });
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to update building',
       });
     }
   });
@@ -361,7 +345,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Get deletion impact
       const impact = await getBuildingDeletionImpact(buildingId);
 
-      res.json({
+      return res.json({
         buildingId,
         impact: {
           ...impact,
@@ -369,10 +353,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
               ? 'This action will affect multiple entities. Use cascade delete to proceed.'
               : null,
         },
-      });
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to analyze deletion impact',
       });
     }
   });
@@ -415,7 +395,7 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       const deletedBuilding = await cascadeDeleteBuilding(buildingId);
 
 
-      res.json({
+      return res.json({
         message: 'Building and related entities deleted successfully',
         deletedBuilding: deletedBuilding.name,
       });
