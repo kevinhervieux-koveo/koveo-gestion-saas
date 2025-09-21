@@ -252,6 +252,7 @@ const uploadDocumentRecordSchema = z.object({
   buildingId: z.string().uuid().optional(),
   attachedToType: z.string().optional(),
   attachedToId: z.string().optional(),
+  effectiveDate: z.string().optional(),
 });
 
 /**
@@ -2787,7 +2788,7 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(401).json({ message: 'User not authenticated' });
       }
       
-      const { textContent, name, description, documentType, attachedToType, attachedToId, buildingId, residenceId, isVisibleToTenants } = req.body;
+      const { textContent, name, description, documentType, attachedToType, attachedToId, buildingId, residenceId, isVisibleToTenants, effectiveDate } = req.body;
       
       console.log(`[${timestamp}] 🔍 Text document data:`, {
         textContentLength: textContent?.length,
@@ -2860,6 +2861,7 @@ export function registerDocumentRoutes(app: Express): void {
         attachedToType: attachedToType || undefined,
         attachedToId: attachedToId || undefined,
         uploadedById: userId,
+        effectiveDate: effectiveDate,
       };
       
       console.log(`[${timestamp}] 💾 Creating document record in database:`, {
@@ -2947,6 +2949,7 @@ export function registerDocumentRoutes(app: Express): void {
         buildingId: req.body.buildingId || undefined,
         attachedToType: req.body.attachedToType || undefined,
         attachedToId: req.body.attachedToId || undefined,
+        effectiveDate: req.body.effectiveDate || undefined,
       };
 
       // Production debugging: Log form data before validation
@@ -3052,6 +3055,7 @@ export function registerDocumentRoutes(app: Express): void {
         uploadedById: userId,
         attachedToType: validatedData.attachedToType,
         attachedToId: validatedData.attachedToId,
+        effectiveDate: validatedData.effectiveDate,
       };
 
       // Create document record in database
