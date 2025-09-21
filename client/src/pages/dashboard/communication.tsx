@@ -372,6 +372,7 @@ const recipientRoles: RecipientRole[] = [
 // Extend shared schema to include frontend-specific urgencyLevel field for UI
 const generalCommunicationFormSchema = insertGeneralCommunicationSchema.extend({
   urgencyLevel: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  buildingIds: z.array(z.string()).optional(), // Multiple building selection
 }).omit({
   isUrgent: true, // We'll derive this from urgencyLevel
   createdBy: true, // Will be set server-side
@@ -397,6 +398,28 @@ interface OrganizationContext {
   canSendToAllOrganizations: boolean;
 }
 
+// Enhanced organization data interfaces
+interface Organization {
+  id: string;
+  name: string;
+}
+
+interface OrganizationsResponse {
+  organizations: Organization[];
+  userRole: string;
+  canAccessAll: boolean;
+}
+
+interface Building {
+  id: string;
+  name: string;
+  address: string;
+}
+
+interface BuildingsResponse {
+  buildings: Building[];
+}
+
 /**
  * Recipient Management Component
  * Handles organization filtering and recipient selection for communications
@@ -405,11 +428,13 @@ function RecipientManagement({
   selectedRoles, 
   onRoleChange, 
   organizationContext,
+  userRole,
   language
 }: {
   selectedRoles: string[];
   onRoleChange: (roles: string[]) => void;
   organizationContext: OrganizationContext | null;
+  userRole: string;
   language: 'en' | 'fr';
 }) {
   const { data: recipients = [], isLoading: loadingRecipients } = useQuery<RecipientInfo[]>({
@@ -429,6 +454,19 @@ function RecipientManagement({
       onRoleChange(newRoles);
     }
   };
+
+  // Filter recipient roles based on user permissions
+  // Managers cannot send communications to administrators
+  const getAvailableRoles = () => {
+    if (userRole === 'admin') {
+      return recipientRoles; // Admins can send to everyone
+    } else if (userRole === 'manager' || userRole === 'demo_manager') {
+      return recipientRoles.filter(role => role.value !== 'admin'); // Managers cannot send to admins
+    }
+    return recipientRoles;
+  };
+
+  const availableRoles = getAvailableRoles();
 
   const getRecipientCount = () => {
     if (!recipients.length) return 0;
@@ -451,7 +489,7 @@ function RecipientManagement({
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {recipientRoles.map((role) => (
+        {availableRoles.map((role) => (
           <div key={role.value} className="flex items-center space-x-2">
             <Checkbox
               id={`role-${role.value}`}
@@ -511,7 +549,21 @@ function GeneralCommunicationForm({
   language: 'en' | 'fr';
 }) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('');
+
+  // Fetch available organizations
+  const { data: organizationsData, isLoading: loadingOrganizations } = useQuery<OrganizationsResponse>({
+    queryKey: ['/api/communication/organizations'],
+    enabled: !!user,
+  });
+
+  // Fetch buildings for selected organization
+  const { data: buildingsData, isLoading: loadingBuildings } = useQuery<BuildingsResponse>({
+    queryKey: ['/api/communication/buildings', selectedOrganizationId],
+    enabled: !!selectedOrganizationId,
+  });
 
   // Form setup
   const communicationForm = useForm<GeneralCommunicationFormData>({
@@ -522,16 +574,29 @@ function GeneralCommunicationForm({
       urgencyLevel: 'medium' as const,
       recipientRoles: [],
       scheduledFor: undefined,
-      organizationId: organizationContext?.id || '',
+      organizationId: '',
+      buildingIds: [],
     },
   });
+
+  // Set default organization when data loads
+  React.useEffect(() => {
+    if (organizationsData?.organizations.length === 1) {
+      const defaultOrg = organizationsData.organizations[0];
+      setSelectedOrganizationId(defaultOrg.id);
+      communicationForm.setValue('organizationId', defaultOrg.id);
+    } else if (organizationContext?.id) {
+      setSelectedOrganizationId(organizationContext.id);
+      communicationForm.setValue('organizationId', organizationContext.id);
+    }
+  }, [organizationsData, organizationContext, communicationForm]);
 
   // Communication mutation
   const sendCommunicationMutation = useMutation({
     mutationFn: async (data: GeneralCommunicationFormData) => {
       // Map form data to shared schema format
       const payload: InsertGeneralCommunication = {
-        organizationId: organizationContext?.id || '',
+        organizationId: data.organizationId,
         title: data.title,
         content: data.content,
         isUrgent: data.urgencyLevel === 'high' || data.urgencyLevel === 'urgent',
@@ -540,7 +605,12 @@ function GeneralCommunicationForm({
         createdBy: '', // Will be set server-side from authenticated user
       };
       
-      const response = await apiRequest('POST', '/api/communication/general', payload);
+      // Include building IDs if specified
+      const requestBody = data.buildingIds?.length 
+        ? { ...payload, buildingIds: data.buildingIds }
+        : payload;
+      
+      const response = await apiRequest('POST', '/api/communication/general', requestBody);
       return response.json();
     },
     onSuccess: () => {
@@ -643,6 +713,96 @@ function GeneralCommunicationForm({
             )}
           />
 
+          {/* Organization Selection */}
+          {organizationsData && organizationsData.organizations.length > 1 && (
+            <FormField
+              control={communicationForm.control}
+              name="organizationId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {language === 'en' ? 'Organization' : 'Organisation'} *
+                  </FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setSelectedOrganizationId(value);
+                      // Reset building selection when organization changes
+                      communicationForm.setValue('buildingIds', []);
+                    }} 
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger data-testid="select-organization">
+                        <SelectValue placeholder={language === 'en' ? 'Select organization' : 'Sélectionner une organisation'} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {organizationsData.organizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Building Selection */}
+          {buildingsData && buildingsData.buildings.length > 1 && (
+            <FormField
+              control={communicationForm.control}
+              name="buildingIds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {language === 'en' ? 'Target Buildings (Optional)' : 'Immeubles ciblés (Optionnel)'}
+                  </FormLabel>
+                  <FormDescription>
+                    {language === 'en' 
+                      ? 'Leave empty to send to all buildings, or select specific buildings to target.'
+                      : 'Laissez vide pour envoyer à tous les immeubles, ou sélectionnez des immeubles spécifiques à cibler.'
+                    }
+                  </FormDescription>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                    {buildingsData.buildings.map((building) => (
+                      <div key={building.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`building-${building.id}`}
+                          checked={field.value?.includes(building.id) || false}
+                          onCheckedChange={(checked) => {
+                            const currentValues = field.value || [];
+                            if (checked) {
+                              field.onChange([...currentValues, building.id]);
+                            } else {
+                              field.onChange(currentValues.filter(id => id !== building.id));
+                            }
+                          }}
+                          data-testid={`checkbox-building-${building.id}`}
+                        />
+                        <label
+                          htmlFor={`building-${building.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {building.name}
+                          {building.address && (
+                            <span className="text-xs text-muted-foreground block">
+                              {building.address}
+                            </span>
+                          )}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           {/* Urgency Level */}
           <FormField
             control={communicationForm.control}
@@ -696,6 +856,7 @@ function GeneralCommunicationForm({
                     selectedRoles={field.value}
                     onRoleChange={field.onChange}
                     organizationContext={organizationContext}
+                    userRole={organizationsData?.userRole || user?.role || ''}
                     language={language}
                   />
                 </FormControl>

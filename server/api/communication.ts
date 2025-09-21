@@ -13,6 +13,7 @@ import {
   users,
   organizations,
   userOrganizations,
+  buildings,
   insertUserNotificationPreferenceSchema,
   insertGeneralCommunicationSchema,
   insertMeetingSchema,
@@ -35,6 +36,137 @@ export function registerCommunicationRoutes(app: Express): void {
   // ==========================================
   // ORGANIZATION CONTEXT ROUTES
   // ==========================================
+
+  /**
+   * GET /api/communication/organizations - Get available organizations for communication
+   * Returns all organizations that user has access to for sending communications.
+   */
+  app.get('/api/communication/organizations', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Check if user can send communications (managers and admins only)
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Only managers and administrators can send general communications',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      // Get all organizations user has access to
+      const userOrgs = await db
+        .select({
+          organizationId: userOrganizations.organizationId,
+          canAccessAll: userOrganizations.canAccessAllOrganizations,
+        })
+        .from(userOrganizations)
+        .where(and(
+          eq(userOrganizations.userId, currentUser.id),
+          eq(userOrganizations.isActive, true)
+        ));
+
+      if (userOrgs.length === 0) {
+        return res.status(404).json({
+          message: 'No organizations found for user',
+          code: 'NO_ORGANIZATIONS',
+        });
+      }
+
+      // Get organization details
+      const organizationIds = userOrgs.map(org => org.organizationId);
+      const organizations = await db
+        .select({
+          id: organizations.id,
+          name: organizations.name,
+        })
+        .from(organizations)
+        .where(inArray(organizations.id, organizationIds));
+
+      res.json({
+        organizations,
+        userRole: currentUser.role,
+        canAccessAll: userOrgs.some(org => org.canAccessAll),
+      });
+    } catch (error: any) {
+      console.error('❌ Error fetching organizations:', error);
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to fetch organizations',
+      });
+    }
+  });
+
+  /**
+   * GET /api/communication/buildings/:organizationId - Get buildings for an organization
+   * Returns buildings that user has access to within a specific organization.
+   */
+  app.get('/api/communication/buildings/:organizationId', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const { organizationId } = req.params;
+
+      // Check if user can send communications (managers and admins only)
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Only managers and administrators can access building information',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      // Verify user has access to this organization
+      const userOrg = await db
+        .select()
+        .from(userOrganizations)
+        .where(and(
+          eq(userOrganizations.userId, currentUser.id),
+          eq(userOrganizations.organizationId, organizationId),
+          eq(userOrganizations.isActive, true)
+        ))
+        .limit(1);
+
+      if (userOrg.length === 0) {
+        return res.status(403).json({
+          message: 'Access denied to this organization',
+          code: 'ACCESS_DENIED',
+        });
+      }
+
+      // Get buildings for this organization
+      const buildings = await db
+        .select({
+          id: buildings.id,
+          name: buildings.name,
+          address: buildings.address,
+        })
+        .from(buildings)
+        .where(and(
+          eq(buildings.organizationId, organizationId),
+          eq(buildings.isActive, true)
+        ))
+        .orderBy(buildings.name);
+
+      res.json({ buildings });
+    } catch (error: any) {
+      console.error('❌ Error fetching buildings:', error);
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to fetch buildings',
+      });
+    }
+  });
 
   /**
    * GET /api/communication/organization-context - Get organization context for communication
