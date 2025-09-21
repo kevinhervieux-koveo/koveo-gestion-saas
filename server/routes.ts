@@ -201,9 +201,7 @@ export async function registerRoutes(app: Express) {
   });
   
   // Basic API routes
-  app.get('/api/health', (req, res) => {
-    return res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
+  // Note: /api/health endpoint is defined in index.ts with deployment-specific error handling
   
   app.post('/api/test', (req, res) => {
     return res.json({ message: 'API working', body: req.body });

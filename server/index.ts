@@ -390,18 +390,8 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
   }
 }
 
-// Handle uncaught exceptions and rejections
-process.on('uncaughtException', (error: Error) => {
-  log(`❌ Uncaught Exception: ${error.message}`, 'error');
-  log(`❌ Stack: ${error.stack}`, 'error');
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  log(`❌ Unhandled Rejection at: ${promise}`, 'error');
-  log(`❌ Reason: ${reason}`, 'error');
-  process.exit(1);
-});
+// Note: Global error handlers are already defined at the top of the file
+// to prevent conflicts and maintain consistent health-first behavior
 
 // Add process monitoring
 if (process.env.NODE_ENV === 'production') {
