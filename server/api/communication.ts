@@ -24,6 +24,7 @@ import { and, eq, or, inArray, desc, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 import { z } from 'zod';
 import { emailService } from '../services/email-service';
+import { populateDefaultPreferences } from '../scripts/populate-default-notification-preferences';
 
 /**
  * Registers all communication-related API endpoints.
@@ -223,6 +224,55 @@ export function registerCommunicationRoutes(app: Express): void {
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to update notification preferences',
+      });
+    }
+  });
+
+  /**
+   * POST /api/communication/preferences/populate-defaults - Populate default preferences for users without any
+   * Creates default preferences for existing users who don't have notification preferences yet.
+   * Safe to run multiple times - won't overwrite existing preferences.
+   */
+  app.post('/api/communication/preferences/populate-defaults', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Only allow admins to populate defaults for all users
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Only administrators can populate default preferences for all users',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      console.log(`🔧 Admin ${currentUser.email} requesting default preferences population`);
+
+      const result = await populateDefaultPreferences();
+
+      if (result.success) {
+        console.log(`✅ Default preferences populated: ${result.statistics.preferencesCreated} preferences created`);
+        res.json(result);
+      } else {
+        console.error(`❌ Failed to populate default preferences: ${result.message}`);
+        res.status(500).json(result);
+      }
+    } catch (error: any) {
+      console.error('❌ Error in populate defaults endpoint:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        statistics: {
+          totalUsers: 0,
+          usersWithPreferences: 0,
+          usersNeedingDefaults: 0,
+          preferencesCreated: 0,
+        },
       });
     }
   });
