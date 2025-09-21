@@ -700,7 +700,11 @@ export function registerOrganizationRoutes(app: Express): void {
             .orderBy(buildings.name);
         }
       } else {
-        // Non-admin users can only see buildings they have access to through their residences or direct organization access
+        // Non-admin users: Access control depends on user role
+        // Residents/tenants can only see buildings where they have residences
+        // Managers can see all buildings in organizations they're linked to
+        const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(currentUser.role);
+        
         if (has_common_spaces === 'true') {
           // Only buildings with common spaces
           buildingsQuery = db
@@ -735,10 +739,13 @@ export function registerOrganizationRoutes(app: Express): void {
               and(
                 eq(buildings.organizationId, organizationId),
                 eq(buildings.isActive, true),
-                or(
-                  eq(userResidences.userId, currentUser.id), // User has a residence in the building
-                  eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
-                )
+                // Role-based access control
+                isResidentOrTenant 
+                  ? eq(userResidences.userId, currentUser.id) // Residents: only buildings with residences
+                  : or(
+                      eq(userResidences.userId, currentUser.id), // User has a residence in the building
+                      eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
+                    )
               )
             )
             .orderBy(buildings.name);
@@ -775,10 +782,13 @@ export function registerOrganizationRoutes(app: Express): void {
               and(
                 eq(buildings.organizationId, organizationId),
                 eq(buildings.isActive, true),
-                or(
-                  eq(userResidences.userId, currentUser.id), // User has a residence in the building
-                  eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
-                )
+                // Role-based access control
+                isResidentOrTenant 
+                  ? eq(userResidences.userId, currentUser.id) // Residents: only buildings with residences
+                  : or(
+                      eq(userResidences.userId, currentUser.id), // User has a residence in the building
+                      eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
+                    )
               )
             )
             .orderBy(buildings.name);
