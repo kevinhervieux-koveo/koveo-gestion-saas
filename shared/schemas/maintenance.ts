@@ -11,6 +11,9 @@ import {
   date,
   jsonb,
   varchar,
+  unique,
+  index,
+  check,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -153,7 +156,7 @@ export const uniformatCodes = pgTable('uniformat_codes', {
  */
 export const vendors = pgTable('vendors', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
-  organizationId: varchar('organization_id')
+  organizationId: text('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 200 }).notNull(),
@@ -167,7 +170,12 @@ export const vendors = pgTable('vendors', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  // Performance index for organization lookups
+  organizationIdIdx: index('vendors_organization_id_idx').on(table.organizationId),
+  // Validation constraints
+  ratingCheck: check('vendors_rating_check', sql`rating >= 0 AND rating <= 5`),
+}));
 
 /**
  * Building elements inventory table for tracking physical components.
@@ -175,7 +183,7 @@ export const vendors = pgTable('vendors', {
  */
 export const buildingElements = pgTable('building_elements', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
-  buildingId: varchar('building_id')
+  buildingId: text('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
   uniformatCode: varchar('uniformat_code', { length: 10 })
@@ -195,7 +203,13 @@ export const buildingElements = pgTable('building_elements', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  // Unique constraint to prevent duplicate elements within same building and uniformat code
+  uniqueBuildingElementConstraint: unique().on(table.buildingId, table.uniformatCode, table.name),
+  // Performance indexes
+  buildingIdIdx: index('building_elements_building_id_idx').on(table.buildingId),
+  uniformatCodeIdx: index('building_elements_uniformat_code_idx').on(table.uniformatCode),
+}));
 
 /**
  * Element history table for tracking all work performed on building elements.
@@ -214,11 +228,18 @@ export const elementHistory = pgTable('element_history', {
   warranty: jsonb('warranty'), // warranty details like duration, terms
   lifespanImpact: integer('lifespan_impact'), // years added to element's life
   workDescription: text('work_description').notNull(),
-  createdBy: varchar('created_by')
+  createdBy: text('created_by')
     .notNull()
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  // Performance indexes for history lookups
+  elementIdIdx: index('element_history_element_id_idx').on(table.elementId),
+  eventDateIdx: index('element_history_event_date_idx').on(table.eventDate),
+  vendorIdIdx: index('element_history_vendor_id_idx').on(table.vendorId),
+  // Validation constraints
+  costCheck: check('element_history_cost_check', sql`cost >= 0`),
+}));
 
 /**
  * Evaluation suggestions table for smart maintenance recommendations.
@@ -238,7 +259,12 @@ export const evaluationSuggestions = pgTable('evaluation_suggestions', {
   projectId: uuid('project_id').references((): any => maintenanceProjects.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  // Performance indexes for evaluation suggestions
+  elementIdIdx: index('evaluation_suggestions_element_id_idx').on(table.elementId),
+  statusSuggestedDateIdx: index('evaluation_suggestions_status_suggested_date_idx').on(table.status, table.suggestedDate),
+  projectIdIdx: index('evaluation_suggestions_project_id_idx').on(table.projectId),
+}));
 
 /**
  * Maintenance projects table for managing maintenance work initiatives.
@@ -246,7 +272,7 @@ export const evaluationSuggestions = pgTable('evaluation_suggestions', {
  */
 export const maintenanceProjects = pgTable('maintenance_projects', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
-  buildingId: varchar('building_id')
+  buildingId: text('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
   suggestionId: uuid('suggestion_id').references(() => evaluationSuggestions.id, { onDelete: 'set null' }),
@@ -261,12 +287,18 @@ export const maintenanceProjects = pgTable('maintenance_projects', {
   totalBudget: decimal('total_budget', { precision: 12, scale: 2 }),
   actualCost: decimal('actual_cost', { precision: 12, scale: 2 }).default('0'),
   priority: priorityEnum('priority').notNull().default('medium'),
-  createdBy: varchar('created_by')
+  createdBy: text('created_by')
     .notNull()
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  // Performance indexes for maintenance projects
+  buildingStatusIdx: index('maintenance_projects_building_status_idx').on(table.buildingId, table.status),
+  // Validation constraints
+  totalBudgetCheck: check('maintenance_projects_total_budget_check', sql`total_budget >= 0`),
+  actualCostCheck: check('maintenance_projects_actual_cost_check', sql`actual_cost >= 0`),
+}));
 
 /**
  * Project steps table for tracking workflow stages of maintenance projects.
@@ -301,7 +333,10 @@ export const projectElements = pgTable('project_elements', {
   workDescription: text('work_description'),
   lifespanImpact: integer('lifespan_impact'), // years added to element's life
   costAllocation: decimal('cost_allocation', { precision: 10, scale: 2 }), // cost assigned to this element
-});
+}, (table) => ({
+  // Validation constraints
+  costAllocationCheck: check('project_elements_cost_allocation_check', sql`cost_allocation >= 0`),
+}));
 
 /**
  * Element documents table for managing files associated with building elements.
@@ -318,7 +353,7 @@ export const elementDocuments = pgTable('element_documents', {
   filePath: text('file_path').notNull(),
   fileSize: integer('file_size'), // in bytes
   mimeType: varchar('mime_type', { length: 100 }),
-  uploadedBy: varchar('uploaded_by')
+  uploadedBy: text('uploaded_by')
     .notNull()
     .references(() => users.id),
   uploadedAt: timestamp('uploaded_at').defaultNow(),
