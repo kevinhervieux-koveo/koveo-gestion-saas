@@ -12,12 +12,13 @@ import { useState, useMemo } from 'react';
 
 interface MyBuildingProps {
   buildingId?: string;
+  organizationId?: string;
   showBackButton?: boolean;
   backButtonLabel?: string;
   onBack?: () => void;
 }
 
-function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyBuildingProps) {
+function MyBuilding({ buildingId, organizationId, showBackButton, backButtonLabel, onBack }: MyBuildingProps) {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,9 +29,15 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
     isLoading: isLoadingBuildings,
     error
   } = useQuery({
-    queryKey: ['/api/users/me/buildings'],
+    queryKey: ['/api/users/me/buildings', { organizationId }],
     queryFn: async () => {
-      const response = await fetch('/api/users/me/buildings');
+      const params = new URLSearchParams();
+      if (organizationId) {
+        params.append('organization_id', organizationId);
+      }
+      
+      const url = `/api/users/me/buildings${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch buildings');
       }

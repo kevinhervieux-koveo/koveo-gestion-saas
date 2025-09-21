@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/use-auth';
  */
 interface HierarchyConfig {
   hierarchy: ('organization' | 'building' | 'residence')[];
+  checkResidenceAccess?: boolean;
 }
 
 /**
@@ -119,7 +120,7 @@ export function withHierarchicalSelection<T extends object>(
       isLoading: isLoadingBuildingCounts,
       error: buildingCountsError
     } = useQuery<Record<string, number>>({
-      queryKey: ['/api/organizations/accessible-building-counts', user?.role, window.location.pathname.includes('residence')],
+      queryKey: ['/api/organizations/accessible-building-counts', user?.role, config.checkResidenceAccess || false],
       enabled: currentLevel === 'organization' && organizations.length > 0,
       staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
       gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
@@ -128,11 +129,10 @@ export function withHierarchicalSelection<T extends object>(
       queryFn: async () => {
         console.log('🔍 [withHierarchicalSelection] Fetching building counts for organizations...');
         
-        // Determine if we need to check residence access (for residence pages)
-        const isResidencePage = window.location.pathname.includes('residence');
+        // Use explicit config flag instead of pathname detection
         const params = new URLSearchParams();
         
-        if (isResidencePage) {
+        if (config.checkResidenceAccess) {
           params.append('checkResidenceAccess', 'true');
         }
         
@@ -168,7 +168,7 @@ export function withHierarchicalSelection<T extends object>(
       isLoading: isLoadingBuildings,
       error: buildingsError
     } = useQuery<Building[]>({
-      queryKey: organizationId ? ['/api/users/me/buildings', organizationId, 'with-residences'] : ['/api/users/me/buildings', 'with-residences'],
+      queryKey: organizationId ? ['/api/users/me/buildings', organizationId, config.checkResidenceAccess || false] : ['/api/users/me/buildings', config.checkResidenceAccess || false],
       queryFn: async () => {
         console.log('🏢 [withHierarchicalSelection] Fetching buildings...');
         
@@ -179,9 +179,8 @@ export function withHierarchicalSelection<T extends object>(
           ? `/api/organizations/${organizationId}/buildings`
           : '/api/users/me/buildings';
         
-        // Add filters based on page type
+        // Add filters based on explicit config flags
         const isCommonSpacesPage = window.location.pathname.includes('common-spaces');
-        const isResidencePage = window.location.pathname.includes('residence');
         
         const params = new URLSearchParams();
         
@@ -210,9 +209,9 @@ export function withHierarchicalSelection<T extends object>(
         let allBuildings = await response.json();
         console.log(`📊 [withHierarchicalSelection] Received ${allBuildings.length} buildings from API`);
         
-        // For residence pages, filter buildings that have accessible residences
+        // For residence access mode, filter buildings that have accessible residences
         // This is the key bottom-up filtering logic
-        if (isResidencePage) {
+        if (config.checkResidenceAccess) {
           console.log('🏠 [withHierarchicalSelection] Filtering buildings with accessible residences...');
           const buildingsWithResidences = [];
           
@@ -370,8 +369,7 @@ export function withHierarchicalSelection<T extends object>(
 
       const items: SelectionGridItem[] = accessibleOrganizations.map(org => {
         const buildingCount = buildingCounts[org.id] ?? 0;
-        const isResidencePage = window.location.pathname.includes('residence');
-        const buildingLabel = isResidencePage 
+        const buildingLabel = config.checkResidenceAccess 
           ? (buildingCount === 1 ? 'building with residences' : 'buildings with residences')
           : (buildingCount === 1 ? 'building' : 'buildings');
         

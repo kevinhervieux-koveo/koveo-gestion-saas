@@ -612,7 +612,8 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
 
 // Wrap with hierarchical selection HOC using organization and building hierarchy (residents only see buildings they have residences in)
 const ResidencePage = withHierarchicalSelection(ResidencePageInner, {
-  hierarchy: ['organization', 'building']
+  hierarchy: ['organization', 'building'],
+  checkResidenceAccess: true
 });
 
 export default ResidencePage;
