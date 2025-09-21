@@ -32,6 +32,43 @@ import { emailService } from '../services/email-service';
 import { populateDefaultPreferences } from '../scripts/populate-default-notification-preferences';
 import { checkBuildingAccess } from './buildings/access-control';
 
+// In-memory rate limiting store for urgent communications
+const urgentRateLimit = new Map<string, { count: number; resetTime: number }>();
+
+// Rate limiting function for urgent communications
+function checkUrgentRateLimit(userId: string, orgId: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const key = `${userId}:${orgId}`;
+  
+  // Clean up expired entries
+  for (const [k, v] of urgentRateLimit.entries()) {
+    if (now > v.resetTime) {
+      urgentRateLimit.delete(k);
+    }
+  }
+  
+  const limit = urgentRateLimit.get(key);
+  const maxPerHour = 3; // Allow 3 urgent communications per hour per user per organization
+  const windowMs = 60 * 60 * 1000; // 1 hour
+  
+  if (!limit) {
+    urgentRateLimit.set(key, { count: 1, resetTime: now + windowMs });
+    return { allowed: true };
+  }
+  
+  if (now > limit.resetTime) {
+    urgentRateLimit.set(key, { count: 1, resetTime: now + windowMs });
+    return { allowed: true };
+  }
+  
+  if (limit.count >= maxPerHour) {
+    return { allowed: false, retryAfter: Math.ceil((limit.resetTime - now) / 1000) };
+  }
+  
+  limit.count++;
+  return { allowed: true };
+}
+
 /**
  * Centralized building authorization function for notification configurations.
  * Verifies that a user has access to a specific building within an organization.
@@ -894,7 +931,29 @@ export function registerCommunicationRoutes(app: Express): void {
       // Validate request body
       const validatedData = insertGeneralCommunicationSchema.parse(req.body);
 
-      console.log(`📧 Creating general communication for organization ${validatedData.organizationId} by user ${currentUser.id}`);
+      // Additional authorization check for urgent communications
+      if (validatedData.isUrgent && !['admin', 'manager'].includes(currentUser.role)) {
+        console.error(`❌ User ${currentUser.email} with role ${currentUser.role} attempted to send urgent communication`);
+        return res.status(403).json({
+          message: 'Only administrators and managers can send urgent communications',
+          code: 'URGENT_PERMISSION_DENIED',
+        });
+      }
+
+      // Rate limiting for urgent communications
+      if (validatedData.isUrgent) {
+        const rateLimitCheck = checkUrgentRateLimit(currentUser.id, validatedData.organizationId);
+        if (!rateLimitCheck.allowed) {
+          console.warn(`⚠️ Rate limit exceeded for urgent communication by user ${currentUser.email} in org ${validatedData.organizationId}`);
+          return res.status(429).json({
+            message: 'Rate limit exceeded for urgent communications. Maximum 3 urgent messages per hour per organization.',
+            code: 'URGENT_RATE_LIMIT_EXCEEDED',
+            retryAfter: rateLimitCheck.retryAfter,
+          });
+        }
+      }
+
+      console.log(`📧 Creating ${validatedData.isUrgent ? 'URGENT' : 'regular'} general communication for organization ${validatedData.organizationId} by user ${currentUser.id}`);
 
       // If not admin, verify user has access to the organization
       if (currentUser.role !== 'admin') {
@@ -1040,8 +1099,27 @@ export function registerCommunicationRoutes(app: Express): void {
 
             console.log(`✅ Sent general communication emails to ${finalRecipients.length} recipients`);
             
-            // Log audit entry for urgent communications
+            // Enhanced audit logging for urgent communications
             if (completeComm.isUrgent) {
+              const auditEntry = {
+                userId: completeComm.creator.id,
+                userEmail: completeComm.creator.email,
+                userRole: currentUser.role,
+                organizationId: completeComm.organizationId,
+                organizationName: completeComm.organization.name,
+                communicationId: completeComm.id,
+                messageTitle: completeComm.title,
+                recipientsCount: finalRecipients.length,
+                isUrgent: true,
+                timestamp: new Date().toISOString(),
+                reason: 'Bypassing user notification preferences for urgent communication',
+                recipientRoles: completeComm.recipientRoles,
+              };
+              
+              // Persistent audit log (console until database audit table is available)
+              console.log(`🚨 URGENT COMMUNICATION AUDIT:`, JSON.stringify(auditEntry, null, 2));
+              
+              // Traditional log
               console.log(`🔍 AUDIT: Urgent communication "${completeComm.title}" sent to ${finalRecipients.length} recipients by ${completeComm.creator.email}, bypassing user preferences`);
             }
           } else {
