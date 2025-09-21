@@ -426,22 +426,12 @@ function RecipientManagement({
   const recipients: RecipientInfo[] = [];
   const loadingRecipients = false;
   
-  // For now, use estimated counts based on typical organization sizes
-  // This can be enhanced later with actual member data
-  const getEstimatedMemberCount = () => {
-    // Default estimated counts for demonstration
-    const roleEstimates = {
-      all: 25,      // Total estimated organization members
-      manager: 3,   // Estimated managers
-      resident: 18, // Estimated residents
-      tenant: 4,    // Estimated tenants
-      admin: 1,     // Estimated admins
-    };
-    return roleEstimates;
-  };
-  
-  const memberEstimates = getEstimatedMemberCount();
-  const loadingMembers = false;
+  // Fetch real organization member counts
+  const { data: memberCounts = {}, isLoading: loadingMembers } = useQuery({
+    queryKey: ['organization-member-counts', organizationContext?.id],
+    queryFn: () => apiRequest(`/api/communication/organizations/${organizationContext?.id}/member-counts`),
+    enabled: !!organizationContext?.id,
+  });
 
   const handleRoleToggle = (roleValue: string) => {
     if (roleValue === 'all') {
@@ -473,12 +463,12 @@ function RecipientManagement({
     if (selectedRoles.length === 0) return 0;
     
     if (selectedRoles.includes('all')) {
-      return memberEstimates.all;
+      return memberCounts.all || 0;
     }
     
     // Count members based on selected roles
     return selectedRoles.reduce((total, role) => {
-      return total + (memberEstimates[role as keyof typeof memberEstimates] || 0);
+      return total + (memberCounts[role] || 0);
     }, 0);
   };
 

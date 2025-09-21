@@ -801,6 +801,82 @@ export function registerCommunicationRoutes(app: Express): void {
    * GET /api/communication/general - Get communications history for user's organization(s)
    * Returns communications based on user's role and organization access.
    */
+  /**
+   * GET /api/communication/organizations/:id/member-counts - Get organization member counts by role
+   */
+  app.get('/api/communication/organizations/:id/member-counts', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const organizationId = req.params.id;
+
+      // Verify user has access to this organization
+      if (currentUser.role !== 'admin') {
+        const userOrg = await db
+          .select()
+          .from(userOrganizations)
+          .where(
+            and(
+              eq(userOrganizations.userId, currentUser.id),
+              eq(userOrganizations.organizationId, organizationId),
+              eq(userOrganizations.isActive, true)
+            )
+          )
+          .limit(1);
+
+        if (userOrg.length === 0) {
+          return res.status(403).json({
+            message: 'Access denied to this organization',
+            code: 'ORGANIZATION_ACCESS_DENIED',
+          });
+        }
+      }
+
+      // Get member counts by role
+      const memberCounts = await db
+        .select({
+          organizationRole: userOrganizations.organizationRole,
+          count: sql<number>`count(*)`,
+        })
+        .from(userOrganizations)
+        .innerJoin(users, eq(userOrganizations.userId, users.id))
+        .where(
+          and(
+            eq(userOrganizations.organizationId, organizationId),
+            eq(userOrganizations.isActive, true),
+            eq(users.isActive, true)
+          )
+        )
+        .groupBy(userOrganizations.organizationRole);
+
+      // Convert to a more convenient format
+      const counts = memberCounts.reduce((acc, item) => {
+        acc[item.organizationRole] = Number(item.count);
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Calculate total
+      const total = memberCounts.reduce((sum, item) => sum + Number(item.count), 0);
+      counts.all = total;
+
+      console.log(`📊 Organization ${organizationId} member counts:`, counts);
+
+      res.json(counts);
+    } catch (error: any) {
+      console.error('❌ Error fetching organization member counts:', error);
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to fetch organization member counts',
+      });
+    }
+  });
+
   app.get('/api/communication/general', requireAuth, async (req: any, res) => {
     try {
       const currentUser = req.user || req.session?.user;
