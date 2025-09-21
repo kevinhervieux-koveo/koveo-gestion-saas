@@ -14,7 +14,7 @@ import {
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { relations } from 'drizzle-orm';
-import { users } from './core';
+import { users, organizations } from './core';
 import { residences, buildings } from './property';
 
 // Operations enums
@@ -34,12 +34,34 @@ export const maintenancePriorityEnum = pgEnum('maintenance_priority', [
   'emergency',
 ]);
 
+export const frequencyEnum = pgEnum('frequency', [
+  'immediate',
+  'weekly',
+  '2weeks',
+  'monthly',
+  'quarterly',
+  'bi-annually',
+  'annually',
+]);
+
 export const notificationTypeEnum = pgEnum('notification_type', [
   'bill_reminder',
   'maintenance_update',
   'announcement',
   'system',
   'emergency',
+  'upcoming_payment',
+  'upcoming_bills',
+  'bill_paid_last_month',
+  'bills_overdue',
+  'payment_overdue',
+  'new_building_document',
+  'general_communication',
+  'meeting_invite',
+  'maintenance_completed',
+  'budget_update',
+  'policy_change',
+  'seasonal_reminder',
 ]);
 
 export const demandTypeEnum = pgEnum('demand_type', [
@@ -290,6 +312,71 @@ export const featureRequestUpvotes = pgTable('feature_request_upvotes', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+/**
+ * User notification preferences table for storing user's notification frequency preferences.
+ * Allows users to configure how often they receive different types of notifications.
+ */
+export const userNotificationPreferences = pgTable('user_notification_preferences', {
+  id: text('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id),
+  notificationType: notificationTypeEnum('notification_type').notNull(),
+  frequency: frequencyEnum('frequency').notNull().default('monthly'),
+  isEnabled: boolean('is_enabled').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+/**
+ * General communications table for storing manager communications to organization.
+ * Supports scheduled and urgent communications with role-based targeting.
+ */
+export const generalCommunications = pgTable('general_communications', {
+  id: text('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  organizationId: varchar('organization_id')
+    .notNull()
+    .references(() => organizations.id),
+  createdBy: varchar('created_by')
+    .notNull()
+    .references(() => users.id),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  isUrgent: boolean('is_urgent').notNull().default(false),
+  scheduledFor: timestamp('scheduled_for'),
+  sentAt: timestamp('sent_at'),
+  recipientRoles: text('recipient_roles').array(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+/**
+ * Meetings table for storing meeting invitations.
+ * Supports scheduling meetings with role-based invitations.
+ */
+export const meetings = pgTable('meetings', {
+  id: text('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  organizationId: varchar('organization_id')
+    .notNull()
+    .references(() => organizations.id),
+  createdBy: varchar('created_by')
+    .notNull()
+    .references(() => users.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  location: text('location').notNull(),
+  scheduledDate: timestamp('scheduled_date').notNull(),
+  duration: integer('duration').notNull(),
+  invitedRoles: text('invited_roles').array(),
+  sentAt: timestamp('sent_at'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 // Insert schemas
 export const insertMaintenanceRequestSchema = z.object({
   residenceId: z.string().uuid(),
@@ -307,7 +394,25 @@ export const insertMaintenanceRequestSchema = z.object({
 
 export const insertNotificationSchema = z.object({
   userId: z.string().uuid(),
-  type: z.enum(['bill_reminder', 'maintenance_update', 'announcement', 'system', 'emergency']),
+  type: z.enum([
+    'bill_reminder',
+    'maintenance_update',
+    'announcement',
+    'system',
+    'emergency',
+    'upcoming_payment',
+    'upcoming_bills',
+    'bill_paid_last_month',
+    'bills_overdue',
+    'payment_overdue',
+    'new_building_document',
+    'general_communication',
+    'meeting_invite',
+    'maintenance_completed',
+    'budget_update',
+    'policy_change',
+    'seasonal_reminder',
+  ]),
   title: z.string(),
   message: z.string(),
   relatedEntityId: z.string().uuid().optional(),
@@ -407,6 +512,52 @@ export const insertFeatureRequestUpvoteSchema = z.object({
   userId: z.string().uuid(),
 });
 
+export const insertUserNotificationPreferenceSchema = z.object({
+  userId: z.string().uuid(),
+  notificationType: z.enum([
+    'bill_reminder',
+    'maintenance_update',
+    'announcement',
+    'system',
+    'emergency',
+    'upcoming_payment',
+    'upcoming_bills',
+    'bill_paid_last_month',
+    'bills_overdue',
+    'payment_overdue',
+    'new_building_document',
+    'general_communication',
+    'meeting_invite',
+    'maintenance_completed',
+    'budget_update',
+    'policy_change',
+    'seasonal_reminder',
+  ]),
+  frequency: z.enum(['immediate', 'weekly', '2weeks', 'monthly', 'quarterly', 'bi-annually', 'annually']).default('monthly'),
+  isEnabled: z.boolean().default(true),
+});
+
+export const insertGeneralCommunicationSchema = z.object({
+  organizationId: z.string().uuid(),
+  createdBy: z.string().uuid(),
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(1, 'Content is required'),
+  isUrgent: z.boolean().default(false),
+  scheduledFor: z.date().optional(),
+  recipientRoles: z.array(z.string()).optional(),
+});
+
+export const insertMeetingSchema = z.object({
+  organizationId: z.string().uuid(),
+  createdBy: z.string().uuid(),
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  location: z.string().min(1, 'Location is required'),
+  scheduledDate: z.date(),
+  duration: z.number().int().positive('Duration must be a positive number'),
+  invitedRoles: z.array(z.string()).optional(),
+});
+
 // Types
 /**
  *
@@ -470,6 +621,33 @@ export type InsertFeatureRequestUpvote = z.infer<typeof insertFeatureRequestUpvo
  *
  */
 export type FeatureRequestUpvote = typeof featureRequestUpvotes.$inferSelect;
+
+/**
+ *
+ */
+export type InsertUserNotificationPreference = z.infer<typeof insertUserNotificationPreferenceSchema>;
+/**
+ *
+ */
+export type UserNotificationPreference = typeof userNotificationPreferences.$inferSelect;
+
+/**
+ *
+ */
+export type InsertGeneralCommunication = z.infer<typeof insertGeneralCommunicationSchema>;
+/**
+ *
+ */
+export type GeneralCommunication = typeof generalCommunications.$inferSelect;
+
+/**
+ *
+ */
+export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
+/**
+ *
+ */
+export type Meeting = typeof meetings.$inferSelect;
 
 // Relations
 // Relations - temporarily commented out due to drizzle-orm version compatibility
