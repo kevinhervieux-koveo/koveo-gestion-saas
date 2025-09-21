@@ -80,7 +80,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // Get organization details
       const organizationIds = userOrgs.map(org => org.organizationId);
-      const organizations = await db
+      const organizationList = await db
         .select({
           id: organizations.id,
           name: organizations.name,
@@ -89,7 +89,7 @@ export function registerCommunicationRoutes(app: Express): void {
         .where(inArray(organizations.id, organizationIds));
 
       res.json({
-        organizations,
+        organizations: organizationList,
         userRole: currentUser.role,
         canAccessAll: userOrgs.some(org => org.canAccessAll),
       });
@@ -145,7 +145,7 @@ export function registerCommunicationRoutes(app: Express): void {
       }
 
       // Get buildings for this organization
-      const buildings = await db
+      const buildingList = await db
         .select({
           id: buildings.id,
           name: buildings.name,
@@ -158,7 +158,7 @@ export function registerCommunicationRoutes(app: Express): void {
         ))
         .orderBy(buildings.name);
 
-      res.json({ buildings });
+      res.json({ buildings: buildingList });
     } catch (error: any) {
       console.error('❌ Error fetching buildings:', error);
       res.status(500).json({
