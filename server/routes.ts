@@ -156,9 +156,9 @@ export async function registerRoutes(app: Express) {
       // If roadmap=true, filter to only roadmap-visible features
       if (roadmap === 'true') {
         const roadmapFeatures = transformedFeatures.filter((f: any) => f.isPublicRoadmap !== false);
-        res.json(roadmapFeatures);
+        return res.json(roadmapFeatures);
       } else {
-        res.json(transformedFeatures);
+        return res.json(transformedFeatures);
       }
     } catch (error) {
       console.error('Error fetching features:', error);
@@ -181,7 +181,7 @@ export async function registerRoutes(app: Express) {
       }
       
       // Mock response for now - this would normally sync to production database
-      res.json({
+      return res.json({
         success: true,
         message: process.env.NODE_ENV === 'development' 
           ? 'Development environment: Sync simulation completed'
@@ -200,11 +200,11 @@ export async function registerRoutes(app: Express) {
   
   // Basic API routes
   app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    return res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
   
   app.post('/api/test', (req, res) => {
-    res.json({ message: 'API working', body: req.body });
+    return res.json({ message: 'API working', body: req.body });
   });
 
   // File upload endpoint for demands and other general uploads
@@ -227,7 +227,7 @@ export async function registerRoutes(app: Express) {
 
       console.log(`✅ Successfully uploaded ${files.length} files for user ${req.user.id}`);
 
-      res.json({ 
+      return res.json({ 
         message: 'Files uploaded successfully',
         fileUrls: fileUrls,
         fileCount: files.length
@@ -281,7 +281,7 @@ export async function registerRoutes(app: Express) {
       }
       
       // Serve the file
-      res.sendFile(requestedPath);
+      return res.sendFile(requestedPath);
       
     } catch (error: any) {
       console.error('Secure file serving error:', error);
