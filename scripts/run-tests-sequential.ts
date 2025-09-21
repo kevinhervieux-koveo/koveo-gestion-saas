@@ -2,7 +2,7 @@
 
 import { spawn } from 'child_process';
 import chalk from 'chalk';
-import { glob } from 'fast-glob';
+import fastGlob from 'fast-glob';
 import path from 'path';
 
 interface TestResult {
@@ -46,7 +46,7 @@ class SequentialTestRunner {
       'server/tests/**/*.test.tsx'
     ];
 
-    const allTestFiles = await glob(testPatterns, {
+    const allTestFiles = await fastGlob(testPatterns, {
       ignore: [
         '**/node_modules/**',
         '**/dist/**',
