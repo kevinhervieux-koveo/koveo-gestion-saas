@@ -1,7 +1,8 @@
 import type { Express } from 'express';
 import { requireAuth } from '../auth';
 import { db } from '../db';
-import { sql } from 'drizzle-orm';
+import { sql, eq } from 'drizzle-orm';
+import { features } from '../../shared/schema';
 
 /**
  * Register feature management routes.
@@ -27,19 +28,21 @@ export function registerFeatureManagementRoutes(app: Express): void {
         return res.status(400).json({ message: 'Invalid status' });
       }
 
-      // Use Drizzle raw SQL for features table
-      const result = await db.execute(sql`
-        UPDATE features 
-        SET status = ${status}, updated_at = NOW() 
-        WHERE id = ${featureId} 
-        RETURNING *
-      `);
+      // Use Drizzle ORM for safe parameterized query
+      const result = await db
+        .update(features)
+        .set({ 
+          status: status as any, 
+          updatedAt: new Date() 
+        })
+        .where(eq(features.id, featureId))
+        .returning();
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return res.status(404).json({ message: 'Feature not found' });
       }
 
-      const row = result.rows[0] as any;
+      const row = result[0];
       const feature = {
         ...row,
         isPublicRoadmap: row.is_public_roadmap,
@@ -68,19 +71,21 @@ export function registerFeatureManagementRoutes(app: Express): void {
         return res.status(400).json({ message: 'isStrategicPath must be a boolean' });
       }
 
-      // Use Drizzle raw SQL for features table
-      const result = await db.execute(sql`
-        UPDATE features 
-        SET is_strategic_path = ${isStrategicPath}, updated_at = NOW() 
-        WHERE id = ${featureId} 
-        RETURNING *
-      `);
+      // Use Drizzle ORM for safe parameterized query
+      const result = await db
+        .update(features)
+        .set({ 
+          isStrategicPath: isStrategicPath, 
+          updatedAt: new Date() 
+        })
+        .where(eq(features.id, featureId))
+        .returning();
 
-      if (result.rows.length === 0) {
+      if (result.length === 0) {
         return res.status(404).json({ message: 'Feature not found' });
       }
 
-      const row = result.rows[0] as any;
+      const row = result[0];
       const feature = {
         ...row,
         isPublicRoadmap: row.is_public_roadmap,
@@ -105,13 +110,16 @@ export function registerFeatureManagementRoutes(app: Express): void {
       const featureId = req.params.id;
 
       // Check if feature exists and is in correct status
-      const checkResult = await db.execute(sql`SELECT * FROM features WHERE id = ${featureId}`);
+      const checkResult = await db
+        .select()
+        .from(features)
+        .where(eq(features.id, featureId));
 
-      if (checkResult.rows.length === 0) {
+      if (checkResult.length === 0) {
         return res.status(404).json({ message: 'Feature not found' });
       }
 
-      const feature = checkResult.rows[0] as any;
+      const feature = checkResult[0];
       if (feature.status !== 'in-progress') {
         return res.status(400).json({
           message: 'Feature must be in "in-progress" status for analysis',
@@ -119,14 +127,16 @@ export function registerFeatureManagementRoutes(app: Express): void {
       }
 
       // Update feature status to analyzed
-      const result = await db.execute(sql`
-        UPDATE features 
-        SET status = 'ai-analyzed', updated_at = NOW() 
-        WHERE id = ${featureId} 
-        RETURNING *
-      `);
+      const result = await db
+        .update(features)
+        .set({ 
+          status: 'ai-analyzed', 
+          updatedAt: new Date() 
+        })
+        .where(eq(features.id, featureId))
+        .returning();
 
-      const row = result.rows[0] as any;
+      const row = result[0];
       res.json({
         message: 'Analysis completed successfully',
         feature: {
@@ -150,19 +160,22 @@ export function registerFeatureManagementRoutes(app: Express): void {
   app.post('/api/features/trigger-sync', requireAuth, async (req: any, res) => {
     try {
       // Mark all features as synced (in a real setup, this would sync to another database)
-      const result = await db.execute(sql`
-        UPDATE features 
-        SET synced_at = NOW(), updated_at = NOW() 
-        WHERE synced_at IS NULL OR synced_at < updated_at
-        RETURNING COUNT(*) as count
-      `);
+      const result = await db
+        .update(features)
+        .set({ 
+          syncedAt: new Date(), 
+          updatedAt: new Date() 
+        })
+        .where(sql`synced_at IS NULL OR synced_at < updated_at`)
+        .returning({ id: features.id });
 
       // Get the count of synced features
-      const countResult = await db.execute(sql`
-        SELECT COUNT(*) as total FROM features WHERE synced_at IS NOT NULL
-      `);
+      const countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(features)
+        .where(sql`synced_at IS NOT NULL`);
 
-      const totalSynced = countResult.rows[0]?.total || 0;
+      const totalSynced = countResult[0]?.count || 0;
 
       res.json({
         message: `Successfully synchronized ${totalSynced} features to production`,

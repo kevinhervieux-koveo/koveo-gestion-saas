@@ -2,13 +2,14 @@ import { Router } from 'express';
 import { documents } from '../../shared/schema';
 import { db } from '../db';
 import { isNotNull } from 'drizzle-orm';
+import { requireAuth, requireRole } from '../auth';
 
 const router = Router();
 
 /**
  * Clean up orphaned files in object storage that are not referenced in the database.
  */
-router.post('/cleanup-storage', async (req, res) => {
+router.post('/cleanup-storage', requireAuth, requireRole(['admin']), async (req, res) => {
   try {
     // Local storage cleanup - TODO: Implement cleanup for local file system
     // GCS functionality has been replaced with local storage

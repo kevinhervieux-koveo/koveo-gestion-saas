@@ -154,8 +154,8 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
         const endYearMonth = end * 100 + endMo; // e.g., 202512
 
         whereConditions.push(
-          gte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, startYearMonth),
-          lte(sql`${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}`, endYearMonth)
+          sql`(${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}) >= ${startYearMonth}`,
+          sql`(${monthlyBudgets.year} * 100 + ${monthlyBudgets.month}) <= ${endYearMonth}`
         );
       } else {
         // Standard year-only filtering
@@ -1154,9 +1154,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
             eq(bills.buildingId, buildingId),
             eq(bills.paymentType, 'unique'),
             eq(payments.status, 'paid'),
-            // Filter payments for this specific month/year
-            sql`EXTRACT(YEAR FROM ${payments.scheduledDate}) = ${currentYear}`,
-            sql`EXTRACT(MONTH FROM ${payments.scheduledDate}) = ${currentMonth}`
+            // Filter payments for this specific month/year using safe date range filtering
+            gte(payments.scheduledDate, new Date(currentYear, currentMonth - 1, 1).toISOString().split('T')[0]),
+            lte(payments.scheduledDate, new Date(currentYear, currentMonth, 0).toISOString().split('T')[0])
           )
         );
       

@@ -253,7 +253,11 @@ export class OptimizedDatabaseStorage implements IStorage {
 
     // Role filter with parameterized conditions
     if (filters.role && filters.role !== 'null') {
-      conditions.push(sql`u.role = ${filters.role}`);
+      // Validate role against allowed values
+      const allowedRoles = ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'];
+      if (allowedRoles.includes(filters.role)) {
+        conditions.push(sql`u.role = ${filters.role}`);
+      }
     } else if (filters.role === 'null') {
       conditions.push(sql`u.role IS NULL`);
     }
@@ -517,17 +521,12 @@ export class OptimizedDatabaseStorage implements IStorage {
           }
 
           // Get total count first using secure Drizzle query
-          let countQuery = db
-            .select({ count: count() })
-            .from(schema.users);
+          // Collect all count conditions in a single array to avoid type issues
+          const countConditions = [...baseConditions];
 
-          if (baseConditions.length > 0) {
-            countQuery = countQuery.where(and(...baseConditions));
-          }
-
-          // Add organization filter to count query if needed
+          // Add organization filter to count conditions if needed
           if (sanitizedFilters.organization) {
-            countQuery = countQuery.where(
+            countConditions.push(
               exists(
                 db
                   .select()
@@ -543,9 +542,9 @@ export class OptimizedDatabaseStorage implements IStorage {
             );
           }
 
-          // Add manager organizations filter to count query if needed
+          // Add manager organizations filter to count conditions if needed
           if (sanitizedFilters.managerOrganizations) {
-            countQuery = countQuery.where(
+            countConditions.push(
               exists(
                 db
                   .select()
@@ -561,9 +560,9 @@ export class OptimizedDatabaseStorage implements IStorage {
             );
           }
 
-          // Add orphan filter to count query if needed
+          // Add orphan filter to count conditions if needed
           if (sanitizedFilters.orphan === 'true' && !sanitizedFilters.organization) {
-            countQuery = countQuery.where(
+            countConditions.push(
               and(
                 sql`NOT EXISTS (
                   SELECT 1 FROM user_organizations uo 
@@ -576,7 +575,7 @@ export class OptimizedDatabaseStorage implements IStorage {
               )
             );
           } else if (sanitizedFilters.orphan === 'false' && !sanitizedFilters.organization) {
-            countQuery = countQuery.where(
+            countConditions.push(
               or(
                 sql`EXISTS (
                   SELECT 1 FROM user_organizations uo 
@@ -589,6 +588,11 @@ export class OptimizedDatabaseStorage implements IStorage {
               )
             );
           }
+
+          // Build the count query with all conditions at once
+          const countQuery = countConditions.length > 0
+            ? db.select({ count: count() }).from(schema.users).where(and(...countConditions))
+            : db.select({ count: count() }).from(schema.users);
 
           const countResult = await countQuery;
           const total = countResult[0]?.count || 0;
@@ -881,16 +885,20 @@ export class OptimizedDatabaseStorage implements IStorage {
       // Manager organizations filter
       if (filters.managerOrganizations) {
         const orgIds = filters.managerOrganizations.split(',');
-        const orgFilterQuery = db
-          .select({ userId: schema.userOrganizations.userId })
-          .from(schema.userOrganizations)
-          .where(
-            and(
-              inArray(schema.userOrganizations.organizationId, orgIds),
-              eq(schema.userOrganizations.isActive, true)
-            )
-          );
-        whereConditions.push(inArray(schema.users.id, orgFilterQuery));
+        whereConditions.push(
+          exists(
+            db
+              .select()
+              .from(schema.userOrganizations)
+              .where(
+                and(
+                  eq(schema.userOrganizations.userId, schema.users.id),
+                  inArray(schema.userOrganizations.organizationId, orgIds),
+                  eq(schema.userOrganizations.isActive, true)
+                )
+              )
+          )
+        );
       }
 
       // Orphan filter implementation for fallback
@@ -898,42 +906,48 @@ export class OptimizedDatabaseStorage implements IStorage {
         // Users with no organization AND no residence assignments
         console.log('👻 [FALLBACK] Applying orphan filter: true (users with no assignments)');
         
-        const usersWithOrgs = db
-          .selectDistinct({ userId: schema.userOrganizations.userId })
-          .from(schema.userOrganizations)
-          .where(eq(schema.userOrganizations.isActive, true));
-        
-        const usersWithResidences = db
-          .selectDistinct({ userId: schema.userResidences.userId })
-          .from(schema.userResidences)
-          .where(eq(schema.userResidences.isActive, true));
-        
-        // Users who are NOT in either of these subqueries
+        // Users who are NOT in either organizations or residences
         whereConditions.push(
           and(
-            notInArray(schema.users.id, usersWithOrgs),
-            notInArray(schema.users.id, usersWithResidences)
+            sql`NOT EXISTS (
+              SELECT 1 FROM user_organizations uo 
+              WHERE uo.user_id = ${schema.users.id} AND uo.is_active = true
+            )`,
+            sql`NOT EXISTS (
+              SELECT 1 FROM user_residences ur 
+              WHERE ur.user_id = ${schema.users.id} AND ur.is_active = true
+            )`
           )
         );
       } else if (filters.orphan === 'false') {
         // Users with at least one organization OR residence assignment
         console.log('👻 [FALLBACK] Applying orphan filter: false (users with assignments)');
         
-        const usersWithOrgs = db
-          .selectDistinct({ userId: schema.userOrganizations.userId })
-          .from(schema.userOrganizations)
-          .where(eq(schema.userOrganizations.isActive, true));
-        
-        const usersWithResidences = db
-          .selectDistinct({ userId: schema.userResidences.userId })
-          .from(schema.userResidences)
-          .where(eq(schema.userResidences.isActive, true));
-        
-        // Users who are in at least one of these subqueries
+        // Users who are in at least one of these
         whereConditions.push(
           or(
-            inArray(schema.users.id, usersWithOrgs),
-            inArray(schema.users.id, usersWithResidences)
+            exists(
+              db
+                .select()
+                .from(schema.userOrganizations)
+                .where(
+                  and(
+                    eq(schema.userOrganizations.userId, schema.users.id),
+                    eq(schema.userOrganizations.isActive, true)
+                  )
+                )
+            ),
+            exists(
+              db
+                .select()
+                .from(schema.userResidences)
+                .where(
+                  and(
+                    eq(schema.userResidences.userId, schema.users.id),
+                    eq(schema.userResidences.isActive, true)
+                  )
+                )
+            )
           )
         );
       }
@@ -1124,10 +1138,11 @@ export class OptimizedDatabaseStorage implements IStorage {
     }
 
     // Get total count using covering index
-    const [{ count: total }] = await db
+    const countResult = await db
       .select({ count: count() })
       .from(schema.users)
       .where(eq(schema.users.isActive, true));
+    const total = Number(countResult[0]?.count || 0);
 
     // Get paginated results with LIMIT and optimized ORDER BY
     const users = await db
@@ -1503,7 +1518,8 @@ export class OptimizedDatabaseStorage implements IStorage {
         buildingType: insertBuilding.buildingType as 'condo' | 'appartement',
         totalUnits: insertBuilding.totalUnits || 0,
         bankAccountStartAmount: insertBuilding.bankAccountStartAmount ? insertBuilding.bankAccountStartAmount.toString() : undefined,
-        bankAccountMinimums: insertBuilding.bankAccountMinimums ? JSON.stringify(insertBuilding.bankAccountMinimums) : undefined
+        bankAccountMinimums: insertBuilding.bankAccountMinimums ? JSON.stringify(insertBuilding.bankAccountMinimums) : undefined,
+        unplannedBillsAmount: insertBuilding.unplannedBillsAmount ? insertBuilding.unplannedBillsAmount.toString() : undefined
       }]).returning();
     });
 
@@ -2604,16 +2620,46 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getRolePermissions',
       'role_permissions:all',
       'role_permissions',
-      () =>
-        db
-          .select()
+      async () => {
+        const results = await db
+          .select({
+            id: schema.rolePermissions.id,
+            role: schema.rolePermissions.role,
+            createdAt: schema.rolePermissions.createdAt,
+            permissionId: schema.rolePermissions.permissionId,
+            grantedBy: schema.rolePermissions.grantedBy,
+            grantedAt: schema.rolePermissions.grantedAt,
+            permissions: {
+              id: schema.permissions.id,
+              name: schema.permissions.name,
+              displayName: schema.permissions.displayName,
+              description: schema.permissions.description,
+              resourceType: schema.permissions.resourceType,
+              action: schema.permissions.action,
+              conditions: schema.permissions.conditions,
+              isActive: schema.permissions.isActive,
+              createdAt: schema.permissions.createdAt,
+              updatedAt: schema.permissions.updatedAt
+            }
+          })
           .from(schema.rolePermissions)
           .innerJoin(
             schema.permissions,
             eq(schema.rolePermissions.permissionId, schema.permissions.id)
           )
           .where(eq(schema.permissions.isActive, true))
-          .orderBy(schema.rolePermissions.role, schema.permissions.resourceType)
+          .orderBy(schema.rolePermissions.role, schema.permissions.resourceType);
+
+        // Map to expected RolePermission format
+        return results.map(row => ({
+          id: row.id,
+          role: row.role,
+          createdAt: row.createdAt,
+          permissionId: row.permissionId,
+          grantedBy: row.grantedBy,
+          grantedAt: row.grantedAt
+        }));
+      }
     );
   }
 
@@ -2623,7 +2669,34 @@ export class OptimizedDatabaseStorage implements IStorage {
   async getUserPermissions(): Promise<UserPermission[]> {
     try {
       const results = await db
-        .select()
+        .select({
+          id: schema.userPermissions.id,
+          createdAt: schema.userPermissions.createdAt,
+          updatedAt: schema.userPermissions.updatedAt,
+          permissionId: schema.userPermissions.permissionId,
+          userId: schema.userPermissions.userId,
+          granted: schema.userPermissions.granted,
+          user_permissions: {
+            id: schema.userPermissions.id,
+            createdAt: schema.userPermissions.createdAt,
+            updatedAt: schema.userPermissions.updatedAt,
+            permissionId: schema.userPermissions.permissionId,
+            userId: schema.userPermissions.userId,
+            granted: schema.userPermissions.granted
+          },
+          permissions: {
+            id: schema.permissions.id,
+            name: schema.permissions.name,
+            displayName: schema.permissions.displayName,
+            description: schema.permissions.description,
+            resourceType: schema.permissions.resourceType,
+            action: schema.permissions.action,
+            conditions: schema.permissions.conditions,
+            isActive: schema.permissions.isActive,
+            createdAt: schema.permissions.createdAt,
+            updatedAt: schema.permissions.updatedAt
+          }
+        })
         .from(schema.userPermissions)
         .innerJoin(
           schema.permissions,
@@ -2632,7 +2705,15 @@ export class OptimizedDatabaseStorage implements IStorage {
         .where(eq(schema.permissions.isActive, true))
         .orderBy(schema.userPermissions.userId);
 
-      return results || [];
+      // Map to expected UserPermission format
+      return results.map(row => ({
+        id: row.id,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        permissionId: row.permissionId,
+        userId: row.userId,
+        granted: row.granted
+      })) || [];
     } catch (error: any) {
       console.error('❌ Error getting user permissions:', error);
       return [];
@@ -2668,8 +2749,6 @@ export class OptimizedDatabaseStorage implements IStorage {
           operationId,
           filters: filters || {}
         }, 'DEBUG');
-
-        let query = db.select().from(schema.documents);
 
         const conditions = [];
         if (filters?.buildingId) {
@@ -2718,13 +2797,15 @@ export class OptimizedDatabaseStorage implements IStorage {
           }, 'DEBUG');
         }
 
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions));
-          this.logStorageOperation('getDocuments_CONDITIONS_APPLIED', {
-            operationId,
-            conditionCount: conditions.length
-          }, 'DEBUG');
-        }
+        // Build query with all conditions at once to avoid type issues
+        const query = conditions.length > 0
+          ? db.select().from(schema.documents).where(and(...conditions))
+          : db.select().from(schema.documents);
+
+        this.logStorageOperation('getDocuments_CONDITIONS_APPLIED', {
+          operationId,
+          conditionCount: conditions.length
+        }, 'DEBUG');
 
         const dbStart = performance.now();
         const result = await query.orderBy(desc(schema.documents.createdAt));
@@ -3113,9 +3194,38 @@ export class OptimizedDatabaseStorage implements IStorage {
       'getContactsForResidence',
       `contacts_residence:${residenceId}`,
       'contacts',
-      () =>
-        db
-          .select()
+      async () => {
+        const results = await db
+          .select({
+            // Contact fields
+            id: schema.contacts.id,
+            name: schema.contacts.name,
+            email: schema.contacts.email,
+            phone: schema.contacts.phone,
+            isActive: schema.contacts.isActive,
+            createdAt: schema.contacts.createdAt,
+            updatedAt: schema.contacts.updatedAt,
+            entity: schema.contacts.entity,
+            entityId: schema.contacts.entityId,
+            contactCategory: schema.contacts.contactCategory,
+            // User fields
+            users: {
+              id: schema.users.id,
+              username: schema.users.username,
+              email: schema.users.email,
+              password: schema.users.password,
+              firstName: schema.users.firstName,
+              lastName: schema.users.lastName,
+              phone: schema.users.phone,
+              profileImage: schema.users.profileImage,
+              language: schema.users.language,
+              role: schema.users.role,
+              isActive: schema.users.isActive,
+              lastLoginAt: schema.users.lastLoginAt,
+              createdAt: schema.users.createdAt,
+              updatedAt: schema.users.updatedAt
+            }
+          })
           .from(schema.contacts)
           .innerJoin(schema.users, eq(schema.contacts.name, schema.users.email))
           .where(
@@ -3124,7 +3234,23 @@ export class OptimizedDatabaseStorage implements IStorage {
               eq(schema.contacts.entity, 'residence'),
               eq(schema.contacts.isActive, true)
             )
-          )
+          );
+        
+        // Map to expected format
+        return results.map(row => ({
+          id: row.id,
+          name: row.name,
+          email: row.email,
+          phone: row.phone,
+          isActive: row.isActive,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          entity: row.entity,
+          entityId: row.entityId,
+          contactCategory: row.contactCategory,
+          user: row.users
+        }));
+      }
     );
   }
 
@@ -3186,7 +3312,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    */
   async getDemandsForUser(userId: string): Promise<any[]> {
     return this.withOptimizations('getDemandsForUser', `demands_user:${userId}`, 'demands', () =>
-      db.select().from(schema.demands).where(eq(schema.demands.createdBy, userId))
+      db.select().from(schema.demands).where(eq(schema.demands.submitterId, userId))
     );
   }
 
@@ -3262,7 +3388,7 @@ export class OptimizedDatabaseStorage implements IStorage {
               attachments: attachments.map(att => ({
                 id: att.id,
                 name: att.fileName || att.name,
-                size: parseInt(att.fileSize || '0'),
+                size: parseInt(String(att.fileSize || '0')),
                 url: `/api/documents/${att.id}/file`,
                 type: att.fileName ? att.fileName.split('.').pop()?.toLowerCase() || 'unknown' : 'unknown'
               }))
@@ -3282,10 +3408,17 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param userRole
    * @param organizationId
    */
+  async getBug(id: string): Promise<Bug | undefined>;
   async getBug(
     id: string,
     userId: string,
     userRole: string,
+    organizationId?: string
+  ): Promise<Bug | undefined>;
+  async getBug(
+    id: string,
+    userId?: string,
+    userRole?: string,
     organizationId?: string
   ): Promise<Bug | undefined> {
     const key = `bug:${id}:user:${userId}:${userRole}`;
@@ -3343,18 +3476,18 @@ export class OptimizedDatabaseStorage implements IStorage {
     return result[0];
   }
 
-  /**
-   *
-   * @param id
-   * @param updates
-   * @param userId
-   * @param userRole
-   */
+  async updateBug(id: string, updates: Partial<Bug>): Promise<Bug | undefined>;
   async updateBug(
     id: string,
     updates: Partial<Bug>,
     userId: string,
     userRole: string
+  ): Promise<Bug | undefined>;
+  async updateBug(
+    id: string,
+    updates: Partial<Bug>,
+    userId?: string,
+    userRole?: string
   ): Promise<Bug | undefined> {
     // First check if the bug exists and get its current data
     const [existingBug] = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
@@ -3469,7 +3602,7 @@ export class OptimizedDatabaseStorage implements IStorage {
                 id: att.id,
                 name: att.name,
                 url: `/api/documents/${att.id}/file`,
-                size: att.fileSize ? parseInt(att.fileSize) : 0,
+                size: att.fileSize ? parseInt(String(att.fileSize)) : 0,
                 mimeType: att.mimeType,
               })),
             };
@@ -3490,17 +3623,17 @@ export class OptimizedDatabaseStorage implements IStorage {
     );
   }
 
-  /**
-   * Retrieves a specific feature request by ID with role-based access control.
-   * @param id
-   * @param userId
-   * @param userRole
-   * @param organizationId
-   */
+  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined>;
   async getFeatureRequest(
     id: string,
     userId: string,
     userRole: string,
+    organizationId?: string
+  ): Promise<FeatureRequest | undefined>;
+  async getFeatureRequest(
+    id: string,
+    userId?: string,
+    userRole?: string,
     organizationId?: string
   ): Promise<FeatureRequest | undefined> {
     return this.withOptimizations(
@@ -3562,19 +3695,18 @@ export class OptimizedDatabaseStorage implements IStorage {
     return result[0];
   }
 
-  /**
-   * Updates a feature request with role-based permissions.
-   * Users can edit their own, managers can edit within org, admins can edit all.
-   * @param id
-   * @param updates
-   * @param userId
-   * @param userRole
-   */
+  async updateFeatureRequest(id: string, updates: Partial<FeatureRequest>): Promise<FeatureRequest | undefined>;
   async updateFeatureRequest(
     id: string,
     updates: Partial<FeatureRequest>,
     userId: string,
     userRole: string
+  ): Promise<FeatureRequest | undefined>;
+  async updateFeatureRequest(
+    id: string,
+    updates: Partial<FeatureRequest>,
+    userId?: string,
+    userRole?: string
   ): Promise<FeatureRequest | undefined> {
     // Get existing feature request to check permissions
     const existingFeatureRequest = await db
@@ -3806,7 +3938,6 @@ export class OptimizedDatabaseStorage implements IStorage {
     userRole?: string;
   }): Promise<Invoice[]> {
     try {
-      let query = db.select().from(schema.invoices);
       const conditions = [];
 
       if (filters) {
@@ -3825,9 +3956,10 @@ export class OptimizedDatabaseStorage implements IStorage {
         }
       }
 
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
+      // Build query with all conditions at once to avoid type issues
+      const query = conditions.length > 0
+        ? db.select().from(schema.invoices).where(and(...conditions))
+        : db.select().from(schema.invoices);
 
       const invoices = await query.orderBy(desc(schema.invoices.createdAt));
       return invoices;
@@ -3860,6 +3992,8 @@ export class OptimizedDatabaseStorage implements IStorage {
           ...invoice,
           totalAmount: invoice.totalAmount.toString(),
           dueDate: invoice.dueDate.toISOString().split('T')[0], // Convert Date to string
+          startDate: invoice.startDate ? (invoice.startDate instanceof Date ? invoice.startDate.toISOString().split('T')[0] : String(invoice.startDate)) : undefined, // Convert Date to string
+          customPaymentDates: invoice.customPaymentDates ? invoice.customPaymentDates.map(date => date instanceof Date ? date.toISOString().split('T')[0] : String(date)) : undefined, // Convert Date[] to string[]
           extractionConfidence: invoice.extractionConfidence ? invoice.extractionConfidence.toString() : undefined
         }])
         .returning();
@@ -3930,7 +4064,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       console.log('⏱️ [STORAGE - COUNT] Database query completed in:', (endTime - startTime), 'ms');
       console.log('📈 [STORAGE - COUNT] Raw database result:', result.rows);
       
-      const count = parseInt(result.rows[0]?.total || '0');
+      const count = parseInt(String(result.rows[0]?.total || '0'));
       console.log('🔢 [STORAGE - COUNT] Parsed orphan count:', count);
       console.log('📊 [STORAGE - COUNT] ===== COUNT ORPHAN USERS COMPLETED =====');
       
@@ -3973,7 +4107,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       console.log('⏱️ [STORAGE - COUNT ALL] Database query completed in:', (endTime - startTime), 'ms');
       console.log('📈 [STORAGE - COUNT ALL] Raw database result:', result.rows);
       
-      const count = parseInt(result.rows[0]?.total || '0');
+      const count = parseInt(String(result.rows[0]?.total || '0'));
       console.log('🔢 [STORAGE - COUNT ALL] Parsed user count:', count);
       console.log('📊 [STORAGE - COUNT ALL] ===== COUNT ALL USERS EXCEPT ADMIN COMPLETED =====');
       
@@ -4041,7 +4175,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       console.log('⏱️ [STORAGE - DELETE ALL] Count query completed in:', (countEndTime - countStartTime), 'ms');
       console.log('📈 [STORAGE - DELETE ALL] Raw count result:', countResult.rows);
       
-      const deletedCount = parseInt(countResult.rows[0]?.deleted_count || '0');
+      const deletedCount = parseInt(String(countResult.rows[0]?.deleted_count || '0'));
       console.log('🔢 [STORAGE - DELETE ALL] Final deleted count:', deletedCount);
       console.log('⏱️ [STORAGE - DELETE ALL] Total operation time:', (countEndTime - startTime), 'ms');
       console.log('🗑️ [STORAGE - DELETE ALL] ===== DELETE ALL USERS EXCEPT ADMIN COMPLETED =====');
@@ -4135,7 +4269,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       console.log('⏱️ [STORAGE - DELETE] Count query completed in:', (countEndTime - countStartTime), 'ms');
       console.log('📈 [STORAGE - DELETE] Raw count result:', countResult.rows);
       
-      const deletedCount = parseInt(countResult.rows[0]?.deleted_count || '0');
+      const deletedCount = parseInt(String(countResult.rows[0]?.deleted_count || '0'));
       console.log('🔢 [STORAGE - DELETE] Final deleted count:', deletedCount);
       console.log('⏱️ [STORAGE - DELETE] Total operation time:', (countEndTime - startTime), 'ms');
       console.log('🗑️ [STORAGE - DELETE] ===== DELETE ORPHAN USERS COMPLETED =====');
