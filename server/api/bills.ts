@@ -18,6 +18,42 @@ import path from 'path';
 import fs from 'fs';
 import * as schema from '@shared/schema';
 import { secureFileStorage } from '../services/secure-file-storage';
+import crypto from 'crypto';
+
+// Secure filename sanitization function
+function sanitizeFilename(filename: string): string {
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('Invalid filename provided');
+  }
+  
+  // Remove path traversal sequences and dangerous characters
+  let sanitized = filename.replace(/\.\.[\\\/]/g, ''); // Remove ../ and ..\
+  sanitized = sanitized.replace(/[\\\/]/g, '_'); // Replace slashes with underscores
+  sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_'); // Only allow safe characters
+  
+  // Ensure reasonable length
+  if (sanitized.length > 255) {
+    const ext = path.extname(sanitized);
+    const name = path.basename(sanitized, ext).substring(0, 200);
+    sanitized = name + ext;
+  }
+  
+  // Ensure it's not empty
+  if (!sanitized || sanitized === '.' || sanitized === '_') {
+    sanitized = 'file_' + crypto.randomUUID().substring(0, 8);
+  }
+  
+  return sanitized;
+}
+
+// Generate secure random filename
+function generateSecureFilename(originalName: string): string {
+  const sanitizedName = sanitizeFilename(originalName);
+  const ext = path.extname(sanitizedName);
+  const baseName = path.basename(sanitizedName, ext);
+  const secureId = crypto.randomUUID();
+  return `${baseName}_${secureId}${ext}`;
+}
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
 import { BILL_CATEGORIES } from '@shared/schemas/financial';
 
@@ -74,7 +110,25 @@ const extractionRateLimit = rateLimit({
   }
 });
 
-// Configure multer for file uploads
+// Magic number validation for file type verification
+function validateFileByMagicNumbers(fileBuffer: Buffer, declaredMimeType: string): boolean {
+  if (!fileBuffer || fileBuffer.length < 4) return false;
+  
+  const magicNumbers = fileBuffer.slice(0, 8);
+  const validMagicNumbers = {
+    'application/pdf': [0x25, 0x50, 0x44, 0x46], // %PDF
+    'image/jpeg': [0xFF, 0xD8, 0xFF], // JPEG
+    'image/png': [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A], // PNG
+    'image/gif': [0x47, 0x49, 0x46], // GIF
+  };
+  
+  const expectedMagic = validMagicNumbers[declaredMimeType as keyof typeof validMagicNumbers];
+  if (!expectedMagic) return false;
+  
+  return expectedMagic.every((byte, index) => magicNumbers[index] === byte);
+}
+
+// Configure multer for file uploads with enhanced security
 const upload = multer({
   dest: '/tmp/uploads/',
   fileFilter: (req, file, cb) => {
@@ -963,22 +1017,60 @@ export function registerBillRoutes(app: Express) {
           size: req.file.size,
           tempPath: req.file.path
         });
+        
+        // SECURITY: Validate file content using magic numbers
+        try {
+          const fileBuffer = fs.readFileSync(req.file.path);
+          const isValidFileType = validateFileByMagicNumbers(fileBuffer, req.file.mimetype);
+          
+          if (!isValidFileType) {
+            console.log(`❌ [BILLS UPLOAD] File content validation failed - magic numbers don't match declared type`);
+            // Clean up temporary file
+            fs.unlinkSync(req.file.path);
+            return res.status(400).json({ 
+              message: 'File content does not match declared file type',
+              error: 'Invalid file content'
+            });
+          }
+          console.log(`✅ [BILLS UPLOAD] File content validated successfully`);
+        } catch (validationError: any) {
+          console.error(`❌ [BILLS UPLOAD] File validation error:`, validationError);
+          // Clean up temporary file
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+          return res.status(400).json({ 
+            message: 'File validation failed',
+            error: 'Unable to validate file content'
+          });
+        }
 
         // Get organization ID for document organization
         const organizations = await storage.getUserOrganizations(req.user.id);
-        const organizationId =
-          organizations.length > 0 ? organizations[0].organizationId : 'default';
+        let organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
+        
+        // SECURITY: Sanitize organization ID to prevent path traversal
+        organizationId = organizationId.replace(/[^a-zA-Z0-9_-]/g, '_');
         
         console.log(`📄 [BILLS UPLOAD] Organization ID determined: ${organizationId}`);
 
-        // Create document path in the expected format
-        const filePath = `prod_org_${organizationId}/${req.file.originalname}`;
-        console.log(`📄 [BILLS UPLOAD] File path determined: ${filePath}`);
+        // SECURITY: Generate secure filename instead of using original name
+        const secureFilename = generateSecureFilename(req.file.originalname);
+        const filePath = `prod_org_${organizationId}/${secureFilename}`;
+        console.log(`📄 [BILLS UPLOAD] Secure file path determined: ${filePath}`);
         
         // Create uploads directory structure if it doesn't exist
         const path = await import('path');
-        const uploadsDir = path.join(process.cwd(), 'uploads');
-        const orgDir = path.join(uploadsDir, `prod_org_${organizationId}`);
+        const uploadsDir = path.resolve(process.cwd(), 'uploads'); // Use resolve for security
+        const sanitizedOrgId = organizationId.replace(/[^a-zA-Z0-9_-]/g, '_'); // Double sanitization
+        const orgDir = path.join(uploadsDir, `prod_org_${sanitizedOrgId}`);
+        
+        // SECURITY: Validate that orgDir is within uploads directory
+        const resolvedOrgDir = path.resolve(orgDir);
+        if (!resolvedOrgDir.startsWith(uploadsDir)) {
+          console.error(`❌ [BILLS UPLOAD] Security violation: org directory outside uploads`);
+          return res.status(400).json({ message: 'Invalid organization path' });
+        }
         
         console.log(`📄 [BILLS UPLOAD] Directory paths:`, {
           uploadsDir,
@@ -2287,6 +2379,21 @@ export function registerBillRoutes(app: Express) {
               userRole: userRole
             };
 
+            // SECURITY: Validate file content using magic numbers before storing
+            try {
+              const fileBuffer = file.buffer || fs.readFileSync(file.path);
+              const isValidFileType = validateFileByMagicNumbers(fileBuffer, file.mimetype);
+              
+              if (!isValidFileType) {
+                console.log(`❌ [AUTO-GENERATED BILL] File content validation failed for file ${i}`);
+                throw new Error(`File content does not match declared type: ${file.mimetype}`);
+              }
+              console.log(`✅ [AUTO-GENERATED BILL] File ${i} content validated successfully`);
+            } catch (validationError: any) {
+              console.error(`❌ [AUTO-GENERATED BILL] File validation error for file ${i}:`, validationError);
+              throw validationError;
+            }
+            
             // Use secure file storage to save the file
             const uploadResult = await secureFileStorage.storeFile(
               file,

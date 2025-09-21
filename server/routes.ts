@@ -242,10 +242,91 @@ export async function registerRoutes(app: Express) {
     }
   });
   
-  // Move error handlers to after static file serving
-
-  // Serve uploaded files
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  // SECURITY FIX: Removed direct static file serving - replaced with authenticated endpoints below
+  // Old vulnerable code: app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  
+  // Secure authenticated file serving endpoint
+  app.get('/uploads/:orgId/:category/:fileId', requireAuth, async (req: any, res) => {
+    try {
+      const { orgId, category, fileId } = req.params;
+      const user = req.user;
+      
+      // Validate parameters to prevent path traversal
+      if (!orgId.match(/^[a-zA-Z0-9_-]+$/) || !category.match(/^[a-zA-Z0-9_-]+$/) || !fileId.match(/^[a-zA-Z0-9._-]+$/)) {
+        return res.status(400).json({ error: 'Invalid file path parameters' });
+      }
+      
+      // Check if user has access to this organization's files
+      // This would need to be implemented based on your organization access logic
+      const userOrgs = await import('./storage').then(({ storage }) => storage.getUserOrganizations(user.id));
+      const hasOrgAccess = userOrgs.some(org => org.organizationId === orgId);
+      
+      if (!hasOrgAccess && user.role !== 'admin') {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      // Construct safe file path within uploads directory only
+      const safeFilePath = path.join(process.cwd(), 'uploads', orgId, category, fileId);
+      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      const requestedPath = path.resolve(safeFilePath);
+      
+      // Ensure the resolved path is within uploads directory (prevent directory traversal)
+      if (!requestedPath.startsWith(uploadsDir)) {
+        return res.status(403).json({ error: 'Access denied - invalid file path' });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(requestedPath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      // Serve the file
+      res.sendFile(requestedPath);
+      
+    } catch (error: any) {
+      console.error('Secure file serving error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Legacy support for simple file access (still authenticated)
+  app.get('/uploads/*', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const requestedPath = req.params[0]; // Everything after /uploads/
+      
+      // Only allow admin access to arbitrary paths for now
+      if (user.role !== 'admin') {
+        return res.status(403).json({ 
+          error: 'Direct file access requires admin privileges',
+          message: 'Please use the appropriate API endpoints for file access'
+        });
+      }
+      
+      // Sanitize the path
+      const sanitizedPath = requestedPath.replace(/\.\.[\\\/]/g, '').replace(/^[\\\/]+/, '');
+      const safeFilePath = path.join(process.cwd(), 'uploads', sanitizedPath);
+      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      const resolvedPath = path.resolve(safeFilePath);
+      
+      // Ensure the resolved path is within uploads directory
+      if (!resolvedPath.startsWith(uploadsDir)) {
+        return res.status(403).json({ error: 'Access denied - invalid file path' });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(resolvedPath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      // Serve the file
+      res.sendFile(resolvedPath);
+      
+    } catch (error: any) {
+      console.error('Legacy file serving error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
 
   // Simple production diagnostic endpoint
   app.get('/api/debug/simple', (req, res) => {

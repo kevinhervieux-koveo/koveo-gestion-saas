@@ -8,7 +8,44 @@
 import path from 'path';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
+import crypto from 'crypto';
 import { generateStorageDirectory, validateUploadContext, type UploadContext } from '@shared/config/upload-config';
+
+// Secure filename sanitization function
+function sanitizeFilename(filename: string): string {
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('Invalid filename provided');
+  }
+  
+  // Remove path traversal sequences and dangerous characters
+  let sanitized = filename.replace(/\.\.[\\\/]/g, ''); // Remove ../ and ..\
+  sanitized = sanitized.replace(/[\\\/]/g, '_'); // Replace slashes with underscores
+  sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_'); // Only allow safe characters
+  
+  // Ensure reasonable length
+  if (sanitized.length > 255) {
+    const ext = path.extname(sanitized);
+    const name = path.basename(sanitized, ext).substring(0, 200);
+    sanitized = name + ext;
+  }
+  
+  // Ensure it's not empty
+  if (!sanitized || sanitized === '.' || sanitized === '_') {
+    sanitized = 'file_' + crypto.randomUUID().substring(0, 8);
+  }
+  
+  return sanitized;
+}
+
+// Generate cryptographically secure random filename
+function generateSecureFilename(originalName: string): string {
+  const sanitizedName = sanitizeFilename(originalName);
+  const ext = path.extname(sanitizedName);
+  const secureId = crypto.randomUUID();
+  const timestamp = Date.now();
+  const randomSuffix = crypto.randomBytes(4).toString('hex');
+  return `${secureId}_${timestamp}_${randomSuffix}${ext}`;
+}
 
 export interface StorageResult {
   success: boolean;
@@ -51,19 +88,26 @@ export class SecureFileStorageService {
         };
       }
 
-      // Generate secure directory path
+      // SECURITY: Generate and validate secure directory path
       const contextWithUser = { ...context, userRole, userId };
       const relativePath = generateStorageDirectory(contextWithUser);
-      const fullDirectory = path.join(this.baseUploadDir, relativePath);
+      
+      // Ensure relativePath doesn't contain traversal sequences
+      const sanitizedRelativePath = relativePath.replace(/\.\.[\\\/]/g, '').replace(/^[\\\/]+/, '');
+      const fullDirectory = path.join(this.baseUploadDir, sanitizedRelativePath);
+      
+      // SECURITY: Validate that fullDirectory is within baseUploadDir
+      const resolvedFullDir = path.resolve(fullDirectory);
+      const resolvedBaseDir = path.resolve(this.baseUploadDir);
+      if (!resolvedFullDir.startsWith(resolvedBaseDir)) {
+        throw new Error('Invalid directory path - outside allowed storage area');
+      }
 
       // Ensure directory exists
       await this.ensureDirectoryExists(fullDirectory);
 
-      // Generate unique filename
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileExtension = path.extname(file.originalname);
-      const baseName = path.basename(file.originalname, fileExtension);
-      const uniqueFileName = `${baseName}-${timestamp}${fileExtension}`;
+      // SECURITY: Generate cryptographically secure filename
+      const uniqueFileName = generateSecureFilename(file.originalname);
       
       const filePath = path.join(fullDirectory, uniqueFileName);
 
@@ -117,10 +161,22 @@ export class SecureFileStorageService {
     userRole: string
   ): Promise<{ success: boolean; filePath?: string; error?: string }> {
     try {
-      const fullPath = path.join(this.baseUploadDir, relativePath);
+      // SECURITY: Sanitize and validate relative path
+      const sanitizedPath = relativePath.replace(/\.\.[\\/]/g, '').replace(/^[\\/]+/, '');
+      const fullPath = path.join(this.baseUploadDir, sanitizedPath);
+      
+      // SECURITY: Ensure the resolved path is within baseUploadDir
+      const resolvedPath = path.resolve(fullPath);
+      const resolvedBaseDir = path.resolve(this.baseUploadDir);
+      if (!resolvedPath.startsWith(resolvedBaseDir)) {
+        return {
+          success: false,
+          error: 'Access denied - invalid file path'
+        };
+      }
 
       // Check if file exists
-      if (!existsSync(fullPath)) {
+      if (!existsSync(resolvedPath)) {
         return {
           success: false,
           error: 'File not found'

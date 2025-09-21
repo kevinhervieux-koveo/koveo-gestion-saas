@@ -49,7 +49,44 @@ const SECURITY_CONFIG = {
 // Rate limiting storage for uploads
 const uploadRateTracker = new Map();
 
-// Enhanced file validation function with content scanning
+// Secure path sanitization to prevent directory traversal attacks
+function sanitizeFilePath(filePath: string): string {
+  if (!filePath || typeof filePath !== 'string') {
+    throw new Error('Invalid file path provided');
+  }
+  
+  // Remove any null bytes (common in path traversal attacks)
+  let sanitized = filePath.replace(/\0/g, '');
+  
+  // Remove any path traversal sequences
+  sanitized = sanitized.replace(/\.\.[\\\/]/g, ''); // Remove ../ and ..\
+  sanitized = sanitized.replace(/^[\\\/]+/, ''); // Remove leading slashes
+  sanitized = sanitized.replace(/[\\\/]+$/, ''); // Remove trailing slashes
+  
+  // Normalize path separators to forward slashes
+  sanitized = sanitized.replace(/\\/g, '/');
+  
+  // Remove any remaining dangerous sequences
+  sanitized = sanitized.replace(/\.\.+/g, '.'); // Convert multiple dots to single dot
+  sanitized = sanitized.replace(/\/+/g, '/'); // Convert multiple slashes to single slash
+  
+  // Only allow alphanumeric chars, dots, hyphens, underscores, and forward slashes
+  sanitized = sanitized.replace(/[^a-zA-Z0-9._\/-]/g, '_');
+  
+  // Ensure the path doesn't start with dangerous sequences after sanitization
+  if (sanitized.startsWith('./') || sanitized.startsWith('../') || sanitized.startsWith('/')) {
+    sanitized = sanitized.substring(sanitized.search(/[^.\/]/) || 1);
+  }
+  
+  // Final validation - path must not be empty and must be reasonable length
+  if (!sanitized || sanitized.length > 500) {
+    throw new Error('Invalid file path after sanitization');
+  }
+  
+  return sanitized;
+}
+
+// Enhanced file validation function with content scanning and magic number validation
 function validateFile(file: any, fileContent?: Buffer): { isValid: boolean; error?: string } {
   if (!file) return { isValid: false, error: 'No file provided' };
   
@@ -86,6 +123,30 @@ function validateFile(file: any, fileContent?: Buffer): { isValid: boolean; erro
   const doubleExtensionPattern = /\.(exe|bat|cmd|com|pif|scr|vbs|js|jar|dll|sys|bin)\.[\w]+$/i;
   if (doubleExtensionPattern.test(filename)) {
     return { isValid: false, error: 'Potentially malicious filename detected' };
+  }
+  
+  // Magic number validation for file type verification
+  if (fileContent && fileContent.length > 4) {
+    const magicNumbers = fileContent.slice(0, 8);
+    const validMagicNumbers = {
+      'pdf': [0x25, 0x50, 0x44, 0x46], // %PDF
+      'jpg': [0xFF, 0xD8, 0xFF], // JPEG
+      'png': [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A], // PNG
+      'gif': [0x47, 0x49, 0x46], // GIF
+      'docx': [0x50, 0x4B], // ZIP-based format (DOCX)
+      'txt': null // Text files don't have consistent magic numbers
+    };
+    
+    // Verify file content matches declared MIME type
+    const extension = path.extname(file.originalname).toLowerCase().substring(1);
+    const expectedMagic = validMagicNumbers[extension as keyof typeof validMagicNumbers];
+    
+    if (expectedMagic) {
+      const matches = expectedMagic.every((byte, index) => magicNumbers[index] === byte);
+      if (!matches && extension !== 'txt') {
+        return { isValid: false, error: `File content does not match declared type: ${extension}` };
+      }
+    }
   }
   
   // Content validation if available
@@ -3340,11 +3401,25 @@ export function registerDocumentRoutes(app: Express): void {
       // Serve from local storage
       if (document.filePath) {
         try {
-          // URL normalization - clean and resolve the file path
-          let cleanFilePath = document.filePath.trim();
-          
-          // Remove double slashes and normalize
-          cleanFilePath = cleanFilePath.replace(/\/+/g, '/');
+          // SECURITY: Properly sanitize file path to prevent directory traversal
+          let cleanFilePath: string;
+          try {
+            cleanFilePath = sanitizeFilePath(document.filePath);
+            
+            logSecurityEvent('FILE_PATH_SANITIZED', user, true, documentId, {
+              originalPath: document.filePath,
+              sanitizedPath: cleanFilePath
+            });
+          } catch (sanitizationError: any) {
+            logSecurityEvent('FILE_PATH_SANITIZATION_FAILED', user, false, documentId, {
+              originalPath: document.filePath,
+              error: sanitizationError.message
+            });
+            return res.status(400).json({ 
+              message: 'Invalid file path',
+              error: 'File path contains invalid characters'
+            });
+          }
           
           // Remove leading 'uploads/' if it exists to prevent double-prefix
           if (cleanFilePath.startsWith('uploads/')) {
@@ -3370,28 +3445,15 @@ export function registerDocumentRoutes(app: Express): void {
 
           let filePathToServe = null;
 
-          // Try different path combinations in order of priority
+          // SECURITY: Only try safe path combinations - no direct filesystem access
+          const baseUploadDir = path.resolve(process.cwd(), 'uploads');
           const possiblePaths = [
-            // 1. Direct absolute path (if provided)
-            cleanFilePath.startsWith('/') ? cleanFilePath : null,
-            
-            // 2. Direct path from process.cwd() (user directory structure)
-            path.join(process.cwd(), cleanFilePath),
-            
-            // 3. Standard uploads directory
-            path.join(process.cwd(), 'uploads', cleanFilePath),
-            
-            // 4. Demo directory within uploads
-            path.join(process.cwd(), 'uploads', 'demo', cleanFilePath),
-            
-            // 5. Legacy temp uploads
-            path.join('/tmp/uploads', cleanFilePath),
-            path.join('/tmp', cleanFilePath),
-            
-            // 6. Alternative upload locations
-            path.join(process.cwd(), 'uploads', 'demo', 'residences', cleanFilePath),
-            path.join(process.cwd(), 'uploads', 'demo', 'buildings', cleanFilePath),
-          ].filter(Boolean); // Remove null entries
+            // Only search within the uploads directory structure
+            path.join(baseUploadDir, cleanFilePath),
+            path.join(baseUploadDir, 'demo', cleanFilePath),
+            path.join(baseUploadDir, 'demo', 'residences', cleanFilePath),
+            path.join(baseUploadDir, 'demo', 'buildings', cleanFilePath),
+          ];
 
           logDocumentOperation('PATH_RESOLUTION_START', {
             operationId,
@@ -3403,17 +3465,13 @@ export function registerDocumentRoutes(app: Express): void {
           // Try to find the file in any of these locations
           for (const possiblePath of possiblePaths) {
             if (fs.existsSync(possiblePath)) {
-              // Ensure the resolved path is within allowed directories (security check)
+              // SECURITY: Strict path validation - only allow files within uploads directory
               const resolvedPath = path.resolve(possiblePath);
-              const allowedDirs = [
-                path.resolve(process.cwd(), 'uploads'),
-                path.resolve('/tmp/uploads'),
-                path.resolve('/tmp')
-              ];
+              const allowedBaseDir = path.resolve(process.cwd(), 'uploads');
               
-              const isPathSafe = allowedDirs.some(allowedDir => 
-                resolvedPath.startsWith(allowedDir)
-              );
+              // Use path.relative to ensure the file is within the allowed directory
+              const relativePath = path.relative(allowedBaseDir, resolvedPath);
+              const isPathSafe = !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
               
               if (isPathSafe) {
                 filePathToServe = resolvedPath;
