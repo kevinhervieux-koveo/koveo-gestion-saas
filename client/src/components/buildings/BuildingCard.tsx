@@ -50,7 +50,7 @@ export function BuildingCard({
     ? `/manager/buildings/${building.id}/documents`
     : `/residents/building/documents?buildingId=${building.id}`;
     
-  const defaultResidencesPath = `/manager/residences?building=${building.id}`;
+  const defaultResidencesPath = `/manager/residences?organization=${building.organizationId}&building=${building.id}`;
 
   return (
     <Card className='h-full' data-testid={`card-building-${building.id}`}>
