@@ -96,6 +96,11 @@ interface OrganizationContext {
   canSendToAllOrganizations: boolean;
 }
 
+interface OrganizationOption {
+  id: string;
+  name: string;
+}
+
 // Enhanced notification configuration with user and building details
 interface NotificationConfigurationWithDetails extends NotificationConfiguration {
   createdByName?: string;
@@ -138,9 +143,9 @@ const frequencyOptions = [
 
 // Use shared schema from operations.ts with UI-specific validation
 const configurationFormSchema = insertNotificationConfigurationSchema.omit({
-  organizationId: true,
   createdBy: true,
 }).extend({
+  organizationId: z.string().min(1, 'Organization is required'),
   buildingId: z.string().min(1, 'Building is required'),
   title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   message: z.string().min(1, 'Message is required').max(2000, 'Message must be 2000 characters or less'),
@@ -303,29 +308,29 @@ function ConfigurationCard({
  */
 function ConfigurationForm({
   config,
-  organizationContext,
   onSuccess,
   onCancel,
   language,
 }: {
   config?: NotificationConfiguration;
-  organizationContext: OrganizationContext;
   onSuccess: () => void;
   onCancel: () => void;
   language: 'en' | 'fr';
 }) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const isEditing = !!config;
 
-  // Fetch buildings for the organization
-  const { data: buildingsData } = useQuery<BuildingsResponse>({
-    queryKey: ['/api/communication/buildings', organizationContext.id],
-    enabled: !!organizationContext.id,
+  // Fetch user's organizations
+  const { data: organizations = [] } = useQuery<OrganizationOption[]>({
+    queryKey: ['/api/organizations'],
+    enabled: !!user,
   });
 
   const form = useForm({
     resolver: zodResolver(configurationFormSchema),
     defaultValues: {
+      organizationId: config?.organizationId || '',
       buildingId: config?.buildingId || '',
       type: (config?.type || 'seasonal_reminder') as 'seasonal_reminder' | 'announcement',
       title: config?.title || '',
@@ -337,6 +342,29 @@ function ConfigurationForm({
     },
   });
 
+  const selectedOrganizationId = form.watch('organizationId');
+
+  // Fetch buildings for the selected organization
+  const { data: buildingsData } = useQuery<BuildingsResponse>({
+    queryKey: ['/api/communication/buildings', selectedOrganizationId],
+    enabled: !!selectedOrganizationId,
+  });
+
+  // Pre-select organization if user has only one
+  React.useEffect(() => {
+    if (organizations.length === 1 && !isEditing && !form.getValues('organizationId')) {
+      form.setValue('organizationId', organizations[0].id);
+    }
+  }, [organizations, form, isEditing]);
+
+  // Clear building selection when organization changes
+  React.useEffect(() => {
+    if (!isEditing) {
+      form.setValue('buildingId', '');
+    }
+  }, [selectedOrganizationId, form, isEditing]);
+
+
   const selectedType = form.watch('type');
   const selectedTypeConfig = notificationTypes.find(t => t.value === selectedType);
 
@@ -346,7 +374,6 @@ function ConfigurationForm({
       // Convert Date objects to ISO strings for API compatibility
       const payload = {
         ...data,
-        organizationId: organizationContext.id,
         createdBy: isEditing ? config.createdBy : undefined, // Will be set server-side for new configs
         startDate: data.startDate.toISOString(),
         endsAt: data.endsAt ? data.endsAt.toISOString() : undefined,
@@ -358,12 +385,15 @@ function ConfigurationForm({
         return apiRequest('/api/communication/notification-configs', 'POST', payload);
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate scoped cache keys for proper cache management
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/communication/notification-configs', organizationContext.id],
-        exact: false // This will invalidate all queries that start with this pattern
-      });
+      const orgId = variables.organizationId;
+      if (orgId) {
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/communication/notification-configs', orgId],
+          exact: false // This will invalidate all queries that start with this pattern
+        });
+      }
       toast({
         title: language === 'en' ? 'Success' : 'Succès',
         description: isEditing
@@ -395,23 +425,23 @@ function ConfigurationForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Building Selection */}
+        {/* Organization Selection */}
         <FormField
           control={form.control}
-          name="buildingId"
+          name="organizationId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{language === 'en' ? 'Building' : 'Immeuble'}</FormLabel>
+              <FormLabel>{language === 'en' ? 'Organization' : 'Organisation'}</FormLabel>
               <Select onValueChange={field.onChange} value={field.value} disabled={isEditing}>
                 <FormControl>
-                  <SelectTrigger data-testid="select-building">
-                    <SelectValue placeholder={language === 'en' ? 'Select building' : 'Sélectionner un immeuble'} />
+                  <SelectTrigger data-testid="select-organization">
+                    <SelectValue placeholder={language === 'en' ? 'Select organization' : 'Sélectionner une organisation'} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {buildingsData?.buildings.map((building) => (
-                    <SelectItem key={building.id} value={building.id}>
-                      {building.name}
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -419,7 +449,47 @@ function ConfigurationForm({
               <FormMessage />
               {isEditing && (
                 <FormDescription className="text-amber-600">
+                  {language === 'en' ? 'Organization cannot be changed for existing configurations' : 'L\'organisation ne peut pas être modifiée pour les configurations existantes'}
+                </FormDescription>
+              )}
+            </FormItem>
+          )}
+        />
+
+        {/* Building Selection */}
+        <FormField
+          control={form.control}
+          name="buildingId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{language === 'en' ? 'Building' : 'Immeuble'}</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value} disabled={isEditing || !selectedOrganizationId}>
+                <FormControl>
+                  <SelectTrigger data-testid="select-building">
+                    <SelectValue placeholder={
+                      !selectedOrganizationId 
+                        ? (language === 'en' ? 'Select organization first' : 'Sélectionner d\'abord une organisation')
+                        : (language === 'en' ? 'Select building' : 'Sélectionner un immeuble')
+                    } />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {buildingsData?.buildings?.map((building) => (
+                    <SelectItem key={building.id} value={building.id}>
+                      {building.name}
+                    </SelectItem>
+                  )) || []}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+              {isEditing && (
+                <FormDescription className="text-amber-600">
                   {language === 'en' ? 'Building cannot be changed for existing configurations' : 'L\'immeuble ne peut pas être modifié pour les configurations existantes'}
+                </FormDescription>
+              )}
+              {!selectedOrganizationId && !isEditing && (
+                <FormDescription>
+                  {language === 'en' ? 'Please select an organization first to see available buildings' : 'Veuillez d\'abord sélectionner une organisation pour voir les immeubles disponibles'}
                 </FormDescription>
               )}
             </FormItem>
@@ -768,13 +838,13 @@ export function NotificationConfigurations({
 
   // Delete configuration mutation
   const deleteMutation = useMutation({
-    mutationFn: async (configId: string) => {
-      return apiRequest(`/api/communication/notification-configs/${configId}`, 'DELETE');
+    mutationFn: async (config: NotificationConfiguration) => {
+      return apiRequest(`/api/communication/notification-configs/${config.id}`, 'DELETE');
     },
-    onSuccess: () => {
+    onSuccess: (_, config) => {
       // Invalidate scoped cache keys for proper cache management
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/communication/notification-configs', organizationContext.id],
+        queryKey: ['/api/communication/notification-configs', config.organizationId],
         exact: false // This will invalidate all queries that start with this pattern
       });
       toast({
@@ -816,7 +886,7 @@ export function NotificationConfigurations({
   };
 
   const handleDelete = (config: NotificationConfiguration) => {
-    deleteMutation.mutate(config.id);
+    deleteMutation.mutate(config);
   };
 
   const handlePreview = (config: NotificationConfiguration) => {
@@ -909,7 +979,6 @@ export function NotificationConfigurations({
                 </DialogDescription>
               </DialogHeader>
               <ConfigurationForm
-                organizationContext={organizationContext}
                 onSuccess={handleFormSuccess}
                 onCancel={handleFormCancel}
                 language={language}
@@ -983,7 +1052,6 @@ export function NotificationConfigurations({
           {editingConfig && (
             <ConfigurationForm
               config={editingConfig}
-              organizationContext={organizationContext}
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}
               language={language}
