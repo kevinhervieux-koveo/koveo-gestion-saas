@@ -66,8 +66,12 @@ export function UserResidencesTab({
   }, [organizations]);
 
   // Initialize selections when user changes - notify parent of current user's residences
+  // Use a ref to track if we've already initialized for this user
+  const initializedUserRef = useRef<string | null>(null);
+  
   useEffect(() => {
-    if (user) {
+    if (user && user.id !== initializedUserRef.current) {
+      // Only initialize once per user - don't reinitialize when other state changes
       const residenceAssignments = user.residences?.map((residence: any) => ({
         residenceId: residence.id,
         relationshipType: residence.relationshipType || 'tenant',
@@ -77,9 +81,11 @@ export function UserResidencesTab({
       })) || [];
       // Only notify parent of initial state, don't manage internal state
       onSelectionChange?.(residenceAssignments);
-    } else {
+      initializedUserRef.current = user.id;
+    } else if (!user) {
       // Reset when dialog is closed (no user)
       onSelectionChange?.([]);
+      initializedUserRef.current = null;
     }
   }, [user?.id]); // Only depend on user ID to avoid infinite loops
 
