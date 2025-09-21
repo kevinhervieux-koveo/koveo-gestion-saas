@@ -630,17 +630,30 @@ export default function UserManagement() {
 
 
     // Apply cascade filtering before saving
+    console.log('🔍 [UNIFIED SAVE DEBUG] Before cascade filtering:');
+    console.log('selectedOrganizationIds:', selectedOrganizationIds);
+    console.log('selectedBuildingIds:', selectedBuildingIds);
+    console.log('selectedResidenceAssignments:', selectedResidenceAssignments);
+
     // Filter buildings: only include buildings that belong to selected organizations
     const filteredBuildingIds = selectedBuildingIds.filter(buildingId => {
       const building = buildingLookup.get(buildingId);
-      return building && selectedOrganizationIds.includes(building.organizationId);
+      const includeBuilding = building && selectedOrganizationIds.includes(building.organizationId);
+      console.log(`Building ${buildingId} (${building?.name}): org=${building?.organizationId}, include=${includeBuilding}`);
+      return includeBuilding;
     });
 
     // Filter residences: only include residences that belong to filtered buildings
     const filteredResidenceAssignments = selectedResidenceAssignments.filter(assignment => {
       const residence = residenceLookup.get(assignment.residenceId);
-      return residence && filteredBuildingIds.includes(residence.buildingId);
+      const includeResidence = residence && filteredBuildingIds.includes(residence.buildingId);
+      console.log(`Residence ${assignment.residenceId} (${residence?.unitNumber}): buildingId=${residence?.buildingId}, include=${includeResidence}`);
+      return includeResidence;
     });
+
+    console.log('🔍 [UNIFIED SAVE DEBUG] After cascade filtering:');
+    console.log('filteredBuildingIds:', filteredBuildingIds);
+    console.log('filteredResidenceAssignments:', filteredResidenceAssignments);
 
 
     try {
