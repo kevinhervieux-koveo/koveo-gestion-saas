@@ -325,6 +325,9 @@ export default function UserManagement() {
     await bulkActionMutation.mutateAsync({ action, data });
   };
 
+  // Flag to track if we're in unified save mode to prevent race conditions
+  const [isUnifiedSaving, setIsUnifiedSaving] = useState(false);
+
   // Edit user mutation
   const editUserMutation = useMutation({
     mutationFn: async (userData: z.infer<typeof editUserSchema> & { id: string }) => {
@@ -332,22 +335,25 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: async () => {
-      console.log('✅ [editUserMutation] User update successful, invalidating cache...');
+      console.log('✅ [editUserMutation] User update successful');
       
-      // ALWAYS invalidate cache for immediate table refresh
-      await queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      
-      console.log('🔄 [editUserMutation] Cache invalidated, table should refresh immediately');
-      
-      toast({
-        title: t('success'),
-        description: t('userUpdatedSuccess'),
-      });
-      
-      // Close dialog after successful update
-      setEditingUser(null);
+      // Only invalidate cache if NOT part of unified save to prevent race conditions
+      if (!isUnifiedSaving) {
+        console.log('🔄 [editUserMutation] Individual save - invalidating cache immediately...');
+        await queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+        
+        toast({
+          title: t('success'),
+          description: t('userUpdatedSuccess'),
+        });
+        
+        // Close dialog after successful update
+        setEditingUser(null);
+      } else {
+        console.log('⏳ [editUserMutation] Part of unified save - skipping individual cache invalidation');
+      }
     },
     onError: (error: Error) => {
       console.error('❌ [editUserMutation] User update failed:', error);
@@ -566,6 +572,10 @@ export default function UserManagement() {
     });
 
     try {
+      // Set unified saving flag to prevent individual cache invalidations
+      setIsUnifiedSaving(true);
+      console.log('🚩 [Unified Save] Set isUnifiedSaving = true to prevent race conditions');
+      
       // Get form values for basic info
       const formValues = editForm.getValues();
       console.log('📝 [Unified Save] Form values:', formValues);
@@ -632,12 +642,16 @@ export default function UserManagement() {
       console.log('💾 [Unified Save] Unified save process completed successfully');
       
     } catch (error) {
-      console.error('Unified save failed:', error);
+      console.error('❌ [Unified Save] Unified save failed:', error);
       toast({
         title: t('error'), 
         description: 'Failed to save all changes. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      // Always reset the unified saving flag
+      setIsUnifiedSaving(false);
+      console.log('🏁 [Unified Save] Reset isUnifiedSaving = false');
     }
   };
 
@@ -676,22 +690,25 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: async () => {
-      console.log('✅ [editOrganizationsMutation] Organization assignments saved, starting cache invalidation...');
+      console.log('✅ [editOrganizationsMutation] Organization assignments saved');
       
-      // CRITICAL: Same comprehensive cache invalidation as unified save
-      await queryClient.removeQueries({ queryKey: ['/api/users'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/users'] });
-      
-      console.log('🔄 [editOrganizationsMutation] Cache invalidation completed, table should refresh now');
-      
-      toast({
-        title: t('success'),
-        description: t('organizationAssignmentsUpdated'),
-      });
-      
-      if (editingUserOrganizations) {
-        setEditingUserOrganizations(null);
+      // Only invalidate cache if NOT part of unified save to prevent race conditions
+      if (!isUnifiedSaving) {
+        console.log('🔄 [editOrganizationsMutation] Individual save - invalidating cache...');
+        await queryClient.removeQueries({ queryKey: ['/api/users'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+        await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+        
+        toast({
+          title: t('success'),
+          description: t('organizationAssignmentsUpdated'),
+        });
+        
+        if (editingUserOrganizations) {
+          setEditingUserOrganizations(null);
+        }
+      } else {
+        console.log('⏳ [editOrganizationsMutation] Part of unified save - skipping individual cache invalidation');
       }
     },
     onError: (error: Error) => {
@@ -718,19 +735,22 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: async () => {
-      console.log('✅ [editBuildingsMutation] Building assignments saved, starting cache invalidation...');
+      console.log('✅ [editBuildingsMutation] Building assignments saved');
       
-      // CRITICAL: Same comprehensive cache invalidation as unified save
-      await queryClient.removeQueries({ queryKey: ['/api/users'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/users'] });
-      
-      console.log('🔄 [editBuildingsMutation] Cache invalidation completed, table should refresh now');
-      
-      toast({
-        title: t('success'),
-        description: t('buildingAssignmentsUpdated'),
-      });
+      // Only invalidate cache if NOT part of unified save to prevent race conditions
+      if (!isUnifiedSaving) {
+        console.log('🔄 [editBuildingsMutation] Individual save - invalidating cache...');
+        await queryClient.removeQueries({ queryKey: ['/api/users'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+        await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+        
+        toast({
+          title: t('success'),
+          description: t('buildingAssignmentsUpdated'),
+        });
+      } else {
+        console.log('⏳ [editBuildingsMutation] Part of unified save - skipping individual cache invalidation');
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -756,22 +776,25 @@ export default function UserManagement() {
       return response.json();
     },
     onSuccess: async () => {
-      console.log('✅ [editResidencesMutation] Residence assignments saved, starting cache invalidation...');
+      console.log('✅ [editResidencesMutation] Residence assignments saved');
       
-      // CRITICAL: Same comprehensive cache invalidation as unified save
-      await queryClient.removeQueries({ queryKey: ['/api/users'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/users'] });
-      
-      console.log('🔄 [editResidencesMutation] Cache invalidation completed, table should refresh now');
-      
-      toast({
-        title: t('success'),
-        description: t('residenceAssignmentsUpdated'),
-      });
-      
-      if (editingUserResidences) {
-        setEditingUserResidences(null);
+      // Only invalidate cache if NOT part of unified save to prevent race conditions
+      if (!isUnifiedSaving) {
+        console.log('🔄 [editResidencesMutation] Individual save - invalidating cache...');
+        await queryClient.removeQueries({ queryKey: ['/api/users'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+        await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+        
+        toast({
+          title: t('success'),
+          description: t('residenceAssignmentsUpdated'),
+        });
+        
+        if (editingUserResidences) {
+          setEditingUserResidences(null);
+        }
+      } else {
+        console.log('⏳ [editResidencesMutation] Part of unified save - skipping individual cache invalidation');
       }
     },
     onError: (error: Error) => {
