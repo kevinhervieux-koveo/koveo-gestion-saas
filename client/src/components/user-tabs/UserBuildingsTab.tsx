@@ -65,10 +65,15 @@ export function UserBuildingsTab({
     // Gate interactions until data is loaded
     if (!buildings || !organizations || isLoading) return;
     
+    console.log('🏢 [BUILDING TOGGLE] Building clicked:', buildingId);
+    console.log('🏢 [BUILDING TOGGLE] Current selectedBuildingIds:', selectedBuildingIds);
+    
     // Fully controlled - work with parent's selection state
     const newSelection = selectedBuildingIds.includes(buildingId)
       ? selectedBuildingIds.filter(id => id !== buildingId)
       : [...selectedBuildingIds, buildingId];
+    
+    console.log('🏢 [BUILDING TOGGLE] New selection:', newSelection);
     
     // Notify parent of selection change
     onSelectionChange?.(newSelection);

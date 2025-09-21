@@ -130,12 +130,18 @@ export default function UserManagement() {
   };
   
   const handleBuildingSelectionChange = (newBuildingIds: string[]) => {
+    console.log('🏗️ [PARENT] handleBuildingSelectionChange called');
+    console.log('🏗️ [PARENT] Old selectedBuildingIds:', selectedBuildingIds);
+    console.log('🏗️ [PARENT] New buildingIds:', newBuildingIds);
+    
     setSelectedBuildingIds(newBuildingIds);
     
     // Find buildings that were unselected
     const unselectedBuildingIds = selectedBuildingIds.filter(
       buildingId => !newBuildingIds.includes(buildingId)
     );
+    
+    console.log('🏗️ [PARENT] Unselected buildingIds:', unselectedBuildingIds);
     
     if (unselectedBuildingIds.length > 0) {
       // Remove residences that belong to unselected buildings using O(1) lookups
@@ -146,6 +152,7 @@ export default function UserManagement() {
         return !residence || !unselectedBuildingSet.has(residence.buildingId);
       });
       
+      console.log('🏗️ [PARENT] Remaining residence assignments:', remainingResidenceAssignments);
       setSelectedResidenceAssignments(remainingResidenceAssignments);
     }
   };
