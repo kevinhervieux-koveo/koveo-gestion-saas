@@ -2036,11 +2036,16 @@ export function registerCommunicationRoutes(app: Express): void {
       }];
 
       // Send preview email using the notification configuration data
-      const success = await emailService.sendNotifications(recipients, {
-        type: config.type,
-        title: config.title,
-        message: config.message,
-      }, organization);
+      const recipient = recipients[0];
+      const success = await emailService.sendNotificationEmail(
+        recipient.email,
+        recipient.name,
+        config.title,
+        config.message,
+        config.type,
+        organization.name,
+        recipient.language
+      );
 
       if (!success) {
         console.error(`❌ Failed to send preview notification for config ${id}`);

@@ -613,9 +613,9 @@ export const insertNotificationConfigurationSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   message: z.string().min(1, 'Message is required'),
   frequency: z.enum(['weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']),
-  startDate: z.date(),
+  startDate: z.coerce.date(),
   isActive: z.boolean().default(true),
-  endsAt: z.date().optional(),
+  endsAt: z.coerce.date().optional(),
   timezone: z.string().optional(),
 }).refine((data) => {
   if (data.endsAt && data.startDate) {
