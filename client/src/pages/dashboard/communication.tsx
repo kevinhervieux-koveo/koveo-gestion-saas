@@ -43,6 +43,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 import {
   Bell,
   Settings,
@@ -68,6 +71,8 @@ import {
   Shield,
   Zap,
   Check,
+  CalendarIcon,
+  TestTube,
 } from 'lucide-react';
 
 // Notification type definitions with user-friendly labels and descriptions
@@ -278,6 +283,7 @@ const preferencesSchema = z.object({
     notificationType: z.string(),
     frequency: z.enum(['immediate', 'weekly', '2weeks', 'monthly', 'quarterly', 'bi-annually', 'annually']),
     isEnabled: z.boolean(),
+    startingDate: z.date().optional(),
   })),
 });
 
@@ -801,6 +807,7 @@ export default function CommunicationDashboard() {
           notificationType: type.key,
           frequency: ensureValidFrequency(existing?.frequency, type.defaultFrequency),
           isEnabled: existing?.isEnabled ?? true,
+          startingDate: existing?.startingDate ? new Date(existing.startingDate) : new Date(),
         };
       }),
     },
@@ -815,6 +822,7 @@ export default function CommunicationDashboard() {
           notificationType: type.key,
           frequency: ensureValidFrequency(existing?.frequency, type.defaultFrequency),
           isEnabled: existing?.isEnabled ?? true,
+          startingDate: existing?.startingDate ? new Date(existing.startingDate) : new Date(),
         };
       });
       
@@ -858,6 +866,34 @@ export default function CommunicationDashboard() {
         description: error.message || (language === 'fr' 
           ? 'Échec de la mise à jour des préférences'
           : 'Failed to update preferences'),
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Test email mutation
+  const testEmailMutation = useMutation({
+    mutationFn: async ({ notificationType, language: emailLanguage }: { notificationType: string, language: 'fr' | 'en' }) => {
+      const response = await apiRequest('POST', '/api/communication/preferences/test-email', { 
+        notificationType,
+        language: emailLanguage 
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: language === 'fr' ? 'Email de test envoyé' : 'Test email sent',
+        description: language === 'fr' 
+          ? 'Un aperçu de votre notification a été envoyé à votre adresse email.'
+          : 'A preview of your notification has been sent to your email address.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: error.message || (language === 'fr' 
+          ? 'Échec de l\'envoi de l\'email de test'
+          : 'Failed to send test email'),
         variant: 'destructive',
       });
     },
@@ -1077,52 +1113,131 @@ export default function CommunicationDashboard() {
                                 </div>
                               </div>
                               
-                              <div className="flex items-center gap-4 shrink-0">
-                                <FormField
-                                  control={form.control}
-                                  name={`preferences.${formIndex}.isEnabled`}
-                                  render={({ field }) => (
-                                    <FormItem className="flex items-center gap-2">
-                                      <FormControl>
-                                        <Switch
-                                          checked={field.value}
-                                          onCheckedChange={field.onChange}
-                                          data-testid={`switch-${type.key}-enabled`}
-                                        />
-                                      </FormControl>
-                                      <FormLabel className="text-sm">
-                                        {language === 'fr' ? 'Activé' : 'Enabled'}
-                                      </FormLabel>
-                                    </FormItem>
-                                  )}
-                                />
-                                
-                                <FormField
-                                  control={form.control}
-                                  name={`preferences.${formIndex}.frequency`}
-                                  render={({ field }) => (
-                                    <FormItem className="w-40">
-                                      <Select
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        data-testid={`select-${type.key}-frequency`}
-                                      >
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0">
+                                {/* Top row: Switch and Frequency */}
+                                <div className="flex items-center gap-4">
+                                  <FormField
+                                    control={form.control}
+                                    name={`preferences.${formIndex}.isEnabled`}
+                                    render={({ field }) => (
+                                      <FormItem className="flex items-center gap-2">
                                         <FormControl>
-                                          <SelectTrigger>
-                                            <SelectValue />
-                                          </SelectTrigger>
+                                          <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                            data-testid={`switch-${type.key}-enabled`}
+                                          />
                                         </FormControl>
-                                        <SelectContent>
-                                          {frequencyOptions.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                              {language === 'fr' ? option.labelFr : option.labelEn}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </FormItem>
-                                  )}
-                                />
+                                        <FormLabel className="text-sm">
+                                          {language === 'fr' ? 'Activé' : 'Enabled'}
+                                        </FormLabel>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <FormField
+                                    control={form.control}
+                                    name={`preferences.${formIndex}.frequency`}
+                                    render={({ field }) => (
+                                      <FormItem className="w-40">
+                                        <Select
+                                          onValueChange={field.onChange}
+                                          value={field.value}
+                                          data-testid={`select-${type.key}-frequency`}
+                                        >
+                                          <FormControl>
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                          </FormControl>
+                                          <SelectContent>
+                                            {frequencyOptions.map((option) => (
+                                              <SelectItem key={option.value} value={option.value}>
+                                                {language === 'fr' ? option.labelFr : option.labelEn}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+
+                                {/* Bottom row: Starting Date and Test Button */}
+                                <div className="flex items-center gap-4">
+                                  <FormField
+                                    control={form.control}
+                                    name={`preferences.${formIndex}.startingDate`}
+                                    render={({ field }) => (
+                                      <FormItem className="w-40">
+                                        <FormLabel className="text-xs text-muted-foreground">
+                                          {language === 'fr' ? 'Date de début' : 'Starting Date'}
+                                        </FormLabel>
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <FormControl>
+                                              <Button
+                                                variant="outline"
+                                                className="w-full pl-3 text-left font-normal"
+                                                data-testid={`button-${type.key}-starting-date`}
+                                              >
+                                                {field.value ? (
+                                                  format(field.value, "dd/MM/yyyy")
+                                                ) : (
+                                                  <span className="text-muted-foreground">
+                                                    {language === 'fr' ? 'Sélectionnez...' : 'Select...'}
+                                                  </span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                              </Button>
+                                            </FormControl>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                              mode="single"
+                                              selected={field.value}
+                                              onSelect={field.onChange}
+                                              disabled={(date) =>
+                                                date < new Date("1900-01-01")
+                                              }
+                                              initialFocus
+                                            />
+                                          </PopoverContent>
+                                        </Popover>
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <div className="flex flex-col">
+                                    <label className="text-xs text-muted-foreground mb-1">
+                                      {language === 'fr' ? 'Aperçu' : 'Preview'}
+                                    </label>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => testEmailMutation.mutate({ 
+                                        notificationType: type.key, 
+                                        language: language 
+                                      })}
+                                      disabled={testEmailMutation.isPending}
+                                      className="text-xs"
+                                      data-testid={`button-${type.key}-test-email`}
+                                    >
+                                      {testEmailMutation.isPending ? (
+                                        <>
+                                          <LoadingSpinner />
+                                          {language === 'fr' ? 'Envoi...' : 'Sending...'}
+                                        </>
+                                      ) : (
+                                        <>
+                                          <TestTube className="h-3 w-3 mr-1" />
+                                          {language === 'fr' ? 'Test' : 'Test'}
+                                        </>
+                                      )}
+                                    </Button>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           );
