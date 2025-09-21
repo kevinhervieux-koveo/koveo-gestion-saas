@@ -2,7 +2,7 @@
 
 /**
  * Script to populate default notification preferences for existing users.
- * Creates default preferences for all 17 notification types with:
+ * Creates default preferences for all 15 notification types with:
  * - frequency: 'monthly'
  * - isEnabled: true
  * 
@@ -16,20 +16,18 @@ import { db } from '../db';
 import { users, userNotificationPreferences } from '@shared/schema';
 import { eq, notInArray } from 'drizzle-orm';
 
-// All 17 notification types that should have default preferences
+// All 15 notification types that should have default preferences
 const ALL_NOTIFICATION_TYPES = [
   'bill_reminder',
   'maintenance_update', 
   'announcement',
   'system',
-  'emergency',
   'upcoming_payment',
   'upcoming_bills',
   'bill_paid_last_month',
   'bills_overdue',
   'payment_overdue',
   'new_building_document',
-  'general_communication',
   'meeting_invite',
   'maintenance_completed',
   'budget_update',

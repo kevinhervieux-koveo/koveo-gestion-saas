@@ -47,13 +47,6 @@ describe('Communication Page Translation Coverage', () => {
         descriptionFr: 'Mises à jour système, maintenance et notifications de plateforme'
       },
       {
-        key: 'emergency',
-        labelEn: 'Emergency Alerts',
-        labelFr: 'Alertes d\'urgence',
-        descriptionEn: 'Critical emergency notifications and safety alerts',
-        descriptionFr: 'Notifications d\'urgence critiques et alertes de sécurité'
-      },
-      {
         key: 'upcoming_payment',
         labelEn: 'Upcoming Payments',
         labelFr: 'Paiements à venir',
@@ -94,13 +87,6 @@ describe('Communication Page Translation Coverage', () => {
         labelFr: 'Nouveaux documents',
         descriptionEn: 'Notifications when new building documents are uploaded',
         descriptionFr: 'Notifications lors du téléchargement de nouveaux documents de l\'immeuble'
-      },
-      {
-        key: 'general_communication',
-        labelEn: 'General Communications',
-        labelFr: 'Communications générales',
-        descriptionEn: 'General messages and updates from management',
-        descriptionFr: 'Messages généraux et mises à jour de la gestion'
       },
       {
         key: 'meeting_invite',
@@ -177,10 +163,8 @@ describe('Communication Page Translation Coverage', () => {
       // Test key notification types that should be translated appropriately for Quebec
       const keyNotificationTests = [
         { key: 'notification_bill_reminder_label', expected: 'Rappels de factures' },
-        { key: 'notification_emergency_label', expected: 'Alertes d\'urgence' },
         { key: 'notification_meeting_invite_label', expected: 'Invitations aux réunions' },
         { key: 'notification_maintenance_update_label', expected: 'Mises à jour de maintenance' },
-        { key: 'notification_general_communication_label', expected: 'Communications générales' }
       ];
 
       keyNotificationTests.forEach(test => {
