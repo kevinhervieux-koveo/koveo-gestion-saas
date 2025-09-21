@@ -124,6 +124,135 @@ export function registerCommunicationRoutes(app: Express): void {
   });
 
   // ==========================================
+  // NOTIFICATION SETTINGS ROUTES
+  // ==========================================
+
+  /**
+   * GET /api/communication/settings - Get user's global notification settings
+   * Returns the global starting date that applies to all notifications.
+   */
+  app.get('/api/communication/settings', requireAuth, async (req: any, res) => {
+    try {
+      console.log('🔍 [DEBUG] GET /api/communication/settings endpoint called');
+      
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        console.log('❌ [DEBUG] No valid session found for settings');
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      console.log(`🔍 [DEBUG] User ${currentUser.id} requesting notification settings`);
+
+      // Get user with notification settings
+      const [user] = await db
+        .select({
+          id: users.id,
+          notificationsStartingDate: users.notificationsStartingDate,
+        })
+        .from(users)
+        .where(eq(users.id, currentUser.id))
+        .limit(1);
+
+      if (!user) {
+        console.log(`❌ [DEBUG] User ${currentUser.id} not found`);
+        return res.status(404).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND',
+        });
+      }
+
+      const startingDate = user.notificationsStartingDate || new Date().toISOString().split('T')[0];
+      
+      console.log(`✅ [DEBUG] Returning notification settings for user ${currentUser.id}, starting date: ${startingDate}`);
+
+      res.json({
+        startingDate,
+      });
+    } catch (error: any) {
+      console.error('❌ [DEBUG] Error in settings endpoint:', error);
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to fetch notification settings',
+        details: error.message,
+      });
+    }
+  });
+
+  /**
+   * PUT /api/communication/settings - Update user's global notification settings
+   * Updates the global starting date that applies to all notifications.
+   */
+  app.put('/api/communication/settings', requireAuth, async (req: any, res) => {
+    try {
+      console.log('🔍 [DEBUG] PUT /api/communication/settings endpoint called');
+      
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        console.log('❌ [DEBUG] No valid session found for settings update');
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Validate request body
+      const settingsSchema = z.object({
+        startingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Starting date must be in YYYY-MM-DD format'),
+      });
+
+      const { startingDate } = settingsSchema.parse(req.body);
+
+      console.log(`🔍 [DEBUG] User ${currentUser.id} updating notification settings, starting date: ${startingDate}`);
+
+      // Update user's notification starting date
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          notificationsStartingDate: startingDate,
+          updatedAt: sql`now()`,
+        })
+        .where(eq(users.id, currentUser.id))
+        .returning({
+          id: users.id,
+          notificationsStartingDate: users.notificationsStartingDate,
+        });
+
+      if (!updatedUser) {
+        console.log(`❌ [DEBUG] Failed to update settings for user ${currentUser.id}`);
+        return res.status(404).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND',
+        });
+      }
+
+      console.log(`✅ [DEBUG] Updated notification settings for user ${currentUser.id}`);
+
+      res.json({
+        startingDate: updatedUser.notificationsStartingDate,
+      });
+    } catch (error: any) {
+      console.error('❌ [DEBUG] Error updating settings:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          _error: 'Validation error',
+          message: 'Invalid settings data provided',
+          details: error.errors,
+        });
+      }
+
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to update notification settings',
+        details: error.message,
+      });
+    }
+  });
+
+  // ==========================================
   // NOTIFICATION PREFERENCES ROUTES
   // ==========================================
 
