@@ -45,6 +45,7 @@ import { Switch } from '@/components/ui/switch';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { format } from 'date-fns';
 import {
   Bell,
@@ -72,6 +73,7 @@ import {
   Check,
   CalendarIcon,
   TestTube,
+  ChevronDown,
 } from 'lucide-react';
 
 // Notification type definitions with user-friendly labels and descriptions
@@ -783,6 +785,22 @@ export default function CommunicationDashboard() {
   const [bulkFrequency, setBulkFrequency] = useState<string>('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const formInitializedRef = useRef(false);
+  
+  // State to track which notification categories are collapsed (all collapsed by default)
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({
+    financial: true,
+    maintenance: true,
+    communication: true,
+    system: true,
+  });
+
+  // Function to toggle category collapsed state
+  const toggleCategory = (category: string) => {
+    setCollapsedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
 
   // Check if user can send communications (managers and admins only)
   const canSendCommunications = hasRole(['admin', 'manager', 'demo_manager']);
@@ -1256,15 +1274,29 @@ export default function CommunicationDashboard() {
                 
                 return (
                   <Card key={category}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <CategoryIcon className="w-5 h-5" />
-                        {language === 'fr' ? categoryLabel.fr : categoryLabel.en}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        {types.map((type, index) => {
+                    <Collapsible 
+                      open={!collapsedCategories[category]} 
+                      onOpenChange={() => toggleCategory(category)}
+                    >
+                      <CollapsibleTrigger asChild>
+                        <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                          <CardTitle className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <CategoryIcon className="w-5 h-5" />
+                              {language === 'fr' ? categoryLabel.fr : categoryLabel.en}
+                            </div>
+                            <ChevronDown 
+                              className={`w-4 h-4 transition-transform ${
+                                collapsedCategories[category] ? 'rotate-0' : 'rotate-180'
+                              }`}
+                            />
+                          </CardTitle>
+                        </CardHeader>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <CardContent>
+                          <div className="space-y-6">
+                            {types.map((type, index) => {
                           const formIndex = notificationTypes.findIndex(nt => nt.key === type.key);
                           const IconComponent = type.icon;
                           
@@ -1336,9 +1368,11 @@ export default function CommunicationDashboard() {
                               </div>
                             </div>
                           );
-                        })}
-                      </div>
-                    </CardContent>
+                            })}
+                          </div>
+                        </CardContent>
+                      </CollapsibleContent>
+                    </Collapsible>
                   </Card>
                 );
               })}
