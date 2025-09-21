@@ -1100,7 +1100,7 @@ export function registerCommunicationRoutes(app: Express): void {
         console.log(`📧 Sending general communication emails for: ${completeComm.title}`);
         
         // Get recipients based on organization and recipient roles
-        const recipients = await db
+        const recipientsQuery = await db
           .select({
             email: users.email,
             firstName: users.firstName,
@@ -1121,6 +1121,13 @@ export function registerCommunicationRoutes(app: Express): void {
                 : sql`1=1` // No role filter if no specific roles specified
             )
           );
+
+        // Remove duplicates by email address to prevent sending multiple emails to the same person
+        const recipients = recipientsQuery.filter((recipient, index, arr) => 
+          arr.findIndex(r => r.email === recipient.email) === index
+        );
+
+        console.log(`📧 Found ${recipientsQuery.length} recipient records, deduplicated to ${recipients.length} unique recipients`);
 
         if (recipients.length > 0) {
           // For urgent communications, send to all recipients immediately
