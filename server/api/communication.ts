@@ -584,7 +584,7 @@ export function registerCommunicationRoutes(app: Express): void {
           'policy_change',
           'seasonal_reminder',
         ]),
-        frequency: z.enum(['immediate', 'weekly', '2weeks', 'monthly', 'quarterly', 'bi-annually', 'annually']),
+        frequency: z.enum(['immediate', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']),
         isEnabled: z.boolean(),
         startingDate: z.date().optional(),
       }));
@@ -971,6 +971,7 @@ export function registerCommunicationRoutes(app: Express): void {
             firstName: users.firstName,
             lastName: users.lastName,
             language: users.language,
+            userId: users.id,
           })
           .from(users)
           .innerJoin(userOrganizations, eq(users.id, userOrganizations.userId))
@@ -978,6 +979,7 @@ export function registerCommunicationRoutes(app: Express): void {
             and(
               eq(userOrganizations.organizationId, completeComm.organizationId),
               eq(userOrganizations.isActive, true),
+              eq(users.isActive, true),
               // Filter by recipient roles if specified
               communicationData.recipientRoles?.length > 0 
                 ? inArray(userOrganizations.organizationRole, communicationData.recipientRoles as any)
@@ -986,31 +988,65 @@ export function registerCommunicationRoutes(app: Express): void {
           );
 
         if (recipients.length > 0) {
-          // Group recipients by language for efficient sending
-          const recipientsByLanguage = recipients.reduce((acc, recipient) => {
-            const lang = recipient.language || 'fr';
-            if (!acc[lang]) acc[lang] = [];
-            acc[lang].push(recipient.email);
-            return acc;
-          }, {} as Record<string, string[]>);
+          // For urgent communications, send to all recipients immediately
+          // For non-urgent communications, check user notification preferences
+          let finalRecipients = recipients;
+          
+          if (!completeComm.isUrgent) {
+            // Get user notification preferences for non-urgent communications
+            const preferences = await db
+              .select({
+                userId: userNotificationPreferences.userId,
+                isEnabled: userNotificationPreferences.isEnabled,
+              })
+              .from(userNotificationPreferences)
+              .where(
+                and(
+                  inArray(userNotificationPreferences.userId, recipients.map(r => r.userId)),
+                  eq(userNotificationPreferences.notificationType, 'announcement')
+                )
+              );
 
-          // Send emails for each language group
-          for (const [language, emailAddresses] of Object.entries(recipientsByLanguage)) {
-            await emailService.sendGeneralCommunication(
-              {
-                title: completeComm.title,
-                content: completeComm.content,
-                isUrgent: completeComm.isUrgent,
-                organizationName: completeComm.organization.name,
-                senderName: `${completeComm.creator.firstName} ${completeComm.creator.lastName}`,
-                senderEmail: completeComm.creator.email,
-              },
-              emailAddresses,
-              language as 'fr' | 'en'
-            );
+            const preferencesMap = new Map(preferences.map(p => [p.userId, p.isEnabled]));
+            
+            // Filter recipients based on their notification preferences
+            finalRecipients = recipients.filter(recipient => {
+              const hasPreference = preferencesMap.has(recipient.userId);
+              const isEnabled = preferencesMap.get(recipient.userId);
+              // If no preference exists, default to enabled; otherwise use the preference
+              return !hasPreference || isEnabled;
+            });
+            
+            console.log(`📧 Filtered ${recipients.length} recipients to ${finalRecipients.length} based on notification preferences`);
+          } else {
+            console.log(`🚨 Urgent communication - bypassing notification preferences for all ${recipients.length} recipients`);
           }
 
-          console.log(`✅ Sent general communication emails to ${recipients.length} recipients`);
+          if (finalRecipients.length > 0) {
+            // Send emails to each recipient individually using existing notification method
+            for (const recipient of finalRecipients) {
+              const fullName = `${recipient.firstName} ${recipient.lastName}`;
+              const language = (recipient.language as 'fr' | 'en') || 'fr';
+              
+              await emailService.sendNotificationEmail(
+                recipient.email,
+                fullName,
+                completeComm.title,
+                completeComm.content,
+                'announcement',
+                language
+              );
+            }
+
+            console.log(`✅ Sent general communication emails to ${finalRecipients.length} recipients`);
+            
+            // Log audit entry for urgent communications
+            if (completeComm.isUrgent) {
+              console.log(`🔍 AUDIT: Urgent communication "${completeComm.title}" sent to ${finalRecipients.length} recipients by ${completeComm.creator.email}, bypassing user preferences`);
+            }
+          } else {
+            console.log(`📭 No eligible recipients found for general communication after filtering`);
+          }
         } else {
           console.log(`📭 No recipients found for general communication`);
         }
@@ -1370,7 +1406,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
           // Send meeting invitations for each language group
           for (const [language, emailAddresses] of Object.entries(recipientsByLanguage)) {
-            await emailService.sendMeetingInvite(
+            await emailService.sendMeetingInvitation(
               {
                 title: completeMeeting.title,
                 description: completeMeeting.description || undefined,
@@ -2043,7 +2079,6 @@ export function registerCommunicationRoutes(app: Express): void {
         config.title,
         config.message,
         config.type,
-        organization.name,
         recipient.language
       );
 
