@@ -10,6 +10,7 @@ import {
   generalCommunications,
   meetings,
   notifications,
+  notificationConfigurations,
   users,
   organizations,
   userOrganizations,
@@ -18,14 +19,74 @@ import {
   insertGeneralCommunicationSchema,
   insertMeetingSchema,
   insertNotificationSchema,
+  insertNotificationConfigurationSchema,
   notificationTypeEnum,
   frequencyEnum,
+  type NotificationConfiguration,
+  type InsertNotificationConfiguration,
 } from '@shared/schema';
 import { and, eq, or, inArray, desc, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 import { z } from 'zod';
 import { emailService } from '../services/email-service';
 import { populateDefaultPreferences } from '../scripts/populate-default-notification-preferences';
+import { checkBuildingAccess } from './buildings/access-control';
+
+/**
+ * Centralized building authorization function for notification configurations.
+ * Verifies that a user has access to a specific building within an organization.
+ * 
+ * @param userId - User ID to check access for
+ * @param organizationId - Organization ID the building belongs to
+ * @param buildingId - Building ID to check access for
+ * @param userRole - User's role in the system
+ * @returns Promise<boolean> - True if user has access to the building
+ */
+async function authorizeBuildingAccess(
+  userId: string,
+  organizationId: string,
+  buildingId: string,
+  userRole: string
+): Promise<boolean> {
+  try {
+    // First verify user has access to the organization
+    const userOrg = await db
+      .select()
+      .from(userOrganizations)
+      .where(and(
+        eq(userOrganizations.userId, userId),
+        eq(userOrganizations.organizationId, organizationId),
+        eq(userOrganizations.isActive, true)
+      ))
+      .limit(1);
+
+    if (userOrg.length === 0) {
+      return false;
+    }
+
+    // Then verify building exists and belongs to the organization
+    const building = await db
+      .select()
+      .from(buildings)
+      .where(and(
+        eq(buildings.id, buildingId),
+        eq(buildings.organizationId, organizationId),
+        eq(buildings.isActive, true)
+      ))
+      .limit(1);
+
+    if (building.length === 0) {
+      return false;
+    }
+
+    // Finally check if user has access to this specific building
+    const buildingAccess = await checkBuildingAccess(userId, buildingId, userRole);
+    return buildingAccess.hasAccess;
+  } catch (error) {
+    console.error('❌ Error checking building access:', error);
+    return false;
+  }
+}
 
 /**
  * Registers all communication-related API endpoints.
@@ -1507,6 +1568,512 @@ export function registerCommunicationRoutes(app: Express): void {
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to cancel meeting',
+      });
+    }
+  });
+
+  // ==========================================
+  // NOTIFICATION CONFIGURATIONS ROUTES
+  // ==========================================
+
+  /**
+   * GET /api/communication/notification-configs - List notification configurations
+   * Returns all notification configs for the specified building with proper filtering.
+   */
+  app.get('/api/communication/notification-configs', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Check if user can manage notifications (managers and admins only)
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Only managers and administrators can view notification configurations',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      // Parse and validate query parameters
+      const querySchema = z.object({
+        organizationId: z.string().uuid('Invalid organization ID'),
+        buildingId: z.string().uuid('Invalid building ID'),
+      });
+
+      let organizationId: string;
+      let buildingId: string;
+      
+      try {
+        const parsed = querySchema.parse(req.query);
+        organizationId = parsed.organizationId;
+        buildingId = parsed.buildingId;
+      } catch (error: any) {
+        if (error.name === 'ZodError') {
+          return res.status(400).json({
+            message: 'Invalid query parameters',
+            code: 'VALIDATION_ERROR',
+            details: error.errors,
+          });
+        }
+        throw error;
+      }
+
+      // SECURITY FIX: Verify user has access to this specific building
+      const hasAccess = await authorizeBuildingAccess(
+        currentUser.id,
+        organizationId,
+        buildingId,
+        currentUser.role
+      );
+
+      if (!hasAccess) {
+        return res.status(403).json({
+          message: 'Access denied to this building',
+          code: 'BUILDING_ACCESS_DENIED',
+        });
+      }
+
+      // Fetch notification configurations for the building
+      const configurations = await db
+        .select({
+          id: notificationConfigurations.id,
+          organizationId: notificationConfigurations.organizationId,
+          buildingId: notificationConfigurations.buildingId,
+          createdBy: notificationConfigurations.createdBy,
+          type: notificationConfigurations.type,
+          title: notificationConfigurations.title,
+          message: notificationConfigurations.message,
+          frequency: notificationConfigurations.frequency,
+          startDate: notificationConfigurations.startDate,
+          isActive: notificationConfigurations.isActive,
+          endsAt: notificationConfigurations.endsAt,
+          timezone: notificationConfigurations.timezone,
+          createdAt: notificationConfigurations.createdAt,
+          updatedAt: notificationConfigurations.updatedAt,
+          creatorName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`.as('creatorName'),
+        })
+        .from(notificationConfigurations)
+        .leftJoin(users, eq(notificationConfigurations.createdBy, users.id))
+        .where(and(
+          eq(notificationConfigurations.organizationId, organizationId),
+          eq(notificationConfigurations.buildingId, buildingId),
+          eq(notificationConfigurations.isActive, true)
+        ))
+        .orderBy(desc(notificationConfigurations.createdAt));
+
+      res.json({
+        configurations,
+        total: configurations.length,
+      });
+    } catch (error: any) {
+      console.error('❌ Error fetching notification configurations:', error);
+      if (error.issues) {
+        return res.status(400).json({
+          message: 'Invalid query parameters',
+          code: 'VALIDATION_ERROR',
+          details: error.issues,
+        });
+      }
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to fetch notification configurations',
+      });
+    }
+  });
+
+  /**
+   * POST /api/communication/notification-configs - Create new notification configuration
+   * Creates a new notification configuration with validation.
+   */
+  app.post('/api/communication/notification-configs', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Check if user can manage notifications (managers and admins only)
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Only managers and administrators can create notification configurations',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      // Parse and validate request body using the schema
+      const validatedData = insertNotificationConfigurationSchema.parse({
+        ...req.body,
+        createdBy: currentUser.id,
+      });
+
+      // SECURITY FIX: Verify user has access to this specific building
+      const hasAccess = await authorizeBuildingAccess(
+        currentUser.id,
+        validatedData.organizationId,
+        validatedData.buildingId,
+        currentUser.role
+      );
+
+      if (!hasAccess) {
+        return res.status(403).json({
+          message: 'Access denied to this building',
+          code: 'BUILDING_ACCESS_DENIED',
+        });
+      }
+
+      // Create the notification configuration
+      const [newConfig] = await db
+        .insert(notificationConfigurations)
+        .values(validatedData)
+        .returning();
+
+      console.log(`✅ Created notification configuration ${newConfig.id} by user ${currentUser.id}`);
+
+      res.status(201).json({
+        configuration: newConfig,
+        message: 'Notification configuration created successfully',
+      });
+    } catch (error: any) {
+      console.error('❌ Error creating notification configuration:', error);
+      if (error.issues) {
+        return res.status(400).json({
+          message: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: error.issues,
+        });
+      }
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to create notification configuration',
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/communication/notification-configs/:id - Update notification configuration
+   * Updates a notification configuration with partial data and proper authorization.
+   */
+  app.patch('/api/communication/notification-configs/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Check if user can manage notifications (managers and admins only)
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Only managers and administrators can update notification configurations',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      const { id } = req.params;
+
+      // Validate ID
+      if (!id) {
+        return res.status(400).json({
+          message: 'Configuration ID is required',
+          code: 'MISSING_ID',
+        });
+      }
+
+      // Find the existing configuration
+      const [existingConfig] = await db
+        .select()
+        .from(notificationConfigurations)
+        .where(eq(notificationConfigurations.id, id))
+        .limit(1);
+
+      if (!existingConfig) {
+        return res.status(404).json({
+          message: 'Notification configuration not found',
+          code: 'CONFIG_NOT_FOUND',
+        });
+      }
+
+      // SECURITY FIX: Verify user has access to this specific building
+      const hasAccess = await authorizeBuildingAccess(
+        currentUser.id,
+        existingConfig.organizationId,
+        existingConfig.buildingId,
+        currentUser.role
+      );
+
+      if (!hasAccess) {
+        return res.status(403).json({
+          message: 'Access denied to this building',
+          code: 'BUILDING_ACCESS_DENIED',
+        });
+      }
+
+      // Create partial update schema by making most fields optional
+      const partialUpdateSchema = insertNotificationConfigurationSchema.partial().omit({
+        organizationId: true,
+        buildingId: true,
+        createdBy: true,
+      });
+
+      // Validate the partial update data
+      const updateData = partialUpdateSchema.parse(req.body);
+
+      // Update the configuration
+      const [updatedConfig] = await db
+        .update(notificationConfigurations)
+        .set({
+          ...updateData,
+          updatedAt: new Date(),
+        })
+        .where(eq(notificationConfigurations.id, id))
+        .returning();
+
+      console.log(`✅ Updated notification configuration ${id} by user ${currentUser.id}`);
+
+      res.json({
+        configuration: updatedConfig,
+        message: 'Notification configuration updated successfully',
+      });
+    } catch (error: any) {
+      console.error('❌ Error updating notification configuration:', error);
+      if (error.issues) {
+        return res.status(400).json({
+          message: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: error.issues,
+        });
+      }
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to update notification configuration',
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/communication/notification-configs/:id - Delete notification configuration
+   * Soft deletes a notification configuration by setting isActive to false.
+   */
+  app.delete('/api/communication/notification-configs/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Check if user can manage notifications (managers and admins only)
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Only managers and administrators can delete notification configurations',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      const { id } = req.params;
+
+      // Validate ID
+      if (!id) {
+        return res.status(400).json({
+          message: 'Configuration ID is required',
+          code: 'MISSING_ID',
+        });
+      }
+
+      // Find the existing configuration
+      const [existingConfig] = await db
+        .select()
+        .from(notificationConfigurations)
+        .where(eq(notificationConfigurations.id, id))
+        .limit(1);
+
+      if (!existingConfig) {
+        return res.status(404).json({
+          message: 'Notification configuration not found',
+          code: 'CONFIG_NOT_FOUND',
+        });
+      }
+
+      // SECURITY FIX: Verify user has access to this specific building
+      const hasAccess = await authorizeBuildingAccess(
+        currentUser.id,
+        existingConfig.organizationId,
+        existingConfig.buildingId,
+        currentUser.role
+      );
+
+      if (!hasAccess) {
+        return res.status(403).json({
+          message: 'Access denied to this building',
+          code: 'BUILDING_ACCESS_DENIED',
+        });
+      }
+
+      // Soft delete by setting isActive to false
+      await db
+        .update(notificationConfigurations)
+        .set({
+          isActive: false,
+          updatedAt: new Date(),
+        })
+        .where(eq(notificationConfigurations.id, id));
+
+      console.log(`✅ Soft deleted notification configuration ${id} by user ${currentUser.id}`);
+
+      res.status(204).send();
+    } catch (error: any) {
+      console.error('❌ Error deleting notification configuration:', error);
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to delete notification configuration',
+      });
+    }
+  });
+
+  /**
+   * POST /api/communication/notification-configs/:id/preview - Send notification preview
+   * Sends a test notification to the current user for preview purposes.
+   */
+  app.post('/api/communication/notification-configs/:id/preview', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Check if user can manage notifications (managers and admins only)
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Only managers and administrators can preview notification configurations',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      const { id } = req.params;
+
+      // Validate ID
+      if (!id) {
+        return res.status(400).json({
+          message: 'Configuration ID is required',
+          code: 'MISSING_ID',
+        });
+      }
+
+      // Find the existing configuration
+      const [config] = await db
+        .select()
+        .from(notificationConfigurations)
+        .where(eq(notificationConfigurations.id, id))
+        .limit(1);
+
+      if (!config) {
+        return res.status(404).json({
+          message: 'Notification configuration not found',
+          code: 'CONFIG_NOT_FOUND',
+        });
+      }
+
+      // SECURITY FIX: Verify user has access to this specific building
+      const hasAccess = await authorizeBuildingAccess(
+        currentUser.id,
+        config.organizationId,
+        config.buildingId,
+        currentUser.role
+      );
+
+      if (!hasAccess) {
+        return res.status(403).json({
+          message: 'Access denied to this building',
+          code: 'BUILDING_ACCESS_DENIED',
+        });
+      }
+
+      // Get organization details for context
+      const [organization] = await db
+        .select({
+          id: organizations.id,
+          name: organizations.name,
+        })
+        .from(organizations)
+        .where(eq(organizations.id, config.organizationId))
+        .limit(1);
+
+      if (!organization) {
+        return res.status(404).json({
+          message: 'Organization not found',
+          code: 'ORG_NOT_FOUND',
+        });
+      }
+
+      // Parse language from request body (default to French)
+      const previewSchema = z.object({
+        language: z.enum(['fr', 'en']).default('fr'),
+      });
+
+      const { language } = previewSchema.parse(req.body);
+
+      console.log(`📧 Sending preview notification for config ${id} to user ${currentUser.email}`);
+
+      // Create recipient object
+      const recipients = [{
+        email: currentUser.email,
+        name: `${currentUser.firstName} ${currentUser.lastName}`,
+        language: language as 'fr' | 'en',
+      }];
+
+      // Send preview email using the notification configuration data
+      const success = await emailService.sendNotifications(recipients, {
+        type: config.type,
+        title: config.title,
+        message: config.message,
+      }, organization);
+
+      if (!success) {
+        console.error(`❌ Failed to send preview notification for config ${id}`);
+        return res.status(500).json({
+          message: 'Failed to send preview email',
+          code: 'EMAIL_SEND_FAILED',
+        });
+      }
+
+      console.log(`✅ Preview notification sent successfully for config ${id}`);
+
+      res.json({
+        message: 'Preview notification sent successfully',
+        recipient: currentUser.email,
+        configuration: {
+          id: config.id,
+          title: config.title,
+          type: config.type,
+          frequency: config.frequency,
+        },
+      });
+    } catch (error: any) {
+      console.error('❌ Error sending preview notification:', error);
+      if (error.issues) {
+        return res.status(400).json({
+          message: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          details: error.issues,
+        });
+      }
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to send preview notification',
       });
     }
   });
