@@ -91,7 +91,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Rappels concernant les paiements de factures à venir et les échéances',
     icon: DollarSign,
     category: 'financial',
-    defaultFrequency: 'weekly',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'maintenance_update',
@@ -101,7 +101,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Mises à jour sur les demandes de maintenance et l\'avancement des travaux',
     icon: Wrench,
     category: 'maintenance',
-    defaultFrequency: 'immediate',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'announcement',
@@ -111,7 +111,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Annonces importantes de la gestion de l\'immeuble',
     icon: Volume2,
     category: 'communication',
-    defaultFrequency: 'immediate',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'system',
@@ -131,7 +131,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Notifications d\'urgence critiques et alertes de sécurité',
     icon: AlertTriangle,
     category: 'system',
-    defaultFrequency: 'immediate',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'upcoming_payment',
@@ -141,7 +141,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Notifications concernant les paiements dus dans les prochains jours',
     icon: Calendar,
     category: 'financial',
-    defaultFrequency: 'weekly',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'upcoming_bills',
@@ -151,7 +151,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Notifications lors de l\'émission de nouvelles factures',
     icon: FileText,
     category: 'financial',
-    defaultFrequency: 'immediate',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'bill_paid_last_month',
@@ -171,7 +171,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Notifications concernant les paiements en retard nécessitant une attention',
     icon: AlertTriangle,
     category: 'financial',
-    defaultFrequency: 'weekly',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'payment_overdue',
@@ -181,7 +181,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Notifications urgentes pour les paiements significativement en retard',
     icon: AlertTriangle,
     category: 'financial',
-    defaultFrequency: 'immediate',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'new_building_document',
@@ -191,7 +191,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Notifications lors du téléchargement de nouveaux documents de l\'immeuble',
     icon: FileText,
     category: 'communication',
-    defaultFrequency: 'weekly',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'general_communication',
@@ -201,7 +201,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Messages généraux et mises à jour de la gestion',
     icon: MessageSquare,
     category: 'communication',
-    defaultFrequency: 'weekly',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'meeting_invite',
@@ -211,7 +211,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Invitations aux réunions et assemblées de l\'immeuble',
     icon: Calendar,
     category: 'communication',
-    defaultFrequency: 'immediate',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'maintenance_completed',
@@ -221,7 +221,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Notifications lorsque les travaux de maintenance sont terminés',
     icon: Wrench,
     category: 'maintenance',
-    defaultFrequency: 'immediate',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'budget_update',
@@ -231,7 +231,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Mises à jour concernant le budget de l\'immeuble et les rapports financiers',
     icon: DollarSign,
     category: 'financial',
-    defaultFrequency: 'quarterly',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'policy_change',
@@ -241,7 +241,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Notifications importantes concernant les changements de politique et de réglementation',
     icon: FileText,
     category: 'communication',
-    defaultFrequency: 'immediate',
+    defaultFrequency: 'monthly',
   },
   {
     key: 'seasonal_reminder',
@@ -251,7 +251,7 @@ const notificationTypes: NotificationTypeConfig[] = [
     descriptionFr: 'Rappels de maintenance saisonnière et avis de préparation',
     icon: Info,
     category: 'maintenance',
-    defaultFrequency: 'quarterly',
+    defaultFrequency: 'monthly',
   },
 ];
 
