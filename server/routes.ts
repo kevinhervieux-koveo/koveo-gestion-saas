@@ -22,6 +22,7 @@ import { registerContactRoutes } from './api/contacts';
 import { registerCommonSpacesRoutes } from './api/common-spaces';
 import { registerPermissionsRoutes } from './api/permissions';
 import { registerDemoManagementRoutes } from './api/demo-management';
+import { registerCommunicationRoutes } from './api/communication';
 import { registerTrialRequestRoutes } from './api/trial-request';
 import { registerInvoiceRoutes } from './api/invoices';
 import { registerAiAnalysisRoutes } from './api/ai-document-analysis';
@@ -107,6 +108,7 @@ export async function registerRoutes(app: Express) {
   registerCommonSpacesRoutes(app);
   registerPermissionsRoutes(app);
   registerDemoManagementRoutes(app);
+  registerCommunicationRoutes(app);
   registerTrialRequestRoutes(app);
   registerInvoiceRoutes(app);
   registerAiAnalysisRoutes(app);
