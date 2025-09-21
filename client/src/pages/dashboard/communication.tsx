@@ -8,7 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { UserNotificationPreference, InsertUserNotificationPreference, InsertGeneralCommunication, insertGeneralCommunicationSchema } from '@shared/schemas/operations';
-import type { User, Organization } from '@shared/schema';
+import type { User } from '@shared/schema';
+import type { Organization as CoreOrganization } from '@shared/schemas/core';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,6 +76,9 @@ import {
   TestTube,
   ChevronDown,
 } from 'lucide-react';
+
+// Import notification configurations component
+import { NotificationConfigurations } from '@/components/dashboard/notification-configurations';
 
 // Notification type definitions with user-friendly labels and descriptions
 interface NotificationTypeConfig {
@@ -351,7 +355,7 @@ const recipientRoles: RecipientRole[] = [
 // General communication form schema
 // Extend shared schema to include frontend-specific urgencyLevel field for UI
 const generalCommunicationFormSchema = insertGeneralCommunicationSchema.extend({
-  urgencyLevel: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
+  urgencyLevel: z.enum(['low', 'medium', 'high', 'urgent']),
   buildingIds: z.array(z.string()).optional(), // Multiple building selection
 }).omit({
   isUrgent: true, // We'll derive this from urgencyLevel
@@ -379,13 +383,13 @@ interface OrganizationContext {
 }
 
 // Enhanced organization data interfaces
-interface Organization {
+interface OrganizationData {
   id: string;
   name: string;
 }
 
 interface OrganizationsResponse {
-  organizations: Organization[];
+  organizations: OrganizationData[];
   userRole: string;
   canAccessAll: boolean;
 }
@@ -1551,6 +1555,48 @@ export default function CommunicationDashboard() {
                   )}
                 </CardContent>
               </Card>
+            </>
+          )}
+
+          {/* Notification Configurations Section - Only for Managers/Admins */}
+          {canSendCommunications && (
+            <>
+              <Separator className="my-8" />
+              
+              {loadingOrganization ? (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-center py-8">
+                      <LoadingSpinner />
+                      <span className="text-muted-foreground ml-2">
+                        {language === 'en' ? 'Loading notification configurations...' : 'Chargement des configurations de notifications...'}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : organizationContext ? (
+                <NotificationConfigurations
+                  organizationContext={organizationContext}
+                  language={language}
+                />
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-8">
+                      <Settings className="h-8 w-8 text-amber-500 mx-auto mb-3" />
+                      <h3 className="text-lg font-medium mb-2">
+                        {language === 'en' ? 'Organization Access Required' : 'Accès à l\'organisation requis'}
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {language === 'en'
+                          ? 'You need to be associated with an organization to manage notification configurations.'
+                          : 'Vous devez être associé à une organisation pour gérer les configurations de notifications.'
+                        }
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </>
           )}
 
