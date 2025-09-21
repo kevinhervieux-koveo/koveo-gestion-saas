@@ -112,18 +112,24 @@ export function withHierarchicalSelection<T extends object>(
       data: buildingCounts = {},
       isLoading: isLoadingBuildingCounts
     } = useQuery<Record<string, number>>({
-      queryKey: ['/api/organizations/accessible-building-counts'],
+      queryKey: ['/api/organizations/accessible-building-counts', user?.role],
       enabled: currentLevel === 'organization' && organizations.length > 0,
       queryFn: async () => {
         const counts: Record<string, number> = {};
         
         // For residence-related pages, check if buildings have accessible residences
         const isResidencePage = window.location.pathname.includes('residence');
+        const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
         
         // Fetch accessible building count for each organization
         for (const org of organizations) {
           try {
-            const response = await fetch(`/api/organizations/${org.id}/buildings`);
+            // Use user-specific endpoint for residents to ensure proper access control
+            const endpoint = isResidentOrTenant 
+              ? `/api/users/me/buildings?organization_id=${org.id}`
+              : `/api/organizations/${org.id}/buildings`;
+              
+            const response = await fetch(endpoint);
             if (response.ok) {
               const buildings = await response.json();
               
@@ -166,9 +172,13 @@ export function withHierarchicalSelection<T extends object>(
       data: buildings = [],
       isLoading: isLoadingBuildings
     } = useQuery<Building[]>({
-      queryKey: organizationId ? ['/api/organizations', organizationId, 'buildings', 'with-residences'] : ['/api/users/me/buildings', 'with-residences'],
+      queryKey: organizationId ? ['/api/users/me/buildings', organizationId, 'with-residences'] : ['/api/users/me/buildings', 'with-residences'],
       queryFn: async () => {
-        const url = organizationId 
+        // Always use the user-specific endpoint for residents/tenants to ensure proper access control
+        // Only managers and admins should use the organization endpoint
+        const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
+        
+        const url = (organizationId && !isResidentOrTenant)
           ? `/api/organizations/${organizationId}/buildings`
           : '/api/users/me/buildings';
         
@@ -177,8 +187,19 @@ export function withHierarchicalSelection<T extends object>(
         const isResidencePage = window.location.pathname.includes('residence');
         
         let fullUrl = url;
+        const params = new URLSearchParams();
+        
         if (isCommonSpacesPage) {
-          fullUrl = `${url}?has_common_spaces=true`;
+          params.append('has_common_spaces', 'true');
+        }
+        
+        // For user endpoint, add organization filter if needed
+        if (organizationId && url.includes('/api/users/me/buildings')) {
+          params.append('organization_id', organizationId);
+        }
+        
+        if (params.toString()) {
+          fullUrl = `${url}?${params.toString()}`;
         }
         
         const response = await fetch(fullUrl);

@@ -1383,11 +1383,10 @@ export function registerUserRoutes(app: Express): void {
   app.get('/api/users/me/buildings', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const { has_common_spaces } = req.query;
+      const { has_common_spaces, organization_id } = req.query;
 
-      // For residents and tenants, get buildings through their residences  
-      if (req.user.role === 'resident' || req.user.role === 'tenant' || 
-          req.user.role === 'demo_resident' || req.user.role === 'demo_tenant') {
+      // For residents and tenants (including demo roles), get buildings through their residences  
+      if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(req.user.role)) {
         
         // Get user's residences with building information using Drizzle
         const userResidences = await db
@@ -1414,8 +1413,20 @@ export function registerUserRoutes(app: Express): void {
           return res.json([]);
         }
 
-        // Fetch building details with optional common spaces filtering
+        // Fetch building details with optional common spaces and organization filtering
         let buildingQuery;
+        
+        // Build the base where conditions
+        const whereConditions = [
+          inArray(schema.buildings.id, buildingIds),
+          eq(schema.buildings.isActive, true)
+        ];
+        
+        // Add organization filter if specified
+        if (organization_id) {
+          whereConditions.push(eq(schema.buildings.organizationId, organization_id));
+        }
+        
         if (has_common_spaces === 'true') {
           // Only buildings with common spaces
           buildingQuery = db
@@ -1430,10 +1441,7 @@ export function registerUserRoutes(app: Express): void {
             })
             .from(schema.buildings)
             .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
-            .where(and(
-              inArray(schema.buildings.id, buildingIds),
-              eq(schema.buildings.isActive, true)
-            ))
+            .where(and(...whereConditions))
             .orderBy(schema.buildings.name);
         } else {
           // All buildings
@@ -1448,10 +1456,7 @@ export function registerUserRoutes(app: Express): void {
               organization_id: schema.buildings.organizationId,
             })
             .from(schema.buildings)
-            .where(and(
-              inArray(schema.buildings.id, buildingIds),
-              eq(schema.buildings.isActive, true)
-            ))
+            .where(and(...whereConditions))
             .orderBy(schema.buildings.name);
         }
 
