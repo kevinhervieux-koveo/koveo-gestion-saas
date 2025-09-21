@@ -14,6 +14,7 @@ import {
   Shield,
   LayoutDashboard,
   AreaChart,
+  MessageSquare,
 } from 'lucide-react';
 
 // Import translation keys for navigation
@@ -21,6 +22,7 @@ export const NAVIGATION_KEYS = {
   dashboard: 'dashboard',
   quickActions: 'quickActions',
   calendar: 'calendar',
+  communication: 'communication',
   residents: 'residents',
   myResidence: 'myResidence',
   myBuilding: 'myBuilding',
@@ -84,6 +86,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     items: [
       { nameKey: 'quickActions', href: '/dashboard/quick-actions', icon: LayoutDashboard },
       { nameKey: 'calendar', href: '/dashboard/calendar', icon: AreaChart },
+      { nameKey: 'communication', href: '/dashboard/communication', icon: MessageSquare },
     ],
   },
   {
