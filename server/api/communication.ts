@@ -23,6 +23,7 @@ import {
 import { and, eq, or, inArray, desc, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 import { z } from 'zod';
+import { emailService } from '../services/email-service';
 
 /**
  * Registers all communication-related API endpoints.
@@ -498,6 +499,65 @@ export function registerCommunicationRoutes(app: Express): void {
         .innerJoin(users, eq(generalCommunications.createdBy, users.id))
         .where(eq(generalCommunications.id, newCommunication.id));
 
+      // Send email notification to organization members
+      try {
+        console.log(`📧 Sending general communication emails for: ${completeComm.title}`);
+        
+        // Get recipients based on organization and recipient roles
+        const recipients = await db
+          .select({
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            language: users.language,
+          })
+          .from(users)
+          .innerJoin(userOrganizations, eq(users.id, userOrganizations.userId))
+          .where(
+            and(
+              eq(userOrganizations.organizationId, completeComm.organizationId),
+              eq(userOrganizations.isActive, true),
+              // Filter by recipient roles if specified
+              communicationData.recipientRoles?.length > 0 
+                ? inArray(userOrganizations.organizationRole, communicationData.recipientRoles as any)
+                : sql`1=1` // No role filter if no specific roles specified
+            )
+          );
+
+        if (recipients.length > 0) {
+          // Group recipients by language for efficient sending
+          const recipientsByLanguage = recipients.reduce((acc, recipient) => {
+            const lang = recipient.language || 'fr';
+            if (!acc[lang]) acc[lang] = [];
+            acc[lang].push(recipient.email);
+            return acc;
+          }, {} as Record<string, string[]>);
+
+          // Send emails for each language group
+          for (const [language, emailAddresses] of Object.entries(recipientsByLanguage)) {
+            await emailService.sendGeneralCommunication(
+              {
+                title: completeComm.title,
+                content: completeComm.content,
+                isUrgent: completeComm.isUrgent,
+                organizationName: completeComm.organization.name,
+                senderName: `${completeComm.creator.firstName} ${completeComm.creator.lastName}`,
+                senderEmail: completeComm.creator.email,
+              },
+              emailAddresses,
+              language as 'fr' | 'en'
+            );
+          }
+
+          console.log(`✅ Sent general communication emails to ${recipients.length} recipients`);
+        } else {
+          console.log(`📭 No recipients found for general communication`);
+        }
+      } catch (emailError: any) {
+        // Log email error but don't fail the API call
+        console.error('❌ Error sending general communication emails:', emailError);
+      }
+
       console.log(`✅ Created general communication ${newCommunication.id}`);
       res.status(201).json(completeComm);
     } catch (error: any) {
@@ -812,6 +872,67 @@ export function registerCommunicationRoutes(app: Express): void {
         .innerJoin(organizations, eq(meetings.organizationId, organizations.id))
         .innerJoin(users, eq(meetings.createdBy, users.id))
         .where(eq(meetings.id, newMeeting.id));
+
+      // Send meeting invitation emails to invited roles
+      try {
+        console.log(`📧 Sending meeting invitations for: ${completeMeeting.title}`);
+        
+        // Get recipients based on organization and invited roles
+        const recipients = await db
+          .select({
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            language: users.language,
+          })
+          .from(users)
+          .innerJoin(userOrganizations, eq(users.id, userOrganizations.userId))
+          .where(
+            and(
+              eq(userOrganizations.organizationId, completeMeeting.organizationId),
+              eq(userOrganizations.isActive, true),
+              // Filter by invited roles if specified
+              meetingData.invitedRoles?.length > 0 
+                ? inArray(userOrganizations.organizationRole, meetingData.invitedRoles as any)
+                : sql`1=1` // No role filter if no specific roles specified
+            )
+          );
+
+        if (recipients.length > 0) {
+          // Group recipients by language for efficient sending
+          const recipientsByLanguage = recipients.reduce((acc, recipient) => {
+            const lang = recipient.language || 'fr';
+            if (!acc[lang]) acc[lang] = [];
+            acc[lang].push(recipient.email);
+            return acc;
+          }, {} as Record<string, string[]>);
+
+          // Send meeting invitations for each language group
+          for (const [language, emailAddresses] of Object.entries(recipientsByLanguage)) {
+            await emailService.sendMeetingInvite(
+              {
+                title: completeMeeting.title,
+                description: completeMeeting.description || undefined,
+                location: completeMeeting.location,
+                scheduledDate: completeMeeting.scheduledDate,
+                duration: completeMeeting.duration,
+                organizationName: completeMeeting.organization.name,
+                organizerName: `${completeMeeting.creator.firstName} ${completeMeeting.creator.lastName}`,
+                organizerEmail: completeMeeting.creator.email,
+              },
+              emailAddresses,
+              language as 'fr' | 'en'
+            );
+          }
+
+          console.log(`✅ Sent meeting invitations to ${recipients.length} recipients`);
+        } else {
+          console.log(`📭 No recipients found for meeting invitation`);
+        }
+      } catch (emailError: any) {
+        // Log email error but don't fail the API call
+        console.error('❌ Error sending meeting invitation emails:', emailError);
+      }
 
       console.log(`✅ Created meeting ${newMeeting.id}`);
       res.status(201).json(completeMeeting);
