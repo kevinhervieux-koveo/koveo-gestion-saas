@@ -1423,55 +1423,19 @@ export default function UserManagement() {
               <DialogDescription>{t('editUserDescription')}</DialogDescription>
             </DialogHeader>
 
-            <Tabs defaultValue='basic' className='w-full'>
-              <TabsList className={`grid w-full ${canEditOrganizations && canEditResidences ? 'grid-cols-4' : canEditOrganizations || canEditResidences ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                <TabsTrigger value='basic' data-testid='tab-basic'>{t('basicInfo') || 'Basic Info'}</TabsTrigger>
-                {canEditOrganizations && <TabsTrigger value='organizations' data-testid='tab-organizations'>{t('organizations')}</TabsTrigger>}
-                <TabsTrigger value='buildings' data-testid='tab-buildings'>{t('buildings') || 'Buildings'}</TabsTrigger>
-                {canEditResidences && <TabsTrigger value='residences' data-testid='tab-residences'>{t('residences') || 'Residences'}</TabsTrigger>}
-              </TabsList>
-
-              <TabsContent value='basic' className='space-y-4' forceMount>
-                <Form {...editForm}>
-                  <form onSubmit={editForm.handleSubmit(handleEditUser)} className='space-y-4'>
-                    <div className='grid grid-cols-2 gap-4'>
-                      <FormField
-                        control={editForm.control}
-                        name='firstName'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('firstName')}</FormLabel>
-                            <FormControl>
-                              <Input {...field} data-testid='input-edit-firstName' />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={editForm.control}
-                        name='lastName'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('lastName')}</FormLabel>
-                            <FormControl>
-                              <Input {...field} data-testid='input-edit-lastName' />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
+            <div className='space-y-6'>
+              {/* Basic Information Section */}
+              <Form {...editForm}>
+                <form onSubmit={editForm.handleSubmit(handleEditUser)} className='space-y-4'>
+                  <div className='grid grid-cols-2 gap-4'>
                     <FormField
                       control={editForm.control}
-                      name='email'
+                      name='firstName'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('email')}</FormLabel>
+                          <FormLabel>{t('firstName')}</FormLabel>
                           <FormControl>
-                            <Input {...field} type='email' data-testid='input-edit-email' />
+                            <Input {...field} data-testid='input-edit-firstName' />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1480,105 +1444,130 @@ export default function UserManagement() {
 
                     <FormField
                       control={editForm.control}
-                      name='role'
+                      name='lastName'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('role')}</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid='select-edit-role'>
-                                <SelectValue placeholder={t('selectRole')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {getAvailableRoles?.map((role) => (
-                                <SelectItem key={role.value} value={role.value}>
-                                  {role.label}
-                                </SelectItem>
-                              )) || []}
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>{t('lastName')}</FormLabel>
+                          <FormControl>
+                            <Input {...field} data-testid='input-edit-lastName' />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                  </div>
 
-                    <FormField
-                      control={editForm.control}
-                      name='isActive'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('accountStatus')}</FormLabel>
-                          <Select
-                            onValueChange={(value) => field.onChange(value === 'true')}
-                            defaultValue={field.value.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger data-testid='select-edit-status'>
-                                <SelectValue placeholder={t('selectStatus') || 'Select status'} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value='true'>{t('statusActive')}</SelectItem>
-                              <SelectItem value='false'>{t('statusInactive')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                  </form>
-                </Form>
-              </TabsContent>
-
-              {canEditOrganizations && (
-                <TabsContent value='organizations' className='space-y-4' forceMount>
-                  <UserOrganizationsTab 
-                    user={editingUser ? findUserWithAssignments(editingUser.id) : null}
-                    organizations={organizations}
-                    currentUser={currentUser}
-                    currentUserOrganizations={currentUserAccess.organizationIds}
-                    onSave={() => {}} // No individual save - only unified save button
-                    onSelectionChange={handleOrganizationSelectionChange}
-                    isLoading={editOrganizationsMutation.isPending}
+                  <FormField
+                    control={editForm.control}
+                    name='email'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('email')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} type='email' data-testid='input-edit-email' />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </TabsContent>
+
+                  <FormField
+                    control={editForm.control}
+                    name='role'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('role')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid='select-edit-role'>
+                              <SelectValue placeholder={t('selectRole')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {getAvailableRoles?.map((role) => (
+                              <SelectItem key={role.value} value={role.value}>
+                                {role.label}
+                              </SelectItem>
+                            )) || []}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name='isActive'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('accountStatus')}</FormLabel>
+                        <Select
+                          onValueChange={(value) => field.onChange(value === 'true')}
+                          defaultValue={field.value.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid='select-edit-status'>
+                              <SelectValue placeholder={t('selectStatus') || 'Select status'} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value='true'>{t('statusActive')}</SelectItem>
+                            <SelectItem value='false'>{t('statusInactive')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                </form>
+              </Form>
+
+              {/* Organization Assignments Section */}
+              {canEditOrganizations && (
+                <UserOrganizationsTab 
+                  user={editingUser ? findUserWithAssignments(editingUser.id) : null}
+                  organizations={organizations}
+                  currentUser={currentUser}
+                  currentUserOrganizations={currentUserAccess.organizationIds}
+                  onSave={() => {}} // No individual save - only unified save button
+                  onSelectionChange={handleOrganizationSelectionChange}
+                  isLoading={editOrganizationsMutation.isPending}
+                />
               )}
 
-              <TabsContent value='buildings' className='space-y-4' forceMount>
-                <UserBuildingsTab 
+              {/* Building Assignments Section */}
+              <UserBuildingsTab 
+                user={editingUser ? findUserWithAssignments(editingUser.id) : null}
+                buildings={buildings}
+                organizations={organizations}
+                currentUser={currentUser}
+                currentUserBuildingIds={currentUserAccess.buildingIds}
+                selectedOrganizationIds={selectedOrganizationIds}
+                selectedBuildingIds={selectedBuildingIds}
+                onSave={() => {}} // No individual save - only unified save button
+                onSelectionChange={handleBuildingSelectionChange}
+                isLoading={editBuildingsMutation.isPending}
+              />
+
+              {/* Residence Assignments Section */}
+              {canEditResidences && (
+                <UserResidencesTab 
                   user={editingUser ? findUserWithAssignments(editingUser.id) : null}
+                  residences={residences}
                   buildings={buildings}
                   organizations={organizations}
                   currentUser={currentUser}
-                  currentUserBuildingIds={currentUserAccess.buildingIds}
-                  selectedOrganizationIds={selectedOrganizationIds}
+                  currentUserResidenceIds={currentUserAccess.residenceIds}
                   selectedBuildingIds={selectedBuildingIds}
+                  selectedResidenceAssignments={selectedResidenceAssignments}
                   onSave={() => {}} // No individual save - only unified save button
-                  onSelectionChange={handleBuildingSelectionChange}
-                  isLoading={editBuildingsMutation.isPending}
+                  onSelectionChange={setSelectedResidenceAssignments}
+                  isLoading={editResidencesMutation.isPending}
                 />
-              </TabsContent>
-
-              {canEditResidences && (
-                <TabsContent value='residences' className='space-y-4' forceMount>
-                  <UserResidencesTab 
-                    user={editingUser ? findUserWithAssignments(editingUser.id) : null}
-                    residences={residences}
-                    buildings={buildings}
-                    organizations={organizations}
-                    currentUser={currentUser}
-                    currentUserResidenceIds={currentUserAccess.residenceIds}
-                    selectedBuildingIds={selectedBuildingIds}
-                    selectedResidenceAssignments={selectedResidenceAssignments}
-                    onSave={() => {}} // No individual save - only unified save button
-                    onSelectionChange={setSelectedResidenceAssignments}
-                    isLoading={editResidencesMutation.isPending}
-                  />
-                </TabsContent>
               )}
-            </Tabs>
+            </div>
 
             {/* Unified Save Footer */}
             <DialogFooter className="mt-6">
