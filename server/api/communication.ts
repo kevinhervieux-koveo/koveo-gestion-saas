@@ -1501,7 +1501,7 @@ function generateTestNotificationContent(
     fr: {
       bill_reminder: {
         subject: `Rappel de facture - ${orgName}`,
-        message: `Bonjour ${userName}, votre facture mensuelle de ${orgName} sera due dans 3 jours. Montant: 850,00 $. Connectez-vous pour effectuer le paiement.`,
+        message: `Bonjour ${userName}, voici le détail de votre facture de ${orgName}:\n\nDate d'échéance: 25 janvier 2025\nMontant: 850,00 $\nFournisseur: Gestion ABC Inc.\nNote: Frais de copropriété mensuels incluant chauffage et entretien commun`,
       },
       maintenance_update: {
         subject: `Mise à jour maintenance - ${orgName}`,
@@ -1513,17 +1513,33 @@ function generateTestNotificationContent(
       },
       upcoming_payment: {
         subject: `Paiement à venir - ${orgName}`,
-        message: `Bonjour ${userName}, votre paiement de 850,00 $ pour ${orgName} est dû dans 2 jours. N'oubliez pas d'effectuer votre paiement.`,
+        message: `Bonjour ${userName}, voici le détail de votre paiement à venir pour ${orgName}:\n\nDate d'échéance: 22 janvier 2025\nMontant: 850,00 $\nFournisseur: Gestion ABC Inc.\nNote: Frais de copropriété mensuels - paiement dû dans 2 jours`,
       },
       budget_update: {
         subject: `Mise à jour budgétaire - ${orgName}`,
         message: `Bonjour ${userName}, le rapport budgétaire trimestriel de ${orgName} est maintenant disponible. Consultez-le dans votre espace personnel.`,
       },
+      upcoming_bills: {
+        subject: `Nouvelles factures disponibles - ${orgName}`,
+        message: `Bonjour ${userName}, de nouvelles factures sont disponibles pour ${orgName}:\n\nDate d'échéance: 30 janvier 2025\nMontant: 850,00 $\nFournisseur: Gestion ABC Inc.\nNote: Factures mensuelles émises - consultez les détails complets`,
+      },
+      bills_overdue: {
+        subject: `Factures en retard - ${orgName}`,
+        message: `Bonjour ${userName}, attention aux factures en retard pour ${orgName}:\n\nDate d'échéance dépassée: 15 janvier 2025\nMontant: 850,00 $\nFournisseur: Gestion ABC Inc.\nNote: Paiement en retard de 5 jours - veuillez régler rapidement`,
+      },
+      payment_overdue: {
+        subject: `Paiement en retard urgent - ${orgName}`,
+        message: `Bonjour ${userName}, paiement urgent en retard pour ${orgName}:\n\nDate d'échéance dépassée: 10 janvier 2025\nMontant: 850,00 $\nFournisseur: Gestion ABC Inc.\nNote: Paiement en retard de 10 jours - situation urgente nécessitant attention immédiate`,
+      },
+      bill_paid_last_month: {
+        subject: `Confirmation de paiement - ${orgName}`,
+        message: `Bonjour ${userName}, confirmation de votre paiement pour ${orgName}:\n\nDate de paiement: 20 décembre 2024\nMontant: 850,00 $\nFournisseur: Gestion ABC Inc.\nNote: Paiement reçu et traité - merci`,
+      },
     },
     en: {
       bill_reminder: {
         subject: `Bill Reminder - ${orgName}`,
-        message: `Hello ${userName}, your monthly bill for ${orgName} is due in 3 days. Amount: $850.00. Please log in to make your payment.`,
+        message: `Hello ${userName}, here are the details of your bill for ${orgName}:\n\nDue Date: January 25, 2025\nPayment: $850.00\nVendor: ABC Management Inc.\nNote: Monthly condo fees including heating and common area maintenance`,
       },
       maintenance_update: {
         subject: `Maintenance Update - ${orgName}`,
@@ -1535,11 +1551,27 @@ function generateTestNotificationContent(
       },
       upcoming_payment: {
         subject: `Upcoming Payment - ${orgName}`,
-        message: `Hello ${userName}, your payment of $850.00 for ${orgName} is due in 2 days. Please don't forget to make your payment.`,
+        message: `Hello ${userName}, here are the details of your upcoming payment for ${orgName}:\n\nDue Date: January 22, 2025\nPayment: $850.00\nVendor: ABC Management Inc.\nNote: Monthly condo fees - payment due in 2 days`,
       },
       budget_update: {
         subject: `Budget Update - ${orgName}`,
         message: `Hello ${userName}, the quarterly budget report for ${orgName} is now available. View it in your personal dashboard.`,
+      },
+      upcoming_bills: {
+        subject: `New Bills Available - ${orgName}`,
+        message: `Hello ${userName}, new bills are available for ${orgName}:\n\nDue Date: January 30, 2025\nPayment: $850.00\nVendor: ABC Management Inc.\nNote: Monthly bills issued - view complete details`,
+      },
+      bills_overdue: {
+        subject: `Bills Overdue - ${orgName}`,
+        message: `Hello ${userName}, attention to overdue bills for ${orgName}:\n\nDue Date Passed: January 15, 2025\nPayment: $850.00\nVendor: ABC Management Inc.\nNote: Payment overdue by 5 days - please settle promptly`,
+      },
+      payment_overdue: {
+        subject: `Urgent Payment Overdue - ${orgName}`,
+        message: `Hello ${userName}, urgent overdue payment for ${orgName}:\n\nDue Date Passed: January 10, 2025\nPayment: $850.00\nVendor: ABC Management Inc.\nNote: Payment overdue by 10 days - urgent situation requiring immediate attention`,
+      },
+      bill_paid_last_month: {
+        subject: `Payment Confirmation - ${orgName}`,
+        message: `Hello ${userName}, confirmation of your payment for ${orgName}:\n\nPayment Date: December 20, 2024\nPayment: $850.00\nVendor: ABC Management Inc.\nNote: Payment received and processed - thank you`,
       },
     },
   };
