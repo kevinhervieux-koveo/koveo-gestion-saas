@@ -1194,11 +1194,6 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
               <p style="line-height: 1.6;">${message}</p>
             </div>
             
-            <div style="margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 6px;">
-              <p style="margin: 0; font-size: 14px; color: #6b7280;">
-                <strong>${language === 'fr' ? 'Type de notification:' : 'Notification type:'}</strong> ${notificationType}
-              </p>
-            </div>
             
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
             
@@ -1224,8 +1219,6 @@ ${language === 'fr' ? 'Ceci est un aperçu de votre notification. Aucune action 
 ${subject}
 
 ${message}
-
-${language === 'fr' ? 'Type de notification:' : 'Notification type:'} ${notificationType}
 
 ${language === 'fr' ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
 © 2025 Koveo Gestion
