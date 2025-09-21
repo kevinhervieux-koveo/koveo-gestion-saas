@@ -33,6 +33,97 @@ import { populateDefaultPreferences } from '../scripts/populate-default-notifica
  */
 export function registerCommunicationRoutes(app: Express): void {
   // ==========================================
+  // ORGANIZATION CONTEXT ROUTES
+  // ==========================================
+
+  /**
+   * GET /api/communication/organization-context - Get organization context for communication
+   * Returns user's organization information for sending general communications.
+   */
+  app.get('/api/communication/organization-context', requireAuth, async (req: any, res) => {
+    try {
+      console.log('🔍 [DEBUG] GET /api/communication/organization-context endpoint called');
+      
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        console.log('❌ [DEBUG] No valid session found for organization-context');
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      console.log(`🔍 [DEBUG] User ${currentUser.id} (${currentUser.role}) requesting organization context`);
+
+      // Check if user can send communications (managers and admins only)
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+        console.log(`❌ [DEBUG] User ${currentUser.id} with role '${currentUser.role}' not authorized for organization context`);
+        return res.status(403).json({
+          message: 'Only managers and administrators can send general communications',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      // Get user's primary organization
+      const [userOrgResult] = await db
+        .select({
+          organizationId: userOrganizations.organizationId,
+          canAccessAll: userOrganizations.canAccessAllOrganizations,
+        })
+        .from(userOrganizations)
+        .where(and(
+          eq(userOrganizations.userId, currentUser.id),
+          eq(userOrganizations.isActive, true)
+        ))
+        .limit(1);
+
+      if (!userOrgResult) {
+        console.log(`❌ [DEBUG] No active organization found for user ${currentUser.id}`);
+        return res.status(404).json({
+          message: 'No organization found for user',
+          code: 'NO_ORGANIZATION',
+        });
+      }
+
+      console.log(`🔍 [DEBUG] Found organization ${userOrgResult.organizationId} for user ${currentUser.id}`);
+
+      // Get organization details
+      const [organization] = await db
+        .select({
+          id: organizations.id,
+          name: organizations.name,
+        })
+        .from(organizations)
+        .where(eq(organizations.id, userOrgResult.organizationId))
+        .limit(1);
+
+      if (!organization) {
+        console.log(`❌ [DEBUG] Organization ${userOrgResult.organizationId} not found in database`);
+        return res.status(404).json({
+          message: 'Organization not found',
+          code: 'ORGANIZATION_NOT_FOUND',
+        });
+      }
+
+      console.log(`✅ [DEBUG] Returning organization context for ${organization.name} (${organization.id})`);
+
+      res.json({
+        id: organization.id,
+        name: organization.name,
+        canAccessAll: userOrgResult.canAccessAll,
+        userRole: currentUser.role,
+      });
+    } catch (error: any) {
+      console.error('❌ [DEBUG] Error in organization-context endpoint:', error);
+      res.status(500).json({
+        _error: 'Internal server error',
+        message: 'Failed to fetch organization context',
+        details: error.message,
+      });
+    }
+  });
+
+  // ==========================================
   // NOTIFICATION PREFERENCES ROUTES
   // ==========================================
 
