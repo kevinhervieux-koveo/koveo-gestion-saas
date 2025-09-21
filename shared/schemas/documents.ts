@@ -51,7 +51,7 @@ export const insertDocumentSchema = z.object({
   uploadedById: z.string().uuid().min(1, 'Uploaded by user ID is required'),
   attachedToType: z.string().optional(),
   attachedToId: z.string().uuid().optional(),
-  effectiveDate: z.string().datetime().optional(),
+  effectiveDate: z.string().optional(),
 });
 
 // Schema for form-attached documents
@@ -65,7 +65,7 @@ export const attachDocumentSchema = z.object({
   attachedToType: z.enum(['bill', 'feature_request', 'bug_report', 'maintenance_request']),
   attachedToId: z.string().uuid().min(1, 'Attached entity ID is required'),
   uploadedById: z.string().uuid().min(1, 'Uploaded by user ID is required'),
-  effectiveDate: z.string().datetime().optional(),
+  effectiveDate: z.string().optional(),
 });
 
 /**
