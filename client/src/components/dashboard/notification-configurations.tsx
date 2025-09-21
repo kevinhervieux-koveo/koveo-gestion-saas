@@ -361,7 +361,8 @@ function ConfigurationForm({
     onSuccess: () => {
       // Invalidate scoped cache keys for proper cache management
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/communication/notification-configs', organizationContext.id] 
+        queryKey: ['/api/communication/notification-configs', organizationContext.id],
+        exact: false // This will invalidate all queries that start with this pattern
       });
       toast({
         title: language === 'en' ? 'Success' : 'Succès',
@@ -708,7 +709,47 @@ export function NotificationConfigurations({
 
   // Fetch notification configurations
   const { data: configs, isLoading, error } = useQuery<NotificationConfigurationWithDetails[]>({
-    queryKey: ['/api/communication/notification-configs', organizationContext.id],
+    queryKey: ['/api/communication/notification-configs', organizationContext.id, selectedBuilding],
+    queryFn: async () => {
+      // If a specific building is selected, fetch configs for that building only
+      if (selectedBuilding !== 'all') {
+        const response = await fetch(`/api/communication/notification-configs?organizationId=${organizationContext.id}&buildingId=${selectedBuilding}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch notification configurations');
+        }
+        const data = await response.json();
+        return data.configurations || [];
+      }
+      
+      // If 'all' is selected, we need to fetch configs for each building and combine them
+      const buildingsResponse = await fetch(`/api/communication/buildings/${organizationContext.id}`);
+      if (!buildingsResponse.ok) {
+        throw new Error('Failed to fetch buildings');
+      }
+      const buildingsData = await buildingsResponse.json();
+      
+      // Fetch configs for each building
+      const allConfigs: NotificationConfigurationWithDetails[] = [];
+      for (const building of buildingsData.buildings || []) {
+        try {
+          const response = await fetch(`/api/communication/notification-configs?organizationId=${organizationContext.id}&buildingId=${building.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            const configs = data.configurations || [];
+            // Add building name to each config for display
+            const configsWithBuilding = configs.map((config: any) => ({
+              ...config,
+              buildingName: building.name
+            }));
+            allConfigs.push(...configsWithBuilding);
+          }
+        } catch (err) {
+          console.warn(`Failed to fetch configs for building ${building.id}:`, err);
+        }
+      }
+      
+      return allConfigs;
+    },
     enabled: !!organizationContext.id,
   });
 
@@ -733,7 +774,8 @@ export function NotificationConfigurations({
     onSuccess: () => {
       // Invalidate scoped cache keys for proper cache management
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/communication/notification-configs', organizationContext.id] 
+        queryKey: ['/api/communication/notification-configs', organizationContext.id],
+        exact: false // This will invalidate all queries that start with this pattern
       });
       toast({
         title: language === 'en' ? 'Success' : 'Succès',

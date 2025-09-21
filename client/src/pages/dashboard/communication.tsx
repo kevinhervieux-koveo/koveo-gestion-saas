@@ -421,10 +421,13 @@ function RecipientManagement({
   userRole: string;
   language: 'en' | 'fr';
 }) {
-  const { data: recipients = [], isLoading: loadingRecipients } = useQuery<RecipientInfo[]>({
-    queryKey: ['/api/communication/recipients', organizationContext?.id],
-    enabled: !!organizationContext?.id,
-  });
+  // Remove the recipients API call since the endpoint doesn't exist
+  // Instead, we'll use a static approach for recipient counting based on organization
+  const recipients: RecipientInfo[] = [];
+  const loadingRecipients = false;
+  
+  // For now, we'll use the organizationContext to show basic recipient info
+  // This can be enhanced later with actual user data if needed
 
   const handleRoleToggle = (roleValue: string) => {
     if (roleValue === 'all') {
@@ -453,9 +456,10 @@ function RecipientManagement({
   const availableRoles = getAvailableRoles();
 
   const getRecipientCount = () => {
-    if (!recipients.length) return 0;
-    if (selectedRoles.includes('all')) return recipients.length;
-    return recipients.filter(r => selectedRoles.includes(r.role)).length;
+    // Since we don't have actual recipient data, return a placeholder count
+    // This could be enhanced to show actual counts based on organization data
+    if (selectedRoles.includes('all')) return '...';
+    return selectedRoles.length > 0 ? '...' : 0;
   };
 
   return (
