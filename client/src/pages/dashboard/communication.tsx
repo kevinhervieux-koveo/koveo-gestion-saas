@@ -456,10 +456,16 @@ function RecipientManagement({
   const availableRoles = getAvailableRoles();
 
   const getRecipientCount = () => {
-    // Since we don't have actual recipient data, return a placeholder count
+    // Since we don't have actual recipient data, return a numeric count
     // This could be enhanced to show actual counts based on organization data
+    if (selectedRoles.includes('all')) return selectedRoles.length;
+    return selectedRoles.length;
+  };
+
+  const getRecipientDisplayText = () => {
+    // For display purposes, show ... when we don't have exact counts
     if (selectedRoles.includes('all')) return '...';
-    return selectedRoles.length > 0 ? '...' : 0;
+    return selectedRoles.length > 0 ? '...' : '0';
   };
 
   return (
@@ -505,8 +511,8 @@ function RecipientManagement({
           <UserIcon className="h-4 w-4" />
           <span data-testid="text-recipient-count">
             {language === 'en' 
-              ? `${getRecipientCount()} recipient${getRecipientCount() !== 1 ? 's' : ''} selected`
-              : `${getRecipientCount()} destinataire${getRecipientCount() !== 1 ? 's' : ''} sélectionné${getRecipientCount() !== 1 ? 's' : ''}`
+              ? `${getRecipientDisplayText()} recipient${getRecipientCount() !== 1 ? 's' : ''} selected`
+              : `${getRecipientDisplayText()} destinataire${getRecipientCount() !== 1 ? 's' : ''} sélectionné${getRecipientCount() !== 1 ? 's' : ''}`
             }
           </span>
         </div>
