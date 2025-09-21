@@ -47,14 +47,20 @@ export function UserBuildingsTab({
   }, [organizations]);
 
   // Initialize selections when user changes - notify parent of current user's buildings
+  // Use a ref to track if we've already initialized for this user
+  const initializedUserRef = useRef<string | null>(null);
+  
   useEffect(() => {
-    if (user) {
+    if (user && user.id !== initializedUserRef.current) {
+      // Only initialize once per user - don't reinitialize when other state changes
       const buildingIds = user.buildings?.map((building: any) => building.id) || [];
       // Only notify parent of initial state, don't manage internal state
       onSelectionChange?.(buildingIds);
-    } else {
+      initializedUserRef.current = user.id;
+    } else if (!user) {
       // Reset when dialog is closed (no user)
       onSelectionChange?.([]);
+      initializedUserRef.current = null;
     }
   }, [user?.id]); // Only depend on user ID to avoid infinite loops
 
@@ -65,15 +71,10 @@ export function UserBuildingsTab({
     // Gate interactions until data is loaded
     if (!buildings || !organizations || isLoading) return;
     
-    console.log('🏢 [BUILDING TOGGLE] Building clicked:', buildingId);
-    console.log('🏢 [BUILDING TOGGLE] Current selectedBuildingIds:', selectedBuildingIds);
-    
     // Fully controlled - work with parent's selection state
     const newSelection = selectedBuildingIds.includes(buildingId)
       ? selectedBuildingIds.filter(id => id !== buildingId)
       : [...selectedBuildingIds, buildingId];
-    
-    console.log('🏢 [BUILDING TOGGLE] New selection:', newSelection);
     
     // Notify parent of selection change
     onSelectionChange?.(newSelection);

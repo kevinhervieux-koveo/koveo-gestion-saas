@@ -1,0 +1,23 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] handleBuildingSelectionChange called
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] Old selectedBuildingIds: (2) ['ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984']
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] New buildingIds: (2) ['ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984']
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] Unselected buildingIds: []
+user-management-C3KG7NUE.js:1 🏢 [BUILDING TOGGLE] Building clicked: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+user-management-C3KG7NUE.js:1 🏢 [BUILDING TOGGLE] Current selectedBuildingIds: (2) ['ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984']
+user-management-C3KG7NUE.js:1 🏢 [BUILDING TOGGLE] New selection: ['ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea']
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] handleBuildingSelectionChange called
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] Old selectedBuildingIds: (2) ['ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984']
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] New buildingIds: ['ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea']
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] Unselected buildingIds: ['c3052c3c-b694-41a6-bd65-3bc3ae9a5984']
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] Remaining residence assignments: []
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] handleBuildingSelectionChange called
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] Old selectedBuildingIds: ['ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea']
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] New buildingIds: (2) ['ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984']
+user-management-C3KG7NUE.js:1 🏗️ [PARENT] Unselected buildingIds: []
