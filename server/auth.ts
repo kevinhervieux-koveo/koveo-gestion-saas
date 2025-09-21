@@ -658,7 +658,7 @@ export function setupAuthRoutes(app: any) {
         path: '/',
       });
       
-      res.json({ message: 'Logout successful' });
+      return res.json({ message: 'Logout successful' });
     });
   });
 
@@ -710,7 +710,7 @@ export function setupAuthRoutes(app: any) {
         // Return user data without password
         const { password: _, ...userData } = user;
         // Successfully authenticated user
-        res.json(userData);
+        return res.json(userData);
 
       } catch (userError) {
         console.error('Database error getting user:', userError);
@@ -749,7 +749,7 @@ export function setupAuthRoutes(app: any) {
     };
 
     console.log('Auth debug info:', debugInfo);
-    res.json(debugInfo);
+    return res.json(debugInfo);
   });
 
   // Test cookie setting endpoint
