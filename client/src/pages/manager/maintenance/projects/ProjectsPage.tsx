@@ -390,7 +390,6 @@ function ProjectsPageContent({
             <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
               <StatusStepper
                 project={selectedProject}
-                onSuccess={handleStatusStepperSuccess}
               />
             </div>
           </div>
@@ -408,7 +407,7 @@ function ProjectsPageContent({
               </Button>
             </div>
             <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
-              <ProjectTimeline project={selectedProject} />
+              <ProjectTimeline projects={[selectedProject]} />
             </div>
           </div>
         </div>
