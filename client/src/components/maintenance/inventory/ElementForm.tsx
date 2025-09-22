@@ -759,21 +759,25 @@ export function ElementForm({
 
                   {/* Residence selection popover */}
                   <div className="space-y-2">
-                    <Popover>
+                    <Popover onOpenChange={(open) => {
+                      if (open && isBuildingWide) {
+                        // Auto-uncheck building-wide when user clicks to select specific residences
+                        field.onChange([]);
+                      }
+                    }}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           role="combobox"
                           className={cn(
                             "w-full justify-between",
-                            isBuildingWide && "opacity-50"
+                            isBuildingWide && "border-dashed border-2 bg-muted/30"
                           )}
-                          disabled={isBuildingWide}
                           data-testid="residence-multi-select-trigger"
                         >
                           <span className="truncate">
                             {isBuildingWide 
-                              ? "Building-wide element selected"
+                              ? "Click to select specific residences..."
                               : selectedResidences.length === 0
                               ? "Select specific residences..."
                               : selectedResidences.length === 1
@@ -787,17 +791,30 @@ export function ElementForm({
                       <PopoverContent className="w-80 p-0" data-testid="residence-multi-select-content">
                         <div className="p-4 space-y-4">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-sm">Select Residences</h4>
-                            {selectedResidences.length > 0 && (
+                            <h4 className="font-medium text-sm">Select Specific Residences</h4>
+                            <div className="flex gap-2">
+                              {selectedResidences.length > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => field.onChange([])}
+                                  data-testid="clear-all-residences"
+                                >
+                                  Clear all
+                                </Button>
+                              )}
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
-                                onClick={() => field.onChange([])}
-                                data-testid="clear-all-residences"
+                                onClick={() => {
+                                  // Switch back to building-wide
+                                  field.onChange([]);
+                                }}
+                                data-testid="switch-to-building-wide"
                               >
-                                Clear all
+                                Building-wide
                               </Button>
-                            )}
+                            </div>
                           </div>
                           
                           {/* Residence checkboxes */}
