@@ -382,6 +382,8 @@ function ProjectsPageContent({
         onManageNotes={canEdit ? handleManageNotes : undefined}
         onManageBudget={canEdit ? handleManageBudget : undefined}
         onUpdateStatus={canEdit ? handleUpdateStatus : undefined}
+        buildingId={buildingId}
+        organizationId={organizationId}
       />
 
       {/* Modals and Dialogs */}
@@ -489,6 +491,8 @@ function ProjectsPageContent({
         selectedSuggestions={selectedSuggestions}
         onSelectionChange={setSelectedSuggestions}
         onSuccess={handleSuggestionsIntegrationSuccess}
+        buildingId={buildingId}
+        organizationId={organizationId}
       />
     </div>
   );
