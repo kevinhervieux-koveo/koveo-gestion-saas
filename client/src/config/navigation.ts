@@ -61,9 +61,11 @@ export const NAVIGATION_KEYS = {
  */
 export interface NavigationItem {
   nameKey: string; // Translation key instead of hardcoded name
-  href: string;
+  href?: string; // Optional for items that have sub-items
   icon: React.ComponentType<any>;
   requiredRole?: string;
+  _key?: string; // Optional key for collapsible items
+  items?: NavigationItem[]; // Optional sub-items for collapsible navigation
 }
 
 /**
@@ -125,16 +127,15 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { nameKey: 'demands', href: '/manager/demands', icon: AlertCircle },
       { nameKey: 'navUserManagement', href: '/manager/user-management', icon: Users },
       { nameKey: 'manageCommonSpaces', href: '/manager/common-spaces-stats', icon: AreaChart },
-    ],
-  },
-  {
-    nameKey: 'maintenanceJournal',
-    _key: 'maintenanceJournal',
-    icon: Wrench,
-    requiredRole: 'manager',
-    items: [
-      { nameKey: 'inventory', href: '/manager/maintenance/inventory', icon: Package },
-      { nameKey: 'projects', href: '/manager/maintenance/projects', icon: Folder },
+      {
+        nameKey: 'maintenanceJournal',
+        _key: 'maintenanceJournal',
+        icon: Wrench,
+        items: [
+          { nameKey: 'inventory', href: '/manager/maintenance/inventory', icon: Package },
+          { nameKey: 'projects', href: '/manager/maintenance/projects', icon: Folder },
+        ],
+      },
     ],
   },
 
