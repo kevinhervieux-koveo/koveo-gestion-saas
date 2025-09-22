@@ -385,7 +385,6 @@ function InventoryPageInner(props: InventoryPageContentProps) {
   
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden bg-background', props.className)} data-testid="inventory-page">
-      <Header title="Inventory Management" subtitle="Manage building elements, track conditions, and schedule maintenance activities according to Quebec standards." />
       <InventoryPageContent {...props} />
     </div>
   );
