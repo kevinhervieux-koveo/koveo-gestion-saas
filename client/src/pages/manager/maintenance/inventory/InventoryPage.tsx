@@ -252,6 +252,8 @@ function InventoryPageContent({
               </div>
 
               <ElementTable
+                buildingId={buildingId}
+                organizationId={organizationId}
                 onViewElement={handleViewElement}
                 onEditElement={canEdit ? handleEditElement : undefined}
                 onAddHistory={canEdit ? handleAddHistory : undefined}
