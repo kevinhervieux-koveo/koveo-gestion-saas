@@ -38,6 +38,7 @@ import {
   Calendar,
   BarChart3,
   Table,
+  X,
 } from 'lucide-react';
 
 // View mode types
@@ -400,40 +401,92 @@ function ProjectsPageContent({ className }: ProjectsPageProps) {
       />
 
       {/* Status Stepper Modal */}
-      <StatusStepper
-        isOpen={showStatusStepper}
-        onOpenChange={setShowStatusStepper}
-        project={selectedProject}
-        onSuccess={handleStatusStepperSuccess}
-      />
+      {showStatusStepper && selectedProject && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Project Status - {selectedProject.title}</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowStatusStepper(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <StatusStepper
+                project={selectedProject}
+                onSuccess={handleStatusStepperSuccess}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Project Timeline Modal */}
-      <ProjectTimeline
-        isOpen={showProjectTimeline}
-        onOpenChange={setShowProjectTimeline}
-        project={selectedProject}
-      />
+      {showProjectTimeline && selectedProject && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Project Timeline - {selectedProject.title}</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowProjectTimeline(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <ProjectTimeline project={selectedProject} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Project Elements Modal */}
-      <ProjectElements
-        isOpen={showProjectElements}
-        onOpenChange={setShowProjectElements}
-        project={selectedProject}
-      />
+      {showProjectElements && selectedProject && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Project Elements - {selectedProject.title}</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowProjectElements(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <ProjectElements project={selectedProject} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Project Notes Modal */}
-      <ProjectNotes
-        isOpen={showProjectNotes}
-        onOpenChange={setShowProjectNotes}
-        project={selectedProject}
-      />
+      {showProjectNotes && selectedProject && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Project Notes - {selectedProject.title}</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowProjectNotes(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <ProjectNotes project={selectedProject} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Project Budget Modal */}
-      <ProjectBudget
-        isOpen={showProjectBudget}
-        onOpenChange={setShowProjectBudget}
-        project={selectedProject}
-      />
+      {showProjectBudget && selectedProject && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Project Budget - {selectedProject.title}</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowProjectBudget(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <ProjectBudget project={selectedProject} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Suggestions Integration Modal */}
       <SuggestionsIntegration
@@ -466,10 +519,9 @@ export const ProjectsPage = withMaintenanceNavigation(
   ProjectsPageBase,
   'projects',
   {
-    title: 'Maintenance Projects',
+    title: 'Projects Management',
     description: 'Plan, track, and manage maintenance projects with vendor coordination and budget tracking.'
   }
 );
 
 export default ProjectsPage;
-export type { ProjectsPageProps };

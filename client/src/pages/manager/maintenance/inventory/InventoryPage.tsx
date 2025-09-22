@@ -392,7 +392,7 @@ export const InventoryPage = withMaintenanceNavigation(
   InventoryPageBase,
   'inventory',
   {
-    title: 'Building Inventory',
+    title: 'Inventory Management',
     description: 'Manage building elements, track conditions, and schedule maintenance activities according to Quebec standards.'
   }
 );
