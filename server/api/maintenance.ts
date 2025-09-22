@@ -306,9 +306,94 @@ export function registerMaintenanceRoutes(app: Express): void {
    */
   app.get('/api/maintenance/uniformat', requireAuth, async (req: any, res) => {
     try {
-      const { level, category, parentCode } = req.query;
+      console.log('📋 [UNIFORMAT API] Called with query:', req.query);
       
-      let filteredCatalog = UNIFORMAT_CATALOG;
+      // Test data for now until we fix the TypeScript import issue
+      const testUniformatData = [
+        {
+          code: "A",
+          level: 1,
+          nameFr: "Infrastructure",
+          nameEn: "Substructure",
+          descriptionFr: "Éléments de fondation et d'infrastructure souterraine",
+          descriptionEn: "Foundation and below-grade infrastructure elements",
+          category: "Substructure"
+        },
+        {
+          code: "B",
+          level: 1,
+          nameFr: "Enveloppe du bâtiment",
+          nameEn: "Shell",
+          descriptionFr: "Structure, enveloppe extérieure et toiture du bâtiment",
+          descriptionEn: "Building structure, exterior enclosure and roofing",
+          category: "Shell"
+        },
+        {
+          code: "C",
+          level: 1,
+          nameFr: "Aménagements intérieurs",
+          nameEn: "Interiors",
+          descriptionFr: "Construction intérieure, escaliers et finitions",
+          descriptionEn: "Interior construction, stairs and finishes",
+          category: "Interiors"
+        },
+        {
+          code: "D",
+          level: 1,
+          nameFr: "Services du bâtiment",
+          nameEn: "Services",
+          descriptionFr: "Transport vertical, plomberie, CVC, protection incendie, électricité",
+          descriptionEn: "Conveying, plumbing, HVAC, fire protection, electrical",
+          category: "Services"
+        },
+        {
+          code: "A10",
+          level: 2,
+          parentCode: "A",
+          nameFr: "Fondations",
+          nameEn: "Foundations",
+          descriptionFr: "Fondations en béton, semelles et murs de fondation",
+          descriptionEn: "Concrete foundations, footings and foundation walls",
+          category: "Substructure",
+          typicalLifespan: 75
+        },
+        {
+          code: "B10",
+          level: 2,
+          parentCode: "B",
+          nameFr: "Superstructure",
+          nameEn: "Superstructure",
+          descriptionFr: "Charpente structurale du bâtiment",
+          descriptionEn: "Building structural frame",
+          category: "Shell",
+          typicalLifespan: 60
+        },
+        {
+          code: "B20",
+          level: 2,
+          parentCode: "B",
+          nameFr: "Enveloppe extérieure",
+          nameEn: "Exterior Enclosure",
+          descriptionFr: "Murs extérieurs, fenêtres et portes",
+          descriptionEn: "Exterior walls, windows and doors",
+          category: "Shell",
+          typicalLifespan: 30
+        },
+        {
+          code: "B30",
+          level: 2,
+          parentCode: "B",
+          nameFr: "Toiture",
+          nameEn: "Roofing",
+          descriptionFr: "Membrane de toiture, isolation et accessoires",
+          descriptionEn: "Roof membrane, insulation and accessories",
+          category: "Shell",
+          typicalLifespan: 25
+        }
+      ];
+      
+      const { level, category, parentCode } = req.query;
+      let filteredCatalog = testUniformatData;
       
       // Apply filters
       if (level) {
@@ -326,9 +411,11 @@ export function registerMaintenanceRoutes(app: Express): void {
         filteredCatalog = filteredCatalog.filter(item => item.parentCode === parentCode);
       }
       
+      console.log('📋 [UNIFORMAT API] Returning', filteredCatalog.length, 'codes');
+      
       res.json({
         success: true,
-        data: filteredCatalog
+        codes: filteredCatalog
       });
     } catch (error: any) {
       console.error('Error fetching UNIFORMAT catalog:', error);
