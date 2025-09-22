@@ -267,6 +267,9 @@ export interface Translations {
   rejected: string;
   draft: string;
   maintenance: string;
+  maintenanceJournal: string;
+  inventory: string;
+  projects: string;
   complaint: string;
   information: string;
   other: string;
@@ -1329,6 +1332,9 @@ export const translations: Record<Language, Translations> = {
     rejected: 'Rejected',
     draft: 'Draft',
     maintenance: 'Maintenance',
+    maintenanceJournal: 'Maintenance Journal',
+    inventory: 'Inventory',
+    projects: 'Projects',
     complaint: 'Complaint',
     information: 'Information',
     other: 'Other',
@@ -2343,6 +2349,9 @@ export const translations: Record<Language, Translations> = {
     rejected: 'Rejeté',
     draft: 'Brouillon',
     maintenance: 'Entretien',
+    maintenanceJournal: 'Journal de maintenance',
+    inventory: 'Inventaire',
+    projects: 'Projets',
     complaint: 'Plainte',
     information: 'Information',
     other: 'Autre',

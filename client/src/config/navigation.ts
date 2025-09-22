@@ -15,6 +15,9 @@ import {
   LayoutDashboard,
   AreaChart,
   MessageSquare,
+  Wrench,
+  Package,
+  FolderProject,
 } from 'lucide-react';
 
 // Import translation keys for navigation
@@ -45,6 +48,9 @@ export const NAVIGATION_KEYS = {
   law25Compliance: 'law25Compliance',
   suggestions: 'suggestions',
   rbacPermissions: 'rbacPermissions',
+  maintenanceJournal: 'maintenanceJournal',
+  inventory: 'inventory',
+  projects: 'projects',
   settings: 'settings',
   bugReports: 'bugReports',
   ideaBox: 'ideaBox',
@@ -119,6 +125,16 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { nameKey: 'demands', href: '/manager/demands', icon: AlertCircle },
       { nameKey: 'navUserManagement', href: '/manager/user-management', icon: Users },
       { nameKey: 'manageCommonSpaces', href: '/manager/common-spaces-stats', icon: AreaChart },
+    ],
+  },
+  {
+    nameKey: 'maintenanceJournal',
+    _key: 'maintenanceJournal',
+    icon: Wrench,
+    requiredRole: 'manager',
+    items: [
+      { nameKey: 'inventory', href: '/manager/maintenance/inventory', icon: Package },
+      { nameKey: 'projects', href: '/manager/maintenance/projects', icon: FolderProject },
     ],
   },
 
