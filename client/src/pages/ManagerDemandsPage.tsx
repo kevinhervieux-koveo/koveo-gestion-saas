@@ -540,7 +540,7 @@ export default function ManagerDemandsPage() {
 
       {/* View Demand Dialog */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className='max-w-2xl'>
+        <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
           <DialogHeader>
             <DialogTitle>Demand Details</DialogTitle>
           </DialogHeader>
@@ -595,7 +595,7 @@ export default function ManagerDemandsPage() {
 
       {/* Review Demand Dialog */}
       <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
-        <DialogContent className='max-w-md'>
+        <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
           <DialogHeader>
             <DialogTitle>Review Demand</DialogTitle>
             <DialogDescription>Update the status and add review notes</DialogDescription>

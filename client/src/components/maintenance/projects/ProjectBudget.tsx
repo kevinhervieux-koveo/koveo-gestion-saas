@@ -657,7 +657,7 @@ export function ProjectBudget({
 
       {/* Budget Breakdown Details Dialog */}
       <Dialog open={showBreakdownDetails} onOpenChange={setShowBreakdownDetails}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {selectedBreakdown ? `${selectedBreakdown.category} Details` : 'Budget Breakdown Details'}

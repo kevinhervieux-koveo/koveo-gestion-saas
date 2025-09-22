@@ -502,7 +502,7 @@ export function ProjectElements({
                     Add Element
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Add Building Element</DialogTitle>
                     <DialogDescription>
@@ -599,7 +599,7 @@ export function ProjectElements({
                 Add Element
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add Building Elements</DialogTitle>
                 <DialogDescription>

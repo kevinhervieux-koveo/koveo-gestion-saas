@@ -342,7 +342,7 @@ export default function ManagerDemandsPage() {
                   {t('newDemand')}
                 </Button>
               </DialogTrigger>
-              <DialogContent className='max-w-md'>
+              <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
                 <DialogHeader>
                   <DialogTitle>{t('createNewDemand')}</DialogTitle>
                   <DialogDescription>{t('createDemandBehalf')}</DialogDescription>

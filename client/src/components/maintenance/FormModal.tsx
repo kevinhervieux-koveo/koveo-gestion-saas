@@ -140,7 +140,7 @@ export function FormModal<T extends FieldValues>({
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       
       <DialogContent 
-        className={`${sizeClasses[size]} ${className || ''}`}
+        className={`${sizeClasses[size]} max-h-[90vh] overflow-y-auto ${className || ''}`}
         data-testid="form-modal"
       >
         <DialogHeader>

@@ -297,7 +297,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       {/* View Organization Dialog */}
       {viewingOrganization && (
         <AlertDialog open={!!viewingOrganization} onOpenChange={() => setViewingOrganization(null)}>
-          <AlertDialogContent className='max-w-2xl'>
+          <AlertDialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
             <AlertDialogHeader>
               <AlertDialogTitle className='flex items-center gap-2'>
                 <Building className='h-5 w-5' />

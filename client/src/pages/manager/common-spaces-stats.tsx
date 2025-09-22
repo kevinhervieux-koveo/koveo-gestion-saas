@@ -1260,7 +1260,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
 
             {/* Time Limit Dialog */}
             <Dialog open={timeLimitDialogOpen} onOpenChange={setTimeLimitDialogOpen}>
-              <DialogContent className='max-w-md'>
+              <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
                 <DialogHeader>
                   <DialogTitle>
                     {language === 'fr' ? 'Définir la limite de temps' : 'Set Time Limit'}

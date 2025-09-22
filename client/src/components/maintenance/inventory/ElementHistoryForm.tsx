@@ -312,7 +312,7 @@ export function ElementHistoryForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl" data-testid="element-history-form">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="element-history-form">
         <DialogHeader>
           <DialogTitle>
             {mode === 'create' ? 'Add Maintenance History' : 'Edit Maintenance History'}
