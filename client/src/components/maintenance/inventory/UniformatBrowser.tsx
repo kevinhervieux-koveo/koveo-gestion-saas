@@ -79,7 +79,7 @@ export function UniformatBrowser({
     staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
-  const uniformatCodes: UniformatCode[] = uniformatResponse?.codes || [];
+  const uniformatCodes: UniformatCode[] = uniformatResponse?.data || [];
 
   // Common/favorite codes for quick access
   const favoritesCodes = useMemo(() => [
