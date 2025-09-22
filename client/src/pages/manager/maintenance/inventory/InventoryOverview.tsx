@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
@@ -23,6 +25,8 @@ import {
   FileText,
   Target,
   BarChart3,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 
 interface InventoryOverviewProps {
@@ -34,6 +38,9 @@ interface InventoryOverviewProps {
  * Shows element counts, condition breakdown, alerts, and cost information
  */
 export function InventoryOverview({ className }: InventoryOverviewProps) {
+  // Collapsible state - collapsed by default
+  const [isExpanded, setIsExpanded] = useState(false);
+  
   // Simplified placeholder - no API calls for now
   const buildingId = null;
   const elementsLoading = false;
@@ -105,19 +112,45 @@ export function InventoryOverview({ className }: InventoryOverviewProps) {
 
   if (isLoading) {
     return (
-      <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4', className)}>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <Card key={i}>
-            <CardHeader className="pb-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-6 w-16" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-20 w-full" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Collapsible 
+        open={isExpanded} 
+        onOpenChange={setIsExpanded} 
+        className={cn('space-y-4', className)} 
+        data-testid="inventory-overview"
+      >
+        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <Package className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-lg font-semibold">Inventory Overview</h3>
+          </div>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" data-testid="inventory-overview-toggle">
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+              <span className="sr-only">Toggle inventory overview</span>
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+        
+        <CollapsibleContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-6 w-16" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-20 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     );
   }
 
@@ -138,7 +171,31 @@ export function InventoryOverview({ className }: InventoryOverviewProps) {
   };
 
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4', className)} data-testid="inventory-overview">
+    <Collapsible 
+      open={isExpanded} 
+      onOpenChange={setIsExpanded} 
+      className={cn('space-y-4', className)} 
+      data-testid="inventory-overview"
+    >
+      <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+        <div className="flex items-center gap-2">
+          <Package className="h-5 w-5 text-muted-foreground" />
+          <h3 className="text-lg font-semibold">Inventory Overview</h3>
+        </div>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm" data-testid="inventory-overview-toggle">
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+            <span className="sr-only">Toggle inventory overview</span>
+          </Button>
+        </CollapsibleTrigger>
+      </div>
+      
+      <CollapsibleContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Elements */}
       <Card data-testid="total-elements-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -317,7 +374,9 @@ export function InventoryOverview({ className }: InventoryOverviewProps) {
           </p>
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
