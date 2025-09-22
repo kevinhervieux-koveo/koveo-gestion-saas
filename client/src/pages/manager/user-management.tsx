@@ -1597,7 +1597,7 @@ export default function UserManagement() {
 
         {/* Delete Orphan Users Confirmation Dialog */}
         <AlertDialog open={showDeleteOrphansDialog} onOpenChange={setShowDeleteOrphansDialog}>
-          <AlertDialogContent className='sm:max-w-[500px]'>
+          <AlertDialogContent className='sm:max-w-[500px] max-h-[90vh] overflow-y-auto'>
             <AlertDialogHeader>
               <AlertDialogTitle className='text-red-600'>{t('deleteOrphanUsersConfirmTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
@@ -1639,7 +1639,7 @@ export default function UserManagement() {
 
         {/* Delete User Confirmation Dialog */}
         <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
-          <AlertDialogContent className='sm:max-w-[500px]'>
+          <AlertDialogContent className='sm:max-w-[500px] max-h-[90vh] overflow-y-auto'>
             <AlertDialogHeader>
               <AlertDialogTitle className='text-red-600'>{t('deleteUserTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
