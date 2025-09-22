@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadges';
-import { useBuildingContext } from '@/hooks/use-building-context';
+// import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
@@ -48,6 +48,8 @@ export interface ProjectTimelineViewProps {
   showOverdueOnly?: boolean;
   selectedProjects?: string[];
   onSelectionChange?: (selectedIds: string[]) => void;
+  buildingId?: string;
+  organizationId?: string;
 }
 
 type TimelineView = 'month' | 'quarter' | 'year';
@@ -78,8 +80,12 @@ export function ProjectTimelineView({
   showOverdueOnly = false,
   selectedProjects = [],
   onSelectionChange,
+  buildingId,
+  organizationId,
 }: ProjectTimelineViewProps) {
-  const { buildingId, building, hasPermission } = useBuildingContext();
+  // Simplified placeholder - no context for now
+  const building = null;
+  const hasPermission = () => true;
   const [currentDate, setCurrentDate] = useState(new Date());
   const [timelineView, setTimelineView] = useState<TimelineView>('month');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());

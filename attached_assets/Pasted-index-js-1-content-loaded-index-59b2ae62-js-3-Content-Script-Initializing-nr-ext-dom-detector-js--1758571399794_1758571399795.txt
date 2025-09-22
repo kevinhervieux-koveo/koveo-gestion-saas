@@ -1,0 +1,214 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+withHierarchicalSelection-BCGLluoQ.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BCGLluoQ.js:1    → Organizations from API: 0
+withHierarchicalSelection-BCGLluoQ.js:1    → Building counts: {}
+withHierarchicalSelection-BCGLluoQ.js:1 🎯 [withHierarchicalSelection] Filtered to 0 accessible organizations
+withHierarchicalSelection-BCGLluoQ.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BCGLluoQ.js:1    → Organizations from API: 3
+withHierarchicalSelection-BCGLluoQ.js:1    → Building counts: {}
+withHierarchicalSelection-BCGLluoQ.js:1    → Org "Demo 123" (e9bb7862-4ba5-4822-848f-f3692e826e73): 0 buildings, access: false
+withHierarchicalSelection-BCGLluoQ.js:1    → Org "Koveo" (5228cb04-1fc9-4291-b76a-ccd89a40324d): 0 buildings, access: false
+withHierarchicalSelection-BCGLluoQ.js:1    → Org "Test Demo Organization" (f0e34e59-0d81-4c1a-b95f-e23dd1667a19): 0 buildings, access: false
+withHierarchicalSelection-BCGLluoQ.js:1 🎯 [withHierarchicalSelection] Filtered to 0 accessible organizations
+withHierarchicalSelection-BCGLluoQ.js:1 🔍 [withHierarchicalSelection] Fetching building counts for organizations...
+withHierarchicalSelection-BCGLluoQ.js:1 🌐 [withHierarchicalSelection] Requesting: /api/organizations/accessible-building-counts
+withHierarchicalSelection-BCGLluoQ.js:1 ✅ [withHierarchicalSelection] Building counts received: {5228cb04-1fc9-4291-b76a-ccd89a40324d: 0, e9bb7862-4ba5-4822-848f-f3692e826e73: 5, f0e34e59-0d81-4c1a-b95f-e23dd1667a19: 5}
+withHierarchicalSelection-BCGLluoQ.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BCGLluoQ.js:1    → Organizations from API: 3
+withHierarchicalSelection-BCGLluoQ.js:1    → Building counts: {5228cb04-1fc9-4291-b76a-ccd89a40324d: 0, e9bb7862-4ba5-4822-848f-f3692e826e73: 5, f0e34e59-0d81-4c1a-b95f-e23dd1667a19: 5}
+withHierarchicalSelection-BCGLluoQ.js:1    → Org "Demo 123" (e9bb7862-4ba5-4822-848f-f3692e826e73): 5 buildings, access: true
+withHierarchicalSelection-BCGLluoQ.js:1    → Org "Koveo" (5228cb04-1fc9-4291-b76a-ccd89a40324d): 0 buildings, access: false
+withHierarchicalSelection-BCGLluoQ.js:1    → Org "Test Demo Organization" (f0e34e59-0d81-4c1a-b95f-e23dd1667a19): 5 buildings, access: true
+withHierarchicalSelection-BCGLluoQ.js:1 🎯 [withHierarchicalSelection] Filtered to 2 accessible organizations
+withHierarchicalSelection-BCGLluoQ.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', itemName: 'Demo 123'}
+withHierarchicalSelection-BCGLluoQ.js:1 🏗️ [withHierarchicalSelection] Rendering building selection...
+withHierarchicalSelection-BCGLluoQ.js:1    → Buildings from filtering: 0
+withHierarchicalSelection-BCGLluoQ.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BCGLluoQ.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-BCGLluoQ.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BCGLluoQ.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+withHierarchicalSelection-BCGLluoQ.js:1 🏗️ [withHierarchicalSelection] Rendering building selection...
+withHierarchicalSelection-BCGLluoQ.js:1    → Buildings from filtering: 5
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "1936 Nitzsche Track Building 5" (c3052c3c-b694-41a6-bd65-3bc3ae9a5984): 2536 montée Sainte-Catherine
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "392 Georgette Trail Building 2" (ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea): 477 avenue de Maisonneuve
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "4958 E Oak Street Building 4" (18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f): 6174 chemin Sherbrooke
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "54716 N Cedar Street Building 1" (15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24): 8596 boulevard des Pins
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "70342 Dare Cliffs Building 3" (66653f30-2d10-4907-bebc-9e3757d2ef0e): 4258 boulevard Notre-Dame
+withHierarchicalSelection-BCGLluoQ.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', itemName: '1936 Nitzsche Track Building 5'}
+index-D_FbLw7Y.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined}
+index-D_FbLw7Y.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined, showBackButton: true, backButtonLabel: 'Building'}
+index-D_FbLw7Y.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+withHierarchicalSelection-BCGLluoQ.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BCGLluoQ.js:1    → Organizations from API: 3
+withHierarchicalSelection-BCGLluoQ.js:1    → Building counts: {5228cb04-1fc9-4291-b76a-ccd89a40324d: 0, e9bb7862-4ba5-4822-848f-f3692e826e73: 5, f0e34e59-0d81-4c1a-b95f-e23dd1667a19: 5}
+withHierarchicalSelection-BCGLluoQ.js:1    → Org "Demo 123" (e9bb7862-4ba5-4822-848f-f3692e826e73): 5 buildings, access: true
+withHierarchicalSelection-BCGLluoQ.js:1    → Org "Koveo" (5228cb04-1fc9-4291-b76a-ccd89a40324d): 0 buildings, access: false
+withHierarchicalSelection-BCGLluoQ.js:1    → Org "Test Demo Organization" (f0e34e59-0d81-4c1a-b95f-e23dd1667a19): 5 buildings, access: true
+withHierarchicalSelection-BCGLluoQ.js:1 🎯 [withHierarchicalSelection] Filtered to 2 accessible organizations
+withHierarchicalSelection-BCGLluoQ.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', itemName: 'Demo 123'}
+withHierarchicalSelection-BCGLluoQ.js:1 🏗️ [withHierarchicalSelection] Rendering building selection...
+withHierarchicalSelection-BCGLluoQ.js:1    → Buildings from filtering: 5
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "1936 Nitzsche Track Building 5" (c3052c3c-b694-41a6-bd65-3bc3ae9a5984): 2536 montée Sainte-Catherine
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "392 Georgette Trail Building 2" (ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea): 477 avenue de Maisonneuve
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "4958 E Oak Street Building 4" (18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f): 6174 chemin Sherbrooke
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "54716 N Cedar Street Building 1" (15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24): 8596 boulevard des Pins
+withHierarchicalSelection-BCGLluoQ.js:1    → Building "70342 Dare Cliffs Building 3" (66653f30-2d10-4907-bebc-9e3757d2ef0e): 4258 boulevard Notre-Dame
+withHierarchicalSelection-BCGLluoQ.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', itemName: '1936 Nitzsche Track Building 5'}
+index-DBc0usB6.js:41 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined}
+index-DBc0usB6.js:41 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined, showBackButton: true, backButtonLabel: 'Building'}
+index-DBc0usB6.js:41 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+index-DBc0usB6.js:41 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined}
+index-DBc0usB6.js:41 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined, showBackButton: true, backButtonLabel: 'Building'}
+index-DBc0usB6.js:41 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+index-ZfGQ_ev5.js:136 Error: useBuildingContext must be used within a BuildingContextProvider
+    at Pe (index-DBc0usB6.js:41:66171)
+    at Xa (index-DBc0usB6.js:41:342245)
+    at Object.react_stack_bottom_frame (index-ZfGQ_ev5.js:229:12448)
+    at oc (index-ZfGQ_ev5.js:120:804)
+    at kc (index-ZfGQ_ev5.js:141:5839)
+    at Pc (index-ZfGQ_ev5.js:150:10147)
+    at q (index-ZfGQ_ev5.js:45:108)
+    at Kh (index-ZfGQ_ev5.js:163:29810)
+    at Jh (index-ZfGQ_ev5.js:163:28479)
+    at Wc (index-ZfGQ_ev5.js:163:28312)
+
+The above error occurred in the <Xa> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, hR.
+
+overrideMethod @ hook.js:608
+oh @ index-ZfGQ_ev5.js:136
+lh @ index-ZfGQ_ev5.js:141
+q @ index-ZfGQ_ev5.js:45
+l.componentDidCatch.e.callback @ index-ZfGQ_ev5.js:141
+Dp @ index-ZfGQ_ev5.js:107
+Ep @ index-ZfGQ_ev5.js:107
+q @ index-ZfGQ_ev5.js:45
+Dh @ index-ZfGQ_ev5.js:163
+Nh @ index-ZfGQ_ev5.js:163
+Qn @ index-ZfGQ_ev5.js:163
+Nh @ index-ZfGQ_ev5.js:163
+Qn @ index-ZfGQ_ev5.js:163
+Nh @ index-ZfGQ_ev5.js:163
+Qn @ index-ZfGQ_ev5.js:163
+Nh @ index-ZfGQ_ev5.js:163
+Qn @ index-ZfGQ_ev5.js:163
+Nh @ index-ZfGQ_ev5.js:163
+Qn @ index-ZfGQ_ev5.js:163
+Nh @ index-ZfGQ_ev5.js:163
+Qn @ index-ZfGQ_ev5.js:163
+Nh @ index-ZfGQ_ev5.js:163
+ng @ index-ZfGQ_ev5.js:163
+ed @ index-ZfGQ_ev5.js:163
+Xh @ index-ZfGQ_ev5.js:163
+Ih @ index-ZfGQ_ev5.js:163
+mg @ index-ZfGQ_ev5.js:185
+ml @ index-ZfGQ_ev5.js:185
+ad @ index-ZfGQ_ev5.js:185
+(anonymous) @ index-ZfGQ_ev5.js:185
+<Xa>
+du.jsxDEV @ index-ZfGQ_ev5.js:15
+(anonymous) @ index-DBc0usB6.js:41
+Tc @ index-ZfGQ_ev5.js:120
+useMemo @ index-ZfGQ_ev5.js:229
+He.s.useMemo @ vendor-react-BZXSkU7I.js:21
+ei @ index-DBc0usB6.js:41
+react_stack_bottom_frame @ index-ZfGQ_ev5.js:229
+oc @ index-ZfGQ_ev5.js:120
+kc @ index-ZfGQ_ev5.js:141
+Pc @ index-ZfGQ_ev5.js:150
+q @ index-ZfGQ_ev5.js:45
+Kh @ index-ZfGQ_ev5.js:163
+Jh @ index-ZfGQ_ev5.js:163
+Wc @ index-ZfGQ_ev5.js:163
+Ih @ index-ZfGQ_ev5.js:163
+mg @ index-ZfGQ_ev5.js:185
+ml @ index-ZfGQ_ev5.js:185
+ad @ index-ZfGQ_ev5.js:185
+(anonymous) @ index-ZfGQ_ev5.js:185
+<ei>
+du.jsxDEV @ index-ZfGQ_ev5.js:15
+ni @ index-DBc0usB6.js:41
+react_stack_bottom_frame @ index-ZfGQ_ev5.js:229
+oc @ index-ZfGQ_ev5.js:120
+kc @ index-ZfGQ_ev5.js:141
+Pc @ index-ZfGQ_ev5.js:150
+q @ index-ZfGQ_ev5.js:45
+Kh @ index-ZfGQ_ev5.js:163
+Jh @ index-ZfGQ_ev5.js:163
+Wc @ index-ZfGQ_ev5.js:163
+Ih @ index-ZfGQ_ev5.js:163
+mg @ index-ZfGQ_ev5.js:185
+ml @ index-ZfGQ_ev5.js:185
+ad @ index-ZfGQ_ev5.js:185
+(anonymous) @ index-ZfGQ_ev5.js:185
+<ni>
+du.jsxDEV @ index-ZfGQ_ev5.js:15
+(anonymous) @ withHierarchicalSelection-BCGLluoQ.js:1
+react_stack_bottom_frame @ index-ZfGQ_ev5.js:229
+oc @ index-ZfGQ_ev5.js:120
+kc @ index-ZfGQ_ev5.js:141
+Pc @ index-ZfGQ_ev5.js:150
+q @ index-ZfGQ_ev5.js:45
+Kh @ index-ZfGQ_ev5.js:163
+Jh @ index-ZfGQ_ev5.js:163
+Wc @ index-ZfGQ_ev5.js:163
+Ih @ index-ZfGQ_ev5.js:163
+mg @ index-ZfGQ_ev5.js:185
+ml @ index-ZfGQ_ev5.js:185
+ad @ index-ZfGQ_ev5.js:185
+(anonymous) @ index-ZfGQ_ev5.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-ZfGQ_ev5.js:240
+P @ index-ZfGQ_ev5.js:240
+react_stack_bottom_frame @ index-ZfGQ_ev5.js:229
+oc @ index-ZfGQ_ev5.js:120
+kc @ index-ZfGQ_ev5.js:141
+Pc @ index-ZfGQ_ev5.js:150
+q @ index-ZfGQ_ev5.js:45
+Kh @ index-ZfGQ_ev5.js:163
+WS @ index-ZfGQ_ev5.js:163
+KS @ index-ZfGQ_ev5.js:163
+Ih @ index-ZfGQ_ev5.js:163
+fg @ index-ZfGQ_ev5.js:185
+d @ index-ZfGQ_ev5.js:23
+<P>
+du.jsxDEV @ index-ZfGQ_ev5.js:15
+WR @ index-ZfGQ_ev5.js:384
+react_stack_bottom_frame @ index-ZfGQ_ev5.js:229
+oc @ index-ZfGQ_ev5.js:120
+kc @ index-ZfGQ_ev5.js:141
+Pc @ index-ZfGQ_ev5.js:150
+q @ index-ZfGQ_ev5.js:45
+Kh @ index-ZfGQ_ev5.js:163
+Jh @ index-ZfGQ_ev5.js:163
+Wc @ index-ZfGQ_ev5.js:163
+Ih @ index-ZfGQ_ev5.js:163
+mg @ index-ZfGQ_ev5.js:185
+ml @ index-ZfGQ_ev5.js:185
+ad @ index-ZfGQ_ev5.js:185
+(anonymous) @ index-ZfGQ_ev5.js:185
+<WR>
+du.jsxDEV @ index-ZfGQ_ev5.js:15
+ex @ index-ZfGQ_ev5.js:384
+react_stack_bottom_frame @ index-ZfGQ_ev5.js:229
+oc @ index-ZfGQ_ev5.js:120
+kc @ index-ZfGQ_ev5.js:141
+Pc @ index-ZfGQ_ev5.js:150
+q @ index-ZfGQ_ev5.js:45
+Kh @ index-ZfGQ_ev5.js:163
+Jh @ index-ZfGQ_ev5.js:163
+Wc @ index-ZfGQ_ev5.js:163
+Ih @ index-ZfGQ_ev5.js:163
+fg @ index-ZfGQ_ev5.js:185
+d @ index-ZfGQ_ev5.js:23
+<ex>
+du.jsxDEV @ index-ZfGQ_ev5.js:15
+(anonymous) @ index-ZfGQ_ev5.js:384

@@ -253,6 +253,8 @@ function ProjectsPageContent({
       showOverdueOnly,
       selectedProjects,
       onSelectionChange: handleSelectionChange,
+      buildingId,
+      organizationId,
     };
 
     switch (viewMode) {
