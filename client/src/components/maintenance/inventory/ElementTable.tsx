@@ -524,8 +524,6 @@ export function ElementTable({
           icon: Building,
         }}
         renderRowActions={renderRowActions}
-        rowSelection={rowSelection}
-        onRowSelectionChange={handleRowSelection}
       />
     </div>
   );

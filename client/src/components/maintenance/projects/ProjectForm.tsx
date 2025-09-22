@@ -167,7 +167,7 @@ export function ProjectForm({
   useEffect(() => {
     if (evaluationSuggestion && !project) {
       form.setValue('title', evaluationSuggestion.reason);
-      form.setValue('type', evaluationSuggestion.suggestedType);
+      form.setValue('type', evaluationSuggestion.suggestedType as any);
       form.setValue('priority', evaluationSuggestion.priority);
       form.setValue('suggestionId', evaluationSuggestion.id);
       
@@ -325,7 +325,7 @@ export function ProjectForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                   <FormControl>
                     <SelectTrigger data-testid="select-priority">
                       <SelectValue placeholder="Select priority" />
@@ -399,7 +399,7 @@ export function ProjectForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Project Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                   <FormControl>
                     <SelectTrigger data-testid="select-project-type">
                       <SelectValue placeholder="Select project type" />
@@ -435,7 +435,7 @@ export function ProjectForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                   <FormControl>
                     <SelectTrigger data-testid="select-project-status">
                       <SelectValue placeholder="Select status" />
@@ -594,7 +594,7 @@ export function ProjectForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Assigned Vendor</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
                   <FormControl>
                     <SelectTrigger data-testid="select-vendor">
                       <SelectValue placeholder="Select vendor (optional)" />
@@ -668,4 +668,3 @@ export function ProjectForm({
   );
 }
 
-export type { ProjectFormProps };
