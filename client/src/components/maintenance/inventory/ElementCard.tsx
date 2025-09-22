@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import {
   Edit2,
   Clock,
-  Timeline,
+  History,
   Camera,
   AlertTriangle,
   Calendar,
@@ -355,7 +355,7 @@ export function ElementCard({
                   onClick={() => onViewTimeline(element)}
                   data-testid={`view-timeline-${element.id}`}
                 >
-                  <Timeline className="h-4 w-4 mr-1" />
+                  <History className="h-4 w-4 mr-1" />
                   Timeline
                 </Button>
               )}
