@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
-import { useBuildingContext } from '@/hooks/use-building-context';
+// import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { insertBuildingElementSchema, BuildingElement } from '@shared/schemas/maintenance';
@@ -51,6 +51,8 @@ interface ElementFormProps {
   element?: BuildingElement | null;
   onSuccess?: (element: BuildingElement) => void;
   mode?: 'create' | 'edit';
+  buildingId?: string;
+  organizationId?: string;
 }
 
 // UNIFORMAT code selection helper
@@ -188,8 +190,10 @@ export function ElementForm({
   element,
   onSuccess,
   mode = element ? 'edit' : 'create',
+  buildingId,
+  organizationId,
 }: ElementFormProps) {
-  const { buildingId } = useBuildingContext();
+  // Simplified placeholder - no context for now
   const { toast } = useToast();
   const [constructionDate, setConstructionDate] = useState<Date | undefined>();
   const [nextEvaluationDate, setNextEvaluationDate] = useState<Date | undefined>();

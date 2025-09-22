@@ -291,6 +291,8 @@ function InventoryPageContent({
         element={elementFormMode === 'edit' ? selectedElement : null}
         onSuccess={handleElementFormSuccess}
         mode={elementFormMode}
+        buildingId={buildingId}
+        organizationId={organizationId}
       />
 
       {/* Document Manager Modal */}
@@ -307,6 +309,8 @@ function InventoryPageContent({
               <DocumentManager
                 element={selectedElement}
                 onDocumentUploaded={handleDocumentManagerSuccess}
+                buildingId={buildingId}
+                organizationId={organizationId}
               />
             </div>
           </div>
@@ -356,6 +360,8 @@ function InventoryPageContent({
                   console.log('View documents:', entry);
                   // Handle view documents
                 }}
+                buildingId={buildingId}
+                organizationId={organizationId}
               />
             </div>
           </div>

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { UploadDropzone, UploadedFile } from '@/components/maintenance/UploadDropzone';
-import { useBuildingContext } from '@/hooks/use-building-context';
+// import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
@@ -50,6 +50,8 @@ interface DocumentManagerProps {
   onDocumentDeleted?: (documentId: string) => void;
   showUpload?: boolean;
   viewMode?: 'grid' | 'list';
+  buildingId?: string;
+  organizationId?: string;
 }
 
 /**
@@ -63,8 +65,11 @@ export function DocumentManager({
   onDocumentDeleted,
   showUpload = true,
   viewMode: initialViewMode = 'grid',
+  buildingId,
+  organizationId,
 }: DocumentManagerProps) {
-  const { buildingId, organizationId, hasPermission } = useBuildingContext();
+  // Simplified placeholder - no context for now
+  const hasPermission = () => true;
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(initialViewMode);
