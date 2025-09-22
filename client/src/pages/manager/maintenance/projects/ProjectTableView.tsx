@@ -256,6 +256,8 @@ export function ProjectTableView({
         compact={false}
         className="bg-card"
         data-testid="main-projects-table"
+        buildingId={buildingId}
+        organizationId={organizationId}
       />
 
       {/* Additional Information */}

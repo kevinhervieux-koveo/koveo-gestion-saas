@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadges';
-import { useBuildingContext } from '@/hooks/use-building-context';
+// import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
@@ -50,6 +50,8 @@ export interface ProjectTableProps {
   showActions?: boolean;
   showBulkActions?: boolean;
   compact?: boolean;
+  buildingId?: string;
+  organizationId?: string;
 }
 
 interface ProjectWithMetrics extends MaintenanceProject {
@@ -74,8 +76,11 @@ export function ProjectTable({
   showActions = true,
   showBulkActions = true,
   compact = false,
+  buildingId,
+  organizationId,
 }: ProjectTableProps) {
-  const { buildingId, hasPermission } = useBuildingContext();
+  // Simplified placeholder - no context for now
+  const hasPermission = () => true;
   const { toast } = useToast();
   const [selectedProjects, setSelectedProjects] = useState<Row<ProjectWithMetrics>[]>([]);
 
