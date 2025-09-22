@@ -127,7 +127,7 @@ export class MaintenanceSuggestionService {
         .innerJoin(sql`project_elements`, sql`maintenance_projects.id = project_elements.project_id`)
         .where(and(
           inArray(sql`project_elements.element_id`, elementIds),
-          not(inArray(maintenanceProjects.status, ['completed', 'cancelled']))
+          not(eq(maintenanceProjects.status, 'completed'))
         )) : [];
       
       const activeProjectElementIds = new Set(activeProjectElements.map(p => p.elementId));
