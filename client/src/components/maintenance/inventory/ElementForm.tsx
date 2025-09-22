@@ -442,7 +442,7 @@ export function ElementForm({
   });
 
   const form = useForm<ElementFormData>({
-    resolver: zodResolver(elementFormSchema),
+    resolver: zodResolver(elementFormSchema) as any,
     defaultValues: {
       buildingId: buildingId || '',
       name: '',
@@ -619,7 +619,7 @@ export function ElementForm({
       <div className="space-y-6">
         {/* UNIFORMAT Code Selection */}
         <FormFieldWrapper
-          form={form}
+          form={form as any}
           name="uniformatCode"
           label="UNIFORMAT Code"
           required
@@ -639,7 +639,7 @@ export function ElementForm({
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormFieldWrapper
-            form={form}
+            form={form as any}
             name="name"
             label="Element Name"
             required
@@ -658,7 +658,7 @@ export function ElementForm({
           </FormFieldWrapper>
 
           <FormFieldWrapper
-            form={form}
+            form={form as any}
             name="currentCondition"
             label="Current Condition"
             required
@@ -701,7 +701,7 @@ export function ElementForm({
         </div>
 
         <FormFieldWrapper
-          form={form}
+          form={form as any}
           name="description"
           label="Description"
           description="Optional detailed description of the element"
@@ -719,7 +719,7 @@ export function ElementForm({
         {/* Element Assignment */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormFieldWrapper
-            form={form}
+            form={form as any}
             name="residenceIds"
             label="Residence Assignment"
             description="Select if this element is building-wide or applies to specific residences"
@@ -901,7 +901,7 @@ export function ElementForm({
           </FormFieldWrapper>
 
           <FormFieldWrapper
-            form={form}
+            form={form as any}
             name="access"
             label="Access Type"
             description="Access restrictions for this element"
@@ -931,7 +931,7 @@ export function ElementForm({
           </FormFieldWrapper>
 
           <FormFieldWrapper
-            form={form}
+            form={form as any}
             name="charge"
             label="Charge Type"
             description="Who is responsible for costs"
@@ -972,7 +972,7 @@ export function ElementForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormFieldWrapper
-              form={form}
+              form={form as any}
               name="originalConstructionDate"
               label="Original Construction Date"
             >
@@ -1011,7 +1011,7 @@ export function ElementForm({
 
             <div className="grid grid-cols-2 gap-2">
               <FormFieldWrapper
-                form={form}
+                form={form as any}
                 name="originalLifespan"
                 label="Original Lifespan (years)"
               >
@@ -1028,7 +1028,7 @@ export function ElementForm({
               </FormFieldWrapper>
 
               <FormFieldWrapper
-                form={form}
+                form={form as any}
                 name="currentLifespan"
                 label="Years left to reconstruction"
               >
@@ -1058,7 +1058,7 @@ export function ElementForm({
 
           <div className="grid grid-cols-2 gap-4">
             <FormFieldWrapper
-              form={form}
+              form={form as any}
               name="unitValue"
               label="Quantity"
             >
@@ -1075,7 +1075,7 @@ export function ElementForm({
             </FormFieldWrapper>
 
             <FormFieldWrapper
-              form={form}
+              form={form as any}
               name="unit"
               label="Unit"
             >
@@ -1100,7 +1100,7 @@ export function ElementForm({
 
         {/* Next Evaluation Date */}
         <FormFieldWrapper
-          form={form}
+          form={form as any}
           name="nextEvaluationDate"
           label="Next Evaluation Date"
         >
@@ -1172,7 +1172,7 @@ export function ElementForm({
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormFieldWrapper
-              form={form}
+              form={form as any}
               name="reconstructionCost"
               label="Reconstruction Cost"
             >
@@ -1193,7 +1193,7 @@ export function ElementForm({
             </FormFieldWrapper>
             
             <FormFieldWrapper
-              form={form}
+              form={form as any}
               name="costEstimationDate"
               label="Date of Estimation"
             >
@@ -1261,7 +1261,7 @@ export function ElementForm({
             uploadContext={{
               organizationId: organizationId || '',
               buildingId: buildingId || '',
-              category: 'element_documents'
+              type: 'maintenance'
             }}
             className="min-h-32"
           />
@@ -1276,7 +1276,7 @@ export function ElementForm({
             Element Quantity
           </h4>
           <FormFieldWrapper
-            form={form}
+            form={form as any}
             name="quantity"
             label="Quantity (Duplicate)"
             description="Number of identical elements to create (e.g., 30 windows, 5 doors)"
@@ -1299,7 +1299,7 @@ export function ElementForm({
 
         {/* Notes */}
         <FormFieldWrapper
-          form={form}
+          form={form as any}
           name="notes"
           label="Notes"
         >
