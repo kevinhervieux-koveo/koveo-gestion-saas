@@ -1029,7 +1029,10 @@ export function ElementForm({
               // Handle file upload
               console.log('Files uploaded:', files);
             }}
-            acceptedFileTypes={['image/*', '.pdf']}
+            acceptedFileTypes={{
+              'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+              'application/pdf': ['.pdf']
+            }}
             maxFiles={5}
             className="min-h-32"
           />
