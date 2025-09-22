@@ -17,7 +17,7 @@ import {
   MessageSquare,
   Wrench,
   Package,
-  FolderProject,
+  Folder,
 } from 'lucide-react';
 
 // Import translation keys for navigation
@@ -134,7 +134,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     requiredRole: 'manager',
     items: [
       { nameKey: 'inventory', href: '/manager/maintenance/inventory', icon: Package },
-      { nameKey: 'projects', href: '/manager/maintenance/projects', icon: FolderProject },
+      { nameKey: 'projects', href: '/manager/maintenance/projects', icon: Folder },
     ],
   },
 
