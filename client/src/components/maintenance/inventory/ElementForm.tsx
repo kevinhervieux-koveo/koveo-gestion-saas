@@ -723,55 +723,37 @@ export function ElementForm({
           <FormFieldWrapper
             form={form}
             name="residenceIds"
-            label="Residences (Optional)"
-            description="Select residences if this element is specific to certain units"
+            label="Residence Assignment"
+            description="Select if this element is building-wide or specific to a residence"
           >
-            {(field) => (
-              <div className="space-y-2" data-testid="residence-multi-select">
-                <div className="flex items-center space-x-2 p-2 border rounded-md bg-muted/50">
-                  <Checkbox
-                    id="building-wide"
-                    checked={field.value.length === 0}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        field.onChange([]);
-                      }
-                    }}
-                  />
-                  <label htmlFor="building-wide" className="text-sm text-muted-foreground">
-                    Building-wide element
-                  </label>
-                </div>
-                {(residences || []).length > 0 && (
-                  <div className="max-h-32 overflow-y-auto space-y-1">
+            {(field) => {
+              const currentValue = field.value.length === 0 ? "" : field.value[0];
+              
+              return (
+                <Select 
+                  onValueChange={(value) => {
+                    // Convert single select value back to array format for compatibility
+                    field.onChange(value === "" ? [] : [value]);
+                  }}
+                  value={currentValue}
+                >
+                  <SelectTrigger data-testid="residence-select">
+                    <SelectValue placeholder="Select residence assignment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">
+                      Building-wide element
+                    </SelectItem>
                     {(residences || []).map((residence: any) => (
-                      <div key={residence.id} className="flex items-center space-x-2 p-1">
-                        <Checkbox
-                          id={residence.id}
-                          checked={field.value.includes(residence.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              field.onChange([...field.value, residence.id]);
-                            } else {
-                              field.onChange(field.value.filter((id: string) => id !== residence.id));
-                            }
-                          }}
-                        />
-                        <label htmlFor={residence.id} className="text-sm">
-                          Unit {residence.unitNumber}
-                          {residence.floor && ` (Floor ${residence.floor})`}
-                        </label>
-                      </div>
+                      <SelectItem key={residence.id} value={residence.id}>
+                        Unit {residence.unitNumber}
+                        {residence.floor && ` (Floor ${residence.floor})`}
+                      </SelectItem>
                     ))}
-                  </div>
-                )}
-                {field.value.length > 0 && (
-                  <div className="text-xs text-muted-foreground">
-                    {field.value.length} residence{field.value.length !== 1 ? 's' : ''} selected
-                  </div>
-                )}
-              </div>
-            )}
+                  </SelectContent>
+                </Select>
+              );
+            }}
           </FormFieldWrapper>
 
           <FormFieldWrapper
