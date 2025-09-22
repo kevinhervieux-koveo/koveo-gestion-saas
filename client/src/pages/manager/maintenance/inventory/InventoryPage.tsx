@@ -27,6 +27,7 @@ import {
   Loader2, 
   RefreshCw,
   Package,
+  X,
 } from 'lucide-react';
 
 interface InventoryPageContentProps {
@@ -300,29 +301,73 @@ function InventoryPageContent({ className }: InventoryPageContentProps) {
       />
 
       {/* Document Manager Modal */}
-      <DocumentManager
-        isOpen={showDocumentManager}
-        onOpenChange={setShowDocumentManager}
-        element={selectedElement}
-        onSuccess={handleDocumentManagerSuccess}
-      />
+      {showDocumentManager && selectedElement && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Document Manager - {selectedElement.name}</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowDocumentManager(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <DocumentManager
+                element={selectedElement}
+                onDocumentUploaded={handleDocumentManagerSuccess}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* UNIFORMAT Browser Modal */}
-      <UniformatBrowser
-        isOpen={showUniformatBrowser}
-        onOpenChange={setShowUniformatBrowser}
-        onSelect={(code) => {
-          // Handle UNIFORMAT code selection
-          setShowUniformatBrowser(false);
-        }}
-      />
+      {showUniformatBrowser && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">UNIFORMAT Browser</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowUniformatBrowser(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <UniformatBrowser
+                onCodeSelect={(code) => {
+                  setUniformatFilter(code.code);
+                  setShowUniformatBrowser(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* History Table Modal */}
-      <HistoryTable
-        isOpen={showHistoryTable}
-        onOpenChange={setShowHistoryTable}
-        element={selectedElement}
-      />
+      {showHistoryTable && selectedElement && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">History - {selectedElement.name}</h2>
+              <Button variant="ghost" size="sm" onClick={() => setShowHistoryTable(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <HistoryTable
+                element={selectedElement}
+                onEditHistory={(entry) => {
+                  console.log('Edit history:', entry);
+                  // Handle edit history
+                }}
+                onViewDocuments={(entry) => {
+                  console.log('View documents:', entry);
+                  // Handle view documents
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
