@@ -101,13 +101,44 @@ export function Sidebar() {
 
   const renderMenuItem = (item: NavigationItem) => {
     const ItemIcon = item.icon;
-    const isActive = location === item.href;
 
     // Use translation keys from i18n system
     const getTranslatedName = (nameKey: string) => {
       return t(nameKey as keyof typeof translations.en);
     };
 
+    // Check if this item has sub-items (is a nested collapsible item)
+    if (item.items && item._key) {
+      const isExpanded = expandedMenus.includes(item._key);
+      
+      return (
+        <div key={item.nameKey}>
+          <button
+            onClick={() => toggleMenu(item._key!)}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              isExpanded
+                ? 'bg-koveo-light text-koveo-navy shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <div className='flex items-center space-x-3'>
+              <ItemIcon className='w-4 h-4' />
+              <span>{getTranslatedName(item.nameKey)}</span>
+            </div>
+            {isExpanded ? <ChevronDown className='w-3 h-3' /> : <ChevronRight className='w-3 h-3' />}
+          </button>
+          {isExpanded && (
+            <div className='ml-6 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200'>
+              {item.items.map((subItem) => renderMenuItem(subItem))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Regular navigation item with href
+    const isActive = location === item.href;
+    
     return (
       <Link key={item.nameKey} href={item.href}>
         <div
