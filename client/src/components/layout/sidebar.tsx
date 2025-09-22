@@ -1,5 +1,5 @@
 import { LogOut, ChevronDown, ChevronRight, X } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation, useSearch } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { translations } from '@/lib/i18n';
 import { useAuth } from '@/hooks/use-auth';
@@ -25,6 +25,7 @@ import { useCommonSpacesAccess } from '@/hooks/use-common-spaces-access';
 export function Sidebar() {
   const { isMobileMenuOpen, closeMobileMenu } = useMobileMenu();
   const [location] = useLocation();
+  const search = useSearch();
   const { t, language } = useLanguage();
   const { logout, user } = useAuth();
   const { hasCommonSpacesAccess } = useCommonSpacesAccess();
@@ -70,6 +71,54 @@ export function Sidebar() {
         return [...prev, menuName];
       }
     });
+  };
+
+  // Helper function to determine which pages should preserve query parameters
+  const shouldPreserveParams = (href: string): boolean => {
+    // Preserve params for manager pages that use hierarchical selection
+    const managerPages = [
+      '/manager/buildings',
+      '/manager/residences',
+      '/manager/budget',
+      '/manager/bills',
+      '/manager/demands',
+      '/manager/user-management',
+      '/manager/common-spaces-stats',
+      '/manager/maintenance/inventory',
+      '/manager/maintenance/projects'
+    ];
+    
+    return managerPages.some(page => href.startsWith(page));
+  };
+
+  // Helper function to build URL with preserved query parameters
+  const buildHrefWithParams = (href: string): string => {
+    if (!shouldPreserveParams(href)) {
+      return href;
+    }
+
+    // Parse current URL parameters
+    const urlParams = new URLSearchParams(search);
+    const organizationId = urlParams.get('organization');
+    const buildingId = urlParams.get('building');
+    
+    // If we have organization or building parameters, preserve them
+    if (organizationId || buildingId) {
+      const newParams = new URLSearchParams();
+      
+      if (organizationId) {
+        newParams.set('organization', organizationId);
+      }
+      
+      if (buildingId) {
+        newParams.set('building', buildingId);
+      }
+      
+      const queryString = newParams.toString();
+      return queryString ? `${href}?${queryString}` : href;
+    }
+    
+    return href;
   };
 
   const renderMenuButton = (section: NavigationSection) => {
@@ -137,10 +186,11 @@ export function Sidebar() {
     }
 
     // Regular navigation item with href
-    const isActive = location === item.href;
+    const hrefWithParams = buildHrefWithParams(item.href!);
+    const isActive = location === item.href || location.split('?')[0] === item.href;
     
     return (
-      <Link key={item.nameKey} href={item.href}>
+      <Link key={item.nameKey} href={hrefWithParams}>
         <div
           className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
             isActive
