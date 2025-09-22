@@ -321,6 +321,8 @@ function ProjectsPageContent({
         onTypeFilterChange={handleTypeFilterChange}
         showOverdueOnly={showOverdueOnly}
         onShowOverdueChange={handleShowOverdueChange}
+        buildingId={buildingId}
+        organizationId={organizationId}
       />
 
       {/* Main Content Area */}
@@ -328,7 +330,10 @@ function ProjectsPageContent({
         <div className="h-full overflow-auto">
           <div className="p-6 space-y-6">
             {/* Overview Cards */}
-            <ProjectsOverview />
+            <ProjectsOverview 
+              buildingId={buildingId}
+              organizationId={organizationId}
+            />
 
             {/* Main Projects View */}
             <div className="space-y-4">

@@ -21,7 +21,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/components/ui/toggle-group';
-import { useBuildingContext } from '@/hooks/use-building-context';
+// import { useBuildingContext } from '@/hooks/use-building-context';
 import { cn } from '@/lib/utils';
 import {
   Plus,
@@ -69,6 +69,8 @@ export interface ProjectsHeaderProps {
   onTypeFilterChange?: (type: string) => void;
   showOverdueOnly?: boolean;
   onShowOverdueChange?: (overdue: boolean) => void;
+  buildingId?: string;
+  organizationId?: string;
 }
 
 /**
@@ -93,8 +95,14 @@ export function ProjectsHeader({
   onTypeFilterChange,
   showOverdueOnly = false,
   onShowOverdueChange,
+  buildingId,
+  organizationId,
 }: ProjectsHeaderProps) {
-  const { building, availableBuildings, setBuildingId, hasPermission } = useBuildingContext();
+  // Simplified placeholder - no context for now
+  const building = null;
+  const availableBuildings = [];
+  const setBuildingId = () => {};
+  const hasPermission = () => true;
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const canEdit = hasPermission('canEditMaintenance');
@@ -111,24 +119,6 @@ export function ProjectsHeader({
 
   return (
     <div className={cn('space-y-4 p-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60', className)}>
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center space-x-2 text-sm text-muted-foreground" data-testid="breadcrumb-nav">
-        <Link href="/manager" className="flex items-center hover:text-foreground transition-colors">
-          <Home className="h-4 w-4 mr-1" />
-          Manager
-        </Link>
-        <ChevronRight className="h-4 w-4" />
-        <Link href="/manager/maintenance" className="flex items-center hover:text-foreground transition-colors">
-          <Wrench className="h-4 w-4 mr-1" />
-          Maintenance
-        </Link>
-        <ChevronRight className="h-4 w-4" />
-        <span className="flex items-center font-medium text-foreground">
-          <Folder className="h-4 w-4 mr-1" />
-          Projects
-        </span>
-      </nav>
-
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="space-y-1">

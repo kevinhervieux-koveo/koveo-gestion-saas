@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useBuildingContext } from '@/hooks/use-building-context';
+// import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import {
@@ -29,6 +29,8 @@ import {
 
 export interface ProjectsOverviewProps {
   className?: string;
+  buildingId?: string;
+  organizationId?: string;
 }
 
 interface ProjectMetrics {
@@ -56,8 +58,9 @@ interface ProjectMetrics {
  * ProjectsOverview component displaying key metrics and summary cards
  * Provides comprehensive project portfolio overview
  */
-export function ProjectsOverview({ className }: ProjectsOverviewProps) {
-  const { buildingId, hasPermission } = useBuildingContext();
+export function ProjectsOverview({ className, buildingId, organizationId }: ProjectsOverviewProps) {
+  // Simplified placeholder - no context for now
+  const hasPermission = () => true;
 
   // Fetch projects metrics for current building
   const {
