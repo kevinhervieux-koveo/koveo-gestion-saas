@@ -38,7 +38,6 @@ import {
 import { useLanguage } from '@/hooks/use-language';
 import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
-import { withManagerNavigation } from '@/components/manager/navigation/ManagerNavigationHOC';
 
 /**
  *
@@ -195,6 +194,7 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header title="Residence Management" subtitle="Manage residence information, units, property details, and tenant assignments across your properties." />
       
       {showBackButton && onBack && (
         <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -472,13 +472,7 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   );
 }
 
-// Apply both hierarchical selection and manager navigation HOCs
-const ManagerResidencesWithHierarchy = withHierarchicalSelection(ManagerResidences, {
+// Export with hierarchical selection HOC - Manager residences page uses organization → building hierarchy
+export default withHierarchicalSelection(ManagerResidences, {
   hierarchy: ['organization', 'building']
-});
-
-// Export with manager navigation HOC applied
-export default withManagerNavigation(ManagerResidencesWithHierarchy, 'residences', {
-  title: 'Residence Management',
-  description: 'Manage residence information, units, property details, and tenant assignments across your properties.'
 });

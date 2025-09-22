@@ -60,7 +60,6 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
-import { withManagerNavigation } from '@/components/manager/navigation/ManagerNavigationHOC';
 import { useLocation } from 'wouter';
 import type { Bill } from '@shared/schema';
 import { BILL_CATEGORIES } from '@shared/schemas/financial';
@@ -439,6 +438,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
+      <Header title="Bills Management" subtitle="Manage property bills, invoices, and financial documents with comprehensive tracking and organization." />
       
       {/* Back to Building Navigation */}
       {buildingId && (
@@ -1566,13 +1566,7 @@ function BillDetail({
   );
 }
 
-// Apply both hierarchical selection and manager navigation HOCs
-const BillsPageWithHierarchy = withHierarchicalSelection(BillsPage, {
+// Export with hierarchical selection HOC - Manager bills page uses 2-level hierarchy
+export default withHierarchicalSelection(BillsPage, {
   hierarchy: ['organization', 'building']
-});
-
-// Export with manager navigation HOC applied
-export default withManagerNavigation(BillsPageWithHierarchy, 'bills', {
-  title: 'Bills Management',
-  description: 'Manage property bills, invoices, and financial documents with comprehensive tracking and organization.'
 });
