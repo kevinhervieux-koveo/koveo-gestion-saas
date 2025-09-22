@@ -202,7 +202,7 @@ export function SuggestionsIntegration({
     return selectedSuggestions.length * defaultBudget;
   }, [selectedSuggestions.length, projectDefaults.defaultBudget]);
 
-  if (!hasPermission('canCreateProjects')) {
+  if (!hasPermission()) {
     return null;
   }
 

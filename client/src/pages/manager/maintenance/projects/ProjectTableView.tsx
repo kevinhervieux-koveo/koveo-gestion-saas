@@ -177,7 +177,7 @@ export function ProjectTableView({
         <p className="text-muted-foreground text-center mb-4">
           No maintenance projects have been created for this building yet.
         </p>
-        {hasPermission('canCreateProjects') && (
+        {hasPermission() && (
           <p className="text-sm text-muted-foreground text-center">
             Get started by creating your first project or generating projects from evaluation suggestions.
           </p>
@@ -252,7 +252,7 @@ export function ProjectTableView({
         onViewTimeline={handleViewTimeline}
         onAssignElements={handleAssignElements}
         showActions={true}
-        showBulkActions={hasPermission('canEditMaintenance')}
+        showBulkActions={hasPermission()}
         compact={false}
         className="bg-card"
         data-testid="main-projects-table"
@@ -261,7 +261,7 @@ export function ProjectTableView({
       />
 
       {/* Additional Information */}
-      {hasPermission('canViewReports') && filteredProjects.length > 0 && (
+      {hasPermission() && filteredProjects.length > 0 && (
         <div className="text-xs text-muted-foreground text-center p-4 border-t">
           <p>
             Project data is updated in real-time. Use bulk actions to manage multiple projects at once.

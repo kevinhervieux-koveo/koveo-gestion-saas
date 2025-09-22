@@ -1,0 +1,201 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-CdtvRSZS.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined}
+index-CdtvRSZS.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CdtvRSZS.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+withHierarchicalSelection-DQ5Z85oF.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DQ5Z85oF.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-DQ5Z85oF.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-DQ5Z85oF.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CdtvRSZS.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined}
+index-CdtvRSZS.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined, showBackButton: true, backButtonLabel: 'Building'}
+index-CdtvRSZS.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+withHierarchicalSelection-DQ5Z85oF.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-DQ5Z85oF.js:1    → Organizations from API: 0
+withHierarchicalSelection-DQ5Z85oF.js:1    → Building counts: {}
+withHierarchicalSelection-DQ5Z85oF.js:1 🎯 [withHierarchicalSelection] Filtered to 0 accessible organizations
+withHierarchicalSelection-DQ5Z85oF.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-DQ5Z85oF.js:1    → Organizations from API: 3
+withHierarchicalSelection-DQ5Z85oF.js:1    → Building counts: {}
+withHierarchicalSelection-DQ5Z85oF.js:1    → Org "Demo 123" (e9bb7862-4ba5-4822-848f-f3692e826e73): 0 buildings, access: false
+withHierarchicalSelection-DQ5Z85oF.js:1    → Org "Koveo" (5228cb04-1fc9-4291-b76a-ccd89a40324d): 0 buildings, access: false
+withHierarchicalSelection-DQ5Z85oF.js:1    → Org "Test Demo Organization" (f0e34e59-0d81-4c1a-b95f-e23dd1667a19): 0 buildings, access: false
+withHierarchicalSelection-DQ5Z85oF.js:1 🎯 [withHierarchicalSelection] Filtered to 0 accessible organizations
+withHierarchicalSelection-DQ5Z85oF.js:1 🔍 [withHierarchicalSelection] Fetching building counts for organizations...
+withHierarchicalSelection-DQ5Z85oF.js:1 🌐 [withHierarchicalSelection] Requesting: /api/organizations/accessible-building-counts
+withHierarchicalSelection-DQ5Z85oF.js:1 ✅ [withHierarchicalSelection] Building counts received: {5228cb04-1fc9-4291-b76a-ccd89a40324d: 0, e9bb7862-4ba5-4822-848f-f3692e826e73: 5, f0e34e59-0d81-4c1a-b95f-e23dd1667a19: 5}
+withHierarchicalSelection-DQ5Z85oF.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-DQ5Z85oF.js:1    → Organizations from API: 3
+withHierarchicalSelection-DQ5Z85oF.js:1    → Building counts: {5228cb04-1fc9-4291-b76a-ccd89a40324d: 0, e9bb7862-4ba5-4822-848f-f3692e826e73: 5, f0e34e59-0d81-4c1a-b95f-e23dd1667a19: 5}
+withHierarchicalSelection-DQ5Z85oF.js:1    → Org "Demo 123" (e9bb7862-4ba5-4822-848f-f3692e826e73): 5 buildings, access: true
+withHierarchicalSelection-DQ5Z85oF.js:1    → Org "Koveo" (5228cb04-1fc9-4291-b76a-ccd89a40324d): 0 buildings, access: false
+withHierarchicalSelection-DQ5Z85oF.js:1    → Org "Test Demo Organization" (f0e34e59-0d81-4c1a-b95f-e23dd1667a19): 5 buildings, access: true
+withHierarchicalSelection-DQ5Z85oF.js:1 🎯 [withHierarchicalSelection] Filtered to 2 accessible organizations
+withHierarchicalSelection-DQ5Z85oF.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', itemName: 'Test Demo Organization'}
+withHierarchicalSelection-DQ5Z85oF.js:1 🏗️ [withHierarchicalSelection] Rendering building selection...
+withHierarchicalSelection-DQ5Z85oF.js:1    → Buildings from filtering: 0
+withHierarchicalSelection-DQ5Z85oF.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DQ5Z85oF.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/f0e34e59-0d81-4c1a-b95f-e23dd1667a19/buildings
+withHierarchicalSelection-DQ5Z85oF.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-DQ5Z85oF.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+withHierarchicalSelection-DQ5Z85oF.js:1 🏗️ [withHierarchicalSelection] Rendering building selection...
+withHierarchicalSelection-DQ5Z85oF.js:1    → Buildings from filtering: 5
+withHierarchicalSelection-DQ5Z85oF.js:1    → Building "271 MacGyver Falls Building 5" (2e06bb1b-5d1e-4046-95a9-6575b20766bc): 5338 boulevard des Pins
+withHierarchicalSelection-DQ5Z85oF.js:1    → Building "32360 Jude Fields Building 2" (ae3a1c02-67bb-49eb-9fa6-c63627274d4f): 6275 montée Sherbrooke
+withHierarchicalSelection-DQ5Z85oF.js:1    → Building "52196 Wunsch Ridge Building 1" (5976e5e6-7688-4caa-82da-2ad860e7cb7f): 4125 boulevard Notre-Dame
+withHierarchicalSelection-DQ5Z85oF.js:1    → Building "891 Keira Station Building 4" (67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7): 3425 avenue du Parc
+withHierarchicalSelection-DQ5Z85oF.js:1    → Building "8921 Jeff Mills Building 3" (2c0d7769-d2b7-4f63-8aaf-0058935de2f9): 269 rue de Maisonneuve
+withHierarchicalSelection-DQ5Z85oF.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', itemName: '271 MacGyver Falls Building 5'}
+index-qnMTE2ij.js:41 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', residenceId: undefined}
+index-qnMTE2ij.js:41 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', residenceId: undefined, showBackButton: true, backButtonLabel: 'Building'}
+index-qnMTE2ij.js:41 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 2e06bb1b-5d1e-4046-95a9-6575b20766bc
+index-qnMTE2ij.js:41 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', residenceId: undefined}
+index-qnMTE2ij.js:41 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', residenceId: undefined, showBackButton: true, backButtonLabel: 'Building'}
+index-qnMTE2ij.js:41 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 2e06bb1b-5d1e-4046-95a9-6575b20766bc
+index-B60BUPJR.js:136 Error: useBuildingContext must be used within a BuildingContextProvider
+    at We (index-qnMTE2ij.js:41:144639)
+    at va (index-qnMTE2ij.js:41:146354)
+    at Object.react_stack_bottom_frame (index-B60BUPJR.js:229:12448)
+    at oc (index-B60BUPJR.js:120:804)
+    at kc (index-B60BUPJR.js:141:5839)
+    at Pc (index-B60BUPJR.js:150:10147)
+    at q (index-B60BUPJR.js:45:108)
+    at Kh (index-B60BUPJR.js:163:29810)
+    at Jh (index-B60BUPJR.js:163:28479)
+    at Wc (index-B60BUPJR.js:163:28312)
+
+The above error occurred in the <va> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, hR.
+
+overrideMethod @ hook.js:608
+oh @ index-B60BUPJR.js:136
+lh @ index-B60BUPJR.js:141
+q @ index-B60BUPJR.js:45
+l.componentDidCatch.e.callback @ index-B60BUPJR.js:141
+Dp @ index-B60BUPJR.js:107
+Ep @ index-B60BUPJR.js:107
+q @ index-B60BUPJR.js:45
+Dh @ index-B60BUPJR.js:163
+Nh @ index-B60BUPJR.js:163
+Qn @ index-B60BUPJR.js:163
+Nh @ index-B60BUPJR.js:163
+Qn @ index-B60BUPJR.js:163
+Nh @ index-B60BUPJR.js:163
+Qn @ index-B60BUPJR.js:163
+Nh @ index-B60BUPJR.js:163
+Qn @ index-B60BUPJR.js:163
+Nh @ index-B60BUPJR.js:163
+Qn @ index-B60BUPJR.js:163
+Nh @ index-B60BUPJR.js:163
+Qn @ index-B60BUPJR.js:163
+Nh @ index-B60BUPJR.js:163
+ng @ index-B60BUPJR.js:163
+ed @ index-B60BUPJR.js:163
+Xh @ index-B60BUPJR.js:163
+Ih @ index-B60BUPJR.js:163
+mg @ index-B60BUPJR.js:185
+ml @ index-B60BUPJR.js:185
+ad @ index-B60BUPJR.js:185
+(anonymous) @ index-B60BUPJR.js:185
+<va>
+du.jsxDEV @ index-B60BUPJR.js:15
+Oa @ index-qnMTE2ij.js:41
+react_stack_bottom_frame @ index-B60BUPJR.js:229
+oc @ index-B60BUPJR.js:120
+kc @ index-B60BUPJR.js:141
+Pc @ index-B60BUPJR.js:150
+q @ index-B60BUPJR.js:45
+Kh @ index-B60BUPJR.js:163
+Jh @ index-B60BUPJR.js:163
+Wc @ index-B60BUPJR.js:163
+Ih @ index-B60BUPJR.js:163
+mg @ index-B60BUPJR.js:185
+ml @ index-B60BUPJR.js:185
+ad @ index-B60BUPJR.js:185
+(anonymous) @ index-B60BUPJR.js:185
+<Oa>
+du.jsxDEV @ index-B60BUPJR.js:15
+Aa @ index-qnMTE2ij.js:41
+react_stack_bottom_frame @ index-B60BUPJR.js:229
+oc @ index-B60BUPJR.js:120
+kc @ index-B60BUPJR.js:141
+Pc @ index-B60BUPJR.js:150
+q @ index-B60BUPJR.js:45
+Kh @ index-B60BUPJR.js:163
+Jh @ index-B60BUPJR.js:163
+Wc @ index-B60BUPJR.js:163
+Ih @ index-B60BUPJR.js:163
+mg @ index-B60BUPJR.js:185
+ml @ index-B60BUPJR.js:185
+ad @ index-B60BUPJR.js:185
+(anonymous) @ index-B60BUPJR.js:185
+<Aa>
+du.jsxDEV @ index-B60BUPJR.js:15
+(anonymous) @ withHierarchicalSelection-DQ5Z85oF.js:1
+react_stack_bottom_frame @ index-B60BUPJR.js:229
+oc @ index-B60BUPJR.js:120
+kc @ index-B60BUPJR.js:141
+Pc @ index-B60BUPJR.js:150
+q @ index-B60BUPJR.js:45
+Kh @ index-B60BUPJR.js:163
+Jh @ index-B60BUPJR.js:163
+Wc @ index-B60BUPJR.js:163
+Ih @ index-B60BUPJR.js:163
+mg @ index-B60BUPJR.js:185
+ml @ index-B60BUPJR.js:185
+ad @ index-B60BUPJR.js:185
+(anonymous) @ index-B60BUPJR.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-B60BUPJR.js:240
+P @ index-B60BUPJR.js:240
+react_stack_bottom_frame @ index-B60BUPJR.js:229
+oc @ index-B60BUPJR.js:120
+kc @ index-B60BUPJR.js:141
+Pc @ index-B60BUPJR.js:150
+q @ index-B60BUPJR.js:45
+Kh @ index-B60BUPJR.js:163
+WS @ index-B60BUPJR.js:163
+KS @ index-B60BUPJR.js:163
+Ih @ index-B60BUPJR.js:163
+fg @ index-B60BUPJR.js:185
+d @ index-B60BUPJR.js:23
+<P>
+du.jsxDEV @ index-B60BUPJR.js:15
+WR @ index-B60BUPJR.js:384
+react_stack_bottom_frame @ index-B60BUPJR.js:229
+oc @ index-B60BUPJR.js:120
+kc @ index-B60BUPJR.js:141
+Pc @ index-B60BUPJR.js:150
+q @ index-B60BUPJR.js:45
+Kh @ index-B60BUPJR.js:163
+Jh @ index-B60BUPJR.js:163
+Wc @ index-B60BUPJR.js:163
+Ih @ index-B60BUPJR.js:163
+mg @ index-B60BUPJR.js:185
+ml @ index-B60BUPJR.js:185
+ad @ index-B60BUPJR.js:185
+(anonymous) @ index-B60BUPJR.js:185
+<WR>
+du.jsxDEV @ index-B60BUPJR.js:15
+ex @ index-B60BUPJR.js:384
+react_stack_bottom_frame @ index-B60BUPJR.js:229
+oc @ index-B60BUPJR.js:120
+kc @ index-B60BUPJR.js:141
+Pc @ index-B60BUPJR.js:150
+q @ index-B60BUPJR.js:45
+Kh @ index-B60BUPJR.js:163
+Jh @ index-B60BUPJR.js:163
+Wc @ index-B60BUPJR.js:163
+Ih @ index-B60BUPJR.js:163
+fg @ index-B60BUPJR.js:185
+d @ index-B60BUPJR.js:23
+<ex>
+du.jsxDEV @ index-B60BUPJR.js:15
+(anonymous) @ index-B60BUPJR.js:384

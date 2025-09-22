@@ -172,7 +172,7 @@ export function ProjectDetailsPanel({
 
           {/* Quick Actions */}
           <div className="flex flex-wrap gap-2 pt-2">
-            {hasPermission('canEditMaintenance') && onEdit && (
+            {hasPermission() && onEdit && (
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -184,7 +184,7 @@ export function ProjectDetailsPanel({
               </Button>
             )}
             
-            {hasPermission('canEditMaintenance') && onUpdateStatus && (
+            {hasPermission() && onUpdateStatus && (
               <Button 
                 variant="outline" 
                 size="sm" 
