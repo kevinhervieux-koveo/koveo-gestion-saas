@@ -111,6 +111,12 @@ const ManagerMaintenanceInventory = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
+const ManagerMaintenanceProjects = createOptimizedLoader(
+  () => import('@/pages/manager/maintenance/projects'),
+  'manager-maintenance-projects',
+  { enableMemoryCleanup: true }
+);
+
 // Optimized lazy-loaded Residents pages
 const ResidentsResidence = createOptimizedLoader(
   () => import('@/pages/residents/residence'),
@@ -369,6 +375,7 @@ function Router() {
             <Route path='/manager/user-management' component={ManagerUserManagement} />
             <Route path='/manager/common-spaces-stats'>{() => <ManagerCommonSpacesStats />}</Route>
             <Route path='/manager/maintenance/inventory' component={ManagerMaintenanceInventory} />
+            <Route path='/manager/maintenance/projects' component={ManagerMaintenanceProjects} />
 
 
             {/* Residents routes */}
