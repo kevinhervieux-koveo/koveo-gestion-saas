@@ -261,8 +261,9 @@ export function ElementForm({
   const originalLifespan = form.watch('originalLifespan');
 
   useEffect(() => {
-    if (autoCalculateEvaluation && constructionDate && (currentLifespan || originalLifespan)) {
-      const lifespan = currentLifespan || originalLifespan || 20;
+    if (autoCalculateEvaluation && (currentLifespan || originalLifespan)) {
+      // currentLifespan and originalLifespan now represent "years left to reconstruction"
+      const yearsLeft = currentLifespan || originalLifespan || 20;
       const conditionMultipliers = {
         excellent: 0.9,
         good: 0.7,
@@ -271,13 +272,14 @@ export function ElementForm({
         critical: 0.1,
       };
       
-      const multiplier = conditionMultipliers[selectedCondition];
-      const yearsUntilEvaluation = Math.max(1, Math.round(lifespan * multiplier * 0.1));
+      const multiplier = conditionMultipliers[selectedCondition] || 0.7;
+      // Calculate next evaluation as a fraction of remaining years
+      const yearsUntilEvaluation = Math.max(1, Math.round(yearsLeft * multiplier * 0.15));
       
       const calculatedDate = addYears(new Date(), yearsUntilEvaluation);
       setNextEvaluationDate(calculatedDate);
     }
-  }, [autoCalculateEvaluation, constructionDate, currentLifespan, originalLifespan, selectedCondition]);
+  }, [autoCalculateEvaluation, currentLifespan, originalLifespan, selectedCondition]);
 
   // Create/update mutation
   const mutation = useMutation({
@@ -472,7 +474,8 @@ export function ElementForm({
               <FormFieldWrapper
                 form={form}
                 name="originalLifespan"
-                label="Original Lifespan (years)"
+                label="Years left to reconstruction (original)"
+                description="Based on original design lifespan"
               >
                 {(field) => (
                   <Input
@@ -480,7 +483,7 @@ export function ElementForm({
                     type="number"
                     min="1"
                     max="200"
-                    placeholder="25"
+                    placeholder="15"
                     data-testid="original-lifespan-input"
                   />
                 )}
@@ -489,8 +492,8 @@ export function ElementForm({
               <FormFieldWrapper
                 form={form}
                 name="currentLifespan"
-                label="Current Lifespan (years)"
-                description="After maintenance/rehab"
+                label="Years left to reconstruction (current)"
+                description="After maintenance/rehab improvements"
               >
                 {(field) => (
                   <Input
@@ -498,7 +501,7 @@ export function ElementForm({
                     type="number"
                     min="1"
                     max="200"
-                    placeholder="30"
+                    placeholder="20"
                     data-testid="current-lifespan-input"
                   />
                 )}
