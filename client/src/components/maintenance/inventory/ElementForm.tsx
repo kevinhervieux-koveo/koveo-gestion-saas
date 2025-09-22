@@ -606,7 +606,7 @@ export function ElementForm({
           {autoCalculateEvaluation && nextEvaluationDate && (
             <div className="text-xs text-muted-foreground flex items-center gap-1">
               <Info className="h-3 w-3" />
-              Automatically calculated based on condition and lifespan
+              Automatically calculated based on condition and remaining years
             </div>
           )}
         </div>
