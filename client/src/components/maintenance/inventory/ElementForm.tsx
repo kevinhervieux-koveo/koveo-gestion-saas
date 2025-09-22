@@ -37,6 +37,7 @@ const elementFormSchema = insertBuildingElementSchema.extend({
   uniformatCode: z.string().min(1, 'UNIFORMAT code is required'),
   name: z.string().min(1, 'Element name is required').max(200),
   description: z.string().optional(),
+  residenceId: z.string().optional().nullable(), // Optional residence selection
   originalConstructionDate: z.string().optional(),
   originalLifespan: z.coerce.number().min(1).max(200).optional(),
   currentLifespan: z.coerce.number().min(1).max(200).optional(),
@@ -46,6 +47,8 @@ const elementFormSchema = insertBuildingElementSchema.extend({
   notes: z.string().optional(),
   reconstructionCost: z.coerce.number().min(0).optional(),
   costEstimationDate: z.string().optional(),
+  access: z.enum(['not_restrained', 'restrained']).default('not_restrained'),
+  charge: z.enum(['common', 'personnal']).default('common'),
   autoCalculateEvaluation: z.boolean().optional(),
 });
 
@@ -71,6 +74,8 @@ interface UniformatCodeSelectorProps {
 function UniformatCodeSelector({ value, onChange, error }: UniformatCodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBrowser, setShowBrowser] = useState(false);
+  const [selectedLevel1, setSelectedLevel1] = useState<string | null>(null);
+  const [selectedLevel2, setSelectedLevel2] = useState<string | null>(null);
 
   const {
     data: uniformatResponse,
@@ -87,14 +92,51 @@ function UniformatCodeSelector({ value, onChange, error }: UniformatCodeSelector
   const uniformatCodes = uniformatResponse?.codes || [];
   
   const filteredCodes = useMemo(() => {
-    if (!searchTerm) return uniformatCodes.slice(0, 20); // Show first 20 by default
+    // For search results, only show selectable codes (level 3)
+    const selectableCodes = uniformatCodes.filter((code: any) => code.selectable);
     
-    return uniformatCodes.filter((code: any) => 
+    if (!searchTerm) return selectableCodes.slice(0, 20); // Show first 20 selectable codes by default
+    
+    return selectableCodes.filter((code: any) => 
       code.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       code.nameFr.toLowerCase().includes(searchTerm.toLowerCase()) ||
       code.nameEn.toLowerCase().includes(searchTerm.toLowerCase())
     ).slice(0, 50);
   }, [uniformatCodes, searchTerm]);
+
+  // Group codes by level for hierarchical navigation
+  const groupedCodes = useMemo(() => {
+    const grouped = {
+      level1: uniformatCodes.filter((code: any) => code.level === 1),
+      level2: uniformatCodes.filter((code: any) => code.level === 2),
+      level3: uniformatCodes.filter((code: any) => code.level === 3),
+    };
+    return grouped;
+  }, [uniformatCodes]);
+
+  // Get current navigation items based on selection state
+  const getCurrentLevelItems = () => {
+    if (selectedLevel2) {
+      // Show level 3 items under selected level 2
+      return groupedCodes.level3.filter((code: any) => 
+        code.code.startsWith(selectedLevel2)
+      );
+    } else if (selectedLevel1) {
+      // Show level 2 items under selected level 1
+      return groupedCodes.level2.filter((code: any) => 
+        code.code.startsWith(selectedLevel1)
+      );
+    } else {
+      // Show level 1 items
+      return groupedCodes.level1;
+    }
+  };
+
+  const resetBrowserNavigation = () => {
+    setSelectedLevel1(null);
+    setSelectedLevel2(null);
+    setSearchTerm('');
+  };
 
   const selectedCode = uniformatCodes.find((code: any) => code.code === value);
 
@@ -184,40 +226,157 @@ function UniformatCodeSelector({ value, onChange, error }: UniformatCodeSelector
       )}
       
       {/* UNIFORMAT Browser Dialog */}
-      <Dialog open={showBrowser} onOpenChange={setShowBrowser}>
+      <Dialog open={showBrowser} onOpenChange={(open) => {
+        setShowBrowser(open);
+        if (!open) resetBrowserNavigation();
+      }}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Browse UNIFORMAT Codes</DialogTitle>
+            <div className="text-sm text-muted-foreground">
+              Navigate: Level 1 → Level 2 → Level 3 (only Level 3 can be selected for elements)
+            </div>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search UNIFORMAT codes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center gap-2 text-sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedLevel1(null);
+                  setSelectedLevel2(null);
+                }}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                Level 1
+              </Button>
+              {selectedLevel1 && (
+                <>
+                  <span>→</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedLevel2(null)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Level 2 ({selectedLevel1})
+                  </Button>
+                </>
+              )}
+              {selectedLevel2 && (
+                <>
+                  <span>→</span>
+                  <span className="font-medium">Level 3 ({selectedLevel2})</span>
+                </>
+              )}
             </div>
+
+            {/* Search - only when viewing all codes */}
+            {!selectedLevel1 && !selectedLevel2 && (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search UNIFORMAT codes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            )}
+
+            {/* Content Area */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
               {isLoading ? (
                 <div className="col-span-full p-4 text-center text-sm text-muted-foreground">
                   Loading UNIFORMAT codes...
                 </div>
-              ) : filteredCodes.length > 0 ? (
-                filteredCodes.map((code: any) => (
+              ) : searchTerm && !selectedLevel1 && !selectedLevel2 ? (
+                // Search results (all levels)
+                filteredCodes.length > 0 ? (
+                  filteredCodes.map((code: any) => (
+                    <button
+                      key={code.code}
+                      type="button"
+                      className={cn(
+                        "p-3 text-left border rounded-lg transition-colors",
+                        code.selectable 
+                          ? "hover:bg-green-50 border-green-200 hover:border-green-300" 
+                          : "hover:bg-muted opacity-60 cursor-not-allowed"
+                      )}
+                      onClick={() => {
+                        if (code.selectable) {
+                          onChange(code.code);
+                          setShowBrowser(false);
+                          resetBrowserNavigation();
+                        }
+                      }}
+                      disabled={!code.selectable}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge 
+                          variant={code.selectable ? "default" : "outline"} 
+                          className="text-xs"
+                        >
+                          {code.code} (L{code.level})
+                        </Badge>
+                        {!code.selectable && (
+                          <span className="text-xs text-orange-600">Navigate only</span>
+                        )}
+                      </div>
+                      <div className="text-sm font-medium">{code.nameEn}</div>
+                      <div className="text-xs text-muted-foreground">{code.nameFr}</div>
+                      {code.typicalLifespan && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Typical: {code.typicalLifespan} years
+                        </div>
+                      )}
+                    </button>
+                  ))
+                ) : (
+                  <div className="col-span-full p-4 text-center text-sm text-muted-foreground">
+                    No matching codes found
+                  </div>
+                )
+              ) : (
+                // Hierarchical navigation
+                getCurrentLevelItems().map((code: any) => (
                   <button
                     key={code.code}
                     type="button"
-                    className="p-3 text-left border rounded-lg hover:bg-muted transition-colors"
+                    className={cn(
+                      "p-3 text-left border rounded-lg transition-colors",
+                      code.selectable 
+                        ? "hover:bg-green-50 border-green-200 hover:border-green-300" 
+                        : "hover:bg-blue-50 border-blue-200 hover:border-blue-300"
+                    )}
                     onClick={() => {
-                      onChange(code.code);
-                      setShowBrowser(false);
-                      setSearchTerm('');
+                      if (code.selectable) {
+                        // Level 3: Select this code
+                        onChange(code.code);
+                        setShowBrowser(false);
+                        resetBrowserNavigation();
+                      } else if (code.level === 1) {
+                        // Level 1: Navigate to level 2
+                        setSelectedLevel1(code.code);
+                      } else if (code.level === 2) {
+                        // Level 2: Navigate to level 3
+                        setSelectedLevel2(code.code);
+                      }
                     }}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="text-xs">{code.code}</Badge>
+                      <Badge 
+                        variant={code.selectable ? "default" : "outline"} 
+                        className="text-xs"
+                      >
+                        {code.code}
+                      </Badge>
+                      {code.level === 3 ? (
+                        <span className="text-xs text-green-600">Selectable</span>
+                      ) : (
+                        <span className="text-xs text-blue-600">Navigate →</span>
+                      )}
                     </div>
                     <div className="text-sm font-medium">{code.nameEn}</div>
                     <div className="text-xs text-muted-foreground">{code.nameFr}</div>
@@ -228,10 +387,6 @@ function UniformatCodeSelector({ value, onChange, error }: UniformatCodeSelector
                     )}
                   </button>
                 ))
-              ) : (
-                <div className="col-span-full p-4 text-center text-sm text-muted-foreground">
-                  No matching codes found
-                </div>
               )}
             </div>
           </div>
@@ -266,12 +421,25 @@ export function ElementForm({
     enabled: !!buildingId,
   });
 
+  // Fetch residences for the building (for optional residence selection)
+  const { data: residences } = useQuery({
+    queryKey: ['residences', buildingId],
+    queryFn: async () => {
+      if (!buildingId) return [];
+      const response = await apiRequest('GET', `/api/buildings/${buildingId}/residences`);
+      return await response.json();
+    },
+    enabled: !!buildingId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
   const form = useForm<ElementFormData>({
     resolver: zodResolver(elementFormSchema),
     defaultValues: {
       buildingId: buildingId || '',
       name: '',
       description: '',
+      residenceId: null,
       uniformatCode: '',
       originalLifespan: undefined,
       currentLifespan: undefined,
@@ -281,6 +449,8 @@ export function ElementForm({
       notes: '',
       reconstructionCost: undefined,
       costEstimationDate: format(new Date(), 'yyyy-MM-dd'),
+      access: 'not_restrained',
+      charge: 'common',
       autoCalculateEvaluation: true,
     },
   });
@@ -315,6 +485,7 @@ export function ElementForm({
         buildingId: buildingId || '',
         name: '',
         description: '',
+        residenceId: null,
         uniformatCode: '',
         originalLifespan: undefined,
         currentLifespan: undefined,
@@ -324,6 +495,8 @@ export function ElementForm({
         notes: '',
         reconstructionCost: undefined,
         costEstimationDate: format(new Date(), 'yyyy-MM-dd'),
+        access: 'not_restrained',
+        charge: 'common',
         autoCalculateEvaluation: true,
       });
       // Set default construction date from building's yearBuilt
@@ -515,6 +688,95 @@ export function ElementForm({
             />
           )}
         </FormFieldWrapper>
+
+        {/* Element Assignment */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormFieldWrapper
+            form={form}
+            name="residenceId"
+            label="Residence (Optional)"
+            description="Select a residence if this element is specific to a unit"
+          >
+            {(field) => (
+              <Select onValueChange={field.onChange} value={field.value || ''}>
+                <SelectTrigger data-testid="residence-select">
+                  <SelectValue placeholder="Building-wide element" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    <span className="text-muted-foreground">Building-wide element</span>
+                  </SelectItem>
+                  {(residences?.data || []).map((residence: any) => (
+                    <SelectItem key={residence.id} value={residence.id}>
+                      Unit {residence.unitNumber}
+                      {residence.floor && ` (Floor ${residence.floor})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </FormFieldWrapper>
+
+          <FormFieldWrapper
+            form={form}
+            name="access"
+            label="Access Type"
+            description="Access restrictions for this element"
+            required
+          >
+            {(field) => (
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger data-testid="access-select">
+                  <SelectValue placeholder="Select access type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="not_restrained">
+                    <div className="flex flex-col">
+                      <span>Not Restrained</span>
+                      <span className="text-xs text-muted-foreground">Free access</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="restrained">
+                    <div className="flex flex-col">
+                      <span>Restrained</span>
+                      <span className="text-xs text-muted-foreground">Restricted access</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </FormFieldWrapper>
+
+          <FormFieldWrapper
+            form={form}
+            name="charge"
+            label="Charge Type"
+            description="Who is responsible for costs"
+            required
+          >
+            {(field) => (
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger data-testid="charge-select">
+                  <SelectValue placeholder="Select charge type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="common">
+                    <div className="flex flex-col">
+                      <span>Common</span>
+                      <span className="text-xs text-muted-foreground">Building responsibility</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="personnal">
+                    <div className="flex flex-col">
+                      <span>Personal</span>
+                      <span className="text-xs text-muted-foreground">Resident responsibility</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          </FormFieldWrapper>
+        </div>
 
         <Separator />
 

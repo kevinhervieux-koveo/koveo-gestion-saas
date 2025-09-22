@@ -19,7 +19,7 @@ import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { relations } from 'drizzle-orm';
 import { users, organizations } from './core';
-import { buildings } from './property';
+import { buildings, residences } from './property';
 
 // Maintenance enums
 /**
@@ -132,6 +132,22 @@ export const documentTypeEnum = pgEnum('document_type', [
   'report'
 ]);
 
+/**
+ * Enum for building element access type
+ */
+export const elementAccessEnum = pgEnum('element_access', [
+  'not_restrained',
+  'restrained'
+]);
+
+/**
+ * Enum for building element charge type
+ */
+export const elementChargeEnum = pgEnum('element_charge', [
+  'common',
+  'personnal'
+]);
+
 // Maintenance tables
 
 /**
@@ -186,6 +202,8 @@ export const buildingElements = pgTable('building_elements', {
   buildingId: text('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
+  residenceId: text('residence_id')
+    .references(() => residences.id, { onDelete: 'set null' }), // Can be null for building-wide elements
   uniformatCode: varchar('uniformat_code', { length: 10 })
     .notNull()
     .references(() => uniformatCodes.code),
@@ -202,14 +220,15 @@ export const buildingElements = pgTable('building_elements', {
   notes: text('notes'),
   reconstructionCost: decimal('reconstruction_cost', { precision: 10, scale: 2 }), // estimated reconstruction cost
   costEstimationDate: date('cost_estimation_date'), // date when cost was estimated
+  access: elementAccessEnum('access').notNull().default('not_restrained'), // Access type for element
+  charge: elementChargeEnum('charge').notNull().default('common'), // Charge type for element
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
-  // Unique constraint to prevent duplicate elements within same building and uniformat code
-  uniqueBuildingElementConstraint: unique().on(table.buildingId, table.uniformatCode, table.name),
-  // Performance indexes
+  // Performance indexes (removed unique constraint to allow duplicates at level 3)
   buildingIdIdx: index('building_elements_building_id_idx').on(table.buildingId),
+  residenceIdIdx: index('building_elements_residence_id_idx').on(table.residenceId),
   uniformatCodeIdx: index('building_elements_uniformat_code_idx').on(table.uniformatCode),
 }));
 

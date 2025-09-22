@@ -159,7 +159,7 @@ function isValidUUID(uuid: string): boolean {
 // Validation schemas
 const uniformatSearchSchema = z.object({
   query: z.string().min(1).max(100),
-  level: z.number().min(1).max(4).optional(),
+  level: z.number().min(1).max(3).optional(), // Updated to max level 3
   category: z.string().optional(),
 });
 
@@ -180,6 +180,7 @@ const buildingElementCreateSchema = z.object({
   uniformatCode: z.string().min(1).max(10),
   name: z.string().min(1).max(200),
   description: z.string().optional(),
+  residenceId: z.string().uuid().optional().nullable(), // Can be null for building-wide elements
   originalConstructionDate: z.coerce.date().optional(),
   originalLifespan: z.number().positive().optional(),
   currentLifespan: z.number().positive().optional(),
@@ -188,6 +189,10 @@ const buildingElementCreateSchema = z.object({
   nextEvaluationDate: z.coerce.date().optional(),
   unit: z.string().max(20).optional(),
   unitValue: z.number().positive().optional(),
+  reconstructionCost: z.number().positive().optional(),
+  costEstimationDate: z.coerce.date().optional(),
+  access: z.enum(['not_restrained', 'restrained']).default('not_restrained'),
+  charge: z.enum(['common', 'personnal']).default('common'),
   notes: z.string().optional(),
 });
 
@@ -303,97 +308,14 @@ export function registerMaintenanceRoutes(app: Express): void {
   
   /**
    * GET /api/maintenance/uniformat - Get UNIFORMAT catalog with hierarchy
+   * Note: Only level 3 elements can be selected for creating building elements
    */
   app.get('/api/maintenance/uniformat', requireAuth, async (req: any, res) => {
     try {
       console.log('📋 [UNIFORMAT API] Called with query:', req.query);
       
-      // Test data for now until we fix the TypeScript import issue
-      const testUniformatData = [
-        {
-          code: "A",
-          level: 1,
-          nameFr: "Infrastructure",
-          nameEn: "Substructure",
-          descriptionFr: "Éléments de fondation et d'infrastructure souterraine",
-          descriptionEn: "Foundation and below-grade infrastructure elements",
-          category: "Substructure"
-        },
-        {
-          code: "B",
-          level: 1,
-          nameFr: "Enveloppe du bâtiment",
-          nameEn: "Shell",
-          descriptionFr: "Structure, enveloppe extérieure et toiture du bâtiment",
-          descriptionEn: "Building structure, exterior enclosure and roofing",
-          category: "Shell"
-        },
-        {
-          code: "C",
-          level: 1,
-          nameFr: "Aménagements intérieurs",
-          nameEn: "Interiors",
-          descriptionFr: "Construction intérieure, escaliers et finitions",
-          descriptionEn: "Interior construction, stairs and finishes",
-          category: "Interiors"
-        },
-        {
-          code: "D",
-          level: 1,
-          nameFr: "Services du bâtiment",
-          nameEn: "Services",
-          descriptionFr: "Transport vertical, plomberie, CVC, protection incendie, électricité",
-          descriptionEn: "Conveying, plumbing, HVAC, fire protection, electrical",
-          category: "Services"
-        },
-        {
-          code: "A10",
-          level: 2,
-          parentCode: "A",
-          nameFr: "Fondations",
-          nameEn: "Foundations",
-          descriptionFr: "Fondations en béton, semelles et murs de fondation",
-          descriptionEn: "Concrete foundations, footings and foundation walls",
-          category: "Substructure",
-          typicalLifespan: 75
-        },
-        {
-          code: "B10",
-          level: 2,
-          parentCode: "B",
-          nameFr: "Superstructure",
-          nameEn: "Superstructure",
-          descriptionFr: "Charpente structurale du bâtiment",
-          descriptionEn: "Building structural frame",
-          category: "Shell",
-          typicalLifespan: 60
-        },
-        {
-          code: "B20",
-          level: 2,
-          parentCode: "B",
-          nameFr: "Enveloppe extérieure",
-          nameEn: "Exterior Enclosure",
-          descriptionFr: "Murs extérieurs, fenêtres et portes",
-          descriptionEn: "Exterior walls, windows and doors",
-          category: "Shell",
-          typicalLifespan: 30
-        },
-        {
-          code: "B30",
-          level: 2,
-          parentCode: "B",
-          nameFr: "Toiture",
-          nameEn: "Roofing",
-          descriptionFr: "Membrane de toiture, isolation et accessoires",
-          descriptionEn: "Roof membrane, insulation and accessories",
-          category: "Shell",
-          typicalLifespan: 25
-        }
-      ];
-      
       const { level, category, parentCode } = req.query;
-      let filteredCatalog = testUniformatData;
+      let filteredCatalog = UNIFORMAT_CATALOG;
       
       // Apply filters
       if (level) {
@@ -411,11 +333,17 @@ export function registerMaintenanceRoutes(app: Express): void {
         filteredCatalog = filteredCatalog.filter(item => item.parentCode === parentCode);
       }
       
-      console.log('📋 [UNIFORMAT API] Returning', filteredCatalog.length, 'codes');
+      // Add selectable flag to each code (only level 3 codes are selectable for element creation)
+      const codesWithSelectableFlag = filteredCatalog.map(item => ({
+        ...item,
+        selectable: item.level === 3
+      }));
+      
+      console.log('📋 [UNIFORMAT API] Returning', codesWithSelectableFlag.length, 'codes');
       
       res.json({
         success: true,
-        codes: filteredCatalog
+        codes: codesWithSelectableFlag
       });
     } catch (error: any) {
       console.error('Error fetching UNIFORMAT catalog:', error);
@@ -992,11 +920,18 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      // Verify UNIFORMAT code exists
+      // Verify UNIFORMAT code exists and is level 3 (only level 3 can be used for elements)
       const uniformatElement = UNIFORMAT_CATALOG.find(item => item.code === validation.data.uniformatCode);
       if (!uniformatElement) {
         return res.status(400).json({
           error: 'Invalid UNIFORMAT code'
+        });
+      }
+      
+      if (uniformatElement.level !== 3) {
+        return res.status(400).json({
+          error: 'Only level 3 UNIFORMAT codes can be used for building elements',
+          details: `Selected code ${uniformatElement.code} is level ${uniformatElement.level}. Only level 3 elements can be selected.`
         });
       }
       
@@ -1072,12 +1007,19 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      // Verify UNIFORMAT code if provided
+      // Verify UNIFORMAT code if provided (must be level 3)
       if (validation.data.uniformatCode) {
         const uniformatElement = UNIFORMAT_CATALOG.find(item => item.code === validation.data.uniformatCode);
         if (!uniformatElement) {
           return res.status(400).json({
             error: 'Invalid UNIFORMAT code'
+          });
+        }
+        
+        if (uniformatElement.level !== 3) {
+          return res.status(400).json({
+            error: 'Only level 3 UNIFORMAT codes can be used for building elements',
+            details: `Selected code ${uniformatElement.code} is level ${uniformatElement.level}. Only level 3 elements can be selected.`
           });
         }
       }
