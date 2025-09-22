@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,7 +10,6 @@ import {
   type SortingState,
   type ColumnFiltersState,
   type VisibilityState,
-  type RowSelectionState,
   type Row,
 } from '@tanstack/react-table';
 import {
@@ -23,7 +22,6 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
@@ -48,14 +46,6 @@ import {
   X
 } from 'lucide-react';
 
-interface BulkAction<TData> {
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  onClick: (selectedRows: Row<TData>[]) => void;
-  variant?: 'default' | 'destructive';
-  disabled?: (selectedRows: Row<TData>[]) => boolean;
-}
-
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -68,7 +58,6 @@ interface DataTableProps<TData, TValue> {
   enableSorting?: boolean;
   enableColumnVisibility?: boolean;
   enablePagination?: boolean;
-  enableRowSelection?: boolean;
   pageSize?: number;
   emptyState?: {
     title: string;
@@ -78,14 +67,11 @@ interface DataTableProps<TData, TValue> {
   className?: string;
   renderRowActions?: (row: Row<TData>) => React.ReactNode;
   onRowClick?: (row: Row<TData>) => void;
-  bulkActions?: BulkAction<TData>[];
-  onSelectionChange?: (selectedRows: Row<TData>[]) => void;
-  getRowId?: (row: TData, index: number) => string;
 }
 
 /**
- * Generic DataTable component with TanStack Table integration
- * Provides sorting, filtering, pagination, row selection, and responsive design
+ * Generic DataTable component for maintenance journal system
+ * Provides sorting, filtering, pagination, and responsive design
  * with proper loading states and accessibility
  */
 export function DataTable<TData, TValue>({
@@ -100,20 +86,15 @@ export function DataTable<TData, TValue>({
   enableSorting = true,
   enableColumnVisibility = true,
   enablePagination = true,
-  enableRowSelection = false,
   pageSize = 10,
   emptyState,
   className,
   renderRowActions,
   onRowClick,
-  bulkActions = [],
-  onSelectionChange,
-  getRowId,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [globalFilter, setGlobalFilter] = useState("");
 
   const table = useReactTable({
@@ -126,16 +107,12 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: 'includesString',
-    enableRowSelection,
-    getRowId,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
       globalFilter,
     },
     initialState: {
@@ -158,16 +135,6 @@ export function DataTable<TData, TValue>({
     setColumnFilters([]);
   }, []);
 
-  // Handle selection change callback
-  const selectedRows = table.getFilteredSelectedRowModel().rows;
-  
-  // Call selection change callback when selection changes
-  useEffect(() => {
-    if (onSelectionChange) {
-      onSelectionChange(selectedRows);
-    }
-  }, [selectedRows, onSelectionChange]);
-
   const getSortIcon = (isSorted: false | "asc" | "desc") => {
     if (isSorted === "asc") return <ArrowUp className="h-4 w-4" />;
     if (isSorted === "desc") return <ArrowDown className="h-4 w-4" />;
@@ -178,11 +145,6 @@ export function DataTable<TData, TValue>({
     <TableBody>
       {Array.from({ length: pageSize }).map((_, index) => (
         <TableRow key={index} data-testid={`skeleton-row-${index}`}>
-          {enableRowSelection && (
-            <TableCell>
-              <Skeleton className="h-4 w-4" />
-            </TableCell>
-          )}
           {columns.map((_, colIndex) => (
             <TableCell key={colIndex}>
               <Skeleton className="h-6 w-full" />
@@ -205,7 +167,7 @@ export function DataTable<TData, TValue>({
       <TableBody>
         <TableRow>
           <TableCell 
-            colSpan={columns.length + (renderRowActions ? 1 : 0) + (enableRowSelection ? 1 : 0)} 
+            colSpan={columns.length + (renderRowActions ? 1 : 0)} 
             className="h-64 text-center"
           >
             <div className="flex flex-col items-center justify-center py-8" data-testid="empty-state">
@@ -226,7 +188,6 @@ export function DataTable<TData, TValue>({
   };
 
   const hasActiveFilters = globalFilter !== "" || columnFilters.length > 0;
-  const hasSelectedRows = selectedRows.length > 0;
 
   return (
     <Card className={className} data-testid="data-table">
@@ -246,64 +207,39 @@ export function DataTable<TData, TValue>({
       )}
       
       <CardContent className="space-y-4">
-        {/* Search, Filter, and Bulk Actions Controls */}
-        {(enableFiltering || (enableRowSelection && bulkActions.length > 0)) && (
+        {/* Search and Filter Controls */}
+        {enableFiltering && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            {enableFiltering && (
-              <div className="flex items-center space-x-2 w-full sm:w-auto">
-                <div className="relative flex-1 sm:w-80">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder={searchPlaceholder}
-                    value={searchableColumn 
-                      ? (table.getColumn(searchableColumn)?.getFilterValue() as string) ?? ""
-                      : globalFilter
-                    }
-                    onChange={(event) => handleSearchChange(event.target.value)}
-                    className="pl-10"
-                    data-testid="search-input"
-                  />
-                </div>
-                
-                {hasActiveFilters && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="px-2"
-                    data-testid="clear-filters-button"
-                  >
-                    <X className="h-4 w-4" />
-                    Clear
-                  </Button>
-                )}
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-80">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder={searchPlaceholder}
+                  value={searchableColumn 
+                    ? (table.getColumn(searchableColumn)?.getFilterValue() as string) ?? ""
+                    : globalFilter
+                  }
+                  onChange={(event) => handleSearchChange(event.target.value)}
+                  className="pl-10"
+                  data-testid="search-input"
+                />
               </div>
-            )}
+              
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="px-2"
+                  data-testid="clear-filters-button"
+                >
+                  <X className="h-4 w-4" />
+                  Clear
+                </Button>
+              )}
+            </div>
 
             <div className="flex items-center space-x-2">
-              {/* Selection Info and Bulk Actions */}
-              {enableRowSelection && hasSelectedRows && (
-                <div className="flex items-center space-x-2">
-                  <Badge variant="secondary" data-testid="selection-count-badge">
-                    {selectedRows.length} selected
-                  </Badge>
-                  
-                  {bulkActions.map((action, index) => (
-                    <Button
-                      key={index}
-                      variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
-                      size="sm"
-                      onClick={() => action.onClick(selectedRows)}
-                      disabled={action.disabled ? action.disabled(selectedRows) : false}
-                      data-testid={`bulk-action-${index}`}
-                    >
-                      {action.icon && <action.icon className="h-4 w-4 mr-2" />}
-                      {action.label}
-                    </Button>
-                  ))}
-                </div>
-              )}
-
               {hasActiveFilters && (
                 <Badge variant="secondary" data-testid="active-filters-badge">
                   <Filter className="h-3 w-3 mr-1" />
@@ -357,16 +293,6 @@ export function DataTable<TData, TValue>({
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {enableRowSelection && (
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={table.getIsAllPageRowsSelected()}
-                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                        aria-label="Select all"
-                        data-testid="select-all-checkbox"
-                      />
-                    </TableHead>
-                  )}
                   {headerGroup.headers.map((header) => {
                     const canSort = header.column.getCanSort();
                     const isSorted = header.column.getIsSorted();
@@ -425,16 +351,6 @@ export function DataTable<TData, TValue>({
                     onClick={onRowClick ? () => onRowClick(row) : undefined}
                     data-testid={`table-row-${row.id}`}
                   >
-                    {enableRowSelection && (
-                      <TableCell>
-                        <Checkbox
-                          checked={row.getIsSelected()}
-                          onCheckedChange={(value) => row.toggleSelected(!!value)}
-                          aria-label="Select row"
-                          data-testid={`select-row-${row.id}`}
-                        />
-                      </TableCell>
-                    )}
                     {row.getVisibleCells().map((cell) => (
                       <TableCell 
                         key={cell.id}
@@ -461,11 +377,6 @@ export function DataTable<TData, TValue>({
         {enablePagination && !isLoading && table.getRowModel().rows?.length > 0 && (
           <div className="flex items-center justify-between space-x-2 py-4">
             <div className="flex-1 text-sm text-muted-foreground" data-testid="pagination-info">
-              {enableRowSelection && hasSelectedRows && (
-                <span className="mr-4">
-                  {selectedRows.length} of {table.getFilteredRowModel().rows.length} row(s) selected
-                </span>
-              )}
               Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
               {Math.min(
                 (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
@@ -519,4 +430,4 @@ export function DataTable<TData, TValue>({
   );
 }
 
-export type { DataTableProps, BulkAction };
+export type { DataTableProps };
