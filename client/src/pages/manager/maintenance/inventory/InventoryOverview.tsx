@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useBuildingContext } from '@/hooks/use-building-context';
+// import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { differenceInDays, parseISO, isAfter } from 'date-fns';
@@ -34,40 +34,12 @@ interface InventoryOverviewProps {
  * Shows element counts, condition breakdown, alerts, and cost information
  */
 export function InventoryOverview({ className }: InventoryOverviewProps) {
-  const { buildingId } = useBuildingContext();
-
-  // Fetch building elements
-  const {
-    data: elementsResponse,
-    isLoading: elementsLoading,
-  } = useQuery({
-    queryKey: ['/api/maintenance/buildings', buildingId, 'elements'],
-    queryFn: async () => {
-      if (!buildingId) throw new Error('Building ID required');
-      const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/elements`);
-      return await response.json();
-    },
-    enabled: !!buildingId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Fetch maintenance summary
-  const {
-    data: summaryResponse,
-    isLoading: summaryLoading,
-  } = useQuery({
-    queryKey: ['/api/maintenance/buildings', buildingId, 'summary'],
-    queryFn: async () => {
-      if (!buildingId) throw new Error('Building ID required');
-      const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/summary`);
-      return await response.json();
-    },
-    enabled: !!buildingId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  const elements: BuildingElement[] = elementsResponse?.elements || [];
-  const summary = summaryResponse?.summary || {};
+  // Simplified placeholder - no API calls for now
+  const buildingId = null;
+  const elementsLoading = false;
+  const summaryLoading = false;
+  const elements: BuildingElement[] = [];
+  const summary = {};
 
   // Calculate metrics
   const metrics = useMemo(() => {
