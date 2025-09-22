@@ -202,8 +202,7 @@ export const buildingElements = pgTable('building_elements', {
   buildingId: text('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
-  residenceId: text('residence_id')
-    .references(() => residences.id, { onDelete: 'set null' }), // Can be null for building-wide elements
+  residenceIds: text('residence_ids').array(), // Array of residence IDs, empty for building-wide elements
   uniformatCode: varchar('uniformat_code', { length: 10 })
     .notNull()
     .references(() => uniformatCodes.code),
@@ -228,7 +227,7 @@ export const buildingElements = pgTable('building_elements', {
 }, (table) => ({
   // Performance indexes (removed unique constraint to allow duplicates at level 3)
   buildingIdIdx: index('building_elements_building_id_idx').on(table.buildingId),
-  residenceIdIdx: index('building_elements_residence_id_idx').on(table.residenceId),
+  residenceIdsIdx: index('building_elements_residence_ids_idx').on(table.residenceIds),
   uniformatCodeIdx: index('building_elements_uniformat_code_idx').on(table.uniformatCode),
 }));
 
@@ -402,12 +401,18 @@ export const insertVendorSchema = createInsertSchema(vendors, {
 
 export const insertBuildingElementSchema = createInsertSchema(buildingElements, {
   buildingId: z.string().uuid(),
+  residenceIds: z.array(z.string().uuid()).default([]).optional(),
   uniformatCode: z.string().min(1).max(10),
   name: z.string().min(1).max(200),
+  description: z.string().optional(),
+  originalConstructionDate: z.coerce.date().optional(),
   originalLifespan: z.number().int().positive().optional(),
   currentLifespan: z.number().int().positive().optional(),
+  lastInspectionDate: z.coerce.date().optional(),
+  nextEvaluationDate: z.coerce.date().optional(),
   unit: z.string().max(20).optional(),
   unitValue: z.number().positive().optional(),
+  notes: z.string().optional(),
   reconstructionCost: z.number().positive().optional(),
   costEstimationDate: z.coerce.date().optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true });

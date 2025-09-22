@@ -250,6 +250,16 @@ export function FormModal<T extends FieldValues>({
 }
 
 // Form field helper component for consistent styling
+interface FormFieldWrapperProps<T extends FieldValues> {
+  form: UseFormReturn<T>;
+  name: Path<T>;
+  label: string;
+  description?: string;
+  required?: boolean;
+  children: (field: any) => ReactNode;
+  className?: string;
+}
+
 export function FormFieldWrapper<T extends FieldValues>({
   form,
   name,
@@ -258,15 +268,7 @@ export function FormFieldWrapper<T extends FieldValues>({
   required = false,
   children,
   className,
-}: {
-  form: UseFormReturn<T>;
-  name: Path<T>;
-  label: string;
-  description?: string;
-  required?: boolean;
-  children: (field: any) => ReactNode;
-  className?: string;
-} & React.HTMLAttributes<HTMLDivElement>) {
+}: FormFieldWrapperProps<T>) {
   return (
     <FormField
       control={form.control}

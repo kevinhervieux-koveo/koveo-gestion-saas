@@ -326,7 +326,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // A10 - FOUNDATIONS
   {
-    code: "A101",
+    code: "A1010",
     level: 3,
     parentCode: "A10",
     nameFr: "Fondations standard",
@@ -337,7 +337,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Substructure"
   },
   {
-    code: "A102",
+    code: "A1020",
     level: 3,
     parentCode: "A10",
     nameFr: "Fondations spéciales",
@@ -348,7 +348,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Substructure"
   },
   {
-    code: "A103",
+    code: "A1030",
     level: 3,
     parentCode: "A10",
     nameFr: "Drainage de fondation",
@@ -359,7 +359,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Substructure"
   },
   {
-    code: "A104",
+    code: "A1040",
     level: 3,
     parentCode: "A10",
     nameFr: "Imperméabilisation des fondations",
@@ -372,7 +372,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // A20 - BASEMENT CONSTRUCTION
   {
-    code: "A201",
+    code: "A2010",
     level: 3,
     parentCode: "A20",
     nameFr: "Murs de fondation",
@@ -383,7 +383,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Substructure"
   },
   {
-    code: "A202",
+    code: "A2020",
     level: 3,
     parentCode: "A20",
     nameFr: "Dalles de sous-sol",
@@ -394,7 +394,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Substructure"
   },
   {
-    code: "A203",
+    code: "A2030",
     level: 3,
     parentCode: "A20",
     nameFr: "Isolation du sous-sol",
@@ -405,7 +405,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Substructure"
   },
   {
-    code: "A204",
+    code: "A2040",
     level: 3,
     parentCode: "A20",
     nameFr: "Finitions de sous-sol",
@@ -418,7 +418,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // B10 - SUPERSTRUCTURE
   {
-    code: "B101",
+    code: "B1010",
     level: 3,
     parentCode: "B10",
     nameFr: "Structure en béton",
@@ -429,7 +429,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B102",
+    code: "B1020",
     level: 3,
     parentCode: "B10",
     nameFr: "Structure en acier",
@@ -440,7 +440,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B103",
+    code: "B1030",
     level: 3,
     parentCode: "B10",
     nameFr: "Structure en bois",
@@ -451,7 +451,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B104",
+    code: "B1040",
     level: 3,
     parentCode: "B10",
     nameFr: "Planchers structuraux",
@@ -462,7 +462,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B105",
+    code: "B1050",
     level: 3,
     parentCode: "B10",
     nameFr: "Toitures structurales",
@@ -475,7 +475,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // B20 - EXTERIOR ENCLOSURE
   {
-    code: "B201",
+    code: "B2010",
     level: 3,
     parentCode: "B20",
     nameFr: "Murs extérieurs en maçonnerie",
@@ -486,7 +486,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B202",
+    code: "B2020",
     level: 3,
     parentCode: "B20",
     nameFr: "Murs-rideaux",
@@ -497,7 +497,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B203",
+    code: "B2030",
     level: 3,
     parentCode: "B20",
     nameFr: "Fenêtres",
@@ -508,7 +508,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B204",
+    code: "B2040",
     level: 3,
     parentCode: "B20",
     nameFr: "Portes extérieures",
@@ -519,7 +519,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B205",
+    code: "B2050",
     level: 3,
     parentCode: "B20",
     nameFr: "Isolation extérieure",
@@ -530,7 +530,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B206",
+    code: "B2060",
     level: 3,
     parentCode: "B20",
     nameFr: "Revêtements extérieurs",
@@ -541,7 +541,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B207",
+    code: "B2070",
     level: 3,
     parentCode: "B20",
     nameFr: "Balcons et terrasses",
@@ -554,7 +554,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // B30 - ROOFING
   {
-    code: "B301",
+    code: "B3010",
     level: 3,
     parentCode: "B30",
     nameFr: "Couverture de toiture",
@@ -565,7 +565,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B302",
+    code: "B3020",
     level: 3,
     parentCode: "B30",
     nameFr: "Ouvertures de toiture",
@@ -576,7 +576,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B303",
+    code: "B3030",
     level: 3,
     parentCode: "B30",
     nameFr: "Isolation de toiture",
@@ -587,7 +587,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B304",
+    code: "B3040",
     level: 3,
     parentCode: "B30",
     nameFr: "Drainage de toiture",
@@ -598,7 +598,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Shell"
   },
   {
-    code: "B305",
+    code: "B3050",
     level: 3,
     parentCode: "B30",
     nameFr: "Systèmes de sécurité toiture",
@@ -611,7 +611,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // C10 - INTERIOR CONSTRUCTION
   {
-    code: "C101",
+    code: "C1010",
     level: 3,
     parentCode: "C10",
     nameFr: "Cloisons intérieures",
@@ -622,7 +622,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Interiors"
   },
   {
-    code: "C102",
+    code: "C1020",
     level: 3,
     parentCode: "C10",
     nameFr: "Portes intérieures",
@@ -633,7 +633,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Interiors"
   },
   {
-    code: "C103",
+    code: "C1030",
     level: 3,
     parentCode: "C10",
     nameFr: "Spécialités architecturales",
@@ -644,7 +644,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Interiors"
   },
   {
-    code: "C104",
+    code: "C1040",
     level: 3,
     parentCode: "C10",
     nameFr: "Armoires et rangements",
@@ -657,7 +657,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // C20 - STAIRS
   {
-    code: "C201",
+    code: "C2010",
     level: 3,
     parentCode: "C20",
     nameFr: "Escaliers intérieurs",
@@ -668,7 +668,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Interiors"
   },
   {
-    code: "C202",
+    code: "C2020",
     level: 3,
     parentCode: "C20",
     nameFr: "Escaliers extérieurs",
@@ -679,7 +679,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Interiors"
   },
   {
-    code: "C203",
+    code: "C2030",
     level: 3,
     parentCode: "C20",
     nameFr: "Rampes et garde-corps",
@@ -692,7 +692,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // C30 - INTERIOR FINISHES
   {
-    code: "C301",
+    code: "C3010",
     level: 3,
     parentCode: "C30",
     nameFr: "Revêtements de sol",
@@ -703,7 +703,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Interiors"
   },
   {
-    code: "C302",
+    code: "C3020",
     level: 3,
     parentCode: "C30",
     nameFr: "Revêtements muraux",
@@ -714,7 +714,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Interiors"
   },
   {
-    code: "C303",
+    code: "C3030",
     level: 3,
     parentCode: "C30",
     nameFr: "Revêtements de plafond",
@@ -725,7 +725,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Interiors"
   },
   {
-    code: "C304",
+    code: "C3040",
     level: 3,
     parentCode: "C30",
     nameFr: "Carrelage et céramique",
@@ -738,7 +738,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // D10 - CONVEYING
   {
-    code: "D101",
+    code: "D1010",
     level: 3,
     parentCode: "D10",
     nameFr: "Ascenseurs électriques",
@@ -749,7 +749,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D102",
+    code: "D1020",
     level: 3,
     parentCode: "D10",
     nameFr: "Ascenseurs hydrauliques",
@@ -760,7 +760,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D103",
+    code: "D1030",
     level: 3,
     parentCode: "D10",
     nameFr: "Escaliers mécaniques",
@@ -773,7 +773,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // D20 - PLUMBING
   {
-    code: "D201",
+    code: "D2010",
     level: 3,
     parentCode: "D20",
     nameFr: "Alimentation en eau",
@@ -784,7 +784,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D202",
+    code: "D2020",
     level: 3,
     parentCode: "D20",
     nameFr: "Évacuation des eaux",
@@ -795,7 +795,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D203",
+    code: "D2030",
     level: 3,
     parentCode: "D20",
     nameFr: "Équipements sanitaires",
@@ -806,7 +806,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D204",
+    code: "D2040",
     level: 3,
     parentCode: "D20",
     nameFr: "Chauffe-eau",
@@ -817,7 +817,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D205",
+    code: "D2050",
     level: 3,
     parentCode: "D20",
     nameFr: "Systèmes de traitement d'eau",
@@ -830,7 +830,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // D30 - HVAC
   {
-    code: "D301",
+    code: "D3010",
     level: 3,
     parentCode: "D30",
     nameFr: "Systèmes de chauffage",
@@ -841,7 +841,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D302",
+    code: "D3020",
     level: 3,
     parentCode: "D30",
     nameFr: "Systèmes de ventilation",
@@ -852,7 +852,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D303",
+    code: "D3030",
     level: 3,
     parentCode: "D30",
     nameFr: "Systèmes de climatisation",
@@ -863,7 +863,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D304",
+    code: "D3040",
     level: 3,
     parentCode: "D30",
     nameFr: "Conduits et distribution",
@@ -874,7 +874,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D305",
+    code: "D3050",
     level: 3,
     parentCode: "D30",
     nameFr: "Contrôles automatiques",
@@ -887,7 +887,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // D40 - FIRE PROTECTION
   {
-    code: "D401",
+    code: "D4010",
     level: 3,
     parentCode: "D40",
     nameFr: "Systèmes de gicleurs",
@@ -898,7 +898,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D402",
+    code: "D4020",
     level: 3,
     parentCode: "D40",
     nameFr: "Détection d'incendie",
@@ -909,7 +909,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D403",
+    code: "D4030",
     level: 3,
     parentCode: "D40",
     nameFr: "Systèmes d'alarme",
@@ -920,7 +920,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D404",
+    code: "D4040",
     level: 3,
     parentCode: "D40",
     nameFr: "Extinction spécialisée",
@@ -933,7 +933,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // D50 - ELECTRICAL
   {
-    code: "D501",
+    code: "D5010",
     level: 3,
     parentCode: "D50",
     nameFr: "Distribution électrique",
@@ -944,7 +944,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D502",
+    code: "D5020",
     level: 3,
     parentCode: "D50",
     nameFr: "Éclairage intérieur",
@@ -955,7 +955,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D503",
+    code: "D5030",
     level: 3,
     parentCode: "D50",
     nameFr: "Éclairage extérieur",
@@ -966,7 +966,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D504",
+    code: "D5040",
     level: 3,
     parentCode: "D50",
     nameFr: "Prises et circuits",
@@ -977,7 +977,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D505",
+    code: "D5050",
     level: 3,
     parentCode: "D50",
     nameFr: "Systèmes de communication",
@@ -988,7 +988,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Services"
   },
   {
-    code: "D506",
+    code: "D5060",
     level: 3,
     parentCode: "D50",
     nameFr: "Systèmes de sécurité",
@@ -1001,7 +1001,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // E10 - EQUIPMENT
   {
-    code: "E101",
+    code: "E1010",
     level: 3,
     parentCode: "E10",
     nameFr: "Équipements de cuisine",
@@ -1012,7 +1012,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Equipment & Furnishings"
   },
   {
-    code: "E102",
+    code: "E1020",
     level: 3,
     parentCode: "E10",
     nameFr: "Équipements de buanderie",
@@ -1023,7 +1023,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Equipment & Furnishings"
   },
   {
-    code: "E103",
+    code: "E1030",
     level: 3,
     parentCode: "E10",
     nameFr: "Équipements de maintenance",
@@ -1036,7 +1036,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // E20 - FURNISHINGS
   {
-    code: "E201",
+    code: "E2010",
     level: 3,
     parentCode: "E20",
     nameFr: "Ameublement fixe",
@@ -1047,7 +1047,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Equipment & Furnishings"
   },
   {
-    code: "E202",
+    code: "E2020",
     level: 3,
     parentCode: "E20",
     nameFr: "Stores et habillage fenêtres",
@@ -1060,7 +1060,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // F10 - SPECIAL CONSTRUCTION
   {
-    code: "F101",
+    code: "F1010",
     level: 3,
     parentCode: "F10",
     nameFr: "Structures préfabriquées",
@@ -1071,7 +1071,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Special Construction & Demolition"
   },
   {
-    code: "F102",
+    code: "F1020",
     level: 3,
     parentCode: "F10",
     nameFr: "Constructions spécialisées",
@@ -1084,7 +1084,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // F20 - SELECTIVE DEMOLITION
   {
-    code: "F201",
+    code: "F2010",
     level: 3,
     parentCode: "F20",
     nameFr: "Démolition intérieure",
@@ -1094,7 +1094,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Special Construction & Demolition"
   },
   {
-    code: "F202",
+    code: "F2020",
     level: 3,
     parentCode: "F20",
     nameFr: "Démolition extérieure",
@@ -1106,7 +1106,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // G10 - SITE PREPARATION
   {
-    code: "G101",
+    code: "G1010",
     level: 3,
     parentCode: "G10",
     nameFr: "Déblaiement du site",
@@ -1116,7 +1116,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Building Sitework"
   },
   {
-    code: "G102",
+    code: "G1020",
     level: 3,
     parentCode: "G10",
     nameFr: "Excavation",
@@ -1128,7 +1128,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // G20 - SITE IMPROVEMENTS
   {
-    code: "G201",
+    code: "G2010",
     level: 3,
     parentCode: "G20",
     nameFr: "Aménagement paysager",
@@ -1139,7 +1139,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Building Sitework"
   },
   {
-    code: "G202",
+    code: "G2020",
     level: 3,
     parentCode: "G20",
     nameFr: "Pavage et allées",
@@ -1150,7 +1150,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Building Sitework"
   },
   {
-    code: "G203",
+    code: "G2030",
     level: 3,
     parentCode: "G20",
     nameFr: "Clôtures et portails",
@@ -1163,7 +1163,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // G30 - SITE MECHANICAL UTILITIES
   {
-    code: "G301",
+    code: "G3010",
     level: 3,
     parentCode: "G30",
     nameFr: "Distribution d'eau du site",
@@ -1174,7 +1174,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Building Sitework"
   },
   {
-    code: "G302",
+    code: "G3020",
     level: 3,
     parentCode: "G30",
     nameFr: "Évacuation des eaux du site",
@@ -1185,7 +1185,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Building Sitework"
   },
   {
-    code: "G303",
+    code: "G3030",
     level: 3,
     parentCode: "G30",
     nameFr: "Drainage pluvial",
@@ -1198,7 +1198,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
 
   // G40 - SITE ELECTRICAL UTILITIES
   {
-    code: "G401",
+    code: "G4010",
     level: 3,
     parentCode: "G40",
     nameFr: "Distribution électrique du site",
@@ -1209,7 +1209,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Building Sitework"
   },
   {
-    code: "G402",
+    code: "G4020",
     level: 3,
     parentCode: "G40",
     nameFr: "Éclairage du site",
@@ -1220,7 +1220,7 @@ export const UNIFORMAT_CATALOG: UniformatElement[] = [
     category: "Building Sitework"
   },
   {
-    code: "G403",
+    code: "G4030",
     level: 3,
     parentCode: "G40",
     nameFr: "Communications du site",

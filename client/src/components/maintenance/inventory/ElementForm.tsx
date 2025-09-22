@@ -9,13 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { UploadDropzone } from '@/components/maintenance/UploadDropzone';
+import { SharedUploader } from '@/components/document-management/SharedUploader';
 import { DollarSign } from 'lucide-react';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
@@ -37,8 +38,10 @@ const elementFormSchema = insertBuildingElementSchema.extend({
   uniformatCode: z.string().min(1, 'UNIFORMAT code is required'),
   name: z.string().min(1, 'Element name is required').max(200),
   description: z.string().optional(),
-  residenceId: z.string().optional().nullable(), // Optional residence selection
+  residenceIds: z.array(z.string().uuid()).default([]), // Multi-select residence selection
   originalConstructionDate: z.string().optional(),
+  lastInspectionDate: z.string().optional(),
+  nextEvaluationDate: z.string().optional(),
   originalLifespan: z.coerce.number().min(1).max(200).optional(),
   currentLifespan: z.coerce.number().min(1).max(200).optional(),
   currentCondition: z.enum(['excellent', 'good', 'fair', 'poor', 'critical']),
@@ -68,10 +71,11 @@ interface ElementFormProps {
 interface UniformatCodeSelectorProps {
   value: string;
   onChange: (value: string) => void;
+  onCodeSelect?: (codeData: any) => void; // For auto-suggest functionality
   error?: string;
 }
 
-function UniformatCodeSelector({ value, onChange, error }: UniformatCodeSelectorProps) {
+function UniformatCodeSelector({ value, onChange, onCodeSelect, error }: UniformatCodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBrowser, setShowBrowser] = useState(false);
   const [selectedLevel1, setSelectedLevel1] = useState<string | null>(null);
@@ -89,7 +93,7 @@ function UniformatCodeSelector({ value, onChange, error }: UniformatCodeSelector
     staleTime: 30 * 60 * 1000, // 30 minutes
   });
 
-  const uniformatCodes = uniformatResponse?.codes || [];
+  const uniformatCodes = uniformatResponse?.data || [];
   
   const filteredCodes = useMemo(() => {
     // For search results, only show selectable codes (level 3)
@@ -307,6 +311,7 @@ function UniformatCodeSelector({ value, onChange, error }: UniformatCodeSelector
                       onClick={() => {
                         if (code.selectable) {
                           onChange(code.code);
+                          onCodeSelect?.(code);
                           setShowBrowser(false);
                           resetBrowserNavigation();
                         }
@@ -354,6 +359,7 @@ function UniformatCodeSelector({ value, onChange, error }: UniformatCodeSelector
                       if (code.selectable) {
                         // Level 3: Select this code
                         onChange(code.code);
+                        onCodeSelect?.(code);
                         setShowBrowser(false);
                         resetBrowserNavigation();
                       } else if (code.level === 1) {
@@ -411,6 +417,7 @@ export function ElementForm({
 }: ElementFormProps) {
   // Simplified placeholder - no context for now
   const { toast } = useToast();
+  const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
   const [constructionDate, setConstructionDate] = useState<Date | undefined>();
   const [nextEvaluationDate, setNextEvaluationDate] = useState<Date | undefined>();
   const [costEstimationDate, setCostEstimationDate] = useState<Date | undefined>(new Date()); // Default to today
@@ -439,7 +446,7 @@ export function ElementForm({
       buildingId: buildingId || '',
       name: '',
       description: '',
-      residenceId: null,
+      residenceIds: [],
       uniformatCode: '',
       originalLifespan: undefined,
       currentLifespan: undefined,
@@ -485,7 +492,7 @@ export function ElementForm({
         buildingId: buildingId || '',
         name: '',
         description: '',
-        residenceId: null,
+        residenceIds: [],
         uniformatCode: '',
         originalLifespan: undefined,
         currentLifespan: undefined,
@@ -499,9 +506,10 @@ export function ElementForm({
         charge: 'common',
         autoCalculateEvaluation: true,
       });
-      // Set default construction date from building's yearBuilt
-      if (building?.yearBuilt) {
-        const defaultConstructionDate = new Date(building.yearBuilt, 0, 1); // January 1st of the year
+      // Set default construction date from building's constructionYear or yearBuilt
+      const constructionYear = building?.constructionYear || building?.yearBuilt || building?.year;
+      if (constructionYear) {
+        const defaultConstructionDate = new Date(constructionYear, 0, 1); // January 1st of the year
         setConstructionDate(defaultConstructionDate);
       } else {
         setConstructionDate(undefined);
@@ -574,6 +582,18 @@ export function ElementForm({
     },
   });
 
+  // Auto-suggest element name when UNIFORMAT code is selected
+  const handleUniformatCodeSelect = (codeData: any) => {
+    if (!isNameManuallyEdited && codeData?.nameEn) {
+      form.setValue('name', codeData.nameEn);
+    }
+    // Also set lifespan if available
+    if (codeData?.typicalLifespan) {
+      form.setValue('originalLifespan', codeData.typicalLifespan);
+      form.setValue('currentLifespan', codeData.typicalLifespan);
+    }
+  };
+
   const handleSubmit = async (data: ElementFormData) => {
     await mutation.mutateAsync(data);
   };
@@ -606,6 +626,7 @@ export function ElementForm({
             <UniformatCodeSelector
               value={field.value}
               onChange={field.onChange}
+              onCodeSelect={handleUniformatCodeSelect}
               error={form.formState.errors.uniformatCode?.message}
             />
           )}
@@ -624,6 +645,10 @@ export function ElementForm({
             {(field) => (
               <Input
                 {...field}
+                onChange={(e) => {
+                  field.onChange(e);
+                  setIsNameManuallyEdited(true);
+                }}
                 placeholder="e.g., Exterior Wall - North"
                 data-testid="element-name-input"
               />
@@ -693,27 +718,55 @@ export function ElementForm({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormFieldWrapper
             form={form}
-            name="residenceId"
-            label="Residence (Optional)"
-            description="Select a residence if this element is specific to a unit"
+            name="residenceIds"
+            label="Residences (Optional)"
+            description="Select residences if this element is specific to certain units"
           >
             {(field) => (
-              <Select onValueChange={(value) => field.onChange(value === 'building-wide' ? null : value)} value={field.value || 'building-wide'}>
-                <SelectTrigger data-testid="residence-select">
-                  <SelectValue placeholder="Building-wide element" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="building-wide">
-                    <span className="text-muted-foreground">Building-wide element</span>
-                  </SelectItem>
-                  {(residences?.data || []).map((residence: any) => (
-                    <SelectItem key={residence.id} value={residence.id}>
-                      Unit {residence.unitNumber}
-                      {residence.floor && ` (Floor ${residence.floor})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2" data-testid="residence-multi-select">
+                <div className="flex items-center space-x-2 p-2 border rounded-md bg-muted/50">
+                  <Checkbox
+                    id="building-wide"
+                    checked={field.value.length === 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        field.onChange([]);
+                      }
+                    }}
+                  />
+                  <label htmlFor="building-wide" className="text-sm text-muted-foreground">
+                    Building-wide element
+                  </label>
+                </div>
+                {(residences?.data || []).length > 0 && (
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {(residences?.data || []).map((residence: any) => (
+                      <div key={residence.id} className="flex items-center space-x-2 p-1">
+                        <Checkbox
+                          id={residence.id}
+                          checked={field.value.includes(residence.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              field.onChange([...field.value, residence.id]);
+                            } else {
+                              field.onChange(field.value.filter((id: string) => id !== residence.id));
+                            }
+                          }}
+                        />
+                        <label htmlFor={residence.id} className="text-sm">
+                          Unit {residence.unitNumber}
+                          {residence.floor && ` (Floor ${residence.floor})`}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {field.value.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    {field.value.length} residence{field.value.length !== 1 ? 's' : ''} selected
+                  </div>
+                )}
+              </div>
             )}
           </FormFieldWrapper>
 
@@ -1024,16 +1077,26 @@ export function ElementForm({
           <p className="text-sm text-muted-foreground">
             Upload pictures of the asset to help with identification and condition assessment.
           </p>
-          <UploadDropzone
-            onFilesUploaded={(files) => {
+          <SharedUploader
+            onDocumentChange={(file, text) => {
               // Handle file upload
-              console.log('Files uploaded:', files);
+              console.log('Document uploaded:', { file, text });
             }}
-            acceptedFileTypes={{
-              'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
-              'application/pdf': ['.pdf']
+            allowedFileTypes={[
+              'image/jpeg',
+              'image/png', 
+              'image/gif',
+              'image/webp',
+              'application/pdf'
+            ]}
+            maxFileSize={10}
+            defaultTab="file"
+            formType="maintenance"
+            uploadContext={{
+              organizationId: organizationId || '',
+              buildingId: buildingId || '',
+              category: 'element_documents'
             }}
-            maxFiles={5}
             className="min-h-32"
           />
         </div>
