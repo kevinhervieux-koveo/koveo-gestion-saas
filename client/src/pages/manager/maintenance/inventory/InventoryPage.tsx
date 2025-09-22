@@ -55,6 +55,14 @@ function InventoryPageContent({
   onBack
 }: InventoryPageContentProps) {
   
+  console.log('🏠 [INVENTORY PAGE] Initializing with:', { 
+    organizationId, 
+    buildingId, 
+    residenceId,
+    showBackButton,
+    backButtonLabel
+  });
+  
   const { toast } = useToast();
 
   // State for modals and panels
@@ -184,6 +192,7 @@ function InventoryPageContent({
 
   // No building selected state
   if (!buildingId) {
+    console.log('🏠 [INVENTORY PAGE] No building selected, showing selection prompt');
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <Package className="h-16 w-16 text-muted-foreground mb-4" />
@@ -194,6 +203,8 @@ function InventoryPageContent({
       </div>
     );
   }
+  
+  console.log('🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building:', buildingId);
 
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
@@ -357,6 +368,12 @@ function InventoryPageContent({
  * Provides comprehensive building element inventory management
  */
 function InventoryPageInner(props: InventoryPageContentProps) {
+  console.log('🏠 [INVENTORY PAGE INNER] Rendering with props:', {
+    organizationId: props.organizationId,
+    buildingId: props.buildingId,
+    residenceId: props.residenceId
+  });
+  
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden bg-background', props.className)} data-testid="inventory-page">
       <Header title="Inventory Management" subtitle="Manage building elements, track conditions, and schedule maintenance activities according to Quebec standards." />

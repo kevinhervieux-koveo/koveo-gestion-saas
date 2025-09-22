@@ -68,6 +68,14 @@ function ProjectsPageContent({
   onBack
 }: ProjectsPageProps) {
   
+  console.log('📁 [PROJECTS PAGE] Initializing with:', { 
+    organizationId, 
+    buildingId, 
+    residenceId,
+    showBackButton,
+    backButtonLabel
+  });
+  
   const { toast } = useToast();
 
   // State for view mode
@@ -279,6 +287,7 @@ function ProjectsPageContent({
 
   // No building selected state
   if (!buildingId) {
+    console.log('📁 [PROJECTS PAGE] No building selected, showing selection prompt');
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <Folder className="h-16 w-16 text-muted-foreground mb-4" />
@@ -289,6 +298,8 @@ function ProjectsPageContent({
       </div>
     );
   }
+  
+  console.log('📁 [PROJECTS PAGE] Building selected, rendering projects content for building:', buildingId);
 
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
@@ -481,6 +492,12 @@ function ProjectsPageContent({
  * Provides comprehensive maintenance project management
  */
 function ProjectsPageInner(props: ProjectsPageProps) {
+  console.log('📁 [PROJECTS PAGE INNER] Rendering with props:', {
+    organizationId: props.organizationId,
+    buildingId: props.buildingId,
+    residenceId: props.residenceId
+  });
+  
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden bg-background', props.className)} data-testid="projects-page">
       <Header title="Projects Management" subtitle="Plan, track, and manage maintenance projects with vendor coordination and budget tracking." />
