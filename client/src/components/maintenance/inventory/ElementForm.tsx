@@ -260,6 +260,12 @@ export function ElementForm({
   const [nextEvaluationDate, setNextEvaluationDate] = useState<Date | undefined>();
   const [costEstimationDate, setCostEstimationDate] = useState<Date | undefined>(new Date()); // Default to today
 
+  // Fetch building data to get yearBuilt for default construction date
+  const { data: building } = useQuery({
+    queryKey: ['building', buildingId],
+    enabled: !!buildingId,
+  });
+
   const form = useForm<ElementFormData>({
     resolver: zodResolver(elementFormSchema),
     defaultValues: {
@@ -316,12 +322,20 @@ export function ElementForm({
         unit: '',
         unitValue: undefined,
         notes: '',
+        reconstructionCost: undefined,
+        costEstimationDate: format(new Date(), 'yyyy-MM-dd'),
         autoCalculateEvaluation: true,
       });
-      setConstructionDate(undefined);
+      // Set default construction date from building's yearBuilt
+      if (building?.yearBuilt) {
+        const defaultConstructionDate = new Date(building.yearBuilt, 0, 1); // January 1st of the year
+        setConstructionDate(defaultConstructionDate);
+      } else {
+        setConstructionDate(undefined);
+      }
       setNextEvaluationDate(undefined);
     }
-  }, [element, mode, buildingId, form]);
+  }, [element, mode, buildingId, building, form]);
 
   // Auto-calculate next evaluation date
   const autoCalculateEvaluation = form.watch('autoCalculateEvaluation');
