@@ -53,6 +53,7 @@ const elementFormSchema = insertBuildingElementSchema.extend({
   access: z.enum(['not_restrained', 'restrained']).default('not_restrained'),
   charge: z.enum(['common', 'personnal']).default('common'),
   autoCalculateEvaluation: z.boolean().optional(),
+  quantity: z.coerce.number().min(1).max(1000).default(1), // Duplicate/quantity field
 });
 
 type ElementFormData = z.infer<typeof elementFormSchema>;
@@ -459,6 +460,7 @@ export function ElementForm({
       access: 'not_restrained',
       charge: 'common',
       autoCalculateEvaluation: true,
+      quantity: 1,
     },
   });
 
@@ -505,9 +507,11 @@ export function ElementForm({
         access: 'not_restrained',
         charge: 'common',
         autoCalculateEvaluation: true,
+        quantity: 1,
       });
       // Set default construction date from building's constructionYear or yearBuilt
-      const constructionYear = building?.constructionYear || building?.yearBuilt || building?.year;
+      const buildingData = building as any;
+      const constructionYear = buildingData?.constructionYear || buildingData?.yearBuilt || buildingData?.year;
       if (constructionYear) {
         const defaultConstructionDate = new Date(constructionYear, 0, 1); // January 1st of the year
         setConstructionDate(defaultConstructionDate);
@@ -738,9 +742,9 @@ export function ElementForm({
                     Building-wide element
                   </label>
                 </div>
-                {(residences?.data || []).length > 0 && (
+                {(residences || []).length > 0 && (
                   <div className="max-h-32 overflow-y-auto space-y-1">
-                    {(residences?.data || []).map((residence: any) => (
+                    {(residences || []).map((residence: any) => (
                       <div key={residence.id} className="flex items-center space-x-2 p-1">
                         <Checkbox
                           id={residence.id}
@@ -1099,6 +1103,34 @@ export function ElementForm({
             }}
             className="min-h-32"
           />
+        </div>
+
+        <Separator />
+
+        {/* Quantity/Duplicate Field */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium flex items-center gap-2">
+            <Calculator className="h-4 w-4" />
+            Element Quantity
+          </h4>
+          <FormFieldWrapper
+            form={form}
+            name="quantity"
+            label="Quantity (Duplicate)"
+            description="Number of identical elements to create (e.g., 30 windows, 5 doors)"
+          >
+            {(field) => (
+              <Input
+                {...field}
+                type="number"
+                min="1"
+                max="1000"
+                placeholder="1"
+                data-testid="element-quantity"
+                className="w-32"
+              />
+            )}
+          </FormFieldWrapper>
         </div>
 
         <Separator />
