@@ -514,11 +514,11 @@ export function ElementForm({
       const constructionYear = buildingData?.constructionYear || buildingData?.yearBuilt || buildingData?.year;
       if (constructionYear) {
         const defaultConstructionDate = new Date(constructionYear, 0, 1); // January 1st of the year
-        setConstructionDate(defaultConstructionDate);
+        form.setValue('originalConstructionDate', format(defaultConstructionDate, 'yyyy-MM-dd'));
       } else {
-        setConstructionDate(undefined);
+        form.setValue('originalConstructionDate', undefined);
       }
-      setNextEvaluationDate(undefined);
+      form.setValue('nextEvaluationDate', undefined);
     }
   }, [element, mode, buildingId, building, form]);
 

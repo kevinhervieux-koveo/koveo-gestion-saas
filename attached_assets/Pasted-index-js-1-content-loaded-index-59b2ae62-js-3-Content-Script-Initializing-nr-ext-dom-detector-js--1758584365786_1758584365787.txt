@@ -1,0 +1,154 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-VmYHzqew.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-VmYHzqew.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-VmYHzqew.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-CyOHqu2u.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-CyOHqu2u.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/f0e34e59-0d81-4c1a-b95f-e23dd1667a19/buildings
+index-B4XddGbm.js:136 ReferenceError: setConstructionDate is not defined
+    at index-VmYHzqew.js:12:22631
+    at Object.react_stack_bottom_frame (index-B4XddGbm.js:229:13437)
+    at q (index-B4XddGbm.js:45:108)
+    at sl (index-B4XddGbm.js:150:24688)
+    at Ah (index-B4XddGbm.js:163:1119)
+    at Lh (index-B4XddGbm.js:163:20517)
+    at Bo (index-B4XddGbm.js:163:20403)
+    at Lh (index-B4XddGbm.js:163:20768)
+    at Bo (index-B4XddGbm.js:163:20403)
+    at Lh (index-B4XddGbm.js:163:20503)
+
+The above error occurred in the <jt> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gR.
+
+overrideMethod @ hook.js:608
+oh @ index-B4XddGbm.js:136
+lh @ index-B4XddGbm.js:141
+q @ index-B4XddGbm.js:45
+l.componentDidCatch.e.callback @ index-B4XddGbm.js:141
+Dp @ index-B4XddGbm.js:107
+Ep @ index-B4XddGbm.js:107
+q @ index-B4XddGbm.js:45
+Dh @ index-B4XddGbm.js:163
+Nh @ index-B4XddGbm.js:163
+Qn @ index-B4XddGbm.js:163
+Nh @ index-B4XddGbm.js:163
+Qn @ index-B4XddGbm.js:163
+Nh @ index-B4XddGbm.js:163
+Qn @ index-B4XddGbm.js:163
+Nh @ index-B4XddGbm.js:163
+Qn @ index-B4XddGbm.js:163
+Nh @ index-B4XddGbm.js:163
+Qn @ index-B4XddGbm.js:163
+Nh @ index-B4XddGbm.js:163
+Qn @ index-B4XddGbm.js:163
+Nh @ index-B4XddGbm.js:163
+ng @ index-B4XddGbm.js:163
+ed @ index-B4XddGbm.js:163
+Xh @ index-B4XddGbm.js:163
+Ih @ index-B4XddGbm.js:163
+mg @ index-B4XddGbm.js:185
+ml @ index-B4XddGbm.js:185
+ag @ index-B4XddGbm.js:163
+ed @ index-B4XddGbm.js:163
+Xh @ index-B4XddGbm.js:163
+Ih @ index-B4XddGbm.js:163
+fg @ index-B4XddGbm.js:185
+d @ index-B4XddGbm.js:23
+<jt>
+du.jsxDEV @ index-B4XddGbm.js:15
+St @ index-VmYHzqew.js:12
+react_stack_bottom_frame @ index-B4XddGbm.js:229
+oc @ index-B4XddGbm.js:120
+kc @ index-B4XddGbm.js:141
+Pc @ index-B4XddGbm.js:150
+q @ index-B4XddGbm.js:45
+Kh @ index-B4XddGbm.js:163
+WS @ index-B4XddGbm.js:163
+KS @ index-B4XddGbm.js:163
+Ih @ index-B4XddGbm.js:163
+fg @ index-B4XddGbm.js:185
+d @ index-B4XddGbm.js:23
+<St>
+du.jsxDEV @ index-B4XddGbm.js:15
+Pt @ index-VmYHzqew.js:12
+react_stack_bottom_frame @ index-B4XddGbm.js:229
+oc @ index-B4XddGbm.js:120
+kc @ index-B4XddGbm.js:141
+Pc @ index-B4XddGbm.js:150
+q @ index-B4XddGbm.js:45
+Kh @ index-B4XddGbm.js:163
+WS @ index-B4XddGbm.js:163
+KS @ index-B4XddGbm.js:163
+Ih @ index-B4XddGbm.js:163
+fg @ index-B4XddGbm.js:185
+d @ index-B4XddGbm.js:23
+<Pt>
+du.jsxDEV @ index-B4XddGbm.js:15
+(anonymous) @ withHierarchicalSelection-CyOHqu2u.js:1
+react_stack_bottom_frame @ index-B4XddGbm.js:229
+oc @ index-B4XddGbm.js:120
+kc @ index-B4XddGbm.js:141
+Pc @ index-B4XddGbm.js:150
+q @ index-B4XddGbm.js:45
+Kh @ index-B4XddGbm.js:163
+WS @ index-B4XddGbm.js:163
+KS @ index-B4XddGbm.js:163
+Ih @ index-B4XddGbm.js:163
+fg @ index-B4XddGbm.js:185
+d @ index-B4XddGbm.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-B4XddGbm.js:240
+P @ index-B4XddGbm.js:240
+react_stack_bottom_frame @ index-B4XddGbm.js:229
+oc @ index-B4XddGbm.js:120
+kc @ index-B4XddGbm.js:141
+Pc @ index-B4XddGbm.js:150
+q @ index-B4XddGbm.js:45
+Kh @ index-B4XddGbm.js:163
+WS @ index-B4XddGbm.js:163
+KS @ index-B4XddGbm.js:163
+Ih @ index-B4XddGbm.js:163
+fg @ index-B4XddGbm.js:185
+d @ index-B4XddGbm.js:23
+<P>
+du.jsxDEV @ index-B4XddGbm.js:15
+ex @ index-B4XddGbm.js:384
+react_stack_bottom_frame @ index-B4XddGbm.js:229
+oc @ index-B4XddGbm.js:120
+kc @ index-B4XddGbm.js:141
+Pc @ index-B4XddGbm.js:150
+q @ index-B4XddGbm.js:45
+Kh @ index-B4XddGbm.js:163
+Jh @ index-B4XddGbm.js:163
+Wc @ index-B4XddGbm.js:163
+Ih @ index-B4XddGbm.js:163
+mg @ index-B4XddGbm.js:185
+ml @ index-B4XddGbm.js:185
+ad @ index-B4XddGbm.js:185
+(anonymous) @ index-B4XddGbm.js:185
+<ex>
+du.jsxDEV @ index-B4XddGbm.js:15
+tx @ index-B4XddGbm.js:384
+react_stack_bottom_frame @ index-B4XddGbm.js:229
+oc @ index-B4XddGbm.js:120
+kc @ index-B4XddGbm.js:141
+Pc @ index-B4XddGbm.js:150
+q @ index-B4XddGbm.js:45
+Kh @ index-B4XddGbm.js:163
+Jh @ index-B4XddGbm.js:163
+Wc @ index-B4XddGbm.js:163
+Ih @ index-B4XddGbm.js:163
+fg @ index-B4XddGbm.js:185
+d @ index-B4XddGbm.js:23
+<tx>
+du.jsxDEV @ index-B4XddGbm.js:15
+(anonymous) @ index-B4XddGbm.js:384
+withHierarchicalSelection-CyOHqu2u.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-CyOHqu2u.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
