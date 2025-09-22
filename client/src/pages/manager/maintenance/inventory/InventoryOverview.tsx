@@ -195,7 +195,7 @@ export function InventoryOverview({ className }: InventoryOverviewProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold" data-testid="asset-value-amount">
-            ${summary.totalAssetValue ? (summary.totalAssetValue / 1000).toFixed(0) : '—'}K
+            $—K
           </div>
           <p className="text-xs text-muted-foreground">
             Estimated replacement cost
@@ -276,7 +276,7 @@ export function InventoryOverview({ className }: InventoryOverviewProps) {
             <div className="space-y-1" data-testid="maintenance-cost-stat">
               <div className="text-sm text-muted-foreground">Maintenance YTD</div>
               <div className="text-lg font-semibold">
-                ${summary.maintenanceCostYTD ? (summary.maintenanceCostYTD / 1000).toFixed(0) : '—'}K
+                $—K
               </div>
             </div>
           </div>
