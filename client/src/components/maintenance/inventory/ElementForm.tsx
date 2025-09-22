@@ -424,6 +424,7 @@ export function ElementForm({
   const [constructionDate, setConstructionDate] = useState<Date | undefined>();
   const [nextEvaluationDate, setNextEvaluationDate] = useState<Date | undefined>();
   const [costEstimationDate, setCostEstimationDate] = useState<Date | undefined>(new Date()); // Default to today
+  const [isBuildingWideExplicit, setIsBuildingWideExplicit] = useState(true); // Track explicit building-wide choice
 
   // Fetch building data to get yearBuilt for default construction date
   const { data: building } = useQuery({
@@ -482,6 +483,9 @@ export function ElementForm({
       
       form.reset(formData);
       
+      // Set building-wide state based on existing element data
+      setIsBuildingWideExplicit(element.residenceIds?.length === 0 || !element.residenceIds);
+      
       if (element.originalConstructionDate) {
         setConstructionDate(new Date(element.originalConstructionDate));
       }
@@ -511,6 +515,10 @@ export function ElementForm({
         autoCalculateEvaluation: true,
         quantity: 1,
       });
+      
+      // Reset to building-wide by default for new elements
+      setIsBuildingWideExplicit(true);
+      
       // Set default construction date from building's constructionYear or yearBuilt
       const buildingData = building as any;
       const constructionYear = buildingData?.constructionYear || buildingData?.yearBuilt || buildingData?.year;
@@ -730,7 +738,7 @@ export function ElementForm({
           >
             {(field) => {
               const selectedResidenceIds = field.value || [];
-              const isBuildingWide = selectedResidenceIds.length === 0;
+              const isBuildingWide = isBuildingWideExplicit;
               
               // Get selected residences for display
               const selectedResidences = (residences || []).filter((residence: any) => 
@@ -745,10 +753,13 @@ export function ElementForm({
                       id="building-wide"
                       checked={isBuildingWide}
                       onCheckedChange={(checked) => {
-                        if (checked) {
+                        setIsBuildingWideExplicit(checked === true);
+                        if (checked === true) {
                           // Clear all residence selections when building-wide is selected
                           field.onChange([]);
                         }
+                        // When unchecking building-wide, keep current selection but allow changes
+                        // The user can then click the residence selector to choose specific residences
                       }}
                       data-testid="building-wide-checkbox"
                     />
