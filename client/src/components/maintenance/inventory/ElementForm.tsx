@@ -727,13 +727,13 @@ export function ElementForm({
             description="Select if this element is building-wide or specific to a residence"
           >
             {(field) => {
-              const currentValue = field.value.length === 0 ? "" : field.value[0];
+              const currentValue = field.value.length === 0 ? "building-wide" : field.value[0];
               
               return (
                 <Select 
                   onValueChange={(value) => {
                     // Convert single select value back to array format for compatibility
-                    field.onChange(value === "" ? [] : [value]);
+                    field.onChange(value === "building-wide" ? [] : [value]);
                   }}
                   value={currentValue}
                 >
@@ -741,7 +741,7 @@ export function ElementForm({
                     <SelectValue placeholder="Select residence assignment" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">
+                    <SelectItem value="building-wide">
                       Building-wide element
                     </SelectItem>
                     {(residences || []).map((residence: any) => (
