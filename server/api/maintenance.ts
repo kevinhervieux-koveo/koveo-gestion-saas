@@ -1628,7 +1628,6 @@ export function registerMaintenanceRoutes(app: Express): void {
             documentType: elementDocuments.documentType,
             fileName: elementDocuments.fileName,
             // description: elementDocuments.description, // Property doesn't exist
-            fileName: elementDocuments.fileName,
             fileSize: elementDocuments.fileSize,
             mimeType: elementDocuments.mimeType,
             uploadedBy: elementDocuments.uploadedBy,
