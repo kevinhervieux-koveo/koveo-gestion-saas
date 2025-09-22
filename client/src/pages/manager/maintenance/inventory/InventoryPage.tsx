@@ -371,4 +371,5 @@ const InventoryPage = withHierarchicalSelection(InventoryPageInner, {
   title: 'Inventory Management'
 });
 
+export { InventoryPage };
 export default InventoryPage;

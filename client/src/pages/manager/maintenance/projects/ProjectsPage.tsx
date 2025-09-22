@@ -496,4 +496,5 @@ const ProjectsPage = withHierarchicalSelection(ProjectsPageInner, {
   title: 'Projects Management'
 });
 
+export { ProjectsPage };
 export default ProjectsPage;
