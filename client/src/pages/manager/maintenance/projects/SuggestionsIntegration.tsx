@@ -208,7 +208,7 @@ export function SuggestionsIntegration({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] overflow-hidden flex flex-col" data-testid="suggestions-integration-dialog">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col" data-testid="suggestions-integration-dialog">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-yellow-500" />

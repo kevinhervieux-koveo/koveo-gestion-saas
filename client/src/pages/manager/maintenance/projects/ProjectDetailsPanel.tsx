@@ -149,7 +149,7 @@ export function ProjectDetailsPanel({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-[600px] sm:w-[700px] overflow-y-auto" data-testid="project-details-panel">
+      <SheetContent className="w-[600px] sm:w-[700px] max-h-[100vh] overflow-y-auto" data-testid="project-details-panel">
         <SheetHeader className="space-y-3">
           <div className="flex items-start justify-between">
             <div className="space-y-1 flex-1">
