@@ -14,6 +14,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UploadDropzone } from '@/components/maintenance/UploadDropzone';
+import { DollarSign } from 'lucide-react';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -26,6 +29,7 @@ import {
   Info,
   Calculator,
   Clock,
+  FileText,
 } from 'lucide-react';
 
 // Enhanced form schema with additional validation
@@ -40,6 +44,8 @@ const elementFormSchema = insertBuildingElementSchema.extend({
   unit: z.string().max(20).optional(),
   unitValue: z.coerce.number().min(0).optional(),
   notes: z.string().optional(),
+  reconstructionCost: z.coerce.number().min(0).optional(),
+  costEstimationDate: z.string().optional(),
   autoCalculateEvaluation: z.boolean().optional(),
 });
 
@@ -176,6 +182,61 @@ function UniformatCodeSelector({ value, onChange, error }: UniformatCodeSelector
       {error && (
         <div className="text-sm text-destructive">{error}</div>
       )}
+      
+      {/* UNIFORMAT Browser Dialog */}
+      <Dialog open={showBrowser} onOpenChange={setShowBrowser}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Browse UNIFORMAT Codes</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search UNIFORMAT codes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+              {isLoading ? (
+                <div className="col-span-full p-4 text-center text-sm text-muted-foreground">
+                  Loading UNIFORMAT codes...
+                </div>
+              ) : filteredCodes.length > 0 ? (
+                filteredCodes.map((code: any) => (
+                  <button
+                    key={code.code}
+                    type="button"
+                    className="p-3 text-left border rounded-lg hover:bg-muted transition-colors"
+                    onClick={() => {
+                      onChange(code.code);
+                      setShowBrowser(false);
+                      setSearchTerm('');
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="text-xs">{code.code}</Badge>
+                    </div>
+                    <div className="text-sm font-medium">{code.nameEn}</div>
+                    <div className="text-xs text-muted-foreground">{code.nameFr}</div>
+                    {code.typicalLifespan && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Typical: {code.typicalLifespan} years
+                      </div>
+                    )}
+                  </button>
+                ))
+              ) : (
+                <div className="col-span-full p-4 text-center text-sm text-muted-foreground">
+                  No matching codes found
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -197,6 +258,7 @@ export function ElementForm({
   const { toast } = useToast();
   const [constructionDate, setConstructionDate] = useState<Date | undefined>();
   const [nextEvaluationDate, setNextEvaluationDate] = useState<Date | undefined>();
+  const [costEstimationDate, setCostEstimationDate] = useState<Date | undefined>(new Date()); // Default to today
 
   const form = useForm<ElementFormData>({
     resolver: zodResolver(elementFormSchema),
@@ -211,6 +273,8 @@ export function ElementForm({
       unit: '',
       unitValue: undefined,
       notes: '',
+      reconstructionCost: undefined,
+      costEstimationDate: format(new Date(), 'yyyy-MM-dd'),
       autoCalculateEvaluation: true,
     },
   });
@@ -224,6 +288,8 @@ export function ElementForm({
         originalLifespan: element.originalLifespan || undefined,
         currentLifespan: element.currentLifespan || undefined,
         unitValue: element.unitValue ? Number(element.unitValue) : undefined,
+        reconstructionCost: element.reconstructionCost ? Number(element.reconstructionCost) : undefined,
+        costEstimationDate: element.costEstimationDate || format(new Date(), 'yyyy-MM-dd'),
         autoCalculateEvaluation: true,
       };
       
@@ -234,6 +300,9 @@ export function ElementForm({
       }
       if (element.nextEvaluationDate) {
         setNextEvaluationDate(new Date(element.nextEvaluationDate));
+      }
+      if (element.costEstimationDate) {
+        setCostEstimationDate(new Date(element.costEstimationDate));
       }
     } else if (mode === 'create') {
       form.reset({
@@ -288,6 +357,7 @@ export function ElementForm({
         ...data,
         originalConstructionDate: constructionDate ? format(constructionDate, 'yyyy-MM-dd') : null,
         nextEvaluationDate: nextEvaluationDate ? format(nextEvaluationDate, 'yyyy-MM-dd') : null,
+        costEstimationDate: costEstimationDate ? format(costEstimationDate, 'yyyy-MM-dd') : null,
       };
 
       if (mode === 'edit' && element) {
@@ -474,8 +544,7 @@ export function ElementForm({
               <FormFieldWrapper
                 form={form}
                 name="originalLifespan"
-                label="Years left to reconstruction (original)"
-                description="Based on original design lifespan"
+                label="Original Lifespan (years)"
               >
                 {(field) => (
                   <Input
@@ -483,7 +552,7 @@ export function ElementForm({
                     type="number"
                     min="1"
                     max="200"
-                    placeholder="15"
+                    placeholder="25"
                     data-testid="original-lifespan-input"
                   />
                 )}
@@ -492,8 +561,7 @@ export function ElementForm({
               <FormFieldWrapper
                 form={form}
                 name="currentLifespan"
-                label="Years left to reconstruction (current)"
-                description="After maintenance/rehab improvements"
+                label="Years left to reconstruction"
               >
                 {(field) => (
                   <Input
@@ -611,12 +679,93 @@ export function ElementForm({
           )}
         </div>
 
+        {/* Reconstruction Cost Section */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Reconstruction Evaluation
+          </h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormFieldWrapper
+              form={form}
+              name="reconstructionCost"
+              label="Reconstruction Cost"
+            >
+              {(field) => (
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    {...field}
+                    type="number"
+                    placeholder="0.00"
+                    className="pl-9"
+                    step="0.01"
+                    min="0"
+                    data-testid="reconstruction-cost-input"
+                  />
+                </div>
+              )}
+            </FormFieldWrapper>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Date of Estimation</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !costEstimationDate && "text-muted-foreground"
+                    )}
+                    data-testid="cost-estimation-date-button"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {costEstimationDate ? format(costEstimationDate, "PPP") : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={costEstimationDate}
+                    onSelect={setCostEstimationDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Document Upload Section */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Asset Documentation
+          </h4>
+          <p className="text-sm text-muted-foreground">
+            Upload pictures of the asset to help with identification and condition assessment.
+          </p>
+          <UploadDropzone
+            onFilesUploaded={(files) => {
+              // Handle file upload
+              console.log('Files uploaded:', files);
+            }}
+            acceptedFileTypes={['image/*', '.pdf']}
+            maxFiles={5}
+            className="min-h-32"
+          />
+        </div>
+
+        <Separator />
+
         {/* Notes */}
         <FormFieldWrapper
           form={form}
           name="notes"
           label="Notes"
-          description="Additional notes or observations"
         >
           {(field) => (
             <Textarea

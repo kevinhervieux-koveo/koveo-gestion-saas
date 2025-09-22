@@ -200,6 +200,8 @@ export const buildingElements = pgTable('building_elements', {
   unit: varchar('unit', { length: 20 }), // e.g., "m2", "m", "unit"
   unitValue: decimal('unit_value', { precision: 10, scale: 2 }), // quantity in specified unit
   notes: text('notes'),
+  reconstructionCost: decimal('reconstruction_cost', { precision: 10, scale: 2 }), // estimated reconstruction cost
+  costEstimationDate: date('cost_estimation_date'), // date when cost was estimated
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -387,6 +389,8 @@ export const insertBuildingElementSchema = createInsertSchema(buildingElements, 
   currentLifespan: z.number().int().positive().optional(),
   unit: z.string().max(20).optional(),
   unitValue: z.number().positive().optional(),
+  reconstructionCost: z.number().positive().optional(),
+  costEstimationDate: z.coerce.date().optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
 export const insertElementHistorySchema = createInsertSchema(elementHistory, {
