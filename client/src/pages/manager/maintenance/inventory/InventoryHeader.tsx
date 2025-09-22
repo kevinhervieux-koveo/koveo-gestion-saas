@@ -23,24 +23,20 @@ import {
   Plus,
   Search,
   Filter,
-  Download,
-  Upload,
-  ChevronRight,
-  Home,
+  ChevronLeft,
   Building,
-  Wrench,
   Package,
   AlertTriangle,
   Clock,
   CheckCircle,
-  MoreHorizontal,
 } from 'lucide-react';
 
 interface InventoryHeaderProps {
   className?: string;
+  buildingName?: string;
+  showBackButton?: boolean;
+  onBack?: () => void;
   onAddElement?: () => void;
-  onImportElements?: () => void;
-  onExportReport?: () => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
   conditionFilter?: string;
@@ -57,9 +53,10 @@ interface InventoryHeaderProps {
  */
 export function InventoryHeader({
   className,
+  buildingName,
+  showBackButton,
+  onBack,
   onAddElement,
-  onImportElements,
-  onExportReport,
   searchTerm = '',
   onSearchChange,
   conditionFilter = '',
@@ -81,20 +78,29 @@ export function InventoryHeader({
 
   return (
     <div className={cn('space-y-4 p-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60', className)}>
+      {/* Building Navigation Bar */}
+      {showBackButton && (
+        <div className="flex items-center gap-3 pb-2 border-b">
+          <Button variant="ghost" size="sm" onClick={onBack} data-testid="back-to-building">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Building
+          </Button>
+          {buildingName && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span>/</span>
+              <Building className="h-4 w-4" />
+              <span className="font-medium">{buildingName}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-foreground" data-testid="page-title">
-              Inventory - Building Elements
-            </h1>
-            {building && (
-              <Badge variant="outline" className="text-xs">
-                <Building className="h-3 w-3 mr-1" />
-                {building.name}
-              </Badge>
-            )}
-          </div>
+          <h1 className="text-2xl font-bold text-foreground" data-testid="page-title">
+            Inventory - Building Elements
+          </h1>
           <p className="text-muted-foreground">
             Manage building elements, track conditions, and schedule maintenance evaluations
           </p>
@@ -102,52 +108,7 @@ export function InventoryHeader({
 
         {/* Primary Actions */}
         <div className="flex items-center gap-2">
-          {availableBuildings.length > 1 && (
-            <Select
-              value={building?.id || ''}
-              onValueChange={setBuildingId}
-            >
-              <SelectTrigger className="w-48" data-testid="building-selector">
-                <SelectValue placeholder="Select building..." />
-              </SelectTrigger>
-              <SelectContent>
-                {availableBuildings.map((bldg) => (
-                  <SelectItem key={bldg.id} value={bldg.id}>
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4" />
-                      <span>{bldg.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" data-testid="actions-dropdown">
-                <MoreHorizontal className="h-4 w-4 mr-2" />
-                Actions
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onExportReport} data-testid="export-report-action">
-                <Download className="h-4 w-4 mr-2" />
-                Export Report
-              </DropdownMenuItem>
-              {canEdit && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onImportElements} data-testid="import-elements-action">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import Elements
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {canCreate && (
+          {onAddElement && (
             <Button onClick={onAddElement} data-testid="add-element-button">
               <Plus className="h-4 w-4 mr-2" />
               Add Element

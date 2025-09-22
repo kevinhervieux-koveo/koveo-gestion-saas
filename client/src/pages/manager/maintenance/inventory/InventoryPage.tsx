@@ -46,15 +46,17 @@ interface InventoryPageContentProps {
  * Main inventory page content component
  * Handles state management and component integration
  */
-function InventoryPageContent({ 
-  className, 
-  organizationId, 
-  buildingId, 
-  residenceId,
-  showBackButton,
-  backButtonLabel,
-  onBack
-}: InventoryPageContentProps) {
+function InventoryPageContent(props: InventoryPageContentProps) {
+  const { 
+    className, 
+    organizationId, 
+    buildingId, 
+    residenceId,
+    buildingName,
+    showBackButton,
+    backButtonLabel,
+    onBack
+  } = props;
   
   console.log('🏠 [INVENTORY PAGE] Initializing with:', { 
     organizationId, 
@@ -211,9 +213,10 @@ function InventoryPageContent({
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
       {/* Page Header */}
       <InventoryHeader
+        buildingName={props.buildingName}
+        showBackButton={showBackButton}
+        onBack={onBack}
         onAddElement={canCreate ? handleAddElement : undefined}
-        onImportElements={canEdit ? handleImportElements : undefined}
-        onExportReport={handleExportReport}
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         conditionFilter={conditionFilter}
