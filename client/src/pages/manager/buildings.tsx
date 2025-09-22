@@ -659,7 +659,8 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
 // Wrap with hierarchical selection HOC using 2-level hierarchy (organization → building)
 const Buildings = withHierarchicalSelection(BuildingsInner, {
-  hierarchy: ['organization']
+  hierarchy: ['organization'],
+  title: 'Buildings Management'
 });
 
 export default Buildings;

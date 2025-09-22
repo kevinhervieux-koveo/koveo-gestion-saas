@@ -367,7 +367,8 @@ function InventoryPageInner(props: InventoryPageContentProps) {
 
 // Wrap with hierarchical selection HOC using 2-level hierarchy (organization → building)
 const InventoryPage = withHierarchicalSelection(InventoryPageInner, {
-  hierarchy: ['organization', 'building']
+  hierarchy: ['organization', 'building'],
+  title: 'Inventory Management'
 });
 
 export default InventoryPage;

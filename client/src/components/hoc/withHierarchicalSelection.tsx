@@ -14,6 +14,8 @@ import { useAuth } from '@/hooks/use-auth';
 interface HierarchyConfig {
   hierarchy: ('organization' | 'building' | 'residence')[];
   checkResidenceAccess?: boolean;
+  title?: string; // Custom title for the page
+  subtitle?: string; // Custom subtitle for the page
 }
 
 /**
@@ -385,7 +387,7 @@ export function withHierarchicalSelection<T extends object>(
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={t('billsManagement' as any)} subtitle={t('selectOrganization' as any)} />
+          <Header title={config.title || t('buildingManagement' as any)} subtitle={t('selectOrganization' as any)} />
           <div className='flex-1 overflow-auto p-6'>
             <SelectionGrid
               title=""
@@ -415,7 +417,7 @@ export function withHierarchicalSelection<T extends object>(
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={t('billsManagement' as any)} subtitle={t('selectBuilding' as any)} />
+          <Header title={config.title || t('buildingManagement' as any)} subtitle={t('selectBuilding' as any)} />
           
           {/* Back to Organization Navigation - only show if user has multiple organizations */}
           {config.hierarchy.includes('organization') && organizations.length > 1 && (
@@ -464,7 +466,7 @@ export function withHierarchicalSelection<T extends object>(
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={t('billsManagement' as any)} subtitle={t('selectResidence' as any)} />
+          <Header title={config.title || t('buildingManagement' as any)} subtitle={t('selectResidence' as any)} />
           
           {/* Back to Building Navigation - only show if user has multiple buildings */}
           {showBackToBuilding && (
