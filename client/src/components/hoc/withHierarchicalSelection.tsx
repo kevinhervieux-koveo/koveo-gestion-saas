@@ -25,6 +25,7 @@ interface HierarchyProps {
   organizationId?: string;
   buildingId?: string;
   residenceId?: string;
+  buildingName?: string; // Add building name
   // Back navigation props
   showBackButton?: boolean;
   backButtonLabel?: string;
@@ -248,7 +249,7 @@ export function withHierarchicalSelection<T extends object>(
         console.log(`✅ [withHierarchicalSelection] Returning all ${allBuildings.length} buildings (non-residence page)`);
         return allBuildings;
       },
-      enabled: (currentLevel === 'building' || currentLevel === 'complete') && (!!organizationId || config.hierarchy.length === 1),
+      enabled: (currentLevel === 'building' || currentLevel === 'complete' || (buildingId && config.hierarchy.includes('building'))) && (!!organizationId || config.hierarchy.length === 1),
       staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
       gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
       retry: 2,
@@ -476,7 +477,7 @@ export function withHierarchicalSelection<T extends object>(
                 data-testid="button-back-to-building"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Building
+                {buildings.find(b => b.id === buildingId)?.name || 'Building'}
               </Button>
             </div>
           )}
@@ -495,6 +496,10 @@ export function withHierarchicalSelection<T extends object>(
     }
 
     // All required selections are complete - render the wrapped component
+    // Find building name from buildings data
+    const currentBuilding = buildings.find(b => b.id === buildingId);
+    const buildingName = currentBuilding?.name;
+
     // Determine back navigation props
     const getBackNavigationProps = () => {
       // For residents with building hierarchy, always show back button if they have a buildingId
@@ -502,7 +507,7 @@ export function withHierarchicalSelection<T extends object>(
       if (config.hierarchy.includes('building') && config.hierarchy.length === 1 && buildingId && buildings.length > 1) {
         return {
           showBackButton: true,
-          backButtonLabel: 'Building',
+          backButtonLabel: buildingName || 'Building',
           onBack: () => {
             const basePath = location.split('?')[0];
             window.history.pushState(null, '', basePath);
@@ -515,7 +520,7 @@ export function withHierarchicalSelection<T extends object>(
       if (config.hierarchy.includes('building') && buildings.length > 1 && buildingId) {
         return {
           showBackButton: true,
-          backButtonLabel: 'Building',
+          backButtonLabel: buildingName || 'Building',
           onBack: () => {
             navigate({ building: null, residence: null });
           }
@@ -546,6 +551,7 @@ export function withHierarchicalSelection<T extends object>(
         organizationId={organizationId || undefined}
         buildingId={buildingId || undefined}
         residenceId={residenceId || undefined}
+        buildingName={buildingName || undefined}
         {...backNavProps}
       />
     );

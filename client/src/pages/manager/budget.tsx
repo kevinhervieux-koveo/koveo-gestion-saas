@@ -62,6 +62,7 @@ import {
 interface BudgetProps {
   organizationId?: string;
   buildingId?: string;
+  buildingName?: string;
 }
 
 interface BankAccountSettings {

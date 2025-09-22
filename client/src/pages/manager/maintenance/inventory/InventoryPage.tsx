@@ -36,6 +36,7 @@ interface InventoryPageContentProps {
   organizationId?: string;
   buildingId?: string;
   residenceId?: string;
+  buildingName?: string;
   showBackButton?: boolean;
   backButtonLabel?: string;
   onBack?: () => void;

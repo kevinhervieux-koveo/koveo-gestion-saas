@@ -176,6 +176,7 @@ function withManagerAccess<P extends object>(Component: React.ComponentType<P>) 
 interface CommonSpacesStatsProps {
   organizationId?: string;
   buildingId?: string;
+  buildingName?: string;
 }
 
 /**

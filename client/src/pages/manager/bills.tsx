@@ -119,6 +119,7 @@ interface BillFilters {
 interface BillsProps {
   organizationId?: string;
   buildingId?: string;
+  buildingName?: string;
 }
 
 /**

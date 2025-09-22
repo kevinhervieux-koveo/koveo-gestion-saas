@@ -77,6 +77,7 @@ interface Residence {
 interface ManagerResidencesProps {
   organizationId?: string;
   buildingId?: string;
+  buildingName?: string;
   showBackButton?: boolean;
   backButtonLabel?: string;
   onBack?: () => void;
