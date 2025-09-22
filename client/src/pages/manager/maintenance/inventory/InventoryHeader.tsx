@@ -81,24 +81,6 @@ export function InventoryHeader({
 
   return (
     <div className={cn('space-y-4 p-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60', className)}>
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center space-x-2 text-sm text-muted-foreground" data-testid="breadcrumb-nav">
-        <Link href="/manager" className="flex items-center hover:text-foreground transition-colors">
-          <Home className="h-4 w-4 mr-1" />
-          Manager
-        </Link>
-        <ChevronRight className="h-4 w-4" />
-        <Link href="/manager/maintenance" className="flex items-center hover:text-foreground transition-colors">
-          <Wrench className="h-4 w-4 mr-1" />
-          Maintenance
-        </Link>
-        <ChevronRight className="h-4 w-4" />
-        <span className="flex items-center font-medium text-foreground">
-          <Package className="h-4 w-4 mr-1" />
-          Inventory
-        </span>
-      </nav>
-
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="space-y-1">
