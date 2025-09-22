@@ -39,6 +39,8 @@ import fs from 'fs';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { secureFileStorage } from '../services/secure-file-storage';
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
+import { maintenanceSuggestionService } from '../services/maintenanceSuggestionService';
+import { maintenanceJobsScheduler } from '../jobs/maintenanceJobs';
 
 // Security: Secure filename sanitization function
 function sanitizeFilename(filename: string): string {
@@ -122,6 +124,25 @@ const uploadRateLimit = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req: any) => {
     // Rate limit per authenticated user ID (preferred) or use IP as fallback with IPv6 support
+    return req.user?.id || ipKeyGenerator(req);
+  },
+  skip: (req: any) => {
+    return !req.user?.id;
+  }
+});
+
+// Security: Rate limiting for suggestion generation endpoint
+const suggestionGenerationRateLimit = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // Limit each user to 10 generation requests per hour
+  message: {
+    error: 'Too many generation requests',
+    message: 'Please wait before generating more suggestions',
+    code: 'RATE_LIMIT_EXCEEDED'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: any) => {
     return req.user?.id || ipKeyGenerator(req);
   },
   skip: (req: any) => {
@@ -3184,6 +3205,292 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.error('Error fetching maintenance dashboard:', error);
       res.status(500).json({
         error: 'Failed to fetch maintenance dashboard',
+        details: error.message
+      });
+    }
+  });
+
+  // ===========================================
+  // SMART EVALUATION SUGGESTIONS
+  // ===========================================
+
+  /**
+   * POST /api/maintenance/buildings/:buildingId/suggestions/generate - Generate maintenance suggestions
+   */
+  app.post('/api/maintenance/buildings/:buildingId/suggestions/generate', 
+    requireAuth, 
+    suggestionGenerationRateLimit, 
+    async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { buildingId } = req.params;
+      
+      // Security: Validate UUID format
+      if (!isValidUUID(buildingId)) {
+        return res.status(400).json({ 
+          error: 'Invalid building ID format',
+          code: 'INVALID_UUID'
+        });
+      }
+
+      // RBAC: Check building access
+      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to generate suggestions for this building',
+          code: 'ACCESS_DENIED'
+        });
+      }
+
+      // Validate building exists and is active
+      const building = await db
+        .select({ 
+          id: buildings.id, 
+          name: buildings.name,
+          isActive: buildings.isActive 
+        })
+        .from(buildings)
+        .where(eq(buildings.id, buildingId))
+        .limit(1);
+
+      if (building.length === 0) {
+        return res.status(404).json({
+          error: 'Building not found',
+          code: 'BUILDING_NOT_FOUND'
+        });
+      }
+
+      if (!building[0].isActive) {
+        return res.status(400).json({
+          error: 'Cannot generate suggestions for inactive building',
+          code: 'BUILDING_INACTIVE'
+        });
+      }
+
+      // Parse query parameters
+      const dryRun = req.query.dryRun === 'true';
+      const limit = req.query.limit ? parseInt(req.query.limit) : undefined;
+      const forceRegeneration = req.query.forceRegeneration === 'true';
+
+      // Validate limit parameter
+      if (limit && (isNaN(limit) || limit < 1 || limit > 1000)) {
+        return res.status(400).json({
+          error: 'Invalid limit parameter. Must be between 1 and 1000.',
+          code: 'INVALID_LIMIT'
+        });
+      }
+
+      console.log(`🔧 Starting suggestion generation for building ${buildingId} (${building[0].name})`);
+      console.log(`📊 Options: dryRun=${dryRun}, limit=${limit}, forceRegeneration=${forceRegeneration}`);
+
+      // Generate suggestions using the service
+      const result = await maintenanceSuggestionService.generateForBuilding(buildingId, {
+        dryRun,
+        limit,
+        forceRegeneration
+      });
+
+      // Log results for monitoring
+      console.log(`✅ Suggestion generation completed for building ${buildingId}:`);
+      console.log(`   Created: ${result.created}, Updated: ${result.updated}, Skipped: ${result.skipped}`);
+      console.log(`   Errors: ${result.errors.length}`);
+
+      // Response with comprehensive statistics
+      const response = {
+        success: true,
+        buildingId,
+        buildingName: building[0].name,
+        dryRun,
+        timestamp: new Date().toISOString(),
+        results: {
+          created: result.created,
+          updated: result.updated,
+          skipped: result.skipped,
+          total: result.created + result.updated + result.skipped,
+          errors: result.errors.length,
+        },
+        sampleSuggestions: result.sampleSuggestions.slice(0, 5), // Limit sample size
+        ...(result.errors.length > 0 && { 
+          errors: result.errors.slice(0, 10) // Limit error details
+        })
+      };
+
+      // Return appropriate status code
+      const statusCode = result.errors.length > 0 ? 207 : 200; // 207 Multi-Status if partial errors
+      
+      res.status(statusCode).json(response);
+
+    } catch (error: any) {
+      console.error('Error generating maintenance suggestions:', error);
+      
+      // Handle specific service errors
+      if (error.message.includes('Database connection')) {
+        return res.status(503).json({
+          error: 'Service temporarily unavailable',
+          code: 'SERVICE_UNAVAILABLE',
+          details: 'Database connection issue'
+        });
+      }
+
+      if (error.message.includes('Rate limit')) {
+        return res.status(429).json({
+          error: 'Rate limit exceeded',
+          code: 'RATE_LIMIT_EXCEEDED',
+          details: error.message
+        });
+      }
+
+      res.status(500).json({
+        error: 'Failed to generate maintenance suggestions',
+        code: 'GENERATION_ERROR',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/maintenance/jobs/suggestions/status - Get maintenance job status and health
+   */
+  app.get('/api/maintenance/jobs/suggestions/status', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Only admin and manager roles can access job status
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to view job status',
+          code: 'ACCESS_DENIED'
+        });
+      }
+
+      // Get job status from the scheduler
+      const status = await maintenanceJobsScheduler.getJobStatus();
+
+      // Add system health information
+      const systemInfo = {
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        timestamp: new Date().toISOString(),
+        timezone: 'America/Montreal'
+      };
+
+      res.json({
+        success: true,
+        data: {
+          scheduler: {
+            ...status,
+            enabled: true,
+            schedule: {
+              daily: 'Every day at 02:15 AM (America/Montreal)',
+              weekly: 'Saturdays at 03:00 AM (America/Montreal)'
+            }
+          },
+          system: systemInfo
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error fetching maintenance job status:', error);
+      res.status(500).json({
+        error: 'Failed to fetch job status',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/maintenance/jobs/suggestions/trigger - Manual trigger for maintenance suggestions
+   */
+  app.post('/api/maintenance/jobs/suggestions/trigger', 
+    requireAuth, 
+    suggestionGenerationRateLimit, 
+    async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Only admin and manager roles can trigger jobs
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to trigger maintenance jobs',
+          code: 'ACCESS_DENIED'
+        });
+      }
+
+      // Parse options from request body
+      const { buildingIds, organizationId, dryRun, limit } = req.body;
+
+      // Validate building access if specific buildings are provided
+      if (buildingIds && Array.isArray(buildingIds)) {
+        for (const buildingId of buildingIds) {
+          if (!isValidUUID(buildingId)) {
+            return res.status(400).json({
+              error: 'Invalid building ID format',
+              code: 'INVALID_UUID',
+              buildingId
+            });
+          }
+
+          const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+          if (!hasAccess) {
+            return res.status(403).json({
+              error: 'Insufficient permissions for specified building',
+              code: 'ACCESS_DENIED',
+              buildingId
+            });
+          }
+        }
+      }
+
+      console.log(`🔄 Manual trigger requested by user ${user.id} (${user.role})`);
+      console.log(`📊 Options: buildingIds=${buildingIds?.length || 'all'}, dryRun=${dryRun}, limit=${limit}`);
+
+      // Trigger the job
+      const result = await maintenanceJobsScheduler.triggerManual({
+        buildingIds,
+        organizationId,
+        dryRun,
+        limit
+      });
+
+      res.json({
+        success: true,
+        trigger: {
+          triggeredBy: user.id,
+          triggerTime: new Date().toISOString(),
+          options: {
+            buildingIds: buildingIds || null,
+            organizationId: organizationId || null,
+            dryRun: dryRun || false,
+            limit: limit || null
+          }
+        },
+        result
+      });
+
+    } catch (error: any) {
+      console.error('Error triggering maintenance job:', error);
+      
+      if (error.message.includes('already running')) {
+        return res.status(409).json({
+          error: 'Job is currently running',
+          code: 'JOB_RUNNING',
+          details: error.message
+        });
+      }
+
+      res.status(500).json({
+        error: 'Failed to trigger maintenance job',
+        code: 'TRIGGER_ERROR',
         details: error.message
       });
     }
