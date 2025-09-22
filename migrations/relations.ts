@@ -1,25 +1,59 @@
 import { relations } from "drizzle-orm/relations";
-import { users, bugs, documents, invoices, buildings, residences, featureRequests, improvementSuggestions, featureRequestUpvotes, passwordResetTokens, commonSpaces, userBookingRestrictions, organizations, userPermissions, permissions, capitalInvestments, userOrganizations, userTimeLimits, budgets, monthlyBudgets, userResidences, bills, payments, demands, notifications, maintenanceRequests, qualityIssues, metricPredictions, sslCertificates, invitations, invitationAuditLog, bookings, predictionValidations, features, actionableItems, rolePermissions, demandsComments } from "./schema";
+import { users, invoices, residences, buildings, documents, bills, payments, capitalInvestments, organizations, generalCommunications, meetings, userNotificationPreferences, maintenanceProjects, projectSteps, uniformatCodes, vendors, financialCache, features, actionableItems, notifications, permissions, userPermissions, rolePermissions, invitations, invitationAuditLog, sslCertificates, notificationDispatchLog, notificationConfigurations, passwordResetTokens, userResidences, userOrganizations, budgets, demands, improvementSuggestions, bugs, monthlyBudgets, demandsComments, commonSpaces, buildingElements, elementDocuments, elementHistory, userTimeLimits, bookings, userBookingRestrictions, maintenanceRequests, featureRequestUpvotes, featureRequests, evaluationSuggestions, predictionValidations, metricPredictions, qualityIssues, projectElements } from "./schema";
 
-export const bugsRelations = relations(bugs, ({one}) => ({
-	user_createdBy: one(users, {
-		fields: [bugs.createdBy],
-		references: [users.id],
-		relationName: "bugs_createdBy_users_id"
+export const invoicesRelations = relations(invoices, ({one}) => ({
+	user: one(users, {
+		fields: [invoices.createdBy],
+		references: [users.id]
 	}),
-	user_assignedTo: one(users, {
-		fields: [bugs.assignedTo],
-		references: [users.id],
-		relationName: "bugs_assignedTo_users_id"
+	residence: one(residences, {
+		fields: [invoices.residenceId],
+		references: [residences.id]
 	}),
-	user_resolvedBy: one(users, {
-		fields: [bugs.resolvedBy],
-		references: [users.id],
-		relationName: "bugs_resolvedBy_users_id"
+	building: one(buildings, {
+		fields: [invoices.buildingId],
+		references: [buildings.id]
+	}),
+	document: one(documents, {
+		fields: [invoices.documentId],
+		references: [documents.id]
 	}),
 }));
 
 export const usersRelations = relations(users, ({many}) => ({
+	invoices: many(invoices),
+	generalCommunications: many(generalCommunications),
+	meetings: many(meetings),
+	userNotificationPreferences: many(userNotificationPreferences),
+	actionableItems: many(actionableItems),
+	notifications: many(notifications),
+	userPermissions: many(userPermissions),
+	rolePermissions: many(rolePermissions),
+	invitationAuditLogs: many(invitationAuditLog),
+	sslCertificates: many(sslCertificates),
+	notificationDispatchLogs: many(notificationDispatchLog),
+	passwordResetTokens: many(passwordResetTokens),
+	userResidences: many(userResidences),
+	userOrganizations: many(userOrganizations),
+	budgets_approvedBy: many(budgets, {
+		relationName: "budgets_approvedBy_users_id"
+	}),
+	budgets_createdBy: many(budgets, {
+		relationName: "budgets_createdBy_users_id"
+	}),
+	demands_submitterId: many(demands, {
+		relationName: "demands_submitterId_users_id"
+	}),
+	demands_reviewedBy: many(demands, {
+		relationName: "demands_reviewedBy_users_id"
+	}),
+	notificationConfigurations: many(notificationConfigurations),
+	improvementSuggestions_suggestedBy: many(improvementSuggestions, {
+		relationName: "improvementSuggestions_suggestedBy_users_id"
+	}),
+	improvementSuggestions_assignedTo: many(improvementSuggestions, {
+		relationName: "improvementSuggestions_assignedTo_users_id"
+	}),
 	bugs_createdBy: many(bugs, {
 		relationName: "bugs_createdBy_users_id"
 	}),
@@ -29,7 +63,21 @@ export const usersRelations = relations(users, ({many}) => ({
 	bugs_resolvedBy: many(bugs, {
 		relationName: "bugs_resolvedBy_users_id"
 	}),
-	invoices: many(invoices),
+	bills: many(bills),
+	monthlyBudgets: many(monthlyBudgets),
+	demandsComments: many(demandsComments),
+	commonSpaces: many(commonSpaces),
+	elementDocuments: many(elementDocuments),
+	userTimeLimits: many(userTimeLimits),
+	bookings: many(bookings),
+	userBookingRestrictions: many(userBookingRestrictions),
+	maintenanceRequests_submittedBy: many(maintenanceRequests, {
+		relationName: "maintenanceRequests_submittedBy_users_id"
+	}),
+	maintenanceRequests_assignedTo: many(maintenanceRequests, {
+		relationName: "maintenanceRequests_assignedTo_users_id"
+	}),
+	featureRequestUpvotes: many(featureRequestUpvotes),
 	featureRequests_createdBy: many(featureRequests, {
 		relationName: "featureRequests_createdBy_users_id"
 	}),
@@ -39,68 +87,52 @@ export const usersRelations = relations(users, ({many}) => ({
 	featureRequests_reviewedBy: many(featureRequests, {
 		relationName: "featureRequests_reviewedBy_users_id"
 	}),
-	improvementSuggestions_suggestedBy: many(improvementSuggestions, {
-		relationName: "improvementSuggestions_suggestedBy_users_id"
-	}),
-	improvementSuggestions_assignedTo: many(improvementSuggestions, {
-		relationName: "improvementSuggestions_assignedTo_users_id"
-	}),
-	featureRequestUpvotes: many(featureRequestUpvotes),
-	passwordResetTokens: many(passwordResetTokens),
-	commonSpaces: many(commonSpaces),
-	userBookingRestrictions: many(userBookingRestrictions),
-	userPermissions: many(userPermissions),
-	userOrganizations: many(userOrganizations),
-	userTimeLimits: many(userTimeLimits),
-	budgets_approvedBy: many(budgets, {
-		relationName: "budgets_approvedBy_users_id"
-	}),
-	budgets_createdBy: many(budgets, {
-		relationName: "budgets_createdBy_users_id"
-	}),
-	monthlyBudgets: many(monthlyBudgets),
-	userResidences: many(userResidences),
-	bills: many(bills),
-	demands_submitterId: many(demands, {
-		relationName: "demands_submitterId_users_id"
-	}),
-	demands_reviewedBy: many(demands, {
-		relationName: "demands_reviewedBy_users_id"
-	}),
-	notifications: many(notifications),
-	maintenanceRequests_submittedBy: many(maintenanceRequests, {
-		relationName: "maintenanceRequests_submittedBy_users_id"
-	}),
-	maintenanceRequests_assignedTo: many(maintenanceRequests, {
-		relationName: "maintenanceRequests_assignedTo_users_id"
-	}),
-	qualityIssues: many(qualityIssues),
-	sslCertificates: many(sslCertificates),
-	invitationAuditLogs: many(invitationAuditLog),
-	bookings: many(bookings),
+	maintenanceProjects: many(maintenanceProjects),
 	predictionValidations: many(predictionValidations),
-	actionableItems: many(actionableItems),
-	rolePermissions: many(rolePermissions),
-	demandsComments: many(demandsComments),
+	qualityIssues: many(qualityIssues),
+	elementHistories: many(elementHistory),
 }));
 
-export const invoicesRelations = relations(invoices, ({one}) => ({
-	document: one(documents, {
-		fields: [invoices.documentId],
-		references: [documents.id]
-	}),
+export const residencesRelations = relations(residences, ({one, many}) => ({
+	invoices: many(invoices),
+	userResidences: many(userResidences),
 	building: one(buildings, {
-		fields: [invoices.buildingId],
+		fields: [residences.buildingId],
 		references: [buildings.id]
 	}),
-	residence: one(residences, {
-		fields: [invoices.residenceId],
-		references: [residences.id]
+	demands_assignationResidenceId: many(demands, {
+		relationName: "demands_assignationResidenceId_residences_id"
 	}),
-	user: one(users, {
-		fields: [invoices.createdBy],
-		references: [users.id]
+	demands_residenceId: many(demands, {
+		relationName: "demands_residenceId_residences_id"
 	}),
+	documents: many(documents),
+	maintenanceRequests: many(maintenanceRequests),
+}));
+
+export const buildingsRelations = relations(buildings, ({one, many}) => ({
+	invoices: many(invoices),
+	capitalInvestments: many(capitalInvestments),
+	financialCaches: many(financialCache),
+	residences: many(residences),
+	budgets: many(budgets),
+	demands_assignationBuildingId: many(demands, {
+		relationName: "demands_assignationBuildingId_buildings_id"
+	}),
+	demands_buildingId: many(demands, {
+		relationName: "demands_buildingId_buildings_id"
+	}),
+	notificationConfigurations: many(notificationConfigurations),
+	bills: many(bills),
+	organization: one(organizations, {
+		fields: [buildings.organizationId],
+		references: [organizations.id]
+	}),
+	monthlyBudgets: many(monthlyBudgets),
+	commonSpaces: many(commonSpaces),
+	documents: many(documents),
+	buildingElements: many(buildingElements),
+	maintenanceProjects: many(maintenanceProjects),
 }));
 
 export const documentsRelations = relations(documents, ({one, many}) => ({
@@ -115,217 +147,19 @@ export const documentsRelations = relations(documents, ({one, many}) => ({
 	}),
 }));
 
-export const buildingsRelations = relations(buildings, ({one, many}) => ({
-	invoices: many(invoices),
-	residences: many(residences),
-	commonSpaces: many(commonSpaces),
-	organization: one(organizations, {
-		fields: [buildings.organizationId],
-		references: [organizations.id]
-	}),
-	capitalInvestments: many(capitalInvestments),
-	budgets: many(budgets),
-	monthlyBudgets: many(monthlyBudgets),
-	bills: many(bills),
-	demands_assignationBuildingId: many(demands, {
-		relationName: "demands_assignationBuildingId_buildings_id"
-	}),
-	demands_buildingId: many(demands, {
-		relationName: "demands_buildingId_buildings_id"
-	}),
-	documents: many(documents),
-}));
-
-export const residencesRelations = relations(residences, ({one, many}) => ({
-	invoices: many(invoices),
-	building: one(buildings, {
-		fields: [residences.buildingId],
-		references: [buildings.id]
-	}),
-	userResidences: many(userResidences),
-	demands_assignationResidenceId: many(demands, {
-		relationName: "demands_assignationResidenceId_residences_id"
-	}),
-	demands_residenceId: many(demands, {
-		relationName: "demands_residenceId_residences_id"
-	}),
-	maintenanceRequests: many(maintenanceRequests),
-	documents: many(documents),
-}));
-
-export const featureRequestsRelations = relations(featureRequests, ({one, many}) => ({
-	user_createdBy: one(users, {
-		fields: [featureRequests.createdBy],
-		references: [users.id],
-		relationName: "featureRequests_createdBy_users_id"
-	}),
-	user_assignedTo: one(users, {
-		fields: [featureRequests.assignedTo],
-		references: [users.id],
-		relationName: "featureRequests_assignedTo_users_id"
-	}),
-	user_reviewedBy: one(users, {
-		fields: [featureRequests.reviewedBy],
-		references: [users.id],
-		relationName: "featureRequests_reviewedBy_users_id"
-	}),
-	featureRequestUpvotes: many(featureRequestUpvotes),
-}));
-
-export const improvementSuggestionsRelations = relations(improvementSuggestions, ({one}) => ({
-	user_suggestedBy: one(users, {
-		fields: [improvementSuggestions.suggestedBy],
-		references: [users.id],
-		relationName: "improvementSuggestions_suggestedBy_users_id"
-	}),
-	user_assignedTo: one(users, {
-		fields: [improvementSuggestions.assignedTo],
-		references: [users.id],
-		relationName: "improvementSuggestions_assignedTo_users_id"
-	}),
-}));
-
-export const featureRequestUpvotesRelations = relations(featureRequestUpvotes, ({one}) => ({
-	featureRequest: one(featureRequests, {
-		fields: [featureRequestUpvotes.featureRequestId],
-		references: [featureRequests.id]
-	}),
-	user: one(users, {
-		fields: [featureRequestUpvotes.userId],
-		references: [users.id]
-	}),
-}));
-
-export const passwordResetTokensRelations = relations(passwordResetTokens, ({one}) => ({
-	user: one(users, {
-		fields: [passwordResetTokens.userId],
-		references: [users.id]
-	}),
-}));
-
-export const commonSpacesRelations = relations(commonSpaces, ({one, many}) => ({
-	building: one(buildings, {
-		fields: [commonSpaces.buildingId],
-		references: [buildings.id]
-	}),
-	user: one(users, {
-		fields: [commonSpaces.contactPersonId],
-		references: [users.id]
-	}),
-	userBookingRestrictions: many(userBookingRestrictions),
-	userTimeLimits: many(userTimeLimits),
-	bookings: many(bookings),
-}));
-
-export const userBookingRestrictionsRelations = relations(userBookingRestrictions, ({one}) => ({
-	user: one(users, {
-		fields: [userBookingRestrictions.userId],
-		references: [users.id]
-	}),
-	commonSpace: one(commonSpaces, {
-		fields: [userBookingRestrictions.commonSpaceId],
-		references: [commonSpaces.id]
-	}),
-}));
-
-export const organizationsRelations = relations(organizations, ({many}) => ({
-	buildings: many(buildings),
-	userOrganizations: many(userOrganizations),
-}));
-
-export const userPermissionsRelations = relations(userPermissions, ({one}) => ({
-	user: one(users, {
-		fields: [userPermissions.userId],
-		references: [users.id]
-	}),
-	permission: one(permissions, {
-		fields: [userPermissions.permissionId],
-		references: [permissions.id]
-	}),
-}));
-
-export const permissionsRelations = relations(permissions, ({many}) => ({
-	userPermissions: many(userPermissions),
-	rolePermissions: many(rolePermissions),
-}));
-
-export const capitalInvestmentsRelations = relations(capitalInvestments, ({one}) => ({
-	building: one(buildings, {
-		fields: [capitalInvestments.buildingId],
-		references: [buildings.id]
-	}),
-}));
-
-export const userOrganizationsRelations = relations(userOrganizations, ({one}) => ({
-	user: one(users, {
-		fields: [userOrganizations.userId],
-		references: [users.id]
-	}),
-	organization: one(organizations, {
-		fields: [userOrganizations.organizationId],
-		references: [organizations.id]
-	}),
-}));
-
-export const userTimeLimitsRelations = relations(userTimeLimits, ({one}) => ({
-	user: one(users, {
-		fields: [userTimeLimits.userId],
-		references: [users.id]
-	}),
-	commonSpace: one(commonSpaces, {
-		fields: [userTimeLimits.commonSpaceId],
-		references: [commonSpaces.id]
-	}),
-}));
-
-export const budgetsRelations = relations(budgets, ({one}) => ({
-	building: one(buildings, {
-		fields: [budgets.buildingId],
-		references: [buildings.id]
-	}),
-	user_approvedBy: one(users, {
-		fields: [budgets.approvedBy],
-		references: [users.id],
-		relationName: "budgets_approvedBy_users_id"
-	}),
-	user_createdBy: one(users, {
-		fields: [budgets.createdBy],
-		references: [users.id],
-		relationName: "budgets_createdBy_users_id"
-	}),
-}));
-
-export const monthlyBudgetsRelations = relations(monthlyBudgets, ({one, many}) => ({
-	building: one(buildings, {
-		fields: [monthlyBudgets.buildingId],
-		references: [buildings.id]
-	}),
-	user: one(users, {
-		fields: [monthlyBudgets.approvedBy],
-		references: [users.id]
-	}),
-	monthlyBudget: one(monthlyBudgets, {
-		fields: [monthlyBudgets.originalBudgetId],
-		references: [monthlyBudgets.id],
-		relationName: "monthlyBudgets_originalBudgetId_monthlyBudgets_id"
-	}),
-	monthlyBudgets: many(monthlyBudgets, {
-		relationName: "monthlyBudgets_originalBudgetId_monthlyBudgets_id"
-	}),
-}));
-
-export const userResidencesRelations = relations(userResidences, ({one}) => ({
-	user: one(users, {
-		fields: [userResidences.userId],
-		references: [users.id]
-	}),
-	residence: one(residences, {
-		fields: [userResidences.residenceId],
-		references: [residences.id]
+export const paymentsRelations = relations(payments, ({one}) => ({
+	bill: one(bills, {
+		fields: [payments.billId],
+		references: [bills.id]
 	}),
 }));
 
 export const billsRelations = relations(bills, ({one, many}) => ({
+	payments: many(payments),
+	user: one(users, {
+		fields: [bills.createdBy],
+		references: [users.id]
+	}),
 	bill: one(bills, {
 		fields: [bills.sourceTemplateId],
 		references: [bills.id],
@@ -338,52 +172,121 @@ export const billsRelations = relations(bills, ({one, many}) => ({
 		fields: [bills.buildingId],
 		references: [buildings.id]
 	}),
+}));
+
+export const capitalInvestmentsRelations = relations(capitalInvestments, ({one}) => ({
+	building: one(buildings, {
+		fields: [capitalInvestments.buildingId],
+		references: [buildings.id]
+	}),
+}));
+
+export const generalCommunicationsRelations = relations(generalCommunications, ({one}) => ({
+	organization: one(organizations, {
+		fields: [generalCommunications.organizationId],
+		references: [organizations.id]
+	}),
 	user: one(users, {
-		fields: [bills.createdBy],
+		fields: [generalCommunications.createdBy],
 		references: [users.id]
 	}),
-	payments: many(payments),
 }));
 
-export const paymentsRelations = relations(payments, ({one}) => ({
-	bill: one(bills, {
-		fields: [payments.billId],
-		references: [bills.id]
+export const organizationsRelations = relations(organizations, ({many}) => ({
+	generalCommunications: many(generalCommunications),
+	meetings: many(meetings),
+	vendors: many(vendors),
+	userOrganizations: many(userOrganizations),
+	notificationConfigurations: many(notificationConfigurations),
+	buildings: many(buildings),
+}));
+
+export const meetingsRelations = relations(meetings, ({one}) => ({
+	organization: one(organizations, {
+		fields: [meetings.organizationId],
+		references: [organizations.id]
+	}),
+	user: one(users, {
+		fields: [meetings.createdBy],
+		references: [users.id]
 	}),
 }));
 
-export const demandsRelations = relations(demands, ({one, many}) => ({
-	user_submitterId: one(users, {
-		fields: [demands.submitterId],
-		references: [users.id],
-		relationName: "demands_submitterId_users_id"
+export const userNotificationPreferencesRelations = relations(userNotificationPreferences, ({one}) => ({
+	user: one(users, {
+		fields: [userNotificationPreferences.userId],
+		references: [users.id]
 	}),
-	residence_assignationResidenceId: one(residences, {
-		fields: [demands.assignationResidenceId],
-		references: [residences.id],
-		relationName: "demands_assignationResidenceId_residences_id"
+}));
+
+export const projectStepsRelations = relations(projectSteps, ({one}) => ({
+	maintenanceProject: one(maintenanceProjects, {
+		fields: [projectSteps.projectId],
+		references: [maintenanceProjects.id]
 	}),
-	building_assignationBuildingId: one(buildings, {
-		fields: [demands.assignationBuildingId],
-		references: [buildings.id],
-		relationName: "demands_assignationBuildingId_buildings_id"
+}));
+
+export const maintenanceProjectsRelations = relations(maintenanceProjects, ({one, many}) => ({
+	projectSteps: many(projectSteps),
+	evaluationSuggestions: many(evaluationSuggestions, {
+		relationName: "evaluationSuggestions_projectId_maintenanceProjects_id"
 	}),
-	residence_residenceId: one(residences, {
-		fields: [demands.residenceId],
-		references: [residences.id],
-		relationName: "demands_residenceId_residences_id"
+	building: one(buildings, {
+		fields: [maintenanceProjects.buildingId],
+		references: [buildings.id]
 	}),
-	building_buildingId: one(buildings, {
-		fields: [demands.buildingId],
-		references: [buildings.id],
-		relationName: "demands_buildingId_buildings_id"
+	evaluationSuggestion: one(evaluationSuggestions, {
+		fields: [maintenanceProjects.suggestionId],
+		references: [evaluationSuggestions.id],
+		relationName: "maintenanceProjects_suggestionId_evaluationSuggestions_id"
 	}),
-	user_reviewedBy: one(users, {
-		fields: [demands.reviewedBy],
-		references: [users.id],
-		relationName: "demands_reviewedBy_users_id"
+	user: one(users, {
+		fields: [maintenanceProjects.createdBy],
+		references: [users.id]
 	}),
-	demandsComments: many(demandsComments),
+	projectElements: many(projectElements),
+}));
+
+export const uniformatCodesRelations = relations(uniformatCodes, ({one, many}) => ({
+	uniformatCode: one(uniformatCodes, {
+		fields: [uniformatCodes.parentCode],
+		references: [uniformatCodes.code],
+		relationName: "uniformatCodes_parentCode_uniformatCodes_code"
+	}),
+	uniformatCodes: many(uniformatCodes, {
+		relationName: "uniformatCodes_parentCode_uniformatCodes_code"
+	}),
+	buildingElements: many(buildingElements),
+}));
+
+export const vendorsRelations = relations(vendors, ({one, many}) => ({
+	organization: one(organizations, {
+		fields: [vendors.organizationId],
+		references: [organizations.id]
+	}),
+	elementHistories: many(elementHistory),
+}));
+
+export const financialCacheRelations = relations(financialCache, ({one}) => ({
+	building: one(buildings, {
+		fields: [financialCache.buildingId],
+		references: [buildings.id]
+	}),
+}));
+
+export const actionableItemsRelations = relations(actionableItems, ({one}) => ({
+	feature: one(features, {
+		fields: [actionableItems.featureId],
+		references: [features.id]
+	}),
+	user: one(users, {
+		fields: [actionableItems.assignedTo],
+		references: [users.id]
+	}),
+}));
+
+export const featuresRelations = relations(features, ({many}) => ({
+	actionableItems: many(actionableItems),
 }));
 
 export const notificationsRelations = relations(notifications, ({one}) => ({
@@ -393,42 +296,29 @@ export const notificationsRelations = relations(notifications, ({one}) => ({
 	}),
 }));
 
-export const maintenanceRequestsRelations = relations(maintenanceRequests, ({one}) => ({
-	residence: one(residences, {
-		fields: [maintenanceRequests.residenceId],
-		references: [residences.id]
+export const userPermissionsRelations = relations(userPermissions, ({one}) => ({
+	permission: one(permissions, {
+		fields: [userPermissions.permissionId],
+		references: [permissions.id]
 	}),
-	user_submittedBy: one(users, {
-		fields: [maintenanceRequests.submittedBy],
-		references: [users.id],
-		relationName: "maintenanceRequests_submittedBy_users_id"
-	}),
-	user_assignedTo: one(users, {
-		fields: [maintenanceRequests.assignedTo],
-		references: [users.id],
-		relationName: "maintenanceRequests_assignedTo_users_id"
-	}),
-}));
-
-export const qualityIssuesRelations = relations(qualityIssues, ({one}) => ({
 	user: one(users, {
-		fields: [qualityIssues.detectedBy],
+		fields: [userPermissions.userId],
 		references: [users.id]
 	}),
-	metricPrediction: one(metricPredictions, {
-		fields: [qualityIssues.predictionId],
-		references: [metricPredictions.id]
+}));
+
+export const permissionsRelations = relations(permissions, ({many}) => ({
+	userPermissions: many(userPermissions),
+	rolePermissions: many(rolePermissions),
+}));
+
+export const rolePermissionsRelations = relations(rolePermissions, ({one}) => ({
+	permission: one(permissions, {
+		fields: [rolePermissions.permissionId],
+		references: [permissions.id]
 	}),
-}));
-
-export const metricPredictionsRelations = relations(metricPredictions, ({many}) => ({
-	qualityIssues: many(qualityIssues),
-	predictionValidations: many(predictionValidations),
-}));
-
-export const sslCertificatesRelations = relations(sslCertificates, ({one}) => ({
 	user: one(users, {
-		fields: [sslCertificates.createdBy],
+		fields: [rolePermissions.grantedBy],
 		references: [users.id]
 	}),
 }));
@@ -448,51 +338,167 @@ export const invitationsRelations = relations(invitations, ({many}) => ({
 	invitationAuditLogs: many(invitationAuditLog),
 }));
 
-export const bookingsRelations = relations(bookings, ({one}) => ({
-	commonSpace: one(commonSpaces, {
-		fields: [bookings.commonSpaceId],
-		references: [commonSpaces.id]
-	}),
+export const sslCertificatesRelations = relations(sslCertificates, ({one}) => ({
 	user: one(users, {
-		fields: [bookings.userId],
+		fields: [sslCertificates.createdBy],
 		references: [users.id]
 	}),
 }));
 
-export const predictionValidationsRelations = relations(predictionValidations, ({one}) => ({
-	metricPrediction: one(metricPredictions, {
-		fields: [predictionValidations.predictionId],
-		references: [metricPredictions.id]
+export const notificationDispatchLogRelations = relations(notificationDispatchLog, ({one}) => ({
+	user: one(users, {
+		fields: [notificationDispatchLog.userId],
+		references: [users.id]
+	}),
+	notificationConfiguration: one(notificationConfigurations, {
+		fields: [notificationDispatchLog.configurationId],
+		references: [notificationConfigurations.id]
+	}),
+}));
+
+export const notificationConfigurationsRelations = relations(notificationConfigurations, ({one, many}) => ({
+	notificationDispatchLogs: many(notificationDispatchLog),
+	organization: one(organizations, {
+		fields: [notificationConfigurations.organizationId],
+		references: [organizations.id]
+	}),
+	building: one(buildings, {
+		fields: [notificationConfigurations.buildingId],
+		references: [buildings.id]
 	}),
 	user: one(users, {
-		fields: [predictionValidations.validatorId],
+		fields: [notificationConfigurations.createdBy],
 		references: [users.id]
 	}),
 }));
 
-export const actionableItemsRelations = relations(actionableItems, ({one}) => ({
-	feature: one(features, {
-		fields: [actionableItems.featureId],
-		references: [features.id]
-	}),
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({one}) => ({
 	user: one(users, {
-		fields: [actionableItems.assignedTo],
+		fields: [passwordResetTokens.userId],
 		references: [users.id]
 	}),
 }));
 
-export const featuresRelations = relations(features, ({many}) => ({
-	actionableItems: many(actionableItems),
+export const userResidencesRelations = relations(userResidences, ({one}) => ({
+	user: one(users, {
+		fields: [userResidences.userId],
+		references: [users.id]
+	}),
+	residence: one(residences, {
+		fields: [userResidences.residenceId],
+		references: [residences.id]
+	}),
 }));
 
-export const rolePermissionsRelations = relations(rolePermissions, ({one}) => ({
-	permission: one(permissions, {
-		fields: [rolePermissions.permissionId],
-		references: [permissions.id]
-	}),
+export const userOrganizationsRelations = relations(userOrganizations, ({one}) => ({
 	user: one(users, {
-		fields: [rolePermissions.grantedBy],
+		fields: [userOrganizations.userId],
 		references: [users.id]
+	}),
+	organization: one(organizations, {
+		fields: [userOrganizations.organizationId],
+		references: [organizations.id]
+	}),
+}));
+
+export const budgetsRelations = relations(budgets, ({one}) => ({
+	user_approvedBy: one(users, {
+		fields: [budgets.approvedBy],
+		references: [users.id],
+		relationName: "budgets_approvedBy_users_id"
+	}),
+	user_createdBy: one(users, {
+		fields: [budgets.createdBy],
+		references: [users.id],
+		relationName: "budgets_createdBy_users_id"
+	}),
+	building: one(buildings, {
+		fields: [budgets.buildingId],
+		references: [buildings.id]
+	}),
+}));
+
+export const demandsRelations = relations(demands, ({one, many}) => ({
+	user_submitterId: one(users, {
+		fields: [demands.submitterId],
+		references: [users.id],
+		relationName: "demands_submitterId_users_id"
+	}),
+	user_reviewedBy: one(users, {
+		fields: [demands.reviewedBy],
+		references: [users.id],
+		relationName: "demands_reviewedBy_users_id"
+	}),
+	residence_assignationResidenceId: one(residences, {
+		fields: [demands.assignationResidenceId],
+		references: [residences.id],
+		relationName: "demands_assignationResidenceId_residences_id"
+	}),
+	residence_residenceId: one(residences, {
+		fields: [demands.residenceId],
+		references: [residences.id],
+		relationName: "demands_residenceId_residences_id"
+	}),
+	building_assignationBuildingId: one(buildings, {
+		fields: [demands.assignationBuildingId],
+		references: [buildings.id],
+		relationName: "demands_assignationBuildingId_buildings_id"
+	}),
+	building_buildingId: one(buildings, {
+		fields: [demands.buildingId],
+		references: [buildings.id],
+		relationName: "demands_buildingId_buildings_id"
+	}),
+	demandsComments: many(demandsComments),
+}));
+
+export const improvementSuggestionsRelations = relations(improvementSuggestions, ({one}) => ({
+	user_suggestedBy: one(users, {
+		fields: [improvementSuggestions.suggestedBy],
+		references: [users.id],
+		relationName: "improvementSuggestions_suggestedBy_users_id"
+	}),
+	user_assignedTo: one(users, {
+		fields: [improvementSuggestions.assignedTo],
+		references: [users.id],
+		relationName: "improvementSuggestions_assignedTo_users_id"
+	}),
+}));
+
+export const bugsRelations = relations(bugs, ({one}) => ({
+	user_createdBy: one(users, {
+		fields: [bugs.createdBy],
+		references: [users.id],
+		relationName: "bugs_createdBy_users_id"
+	}),
+	user_assignedTo: one(users, {
+		fields: [bugs.assignedTo],
+		references: [users.id],
+		relationName: "bugs_assignedTo_users_id"
+	}),
+	user_resolvedBy: one(users, {
+		fields: [bugs.resolvedBy],
+		references: [users.id],
+		relationName: "bugs_resolvedBy_users_id"
+	}),
+}));
+
+export const monthlyBudgetsRelations = relations(monthlyBudgets, ({one, many}) => ({
+	user: one(users, {
+		fields: [monthlyBudgets.approvedBy],
+		references: [users.id]
+	}),
+	building: one(buildings, {
+		fields: [monthlyBudgets.buildingId],
+		references: [buildings.id]
+	}),
+	monthlyBudget: one(monthlyBudgets, {
+		fields: [monthlyBudgets.originalBudgetId],
+		references: [monthlyBudgets.id],
+		relationName: "monthlyBudgets_originalBudgetId_monthlyBudgets_id"
+	}),
+	monthlyBudgets: many(monthlyBudgets, {
+		relationName: "monthlyBudgets_originalBudgetId_monthlyBudgets_id"
 	}),
 }));
 
@@ -504,5 +510,198 @@ export const demandsCommentsRelations = relations(demandsComments, ({one}) => ({
 	user: one(users, {
 		fields: [demandsComments.commenterId],
 		references: [users.id]
+	}),
+}));
+
+export const commonSpacesRelations = relations(commonSpaces, ({one, many}) => ({
+	user: one(users, {
+		fields: [commonSpaces.contactPersonId],
+		references: [users.id]
+	}),
+	building: one(buildings, {
+		fields: [commonSpaces.buildingId],
+		references: [buildings.id]
+	}),
+	userTimeLimits: many(userTimeLimits),
+	bookings: many(bookings),
+	userBookingRestrictions: many(userBookingRestrictions),
+}));
+
+export const elementDocumentsRelations = relations(elementDocuments, ({one}) => ({
+	buildingElement: one(buildingElements, {
+		fields: [elementDocuments.elementId],
+		references: [buildingElements.id]
+	}),
+	elementHistory: one(elementHistory, {
+		fields: [elementDocuments.historyId],
+		references: [elementHistory.id]
+	}),
+	user: one(users, {
+		fields: [elementDocuments.uploadedBy],
+		references: [users.id]
+	}),
+}));
+
+export const buildingElementsRelations = relations(buildingElements, ({one, many}) => ({
+	elementDocuments: many(elementDocuments),
+	building: one(buildings, {
+		fields: [buildingElements.buildingId],
+		references: [buildings.id]
+	}),
+	uniformatCode: one(uniformatCodes, {
+		fields: [buildingElements.uniformatCode],
+		references: [uniformatCodes.code]
+	}),
+	evaluationSuggestions: many(evaluationSuggestions),
+	elementHistories: many(elementHistory),
+	projectElements: many(projectElements),
+}));
+
+export const elementHistoryRelations = relations(elementHistory, ({one, many}) => ({
+	elementDocuments: many(elementDocuments),
+	buildingElement: one(buildingElements, {
+		fields: [elementHistory.elementId],
+		references: [buildingElements.id]
+	}),
+	vendor: one(vendors, {
+		fields: [elementHistory.vendorId],
+		references: [vendors.id]
+	}),
+	user: one(users, {
+		fields: [elementHistory.createdBy],
+		references: [users.id]
+	}),
+}));
+
+export const userTimeLimitsRelations = relations(userTimeLimits, ({one}) => ({
+	user: one(users, {
+		fields: [userTimeLimits.userId],
+		references: [users.id]
+	}),
+	commonSpace: one(commonSpaces, {
+		fields: [userTimeLimits.commonSpaceId],
+		references: [commonSpaces.id]
+	}),
+}));
+
+export const bookingsRelations = relations(bookings, ({one}) => ({
+	user: one(users, {
+		fields: [bookings.userId],
+		references: [users.id]
+	}),
+	commonSpace: one(commonSpaces, {
+		fields: [bookings.commonSpaceId],
+		references: [commonSpaces.id]
+	}),
+}));
+
+export const userBookingRestrictionsRelations = relations(userBookingRestrictions, ({one}) => ({
+	user: one(users, {
+		fields: [userBookingRestrictions.userId],
+		references: [users.id]
+	}),
+	commonSpace: one(commonSpaces, {
+		fields: [userBookingRestrictions.commonSpaceId],
+		references: [commonSpaces.id]
+	}),
+}));
+
+export const maintenanceRequestsRelations = relations(maintenanceRequests, ({one}) => ({
+	user_submittedBy: one(users, {
+		fields: [maintenanceRequests.submittedBy],
+		references: [users.id],
+		relationName: "maintenanceRequests_submittedBy_users_id"
+	}),
+	user_assignedTo: one(users, {
+		fields: [maintenanceRequests.assignedTo],
+		references: [users.id],
+		relationName: "maintenanceRequests_assignedTo_users_id"
+	}),
+	residence: one(residences, {
+		fields: [maintenanceRequests.residenceId],
+		references: [residences.id]
+	}),
+}));
+
+export const featureRequestUpvotesRelations = relations(featureRequestUpvotes, ({one}) => ({
+	user: one(users, {
+		fields: [featureRequestUpvotes.userId],
+		references: [users.id]
+	}),
+	featureRequest: one(featureRequests, {
+		fields: [featureRequestUpvotes.featureRequestId],
+		references: [featureRequests.id]
+	}),
+}));
+
+export const featureRequestsRelations = relations(featureRequests, ({one, many}) => ({
+	featureRequestUpvotes: many(featureRequestUpvotes),
+	user_createdBy: one(users, {
+		fields: [featureRequests.createdBy],
+		references: [users.id],
+		relationName: "featureRequests_createdBy_users_id"
+	}),
+	user_assignedTo: one(users, {
+		fields: [featureRequests.assignedTo],
+		references: [users.id],
+		relationName: "featureRequests_assignedTo_users_id"
+	}),
+	user_reviewedBy: one(users, {
+		fields: [featureRequests.reviewedBy],
+		references: [users.id],
+		relationName: "featureRequests_reviewedBy_users_id"
+	}),
+}));
+
+export const evaluationSuggestionsRelations = relations(evaluationSuggestions, ({one, many}) => ({
+	buildingElement: one(buildingElements, {
+		fields: [evaluationSuggestions.elementId],
+		references: [buildingElements.id]
+	}),
+	maintenanceProject: one(maintenanceProjects, {
+		fields: [evaluationSuggestions.projectId],
+		references: [maintenanceProjects.id],
+		relationName: "evaluationSuggestions_projectId_maintenanceProjects_id"
+	}),
+	maintenanceProjects: many(maintenanceProjects, {
+		relationName: "maintenanceProjects_suggestionId_evaluationSuggestions_id"
+	}),
+}));
+
+export const predictionValidationsRelations = relations(predictionValidations, ({one}) => ({
+	user: one(users, {
+		fields: [predictionValidations.validatorId],
+		references: [users.id]
+	}),
+	metricPrediction: one(metricPredictions, {
+		fields: [predictionValidations.predictionId],
+		references: [metricPredictions.id]
+	}),
+}));
+
+export const metricPredictionsRelations = relations(metricPredictions, ({many}) => ({
+	predictionValidations: many(predictionValidations),
+	qualityIssues: many(qualityIssues),
+}));
+
+export const qualityIssuesRelations = relations(qualityIssues, ({one}) => ({
+	user: one(users, {
+		fields: [qualityIssues.detectedBy],
+		references: [users.id]
+	}),
+	metricPrediction: one(metricPredictions, {
+		fields: [qualityIssues.predictionId],
+		references: [metricPredictions.id]
+	}),
+}));
+
+export const projectElementsRelations = relations(projectElements, ({one}) => ({
+	buildingElement: one(buildingElements, {
+		fields: [projectElements.elementId],
+		references: [buildingElements.id]
+	}),
+	maintenanceProject: one(maintenanceProjects, {
+		fields: [projectElements.projectId],
+		references: [maintenanceProjects.id]
 	}),
 }));
