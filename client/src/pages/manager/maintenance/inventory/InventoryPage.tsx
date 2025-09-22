@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { withMaintenanceNavigation } from '@/components/maintenance/navigation/MaintenanceNavigationHOC';
 
 // Import inventory components
 import { InventoryHeader } from './InventoryHeader';
@@ -376,7 +377,7 @@ function InventoryPageContent({ className }: InventoryPageContentProps) {
  * Main Inventory Page component with BuildingContext provider
  * Provides comprehensive building element inventory management
  */
-export function InventoryPage({ className }: { className?: string }) {
+function InventoryPageBase({ className }: { className?: string }) {
   return (
     <BuildingContextProvider>
       <div className={cn('flex-1 flex flex-col overflow-hidden bg-background', className)} data-testid="inventory-page">
@@ -385,5 +386,15 @@ export function InventoryPage({ className }: { className?: string }) {
     </BuildingContextProvider>
   );
 }
+
+// Apply HOC navigation to the inventory page
+export const InventoryPage = withMaintenanceNavigation(
+  InventoryPageBase,
+  'inventory',
+  {
+    title: 'Building Inventory',
+    description: 'Manage building elements, track conditions, and schedule maintenance activities according to Quebec standards.'
+  }
+);
 
 export default InventoryPage;

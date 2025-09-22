@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject, EvaluationSuggestion } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { withMaintenanceNavigation } from '@/components/maintenance/navigation/MaintenanceNavigationHOC';
 
 // Import projects page components
 import { ProjectsHeader } from './ProjectsHeader';
@@ -450,7 +451,7 @@ function ProjectsPageContent({ className }: ProjectsPageProps) {
  * Main Projects Page component with BuildingContext provider
  * Provides comprehensive maintenance project management
  */
-export function ProjectsPage({ className }: ProjectsPageProps) {
+function ProjectsPageBase({ className }: ProjectsPageProps) {
   return (
     <BuildingContextProvider>
       <div className={cn('flex-1 flex flex-col overflow-hidden bg-background', className)} data-testid="projects-page">
@@ -459,6 +460,16 @@ export function ProjectsPage({ className }: ProjectsPageProps) {
     </BuildingContextProvider>
   );
 }
+
+// Apply HOC navigation to the projects page
+export const ProjectsPage = withMaintenanceNavigation(
+  ProjectsPageBase,
+  'projects',
+  {
+    title: 'Maintenance Projects',
+    description: 'Plan, track, and manage maintenance projects with vendor coordination and budget tracking.'
+  }
+);
 
 export default ProjectsPage;
 export type { ProjectsPageProps };
