@@ -803,29 +803,16 @@ export function ElementForm({
                         <div className="p-4 space-y-4">
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium text-sm">Select Specific Residences</h4>
-                            <div className="flex gap-2">
-                              {selectedResidences.length > 0 && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => field.onChange([])}
-                                  data-testid="clear-all-residences"
-                                >
-                                  Clear all
-                                </Button>
-                              )}
+{selectedResidences.length > 0 && (
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                onClick={() => {
-                                  // Switch back to building-wide
-                                  field.onChange([]);
-                                }}
-                                data-testid="switch-to-building-wide"
+                                onClick={() => field.onChange([])}
+                                data-testid="clear-all-residences"
                               >
-                                Building-wide
+                                Clear all
                               </Button>
-                            </div>
+                            )}
                           </div>
                           
                           {/* Residence checkboxes */}
@@ -854,6 +841,11 @@ export function ElementForm({
                                           newIds = newIds.filter(id => id !== residence.id);
                                         }
                                         field.onChange(newIds);
+                                        
+                                        // Auto-uncheck building-wide when any residence is selected
+                                        if (newIds.length > 0) {
+                                          setIsBuildingWideExplicit(false);
+                                        }
                                       }}
                                       data-testid={`residence-checkbox-${residence.id}`}
                                     />
