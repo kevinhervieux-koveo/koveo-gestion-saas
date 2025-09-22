@@ -33,8 +33,9 @@ import {
   FileText,
 } from 'lucide-react';
 
-// Enhanced form schema with additional validation
-const elementFormSchema = insertBuildingElementSchema.extend({
+// Form schema based on the building element schema but with form-specific types
+const elementFormSchema = z.object({
+  buildingId: z.string().uuid(),
   uniformatCode: z.string().min(1, 'UNIFORMAT code is required'),
   name: z.string().min(1, 'Element name is required').max(200),
   description: z.string().optional(),
@@ -52,6 +53,7 @@ const elementFormSchema = insertBuildingElementSchema.extend({
   costEstimationDate: z.string().optional(),
   access: z.enum(['not_restrained', 'restrained']).default('not_restrained'),
   charge: z.enum(['common', 'personnal']).default('common'),
+  // Additional form-only fields
   autoCalculateEvaluation: z.boolean().optional(),
   quantity: z.coerce.number().min(1).max(1000).default(1), // Duplicate/quantity field
 });
@@ -724,34 +726,168 @@ export function ElementForm({
             form={form}
             name="residenceIds"
             label="Residence Assignment"
-            description="Select if this element is building-wide or specific to a residence"
+            description="Select if this element is building-wide or applies to specific residences"
           >
             {(field) => {
-              const currentValue = field.value.length === 0 ? "building-wide" : field.value[0];
+              const selectedResidenceIds = field.value || [];
+              const isBuildingWide = selectedResidenceIds.length === 0;
               
+              // Get selected residences for display
+              const selectedResidences = (residences || []).filter((residence: any) => 
+                selectedResidenceIds.includes(residence.id)
+              );
+
               return (
-                <Select 
-                  onValueChange={(value) => {
-                    // Convert single select value back to array format for compatibility
-                    field.onChange(value === "building-wide" ? [] : [value]);
-                  }}
-                  value={currentValue}
-                >
-                  <SelectTrigger data-testid="residence-select">
-                    <SelectValue placeholder="Select residence assignment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="building-wide">
+                <div className="space-y-2">
+                  {/* Building-wide option */}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="building-wide"
+                      checked={isBuildingWide}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          // Clear all residence selections when building-wide is selected
+                          field.onChange([]);
+                        }
+                      }}
+                      data-testid="building-wide-checkbox"
+                    />
+                    <label htmlFor="building-wide" className="text-sm font-medium">
                       Building-wide element
-                    </SelectItem>
-                    {(residences || []).map((residence: any) => (
-                      <SelectItem key={residence.id} value={residence.id}>
-                        Unit {residence.unitNumber}
-                        {residence.floor && ` (Floor ${residence.floor})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    </label>
+                  </div>
+
+                  {/* Residence selection popover */}
+                  <div className="space-y-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            isBuildingWide && "opacity-50"
+                          )}
+                          disabled={isBuildingWide}
+                          data-testid="residence-multi-select-trigger"
+                        >
+                          <span className="truncate">
+                            {isBuildingWide 
+                              ? "Building-wide element selected"
+                              : selectedResidences.length === 0
+                              ? "Select specific residences..."
+                              : selectedResidences.length === 1
+                              ? `Unit ${selectedResidences[0].unitNumber}`
+                              : `${selectedResidences.length} residences selected`
+                            }
+                          </span>
+                          <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-0" data-testid="residence-multi-select-content">
+                        <div className="p-4 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm">Select Residences</h4>
+                            {selectedResidences.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => field.onChange([])}
+                                data-testid="clear-all-residences"
+                              >
+                                Clear all
+                              </Button>
+                            )}
+                          </div>
+                          
+                          {/* Residence checkboxes */}
+                          <div className="max-h-64 overflow-y-auto space-y-2">
+                            {(residences || []).length === 0 ? (
+                              <div className="text-sm text-muted-foreground text-center py-4">
+                                No residences found
+                              </div>
+                            ) : (
+                              (residences || []).map((residence: any) => {
+                                const isSelected = selectedResidenceIds.includes(residence.id);
+                                return (
+                                  <div key={residence.id} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`residence-${residence.id}`}
+                                      checked={isSelected}
+                                      onCheckedChange={(checked) => {
+                                        let newIds = [...selectedResidenceIds];
+                                        if (checked) {
+                                          // Add residence to selection
+                                          if (!newIds.includes(residence.id)) {
+                                            newIds.push(residence.id);
+                                          }
+                                        } else {
+                                          // Remove residence from selection
+                                          newIds = newIds.filter(id => id !== residence.id);
+                                        }
+                                        field.onChange(newIds);
+                                      }}
+                                      data-testid={`residence-checkbox-${residence.id}`}
+                                    />
+                                    <label 
+                                      htmlFor={`residence-${residence.id}`}
+                                      className="text-sm cursor-pointer flex-1"
+                                    >
+                                      Unit {residence.unitNumber}
+                                      {residence.floor && (
+                                        <span className="text-muted-foreground ml-1">
+                                          (Floor {residence.floor})
+                                        </span>
+                                      )}
+                                    </label>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+
+                          {/* Selection summary */}
+                          {selectedResidences.length > 0 && (
+                            <div className="pt-2 border-t">
+                              <div className="text-xs text-muted-foreground mb-2">
+                                Selected ({selectedResidences.length}):
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {selectedResidences.map((residence: any) => (
+                                  <Badge key={residence.id} variant="secondary" className="text-xs">
+                                    {residence.unitNumber}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newIds = selectedResidenceIds.filter(id => id !== residence.id);
+                                        field.onChange(newIds);
+                                      }}
+                                      className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full w-3 h-3 flex items-center justify-center"
+                                      data-testid={`remove-residence-${residence.id}`}
+                                    >
+                                      ×
+                                    </button>
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {/* Selected residences display when closed */}
+                    {!isBuildingWide && selectedResidences.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2" data-testid="selected-residences-display">
+                        {selectedResidences.map((residence: any) => (
+                          <Badge key={residence.id} variant="outline" className="text-xs">
+                            Unit {residence.unitNumber}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               );
             }}
           </FormFieldWrapper>
