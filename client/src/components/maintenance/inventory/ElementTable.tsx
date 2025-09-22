@@ -496,16 +496,13 @@ export function ElementTable({
 
   return (
     <div className={cn('space-y-4', className)} data-testid="element-table">
+      {/* Empty state - no elements to display */}
       <div className="p-8 text-center space-y-4">
-        <Building className="h-16 w-16 text-muted-foreground mx-auto" />
+        <Package className="h-12 w-12 text-muted-foreground mx-auto" />
         <div>
-          <h3 className="text-lg font-semibold">Building Elements Inventory</h3>
+          <h3 className="text-lg font-semibold mb-2">No Elements Found</h3>
           <p className="text-muted-foreground">
-            Building ID: {buildingId}<br />
-            Organization ID: {organizationId}
-          </p>
-          <p className="text-sm text-green-600 mt-2">
-            ✅ Navigation working! Building and organization data received successfully.
+            Start building your inventory by adding building elements.
           </p>
         </div>
       </div>

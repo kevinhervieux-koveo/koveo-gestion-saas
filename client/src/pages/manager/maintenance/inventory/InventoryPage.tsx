@@ -1,8 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
@@ -29,6 +31,9 @@ import {
   RefreshCw,
   Package,
   X,
+  ChevronDown,
+  ChevronRight,
+  Database,
 } from 'lucide-react';
 
 interface InventoryPageContentProps {
@@ -57,6 +62,9 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     backButtonLabel,
     onBack
   } = props;
+  
+  // State for Building Elements section collapsible
+  const [buildingElementsExpanded, setBuildingElementsExpanded] = useState(false);
   
   console.log('🏠 [INVENTORY PAGE] Initializing with:', { 
     organizationId, 
@@ -235,14 +243,24 @@ function InventoryPageContent(props: InventoryPageContentProps) {
             <InventoryOverview />
 
             {/* Main Inventory Table */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Building Elements</h2>
-                {selectedElements.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {selectedElements.length} element(s) selected
-                    </span>
+            <Collapsible 
+              open={buildingElementsExpanded} 
+              onOpenChange={setBuildingElementsExpanded} 
+              className="space-y-4" 
+              data-testid="building-elements-section"
+            >
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Database className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="text-lg font-semibold">Building Elements</h2>
+                  {selectedElements.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {selectedElements.length} selected
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedElements.length > 0 && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -251,23 +269,35 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                     >
                       Clear Selection
                     </Button>
-                  </div>
-                )}
+                  )}
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" data-testid="building-elements-toggle">
+                      {buildingElementsExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">Toggle building elements table</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
               </div>
-
-              <ElementTable
-                buildingId={buildingId}
-                organizationId={organizationId}
-                onViewElement={handleViewElement}
-                onEditElement={canEdit ? handleEditElement : undefined}
-                onAddHistory={canEdit ? handleAddHistory : undefined}
-                onUploadDocuments={canManageDocuments ? handleUploadDocuments : undefined}
-                selectedElements={selectedElements}
-                onSelectionChange={handleSelectionChange}
-                enableBulkActions={canEdit}
-                data-testid="inventory-element-table"
-              />
-            </div>
+              
+              <CollapsibleContent className="space-y-4">
+                <ElementTable
+                  buildingId={buildingId}
+                  organizationId={organizationId}
+                  onViewElement={handleViewElement}
+                  onEditElement={canEdit ? handleEditElement : undefined}
+                  onAddHistory={canEdit ? handleAddHistory : undefined}
+                  onUploadDocuments={canManageDocuments ? handleUploadDocuments : undefined}
+                  selectedElements={selectedElements}
+                  onSelectionChange={handleSelectionChange}
+                  enableBulkActions={canEdit}
+                  data-testid="inventory-element-table"
+                />
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         </div>
       </div>
