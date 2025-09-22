@@ -698,12 +698,12 @@ export function ElementForm({
             description="Select a residence if this element is specific to a unit"
           >
             {(field) => (
-              <Select onValueChange={field.onChange} value={field.value || ''}>
+              <Select onValueChange={(value) => field.onChange(value === 'building-wide' ? null : value)} value={field.value || 'building-wide'}>
                 <SelectTrigger data-testid="residence-select">
                   <SelectValue placeholder="Building-wide element" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="building-wide">
                     <span className="text-muted-foreground">Building-wide element</span>
                   </SelectItem>
                   {(residences?.data || []).map((residence: any) => (
