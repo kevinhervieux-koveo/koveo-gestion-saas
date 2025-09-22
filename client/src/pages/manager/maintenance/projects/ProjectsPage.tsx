@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject, EvaluationSuggestion } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
-import { withMaintenanceNavigation } from '@/components/maintenance/navigation/MaintenanceNavigationHOC';
+import { withManagerNavigation } from '@/components/manager/navigation/ManagerNavigationHOC';
 
 // Import projects page components
 import { ProjectsHeader } from './ProjectsHeader';
@@ -514,12 +514,12 @@ function ProjectsPageBase({ className }: ProjectsPageProps) {
   );
 }
 
-// Apply HOC navigation to the projects page
-export const ProjectsPage = withMaintenanceNavigation(
+// Apply manager navigation HOC to the projects page
+export const ProjectsPage = withManagerNavigation(
   ProjectsPageBase,
-  'projects',
+  'maintenance',
   {
-    title: 'Projects Management',
+    title: 'Projects Management', 
     description: 'Plan, track, and manage maintenance projects with vendor coordination and budget tracking.'
   }
 );

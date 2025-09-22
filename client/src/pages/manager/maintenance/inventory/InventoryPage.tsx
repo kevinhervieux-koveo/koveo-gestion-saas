@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
-import { withMaintenanceNavigation } from '@/components/maintenance/navigation/MaintenanceNavigationHOC';
+import { withManagerNavigation } from '@/components/manager/navigation/ManagerNavigationHOC';
 
 // Import inventory components
 import { InventoryHeader } from './InventoryHeader';
@@ -387,10 +387,10 @@ function InventoryPageBase({ className }: { className?: string }) {
   );
 }
 
-// Apply HOC navigation to the inventory page
-export const InventoryPage = withMaintenanceNavigation(
+// Apply manager navigation HOC to the inventory page
+export const InventoryPage = withManagerNavigation(
   InventoryPageBase,
-  'inventory',
+  'maintenance',
   {
     title: 'Inventory Management',
     description: 'Manage building elements, track conditions, and schedule maintenance activities according to Quebec standards.'
