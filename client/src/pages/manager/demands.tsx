@@ -313,7 +313,7 @@ export default function ManagerDemandsPage() {
   if (isLoading) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('demandsManagement')} subtitle={t('demandsSubtitle')} />
+        <Header title="Demands Management" subtitle="Review and manage resident requests, maintenance demands, and service inquiries." />
         <div className='flex-1 overflow-auto p-6'>
           <div className='flex items-center justify-center h-64'>
             <div className='text-center'>{t('loadingDemands')}</div>
@@ -325,7 +325,7 @@ export default function ManagerDemandsPage() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('demandsManagement')} subtitle={t('demandsSubtitle')} />
+      <Header title="Demands Management" subtitle="Review and manage resident requests, maintenance demands, and service inquiries." />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>

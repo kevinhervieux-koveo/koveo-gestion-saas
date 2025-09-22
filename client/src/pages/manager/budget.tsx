@@ -2273,7 +2273,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   if (!buildingId) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('budgetDashboard')} subtitle={t('budgetSubtitle')} />
+        <Header title="Budget Management" subtitle="Plan and track financial budgets for property management with comprehensive forecasting and analysis." />
         <div className='flex-1 flex items-center justify-center'>
           <div className='text-center text-muted-foreground'>
             <DollarSign className='w-12 h-12 mx-auto mb-4' />
@@ -2286,7 +2286,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('budgetDashboard')} subtitle={t('budgetSubtitle')} />
+      <Header title="Budget Management" subtitle="Plan and track financial budgets for property management with comprehensive forecasting and analysis." />
       
       {/* Back Navigation */}
       {(organizationId || buildingId) && (
