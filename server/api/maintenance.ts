@@ -1468,13 +1468,34 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
+      // Determine document type based on MIME type and user input
+      let documentType: 'image' | 'pdf' | 'specification' | 'warranty' | 'report' = 'report'; // default
+      
+      // Check if user provided a specific document type
+      const userDocumentType = req.body.documentType;
+      const validDocumentTypes = ['image', 'pdf', 'specification', 'warranty', 'report'];
+      
+      if (userDocumentType && validDocumentTypes.includes(userDocumentType)) {
+        documentType = userDocumentType;
+      } else {
+        // Auto-categorize based on MIME type
+        if (file.mimetype.startsWith('image/')) {
+          documentType = 'image';
+        } else if (file.mimetype === 'application/pdf') {
+          documentType = 'pdf';
+        } else {
+          // Default to 'report' for other document types
+          documentType = 'report';
+        }
+      }
+      
       // Security: Store document metadata in transaction
       const [document] = await db.transaction(async (tx) => {
         return await tx
           .insert(elementDocuments)
           .values({
             elementId,
-            documentType: 'general',
+            documentType,
             title: req.body.title || file.originalname,
             description: req.body.description || null,
             filePath: storageResult.filePath!,
