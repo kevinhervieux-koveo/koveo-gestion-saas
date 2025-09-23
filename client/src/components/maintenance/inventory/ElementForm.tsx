@@ -37,7 +37,7 @@ const elementFormSchema = z.object({
   uniformatCode: z.string().min(1, 'UNIFORMAT code is required'),
   name: z.string().min(1, 'Element name is required').max(200),
   description: z.string().optional(),
-  residenceIds: z.array(z.string().uuid()).default([]), // Multi-select residence selection
+  residenceId: z.string().uuid().nullable().default(null), // Single residence selection, null for building-wide
   originalConstructionDate: z.string().optional(),
   lastInspectionDate: z.string().optional(),
   nextEvaluationDate: z.string().optional(),
@@ -445,7 +445,7 @@ export function ElementForm({
       buildingId: buildingId || '',
       name: '',
       description: '',
-      residenceIds: [],
+      residenceId: null,
       uniformatCode: '',
       originalConstructionDate: undefined,
       lastInspectionDate: undefined,
@@ -482,13 +482,13 @@ export function ElementForm({
       form.reset(formData);
       
       // Set building-wide state based on existing element data
-      setIsBuildingWideExplicit(element.residenceIds?.length === 0 || !element.residenceIds);
+      setIsBuildingWideExplicit(!element.residenceId);
     } else if (mode === 'create') {
       form.reset({
         buildingId: buildingId || '',
         name: '',
         description: '',
-        residenceIds: [],
+        residenceId: null,
         uniformatCode: '',
         originalLifespan: undefined,
         currentLifespan: undefined,
@@ -718,7 +718,7 @@ export function ElementForm({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormFieldWrapper
             form={form as any}
-            name="residenceIds"
+            name="residenceId"
             label="Residence Assignment"
             description="Select if this element is building-wide or applies to specific residences"
           >

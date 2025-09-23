@@ -202,7 +202,7 @@ export const buildingElements = pgTable('building_elements', {
   buildingId: text('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
-  residenceIds: text('residence_ids').array(), // Array of residence IDs, empty for building-wide elements
+  residenceId: text('residence_id'), // Single residence ID, null for building-wide elements
   uniformatCode: varchar('uniformat_code', { length: 10 })
     .notNull()
     .references(() => uniformatCodes.code),
@@ -227,7 +227,7 @@ export const buildingElements = pgTable('building_elements', {
 }, (table) => ({
   // Performance indexes (removed unique constraint to allow duplicates at level 3)
   buildingIdIdx: index('building_elements_building_id_idx').on(table.buildingId),
-  residenceIdsIdx: index('building_elements_residence_ids_idx').on(table.residenceIds),
+  residenceIdIdx: index('building_elements_residence_id_idx').on(table.residenceId),
   uniformatCodeIdx: index('building_elements_uniformat_code_idx').on(table.uniformatCode),
 }));
 
@@ -401,7 +401,7 @@ export const insertVendorSchema = createInsertSchema(vendors, {
 
 export const insertBuildingElementSchema = createInsertSchema(buildingElements, {
   buildingId: z.string().uuid(),
-  residenceIds: z.array(z.string().uuid()).default([]).optional(),
+  residenceId: z.string().uuid().nullable().optional(),
   uniformatCode: z.string().min(1).max(10),
   name: z.string().min(1).max(200),
   description: z.string().optional(),

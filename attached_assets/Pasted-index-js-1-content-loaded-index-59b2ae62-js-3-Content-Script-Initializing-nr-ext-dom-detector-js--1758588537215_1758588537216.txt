@@ -1,0 +1,265 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-CRQZK7O2.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-CRQZK7O2.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/f0e34e59-0d81-4c1a-b95f-e23dd1667a19/buildings
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-CRQZK7O2.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-CRQZK7O2.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-MAMjxxnk.js:185 [Violation] 'setTimeout' handler took 59ms
+index-MAMjxxnk.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-MAMjxxnk.js:186
+h1 @ index-MAMjxxnk.js:186
+q @ index-MAMjxxnk.js:45
+Qc @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+Vt @ index-MAMjxxnk.js:163
+zh @ index-MAMjxxnk.js:163
+tg @ index-MAMjxxnk.js:163
+ed @ index-MAMjxxnk.js:163
+Xh @ index-MAMjxxnk.js:163
+Ih @ index-MAMjxxnk.js:163
+mg @ index-MAMjxxnk.js:185
+ml @ index-MAMjxxnk.js:185
+jo @ index-MAMjxxnk.js:163
+Gm @ index-MAMjxxnk.js:83
+rd @ index-MAMjxxnk.js:185
+Ad @ index-MAMjxxnk.js:194
+L1 @ index-MAMjxxnk.js:194
+index-fBFt-zZS.js:12 Document uploaded: {file: File, text: null}
+index-MAMjxxnk.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/buildings/ae3a1c02-67bb-49eb-9fa6-c63627274d4f/elements 400 (Bad Request)
+sx @ index-MAMjxxnk.js:240
+mutationFn @ index-fBFt-zZS.js:12
+fn @ vendor-query-7MgX5BiQ.js:1
+y @ vendor-query-7MgX5BiQ.js:1
+start @ vendor-query-7MgX5BiQ.js:1
+execute @ vendor-query-7MgX5BiQ.js:1
+await in execute
+mutate @ vendor-query-7MgX5BiQ.js:1
+m @ index-fBFt-zZS.js:12
+J @ index-H7NKseL2.js:41
+(anonymous) @ vendor-forms-gPm21tRI.js:1
+await in (anonymous)
+lr @ index-MAMjxxnk.js:185
+q @ index-MAMjxxnk.js:45
+yg @ index-MAMjxxnk.js:185
+(anonymous) @ index-MAMjxxnk.js:185
+Gm @ index-MAMjxxnk.js:83
+rd @ index-MAMjxxnk.js:185
+Ad @ index-MAMjxxnk.js:194
+L1 @ index-MAMjxxnk.js:194
+index-H7NKseL2.js:41 Form submission error: Error: 400: {"error":"Invalid input detected","message":"The request contains potentially harmful content","code":"DANGEROUS_INPUT"}
+    at k0 (index-MAMjxxnk.js:240:6803)
+    at async sx (index-MAMjxxnk.js:240:7065)
+    at async Object.mutationFn (index-fBFt-zZS.js:12:23276)
+overrideMethod @ hook.js:608
+J @ index-H7NKseL2.js:41
+await in J
+(anonymous) @ vendor-forms-gPm21tRI.js:1
+await in (anonymous)
+lr @ index-MAMjxxnk.js:185
+q @ index-MAMjxxnk.js:45
+yg @ index-MAMjxxnk.js:185
+(anonymous) @ index-MAMjxxnk.js:185
+Gm @ index-MAMjxxnk.js:83
+rd @ index-MAMjxxnk.js:185
+Ad @ index-MAMjxxnk.js:194
+L1 @ index-MAMjxxnk.js:194
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-MAMjxxnk.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/buildings/ae3a1c02-67bb-49eb-9fa6-c63627274d4f/elements 500 (Internal Server Error)
+sx @ index-MAMjxxnk.js:240
+mutationFn @ index-fBFt-zZS.js:12
+fn @ vendor-query-7MgX5BiQ.js:1
+y @ vendor-query-7MgX5BiQ.js:1
+start @ vendor-query-7MgX5BiQ.js:1
+execute @ vendor-query-7MgX5BiQ.js:1
+await in execute
+mutate @ vendor-query-7MgX5BiQ.js:1
+m @ index-fBFt-zZS.js:12
+J @ index-H7NKseL2.js:41
+(anonymous) @ vendor-forms-gPm21tRI.js:1
+await in (anonymous)
+lr @ index-MAMjxxnk.js:185
+q @ index-MAMjxxnk.js:45
+yg @ index-MAMjxxnk.js:185
+(anonymous) @ index-MAMjxxnk.js:185
+Gm @ index-MAMjxxnk.js:83
+rd @ index-MAMjxxnk.js:185
+Ad @ index-MAMjxxnk.js:194
+L1 @ index-MAMjxxnk.js:194
+index-H7NKseL2.js:41 Form submission error: Error: 500: {"error":"Failed to create building element","details":"Failed query: insert into \"building_elements\" (\"id\", \"building_id\", \"residence_ids\", \"uniformat_code\", \"name\", \"description\", \"original_construction_date\", \"original_lifespan\", \"current_lifespan\", \"current_condition\", \"last_inspection_date\", \"next_evaluation_date\", \"unit\", \"unit_value\", \"notes\", \"reconstruction_cost\", \"cost_estimation_date\", \"access\", \"charge\", \"is_active\", \"created_at\", \"updated_at\") values (default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, default, $13, $14, $15, $16, $17, default, default, default) returning \"id\", \"building_id\", \"residence_ids\", \"uniformat_code\", \"name\", \"description\", \"original_construction_date\", \"original_lifespan\", \"current_lifespan\", \"current_condition\", \"last_inspection_date\", \"next_evaluation_date\", \"unit\", \"unit_value\", \"notes\", \"reconstruction_cost\", \"cost_estimation_date\", \"access\", \"charge\", \"is_active\", \"created_at\", \"updated_at\"\nparams: ae3a1c02-67bb-49eb-9fa6-c63627274d4f,{},B3010,Roof Coverings,Roof Coverings,Sat Mar 05 2005 00:00:00 GMT+0000 (Coordinated Universal Time),25,6,fair,,Tue Sep 22 2026 00:00:00 GMT+0000 (Coordinated Universal Time),,Roof Coverings,25000,Mon Sep 22 2025 00:00:00 GMT+0000 (Coordinated Universal Time),not_restrained,common"}
+    at k0 (index-MAMjxxnk.js:240:6803)
+    at async sx (index-MAMjxxnk.js:240:7065)
+    at async Object.mutationFn (index-fBFt-zZS.js:12:23276)
+overrideMethod @ hook.js:608
+J @ index-H7NKseL2.js:41
+await in J
+(anonymous) @ vendor-forms-gPm21tRI.js:1
+await in (anonymous)
+lr @ index-MAMjxxnk.js:185
+q @ index-MAMjxxnk.js:45
+yg @ index-MAMjxxnk.js:185
+(anonymous) @ index-MAMjxxnk.js:185
+Gm @ index-MAMjxxnk.js:83
+rd @ index-MAMjxxnk.js:185
+Ad @ index-MAMjxxnk.js:194
+L1 @ index-MAMjxxnk.js:194
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-fBFt-zZS.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
