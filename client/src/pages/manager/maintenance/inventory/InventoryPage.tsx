@@ -289,7 +289,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-auto">
-          <div className="space-y-6">
+          <div className="p-6 space-y-6">
             {/* Overview Cards */}
             <InventoryOverview 
               buildingId={buildingId}
@@ -342,9 +342,9 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                 </div>
               </div>
               
-              <CollapsibleContent>
+              <CollapsibleContent className="space-y-4">
                 {/* Controls Section */}
-                <div className="p-4 bg-muted/25 rounded-lg border">
+                <div>
                   <div className="flex flex-wrap items-center gap-3">
                     {/* Search Bar */}
                     <div className="relative flex-1 min-w-[280px] max-w-md">
@@ -444,7 +444,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
                 {/* Expanded Filters */}
                 {filtersOpen && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg border" data-testid="expanded-filters">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg border mt-4" data-testid="expanded-filters">
                     {/* Condition Filter */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Condition</label>
