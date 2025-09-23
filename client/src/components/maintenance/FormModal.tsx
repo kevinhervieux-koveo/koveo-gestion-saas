@@ -47,7 +47,7 @@ interface FormModalProps<T extends FieldValues> {
   isSubmitting?: boolean;
   submitLabel?: string;
   cancelLabel?: string;
-  mode?: 'create' | 'edit';
+  mode?: 'create' | 'edit' | 'view';
   
   // Error handling
   error?: string | null;
@@ -154,6 +154,11 @@ export function FormModal<T extends FieldValues>({
                     Edit Mode
                   </Badge>
                 )}
+                {mode === 'view' && (
+                  <Badge variant="outline" className="ml-2">
+                    View Mode
+                  </Badge>
+                )}
               </DialogTitle>
               {description && (
                 <DialogDescription className="mt-2" data-testid="modal-description">
@@ -226,20 +231,22 @@ export function FormModal<T extends FieldValues>({
                     {cancelLabel}
                   </Button>
                   
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting || hasFormErrors}
-                    data-testid="submit-button"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        {mode === 'create' ? 'Creating...' : 'Saving...'}
-                      </>
-                    ) : (
-                      finalSubmitLabel
-                    )}
-                  </Button>
+                  {mode !== 'view' && (
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting || hasFormErrors}
+                      data-testid="submit-button"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {mode === 'create' ? 'Creating...' : 'Saving...'}
+                        </>
+                      ) : (
+                        finalSubmitLabel
+                      )}
+                    </Button>
+                  )}
                 </div>
               </div>
             </DialogFooter>

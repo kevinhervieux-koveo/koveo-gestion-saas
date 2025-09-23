@@ -63,7 +63,7 @@ interface ElementFormProps {
   onOpenChange: (open: boolean) => void;
   element?: BuildingElement | null;
   onSuccess?: (element: BuildingElement) => void;
-  mode?: 'create' | 'edit';
+  mode?: 'create' | 'edit' | 'view';
   buildingId?: string;
   organizationId?: string;
 }
@@ -74,9 +74,10 @@ interface UniformatCodeSelectorProps {
   onChange: (value: string) => void;
   onCodeSelect?: (codeData: any) => void; // For auto-suggest functionality
   error?: string;
+  disabled?: boolean;
 }
 
-function UniformatCodeSelector({ value, onChange, onCodeSelect, error }: UniformatCodeSelectorProps) {
+function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled = false }: UniformatCodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBrowser, setShowBrowser] = useState(false);
   const [selectedLevel1, setSelectedLevel1] = useState<string | null>(null);
@@ -156,6 +157,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error }: Uniform
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
             data-testid="uniformat-search"
+            disabled={disabled}
           />
         </div>
         <Button
@@ -163,6 +165,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error }: Uniform
           variant="outline"
           onClick={() => setShowBrowser(true)}
           data-testid="browse-uniformat-button"
+          disabled={disabled}
         >
           <Building className="h-4 w-4 mr-2" />
           Browse
@@ -186,7 +189,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error }: Uniform
       )}
 
       {/* Search results */}
-      {searchTerm && (
+      {searchTerm && !disabled && (
         <div className="border rounded-lg max-h-48 overflow-y-auto">
           {isLoading ? (
             <div className="p-3 text-center text-sm text-muted-foreground">
@@ -231,7 +234,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error }: Uniform
       )}
       
       {/* UNIFORMAT Browser Dialog */}
-      <Dialog open={showBrowser} onOpenChange={(open) => {
+      <Dialog open={showBrowser && !disabled} onOpenChange={(open) => {
         setShowBrowser(open);
         if (!open) resetBrowserNavigation();
       }}>
@@ -549,6 +552,9 @@ export function ElementForm({
     }
   }, [autoCalculateEvaluation, currentLifespan, originalLifespan, selectedCondition, form]);
 
+  // Check if form should be disabled
+  const isFormDisabled = mode === 'view';
+
   // Create/update mutation
   const mutation = useMutation({
     mutationFn: async (data: ElementFormData) => {
@@ -630,6 +636,7 @@ export function ElementForm({
               onChange={field.onChange}
               onCodeSelect={handleUniformatCodeSelect}
               error={form.formState.errors.uniformatCode?.message}
+              disabled={isFormDisabled}
             />
           )}
         </FormFieldWrapper>
@@ -653,6 +660,7 @@ export function ElementForm({
                 }}
                 placeholder="e.g., Exterior Wall - North"
                 data-testid="element-name-input"
+                disabled={isFormDisabled}
               />
             )}
           </FormFieldWrapper>
@@ -664,7 +672,7 @@ export function ElementForm({
             required
           >
             {(field) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
                 <SelectTrigger data-testid="condition-select">
                   <SelectValue placeholder="Select condition" />
                 </SelectTrigger>
@@ -750,6 +758,7 @@ export function ElementForm({
                         }
                       }}
                       data-testid="building-wide-checkbox"
+                      disabled={isFormDisabled}
                     />
                     <label htmlFor="building-wide" className="text-sm font-medium">
                       Building-wide element
@@ -769,6 +778,7 @@ export function ElementForm({
                           setIsBuildingWideExplicit(false);
                         }
                       }}
+                      disabled={isFormDisabled}
                     >
                       <SelectTrigger data-testid="residence-select-trigger">
                         <SelectValue placeholder="Select residence assignment" />
@@ -813,7 +823,7 @@ export function ElementForm({
             required
           >
             {(field) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
                 <SelectTrigger data-testid="access-select">
                   <SelectValue placeholder="Select access type" />
                 </SelectTrigger>
@@ -843,7 +853,7 @@ export function ElementForm({
             required
           >
             {(field) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
                 <SelectTrigger data-testid="charge-select">
                   <SelectValue placeholder="Select charge type" />
                 </SelectTrigger>
@@ -887,6 +897,7 @@ export function ElementForm({
                   type="date"
                   max={format(new Date(), 'yyyy-MM-dd')}
                   data-testid="construction-date-input"
+                  disabled={isFormDisabled}
                 />
               )}
             </FormFieldWrapper>
@@ -905,6 +916,7 @@ export function ElementForm({
                     max="200"
                     placeholder="25"
                     data-testid="original-lifespan-input"
+                    disabled={isFormDisabled}
                   />
                 )}
               </FormFieldWrapper>
@@ -922,6 +934,7 @@ export function ElementForm({
                     max="200"
                     placeholder="20"
                     data-testid="current-lifespan-input"
+                    disabled={isFormDisabled}
                   />
                 )}
               </FormFieldWrapper>
@@ -952,6 +965,7 @@ export function ElementForm({
                   step="0.01"
                   placeholder="100"
                   data-testid="unit-value-input"
+                  disabled={isFormDisabled}
                 />
               )}
             </FormFieldWrapper>
@@ -997,6 +1011,7 @@ export function ElementForm({
                     onChange={(e) => form.setValue('autoCalculateEvaluation', e.target.checked)}
                     className="rounded"
                     data-testid="auto-calculate-checkbox"
+                    disabled={isFormDisabled}
                   />
                   <span className="text-xs text-muted-foreground">Auto-calculate</span>
                 </div>
@@ -1006,7 +1021,7 @@ export function ElementForm({
                 {...field}
                 type="date"
                 min={format(new Date(), 'yyyy-MM-dd')}
-                disabled={autoCalculateEvaluation}
+                disabled={autoCalculateEvaluation || isFormDisabled}
                 data-testid="evaluation-date-input"
               />
               
@@ -1044,6 +1059,7 @@ export function ElementForm({
                     step="0.01"
                     min="0"
                     data-testid="reconstruction-cost-input"
+                    disabled={isFormDisabled}
                   />
                 </div>
               )}
@@ -1060,6 +1076,7 @@ export function ElementForm({
                   type="date"
                   max={format(new Date(), 'yyyy-MM-dd')}
                   data-testid="cost-estimation-date-input"
+                  disabled={isFormDisabled}
                 />
               )}
             </FormFieldWrapper>
@@ -1124,6 +1141,7 @@ export function ElementForm({
                 placeholder="1"
                 data-testid="element-quantity"
                 className="w-32"
+                disabled={isFormDisabled}
               />
             )}
           </FormFieldWrapper>
@@ -1143,6 +1161,7 @@ export function ElementForm({
               placeholder="Any additional notes about this element..."
               rows={3}
               data-testid="element-notes"
+              disabled={isFormDisabled}
             />
           )}
         </FormFieldWrapper>
