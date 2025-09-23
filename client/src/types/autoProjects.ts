@@ -26,6 +26,12 @@ export const acceptAutoProjectSchema = z.object({
   plannedStartDate: z.date().optional(),
   plannedEndDate: z.date().optional(),
   vendorId: z.string().uuid().optional(),
+  // New workflow fields
+  planningDescription: z.string().max(2000, 'Planning description must be less than 2000 characters').optional(),
+  workStartDate: z.date().optional(),
+  skipSubmission: z.boolean().optional(),
+  skipPreWork: z.boolean().optional(),
+  skipPostWork: z.boolean().optional(),
 }).refine((data) => {
   // End date must be after start date
   if (data.plannedStartDate && data.plannedEndDate) {
@@ -35,6 +41,15 @@ export const acceptAutoProjectSchema = z.object({
 }, {
   message: "End date must be after start date",
   path: ["plannedEndDate"],
+}).refine((data) => {
+  // Work start date should be after planned start date if both are provided
+  if (data.plannedStartDate && data.workStartDate) {
+    return data.workStartDate >= data.plannedStartDate;
+  }
+  return true;
+}, {
+  message: "Work start date should be on or after planned start date",
+  path: ["workStartDate"],
 });
 
 /**

@@ -151,6 +151,11 @@ export function AutoProjectDialog({
         type: autoProject.suggestedType,
         priority: autoProject.suggestedPriority,
         totalBudget: autoProject.estimatedCost ? parseFloat(autoProject.estimatedCost) : undefined,
+        // Set default workflow fields for auto-projects
+        planningDescription: autoProject.description,
+        skipSubmission: true, // Auto-projects typically skip submission
+        skipPreWork: false,
+        skipPostWork: false,
       });
     }
   }, [autoProject, editForm, acceptForm]);
@@ -643,6 +648,165 @@ export function AutoProjectDialog({
                           </FormItem>
                         )}
                       />
+                    </div>
+
+                    {/* Planning Description Field */}
+                    <FormField
+                      control={acceptForm.control}
+                      name="planningDescription"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Planning Description</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              {...field} 
+                              rows={3} 
+                              placeholder="Detailed planning description for the project..."
+                              data-testid={`accept-planning-description-${autoProject.id}`} 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            This will be used as the project's planning description in the workflow.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Work Start Date */}
+                    <FormField
+                      control={acceptForm.control}
+                      name="workStartDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Work Start Date (Optional)</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    'w-full pl-3 text-left font-normal',
+                                    !field.value && 'text-muted-foreground'
+                                  )}
+                                  data-testid={`accept-work-start-date-${autoProject.id}`}
+                                >
+                                  {field.value ? (
+                                    format(field.value, 'PPP')
+                                  ) : (
+                                    <span>Select work start date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date < new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormDescription>
+                            When did or will the actual work begin? Leave empty if not yet determined.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Workflow Skip Options */}
+                    <div className="border rounded-lg p-4 space-y-4">
+                      <h4 className="font-medium text-sm flex items-center gap-2">
+                        <Zap className="h-4 w-4" />
+                        Workflow Configuration
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        Configure which workflow steps should be skipped for this auto-generated project.
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <FormField
+                          control={acceptForm.control}
+                          name="skipSubmission"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value || false}
+                                  onChange={field.onChange}
+                                  className="mt-1"
+                                  data-testid={`accept-skip-submission-${autoProject.id}`}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-normal">
+                                  Skip Submission Phase
+                                </FormLabel>
+                                <FormDescription className="text-xs">
+                                  Skip vendor submissions (default for auto-projects)
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={acceptForm.control}
+                          name="skipPreWork"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value || false}
+                                  onChange={field.onChange}
+                                  className="mt-1"
+                                  data-testid={`accept-skip-prework-${autoProject.id}`}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-normal">
+                                  Skip Pre-Work Phase
+                                </FormLabel>
+                                <FormDescription className="text-xs">
+                                  Skip pre-work preparations
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={acceptForm.control}
+                          name="skipPostWork"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  checked={field.value || false}
+                                  onChange={field.onChange}
+                                  className="mt-1"
+                                  data-testid={`accept-skip-postwork-${autoProject.id}`}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-normal">
+                                  Skip Post-Work Phase
+                                </FormLabel>
+                                <FormDescription className="text-xs">
+                                  Skip post-work documentation
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
 
                     {vendors.length > 0 && (

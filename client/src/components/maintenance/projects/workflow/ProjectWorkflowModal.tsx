@@ -1,0 +1,289 @@
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { WorkflowTabNavigation } from './WorkflowTabNavigation';
+import { PlannedTab } from './PlannedTab';
+import { SubmissionTab } from './SubmissionTab';
+import { PreWorkTab } from './PreWorkTab';
+import { InProgressTab } from './InProgressTab';
+import { PostWorkTab } from './PostWorkTab';
+import { CompleteTab } from './CompleteTab';
+import { cn } from '@/lib/utils';
+import {
+  AlertTriangle,
+  Building2,
+  CheckCircle2,
+  Clock,
+  Settings,
+  Users,
+} from 'lucide-react';
+
+export interface ProjectWorkflowModalProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  project: MaintenanceProject;
+  initialTab?: string; // Optional tab to open first
+  onProjectUpdate?: (project: MaintenanceProject) => void;
+}
+
+const TAB_CONFIG = {
+  planned: {
+    id: 'planned',
+    label: 'Planned',
+    icon: Settings,
+    description: 'Project planning and setup',
+  },
+  submission: {
+    id: 'submission',
+    label: 'Submission',
+    icon: Users,
+    description: 'Vendor submissions and selection',
+  },
+  pre_work: {
+    id: 'pre_work',
+    label: 'Pre-Work',
+    icon: Clock,
+    description: 'Preparation and coordination',
+  },
+  in_progress: {
+    id: 'in_progress',
+    label: 'In Progress',
+    icon: Building2,
+    description: 'Active work execution',
+  },
+  post_work: {
+    id: 'post_work',
+    label: 'Post-Work',
+    icon: CheckCircle2,
+    description: 'Cleanup and finalization',
+  },
+  completed: {
+    id: 'completed',
+    label: 'Complete',
+    icon: CheckCircle2,
+    description: 'Project completion and summary',
+  },
+} as const;
+
+/**
+ * Main workflow modal for managing project lifecycle
+ * Provides tabbed interface based on current project status and skip flags
+ */
+export function ProjectWorkflowModal({
+  isOpen,
+  onOpenChange,
+  project,
+  initialTab,
+  onProjectUpdate,
+}: ProjectWorkflowModalProps) {
+  // Fetch workflow state
+  const {
+    data: workflowState,
+    isLoading: isLoadingWorkflow,
+    error: workflowError,
+    refetch: refetchWorkflow,
+  } = useProjectWorkflowState(project.id);
+
+  // Current active tab state
+  const [activeTab, setActiveTab] = useState<string>('');
+
+  // Set initial active tab when workflow state loads
+  useEffect(() => {
+    if (workflowState && !activeTab) {
+      // Use initialTab if provided and accessible, otherwise use first incomplete tab
+      const targetTab = initialTab && workflowState.accessibleTabs.includes(initialTab)
+        ? initialTab
+        : workflowState.firstIncompleteTab;
+      
+      setActiveTab(targetTab);
+    }
+  }, [workflowState, activeTab, initialTab]);
+
+  // Reset active tab when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveTab('');
+    }
+  }, [isOpen]);
+
+  // Handle workflow updates
+  const handleWorkflowUpdate = () => {
+    refetchWorkflow();
+    if (onProjectUpdate && workflowState?.project) {
+      onProjectUpdate(workflowState.project);
+    }
+  };
+
+  // Handle tab change
+  const handleTabChange = (tabId: string) => {
+    if (workflowState?.accessibleTabs.includes(tabId)) {
+      setActiveTab(tabId);
+    }
+  };
+
+  // Render tab content based on active tab
+  const renderTabContent = () => {
+    if (!workflowState || !activeTab) return null;
+
+    const tabProps = {
+      project: workflowState.project,
+      workflowState,
+      onUpdate: handleWorkflowUpdate,
+    };
+
+    switch (activeTab) {
+      case 'planned':
+        return <PlannedTab {...tabProps} />;
+      case 'submission':
+        return <SubmissionTab {...tabProps} />;
+      case 'pre_work':
+        return <PreWorkTab {...tabProps} />;
+      case 'in_progress':
+        return <InProgressTab {...tabProps} />;
+      case 'post_work':
+        return <PostWorkTab {...tabProps} />;
+      case 'completed':
+        return <CompleteTab {...tabProps} />;
+      default:
+        return (
+          <Alert className="m-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Unknown tab: {activeTab}. Please select a valid workflow tab.
+            </AlertDescription>
+          </Alert>
+        );
+    }
+  };
+
+  // Loading state
+  if (isLoadingWorkflow) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden" data-testid="workflow-modal-loading">
+          <DialogHeader>
+            <DialogTitle>
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-6 w-6" />
+                <Skeleton className="h-6 w-48" />
+              </div>
+            </DialogTitle>
+            <DialogDescription>
+              <Skeleton className="h-4 w-64" />
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col space-y-6">
+            {/* Tab Navigation Skeleton */}
+            <div className="flex space-x-1 rounded-lg border bg-muted p-1">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-24" />
+              ))}
+            </div>
+            
+            {/* Content Skeleton */}
+            <div className="flex-1 space-y-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-32 w-full" />
+              <div className="grid grid-cols-2 gap-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Error state
+  if (workflowError) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl" data-testid="workflow-modal-error">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Workflow Error
+            </DialogTitle>
+            <DialogDescription>
+              Unable to load project workflow information
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              {workflowError.message || 'Failed to load workflow state. Please try again.'}
+            </AlertDescription>
+          </Alert>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (!workflowState) return null;
+
+  const currentTabConfig = TAB_CONFIG[activeTab as keyof typeof TAB_CONFIG];
+  const CurrentTabIcon = currentTabConfig?.icon || Settings;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent 
+        className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col" 
+        data-testid="project-workflow-modal"
+      >
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center gap-3">
+            <CurrentTabIcon className="h-6 w-6 text-primary" />
+            <div className="flex flex-col">
+              <span className="text-lg font-semibold">
+                {workflowState.project.title}
+              </span>
+              <span className="text-sm text-muted-foreground font-normal">
+                Project #{workflowState.project.projectNumber}
+              </span>
+            </div>
+          </DialogTitle>
+          <DialogDescription className="flex items-center gap-2">
+            <span>
+              {currentTabConfig?.description || 'Managing project workflow'}
+            </span>
+            {workflowState.currentStatus !== 'completed' && (
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                Status: {workflowState.currentStatus.replace('_', ' ')}
+              </span>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Tab Navigation */}
+        <div className="flex-shrink-0 border-b">
+          <WorkflowTabNavigation
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            workflowState={workflowState}
+            tabConfig={TAB_CONFIG}
+          />
+        </div>
+
+        {/* Tab Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {renderTabContent()}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

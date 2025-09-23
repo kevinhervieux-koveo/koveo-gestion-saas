@@ -15,6 +15,9 @@ import {
   projectSteps,
   projectElements,
   elementDocuments,
+  submissionVendors,
+  workflowTasks,
+  projectNotifications,
   // Import the types
   type UniformatCode,
   type Vendor,
@@ -33,6 +36,12 @@ import {
   type InsertProjectStep,
   type ElementDocument,
   type InsertElementDocument,
+  type SubmissionVendor,
+  type InsertSubmissionVendor,
+  type WorkflowTask,
+  type InsertWorkflowTask,
+  type ProjectNotification,
+  type InsertProjectNotification,
 } from '@shared/schemas/maintenance';
 import { buildings, organizations, userOrganizations, residences } from '@shared/schema';
 import multer from 'multer';
@@ -44,6 +53,8 @@ import { secureFileStorage } from '../services/secure-file-storage';
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
 import { maintenanceSuggestionService } from '../services/maintenanceSuggestionService';
 import { maintenanceJobsScheduler } from '../jobs/maintenanceJobs';
+import { workflowService } from '../services/workflow-service';
+import { projectPaymentService } from '../services/project-payment-service';
 
 // Security: Secure filename sanitization function
 function sanitizeFilename(filename: string): string {
@@ -245,7 +256,7 @@ const maintenanceProjectCreateSchema = z.object({
 });
 
 const maintenanceProjectUpdateSchema = maintenanceProjectCreateSchema.partial().extend({
-  status: z.enum(['planned', 'evaluation', 'submission', 'pre_work', 'work', 'post_work', 'completed']).optional(),
+  status: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed']).optional(),
 });
 
 const projectStepUpdateSchema = z.object({
@@ -262,6 +273,14 @@ const autoProjectAcceptSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
   plannedStartDate: z.coerce.date().optional(),
   plannedEndDate: z.coerce.date().optional(),
+  // New workflow fields
+  planningDescription: z.string().optional(),
+  workStartDate: z.coerce.date().optional(),
+  skipSubmission: z.boolean().optional(),
+  skipPreWork: z.boolean().optional(),
+  skipInProgress: z.boolean().optional(),
+  skipPostWork: z.boolean().optional(),
+  vendorId: z.string().uuid().optional(),
 });
 
 const autoProjectUpdateSchema = z.object({
@@ -284,6 +303,65 @@ const paginationSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(50), // Security: Hard limit of 100 items per page
   sort: z.string().optional(),
   order: z.enum(['asc', 'desc']).default('desc'),
+});
+
+// Workflow validation schemas
+const skipFlagsUpdateSchema = z.object({
+  skipSubmission: z.boolean().optional(),
+  skipPreWork: z.boolean().optional(),
+  skipInProgress: z.boolean().optional(),
+  skipPostWork: z.boolean().optional(),
+});
+
+const markCompleteSchema = z.object({
+  currentStatus: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work']),
+});
+
+const submissionVendorCreateSchema = z.object({
+  vendorId: z.string().uuid(),
+  contactInfo: z.string().optional(),
+  notes: z.string().optional(),
+  price: z.number().positive().optional(),
+  projectType: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure']),
+  addedLifespan: z.number().int().positive().optional(),
+  documents: z.array(z.string()).optional(),
+});
+
+const submissionVendorUpdateSchema = z.object({
+  contactInfo: z.string().optional(),
+  notes: z.string().optional(),
+  price: z.number().positive().optional(),
+  projectType: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure']).optional(),
+  addedLifespan: z.number().int().positive().optional(),
+  documents: z.array(z.string()).optional(),
+});
+
+const workflowTaskCreateSchema = z.object({
+  phase: z.enum(['pre_work', 'in_progress', 'post_work']),
+  taskName: z.string().min(1).max(255),
+  description: z.string().optional(),
+  cost: z.number().positive().optional(),
+  orderIndex: z.number().int().min(0),
+});
+
+const workflowTaskUpdateSchema = z.object({
+  taskName: z.string().min(1).max(255).optional(),
+  description: z.string().optional(),
+  cost: z.number().positive().optional(),
+  orderIndex: z.number().int().min(0).optional(),
+  isCompleted: z.boolean().optional(),
+});
+
+const projectNotificationCreateSchema = z.object({
+  messageText: z.string().min(1),
+  timingType: z.enum(['one_day_before', 'three_days_before', 'one_week_before', 'custom']),
+  customDaysBefore: z.number().int().positive().optional(),
+});
+
+const projectNotificationUpdateSchema = z.object({
+  messageText: z.string().min(1).optional(),
+  timingType: z.enum(['one_day_before', 'three_days_before', 'one_week_before', 'custom']).optional(),
+  customDaysBefore: z.number().int().positive().optional(),
 });
 
 // Helper function to check user access to building
@@ -2607,8 +2685,19 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const projectData: InsertMaintenanceProject = {
         ...validation.data,
-        startDate: validation.data.startDate ? new Date(validation.data.startDate) : null,
-        endDate: validation.data.endDate ? new Date(validation.data.endDate) : null,
+        status: 'planned', // Default new projects to 'planned' status
+        plannedStartDate: validation.data.plannedStartDate ? new Date(validation.data.plannedStartDate) : null,
+        plannedEndDate: validation.data.plannedEndDate ? new Date(validation.data.plannedEndDate) : null,
+        actualStartDate: validation.data.actualStartDate ? new Date(validation.data.actualStartDate) : null,
+        actualEndDate: validation.data.actualEndDate ? new Date(validation.data.actualEndDate) : null,
+        // Initialize skip flags to false by default
+        skipSubmission: validation.data.skipSubmission || false,
+        skipPreWork: validation.data.skipPreWork || false,
+        skipInProgress: validation.data.skipInProgress || false,
+        skipPostWork: validation.data.skipPostWork || false,
+        // Include planned fields
+        planningStartDate: validation.data.planningStartDate ? new Date(validation.data.planningStartDate) : null,
+        workStartDate: validation.data.workStartDate ? new Date(validation.data.workStartDate) : null,
       };
       
       const [project] = await db
@@ -2656,7 +2745,10 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       // Check project exists and user has access
       const projectResult = await db
-        .select({ buildingId: maintenanceProjects.buildingId })
+        .select({
+          buildingId: maintenanceProjects.buildingId,
+          currentStatus: maintenanceProjects.status,
+        })
         .from(maintenanceProjects)
         .where(eq(maintenanceProjects.id, id))
         .limit(1);
@@ -2672,10 +2764,34 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
+      // Validate workflow transitions if status is being updated
+      if (validation.data.status && validation.data.status !== projectResult[0].currentStatus) {
+        const currentStatus = projectResult[0].currentStatus as any;
+        const newStatus = validation.data.status as any;
+        
+        // Validate workflow transition
+        const transitionValidation = await workflowService.validateWorkflowTransition(
+          id,
+          currentStatus,
+          newStatus
+        );
+        
+        if (!transitionValidation.isValid) {
+          return res.status(400).json({
+            error: 'Invalid workflow transition',
+            details: transitionValidation.reason
+          });
+        }
+      }
+      
       const updateData = {
         ...validation.data,
-        startDate: validation.data.startDate ? new Date(validation.data.startDate) : undefined,
-        endDate: validation.data.endDate ? new Date(validation.data.endDate) : undefined,
+        plannedStartDate: validation.data.plannedStartDate ? new Date(validation.data.plannedStartDate) : undefined,
+        plannedEndDate: validation.data.plannedEndDate ? new Date(validation.data.plannedEndDate) : undefined,
+        actualStartDate: validation.data.actualStartDate ? new Date(validation.data.actualStartDate) : undefined,
+        actualEndDate: validation.data.actualEndDate ? new Date(validation.data.actualEndDate) : undefined,
+        planningStartDate: validation.data.planningStartDate ? new Date(validation.data.planningStartDate) : undefined,
+        workStartDate: validation.data.workStartDate ? new Date(validation.data.workStartDate) : undefined,
         updatedAt: new Date(),
       };
       
@@ -4174,7 +4290,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         .innerJoin(maintenanceProjects, eq(projectElements.projectId, maintenanceProjects.id))
         .where(and(
           eq(projectElements.elementId, autoProject.elementId),
-          inArray(maintenanceProjects.status, ['planned', 'evaluation', 'submission', 'pre_work', 'work', 'post_work'])
+          inArray(maintenanceProjects.status, ['planned', 'submission', 'pre_work', 'in_progress', 'post_work'])
         ))
         .limit(1);
 
@@ -4199,7 +4315,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         // Generate project number
         const projectNumber = `MP-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
-        // Create maintenance project
+        // Create maintenance project with workflow fields
         const newProject = await tx
           .insert(maintenanceProjects)
           .values({
@@ -4214,6 +4330,15 @@ export function registerMaintenanceRoutes(app: Express): void {
             totalBudget: acceptData.totalBudget || autoProject.estimatedCost || undefined,
             plannedStartDate: acceptData.plannedStartDate || undefined,
             plannedEndDate: acceptData.plannedEndDate || undefined,
+            // Map auto-project fields to new workflow schema
+            planningDescription: acceptData.planningDescription || acceptData.description || autoProject.description,
+            workStartDate: acceptData.workStartDate || undefined,
+            // Set skip flags based on auto-project nature (auto-projects often skip submission)
+            skipSubmission: acceptData.skipSubmission ?? true, // Default skip submission for auto-projects
+            skipPreWork: acceptData.skipPreWork ?? false,
+            skipInProgress: acceptData.skipInProgress ?? false,
+            skipPostWork: acceptData.skipPostWork ?? false,
+            assignedVendorId: acceptData.vendorId || undefined,
             createdBy: user.id,
           })
           .returning();
@@ -4475,7 +4600,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           maintenanceProjects,
           and(
             eq(maintenanceProjects.id, projectElements.projectId),
-            inArray(maintenanceProjects.status, ['planned', 'evaluation', 'submission', 'pre_work', 'work', 'post_work'])
+            inArray(maintenanceProjects.status, ['planned', 'submission', 'pre_work', 'in_progress', 'post_work'])
           )
         )
         .where(and(
@@ -4613,6 +4738,1666 @@ export function registerMaintenanceRoutes(app: Express): void {
       res.status(500).json({ error: 'Internal server error', details: error.message });
     }
   });
+
+  // ===========================================
+  // PROJECT WORKFLOW ENDPOINTS
+  // ===========================================
   
-  console.log('🔧 [MAINTENANCE ROUTES] Successfully registered all maintenance routes including element document endpoints');
+  console.log('🔧 [MAINTENANCE ROUTES] Adding project workflow endpoints...');
+  
+  /**
+   * GET /api/maintenance/projects/:id/workflow - Get workflow state
+   */
+  app.get('/api/maintenance/projects/:id/workflow', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { id } = req.params;
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      // Get project and check building access
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Get workflow state
+      const workflowState = await workflowService.getProjectWorkflowState(id);
+      if (!workflowState) {
+        return res.status(404).json({ error: 'Workflow state not found' });
+      }
+
+      res.json({
+        success: true,
+        data: workflowState
+      });
+
+    } catch (error: any) {
+      console.error('Error getting workflow state:', error);
+      res.status(500).json({
+        error: 'Failed to get workflow state',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/maintenance/projects/:id/mark-complete - Advance to next status
+   */
+  app.post('/api/maintenance/projects/:id/mark-complete', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { id } = req.params;
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      const validation = markCompleteSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request data',
+          details: validation.error.issues
+        });
+      }
+
+      const { currentStatus } = validation.data;
+
+      // Get project and check building access
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Mark status complete
+      const updatedState = await workflowService.markStatusComplete(id, currentStatus);
+
+      res.json({
+        success: true,
+        data: updatedState,
+        message: 'Status marked complete successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error marking status complete:', error);
+      res.status(500).json({
+        error: 'Failed to mark status complete',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/projects/:id/skip-flags - Update skip settings
+   */
+  app.patch('/api/maintenance/projects/:id/skip-flags', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { id } = req.params;
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      const validation = skipFlagsUpdateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request data',
+          details: validation.error.issues
+        });
+      }
+
+      // Get project and check building access
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Update skip flags
+      const updatedState = await workflowService.updateSkipFlags(id, validation.data);
+
+      res.json({
+        success: true,
+        data: updatedState,
+        message: 'Skip flags updated successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error updating skip flags:', error);
+      res.status(500).json({
+        error: 'Failed to update skip flags',
+        details: error.message
+      });
+    }
+  });
+
+  // ===========================================
+  // SUBMISSION VENDOR ENDPOINTS
+  // ===========================================
+
+  /**
+   * POST /api/maintenance/projects/:id/vendors - Add vendor submission
+   */
+  app.post('/api/maintenance/projects/:id/vendors', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { id } = req.params;
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      const validation = submissionVendorCreateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request data',
+          details: validation.error.issues
+        });
+      }
+
+      // Get project and check building access
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Verify vendor exists
+      const vendor = await db
+        .select()
+        .from(vendors)
+        .where(eq(vendors.id, validation.data.vendorId))
+        .limit(1);
+
+      if (vendor.length === 0) {
+        return res.status(404).json({ error: 'Vendor not found' });
+      }
+
+      // Create submission vendor
+      const newSubmissionVendor = await db
+        .insert(submissionVendors)
+        .values({
+          projectId: id,
+          ...validation.data,
+        })
+        .returning();
+
+      res.status(201).json({
+        success: true,
+        data: newSubmissionVendor[0],
+        message: 'Vendor submission created successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error creating vendor submission:', error);
+      res.status(500).json({
+        error: 'Failed to create vendor submission',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/maintenance/projects/:id/vendors - List project vendors
+   */
+  app.get('/api/maintenance/projects/:id/vendors', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { id } = req.params;
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      // Get project and check building access
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Get submission vendors with vendor details
+      const submissionVendorsList = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          vendorId: submissionVendors.vendorId,
+          contactInfo: submissionVendors.contactInfo,
+          notes: submissionVendors.notes,
+          price: submissionVendors.price,
+          projectType: submissionVendors.projectType,
+          addedLifespan: submissionVendors.addedLifespan,
+          documents: submissionVendors.documents,
+          isSelected: submissionVendors.isSelected,
+          createdAt: submissionVendors.createdAt,
+          updatedAt: submissionVendors.updatedAt,
+          vendor: {
+            id: vendors.id,
+            name: vendors.name,
+            category: vendors.category,
+            contactPerson: vendors.contactPerson,
+            phone: vendors.phone,
+            email: vendors.email,
+            rating: vendors.rating,
+          }
+        })
+        .from(submissionVendors)
+        .innerJoin(vendors, eq(vendors.id, submissionVendors.vendorId))
+        .where(eq(submissionVendors.projectId, id))
+        .orderBy(desc(submissionVendors.createdAt));
+
+      res.json({
+        success: true,
+        data: submissionVendorsList
+      });
+
+    } catch (error: any) {
+      console.error('Error getting project vendors:', error);
+      res.status(500).json({
+        error: 'Failed to get project vendors',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/vendors/:vendorId - Update vendor submission
+   */
+  app.patch('/api/maintenance/vendors/:vendorId', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { vendorId } = req.params;
+      if (!isValidUUID(vendorId)) {
+        return res.status(400).json({ error: 'Invalid vendor submission ID format' });
+      }
+
+      const validation = submissionVendorUpdateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request data',
+          details: validation.error.issues
+        });
+      }
+
+      // Get submission vendor and project to check access
+      const submissionVendor = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(submissionVendors)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .where(eq(submissionVendors.id, vendorId))
+        .limit(1);
+
+      if (submissionVendor.length === 0) {
+        return res.status(404).json({ error: 'Vendor submission not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this vendor submission' });
+      }
+
+      // Update submission vendor
+      const updatedSubmissionVendor = await db
+        .update(submissionVendors)
+        .set({
+          ...validation.data,
+          updatedAt: new Date(),
+        })
+        .where(eq(submissionVendors.id, vendorId))
+        .returning();
+
+      res.json({
+        success: true,
+        data: updatedSubmissionVendor[0],
+        message: 'Vendor submission updated successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error updating vendor submission:', error);
+      res.status(500).json({
+        error: 'Failed to update vendor submission',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/maintenance/vendors/:vendorId - Remove vendor submission
+   */
+  app.delete('/api/maintenance/vendors/:vendorId', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { vendorId } = req.params;
+      if (!isValidUUID(vendorId)) {
+        return res.status(400).json({ error: 'Invalid vendor submission ID format' });
+      }
+
+      // Get submission vendor and project to check access
+      const submissionVendor = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(submissionVendors)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .where(eq(submissionVendors.id, vendorId))
+        .limit(1);
+
+      if (submissionVendor.length === 0) {
+        return res.status(404).json({ error: 'Vendor submission not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this vendor submission' });
+      }
+
+      // Delete submission vendor
+      await db
+        .delete(submissionVendors)
+        .where(eq(submissionVendors.id, vendorId));
+
+      res.json({
+        success: true,
+        message: 'Vendor submission removed successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error removing vendor submission:', error);
+      res.status(500).json({
+        error: 'Failed to remove vendor submission',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/maintenance/vendors/:vendorId/select - Select winning vendor
+   */
+  app.post('/api/maintenance/vendors/:vendorId/select', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { vendorId } = req.params;
+      if (!isValidUUID(vendorId)) {
+        return res.status(400).json({ error: 'Invalid vendor submission ID format' });
+      }
+
+      // Get submission vendor and project to check access
+      const submissionVendor = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(submissionVendors)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .where(eq(submissionVendors.id, vendorId))
+        .limit(1);
+
+      if (submissionVendor.length === 0) {
+        return res.status(404).json({ error: 'Vendor submission not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this vendor submission' });
+      }
+
+      // Use transaction to ensure only one vendor is selected
+      await db.transaction(async (tx) => {
+        // Deselect all vendors for this project
+        await tx
+          .update(submissionVendors)
+          .set({ isSelected: false, updatedAt: new Date() })
+          .where(eq(submissionVendors.projectId, submissionVendor[0].projectId));
+
+        // Select the specified vendor
+        await tx
+          .update(submissionVendors)
+          .set({ isSelected: true, updatedAt: new Date() })
+          .where(eq(submissionVendors.id, vendorId));
+      });
+
+      res.json({
+        success: true,
+        message: 'Vendor selected successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error selecting vendor:', error);
+      res.status(500).json({
+        error: 'Failed to select vendor',
+        details: error.message
+      });
+    }
+  });
+
+  // ===========================================
+  // PAYMENT PLAN ENDPOINTS
+  // ===========================================
+
+  /**
+   * POST /api/maintenance/vendors/:vendorId/payment-plan - Generate/update payment plan for vendor
+   */
+  app.post('/api/maintenance/vendors/:vendorId/payment-plan', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { vendorId } = req.params;
+      if (!isValidUUID(vendorId)) {
+        return res.status(400).json({ error: 'Invalid vendor submission ID format' });
+      }
+
+      // Validate payment plan request
+      const paymentPlanSchema = z.object({
+        totalCost: z.number().positive('Total cost must be greater than 0'),
+        schedule: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']),
+        customDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+      });
+
+      const validation = paymentPlanSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid payment plan data',
+          details: validation.error.issues
+        });
+      }
+
+      // Get submission vendor and project to check access
+      const submissionVendor = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(submissionVendors)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .where(eq(submissionVendors.id, vendorId))
+        .limit(1);
+
+      if (submissionVendor.length === 0) {
+        return res.status(404).json({ error: 'Vendor submission not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this vendor submission' });
+      }
+
+      // Generate payment plan
+      const { totalCost, schedule, customDates, startDate } = validation.data;
+      const customDatesArray = customDates?.map(d => new Date(d));
+      const startDateObj = startDate ? new Date(startDate) : undefined;
+
+      const paymentPlan = await projectPaymentService.generatePaymentPlan(
+        vendorId,
+        totalCost,
+        schedule,
+        customDatesArray,
+        startDateObj
+      );
+
+      // Update submission vendor with payment plan
+      const updatedVendor = await projectPaymentService.updateSubmissionVendorPaymentPlan(
+        vendorId,
+        paymentPlan
+      );
+
+      res.json({
+        success: true,
+        data: {
+          vendor: updatedVendor,
+          paymentPlan
+        },
+        message: 'Payment plan generated successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error generating payment plan:', error);
+      res.status(500).json({
+        error: 'Failed to generate payment plan',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/maintenance/vendors/:vendorId/payment-plan - Get vendor payment plan
+   */
+  app.get('/api/maintenance/vendors/:vendorId/payment-plan', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { vendorId } = req.params;
+      if (!isValidUUID(vendorId)) {
+        return res.status(400).json({ error: 'Invalid vendor submission ID format' });
+      }
+
+      // Get submission vendor and project to check access
+      const submissionVendor = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(submissionVendors)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .where(eq(submissionVendors.id, vendorId))
+        .limit(1);
+
+      if (submissionVendor.length === 0) {
+        return res.status(404).json({ error: 'Vendor submission not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this vendor submission' });
+      }
+
+      // Get payment plan
+      const paymentPlan = await projectPaymentService.getSubmissionVendorPaymentPlan(vendorId);
+
+      if (!paymentPlan) {
+        return res.status(404).json({ error: 'No payment plan found for this vendor' });
+      }
+
+      res.json({
+        success: true,
+        data: paymentPlan
+      });
+
+    } catch (error: any) {
+      console.error('Error getting payment plan:', error);
+      res.status(500).json({
+        error: 'Failed to get payment plan',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/maintenance/vendors/:vendorId/payment-plan - Remove payment plan
+   */
+  app.delete('/api/maintenance/vendors/:vendorId/payment-plan', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { vendorId } = req.params;
+      if (!isValidUUID(vendorId)) {
+        return res.status(400).json({ error: 'Invalid vendor submission ID format' });
+      }
+
+      // Get submission vendor and project to check access
+      const submissionVendor = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(submissionVendors)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .where(eq(submissionVendors.id, vendorId))
+        .limit(1);
+
+      if (submissionVendor.length === 0) {
+        return res.status(404).json({ error: 'Vendor submission not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this vendor submission' });
+      }
+
+      // Remove payment plan
+      const updatedVendor = await projectPaymentService.removeSubmissionVendorPaymentPlan(vendorId);
+
+      res.json({
+        success: true,
+        data: updatedVendor,
+        message: 'Payment plan removed successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error removing payment plan:', error);
+      res.status(500).json({
+        error: 'Failed to remove payment plan',
+        details: error.message
+      });
+    }
+  });
+
+  // ===========================================
+  // WORKFLOW TASKS ENDPOINTS
+  // ===========================================
+
+  /**
+   * POST /api/maintenance/projects/:id/tasks - Add workflow task
+   */
+  app.post('/api/maintenance/projects/:id/tasks', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { id } = req.params;
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      const validation = workflowTaskCreateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request data',
+          details: validation.error.issues
+        });
+      }
+
+      // Get project and check building access
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Create workflow task
+      const newWorkflowTask = await db
+        .insert(workflowTasks)
+        .values({
+          projectId: id,
+          ...validation.data,
+        })
+        .returning();
+
+      res.status(201).json({
+        success: true,
+        data: newWorkflowTask[0],
+        message: 'Workflow task created successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error creating workflow task:', error);
+      res.status(500).json({
+        error: 'Failed to create workflow task',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/maintenance/projects/:id/tasks - List tasks by phase
+   */
+  app.get('/api/maintenance/projects/:id/tasks', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { id } = req.params;
+      const { phase } = req.query;
+
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      // Get project and check building access
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Build query
+      let query = db
+        .select()
+        .from(workflowTasks)
+        .where(eq(workflowTasks.projectId, id));
+
+      // Filter by phase if provided
+      if (phase && ['pre_work', 'in_progress', 'post_work'].includes(phase as string)) {
+        query = query.where(and(
+          eq(workflowTasks.projectId, id),
+          eq(workflowTasks.phase, phase as 'pre_work' | 'in_progress' | 'post_work')
+        ));
+      }
+
+      const workflowTasksList = await query.orderBy(asc(workflowTasks.orderIndex));
+
+      // Group by phase if no specific phase requested
+      const result = phase ? workflowTasksList : 
+        workflowTasksList.reduce((acc, task) => {
+          if (!acc[task.phase]) {
+            acc[task.phase] = [];
+          }
+          acc[task.phase].push(task);
+          return acc;
+        }, {} as Record<string, typeof workflowTasksList>);
+
+      res.json({
+        success: true,
+        data: result
+      });
+
+    } catch (error: any) {
+      console.error('Error getting workflow tasks:', error);
+      res.status(500).json({
+        error: 'Failed to get workflow tasks',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/tasks/:taskId - Update task
+   */
+  app.patch('/api/maintenance/tasks/:taskId', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { taskId } = req.params;
+      if (!isValidUUID(taskId)) {
+        return res.status(400).json({ error: 'Invalid task ID format' });
+      }
+
+      const validation = workflowTaskUpdateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request data',
+          details: validation.error.issues
+        });
+      }
+
+      // Get task and project to check access
+      const task = await db
+        .select({
+          id: workflowTasks.id,
+          projectId: workflowTasks.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(workflowTasks)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, workflowTasks.projectId))
+        .where(eq(workflowTasks.id, taskId))
+        .limit(1);
+
+      if (task.length === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, task[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this task' });
+      }
+
+      // Update task
+      const updatedTask = await db
+        .update(workflowTasks)
+        .set({
+          ...validation.data,
+          updatedAt: new Date(),
+        })
+        .where(eq(workflowTasks.id, taskId))
+        .returning();
+
+      res.json({
+        success: true,
+        data: updatedTask[0],
+        message: 'Task updated successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error updating task:', error);
+      res.status(500).json({
+        error: 'Failed to update task',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/maintenance/tasks/:taskId - Remove task
+   */
+  app.delete('/api/maintenance/tasks/:taskId', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { taskId } = req.params;
+      if (!isValidUUID(taskId)) {
+        return res.status(400).json({ error: 'Invalid task ID format' });
+      }
+
+      // Get task and project to check access
+      const task = await db
+        .select({
+          id: workflowTasks.id,
+          projectId: workflowTasks.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(workflowTasks)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, workflowTasks.projectId))
+        .where(eq(workflowTasks.id, taskId))
+        .limit(1);
+
+      if (task.length === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, task[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this task' });
+      }
+
+      // Delete task
+      await db
+        .delete(workflowTasks)
+        .where(eq(workflowTasks.id, taskId));
+
+      res.json({
+        success: true,
+        message: 'Task removed successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error removing task:', error);
+      res.status(500).json({
+        error: 'Failed to remove task',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/maintenance/tasks/:taskId/complete - Mark task complete
+   */
+  app.post('/api/maintenance/tasks/:taskId/complete', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { taskId } = req.params;
+      if (!isValidUUID(taskId)) {
+        return res.status(400).json({ error: 'Invalid task ID format' });
+      }
+
+      // Get task and project to check access
+      const task = await db
+        .select({
+          id: workflowTasks.id,
+          projectId: workflowTasks.projectId,
+          buildingId: maintenanceProjects.buildingId,
+          isCompleted: workflowTasks.isCompleted,
+        })
+        .from(workflowTasks)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, workflowTasks.projectId))
+        .where(eq(workflowTasks.id, taskId))
+        .limit(1);
+
+      if (task.length === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, task[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this task' });
+      }
+
+      // Mark task as completed
+      const updatedTask = await db
+        .update(workflowTasks)
+        .set({
+          isCompleted: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(workflowTasks.id, taskId))
+        .returning();
+
+      res.json({
+        success: true,
+        data: updatedTask[0],
+        message: 'Task marked as complete'
+      });
+
+    } catch (error: any) {
+      console.error('Error completing task:', error);
+      res.status(500).json({
+        error: 'Failed to complete task',
+        details: error.message
+      });
+    }
+  });
+
+  // ===========================================
+  // PROJECT NOTIFICATIONS ENDPOINTS
+  // ===========================================
+
+  /**
+   * POST /api/maintenance/projects/:id/notifications - Add notification schedule
+   */
+  app.post('/api/maintenance/projects/:id/notifications', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { id } = req.params;
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      const validation = projectNotificationCreateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request data',
+          details: validation.error.issues
+        });
+      }
+
+      // Get project and check building access
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Validate custom timing
+      const { timingType, customDaysBefore } = validation.data;
+      if (timingType === 'custom' && !customDaysBefore) {
+        return res.status(400).json({
+          error: 'customDaysBefore is required when timingType is custom'
+        });
+      }
+
+      // Create notification
+      const newNotification = await db
+        .insert(projectNotifications)
+        .values({
+          projectId: id,
+          ...validation.data,
+        })
+        .returning();
+
+      res.status(201).json({
+        success: true,
+        data: newNotification[0],
+        message: 'Notification created successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error creating notification:', error);
+      res.status(500).json({
+        error: 'Failed to create notification',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/maintenance/projects/:id/notifications - List project notifications
+   */
+  app.get('/api/maintenance/projects/:id/notifications', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { id } = req.params;
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      // Get project and check building access
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Get notifications
+      const notificationsList = await db
+        .select()
+        .from(projectNotifications)
+        .where(eq(projectNotifications.projectId, id))
+        .orderBy(desc(projectNotifications.createdAt));
+
+      res.json({
+        success: true,
+        data: notificationsList
+      });
+
+    } catch (error: any) {
+      console.error('Error getting notifications:', error);
+      res.status(500).json({
+        error: 'Failed to get notifications',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/notifications/:notificationId - Update notification
+   */
+  app.patch('/api/maintenance/notifications/:notificationId', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { notificationId } = req.params;
+      if (!isValidUUID(notificationId)) {
+        return res.status(400).json({ error: 'Invalid notification ID format' });
+      }
+
+      const validation = projectNotificationUpdateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request data',
+          details: validation.error.issues
+        });
+      }
+
+      // Get notification and project to check access
+      const notification = await db
+        .select({
+          id: projectNotifications.id,
+          projectId: projectNotifications.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(projectNotifications)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, projectNotifications.projectId))
+        .where(eq(projectNotifications.id, notificationId))
+        .limit(1);
+
+      if (notification.length === 0) {
+        return res.status(404).json({ error: 'Notification not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, notification[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this notification' });
+      }
+
+      // Validate custom timing
+      const { timingType, customDaysBefore } = validation.data;
+      if (timingType === 'custom' && !customDaysBefore) {
+        return res.status(400).json({
+          error: 'customDaysBefore is required when timingType is custom'
+        });
+      }
+
+      // Update notification
+      const updatedNotification = await db
+        .update(projectNotifications)
+        .set({
+          ...validation.data,
+          updatedAt: new Date(),
+        })
+        .where(eq(projectNotifications.id, notificationId))
+        .returning();
+
+      res.json({
+        success: true,
+        data: updatedNotification[0],
+        message: 'Notification updated successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error updating notification:', error);
+      res.status(500).json({
+        error: 'Failed to update notification',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/maintenance/notifications/:notificationId - Remove notification
+   */
+  app.delete('/api/maintenance/notifications/:notificationId', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { notificationId } = req.params;
+      if (!isValidUUID(notificationId)) {
+        return res.status(400).json({ error: 'Invalid notification ID format' });
+      }
+
+      // Get notification and project to check access
+      const notification = await db
+        .select({
+          id: projectNotifications.id,
+          projectId: projectNotifications.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(projectNotifications)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, projectNotifications.projectId))
+        .where(eq(projectNotifications.id, notificationId))
+        .limit(1);
+
+      if (notification.length === 0) {
+        return res.status(404).json({ error: 'Notification not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, notification[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this notification' });
+      }
+
+      // Delete notification
+      await db
+        .delete(projectNotifications)
+        .where(eq(projectNotifications.id, notificationId));
+
+      res.json({
+        success: true,
+        message: 'Notification removed successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error removing notification:', error);
+      res.status(500).json({
+        error: 'Failed to remove notification',
+        details: error.message
+      });
+    }
+  });
+  
+  /**
+   * POST /api/maintenance/projects/:id/advance-status - Advance project to next workflow status
+   */
+  app.post('/api/maintenance/projects/:id/advance-status', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const id = req.params.id;
+      if (!id) {
+        return res.status(400).json({ error: 'Project ID is required' });
+      }
+
+      // Validate current status from request body
+      const validation = z.object({
+        currentStatus: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed']),
+      }).safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.errors
+        });
+      }
+
+      // Get project and check access
+      const project = await db
+        .select({
+          id: maintenanceProjects.id,
+          buildingId: maintenanceProjects.buildingId,
+          status: maintenanceProjects.status,
+          skipSubmission: maintenanceProjects.skipSubmission,
+          skipPreWork: maintenanceProjects.skipPreWork,
+          skipInProgress: maintenanceProjects.skipInProgress,
+          skipPostWork: maintenanceProjects.skipPostWork,
+        })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Use workflow service to advance status
+      const nextStatus = await workflowService.getNextStatus(id, validation.data.currentStatus as any);
+      
+      if (!nextStatus) {
+        return res.status(400).json({ error: 'Cannot advance from current status or project is already complete' });
+      }
+
+      // Update project status
+      const updatedProject = await db
+        .update(maintenanceProjects)
+        .set({
+          status: nextStatus,
+          updatedAt: new Date(),
+          // Update timestamps based on status
+          ...(nextStatus === 'submission' && { submissionDate: new Date() }),
+          ...(nextStatus === 'pre_work' && { preWorkStartDate: new Date() }),
+          ...(nextStatus === 'in_progress' && { actualStartDate: new Date() }),
+          ...(nextStatus === 'post_work' && { workEndDate: new Date() }),
+          ...(nextStatus === 'completed' && { actualEndDate: new Date() }),
+        })
+        .where(eq(maintenanceProjects.id, id))
+        .returning();
+
+      res.json({
+        success: true,
+        project: updatedProject[0],
+        previousStatus: validation.data.currentStatus,
+        newStatus: nextStatus,
+      });
+
+    } catch (error: any) {
+      console.error('Error advancing project status:', error);
+      res.status(500).json({
+        error: 'Failed to advance project status',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/projects/:id/workflow-details - Update workflow-specific project details
+   */
+  app.patch('/api/maintenance/projects/:id/workflow-details', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const id = req.params.id;
+      if (!id) {
+        return res.status(400).json({ error: 'Project ID is required' });
+      }
+
+      // Validate workflow-specific updates
+      const validation = z.object({
+        status: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed']),
+        // Planned phase fields
+        planningDescription: z.string().optional(),
+        plannedStartDate: z.string().optional(),
+        totalBudget: z.string().optional(),
+        
+        // Submission phase fields
+        submissionDate: z.string().optional(),
+        
+        // Pre-work phase fields
+        preWorkStartDate: z.string().optional(),
+        preWorkMessage: z.string().optional(),
+        notificationTiming: z.number().optional(),
+        
+        // In-progress phase fields
+        workStartDate: z.string().optional(),
+        
+        // Completion fields
+        completionSummary: z.string().optional(),
+      }).safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.errors
+        });
+      }
+
+      // Get project and check access
+      const project = await db
+        .select({
+          id: maintenanceProjects.id,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Build update object with only provided fields
+      const updateData: any = {
+        updatedAt: new Date(),
+      };
+
+      // Add fields that were provided in the request
+      if (validation.data.planningDescription !== undefined) {
+        updateData.planningDescription = validation.data.planningDescription;
+      }
+      if (validation.data.plannedStartDate !== undefined) {
+        updateData.plannedStartDate = validation.data.plannedStartDate;
+      }
+      if (validation.data.totalBudget !== undefined) {
+        updateData.totalBudget = validation.data.totalBudget;
+      }
+      if (validation.data.submissionDate !== undefined) {
+        updateData.submissionDate = validation.data.submissionDate;
+      }
+      if (validation.data.preWorkStartDate !== undefined) {
+        updateData.preWorkStartDate = validation.data.preWorkStartDate;
+      }
+      if (validation.data.preWorkMessage !== undefined) {
+        updateData.preWorkMessage = validation.data.preWorkMessage;
+      }
+      if (validation.data.notificationTiming !== undefined) {
+        updateData.notificationTiming = validation.data.notificationTiming;
+      }
+      if (validation.data.workStartDate !== undefined) {
+        updateData.workStartDate = validation.data.workStartDate;
+      }
+      if (validation.data.completionSummary !== undefined) {
+        updateData.completionSummary = validation.data.completionSummary;
+      }
+
+      // Update project
+      const updatedProject = await db
+        .update(maintenanceProjects)
+        .set(updateData)
+        .where(eq(maintenanceProjects.id, id))
+        .returning();
+
+      res.json({
+        success: true,
+        project: updatedProject[0],
+      });
+
+    } catch (error: any) {
+      console.error('Error updating workflow details:', error);
+      res.status(500).json({
+        error: 'Failed to update workflow details',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/maintenance/projects/:id/submission-vendors - Get submission vendors for project
+   */
+  app.get('/api/maintenance/projects/:id/submission-vendors', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const id = req.params.id;
+      if (!id) {
+        return res.status(400).json({ error: 'Project ID is required' });
+      }
+
+      // Get project and check access
+      const project = await db
+        .select({
+          id: maintenanceProjects.id,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Get submission vendors for this project
+      const submissions = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          vendorName: submissionVendors.vendorName,
+          contactInfo: submissionVendors.contactInfo,
+          submissionDate: submissionVendors.submissionDate,
+          proposedCost: submissionVendors.proposedCost,
+          proposedTimeline: submissionVendors.proposedTimeline,
+          notes: submissionVendors.notes,
+          status: submissionVendors.status,
+          isSelected: submissionVendors.isSelected,
+          paymentPlan: submissionVendors.paymentPlan,
+          createdAt: submissionVendors.createdAt,
+          updatedAt: submissionVendors.updatedAt,
+        })
+        .from(submissionVendors)
+        .where(eq(submissionVendors.projectId, id))
+        .orderBy(desc(submissionVendors.submissionDate));
+
+      res.json(submissions);
+
+    } catch (error: any) {
+      console.error('Error fetching submission vendors:', error);
+      res.status(500).json({
+        error: 'Failed to fetch submission vendors',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/maintenance/projects/:id/submission-vendors - Add submission vendor
+   */
+  app.post('/api/maintenance/projects/:id/submission-vendors', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const id = req.params.id;
+      if (!id) {
+        return res.status(400).json({ error: 'Project ID is required' });
+      }
+
+      // Validate submission vendor data
+      const validation = z.object({
+        vendorName: z.string().min(1).max(255),
+        contactInfo: z.string().optional(),
+        proposedCost: z.string().optional(),
+        proposedTimeline: z.string().optional(),
+        notes: z.string().optional(),
+        status: z.enum(['submitted', 'under_review', 'approved', 'rejected']).default('submitted'),
+        isSelected: z.boolean().default(false),
+        paymentPlan: z.string().optional(),
+      }).safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.errors
+        });
+      }
+
+      // Get project and check access
+      const project = await db
+        .select({
+          id: maintenanceProjects.id,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Create submission vendor
+      const submissionVendor = await db
+        .insert(submissionVendors)
+        .values({
+          projectId: id,
+          vendorName: validation.data.vendorName,
+          contactInfo: validation.data.contactInfo,
+          submissionDate: new Date(),
+          proposedCost: validation.data.proposedCost,
+          proposedTimeline: validation.data.proposedTimeline,
+          notes: validation.data.notes,
+          status: validation.data.status,
+          isSelected: validation.data.isSelected,
+          paymentPlan: validation.data.paymentPlan,
+        })
+        .returning();
+
+      res.status(201).json(submissionVendor[0]);
+
+    } catch (error: any) {
+      console.error('Error creating submission vendor:', error);
+      res.status(500).json({
+        error: 'Failed to create submission vendor',
+        details: error.message
+      });
+    }
+  });
+
+  console.log('🔧 [MAINTENANCE ROUTES] Successfully registered all maintenance routes including workflow endpoints');
 }

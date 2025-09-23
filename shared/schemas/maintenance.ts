@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { relations } from 'drizzle-orm';
 import { users, organizations } from './core';
 import { buildings, residences } from './property';
+import { schedulePaymentEnum } from './financial';
 
 // Maintenance enums
 /**
@@ -91,10 +92,9 @@ export const projectTypeEnum = pgEnum('project_type', [
  */
 export const projectStatusEnum = pgEnum('project_status', [
   'planned',
-  'evaluation',
   'submission',
   'pre_work',
-  'work',
+  'in_progress',
   'post_work',
   'completed'
 ]);
@@ -103,10 +103,9 @@ export const projectStatusEnum = pgEnum('project_status', [
  * Enum for project step types
  */
 export const stepTypeEnum = pgEnum('step_type', [
-  'evaluation',
   'submission',
   'pre_work',
-  'work',
+  'in_progress',
   'post_work',
   'completion'
 ]);
@@ -163,6 +162,25 @@ export const autoProjectStatusEnum = pgEnum('auto_project_status', [
 export const projectOriginEnum = pgEnum('project_origin', [
   'manual',
   'auto'
+]);
+
+/**
+ * Enum for workflow task phases
+ */
+export const workflowPhaseEnum = pgEnum('workflow_phase', [
+  'pre_work',
+  'in_progress',
+  'post_work'
+]);
+
+/**
+ * Enum for notification timing types
+ */
+export const timingTypeEnum = pgEnum('timing_type', [
+  'one_day_before',
+  'three_days_before',
+  'one_week_before',
+  'custom'
 ]);
 
 // Maintenance tables
@@ -361,6 +379,18 @@ export const maintenanceProjects = pgTable('maintenance_projects', {
   totalBudget: decimal('total_budget', { precision: 12, scale: 2 }),
   actualCost: decimal('actual_cost', { precision: 12, scale: 2 }).default('0'),
   priority: priorityEnum('priority').notNull().default('medium'),
+  // Planning fields
+  planningDescription: text('planning_description'),
+  planningStartDate: date('planning_start_date'),
+  estimatedCost: decimal('estimated_cost', { precision: 12, scale: 2 }),
+  // Workflow control fields
+  skipSubmission: boolean('skip_submission').notNull().default(false),
+  skipPreWork: boolean('skip_pre_work').notNull().default(false),
+  skipInProgress: boolean('skip_in_progress').notNull().default(false),
+  skipPostWork: boolean('skip_post_work').notNull().default(false),
+  // Completion fields
+  completionSummary: text('completion_summary'),
+  workStartDate: date('work_start_date'),
   createdBy: text('created_by')
     .notNull()
     .references(() => users.id),
@@ -372,6 +402,7 @@ export const maintenanceProjects = pgTable('maintenance_projects', {
   // Validation constraints
   totalBudgetCheck: check('maintenance_projects_total_budget_check', sql`total_budget >= 0`),
   actualCostCheck: check('maintenance_projects_actual_cost_check', sql`actual_cost >= 0`),
+  estimatedCostCheck: check('maintenance_projects_estimated_cost_check', sql`estimated_cost >= 0`),
 }));
 
 /**
@@ -432,6 +463,89 @@ export const elementDocuments = pgTable('element_documents', {
     .references(() => users.id),
   uploadedAt: timestamp('uploaded_at').defaultNow(),
 });
+
+/**
+ * Submission vendors table for managing vendor submissions during project submission phase.
+ * Tracks vendor quotes, contact information, and selection status.
+ */
+export const submissionVendors = pgTable('submission_vendors', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => maintenanceProjects.id, { onDelete: 'cascade' }),
+  vendorId: uuid('vendor_id')
+    .notNull()
+    .references(() => vendors.id, { onDelete: 'cascade' }),
+  contactInfo: text('contact_info'),
+  notes: text('notes'),
+  price: decimal('price', { precision: 12, scale: 2 }),
+  projectType: projectTypeEnum('project_type').notNull(),
+  addedLifespan: integer('added_lifespan'), // only for minor/major rehab
+  documents: jsonb('documents'), // submission documents
+  // Payment plan fields following financial service patterns
+  paymentPlanCosts: decimal('payment_plan_costs', { precision: 10, scale: 2 }).array(), // array of payment amounts like bills.costs
+  paymentPlanSchedule: schedulePaymentEnum('payment_plan_schedule'), // weekly, monthly, quarterly, yearly, custom
+  paymentPlanCustomDates: date('payment_plan_custom_dates').array(), // for custom scheduling
+  paymentPlanStartDate: date('payment_plan_start_date'), // when payments begin
+  isSelected: boolean('is_selected').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  // Performance indexes
+  projectIdIdx: index('submission_vendors_project_id_idx').on(table.projectId),
+  vendorIdIdx: index('submission_vendors_vendor_id_idx').on(table.vendorId),
+  // Validation constraints
+  priceCheck: check('submission_vendors_price_check', sql`price >= 0`),
+  addedLifespanCheck: check('submission_vendors_added_lifespan_check', sql`added_lifespan >= 0`),
+}));
+
+/**
+ * Workflow tasks table for managing specific tasks within project workflow phases.
+ * Enables detailed task tracking and cost allocation per phase.
+ */
+export const workflowTasks = pgTable('workflow_tasks', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => maintenanceProjects.id, { onDelete: 'cascade' }),
+  phase: workflowPhaseEnum('phase').notNull(),
+  taskName: text('task_name').notNull(),
+  description: text('description'),
+  cost: decimal('cost', { precision: 10, scale: 2 }),
+  isCompleted: boolean('is_completed').notNull().default(false),
+  orderIndex: integer('order_index').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  // Performance indexes
+  projectPhaseIdx: index('workflow_tasks_project_phase_idx').on(table.projectId, table.phase),
+  orderIdx: index('workflow_tasks_order_idx').on(table.projectId, table.orderIndex),
+  // Validation constraints
+  costCheck: check('workflow_tasks_cost_check', sql`cost >= 0`),
+}));
+
+/**
+ * Project notifications table for managing automated reminders and notifications.
+ * Supports various timing configurations for project workflow notifications.
+ */
+export const projectNotifications = pgTable('project_notifications', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => maintenanceProjects.id, { onDelete: 'cascade' }),
+  messageText: text('message_text').notNull(),
+  timingType: timingTypeEnum('timing_type').notNull(),
+  customDaysBefore: integer('custom_days_before'), // for custom timing
+  isSent: boolean('is_sent').notNull().default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  // Performance indexes
+  projectIdIdx: index('project_notifications_project_id_idx').on(table.projectId),
+  isSentIdx: index('project_notifications_is_sent_idx').on(table.isSent),
+  // Validation constraints
+  customDaysBeforeCheck: check('project_notifications_custom_days_before_check', sql`custom_days_before > 0`),
+}));
 
 // Insert schemas
 export const insertUniformatCodeSchema = createInsertSchema(uniformatCodes, {
@@ -512,6 +626,15 @@ export const insertMaintenanceProjectSchema = createInsertSchema(maintenanceProj
   actualEndDate: z.date().optional(),
   totalBudget: z.number().positive().optional(),
   actualCost: z.number().min(0).optional(),
+  planningDescription: z.string().optional(),
+  planningStartDate: z.date().optional(),
+  estimatedCost: z.number().positive().optional(),
+  skipSubmission: z.boolean().optional(),
+  skipPreWork: z.boolean().optional(),
+  skipInProgress: z.boolean().optional(),
+  skipPostWork: z.boolean().optional(),
+  completionSummary: z.string().optional(),
+  workStartDate: z.date().optional(),
   createdBy: z.string().uuid(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
@@ -537,6 +660,34 @@ export const insertElementDocumentSchema = createInsertSchema(elementDocuments, 
   mimeType: z.string().max(100).optional(),
   uploadedBy: z.string().uuid(),
 }).omit({ id: true, uploadedAt: true });
+
+export const insertSubmissionVendorSchema = createInsertSchema(submissionVendors, {
+  projectId: z.string().uuid(),
+  vendorId: z.string().uuid(),
+  contactInfo: z.string().optional(),
+  notes: z.string().optional(),
+  price: z.number().positive().optional(),
+  addedLifespan: z.number().int().positive().optional(),
+  // Payment plan fields following financial service patterns
+  paymentPlanCosts: z.array(z.number().positive()).min(1).optional(),
+  paymentPlanSchedule: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+  paymentPlanCustomDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+  paymentPlanStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertWorkflowTaskSchema = createInsertSchema(workflowTasks, {
+  projectId: z.string().uuid(),
+  taskName: z.string().min(1),
+  description: z.string().optional(),
+  cost: z.number().positive().optional(),
+  orderIndex: z.number().int().min(0),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+export const insertProjectNotificationSchema = createInsertSchema(projectNotifications, {
+  projectId: z.string().uuid(),
+  messageText: z.string().min(1),
+  customDaysBefore: z.number().int().positive().optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
 
 // TypeScript types
 export type UniformatCode = typeof uniformatCodes.$inferSelect;
@@ -569,6 +720,15 @@ export type InsertProjectElement = z.infer<typeof insertProjectElementSchema>;
 export type ElementDocument = typeof elementDocuments.$inferSelect;
 export type InsertElementDocument = z.infer<typeof insertElementDocumentSchema>;
 
+export type SubmissionVendor = typeof submissionVendors.$inferSelect;
+export type InsertSubmissionVendor = z.infer<typeof insertSubmissionVendorSchema>;
+
+export type WorkflowTask = typeof workflowTasks.$inferSelect;
+export type InsertWorkflowTask = z.infer<typeof insertWorkflowTaskSchema>;
+
+export type ProjectNotification = typeof projectNotifications.$inferSelect;
+export type InsertProjectNotification = z.infer<typeof insertProjectNotificationSchema>;
+
 // Relations
 export const uniformatCodesRelations = relations(uniformatCodes, ({ one, many }) => ({
   parent: one(uniformatCodes, {
@@ -585,6 +745,7 @@ export const vendorsRelations = relations(vendors, ({ one, many }) => ({
     references: [organizations.id],
   }),
   elementHistory: many(elementHistory),
+  submissionVendors: many(submissionVendors),
 }));
 
 export const buildingElementsRelations = relations(buildingElements, ({ one, many }) => ({
@@ -670,6 +831,9 @@ export const maintenanceProjectsRelations = relations(maintenanceProjects, ({ on
   steps: many(projectSteps),
   projectElements: many(projectElements),
   suggestions: many(evaluationSuggestions),
+  submissionVendors: many(submissionVendors),
+  workflowTasks: many(workflowTasks),
+  projectNotifications: many(projectNotifications),
 }));
 
 export const projectStepsRelations = relations(projectSteps, ({ one }) => ({
@@ -702,5 +866,30 @@ export const elementDocumentsRelations = relations(elementDocuments, ({ one }) =
   uploadedBy: one(users, {
     fields: [elementDocuments.uploadedBy],
     references: [users.id],
+  }),
+}));
+
+export const submissionVendorsRelations = relations(submissionVendors, ({ one }) => ({
+  project: one(maintenanceProjects, {
+    fields: [submissionVendors.projectId],
+    references: [maintenanceProjects.id],
+  }),
+  vendor: one(vendors, {
+    fields: [submissionVendors.vendorId],
+    references: [vendors.id],
+  }),
+}));
+
+export const workflowTasksRelations = relations(workflowTasks, ({ one }) => ({
+  project: one(maintenanceProjects, {
+    fields: [workflowTasks.projectId],
+    references: [maintenanceProjects.id],
+  }),
+}));
+
+export const projectNotificationsRelations = relations(projectNotifications, ({ one }) => ({
+  project: one(maintenanceProjects, {
+    fields: [projectNotifications.projectId],
+    references: [maintenanceProjects.id],
   }),
 }));

@@ -1,0 +1,409 @@
+import { db } from '../db';
+import { eq, and } from 'drizzle-orm';
+import {
+  maintenanceProjects,
+  submissionVendors,
+  workflowTasks,
+  projectNotifications,
+  type MaintenanceProject,
+} from '@shared/schemas/maintenance';
+
+// Define the workflow status progression
+const STATUS_PROGRESSION = [
+  'planned',
+  'submission', 
+  'pre_work',
+  'in_progress',
+  'post_work',
+  'completed'
+] as const;
+
+// Define which statuses can be skipped
+const SKIPPABLE_STATUSES = [
+  'submission',
+  'pre_work',
+  'in_progress',
+  'post_work'
+] as const;
+
+export type WorkflowStatus = typeof STATUS_PROGRESSION[number];
+export type SkippableStatus = typeof SKIPPABLE_STATUSES[number];
+
+export interface SkipFlags {
+  skipSubmission?: boolean;
+  skipPreWork?: boolean;
+  skipInProgress?: boolean;
+  skipPostWork?: boolean;
+}
+
+export interface WorkflowState {
+  projectId: string;
+  currentStatus: WorkflowStatus;
+  skipFlags: SkipFlags;
+  completedStatuses: WorkflowStatus[];
+  nextStatus: WorkflowStatus | null;
+  canProgress: boolean;
+  progressionHistory: {
+    status: WorkflowStatus;
+    completedAt: Date | null;
+    isSkipped: boolean;
+  }[];
+}
+
+/**
+ * Workflow Service
+ * Manages project workflow state progression and business logic
+ */
+export class WorkflowService {
+  
+  /**
+   * Get current workflow state for a project with skip flags and completion status
+   */
+  async getProjectWorkflowState(projectId: string): Promise<WorkflowState | null> {
+    try {
+      // Get project with current status and skip flags
+      const project = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+
+      if (project.length === 0) {
+        return null;
+      }
+
+      const projectData = project[0];
+      const currentStatus = projectData.status as WorkflowStatus;
+      
+      const skipFlags: SkipFlags = {
+        skipSubmission: projectData.skipSubmission || false,
+        skipPreWork: projectData.skipPreWork || false,
+        skipInProgress: projectData.skipInProgress || false,
+        skipPostWork: projectData.skipPostWork || false,
+      };
+
+      // Calculate progression history and completed statuses
+      const progressionHistory = this.calculateProgressionHistory(currentStatus, skipFlags);
+      const completedStatuses = progressionHistory
+        .filter(item => item.completedAt !== null || item.isSkipped)
+        .map(item => item.status);
+
+      // Determine next status
+      const nextStatus = this.getNextStatus(currentStatus, skipFlags);
+      
+      // Check if can progress (not completed and has next status)
+      const canProgress = currentStatus !== 'completed' && nextStatus !== null;
+
+      return {
+        projectId,
+        currentStatus,
+        skipFlags,
+        completedStatuses,
+        nextStatus,
+        canProgress,
+        progressionHistory,
+      };
+    } catch (error) {
+      console.error('Error getting project workflow state:', error);
+      throw new Error('Failed to get project workflow state');
+    }
+  }
+
+  /**
+   * Advance project to next non-skipped status
+   */
+  async markStatusComplete(projectId: string, currentStatus: WorkflowStatus): Promise<WorkflowState> {
+    try {
+      // Get current project state
+      const workflowState = await this.getProjectWorkflowState(projectId);
+      if (!workflowState) {
+        throw new Error('Project not found');
+      }
+
+      // Validate current status matches
+      if (workflowState.currentStatus !== currentStatus) {
+        throw new Error(`Project status mismatch. Expected: ${currentStatus}, Current: ${workflowState.currentStatus}`);
+      }
+
+      // Check if can progress
+      if (!workflowState.canProgress) {
+        throw new Error('Project cannot progress from current status');
+      }
+
+      const nextStatus = workflowState.nextStatus;
+      if (!nextStatus) {
+        throw new Error('No next status available');
+      }
+
+      // Update project status in database
+      await db
+        .update(maintenanceProjects)
+        .set({
+          status: nextStatus,
+          updatedAt: new Date(),
+          // Set specific date fields based on status
+          ...(nextStatus === 'in_progress' && { actualStartDate: new Date() }),
+          ...(nextStatus === 'completed' && { actualEndDate: new Date() }),
+        })
+        .where(eq(maintenanceProjects.id, projectId));
+
+      // Return updated workflow state
+      return await this.getProjectWorkflowState(projectId) as WorkflowState;
+    } catch (error) {
+      console.error('Error marking status complete:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update skip flags for a project
+   */
+  async updateSkipFlags(projectId: string, skipFlags: SkipFlags): Promise<WorkflowState> {
+    try {
+      // Validate skip flags
+      this.validateSkipFlags(skipFlags);
+
+      // Get current project to validate state
+      const currentState = await this.getProjectWorkflowState(projectId);
+      if (!currentState) {
+        throw new Error('Project not found');
+      }
+
+      // Prevent changing skip flags for already completed statuses
+      const currentStatusIndex = STATUS_PROGRESSION.indexOf(currentState.currentStatus);
+      
+      // Check if trying to skip a status that's already passed
+      if (skipFlags.skipSubmission && currentStatusIndex > STATUS_PROGRESSION.indexOf('submission')) {
+        throw new Error('Cannot skip submission phase - already passed');
+      }
+      if (skipFlags.skipPreWork && currentStatusIndex > STATUS_PROGRESSION.indexOf('pre_work')) {
+        throw new Error('Cannot skip pre-work phase - already passed');
+      }
+      if (skipFlags.skipInProgress && currentStatusIndex > STATUS_PROGRESSION.indexOf('in_progress')) {
+        throw new Error('Cannot skip in-progress phase - already passed');
+      }
+      if (skipFlags.skipPostWork && currentStatusIndex > STATUS_PROGRESSION.indexOf('post_work')) {
+        throw new Error('Cannot skip post-work phase - already passed');
+      }
+
+      // Update skip flags in database
+      await db
+        .update(maintenanceProjects)
+        .set({
+          skipSubmission: skipFlags.skipSubmission || false,
+          skipPreWork: skipFlags.skipPreWork || false,
+          skipInProgress: skipFlags.skipInProgress || false,
+          skipPostWork: skipFlags.skipPostWork || false,
+          updatedAt: new Date(),
+        })
+        .where(eq(maintenanceProjects.id, projectId));
+
+      // Return updated workflow state
+      return await this.getProjectWorkflowState(projectId) as WorkflowState;
+    } catch (error) {
+      console.error('Error updating skip flags:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Determine next status in workflow based on current status and skip flags
+   */
+  getNextStatus(currentStatus: WorkflowStatus, skipFlags: SkipFlags): WorkflowStatus | null {
+    const currentIndex = STATUS_PROGRESSION.indexOf(currentStatus);
+    
+    if (currentIndex === -1 || currentIndex >= STATUS_PROGRESSION.length - 1) {
+      return null; // Already at end or invalid status
+    }
+
+    // Look for next non-skipped status
+    for (let i = currentIndex + 1; i < STATUS_PROGRESSION.length; i++) {
+      const nextStatus = STATUS_PROGRESSION[i];
+      
+      // Check if this status should be skipped
+      if (this.shouldSkipStatus(nextStatus, skipFlags)) {
+        continue; // Skip this status
+      }
+      
+      return nextStatus;
+    }
+
+    return null; // No more statuses
+  }
+
+  /**
+   * Validate which statuses can be skipped
+   */
+  isStatusSkippable(status: WorkflowStatus): boolean {
+    return SKIPPABLE_STATUSES.includes(status as SkippableStatus);
+  }
+
+  /**
+   * Private helper methods
+   */
+
+  private shouldSkipStatus(status: WorkflowStatus, skipFlags: SkipFlags): boolean {
+    switch (status) {
+      case 'submission':
+        return skipFlags.skipSubmission || false;
+      case 'pre_work':
+        return skipFlags.skipPreWork || false;
+      case 'in_progress':
+        return skipFlags.skipInProgress || false;
+      case 'post_work':
+        return skipFlags.skipPostWork || false;
+      default:
+        return false; // Non-skippable statuses
+    }
+  }
+
+  private calculateProgressionHistory(currentStatus: WorkflowStatus, skipFlags: SkipFlags): {
+    status: WorkflowStatus;
+    completedAt: Date | null;
+    isSkipped: boolean;
+  }[] {
+    const currentIndex = STATUS_PROGRESSION.indexOf(currentStatus);
+    
+    return STATUS_PROGRESSION.map((status, index) => {
+      const isSkipped = this.shouldSkipStatus(status, skipFlags);
+      const isCompleted = index < currentIndex || (index === currentIndex && currentStatus === 'completed');
+      
+      return {
+        status,
+        completedAt: isCompleted ? new Date() : null, // In real implementation, would use actual completion dates
+        isSkipped,
+      };
+    });
+  }
+
+  private validateSkipFlags(skipFlags: SkipFlags): void {
+    // Validate that only skippable statuses are being skipped
+    const validFlags = ['skipSubmission', 'skipPreWork', 'skipInProgress', 'skipPostWork'];
+    
+    for (const [key, value] of Object.entries(skipFlags)) {
+      if (!validFlags.includes(key)) {
+        throw new Error(`Invalid skip flag: ${key}`);
+      }
+      
+      if (typeof value !== 'boolean' && value !== undefined) {
+        throw new Error(`Skip flag ${key} must be a boolean`);
+      }
+    }
+  }
+
+  /**
+   * Get workflow statistics for reporting
+   */
+  async getWorkflowStatistics(projectIds: string[]): Promise<{
+    totalProjects: number;
+    statusDistribution: Record<WorkflowStatus, number>;
+    averageCompletionTime: number | null;
+    projectsWithSkips: number;
+  }> {
+    try {
+      if (projectIds.length === 0) {
+        return {
+          totalProjects: 0,
+          statusDistribution: {
+            planned: 0,
+            submission: 0,
+            pre_work: 0,
+            in_progress: 0,
+            post_work: 0,
+            completed: 0,
+          },
+          averageCompletionTime: null,
+          projectsWithSkips: 0,
+        };
+      }
+
+      const projects = await db
+        .select()
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectIds[0])); // Simplified for example
+
+      // Calculate statistics
+      const statusDistribution = STATUS_PROGRESSION.reduce((acc, status) => {
+        acc[status] = projects.filter(p => p.status === status).length;
+        return acc;
+      }, {} as Record<WorkflowStatus, number>);
+
+      const projectsWithSkips = projects.filter(p => 
+        p.skipSubmission || p.skipPreWork || p.skipInProgress || p.skipPostWork
+      ).length;
+
+      // Calculate average completion time for completed projects
+      const completedProjects = projects.filter(p => 
+        p.status === 'completed' && p.createdAt && p.actualEndDate
+      );
+      
+      const averageCompletionTime = completedProjects.length > 0
+        ? completedProjects.reduce((acc, p) => {
+            const duration = p.actualEndDate!.getTime() - p.createdAt.getTime();
+            return acc + duration;
+          }, 0) / completedProjects.length / (1000 * 60 * 60 * 24) // Convert to days
+        : null;
+
+      return {
+        totalProjects: projects.length,
+        statusDistribution,
+        averageCompletionTime,
+        projectsWithSkips,
+      };
+    } catch (error) {
+      console.error('Error getting workflow statistics:', error);
+      throw new Error('Failed to get workflow statistics');
+    }
+  }
+
+  /**
+   * Validate workflow transition rules
+   */
+  async validateWorkflowTransition(
+    projectId: string, 
+    fromStatus: WorkflowStatus, 
+    toStatus: WorkflowStatus
+  ): Promise<{ isValid: boolean; reason?: string }> {
+    try {
+      const workflowState = await this.getProjectWorkflowState(projectId);
+      if (!workflowState) {
+        return { isValid: false, reason: 'Project not found' };
+      }
+
+      // Check if current status matches fromStatus
+      if (workflowState.currentStatus !== fromStatus) {
+        return { 
+          isValid: false, 
+          reason: `Current status ${workflowState.currentStatus} does not match expected ${fromStatus}` 
+        };
+      }
+
+      // Check if toStatus is the expected next status
+      if (workflowState.nextStatus !== toStatus) {
+        return { 
+          isValid: false, 
+          reason: `Cannot transition to ${toStatus}. Expected next status: ${workflowState.nextStatus}` 
+        };
+      }
+
+      // Validate no backward transitions (except for admin overrides)
+      const fromIndex = STATUS_PROGRESSION.indexOf(fromStatus);
+      const toIndex = STATUS_PROGRESSION.indexOf(toStatus);
+      
+      if (toIndex <= fromIndex && toStatus !== 'completed') {
+        return { 
+          isValid: false, 
+          reason: 'Backward transitions are not allowed in workflow' 
+        };
+      }
+
+      return { isValid: true };
+    } catch (error) {
+      console.error('Error validating workflow transition:', error);
+      return { isValid: false, reason: 'Validation error occurred' };
+    }
+  }
+}
+
+// Export singleton instance
+export const workflowService = new WorkflowService();

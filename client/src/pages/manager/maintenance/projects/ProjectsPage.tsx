@@ -34,6 +34,9 @@ import {
   ProjectBudget,
 } from '@/components/maintenance/projects';
 
+// Import new workflow modal components
+import { ProjectWorkflowModal } from '@/components/maintenance/projects/workflow';
+
 import { 
   AlertTriangle, 
   Building, 
@@ -134,7 +137,9 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   // State for modals and panels
   const [selectedProject, setSelectedProject] = useState<MaintenanceProject | null>(null);
   const [showProjectDetails, setShowProjectDetails] = useState(false);
-  const [showProjectForm, setShowProjectForm] = useState(false);
+  const [showProjectWorkflow, setShowProjectWorkflow] = useState(false);
+  const [workflowInitialTab, setWorkflowInitialTab] = useState<string | undefined>();
+  const [showProjectForm, setShowProjectForm] = useState(false); // Keep for backward compatibility/special cases
   const [projectFormMode, setProjectFormMode] = useState<'create' | 'edit'>('create');
   const [showStatusStepper, setShowStatusStepper] = useState(false);
   const [showProjectTimeline, setShowProjectTimeline] = useState(false);
@@ -166,24 +171,34 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   const handleViewProject = useCallback((project: MaintenanceProject) => {
     console.log('📁 [PROJECTS ACTION] handleViewProject called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
-    setShowProjectDetails(true);
-    console.log('📁 [PROJECTS STATE] Project details panel opened');
+    setWorkflowInitialTab(undefined); // Let workflow determine the appropriate tab
+    setShowProjectWorkflow(true);
+    console.log('📁 [PROJECTS STATE] Project workflow modal opened');
   }, []);
 
   const handleEditProject = useCallback((project: MaintenanceProject) => {
     console.log('📁 [PROJECTS ACTION] handleEditProject called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
-    setProjectFormMode('edit');
-    setShowProjectForm(true);
-    console.log('📁 [PROJECTS STATE] Project form opened in edit mode');
+    setWorkflowInitialTab(undefined); // Let workflow determine the appropriate tab
+    setShowProjectWorkflow(true);
+    console.log('📁 [PROJECTS STATE] Project workflow modal opened for editing');
   }, []);
 
   const handleAddProject = useCallback(() => {
     console.log('📁 [PROJECTS ACTION] handleAddProject called');
     setSelectedProject(null);
     setProjectFormMode('create');
-    setShowProjectForm(true);
-    console.log('📁 [PROJECTS STATE] Project form opened in create mode');
+    setShowProjectForm(true); // Still use ProjectForm for creating new projects
+    console.log('📁 [PROJECTS STATE] Project form opened for new project creation');
+  }, []);
+
+  // Handler to open workflow modal at specific tab
+  const handleOpenWorkflowTab = useCallback((project: MaintenanceProject, tabId?: string) => {
+    console.log('📁 [PROJECTS ACTION] handleOpenWorkflowTab called:', { projectId: project.id, projectTitle: project.title, tabId });
+    setSelectedProject(project);
+    setWorkflowInitialTab(tabId);
+    setShowProjectWorkflow(true);
+    console.log('📁 [PROJECTS STATE] Project workflow modal opened at specific tab:', tabId);
   }, []);
 
 
@@ -213,9 +228,11 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   const handleUpdateStatus = useCallback((project: MaintenanceProject) => {
     console.log('📁 [PROJECTS ACTION] handleUpdateStatus called:', { projectId: project.id, projectTitle: project.title, currentStatus: project.status });
+    // Open workflow modal at the current status tab for status management
     setSelectedProject(project);
-    setShowStatusStepper(true);
-    console.log('📁 [PROJECTS STATE] Status stepper modal opened');
+    setWorkflowInitialTab(project.status);
+    setShowProjectWorkflow(true);
+    console.log('📁 [PROJECTS STATE] Project workflow modal opened for status update');
   }, []);
 
 
@@ -239,6 +256,16 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     });
     console.log('📁 [PROJECTS STATE] Project form closed after success');
   }, [projectFormMode, toast]);
+
+  const handleWorkflowModalUpdate = useCallback((project: MaintenanceProject) => {
+    console.log('📁 [PROJECTS SUCCESS] Project workflow updated:', { projectId: project.id, projectTitle: project.title });
+    // Update selected project with latest data
+    setSelectedProject(project);
+    
+    // Note: We don't close the modal here as user might want to continue working with different tabs
+    // The modal will handle its own state and navigation between tabs
+    console.log('📁 [PROJECTS STATE] Project workflow modal updated with latest project data');
+  }, []);
 
   const handleSuggestionsIntegrationSuccess = useCallback((projects: MaintenanceProject[]) => {
     setShowSuggestionsIntegration(false);
@@ -529,18 +556,40 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
       {/* Modals and Dialogs */}
       
-      {/* Project Form Modal */}
+      {/* Project Form Modal - Used for creating new projects */}
       <ProjectForm
         isOpen={showProjectForm}
         onOpenChange={(open) => {
           console.log('📁 [PROJECTS MODAL] Project form visibility changed:', { open, mode: projectFormMode, hasProject: !!selectedProject });
           setShowProjectForm(open);
+          if (!open) {
+            setSelectedProject(null);
+          }
           logStateChange('Project form visibility changed', { open, mode: projectFormMode });
         }}
         project={projectFormMode === 'edit' ? selectedProject : null}
         onSuccess={handleProjectFormSuccess}
         mode={projectFormMode}
       />
+
+      {/* Project Workflow Modal - Used for managing existing projects */}
+      {selectedProject && (
+        <ProjectWorkflowModal
+          isOpen={showProjectWorkflow}
+          onOpenChange={(open) => {
+            console.log('📁 [PROJECTS MODAL] Project workflow visibility changed:', { open, projectId: selectedProject?.id });
+            setShowProjectWorkflow(open);
+            if (!open) {
+              setSelectedProject(null);
+              setWorkflowInitialTab(undefined);
+            }
+            logStateChange('Project workflow visibility changed', { open, projectId: selectedProject?.id });
+          }}
+          project={selectedProject}
+          initialTab={workflowInitialTab}
+          onProjectUpdate={handleWorkflowModalUpdate}
+        />
+      )}
 
       {/* Status Stepper Modal */}
       {showStatusStepper && selectedProject && (

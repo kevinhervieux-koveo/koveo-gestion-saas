@@ -1,0 +1,424 @@
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  useUpdateProjectDetails,
+  type ProjectWorkflowState 
+} from '@/hooks/useProjectWorkflow';
+import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+import {
+  CheckCircle2,
+  Calendar,
+  DollarSign,
+  Clock,
+  FileText,
+  Star,
+  TrendingUp,
+  Target,
+  Award,
+  AlertTriangle,
+  Info,
+} from 'lucide-react';
+
+export interface CompleteTabProps {
+  project: MaintenanceProject;
+  workflowState: ProjectWorkflowState;
+  onUpdate: () => void;
+}
+
+const completeTabSchema = z.object({
+  completionSummary: z.string().min(10, 'Please provide a meaningful summary of at least 10 characters'),
+});
+
+type CompleteTabData = z.infer<typeof completeTabSchema>;
+
+/**
+ * Complete tab component for project completion and summary
+ * Displays project summary, final comments, and completion status
+ */
+export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabProps) {
+  const { toast } = useToast();
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const { mutate: updateProject, isPending: isUpdating } = useUpdateProjectDetails();
+
+  const form = useForm<CompleteTabData>({
+    resolver: zodResolver(completeTabSchema),
+    defaultValues: {
+      completionSummary: project.completionSummary || '',
+    },
+  });
+
+  // Watch for form changes
+  useEffect(() => {
+    const subscription = form.watch(() => setHasChanges(true));
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // Auto-save when user stops typing
+  useEffect(() => {
+    if (!hasChanges) return;
+
+    const timer = setTimeout(() => {
+      handleSave();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [hasChanges, form.getValues()]);
+
+  const handleSave = async () => {
+    const values = form.getValues();
+    
+    // Basic validation
+    if (!values.completionSummary || values.completionSummary.trim().length < 10) {
+      return;
+    }
+
+    updateProject({
+      projectId: project.id,
+      updates: {
+        completionSummary: values.completionSummary,
+      },
+      status: 'completed',
+    }, {
+      onSuccess: () => {
+        setHasChanges(false);
+        onUpdate();
+      },
+    });
+  };
+
+  // Calculate project metrics
+  const projectMetrics = {
+    duration: project.actualStartDate && project.actualEndDate 
+      ? Math.ceil((new Date(project.actualEndDate).getTime() - new Date(project.actualStartDate).getTime()) / (1000 * 60 * 60 * 24))
+      : null,
+    budgetUsed: project.actualCost ? parseFloat(project.actualCost) : 0,
+    budgetTotal: project.totalBudget ? parseFloat(project.totalBudget) : 0,
+    isOverBudget: project.actualCost && project.totalBudget 
+      ? parseFloat(project.actualCost) > parseFloat(project.totalBudget)
+      : false,
+  };
+
+  const budgetUtilization = projectMetrics.budgetTotal > 0 
+    ? Math.round((projectMetrics.budgetUsed / projectMetrics.budgetTotal) * 100)
+    : 0;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const isProjectComplete = workflowState.currentStatus === 'completed';
+
+  return (
+    <div className="space-y-6" data-testid="complete-tab">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">Project Completion</h3>
+            {isProjectComplete && (
+              <Badge className="bg-green-600">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                Complete
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Final project summary and completion details
+          </p>
+        </div>
+        
+        {hasChanges && (
+          <Button variant="outline" size="sm" onClick={handleSave} disabled={isUpdating}>
+            {isUpdating ? 'Saving...' : 'Save Changes'}
+          </Button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content - Completion Summary */}
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Completion Summary
+              </CardTitle>
+              <CardDescription>
+                Document the final outcome, lessons learned, and key accomplishments
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="completionSummary"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Provide a comprehensive summary of the completed work, including:
+• What was accomplished
+• Any challenges overcome
+• Quality of work delivered
+• Impact on the building/residents
+• Lessons learned for future projects
+• Recommendations for maintenance"
+                            className="min-h-[200px]"
+                            {...field}
+                            data-testid="textarea-completion-summary"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          This summary will be part of the permanent project record
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+
+          {/* Project Timeline Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Project Timeline
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Planned Start</div>
+                    <div className="text-base">
+                      {project.plannedStartDate 
+                        ? format(new Date(project.plannedStartDate), 'MMM d, yyyy')
+                        : 'Not specified'
+                      }
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Actual Start</div>
+                    <div className="text-base">
+                      {project.actualStartDate 
+                        ? format(new Date(project.actualStartDate), 'MMM d, yyyy')
+                        : 'Not recorded'
+                      }
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Planned End</div>
+                    <div className="text-base">
+                      {project.plannedEndDate 
+                        ? format(new Date(project.plannedEndDate), 'MMM d, yyyy')
+                        : 'Not specified'
+                      }
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Actual End</div>
+                    <div className="text-base">
+                      {project.actualEndDate 
+                        ? format(new Date(project.actualEndDate), 'MMM d, yyyy')
+                        : 'Not recorded'
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                {projectMetrics.duration && (
+                  <div className="pt-2 border-t">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        Project duration: <span className="font-medium">{projectMetrics.duration} days</span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar - Project Metrics */}
+        <div className="lg:col-span-1 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <DollarSign className="h-4 w-4" />
+                Budget Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <div className="text-sm text-muted-foreground">Total Budget</div>
+                  <div className="text-lg font-semibold">
+                    {formatCurrency(projectMetrics.budgetTotal)}
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm text-muted-foreground">Actual Cost</div>
+                  <div className={`text-lg font-semibold ${projectMetrics.isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
+                    {formatCurrency(projectMetrics.budgetUsed)}
+                  </div>
+                </div>
+
+                {projectMetrics.budgetTotal > 0 && (
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-2">Budget Utilization</div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all ${
+                          budgetUtilization > 100 ? 'bg-red-600' : 
+                          budgetUtilization > 90 ? 'bg-yellow-600' : 'bg-green-600'
+                        }`}
+                        style={{ width: `${Math.min(budgetUtilization, 100)}%` }}
+                      />
+                    </div>
+                    <div className={`text-sm mt-1 ${
+                      budgetUtilization > 100 ? 'text-red-600' : 
+                      budgetUtilization > 90 ? 'text-yellow-600' : 'text-green-600'
+                    }`}>
+                      {budgetUtilization}% utilized
+                    </div>
+
+                    {projectMetrics.isOverBudget && (
+                      <div className="flex items-center gap-1 text-red-600 text-sm mt-2">
+                        <AlertTriangle className="h-3 w-3" />
+                        Over budget by {formatCurrency(projectMetrics.budgetUsed - projectMetrics.budgetTotal)}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Target className="h-4 w-4" />
+                Project Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-sm">
+                <div>
+                  <div className="text-muted-foreground">Project Number</div>
+                  <div className="font-medium">{project.projectNumber}</div>
+                </div>
+                
+                <div>
+                  <div className="text-muted-foreground">Project Type</div>
+                  <div className="capitalize font-medium">
+                    {project.type.replace('_', ' ')}
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-muted-foreground">Priority</div>
+                  <Badge variant={
+                    project.priority === 'critical' ? 'destructive' :
+                    project.priority === 'high' ? 'default' :
+                    project.priority === 'medium' ? 'secondary' : 'outline'
+                  }>
+                    {project.priority}
+                  </Badge>
+                </div>
+
+                <div>
+                  <div className="text-muted-foreground">Origin</div>
+                  <div className="flex items-center gap-1">
+                    {project.origin === 'auto' ? (
+                      <>
+                        <TrendingUp className="h-3 w-3" />
+                        <span>Auto-generated</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="h-3 w-3" />
+                        <span>Manual</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-muted-foreground">Created</div>
+                  <div>{format(new Date(project.createdAt), 'MMM d, yyyy')}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Award className="h-4 w-4" />
+                Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-center p-6">
+                <div className="text-center">
+                  <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto mb-3" />
+                  <div className="text-lg font-semibold text-green-600">
+                    Project Complete
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    All workflow stages completed
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Final Notes */}
+      <Card className="border-green-200 bg-green-50">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-green-900 mb-1">Project Successfully Completed</p>
+              <p className="text-green-800">
+                This project has been marked as complete. The completion summary and all project data 
+                have been archived for future reference. You can still view and edit the completion 
+                summary, but the project workflow is now finalized.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

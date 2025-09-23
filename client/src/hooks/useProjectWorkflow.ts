@@ -1,0 +1,555 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { MaintenanceProject } from '@shared/schemas/maintenance';
+
+// Types for workflow management
+export interface ProjectWorkflowState {
+  project: MaintenanceProject;
+  currentStatus: string;
+  nextStatus: string | null;
+  canAdvance: boolean;
+  skipFlags: {
+    skipSubmission: boolean;
+    skipPreWork: boolean;
+    skipInProgress: boolean;
+    skipPostWork: boolean;
+  };
+  accessibleTabs: string[];
+  firstIncompleteTab: string;
+}
+
+export interface WorkflowTask {
+  id: string;
+  projectId: string;
+  phase: 'pre_work' | 'in_progress' | 'post_work';
+  taskName: string;
+  description?: string;
+  cost?: number;
+  isCompleted: boolean;
+  orderIndex: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SubmissionVendor {
+  id: string;
+  projectId: string;
+  vendorId: string;
+  vendorName: string;
+  contactInfo?: string;
+  notes?: string;
+  price?: number;
+  projectType: string;
+  addedLifespan?: number;
+  documents?: any[];
+  paymentPlanCosts?: number[];
+  paymentPlanSchedule?: string;
+  paymentPlanCustomDates?: string[];
+  paymentPlanStartDate?: string;
+  isSelected: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectNotification {
+  id: string;
+  projectId: string;
+  messageText: string;
+  timingType: 'one_day_before' | 'three_days_before' | 'one_week_before' | 'custom';
+  customDaysBefore?: number;
+  isSent: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Update types for specific status updates
+export interface PlannedTabUpdate {
+  planningDescription?: string;
+  planningStartDate?: string;
+  estimatedCost?: number;
+  type?: string;
+}
+
+export interface InProgressTabUpdate {
+  workStartDate?: string;
+  // workflow tasks will be handled separately
+}
+
+export interface CompleteTabUpdate {
+  completionSummary?: string;
+}
+
+export interface SkipFlagsUpdate {
+  skipSubmission?: boolean;
+  skipPreWork?: boolean;
+  skipInProgress?: boolean;
+  skipPostWork?: boolean;
+}
+
+/**
+ * Get project workflow state including current status, skip flags, and navigation info
+ */
+export function useProjectWorkflowState(projectId: string) {
+  const { toast } = useToast();
+
+  return useQuery({
+    queryKey: ['/api/maintenance/projects', projectId, 'workflow'],
+    queryFn: async (): Promise<ProjectWorkflowState> => {
+      if (!projectId) throw new Error('Project ID is required');
+      
+      const response = await apiRequest('GET', `/api/maintenance/projects/${projectId}/workflow`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to fetch workflow state' }));
+        throw new Error(error.message || 'Failed to fetch workflow state');
+      }
+      
+      return await response.json();
+    },
+    enabled: !!projectId,
+    staleTime: 30000, // 30 seconds
+    retry: (failureCount, error) => {
+      if (error.message?.includes('not found')) return false;
+      return failureCount < 2;
+    },
+    onError: (error: Error) => {
+      console.error('Failed to fetch project workflow state:', error);
+      toast({
+        title: 'Error Loading Workflow',
+        description: error.message || 'Failed to load project workflow state',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/**
+ * Mutation to mark current status as complete and advance to next status
+ */
+export function useMarkStatusComplete() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ projectId, currentStatus }: { projectId: string; currentStatus: string }) => {
+      const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/advance-status`, {
+        currentStatus,
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to advance status' }));
+        throw new Error(error.message || 'Failed to advance status');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      const { projectId } = variables;
+      
+      // Invalidate workflow state
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', projectId, 'workflow'] 
+      });
+      
+      // Invalidate main project data
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', projectId] 
+      });
+      
+      // Invalidate projects list
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/buildings'] 
+      });
+
+      toast({
+        title: 'Status Updated',
+        description: `Project status has been advanced to ${data.newStatus}`,
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to advance project status:', error);
+      toast({
+        title: 'Status Update Failed',
+        description: error.message || 'Failed to advance project status',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/**
+ * Mutation to update skip flags for workflow steps
+ */
+export function useUpdateSkipFlags() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ projectId, skipFlags }: { projectId: string; skipFlags: SkipFlagsUpdate }) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/skip-flags`, skipFlags);
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to update skip flags' }));
+        throw new Error(error.message || 'Failed to update skip flags');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      const { projectId } = variables;
+      
+      // Invalidate workflow state to refresh navigation
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', projectId, 'workflow'] 
+      });
+      
+      // Invalidate main project data
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', projectId] 
+      });
+
+      toast({
+        title: 'Skip Settings Updated',
+        description: 'Workflow skip settings have been updated',
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to update skip flags:', error);
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update skip settings',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/**
+ * Mutation to update project details for specific workflow statuses
+ */
+export function useUpdateProjectDetails() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      updates, 
+      status 
+    }: { 
+      projectId: string; 
+      updates: PlannedTabUpdate | InProgressTabUpdate | CompleteTabUpdate; 
+      status: string;
+    }) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}`, {
+        ...updates,
+        status, // Include current status for validation
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to update project details' }));
+        throw new Error(error.message || 'Failed to update project details');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      const { projectId } = variables;
+      
+      // Invalidate workflow state
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', projectId, 'workflow'] 
+      });
+      
+      // Invalidate main project data
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', projectId] 
+      });
+
+      toast({
+        title: 'Project Updated',
+        description: 'Project details have been updated successfully',
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to update project details:', error);
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update project details',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/**
+ * Hook to fetch workflow tasks for a specific project and phase
+ */
+export function useWorkflowTasks(projectId: string, phase?: 'pre_work' | 'in_progress' | 'post_work') {
+  return useQuery({
+    queryKey: ['/api/maintenance/projects', projectId, 'workflow-tasks', phase],
+    queryFn: async (): Promise<WorkflowTask[]> => {
+      if (!projectId) throw new Error('Project ID is required');
+      
+      const url = phase 
+        ? `/api/maintenance/projects/${projectId}/workflow-tasks?phase=${phase}`
+        : `/api/maintenance/projects/${projectId}/workflow-tasks`;
+        
+      const response = await apiRequest('GET', url);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to fetch workflow tasks' }));
+        throw new Error(error.message || 'Failed to fetch workflow tasks');
+      }
+      
+      const data = await response.json();
+      return data.tasks || [];
+    },
+    enabled: !!projectId,
+    staleTime: 60000, // 1 minute
+  });
+}
+
+/**
+ * Mutation to create, update, or delete workflow tasks
+ */
+export function useWorkflowTaskMutations() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const createTask = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      taskData 
+    }: { 
+      projectId: string; 
+      taskData: Omit<WorkflowTask, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>;
+    }) => {
+      const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/workflow-tasks`, taskData);
+      if (!response.ok) throw new Error('Failed to create task');
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'workflow-tasks'] 
+      });
+      toast({
+        title: 'Task Created',
+        description: 'Workflow task has been created successfully',
+      });
+    },
+  });
+
+  const updateTask = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      taskId, 
+      updates 
+    }: { 
+      projectId: string; 
+      taskId: string; 
+      updates: Partial<WorkflowTask>;
+    }) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/workflow-tasks/${taskId}`, updates);
+      if (!response.ok) throw new Error('Failed to update task');
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'workflow-tasks'] 
+      });
+      toast({
+        title: 'Task Updated',
+        description: 'Workflow task has been updated successfully',
+      });
+    },
+  });
+
+  const deleteTask = useMutation({
+    mutationFn: async ({ projectId, taskId }: { projectId: string; taskId: string }) => {
+      const response = await apiRequest('DELETE', `/api/maintenance/projects/${projectId}/workflow-tasks/${taskId}`);
+      if (!response.ok) throw new Error('Failed to delete task');
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'workflow-tasks'] 
+      });
+      toast({
+        title: 'Task Deleted',
+        description: 'Workflow task has been deleted successfully',
+      });
+    },
+  });
+
+  return { createTask, updateTask, deleteTask };
+}
+
+/**
+ * Hook to fetch submission vendors for a project
+ */
+export function useSubmissionVendors(projectId: string) {
+  return useQuery({
+    queryKey: ['/api/maintenance/projects', projectId, 'submission-vendors'],
+    queryFn: async (): Promise<SubmissionVendor[]> => {
+      if (!projectId) throw new Error('Project ID is required');
+      
+      const response = await apiRequest('GET', `/api/maintenance/projects/${projectId}/submission-vendors`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to fetch submission vendors' }));
+        throw new Error(error.message || 'Failed to fetch submission vendors');
+      }
+      
+      const data = await response.json();
+      return data.vendors || [];
+    },
+    enabled: !!projectId,
+    staleTime: 60000, // 1 minute
+  });
+}
+
+/**
+ * Hook to fetch project notifications
+ */
+export function useProjectNotifications(projectId: string) {
+  return useQuery({
+    queryKey: ['/api/maintenance/projects', projectId, 'notifications'],
+    queryFn: async (): Promise<ProjectNotification[]> => {
+      if (!projectId) throw new Error('Project ID is required');
+      
+      const response = await apiRequest('GET', `/api/maintenance/projects/${projectId}/notifications`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to fetch project notifications' }));
+        throw new Error(error.message || 'Failed to fetch project notifications');
+      }
+      
+      const data = await response.json();
+      return data.notifications || [];
+    },
+    enabled: !!projectId,
+    staleTime: 60000, // 1 minute
+  });
+}
+
+/**
+ * Mutation to create or update project notifications
+ */
+export function useProjectNotificationMutations() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const createNotification = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      notificationData 
+    }: { 
+      projectId: string; 
+      notificationData: Omit<ProjectNotification, 'id' | 'projectId' | 'isSent' | 'createdAt' | 'updatedAt'>;
+    }) => {
+      const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/notifications`, notificationData);
+      if (!response.ok) throw new Error('Failed to create notification');
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'notifications'] 
+      });
+      toast({
+        title: 'Notification Created',
+        description: 'Project notification has been created successfully',
+      });
+    },
+  });
+
+  const updateNotification = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      notificationId, 
+      updates 
+    }: { 
+      projectId: string; 
+      notificationId: string; 
+      updates: Partial<ProjectNotification>;
+    }) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/notifications/${notificationId}`, updates);
+      if (!response.ok) throw new Error('Failed to update notification');
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'notifications'] 
+      });
+      toast({
+        title: 'Notification Updated',
+        description: 'Project notification has been updated successfully',
+      });
+    },
+  });
+
+  return { createNotification, updateNotification };
+}
+
+// Utility functions for workflow logic
+export function getNextStatus(currentStatus: string, skipFlags: SkipFlagsUpdate): string | null {
+  const statusOrder = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
+  const currentIndex = statusOrder.indexOf(currentStatus);
+  
+  if (currentIndex === -1 || currentIndex === statusOrder.length - 1) {
+    return null; // Invalid status or already at the end
+  }
+  
+  // Find next non-skipped status
+  for (let i = currentIndex + 1; i < statusOrder.length; i++) {
+    const status = statusOrder[i];
+    
+    // Check if this status should be skipped
+    const shouldSkip = 
+      (status === 'submission' && skipFlags.skipSubmission) ||
+      (status === 'pre_work' && skipFlags.skipPreWork) ||
+      (status === 'in_progress' && skipFlags.skipInProgress) ||
+      (status === 'post_work' && skipFlags.skipPostWork);
+    
+    if (!shouldSkip) {
+      return status;
+    }
+  }
+  
+  return 'completed'; // If all remaining statuses are skipped, go to completed
+}
+
+export function getAccessibleTabs(currentStatus: string, skipFlags: SkipFlagsUpdate): string[] {
+  const allTabs = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
+  const currentIndex = allTabs.indexOf(currentStatus);
+  
+  if (currentIndex === -1) return ['planned']; // Invalid status, show planned
+  
+  const accessible: string[] = [];
+  
+  // Add all tabs up to and including current status
+  for (let i = 0; i <= currentIndex; i++) {
+    const tab = allTabs[i];
+    
+    // Skip tabs that are marked as skipped (unless it's the current tab)
+    const isSkipped = 
+      (tab === 'submission' && skipFlags.skipSubmission) ||
+      (tab === 'pre_work' && skipFlags.skipPreWork) ||
+      (tab === 'in_progress' && skipFlags.skipInProgress) ||
+      (tab === 'post_work' && skipFlags.skipPostWork);
+    
+    if (!isSkipped || i === currentIndex) {
+      accessible.push(tab);
+    }
+  }
+  
+  return accessible;
+}
+
+export function getFirstIncompleteTab(currentStatus: string, skipFlags: SkipFlagsUpdate): string {
+  const allTabs = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
+  const currentIndex = allTabs.indexOf(currentStatus);
+  
+  if (currentIndex === -1) return 'planned'; // Invalid status
+  if (currentStatus === 'completed') return 'completed'; // Already completed
+  
+  // Return current status as it's the first incomplete tab
+  return currentStatus;
+}
