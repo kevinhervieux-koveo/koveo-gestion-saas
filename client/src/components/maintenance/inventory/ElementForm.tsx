@@ -632,9 +632,9 @@ export function ElementForm({
       if (constructionYear) {
         const defaultConstructionDate = new Date(constructionYear, 0, 1); // January 1st of the year
         form.setValue('originalConstructionDate', defaultConstructionDate); // Use Date object
-      } else {
-        form.setValue('originalConstructionDate', undefined);
       }
+      // If no building construction year, keep the default from form.reset() (10 years ago)
+      // Keep nextEvaluationDate as undefined for auto-calculation
       form.setValue('nextEvaluationDate', undefined);
     }
   }, [element, mode, buildingId, building, form]);
