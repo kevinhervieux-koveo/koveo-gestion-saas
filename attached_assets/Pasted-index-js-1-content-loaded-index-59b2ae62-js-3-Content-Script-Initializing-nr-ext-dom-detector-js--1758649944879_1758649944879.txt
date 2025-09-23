@@ -1,0 +1,173 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Crlo1c8H.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-Crlo1c8H.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-Crlo1c8H.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-Crlo1c8H.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-Crlo1c8H.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-o1l0ExXp.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-o1l0ExXp.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-Crlo1c8H.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-Crlo1c8H.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+withHierarchicalSelection-o1l0ExXp.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-o1l0ExXp.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Crlo1c8H.js:6 Building response data: {id: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', name: '54716 N Cedar Street Building 1', address: '8596 boulevard des Pins', city: 'Quebec City', province: 'QC', …}
+index-DeDC6itI.js:240  PUT https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/buildings/15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24 400 (Bad Request)
+sx @ index-DeDC6itI.js:240
+mutationFn @ index-Crlo1c8H.js:6
+await in mutationFn
+fn @ vendor-query-DvoMLT1F.js:1
+y @ vendor-query-DvoMLT1F.js:1
+start @ vendor-query-DvoMLT1F.js:1
+execute @ vendor-query-DvoMLT1F.js:1
+await in execute
+mutate @ vendor-query-DvoMLT1F.js:1
+(anonymous) @ vendor-query-DvoMLT1F.js:1
+x @ index-Crlo1c8H.js:6
+lr @ index-DeDC6itI.js:185
+q @ index-DeDC6itI.js:45
+yg @ index-DeDC6itI.js:185
+(anonymous) @ index-DeDC6itI.js:185
+Gm @ index-DeDC6itI.js:83
+rd @ index-DeDC6itI.js:185
+Ad @ index-DeDC6itI.js:194
+L1 @ index-DeDC6itI.js:194
+<button>
+du.jsxDEV @ index-DeDC6itI.js:15
+Button @ index-DeDC6itI.js:380
+react_stack_bottom_frame @ index-DeDC6itI.js:229
+oc @ index-DeDC6itI.js:120
+sh @ index-DeDC6itI.js:141
+Pc @ index-DeDC6itI.js:150
+q @ index-DeDC6itI.js:45
+Kh @ index-DeDC6itI.js:163
+Jh @ index-DeDC6itI.js:163
+Wc @ index-DeDC6itI.js:163
+Ih @ index-DeDC6itI.js:163
+mg @ index-DeDC6itI.js:185
+ml @ index-DeDC6itI.js:185
+ad @ index-DeDC6itI.js:185
+(anonymous) @ index-DeDC6itI.js:185
+<Button>
+du.jsxDEV @ index-DeDC6itI.js:15
+Br @ index-Crlo1c8H.js:6
+react_stack_bottom_frame @ index-DeDC6itI.js:229
+oc @ index-DeDC6itI.js:120
+kc @ index-DeDC6itI.js:141
+Pc @ index-DeDC6itI.js:150
+q @ index-DeDC6itI.js:45
+Kh @ index-DeDC6itI.js:163
+Jh @ index-DeDC6itI.js:163
+Wc @ index-DeDC6itI.js:163
+Ih @ index-DeDC6itI.js:163
+mg @ index-DeDC6itI.js:185
+ml @ index-DeDC6itI.js:185
+ad @ index-DeDC6itI.js:185
+(anonymous) @ index-DeDC6itI.js:185
+<Br>
+du.jsxDEV @ index-DeDC6itI.js:15
+fa @ index-Crlo1c8H.js:6
+react_stack_bottom_frame @ index-DeDC6itI.js:229
+oc @ index-DeDC6itI.js:120
+kc @ index-DeDC6itI.js:141
+Pc @ index-DeDC6itI.js:150
+q @ index-DeDC6itI.js:45
+Kh @ index-DeDC6itI.js:163
+WS @ index-DeDC6itI.js:163
+KS @ index-DeDC6itI.js:163
+Ih @ index-DeDC6itI.js:163
+fg @ index-DeDC6itI.js:185
+d @ index-DeDC6itI.js:23
+<fa>
+du.jsxDEV @ index-DeDC6itI.js:15
+ba @ index-Crlo1c8H.js:6
+react_stack_bottom_frame @ index-DeDC6itI.js:229
+oc @ index-DeDC6itI.js:120
+kc @ index-DeDC6itI.js:141
+Pc @ index-DeDC6itI.js:150
+q @ index-DeDC6itI.js:45
+Kh @ index-DeDC6itI.js:163
+WS @ index-DeDC6itI.js:163
+KS @ index-DeDC6itI.js:163
+Ih @ index-DeDC6itI.js:163
+fg @ index-DeDC6itI.js:185
+d @ index-DeDC6itI.js:23
+<ba>
+du.jsxDEV @ index-DeDC6itI.js:15
+(anonymous) @ withHierarchicalSelection-o1l0ExXp.js:1
+react_stack_bottom_frame @ index-DeDC6itI.js:229
+oc @ index-DeDC6itI.js:120
+kc @ index-DeDC6itI.js:141
+Pc @ index-DeDC6itI.js:150
+q @ index-DeDC6itI.js:45
+Kh @ index-DeDC6itI.js:163
+WS @ index-DeDC6itI.js:163
+KS @ index-DeDC6itI.js:163
+Ih @ index-DeDC6itI.js:163
+fg @ index-DeDC6itI.js:185
+d @ index-DeDC6itI.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-DeDC6itI.js:240
+P @ index-DeDC6itI.js:240
+react_stack_bottom_frame @ index-DeDC6itI.js:229
+oc @ index-DeDC6itI.js:120
+kc @ index-DeDC6itI.js:141
+Pc @ index-DeDC6itI.js:150
+q @ index-DeDC6itI.js:45
+Kh @ index-DeDC6itI.js:163
+WS @ index-DeDC6itI.js:163
+KS @ index-DeDC6itI.js:163
+Ih @ index-DeDC6itI.js:163
+fg @ index-DeDC6itI.js:185
+d @ index-DeDC6itI.js:23
+<P>
+du.jsxDEV @ index-DeDC6itI.js:15
+ex @ index-DeDC6itI.js:384
+react_stack_bottom_frame @ index-DeDC6itI.js:229
+oc @ index-DeDC6itI.js:120
+kc @ index-DeDC6itI.js:141
+Pc @ index-DeDC6itI.js:150
+q @ index-DeDC6itI.js:45
+Kh @ index-DeDC6itI.js:163
+Jh @ index-DeDC6itI.js:163
+Wc @ index-DeDC6itI.js:163
+Ih @ index-DeDC6itI.js:163
+mg @ index-DeDC6itI.js:185
+ml @ index-DeDC6itI.js:185
+ad @ index-DeDC6itI.js:185
+(anonymous) @ index-DeDC6itI.js:185
+<ex>
+du.jsxDEV @ index-DeDC6itI.js:15
+tx @ index-DeDC6itI.js:384
+react_stack_bottom_frame @ index-DeDC6itI.js:229
+oc @ index-DeDC6itI.js:120
+kc @ index-DeDC6itI.js:141
+Pc @ index-DeDC6itI.js:150
+q @ index-DeDC6itI.js:45
+Kh @ index-DeDC6itI.js:163
+Jh @ index-DeDC6itI.js:163
+Wc @ index-DeDC6itI.js:163
+Ih @ index-DeDC6itI.js:163
+fg @ index-DeDC6itI.js:185
+d @ index-DeDC6itI.js:23
+<tx>
+du.jsxDEV @ index-DeDC6itI.js:15
+(anonymous) @ index-DeDC6itI.js:384
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Crlo1c8H.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24

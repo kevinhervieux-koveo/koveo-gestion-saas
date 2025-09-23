@@ -75,13 +75,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       try {
         const buildingResponse = await apiRequest('GET', `/api/manager/buildings/${buildingId}`);
         const buildingData = await buildingResponse.json();
-        console.log('Building response data:', buildingData);
-        
-        // Try different possible response structures
-        buildingName = buildingData?.data?.name || 
-                      buildingData?.name || 
-                      buildingData?.data?.building?.name ||
-                      buildingData?.building?.name;
+        buildingName = buildingData?.name;
         
         if (!buildingName) {
           console.error('Building name not found in response:', buildingData);
@@ -93,7 +87,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       }
       
       const response = await apiRequest('PUT', `/api/admin/buildings/${buildingId}`, {
-        buildingName: buildingName,
+        name: buildingName,
         organizationId: organizationId,
         yearBuilt: constructionDate.getFullYear(),
         constructionDate: constructionDate.toISOString(),
