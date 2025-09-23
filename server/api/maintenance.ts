@@ -1770,6 +1770,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       // Serve the file
+      const uploadsDir = '/tmp/uploads/';
       const fullPath = path.join(uploadsDir, document.filePath);
       
       // Check if file exists
