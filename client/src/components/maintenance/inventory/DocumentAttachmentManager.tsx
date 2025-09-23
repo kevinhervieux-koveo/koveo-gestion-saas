@@ -204,17 +204,14 @@ export function DocumentAttachmentManager({
 
   // Handle view document
   const handleViewDocument = useCallback((doc: DocumentFile) => {
-    if (!element?.id) return;
-    const viewUrl = `/api/maintenance/elements/${element?.id}/documents/${doc.id}`;
+    const viewUrl = `/api/maintenance/documents/${doc.id}`;
     window.open(viewUrl, '_blank');
-  }, [element?.id]);
+  }, []);
 
   // Handle download document
   const handleDownloadDocument = useCallback(async (doc: DocumentFile) => {
-    if (!element?.id) return;
-    
     try {
-      const response = await fetch(`/api/maintenance/elements/${element?.id}/documents/${doc.id}?download=true`, {
+      const response = await fetch(`/api/maintenance/documents/${doc.id}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -242,7 +239,7 @@ export function DocumentAttachmentManager({
         variant: 'destructive',
       });
     }
-  }, [element?.id, toast]);
+  }, [toast]);
 
   // Render document item
   const renderDocumentItem = useCallback((doc: DocumentFile) => {
