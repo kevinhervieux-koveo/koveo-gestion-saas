@@ -12,17 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { DataTable } from '@/components/maintenance/DataTable';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
 import { useBuildingContext } from '@/hooks/use-building-context';
@@ -31,20 +20,15 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import {
-  MoreHorizontal,
   Eye,
   Edit2,
-  Clock,
-  Upload,
-  FileText,
-  Download,
-  Calendar,
-  AlertTriangle,
   Building,
-  CheckSquare,
   X,
   Package,
   Trash2,
+  AlertTriangle,
+  Clock,
+  Calendar,
 } from 'lucide-react';
 
 interface ElementTableProps {
@@ -386,94 +370,17 @@ export function ElementTable({
     const element = row.original;
 
     return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
-            className="h-8 w-8 p-0"
-            data-testid={`actions-menu-${element.id}`}
-          >
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" data-testid={`actions-menu-content-${element.id}`}>
-          <DropdownMenuItem 
-            onClick={() => onViewElement?.(element)}
-            data-testid={`view-element-${element.id}`}
-          >
-            <Eye className="mr-2 h-4 w-4" />
-            View Details
-          </DropdownMenuItem>
-          
-          {canEdit && (
-            <DropdownMenuItem 
-              onClick={() => onEditElement?.(element)}
-              data-testid={`edit-element-${element.id}`}
-            >
-              <Edit2 className="mr-2 h-4 w-4" />
-              Edit Element
-            </DropdownMenuItem>
-          )}
-          
-          
-          {onViewDocuments && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => onViewDocuments(element)}
-                data-testid={`view-documents-${element.id}`}
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                View Documents
-              </DropdownMenuItem>
-            </>
-          )}
-          
-          {canEdit && (
-            <>
-              <DropdownMenuSeparator />
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem 
-                    className="text-destructive focus:text-destructive"
-                    onSelect={(e) => e.preventDefault()}
-                    data-testid={`delete-element-${element.id}`}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Element
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Building Element</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete "{element.name}"? This action cannot be undone 
-                      and will remove all associated maintenance history and documents.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => {
-                        deleteElementMutation.mutate(element.id);
-                        // Call parent callback if provided
-                        onDeleteElement?.(element);
-                      }}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      disabled={deleteElementMutation.isPending}
-                    >
-                      {deleteElementMutation.isPending ? 'Deleting...' : 'Delete'}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button 
+        variant="ghost" 
+        size="sm"
+        onClick={() => onViewElement?.(element)}
+        data-testid={`view-element-${element.id}`}
+      >
+        <Eye className="h-4 w-4 mr-2" />
+        View
+      </Button>
     );
-  }, [canEdit, canManageDocuments, onViewElement, onEditElement, onViewDocuments, onDeleteElement, deleteElementMutation]);
+  }, [onViewElement]);
 
   // Bulk actions - get actual element IDs from selected rows
   const selectedElementsCount = Object.keys(rowSelection).filter(id => rowSelection[id]).length;

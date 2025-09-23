@@ -130,9 +130,16 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   }, [toast]);
 
   const handleDeleteElement = useCallback((element: BuildingElement) => {
-    // Delete handled by ElementTable component mutation
-    // No additional state management needed here
-  }, []);
+    // Close the details panel first
+    setShowElementDetails(false);
+    setSelectedElement(null);
+    
+    // Show success message
+    toast({
+      title: 'Element Deleted',
+      description: `${element.name} has been successfully deleted from the inventory.`,
+    });
+  }, [toast]);
 
   // Import/Export handlers
   const handleImportElements = useCallback(() => {
@@ -303,6 +310,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         }}
         onEdit={canEdit ? handleEditElement : undefined}
         onScheduleEvaluation={handleScheduleEvaluation}
+        onDelete={canEdit ? handleDeleteElement : undefined}
       />
 
       {/* Modals and Dialogs */}

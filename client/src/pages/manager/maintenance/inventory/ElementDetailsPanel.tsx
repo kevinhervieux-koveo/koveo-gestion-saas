@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { format, differenceInYears, parseISO } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,22 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement, ElementHistory, ElementDocument } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 import {
   X,
   Edit2,
@@ -29,6 +41,7 @@ import {
   Eye,
   Download,
   ExternalLink,
+  Trash2,
 } from 'lucide-react';
 
 interface ElementDetailsPanelProps {
@@ -38,6 +51,7 @@ interface ElementDetailsPanelProps {
   onEdit?: (element: BuildingElement) => void;
   onUploadDocuments?: (element: BuildingElement) => void;
   onScheduleEvaluation?: (element: BuildingElement) => void;
+  onDelete?: (element: BuildingElement) => void;
   className?: string;
 }
 
@@ -52,9 +66,41 @@ export function ElementDetailsPanel({
   onEdit,
   onUploadDocuments,
   onScheduleEvaluation,
+  onDelete,
   className,
 }: ElementDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const { toast } = useToast();
+  
+  // Delete element mutation
+  const deleteElementMutation = useMutation({
+    mutationFn: async (element: BuildingElement) => {
+      const response = await apiRequest('DELETE', `/api/maintenance/buildings/${element.buildingId}/elements/${element.id}`);
+      // Only parse JSON if response has content (not 204 No Content)
+      if (response.status !== 204 && response.headers.get('content-type')?.includes('application/json')) {
+        return await response.json();
+      }
+      return null;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', element?.buildingId, 'elements'] });
+      toast({
+        title: 'Element deleted',
+        description: 'The building element has been removed successfully',
+      });
+      // Call the onDelete callback to close the panel
+      if (element) {
+        onDelete?.(element);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Delete failed',
+        description: error.message || 'Failed to delete building element',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Fetch element history
   const {
@@ -197,6 +243,41 @@ export function ElementDetailsPanel({
           <Calendar className="h-4 w-4 mr-2" />
           Schedule
         </Button>
+        
+        {onDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                data-testid="delete-element-action"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Building Element</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete "{element.name}"? This action cannot be undone 
+                  and will remove all associated maintenance history and documents.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteElementMutation.mutate(element)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={deleteElementMutation.isPending}
+                >
+                  {deleteElementMutation.isPending ? 'Deleting...' : 'Delete'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       {/* Panel Content */}
