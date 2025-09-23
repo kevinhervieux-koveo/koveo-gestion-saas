@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useSubmissionVendors, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState, type SubmissionVendor } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { PaymentPlanForm } from './PaymentPlanForm';
 import { cn } from '@/lib/utils';
 import {
   CheckCircle2,
@@ -20,6 +22,8 @@ import {
   Phone,
   Mail,
   AlertTriangle,
+  Edit,
+  Settings,
 } from 'lucide-react';
 
 export interface SubmissionTabProps {
@@ -34,6 +38,7 @@ export interface SubmissionTabProps {
  */
 export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTabProps) {
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
+  const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
 
   const { 
     data: submissionVendors = [], 
@@ -42,12 +47,40 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   } = useSubmissionVendors(project.id);
 
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
+  const { selectSubmissionVendor, updateSubmissionVendor } = useSubmissionVendorMutations();
 
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'submission';
 
-  const handleVendorSelect = (vendorId: string) => {
-    setSelectedVendorId(vendorId);
-    // TODO: Implement vendor selection mutation
+  const handleVendorSelect = (vendor: SubmissionVendor) => {
+    setSelectedVendorId(vendor.id);
+    selectSubmissionVendor.mutate({
+      projectId: project.id,
+      vendorId: vendor.id,
+      isSelected: !vendor.isSelected,
+    });
+  };
+
+  const handleEditPaymentPlan = (vendor: SubmissionVendor) => {
+    setEditingPaymentPlan(vendor);
+  };
+
+  const handleSavePaymentPlan = (paymentPlanData: any) => {
+    if (!editingPaymentPlan) return;
+
+    updateSubmissionVendor.mutate({
+      projectId: project.id,
+      vendorId: editingPaymentPlan.id,
+      updates: paymentPlanData,
+    }, {
+      onSuccess: () => {
+        setEditingPaymentPlan(null);
+        onUpdate();
+      },
+    });
+  };
+
+  const handleCancelPaymentPlan = () => {
+    setEditingPaymentPlan(null);
   };
 
   const handleMarkComplete = () => {
@@ -178,14 +211,14 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                 vendor.isSelected && 'ring-2 ring-primary',
                 selectedVendorId === vendor.id && 'ring-2 ring-blue-500'
               )}
-              onClick={() => handleVendorSelect(vendor.id)}
+              onClick={() => handleVendorSelect(vendor)}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <Checkbox
                       checked={vendor.isSelected}
-                      onChange={() => handleVendorSelect(vendor.id)}
+                      onChange={() => handleVendorSelect(vendor)}
                       className="mt-1"
                     />
                     <div>
@@ -244,7 +277,21 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
 
                   {/* Payment Plan */}
                   <div className="space-y-2">
-                    <h5 className="font-medium text-sm">Payment Plan</h5>
+                    <div className="flex items-center justify-between">
+                      <h5 className="font-medium text-sm">Payment Plan</h5>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditPaymentPlan(vendor);
+                        }}
+                        data-testid={`button-edit-payment-plan-${vendor.id}`}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                    </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3" />
@@ -266,6 +313,11 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                               </div>
                             ))}
                           </div>
+                        </div>
+                      )}
+                      {(!vendor.paymentPlanCosts || vendor.paymentPlanCosts.length === 0) && (
+                        <div className="text-xs text-muted-foreground italic">
+                          No payment plan configured yet
                         </div>
                       )}
                     </div>
@@ -306,14 +358,35 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         )}
       </div>
 
-      {/* Development Note */}
-      <Alert className="mt-6">
-        <Info className="h-4 w-4" />
-        <AlertDescription className="text-xs">
-          <strong>Development Note:</strong> The vendor management interface, including vendor invitations, 
-          quote submissions, and payment plan setup will be implemented in the next development phase.
-        </AlertDescription>
-      </Alert>
+      {/* Payment Plan Edit Dialog */}
+      <Dialog 
+        open={!!editingPaymentPlan} 
+        onOpenChange={(open) => !open && handleCancelPaymentPlan()}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Edit Payment Plan - {editingPaymentPlan?.vendorName}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {editingPaymentPlan && (
+            <PaymentPlanForm
+              initialData={{
+                paymentPlanCosts: editingPaymentPlan.paymentPlanCosts,
+                paymentPlanSchedule: editingPaymentPlan.paymentPlanSchedule,
+                paymentPlanStartDate: editingPaymentPlan.paymentPlanStartDate,
+                paymentPlanCustomDates: editingPaymentPlan.paymentPlanCustomDates,
+              }}
+              totalAmount={editingPaymentPlan.price}
+              onSave={handleSavePaymentPlan}
+              onCancel={handleCancelPaymentPlan}
+              isLoading={updateSubmissionVendor.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -408,6 +408,124 @@ export function useSubmissionVendors(projectId: string) {
 }
 
 /**
+ * Mutations for managing submission vendors with payment plans
+ */
+export function useSubmissionVendorMutations() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const createSubmissionVendor = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      vendorData 
+    }: { 
+      projectId: string; 
+      vendorData: Omit<SubmissionVendor, 'id' | 'projectId' | 'vendorName' | 'createdAt' | 'updatedAt'>;
+    }) => {
+      const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/submission-vendors`, vendorData);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to create submission vendor' }));
+        throw new Error(error.message || 'Failed to create submission vendor');
+      }
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'submission-vendors'] 
+      });
+      toast({
+        title: 'Vendor Submission Added',
+        description: 'Vendor submission with payment plan has been added successfully',
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to create submission vendor:', error);
+      toast({
+        title: 'Submission Failed',
+        description: error.message || 'Failed to add vendor submission',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateSubmissionVendor = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      vendorId, 
+      updates 
+    }: { 
+      projectId: string; 
+      vendorId: string; 
+      updates: Partial<Omit<SubmissionVendor, 'id' | 'projectId' | 'vendorName' | 'createdAt' | 'updatedAt'>>;
+    }) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/submission-vendors/${vendorId}`, updates);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to update submission vendor' }));
+        throw new Error(error.message || 'Failed to update submission vendor');
+      }
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'submission-vendors'] 
+      });
+      toast({
+        title: 'Vendor Submission Updated',
+        description: 'Vendor submission and payment plan have been updated successfully',
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to update submission vendor:', error);
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update vendor submission',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const selectSubmissionVendor = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      vendorId, 
+      isSelected 
+    }: { 
+      projectId: string; 
+      vendorId: string; 
+      isSelected: boolean;
+    }) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/submission-vendors/${vendorId}`, {
+        isSelected,
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to update vendor selection' }));
+        throw new Error(error.message || 'Failed to update vendor selection');
+      }
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'submission-vendors'] 
+      });
+      toast({
+        title: variables.isSelected ? 'Vendor Selected' : 'Vendor Deselected',
+        description: `Vendor has been ${variables.isSelected ? 'selected' : 'deselected'} for this project`,
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to update vendor selection:', error);
+      toast({
+        title: 'Selection Failed',
+        description: error.message || 'Failed to update vendor selection',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  return { createSubmissionVendor, updateSubmissionVendor, selectSubmissionVendor };
+}
+
+/**
  * Hook to fetch project notifications
  */
 export function useProjectNotifications(projectId: string) {

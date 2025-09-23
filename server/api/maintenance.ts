@@ -6626,28 +6626,36 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(403).json({ error: 'No access to this project' });
       }
 
-      // Get submission vendors for this project
+      // Get submission vendors with vendor details
       const submissions = await db
         .select({
           id: submissionVendors.id,
           projectId: submissionVendors.projectId,
-          vendorName: submissionVendors.vendorName,
+          vendorId: submissionVendors.vendorId,
+          vendorName: vendors.name,
           contactInfo: submissionVendors.contactInfo,
-          submissionDate: submissionVendors.submissionDate,
-          proposedCost: submissionVendors.proposedCost,
-          proposedTimeline: submissionVendors.proposedTimeline,
           notes: submissionVendors.notes,
-          status: submissionVendors.status,
+          price: submissionVendors.price,
+          projectType: submissionVendors.projectType,
+          addedLifespan: submissionVendors.addedLifespan,
+          documents: submissionVendors.documents,
+          paymentPlanCosts: submissionVendors.paymentPlanCosts,
+          paymentPlanSchedule: submissionVendors.paymentPlanSchedule,
+          paymentPlanCustomDates: submissionVendors.paymentPlanCustomDates,
+          paymentPlanStartDate: submissionVendors.paymentPlanStartDate,
           isSelected: submissionVendors.isSelected,
-          paymentPlan: submissionVendors.paymentPlan,
           createdAt: submissionVendors.createdAt,
           updatedAt: submissionVendors.updatedAt,
         })
         .from(submissionVendors)
+        .innerJoin(vendors, eq(vendors.id, submissionVendors.vendorId))
         .where(eq(submissionVendors.projectId, id))
-        .orderBy(desc(submissionVendors.submissionDate));
+        .orderBy(desc(submissionVendors.createdAt));
 
-      res.json(submissions);
+      res.json({
+        success: true,
+        vendors: submissions
+      });
 
     } catch (error: any) {
       console.error('Error fetching submission vendors:', error);
@@ -6673,17 +6681,11 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(400).json({ error: 'Project ID is required' });
       }
 
-      // Validate submission vendor data
-      const validation = z.object({
-        vendorName: z.string().min(1).max(255),
-        contactInfo: z.string().optional(),
-        proposedCost: z.string().optional(),
-        proposedTimeline: z.string().optional(),
-        notes: z.string().optional(),
-        status: z.enum(['submitted', 'under_review', 'approved', 'rejected']).default('submitted'),
-        isSelected: z.boolean().default(false),
-        paymentPlan: z.string().optional(),
-      }).safeParse(req.body);
+      // Validate submission vendor data using the schema
+      const validation = insertSubmissionVendorSchema.safeParse({
+        ...req.body,
+        projectId: id,
+      });
 
       if (!validation.success) {
         return res.status(400).json({
@@ -6711,29 +6713,109 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(403).json({ error: 'No access to this project' });
       }
 
+      // Verify vendor exists
+      const vendor = await db
+        .select({ id: vendors.id, name: vendors.name })
+        .from(vendors)
+        .where(eq(vendors.id, validation.data.vendorId))
+        .limit(1);
+
+      if (vendor.length === 0) {
+        return res.status(400).json({ error: 'Vendor not found' });
+      }
+
       // Create submission vendor
       const submissionVendor = await db
         .insert(submissionVendors)
-        .values({
-          projectId: id,
-          vendorName: validation.data.vendorName,
-          contactInfo: validation.data.contactInfo,
-          submissionDate: new Date(),
-          proposedCost: validation.data.proposedCost,
-          proposedTimeline: validation.data.proposedTimeline,
-          notes: validation.data.notes,
-          status: validation.data.status,
-          isSelected: validation.data.isSelected,
-          paymentPlan: validation.data.paymentPlan,
-        })
+        .values(validation.data)
         .returning();
 
-      res.status(201).json(submissionVendor[0]);
+      // Return with vendor name for convenience
+      res.status(201).json({
+        success: true,
+        vendor: {
+          ...submissionVendor[0],
+          vendorName: vendor[0].name,
+        }
+      });
 
     } catch (error: any) {
       console.error('Error creating submission vendor:', error);
       res.status(500).json({
         error: 'Failed to create submission vendor',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/projects/:projectId/submission-vendors/:vendorId - Update submission vendor
+   */
+  app.patch('/api/maintenance/projects/:projectId/submission-vendors/:vendorId', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { projectId, vendorId } = req.params;
+      if (!projectId || !vendorId) {
+        return res.status(400).json({ error: 'Project ID and Vendor ID are required' });
+      }
+
+      // Validate update data using partial schema
+      const validation = insertSubmissionVendorSchema.partial().omit({ projectId: true }).safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.errors
+        });
+      }
+
+      // Get submission vendor and check access
+      const submissionVendor = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(submissionVendors)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .where(and(
+          eq(submissionVendors.id, vendorId),
+          eq(submissionVendors.projectId, projectId)
+        ))
+        .limit(1);
+
+      if (submissionVendor.length === 0) {
+        return res.status(404).json({ error: 'Submission vendor not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this submission vendor' });
+      }
+
+      // Update submission vendor
+      const updatedSubmissionVendor = await db
+        .update(submissionVendors)
+        .set({
+          ...validation.data,
+          updatedAt: new Date(),
+        })
+        .where(eq(submissionVendors.id, vendorId))
+        .returning();
+
+      res.json({
+        success: true,
+        vendor: updatedSubmissionVendor[0]
+      });
+
+    } catch (error: any) {
+      console.error('Error updating submission vendor:', error);
+      res.status(500).json({
+        error: 'Failed to update submission vendor',
         details: error.message
       });
     }
