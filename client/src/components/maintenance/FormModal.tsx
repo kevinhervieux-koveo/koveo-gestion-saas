@@ -131,8 +131,9 @@ export function FormModal<T extends FieldValues>({
     }, 150); // Small delay to allow modal close animation
   };
 
-  // Check if form has errors
-  const hasFormErrors = Object.keys(form.formState.errors).length > 0;
+  // Check if form has errors - use React Hook Form's built-in validation state
+  const { isValid, errors } = form.formState;
+  const hasFormErrors = !isValid || Object.keys(errors).length > 0;
   const hasValidationErrors = validationErrors && Object.keys(validationErrors).length > 0;
 
   return (

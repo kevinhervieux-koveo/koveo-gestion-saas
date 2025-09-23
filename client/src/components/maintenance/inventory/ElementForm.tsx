@@ -441,6 +441,8 @@ export function ElementForm({
 
   const form = useForm<ElementFormData>({
     resolver: zodResolver(elementFormSchema) as any,
+    mode: 'onChange', // Validate on every change
+    reValidateMode: 'onChange', // Re-validate on every change
     defaultValues: {
       buildingId: buildingId || '',
       name: '',
