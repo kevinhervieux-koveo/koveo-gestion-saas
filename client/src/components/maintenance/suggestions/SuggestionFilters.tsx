@@ -57,7 +57,7 @@ import {
   Bookmark,
   Plus,
 } from 'lucide-react';
-import { SuggestionFiltersProps, SuggestionFilters, FilterPreset } from './types';
+import { SuggestionFiltersProps, type SuggestionFilters as SuggestionFiltersType, FilterPreset } from './types';
 
 // Filter options configuration
 const suggestionTypes = [
@@ -137,15 +137,15 @@ export function SuggestionFilters({
   }, [elements]);
 
   // Filter update helpers
-  const updateFilter = <K extends keyof SuggestionFilters>(
+  const updateFilter = <K extends keyof SuggestionFiltersType>(
     key: K,
-    value: SuggestionFilters[K]
+    value: SuggestionFiltersType[K]
   ) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 
   const toggleArrayFilter = <T extends string>(
-    key: keyof SuggestionFilters,
+    key: keyof SuggestionFiltersType,
     value: T,
     currentArray: T[] = []
   ) => {
@@ -391,7 +391,7 @@ export function SuggestionFilters({
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="calendar-popover-content" align="start">
                         <Calendar
                           mode="single"
                           selected={filters.dateRange?.start}
@@ -399,6 +399,15 @@ export function SuggestionFilters({
                             ...filters.dateRange,
                             start: date || new Date(),
                             end: filters.dateRange?.end || new Date(),
+                          })}
+                          showActions={true}
+                          onClear={() => updateFilter('dateRange', {
+                            ...filters.dateRange,
+                            start: undefined,
+                          })}
+                          onToday={() => updateFilter('dateRange', {
+                            ...filters.dateRange,
+                            start: new Date(),
                           })}
                           initialFocus
                         />
@@ -422,7 +431,7 @@ export function SuggestionFilters({
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="calendar-popover-content" align="start">
                         <Calendar
                           mode="single"
                           selected={filters.dateRange?.end}
@@ -430,6 +439,15 @@ export function SuggestionFilters({
                             ...filters.dateRange,
                             start: filters.dateRange?.start || new Date(),
                             end: date || new Date(),
+                          })}
+                          showActions={true}
+                          onClear={() => updateFilter('dateRange', {
+                            ...filters.dateRange,
+                            end: undefined,
+                          })}
+                          onToday={() => updateFilter('dateRange', {
+                            ...filters.dateRange,
+                            end: new Date(),
                           })}
                           initialFocus
                         />

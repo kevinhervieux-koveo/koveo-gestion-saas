@@ -993,13 +993,16 @@ export function ElementForm({
                         {field.value ? format(new Date(field.value), "PPP") : "Select date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
+                    <PopoverContent className="calendar-popover-content">
                       <Calendar
                         mode="single"
                         selected={dateValue}
                         onSelect={(date) => {
                           field.onChange(date ? format(date, 'yyyy-MM-dd') : undefined);
                         }}
+                        showActions={true}
+                        onClear={() => field.onChange(undefined)}
+                        onToday={() => field.onChange(format(new Date(), 'yyyy-MM-dd'))}
                         initialFocus
                         disabled={(date) => date > new Date()}
                       />
@@ -1137,7 +1140,7 @@ export function ElementForm({
                       {field.value ? format(new Date(field.value), "PPP") : "Select date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
+                  <PopoverContent className="calendar-popover-content">
                     <Calendar
                       mode="single"
                       selected={dateValue}
@@ -1146,8 +1149,11 @@ export function ElementForm({
                           field.onChange(date ? format(date, 'yyyy-MM-dd') : undefined);
                         }
                       }}
+                      showActions={!autoCalculateEvaluation}
+                      onClear={() => !autoCalculateEvaluation && field.onChange(undefined)}
+                      onToday={() => !autoCalculateEvaluation && field.onChange(format(new Date(), 'yyyy-MM-dd'))}
                       initialFocus
-                      disabled={(date) => date < new Date()}
+                      disabled={autoCalculateEvaluation || ((date) => date < new Date())}
                     />
                   </PopoverContent>
                 </Popover>
@@ -1214,13 +1220,16 @@ export function ElementForm({
                         {field.value ? format(new Date(field.value), "PPP") : "Select date"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
+                    <PopoverContent className="calendar-popover-content">
                       <Calendar
                         mode="single"
                         selected={dateValue}
                         onSelect={(date) => {
                           field.onChange(date ? format(date, 'yyyy-MM-dd') : undefined);
                         }}
+                        showActions={true}
+                        onClear={() => field.onChange(undefined)}
+                        onToday={() => field.onChange(format(new Date(), 'yyyy-MM-dd'))}
                         initialFocus
                         disabled={(date) => date > new Date()}
                       />
