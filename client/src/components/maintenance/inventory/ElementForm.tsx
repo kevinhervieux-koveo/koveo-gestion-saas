@@ -560,25 +560,27 @@ export function ElementForm({
         return isNaN(date.getTime()) ? undefined : date;
       };
 
+      // Only include form schema fields, not database fields
       const formData = {
-        ...element,
         buildingId: element.buildingId,
-        residenceId: element.residenceId || null, // Ensure null for building-wide
+        uniformatCode: element.uniformatCode,
+        name: element.name,
         description: element.description || '',
-        notes: element.notes || '',
-        originalLifespan: element.originalLifespan || 20, // Required field - use default if missing
-        currentLifespan: element.currentLifespan || 15, // Required field - use default if missing  
-        unit: element.unit || 'unit',
-        unitValue: element.unitValue ? Number(element.unitValue) : 1,
-        reconstructionCost: element.reconstructionCost ? Number(element.reconstructionCost) : 1, // Required field - use valid minimum
-        // Convert date strings to Date objects for form validation
+        residenceId: element.residenceId || null, // Ensure null for building-wide
         originalConstructionDate: parseDate(element.originalConstructionDate),
         lastInspectionDate: parseDate(element.lastInspectionDate),
         nextEvaluationDate: parseDate(element.nextEvaluationDate),
+        originalLifespan: element.originalLifespan || 20, // Required field - use default if missing
+        currentLifespan: element.currentLifespan || 15, // Required field - use default if missing
+        currentCondition: element.currentCondition,
+        unit: element.unit || 'unit',
+        unitValue: element.unitValue ? Number(element.unitValue) : 1,
+        notes: element.notes || '',
+        reconstructionCost: element.reconstructionCost ? Number(element.reconstructionCost) : 1, // Required field - use valid minimum
         costEstimationDate: parseDate(element.costEstimationDate) || new Date(),
-        // Ensure required enum fields are set
         access: element.access || 'not_restrained',
         charge: element.charge || 'common',
+        // Form-only fields
         autoCalculateEvaluation: true,
         quantity: Number(element.unitValue) || 1, // Use unitValue as quantity, default to 1
       };
