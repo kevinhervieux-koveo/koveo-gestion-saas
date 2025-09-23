@@ -29,6 +29,7 @@ import {
   Calculator,
   Clock,
   FileText,
+  Edit2,
 } from 'lucide-react';
 
 // Form schema based on the building element schema but with form-specific types
@@ -423,6 +424,9 @@ export function ElementForm({
   const { toast } = useToast();
   const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
   const [isBuildingWideExplicit, setIsBuildingWideExplicit] = useState(true); // Track explicit building-wide choice
+  
+  // Local state to track current mode (allows switching from view to edit)
+  const [currentMode, setCurrentMode] = useState<'create' | 'edit' | 'view'>(mode);
 
   // Fetch building data to get yearBuilt for default construction date
   const { data: building } = useQuery({
@@ -470,9 +474,14 @@ export function ElementForm({
     },
   });
 
+  // Update current mode when prop changes
+  useEffect(() => {
+    setCurrentMode(mode);
+  }, [mode]);
+
   // Update form when element changes
   useEffect(() => {
-    if (element && mode === 'edit') {
+    if (element && (mode === 'edit' || mode === 'view')) {
       const formData = {
         ...element,
         buildingId: element.buildingId,
@@ -553,7 +562,6 @@ export function ElementForm({
   }, [autoCalculateEvaluation, currentLifespan, originalLifespan, selectedCondition, form]);
 
   // Check if form should be disabled
-  const isFormDisabled = mode === 'view';
 
   // Create/update mutation
   const mutation = useMutation({
@@ -606,20 +614,44 @@ export function ElementForm({
     await mutation.mutateAsync(data);
   };
 
+  // Handle switching from view to edit mode
+  const handleEnableEdit = () => {
+    setCurrentMode('edit');
+  };
+
+  // Determine if form should be disabled
+  const isFormDisabled = currentMode === 'view';
+
+  // Create edit button for view mode
+  const editButton = currentMode === 'view' && (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={handleEnableEdit}
+      data-testid="enable-edit-button"
+    >
+      <Edit2 className="h-4 w-4 mr-2" />
+      Edit
+    </Button>
+  );
+
   return (
     <FormModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      title={mode === 'create' ? 'Add Building Element' : 'Edit Building Element'}
-      description={mode === 'create' 
+      title={currentMode === 'create' ? 'Add Building Element' : currentMode === 'view' ? 'View Building Element' : 'Edit Building Element'}
+      description={currentMode === 'create' 
         ? 'Add a new building element to the inventory with its specifications and condition'
+        : currentMode === 'view'
+        ? 'View building element information and condition'
         : 'Update the building element information and condition'
       }
       form={form}
       onSubmit={handleSubmit}
       isSubmitting={mutation.isPending}
-      mode={mode}
+      mode={currentMode}
       size="lg"
+      additionalActions={editButton}
       data-testid="element-form"
     >
       <div className="space-y-6">
