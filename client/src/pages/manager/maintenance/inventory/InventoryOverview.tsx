@@ -193,9 +193,16 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       .sort(([, a], [, b]) => b - a)[0]?.[0] || '';
 
     // Asset value calculation (sum of all reconstruction costs)
+    console.log('🏗️ [ASSET VALUE DEBUG] Elements for calculation:', elements?.length || 0);
+    console.log('🏗️ [ASSET VALUE DEBUG] Sample element:', elements?.[0]);
+    
     const totalAssetValue = elements.reduce((sum, element) => {
-      return sum + (element.reconstructionCost || 0);
+      const cost = element.reconstructionCost || 0;
+      console.log(`🏗️ [ASSET VALUE DEBUG] Element ${element.name}: cost=${cost}`);
+      return sum + cost;
     }, 0);
+    
+    console.log('🏗️ [ASSET VALUE DEBUG] Total asset value:', totalAssetValue);
 
     return {
       totalElements,
