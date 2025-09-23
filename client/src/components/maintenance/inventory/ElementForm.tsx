@@ -559,7 +559,7 @@ export function ElementForm({
         const response = await apiRequest('PATCH', `/api/maintenance/elements/${element.id}`, payload);
         return await response.json();
       } else {
-        const response = await apiRequest('POST', '/api/maintenance/elements', payload);
+        const response = await apiRequest('POST', `/api/maintenance/buildings/${data.buildingId}/elements`, payload);
         return await response.json();
       }
     },
