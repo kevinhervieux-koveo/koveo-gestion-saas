@@ -136,15 +136,20 @@ export function DocumentAttachmentManager({
         // Invalidate and refetch documents
         queryClient.invalidateQueries({ queryKey: ['/api/maintenance/elements', element?.id, 'documents'] });
       }
-      onDocumentUploaded?.({
-        id: response.data.id,
-        name: response.data.fileName,
-        type: response.data.mimeType,
-        size: response.data.fileSize,
-        url: `/api/maintenance/elements/${element?.id}/documents/${response.data.id}`,
-        category: response.data.documentType,
-        uploadedAt: response.data.uploadedAt,
-      });
+      
+      // Handle response data safely
+      if (response?.data) {
+        onDocumentUploaded?.({
+          id: response.data.id || `doc-${Date.now()}`,
+          name: response.data.fileName || response.data.name || 'Unknown',
+          type: response.data.mimeType || response.data.type || 'application/octet-stream',
+          size: response.data.fileSize || response.data.size || 0,
+          url: `/api/maintenance/elements/${element?.id}/documents/${response.data.id}`,
+          category: response.data.documentType || response.data.category || 'document',
+          uploadedAt: response.data.uploadedAt || new Date().toISOString(),
+        });
+      }
+      
       setShowUploader(false);
       toast({
         title: 'Document uploaded',

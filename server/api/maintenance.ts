@@ -3592,22 +3592,6 @@ export function registerMaintenanceRoutes(app: Express): void {
     }
   });
   
-  /**
-   * POST /api/maintenance/elements/:elementId/documents - Simple version
-   */
-  app.post('/api/maintenance/elements/:elementId/documents', requireAuth, async (req: any, res) => {
-    console.log('🔧 [MAINTENANCE ROUTES] POST element documents endpoint called for elementId:', req.params.elementId);
-    try {
-      res.json({
-        success: true,
-        message: 'Element document upload endpoint is working',
-        elementId: req.params.elementId
-      });
-    } catch (error: any) {
-      console.error('Error in POST element documents:', error);
-      res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-  });
   
   /**
    * DELETE /api/maintenance/documents/:id - Simple version
