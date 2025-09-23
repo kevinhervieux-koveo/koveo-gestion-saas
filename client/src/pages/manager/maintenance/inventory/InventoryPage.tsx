@@ -41,7 +41,6 @@ import {
   ChevronDown,
   ChevronRight,
   Database,
-  Search,
   Filter,
   Plus,
 } from 'lucide-react';
@@ -115,8 +114,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const [showDocumentManager, setShowDocumentManager] = useState(false);
   const [showUniformatBrowser, setShowUniformatBrowser] = useState(false);
 
-  // State for filtering and search
-  const [searchTerm, setSearchTerm] = useState('');
+  // State for filtering
   const [conditionFilter, setConditionFilter] = useState('');
   const [uniformatFilter, setUniformatFilter] = useState('');
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
@@ -205,10 +203,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
 
   // Filter handlers
-  const handleSearchChange = useCallback((term: string) => {
-    console.log('🏠 [INVENTORY FILTER] Search term changed:', term);
-    setSearchTerm(term);
-  }, []);
 
   const handleConditionFilterChange = useCallback((condition: string) => {
     console.log('🏠 [INVENTORY FILTER] Condition filter changed:', condition);
@@ -338,20 +332,8 @@ function InventoryPageContent(props: InventoryPageContentProps) {
               <CollapsibleContent className="space-y-4">
                 {/* Controls Section */}
                 <div className="flex flex-col md:flex-row gap-4 p-4 bg-muted/25 rounded-lg border">
-                  {/* Search Bar */}
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      placeholder="Search elements by name, UNIFORMAT code, or description..."
-                      value={searchTerm}
-                      onChange={(e) => handleSearchChange(e.target.value)}
-                      className="pl-10"
-                      data-testid="element-search-input"
-                    />
-                  </div>
-
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 ml-auto">
                     <Button
                       variant={conditionFilter || uniformatFilter ? 'default' : 'outline'}
                       size="sm"
@@ -458,7 +440,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                   selectedElements={selectedElements}
                   onSelectionChange={handleSelectionChange}
                   enableBulkActions={canEdit}
-                  searchTerm={searchTerm}
                   conditionFilter={conditionFilter}
                   uniformatFilter={uniformatFilter}
                   showOverdueOnly={showOverdueOnly}
