@@ -10,6 +10,7 @@ import {
   type SortingState,
   type ColumnFiltersState,
   type VisibilityState,
+  type RowSelectionState,
   type Row,
 } from '@tanstack/react-table';
 import {
@@ -58,6 +59,7 @@ interface DataTableProps<TData, TValue> {
   enableSorting?: boolean;
   enableColumnVisibility?: boolean;
   enablePagination?: boolean;
+  enableRowSelection?: boolean;
   pageSize?: number;
   emptyState?: {
     title: string;
@@ -67,6 +69,9 @@ interface DataTableProps<TData, TValue> {
   className?: string;
   renderRowActions?: (row: Row<TData>) => React.ReactNode;
   onRowClick?: (row: Row<TData>) => void;
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: (selection: RowSelectionState) => void;
+  getRowId?: (row: TData) => string;
 }
 
 /**
@@ -86,11 +91,15 @@ export function DataTable<TData, TValue>({
   enableSorting = true,
   enableColumnVisibility = true,
   enablePagination = true,
+  enableRowSelection = false,
   pageSize = 10,
   emptyState,
   className,
   renderRowActions,
   onRowClick,
+  rowSelection,
+  onRowSelectionChange,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -109,11 +118,15 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: 'includesString',
+    enableRowSelection: enableRowSelection,
+    onRowSelectionChange: onRowSelectionChange,
+    getRowId: getRowId,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       globalFilter,
+      ...(enableRowSelection && rowSelection !== undefined ? { rowSelection } : {}),
     },
     initialState: {
       pagination: {

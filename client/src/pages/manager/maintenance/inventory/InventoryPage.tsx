@@ -135,6 +135,11 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     });
   }, [toast]);
 
+  const handleDeleteElement = useCallback((element: BuildingElement) => {
+    // Delete handled by ElementTable component mutation
+    // No additional state management needed here
+  }, []);
+
   // Import/Export handlers
   const handleImportElements = useCallback(() => {
     // TODO: Implement element import
@@ -291,6 +296,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                   onEditElement={canEdit ? handleEditElement : undefined}
                   onAddHistory={canEdit ? handleAddHistory : undefined}
                   onUploadDocuments={canManageDocuments ? handleUploadDocuments : undefined}
+                  onDeleteElement={canEdit ? handleDeleteElement : undefined}
                   selectedElements={selectedElements}
                   onSelectionChange={handleSelectionChange}
                   enableBulkActions={canEdit}

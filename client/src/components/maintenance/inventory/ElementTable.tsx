@@ -12,6 +12,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { DataTable } from '@/components/maintenance/DataTable';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
 import { useBuildingContext } from '@/hooks/use-building-context';
@@ -33,6 +44,7 @@ import {
   CheckSquare,
   X,
   Package,
+  Trash2,
 } from 'lucide-react';
 
 interface ElementTableProps {
@@ -43,6 +55,7 @@ interface ElementTableProps {
   onEditElement?: (element: BuildingElement) => void;
   onAddHistory?: (element: BuildingElement) => void;
   onUploadDocuments?: (element: BuildingElement) => void;
+  onDeleteElement?: (element: BuildingElement) => void;
   selectedElements?: string[];
   onSelectionChange?: (selectedIds: string[]) => void;
   enableBulkActions?: boolean;
@@ -60,6 +73,7 @@ export function ElementTable({
   onEditElement,
   onAddHistory,
   onUploadDocuments,
+  onDeleteElement,
   selectedElements = [],
   onSelectionChange,
   enableBulkActions = true,
@@ -67,8 +81,41 @@ export function ElementTable({
   // const { buildingId, hasPermission } = useBuildingContext();
   // Simple permission check - in real implementation this would use proper role-based permissions
   const hasPermission = (permission: string) => true;
+  
+  // Define permission flags used in JSX
+  const canEdit = hasPermission('canEditMaintenance');
+  const canManageDocuments = hasPermission('canManageDocuments');
   const { toast } = useToast();
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+
+  // Delete element mutation
+  const deleteElementMutation = useMutation({
+    mutationFn: async (elementId: string) => {
+      if (!buildingId) {
+        throw new Error('Building ID is required for deleting elements');
+      }
+      const response = await apiRequest('DELETE', `/api/maintenance/buildings/${buildingId}/elements/${elementId}`);
+      // Only parse JSON if response has content (not 204 No Content)
+      if (response.status !== 204 && response.headers.get('content-type')?.includes('application/json')) {
+        return await response.json();
+      }
+      return null;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
+      toast({
+        title: 'Element deleted',
+        description: 'The building element has been removed successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Delete failed',
+        description: error.message || 'Failed to delete building element',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Fetch building elements
   const { data: elementsData, isLoading, error } = useQuery({
@@ -339,8 +386,6 @@ export function ElementTable({
   // Row actions
   const renderRowActions = useCallback((row: Row<BuildingElement>) => {
     const element = row.original;
-    const canEdit = hasPermission('canEditMaintenance');
-    const canManageDocuments = hasPermission('canManageDocuments');
 
     return (
       <DropdownMenu>
@@ -395,10 +440,51 @@ export function ElementTable({
               </DropdownMenuItem>
             </>
           )}
+          
+          {canEdit && (
+            <>
+              <DropdownMenuSeparator />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem 
+                    className="text-destructive focus:text-destructive"
+                    onSelect={(e) => e.preventDefault()}
+                    data-testid={`delete-element-${element.id}`}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Element
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Building Element</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete "{element.name}"? This action cannot be undone 
+                      and will remove all associated maintenance history and documents.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        deleteElementMutation.mutate(element.id);
+                        // Call parent callback if provided
+                        onDeleteElement?.(element);
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={deleteElementMutation.isPending}
+                    >
+                      {deleteElementMutation.isPending ? 'Deleting...' : 'Delete'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     );
-  }, [hasPermission, onViewElement, onEditElement, onAddHistory, onUploadDocuments]);
+  }, [canEdit, canManageDocuments, onViewElement, onEditElement, onAddHistory, onUploadDocuments, onDeleteElement, deleteElementMutation]);
 
   // Bulk actions - get actual element IDs from selected rows
   const selectedElementsCount = Object.keys(rowSelection).filter(id => rowSelection[id]).length;
@@ -590,9 +676,12 @@ export function ElementTable({
           columns={columns}
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}
+          enableRowSelection={true}
+          getRowId={(row) => row.id}
           enablePagination={true}
           enableSorting={true}
           enableFiltering={true}
+          renderRowActions={renderRowActions}
         />
       </div>
     </div>
