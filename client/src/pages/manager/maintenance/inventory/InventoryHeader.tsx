@@ -171,7 +171,7 @@ export function InventoryHeader({
                 <SelectValue placeholder="All conditions" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Conditions</SelectItem>
+                <SelectItem value="all">All Conditions</SelectItem>
                 <SelectItem value="excellent">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -214,7 +214,7 @@ export function InventoryHeader({
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 <SelectItem value="A">A - Substructure</SelectItem>
                 <SelectItem value="B">B - Shell</SelectItem>
                 <SelectItem value="C">C - Interiors</SelectItem>
