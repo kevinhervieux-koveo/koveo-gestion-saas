@@ -1,0 +1,218 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-BDznmwPC.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-BDznmwPC.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-BDznmwPC.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-CoWzEa5H.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-CoWzEa5H.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/f0e34e59-0d81-4c1a-b95f-e23dd1667a19/buildings
+withHierarchicalSelection-CoWzEa5H.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-CoWzEa5H.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-BDznmwPC.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-BDznmwPC.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-BDznmwPC.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-BDznmwPC.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-BDznmwPC.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-B-QbacVR.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/buildings/ae3a1c02-67bb-49eb-9fa6-c63627274d4f/elements 500 (Internal Server Error)
+sx @ index-B-QbacVR.js:240
+queryFn @ index-BDznmwPC.js:11
+r @ vendor-query-7MgX5BiQ.js:1
+y @ vendor-query-7MgX5BiQ.js:1
+start @ vendor-query-7MgX5BiQ.js:1
+fetch @ vendor-query-7MgX5BiQ.js:1
+#l @ vendor-query-7MgX5BiQ.js:1
+onSubscribe @ vendor-query-7MgX5BiQ.js:1
+subscribe @ vendor-query-7MgX5BiQ.js:1
+(anonymous) @ vendor-query-7MgX5BiQ.js:1
+Np @ index-B-QbacVR.js:120
+react_stack_bottom_frame @ index-B-QbacVR.js:229
+q @ index-B-QbacVR.js:45
+sl @ index-B-QbacVR.js:150
+Ah @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+En @ index-B-QbacVR.js:163
+Bh @ index-B-QbacVR.js:163
+ig @ index-B-QbacVR.js:163
+dl @ index-B-QbacVR.js:163
+ag @ index-B-QbacVR.js:163
+ed @ index-B-QbacVR.js:163
+Xh @ index-B-QbacVR.js:163
+Ih @ index-B-QbacVR.js:163
+mg @ index-B-QbacVR.js:185
+ml @ index-B-QbacVR.js:185
+ad @ index-B-QbacVR.js:185
+(anonymous) @ index-B-QbacVR.js:185
+<xt>
+du.jsxDEV @ index-B-QbacVR.js:15
+Vt @ index-BDznmwPC.js:12
+react_stack_bottom_frame @ index-B-QbacVR.js:229
+oc @ index-B-QbacVR.js:120
+kc @ index-B-QbacVR.js:141
+Pc @ index-B-QbacVR.js:150
+q @ index-B-QbacVR.js:45
+Kh @ index-B-QbacVR.js:163
+Jh @ index-B-QbacVR.js:163
+Wc @ index-B-QbacVR.js:163
+Ih @ index-B-QbacVR.js:163
+mg @ index-B-QbacVR.js:185
+ml @ index-B-QbacVR.js:185
+ad @ index-B-QbacVR.js:185
+(anonymous) @ index-B-QbacVR.js:185
+<Vt>
+du.jsxDEV @ index-B-QbacVR.js:15
+Ct @ index-BDznmwPC.js:12
+react_stack_bottom_frame @ index-B-QbacVR.js:229
+oc @ index-B-QbacVR.js:120
+kc @ index-B-QbacVR.js:141
+Pc @ index-B-QbacVR.js:150
+q @ index-B-QbacVR.js:45
+Kh @ index-B-QbacVR.js:163
+WS @ index-B-QbacVR.js:163
+KS @ index-B-QbacVR.js:163
+Ih @ index-B-QbacVR.js:163
+fg @ index-B-QbacVR.js:185
+d @ index-B-QbacVR.js:23
+<Ct>
+du.jsxDEV @ index-B-QbacVR.js:15
+(anonymous) @ withHierarchicalSelection-CoWzEa5H.js:1
+react_stack_bottom_frame @ index-B-QbacVR.js:229
+oc @ index-B-QbacVR.js:120
+kc @ index-B-QbacVR.js:141
+Pc @ index-B-QbacVR.js:150
+q @ index-B-QbacVR.js:45
+Kh @ index-B-QbacVR.js:163
+WS @ index-B-QbacVR.js:163
+KS @ index-B-QbacVR.js:163
+Ih @ index-B-QbacVR.js:163
+fg @ index-B-QbacVR.js:185
+d @ index-B-QbacVR.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-B-QbacVR.js:240
+P @ index-B-QbacVR.js:240
+react_stack_bottom_frame @ index-B-QbacVR.js:229
+oc @ index-B-QbacVR.js:120
+kc @ index-B-QbacVR.js:141
+Pc @ index-B-QbacVR.js:150
+q @ index-B-QbacVR.js:45
+Kh @ index-B-QbacVR.js:163
+WS @ index-B-QbacVR.js:163
+KS @ index-B-QbacVR.js:163
+Ih @ index-B-QbacVR.js:163
+fg @ index-B-QbacVR.js:185
+d @ index-B-QbacVR.js:23
+<P>
+du.jsxDEV @ index-B-QbacVR.js:15
+ex @ index-B-QbacVR.js:384
+react_stack_bottom_frame @ index-B-QbacVR.js:229
+oc @ index-B-QbacVR.js:120
+kc @ index-B-QbacVR.js:141
+Pc @ index-B-QbacVR.js:150
+q @ index-B-QbacVR.js:45
+Kh @ index-B-QbacVR.js:163
+Jh @ index-B-QbacVR.js:163
+Wc @ index-B-QbacVR.js:163
+Ih @ index-B-QbacVR.js:163
+mg @ index-B-QbacVR.js:185
+ml @ index-B-QbacVR.js:185
+ad @ index-B-QbacVR.js:185
+(anonymous) @ index-B-QbacVR.js:185
+<ex>
+du.jsxDEV @ index-B-QbacVR.js:15
+tx @ index-B-QbacVR.js:384
+react_stack_bottom_frame @ index-B-QbacVR.js:229
+oc @ index-B-QbacVR.js:120
+kc @ index-B-QbacVR.js:141
+Pc @ index-B-QbacVR.js:150
+q @ index-B-QbacVR.js:45
+Kh @ index-B-QbacVR.js:163
+Jh @ index-B-QbacVR.js:163
+Wc @ index-B-QbacVR.js:163
+Ih @ index-B-QbacVR.js:163
+fg @ index-B-QbacVR.js:185
+d @ index-B-QbacVR.js:23
+<tx>
+du.jsxDEV @ index-B-QbacVR.js:15
+(anonymous) @ index-B-QbacVR.js:384

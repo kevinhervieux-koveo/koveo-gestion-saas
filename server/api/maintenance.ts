@@ -849,8 +849,11 @@ export function registerMaintenanceRoutes(app: Express): void {
           .offset(offset)
           .orderBy(
             order === 'asc' 
-              ? [asc(buildingElements.uniformatCode), asc(buildingElements.name)]
-              : [desc(buildingElements.uniformatCode), desc(buildingElements.name)]
+              ? asc(buildingElements.uniformatCode)
+              : desc(buildingElements.uniformatCode),
+            order === 'asc' 
+              ? asc(buildingElements.name)
+              : desc(buildingElements.name)
           ),
         db
           .select({ count: count() })
