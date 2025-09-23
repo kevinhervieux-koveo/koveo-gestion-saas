@@ -802,14 +802,6 @@ export function ElementForm({
               );
             }}
           </FormFieldWrapper>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            }}
-          </FormFieldWrapper>
 
           <FormFieldWrapper
             form={form as any}

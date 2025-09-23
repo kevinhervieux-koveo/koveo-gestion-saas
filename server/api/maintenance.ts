@@ -180,7 +180,7 @@ const buildingElementCreateSchema = z.object({
   uniformatCode: z.string().min(1).max(10),
   name: z.string().min(1).max(200),
   description: z.string().optional(),
-  residenceIds: z.array(z.string().uuid()).default([]), // Array of residence IDs, empty for building-wide elements
+  residenceId: z.string().uuid().nullable().optional(), // Single residence ID, null for building-wide elements
   originalConstructionDate: z.coerce.date().optional(),
   originalLifespan: z.number().positive().optional(),
   currentLifespan: z.number().positive().optional(),
