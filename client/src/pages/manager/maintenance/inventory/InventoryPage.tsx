@@ -99,10 +99,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // Fetch building data for inventory overview
   const { data: buildingData } = useQuery({
-    queryKey: ['/api/buildings', buildingId],
+    queryKey: ['/api/manager/buildings', buildingId],
     queryFn: async () => {
       if (!buildingId) return null;
-      const response = await apiRequest('GET', `/api/buildings/${buildingId}`);
+      const response = await apiRequest('GET', `/api/manager/buildings/${buildingId}`);
       return await response.json();
     },
     enabled: !!buildingId,
