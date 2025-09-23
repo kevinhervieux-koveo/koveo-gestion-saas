@@ -22,7 +22,6 @@ import { ElementTable } from '@/components/maintenance/inventory/ElementTable';
 import { ElementForm } from '@/components/maintenance/inventory/ElementForm';
 import { ElementDocumentViewer } from '@/components/maintenance/inventory/ElementDocumentViewer';
 import { UniformatBrowser } from '@/components/maintenance/inventory/UniformatBrowser';
-import { HistoryTable } from '@/components/maintenance/inventory/HistoryTable';
 
 import { 
   AlertTriangle, 
@@ -83,7 +82,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const [elementFormMode, setElementFormMode] = useState<'create' | 'edit'>('create');
   const [showDocumentManager, setShowDocumentManager] = useState(false);
   const [showUniformatBrowser, setShowUniformatBrowser] = useState(false);
-  const [showHistoryTable, setShowHistoryTable] = useState(false);
 
   // State for filtering and search
   const [searchTerm, setSearchTerm] = useState('');
@@ -117,10 +115,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     setShowElementForm(true);
   }, []);
 
-  const handleAddHistory = useCallback((element: BuildingElement) => {
-    setSelectedElement(element);
-    setShowHistoryTable(true);
-  }, []);
 
   const handleViewDocuments = useCallback((element: BuildingElement) => {
     setSelectedElement(element);
@@ -286,7 +280,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                   organizationId={organizationId}
                   onViewElement={handleViewElement}
                   onEditElement={canEdit ? handleEditElement : undefined}
-                  onAddHistory={canEdit ? handleAddHistory : undefined}
                   onViewDocuments={handleViewDocuments}
                   onDeleteElement={canEdit ? handleDeleteElement : undefined}
                   selectedElements={selectedElements}
@@ -309,7 +302,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
           setSelectedElement(null);
         }}
         onEdit={canEdit ? handleEditElement : undefined}
-        onAddHistory={canEdit ? handleAddHistory : undefined}
         onScheduleEvaluation={handleScheduleEvaluation}
       />
 
@@ -368,34 +360,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         </div>
       )}
 
-      {/* History Table Modal */}
-      {showHistoryTable && selectedElement && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">History - {selectedElement.name}</h2>
-              <Button variant="ghost" size="sm" onClick={() => setShowHistoryTable(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
-              <HistoryTable
-                element={selectedElement}
-                onEditHistory={(entry) => {
-                  console.log('Edit history:', entry);
-                  // Handle edit history
-                }}
-                onViewDocuments={(entry) => {
-                  console.log('View documents:', entry);
-                  // Handle view documents
-                }}
-                buildingId={buildingId}
-                organizationId={organizationId}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

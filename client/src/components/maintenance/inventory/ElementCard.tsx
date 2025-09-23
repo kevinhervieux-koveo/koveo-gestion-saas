@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import {
   Edit2,
   Clock,
-  History,
   Camera,
   AlertTriangle,
   Calendar,
@@ -28,7 +27,6 @@ interface ElementCardProps {
   element: BuildingElement;
   className?: string;
   onEdit?: (element: BuildingElement) => void;
-  onAddHistory?: (element: BuildingElement) => void;
   onViewTimeline?: (element: BuildingElement) => void;
   showActions?: boolean;
   showMetrics?: boolean;
@@ -53,7 +51,6 @@ export function ElementCard({
   element,
   className,
   onEdit,
-  onAddHistory,
   onViewTimeline,
   showActions = true,
   showMetrics = true,
@@ -337,17 +334,6 @@ export function ElementCard({
         {showActions && !compact && (
           <div className="pt-2 border-t">
             <div className="flex items-center gap-2">
-              {canEdit && onAddHistory && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onAddHistory(element)}
-                  data-testid={`add-history-${element.id}`}
-                >
-                  <Clock className="h-4 w-4 mr-1" />
-                  Add History
-                </Button>
-              )}
               
               {onViewTimeline && (
                 <Button
@@ -356,7 +342,7 @@ export function ElementCard({
                   onClick={() => onViewTimeline(element)}
                   data-testid={`view-timeline-${element.id}`}
                 >
-                  <History className="h-4 w-4 mr-1" />
+                  <Clock className="h-4 w-4 mr-1" />
                   Timeline
                 </Button>
               )}

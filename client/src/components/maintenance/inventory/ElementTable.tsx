@@ -53,7 +53,6 @@ interface ElementTableProps {
   organizationId?: string;
   onViewElement?: (element: BuildingElement) => void;
   onEditElement?: (element: BuildingElement) => void;
-  onAddHistory?: (element: BuildingElement) => void;
   onViewDocuments?: (element: BuildingElement) => void;
   onDeleteElement?: (element: BuildingElement) => void;
   selectedElements?: string[];
@@ -71,7 +70,6 @@ export function ElementTable({
   organizationId,
   onViewElement,
   onEditElement,
-  onAddHistory,
   onViewDocuments,
   onDeleteElement,
   selectedElements = [],
@@ -418,15 +416,6 @@ export function ElementTable({
             </DropdownMenuItem>
           )}
           
-          {canEdit && (
-            <DropdownMenuItem 
-              onClick={() => onAddHistory?.(element)}
-              data-testid={`add-history-${element.id}`}
-            >
-              <Clock className="mr-2 h-4 w-4" />
-              Add History Entry
-            </DropdownMenuItem>
-          )}
           
           {onViewDocuments && (
             <>
@@ -484,7 +473,7 @@ export function ElementTable({
         </DropdownMenuContent>
       </DropdownMenu>
     );
-  }, [canEdit, canManageDocuments, onViewElement, onEditElement, onAddHistory, onViewDocuments, onDeleteElement, deleteElementMutation]);
+  }, [canEdit, canManageDocuments, onViewElement, onEditElement, onViewDocuments, onDeleteElement, deleteElementMutation]);
 
   // Bulk actions - get actual element IDs from selected rows
   const selectedElementsCount = Object.keys(rowSelection).filter(id => rowSelection[id]).length;

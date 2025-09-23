@@ -36,7 +36,6 @@ interface ElementDetailsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit?: (element: BuildingElement) => void;
-  onAddHistory?: (element: BuildingElement) => void;
   onUploadDocuments?: (element: BuildingElement) => void;
   onScheduleEvaluation?: (element: BuildingElement) => void;
   className?: string;
@@ -51,7 +50,6 @@ export function ElementDetailsPanel({
   isOpen,
   onClose,
   onEdit,
-  onAddHistory,
   onUploadDocuments,
   onScheduleEvaluation,
   className,
@@ -184,15 +182,6 @@ export function ElementDetailsPanel({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onAddHistory?.(element)}
-          data-testid="add-history-action"
-        >
-          <Clock className="h-4 w-4 mr-2" />
-          Add History
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
           onClick={() => onUploadDocuments?.(element)}
           data-testid="upload-documents-action"
         >
@@ -213,9 +202,8 @@ export function ElementDetailsPanel({
       {/* Panel Content */}
       <ScrollArea className="flex-1">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="p-6">
-          <TabsList className="grid w-full grid-cols-4" data-testid="details-tabs">
+          <TabsList className="grid w-full grid-cols-3" data-testid="details-tabs">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
           </TabsList>
@@ -337,47 +325,6 @@ export function ElementDetailsPanel({
             </Card>
           </TabsContent>
 
-          {/* History Tab */}
-          <TabsContent value="history" className="space-y-4 mt-6">
-            {historyLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-20 w-full" />
-                ))}
-              </div>
-            ) : history.length > 0 ? (
-              <div className="space-y-3" data-testid="history-list">
-                {history.map((entry) => (
-                  <Card key={entry.id} className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <div className="font-medium text-sm">{entry.eventType}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {format(parseISO(entry.eventDate), 'MMM d, yyyy')}
-                        </div>
-                      </div>
-                      {entry.cost && (
-                        <Badge variant="outline" className="text-xs">
-                          ${entry.cost.toLocaleString()}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{entry.workDescription}</p>
-                    {entry.vendorName && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Vendor: {entry.vendorName}
-                      </div>
-                    )}
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Clock className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No maintenance history recorded</p>
-              </div>
-            )}
-          </TabsContent>
 
           {/* Documents Tab */}
           <TabsContent value="documents" className="space-y-4 mt-6">
