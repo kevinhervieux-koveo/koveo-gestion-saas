@@ -433,22 +433,11 @@ export function DocumentAttachmentManager({
         </div>
       )}
 
-      {/* No documents message for EDIT mode when uploader is not shown */}
-      {mode === 'edit' && documents.length === 0 && !showUploader && (
+      {/* No documents message for EDIT mode */}
+      {mode === 'edit' && documents.length === 0 && !shouldShowUploadInterface && (
         <div className="text-center py-8 text-muted-foreground">
           <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">No documents attached</p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-2"
-            onClick={() => setShowUploader(true)}
-            data-testid="button-upload-first-document"
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Document
-          </Button>
         </div>
       )}
 
