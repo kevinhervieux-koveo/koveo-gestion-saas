@@ -943,13 +943,11 @@ export function registerMaintenanceRoutes(app: Express): void {
         nextEvaluationDate: validation.data.nextEvaluationDate || null,
       };
       
-      // Security: Use transaction for atomic operation
-      const [element] = await db.transaction(async (tx) => {
-        return await tx
-          .insert(buildingElements)
-          .values(elementData)
-          .returning();
-      });
+      // Create the building element
+      const [element] = await db
+        .insert(buildingElements)
+        .values(elementData)
+        .returning();
       
       res.status(201).json({
         success: true,
@@ -1284,26 +1282,22 @@ export function registerMaintenanceRoutes(app: Express): void {
         warrantyEndDate: validation.data.warrantyEndDate || null,
       };
       
-      // Security: Use transaction for atomic multi-entity operation
-      const [history] = await db.transaction(async (tx) => {
-        const [newHistory] = await tx
-          .insert(elementHistory)
-          .values(historyData)
-          .returning();
-        
-        // Update element's last inspection date if this is an inspection
-        if (validation.data.eventType === 'inspection') {
-          await tx
-            .update(buildingElements)
-            .set({
-              lastInspectionDate: validation.data.eventDate,
-              updatedAt: new Date(),
-            })
-            .where(eq(buildingElements.id, elementId));
-        }
-        
-        return [newHistory];
-      });
+      // Create element history
+      const [history] = await db
+        .insert(elementHistory)
+        .values(historyData)
+        .returning();
+      
+      // Update element's last inspection date if this is an inspection
+      if (validation.data.eventType === 'inspection') {
+        await db
+          .update(buildingElements)
+          .set({
+            lastInspectionDate: validation.data.eventDate,
+            updatedAt: new Date(),
+          })
+          .where(eq(buildingElements.id, elementId));
+      }
       
       res.status(201).json({
         success: true,
@@ -1539,23 +1533,21 @@ export function registerMaintenanceRoutes(app: Express): void {
         }
       }
       
-      // Security: Store document metadata in transaction
-      const [document] = await db.transaction(async (tx) => {
-        return await tx
-          .insert(elementDocuments)
-          .values({
-            elementId,
-            documentType,
-            title: req.body.title || file.originalname,
-            description: req.body.description || null,
-            filePath: storageResult.filePath!,
-            fileName: file.originalname,
-            fileSize: file.size,
-            mimeType: file.mimetype,
-            uploadedBy: user.id,
-          })
-          .returning();
-      });
+      // Store document metadata
+      const [document] = await db
+        .insert(elementDocuments)
+        .values({
+          elementId,
+          documentType,
+          title: req.body.title || file.originalname,
+          description: req.body.description || null,
+          filePath: storageResult.filePath!,
+          fileName: file.originalname,
+          fileSize: file.size,
+          mimeType: file.mimetype,
+          uploadedBy: user.id,
+        })
+        .returning();
       
       res.status(201).json({
         success: true,
@@ -1713,21 +1705,18 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      // Security: Delete file and metadata in transaction
-      await db.transaction(async (tx) => {
-        // Delete from database first
-        await tx
-          .delete(elementDocuments)
-          .where(eq(elementDocuments.id, id));
-        
-        // Then delete file from storage
-        try {
-          await secureFileStorage.deleteFile(documentResult[0].filePath, user.id, user.role);
-        } catch (fileError) {
-          console.warn('Failed to delete file from storage:', fileError);
-          // Don't fail the transaction for file deletion errors
-        }
-      });
+      // Delete from database first
+      await db
+        .delete(elementDocuments)
+        .where(eq(elementDocuments.id, id));
+      
+      // Then delete file from storage
+      try {
+        await secureFileStorage.deleteFile(documentResult[0].filePath, user.id, user.role);
+      } catch (fileError) {
+        console.warn('Failed to delete file from storage:', fileError);
+        // Continue despite file deletion errors
+      }
       
       res.json({
         success: true,
@@ -1863,13 +1852,11 @@ export function registerMaintenanceRoutes(app: Express): void {
         isSystemGenerated: false,
       };
       
-      // Security: Use transaction for atomic operation
-      const [suggestion] = await db.transaction(async (tx) => {
-        return await tx
-          .insert(evaluationSuggestions)
-          .values(suggestionData)
-          .returning();
-      });
+      // Create evaluation suggestion
+      const [suggestion] = await db
+        .insert(evaluationSuggestions)
+        .values(suggestionData)
+        .returning();
       
       res.status(201).json({
         success: true,
