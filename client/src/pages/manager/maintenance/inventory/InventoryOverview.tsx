@@ -52,9 +52,6 @@ interface InventoryOverviewProps {
  * Shows element counts, condition breakdown, alerts, and cost information
  */
 export function InventoryOverview({ className, buildingId, organizationId, building }: InventoryOverviewProps) {
-  console.log('🏗️ [INVENTORY OVERVIEW] Building prop received:', building);
-  console.log('🏗️ [INVENTORY OVERVIEW] Building.constructionDate:', building?.constructionDate);
-
   // Collapsible state - collapsed by default
   const [isExpanded, setIsExpanded] = useState(false);
   

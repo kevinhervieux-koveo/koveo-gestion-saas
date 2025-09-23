@@ -105,20 +105,15 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const { toast } = useToast();
 
   // Fetch building data for inventory overview
-  const { data: buildingData, isLoading: buildingLoading, error: buildingError } = useQuery({
+  const { data: buildingData } = useQuery({
     queryKey: ['/api/manager/buildings', buildingId],
     queryFn: async () => {
       if (!buildingId) return null;
       const response = await apiRequest('GET', `/api/manager/buildings/${buildingId}`);
-      const result = await response.json();
-      console.log('🏠 [INVENTORY PAGE] API Response:', result);
-      console.log('🏠 [INVENTORY PAGE] Construction Date in API:', result?.constructionDate);
-      return result;
+      return await response.json();
     },
     enabled: !!buildingId,
   });
-
-  console.log('🏠 [INVENTORY PAGE] buildingData passed to InventoryOverview:', buildingData);
 
 
   // State for modals and panels
