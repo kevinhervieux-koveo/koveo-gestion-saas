@@ -485,6 +485,8 @@ export function ElementForm({
       const formData = {
         ...element,
         buildingId: element.buildingId,
+        description: element.description || '',
+        notes: element.notes || '',
         originalLifespan: element.originalLifespan || undefined,
         currentLifespan: element.currentLifespan || undefined,
         unitValue: element.unitValue ? Number(element.unitValue) : undefined,
@@ -572,7 +574,7 @@ export function ElementForm({
       };
 
       if (mode === 'edit' && element) {
-        const response = await apiRequest('PATCH', `/api/maintenance/elements/${element.id}`, payload);
+        const response = await apiRequest('PUT', `/api/maintenance/elements/${element.id}`, payload);
         return await response.json();
       } else {
         const response = await apiRequest('POST', `/api/maintenance/buildings/${data.buildingId}/elements`, payload);
