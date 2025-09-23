@@ -60,6 +60,13 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   const [editingDate, setEditingDate] = useState<Date | undefined>(
     building?.constructionDate ? new Date(building.constructionDate) : undefined
   );
+
+  // Sync editingDate with building prop changes
+  useEffect(() => {
+    if (building?.constructionDate && !isEditingDate) {
+      setEditingDate(new Date(building.constructionDate));
+    }
+  }, [building?.constructionDate, isEditingDate]);
   
   const { toast } = useToast();
   
@@ -96,6 +103,8 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       // Invalidate related queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings', buildingId] });
       queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
+      // Force refetch the building data immediately
+      queryClient.refetchQueries({ queryKey: ['/api/manager/buildings', buildingId] });
       toast({
         title: 'Building updated',
         description: 'Construction date has been updated successfully',
