@@ -38,23 +38,23 @@ const elementFormSchema = z.object({
   uniformatCode: z.string().min(1, 'UNIFORMAT code is required'),
   name: z.string().min(1, 'Element name is required').max(200),
   description: z.string().optional().or(z.literal('')), // Allow empty strings
-  residenceId: z.string().uuid().nullable().optional(), // Match database schema
-  originalConstructionDate: z.date().nullable().optional(), // Use date objects, allow null
+  residenceId: z.string().uuid().nullable(), // Required choice but can be null for building-wide
+  originalConstructionDate: z.date({ message: "Original construction date is required" }),
   lastInspectionDate: z.date().nullable().optional(), // Use date objects, allow null
   nextEvaluationDate: z.date().nullable().optional(), // Use date objects, allow null
-  originalLifespan: z.coerce.number().int().positive().optional(), // Match database validation
-  currentLifespan: z.coerce.number().int().positive().optional(), // Match database validation
+  originalLifespan: z.coerce.number().int().min(1, "Must be at least 1"),
+  currentLifespan: z.coerce.number().int().min(1, "Must be at least 1"),
   currentCondition: z.enum(['excellent', 'good', 'fair', 'poor', 'critical']),
   unit: z.string().max(20).optional().or(z.literal('')), // Allow empty strings
   unitValue: z.coerce.number().positive().optional().or(z.literal('')), // Allow empty strings
   notes: z.string().optional().or(z.literal('')), // Allow empty strings
-  reconstructionCost: z.coerce.number().positive().optional().or(z.literal('')), // Allow empty strings
-  costEstimationDate: z.date().nullable().optional(), // Use date objects, allow null
-  access: z.enum(['not_restrained', 'restrained']).default('not_restrained'),
-  charge: z.enum(['common', 'personnal']).default('common'),
+  reconstructionCost: z.coerce.number().min(0.01, "Must be greater than 0"),
+  costEstimationDate: z.date({ message: "Cost estimation date is required" }),
+  access: z.enum(['not_restrained', 'restrained'], { message: "Access type is required" }),
+  charge: z.enum(['common', 'personnal'], { message: "Charge type is required" }),
   // Additional form-only fields
   autoCalculateEvaluation: z.boolean().optional().default(true),
-  quantity: z.coerce.number().min(1).max(1000).default(1), // Duplicate/quantity field
+  quantity: z.coerce.number().min(1, "Must be at least 1").max(1000),
 });
 
 type ElementFormData = z.infer<typeof elementFormSchema>;
@@ -456,16 +456,16 @@ export function ElementForm({
       description: '',
       residenceId: null,
       uniformatCode: '',
-      originalConstructionDate: null,
+      originalConstructionDate: new Date(new Date().getFullYear() - 10, 0, 1), // Default to 10 years ago
       lastInspectionDate: null,
       nextEvaluationDate: null,
-      originalLifespan: undefined,
-      currentLifespan: undefined,
+      originalLifespan: 20, // Default 20 year lifespan
+      currentLifespan: 15, // Default 15 years remaining
       currentCondition: 'good',
       unit: '',
       unitValue: '',
       notes: '',
-      reconstructionCost: '',
+      reconstructionCost: 0,
       costEstimationDate: new Date(),
       access: 'not_restrained',
       charge: 'common',
@@ -554,16 +554,16 @@ export function ElementForm({
         description: '',
         residenceId: null,
         uniformatCode: '',
-        originalConstructionDate: null,
+        originalConstructionDate: new Date(new Date().getFullYear() - 10, 0, 1), // Default to 10 years ago
         lastInspectionDate: null,
         nextEvaluationDate: null,
-        originalLifespan: undefined,
-        currentLifespan: undefined,
+        originalLifespan: 20, // Default 20 year lifespan
+        currentLifespan: 15, // Default 15 years remaining
         currentCondition: 'good',
         unit: '',
         unitValue: '',
         notes: '',
-        reconstructionCost: '',
+        reconstructionCost: 0,
         costEstimationDate: new Date(), // Use Date object for validation
         access: 'not_restrained',
         charge: 'common',
