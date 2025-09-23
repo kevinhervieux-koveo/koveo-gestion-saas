@@ -723,12 +723,12 @@ export function ElementForm({
             description="Select if this element is building-wide or applies to specific residences"
           >
             {(field) => {
-              const selectedResidenceIds = field.value || [];
-              const isBuildingWide = isBuildingWideExplicit;
+              const selectedResidenceId = field.value;
+              const isBuildingWide = !selectedResidenceId;
               
-              // Get selected residences for display
-              const selectedResidences = (residences || []).filter((residence: any) => 
-                selectedResidenceIds.includes(residence.id)
+              // Get selected residence for display
+              const selectedResidence = (residences || []).find((residence: any) => 
+                residence.id === selectedResidenceId
               );
 
               return (
@@ -739,13 +739,13 @@ export function ElementForm({
                       id="building-wide"
                       checked={isBuildingWide}
                       onCheckedChange={(checked) => {
-                        setIsBuildingWideExplicit(checked === true);
                         if (checked === true) {
-                          // Clear all residence selections when building-wide is selected
-                          field.onChange([]);
+                          // Clear residence selection when building-wide is selected
+                          field.onChange(null);
+                          setIsBuildingWideExplicit(true);
+                        } else {
+                          setIsBuildingWideExplicit(false);
                         }
-                        // When unchecking building-wide, keep current selection but allow changes
-                        // The user can then click the residence selector to choose specific residences
                       }}
                       data-testid="building-wide-checkbox"
                     />
@@ -754,141 +754,54 @@ export function ElementForm({
                     </label>
                   </div>
 
-                  {/* Residence selection popover */}
+                  {/* Single residence selection */}
                   <div className="space-y-2">
-                    <Popover onOpenChange={(open) => {
-                      if (open && isBuildingWide) {
-                        // Auto-uncheck building-wide when user clicks to select specific residences
-                        field.onChange([]);
-                      }
-                    }}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between",
-                            isBuildingWide && "border-dashed border-2 bg-muted/30"
-                          )}
-                          data-testid="residence-multi-select-trigger"
-                        >
-                          <span className="truncate">
-                            {isBuildingWide 
-                              ? "Click to select specific residences..."
-                              : selectedResidences.length === 0
-                              ? "Select specific residences..."
-                              : selectedResidences.length === 1
-                              ? `Unit ${selectedResidences[0].unitNumber}`
-                              : `${selectedResidences.length} residences selected`
-                            }
-                          </span>
-                          <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80 p-0" data-testid="residence-multi-select-content">
-                        <div className="p-4 space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-sm">Select Specific Residences</h4>
-{selectedResidences.length > 0 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => field.onChange([])}
-                                data-testid="clear-all-residences"
-                              >
-                                Clear all
-                              </Button>
-                            )}
-                          </div>
-                          
-                          {/* Residence checkboxes */}
-                          <div className="max-h-64 overflow-y-auto space-y-2">
-                            {(residences || []).length === 0 ? (
-                              <div className="text-sm text-muted-foreground text-center py-4">
-                                No residences found
-                              </div>
-                            ) : (
-                              (residences || []).map((residence: any) => {
-                                const isSelected = selectedResidenceIds.includes(residence.id);
-                                return (
-                                  <div key={residence.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                      id={`residence-${residence.id}`}
-                                      checked={isSelected}
-                                      onCheckedChange={(checked) => {
-                                        let newIds = [...selectedResidenceIds];
-                                        if (checked) {
-                                          // Add residence to selection
-                                          if (!newIds.includes(residence.id)) {
-                                            newIds.push(residence.id);
-                                          }
-                                        } else {
-                                          // Remove residence from selection
-                                          newIds = newIds.filter(id => id !== residence.id);
-                                        }
-                                        field.onChange(newIds);
-                                        
-                                        // Auto-uncheck building-wide when any residence is selected
-                                        if (newIds.length > 0) {
-                                          setIsBuildingWideExplicit(false);
-                                        }
-                                      }}
-                                      data-testid={`residence-checkbox-${residence.id}`}
-                                    />
-                                    <label 
-                                      htmlFor={`residence-${residence.id}`}
-                                      className="text-sm cursor-pointer flex-1"
-                                    >
-                                      Unit {residence.unitNumber}
-                                      {residence.floor && (
-                                        <span className="text-muted-foreground ml-1">
-                                          (Floor {residence.floor})
-                                        </span>
-                                      )}
-                                    </label>
-                                  </div>
-                                );
-                              })
-                            )}
-                          </div>
-
-                          {/* Selection summary */}
-                          {selectedResidences.length > 0 && (
-                            <div className="pt-2 border-t">
-                              <div className="text-xs text-muted-foreground mb-2">
-                                Selected ({selectedResidences.length}):
-                              </div>
-                              <div className="flex flex-wrap gap-1">
-                                {selectedResidences.map((residence: any) => (
-                                  <Badge key={residence.id} variant="secondary" className="text-xs">
-                                    {residence.unitNumber}
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const newIds = selectedResidenceIds.filter(id => id !== residence.id);
-                                        field.onChange(newIds);
-                                      }}
-                                      className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-full w-3 h-3 flex items-center justify-center"
-                                      data-testid={`remove-residence-${residence.id}`}
-                                    >
-                                      ×
-                                    </button>
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-
-                    {/* Selected residences display when closed */}
-                    {!isBuildingWide && selectedResidences.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2" data-testid="selected-residences-display">
-                        {selectedResidences.map((residence: any) => (
-                          <Badge key={residence.id} variant="outline" className="text-xs">
+                    <Select
+                      value={selectedResidenceId || "building-wide"}
+                      onValueChange={(value) => {
+                        if (value === "building-wide") {
+                          field.onChange(null);
+                          setIsBuildingWideExplicit(true);
+                        } else {
+                          field.onChange(value);
+                          setIsBuildingWideExplicit(false);
+                        }
+                      }}
+                    >
+                      <SelectTrigger data-testid="residence-select-trigger">
+                        <SelectValue placeholder="Select residence assignment" />
+                      </SelectTrigger>
+                      <SelectContent data-testid="residence-select-content">
+                        <SelectItem value="building-wide">Building-wide element</SelectItem>
+                        {(residences || []).map((residence: any) => (
+                          <SelectItem 
+                            key={residence.id} 
+                            value={residence.id}
+                            data-testid={`residence-option-${residence.id}`}
+                          >
                             Unit {residence.unitNumber}
-                          </Badge>
+                            {residence.floor && (
+                              <span className="text-muted-foreground ml-1">
+                                (Floor {residence.floor})
+                              </span>
+                            )}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Display current selection */}
+                  {selectedResidence && (
+                    <div className="text-sm text-muted-foreground">
+                      Currently assigned to: Unit {selectedResidence.unitNumber}
+                      {selectedResidence.floor && ` (Floor ${selectedResidence.floor})`}
+                    </div>
+                  )}
+                </div>
+              );
+            }}
+          </FormFieldWrapper>
                         ))}
                       </div>
                     )}
