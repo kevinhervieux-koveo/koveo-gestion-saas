@@ -19,7 +19,6 @@ import { ElementDetailsPanel } from './ElementDetailsPanel';
 
 // Import existing maintenance components
 import { ElementTable } from '@/components/maintenance/inventory/ElementTable';
-import { ElementForm } from '@/components/maintenance/inventory/ElementForm';
 import { ElementDocumentViewer } from '@/components/maintenance/inventory/ElementDocumentViewer';
 import { UniformatBrowser } from '@/components/maintenance/inventory/UniformatBrowser';
 
@@ -78,8 +77,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   // State for modals and panels
   const [selectedElement, setSelectedElement] = useState<BuildingElement | null>(null);
   const [showElementDetails, setShowElementDetails] = useState(false);
-  const [showElementForm, setShowElementForm] = useState(false);
-  const [elementFormMode, setElementFormMode] = useState<'create' | 'edit'>('create');
   const [showDocumentManager, setShowDocumentManager] = useState(false);
   const [showUniformatBrowser, setShowUniformatBrowser] = useState(false);
 
@@ -104,15 +101,13 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   }, []);
 
   const handleEditElement = useCallback((element: BuildingElement) => {
-    setSelectedElement(element);
-    setElementFormMode('edit');
-    setShowElementForm(true);
+    // Edit form permanently removed - viewing only
+    console.log('Edit functionality disabled - viewing only');
   }, []);
 
   const handleAddElement = useCallback(() => {
-    setSelectedElement(null);
-    setElementFormMode('create');
-    setShowElementForm(true);
+    // Add form permanently removed - viewing only
+    console.log('Add functionality disabled - viewing only');
   }, []);
 
 
@@ -158,17 +153,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     });
   }, [toast]);
 
-  // Form success handlers
-  const handleElementFormSuccess = useCallback((element: BuildingElement) => {
-    setShowElementForm(false);
-    setSelectedElement(null);
-    
-    // Show success message
-    toast({
-      title: elementFormMode === 'create' ? 'Element Created' : 'Element Updated',
-      description: `${element.name} has been ${elementFormMode === 'create' ? 'added to' : 'updated in'} the inventory.`,
-    });
-  }, [elementFormMode, toast]);
 
 
   // Filter handlers
@@ -314,17 +298,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
       />
 
       {/* Modals and Dialogs */}
-      
-      {/* Element Form Modal */}
-      <ElementForm
-        isOpen={showElementForm}
-        onOpenChange={setShowElementForm}
-        element={elementFormMode === 'edit' ? selectedElement : null}
-        onSuccess={handleElementFormSuccess}
-        mode={elementFormMode}
-        buildingId={buildingId}
-        organizationId={organizationId}
-      />
 
       {/* Document Manager Modal */}
       {showDocumentManager && selectedElement && (
