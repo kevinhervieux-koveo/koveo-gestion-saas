@@ -443,6 +443,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                   selectedElements={selectedElements}
                   onSelectionChange={handleSelectionChange}
                   enableBulkActions={canEdit}
+                  searchTerm={searchTerm}
+                  conditionFilter={conditionFilter}
+                  uniformatFilter={uniformatFilter}
+                  showOverdueOnly={showOverdueOnly}
                   data-testid="inventory-element-table"
                 />
               </CollapsibleContent>

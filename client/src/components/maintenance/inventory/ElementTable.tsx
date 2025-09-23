@@ -44,6 +44,11 @@ interface ElementTableProps {
   selectedElements?: string[];
   onSelectionChange?: (selectedIds: string[]) => void;
   enableBulkActions?: boolean;
+  // Filter props
+  searchTerm?: string;
+  conditionFilter?: string;
+  uniformatFilter?: string;
+  showOverdueOnly?: boolean;
 }
 
 /**
@@ -61,6 +66,10 @@ export function ElementTable({
   selectedElements = [],
   onSelectionChange,
   enableBulkActions = true,
+  searchTerm = '',
+  conditionFilter = '',
+  uniformatFilter = '',
+  showOverdueOnly = false,
 }: ElementTableProps) {
   // const { buildingId, hasPermission } = useBuildingContext();
   // Simple permission check - in real implementation this would use proper role-based permissions
@@ -114,7 +123,47 @@ export function ElementTable({
     enabled: !!buildingId,
   });
 
-  const elements: BuildingElement[] = elementsData?.data || [];
+  const allElements: BuildingElement[] = elementsData?.data || [];
+
+  // Apply filtering logic
+  const elements = useMemo(() => {
+    let filteredElements = allElements;
+
+    // Search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filteredElements = filteredElements.filter(element => 
+        element.name.toLowerCase().includes(searchLower) ||
+        element.uniformatCode.toLowerCase().includes(searchLower) ||
+        element.description?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Condition filter
+    if (conditionFilter && conditionFilter !== 'all') {
+      filteredElements = filteredElements.filter(element => 
+        element.currentCondition === conditionFilter
+      );
+    }
+
+    // UNIFORMAT filter
+    if (uniformatFilter && uniformatFilter !== 'all') {
+      filteredElements = filteredElements.filter(element => 
+        element.uniformatCode.startsWith(uniformatFilter)
+      );
+    }
+
+    // Overdue evaluation filter
+    if (showOverdueOnly) {
+      filteredElements = filteredElements.filter(element => {
+        if (!element.nextEvaluationDate) return false;
+        const urgency = getEvaluationUrgency(element.nextEvaluationDate);
+        return urgency === 'overdue';
+      });
+    }
+
+    return filteredElements;
+  }, [allElements, searchTerm, conditionFilter, uniformatFilter, showOverdueOnly, getEvaluationUrgency]);
 
 
   // Calculate element age and urgency
