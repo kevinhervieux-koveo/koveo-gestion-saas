@@ -87,37 +87,32 @@ export function BuildingContextProvider({
     isLoading: isLoadingBuildings,
     error: buildingsError,
   } = useQuery({
-    queryKey: ['/api/maintenance/buildings', user?.id],
+    queryKey: ['/api/users/me/buildings', user?.id],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/maintenance/buildings');
+      const response = await apiRequest('GET', '/api/users/me/buildings');
       return await response.json();
     },
     enabled: isAuthenticated && !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const availableBuildings: BuildingData[] = buildingsResponse?.buildings || [];
+  const availableBuildings: BuildingData[] = Array.isArray(buildingsResponse) ? buildingsResponse.map(building => ({
+    id: building.id,
+    name: building.name,
+    address: building.address,
+    city: building.city,
+    province: building.state || building.province, // Handle both state and province
+    postalCode: building.postal_code || building.postalCode, // Handle both formats
+    organizationId: building.organization_id || building.organizationId, // Handle both formats
+  })) : [];
 
   // Find current building
   const building = availableBuildings.find(b => b.id === buildingId) || null;
 
-  // Fetch user permissions for current building
-  const {
-    data: permissionsResponse,
-    isLoading: isLoadingPermissions,
-  } = useQuery({
-    queryKey: ['/api/maintenance/permissions', buildingId, user?.id],
-    queryFn: async () => {
-      if (!buildingId) return null;
-      const response = await apiRequest('GET', `/api/maintenance/permissions?buildingId=${buildingId}`);
-      return await response.json();
-    },
-    enabled: isAuthenticated && !!user && !!buildingId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
   // Calculate permissions based on user role and building access
-  const permissions: UserPermissions = permissionsResponse?.permissions || (() => {
+  // Note: Permissions are determined locally based on user role since there's no backend endpoint needed
+  const isLoadingPermissions = false; // No API call needed, permissions are calculated locally
+  const permissions: UserPermissions = (() => {
     if (!user || !building) return defaultPermissions;
 
     const userRole = user.role as UserPermissions['role'];
