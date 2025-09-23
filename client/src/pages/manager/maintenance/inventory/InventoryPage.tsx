@@ -89,6 +89,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   // State for modals and panels
   const [selectedElement, setSelectedElement] = useState<BuildingElement | null>(null);
   const [showElementForm, setShowElementForm] = useState(false);
+  const [elementFormMode, setElementFormMode] = useState<'create' | 'edit' | 'view'>('create');
   const [showDocumentManager, setShowDocumentManager] = useState(false);
   const [showUniformatBrowser, setShowUniformatBrowser] = useState(false);
 
@@ -110,6 +111,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const handleViewElement = useCallback((element: BuildingElement) => {
     console.log('🏠 [INVENTORY ACTION] handleViewElement called:', { elementId: element.id, elementName: element.name });
     setSelectedElement(element);
+    setElementFormMode('view');
     setShowElementForm(true);
     console.log('🏠 [INVENTORY STATE] Element form opened in view mode');
   }, []);
@@ -117,6 +119,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const handleEditElement = useCallback((element: BuildingElement) => {
     console.log('🏠 [INVENTORY ACTION] handleEditElement called:', { elementId: element.id, elementName: element.name });
     setSelectedElement(element);
+    setElementFormMode('edit');
     setShowElementForm(true);
     console.log('🏠 [INVENTORY STATE] Element form opened in edit mode');
   }, []);
@@ -124,6 +127,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const handleAddElement = useCallback(() => {
     console.log('🏠 [INVENTORY ACTION] handleAddElement called');
     setSelectedElement(null); // null for create mode
+    setElementFormMode('create');
     setShowElementForm(true);
     console.log('🏠 [INVENTORY STATE] Element form opened in create mode');
   }, []);
@@ -328,7 +332,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
           }
           logStateChange('Element form visibility changed', { open });
         }}
-        mode={selectedElement ? 'edit' : 'create'}
+        mode={elementFormMode}
         buildingId={buildingId}
         organizationId={organizationId}
         onSuccess={(element) => {

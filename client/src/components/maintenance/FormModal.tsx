@@ -138,8 +138,8 @@ export function FormModal<T extends FieldValues>({
   const criticalErrors = Object.keys(errors).filter(key => {
     const error = errors[key];
     // Only consider required field errors as critical, ignore optional field validation issues
-    const errorMessage = typeof error === 'string' ? error : error?.message;
-    return errorMessage && (
+    const errorMessage = typeof error === 'string' ? error : (error as any)?.message;
+    return errorMessage && typeof errorMessage === 'string' && (
       errorMessage.includes('required') || 
       errorMessage.includes('Required') ||
       errorMessage.includes('is required')
