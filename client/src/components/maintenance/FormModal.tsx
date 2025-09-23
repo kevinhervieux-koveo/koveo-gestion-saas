@@ -294,7 +294,7 @@ interface FormFieldWrapperProps<T extends FieldValues> {
   label: string;
   description?: string;
   required?: boolean;
-  children: (field: any) => ReactNode;
+  children: (field: any, hasError: boolean) => ReactNode;
   className?: string;
 }
 
@@ -311,21 +311,25 @@ export function FormFieldWrapper<T extends FieldValues>({
     <FormField
       control={form.control}
       name={name}
-      render={({ field }) => (
-        <FormItem className={className}>
-          <FormLabel className="flex items-center gap-1">
-            {label}
-            {required && <span className="text-destructive">*</span>}
-          </FormLabel>
-          <FormControl>
-            {children(field)}
-          </FormControl>
-          {description && (
-            <FormDescription>{description}</FormDescription>
-          )}
-          <FormMessage data-testid={`field-error-${name}`} />
-        </FormItem>
-      )}
+      render={({ field, fieldState }) => {
+        const hasError = !!fieldState.error;
+        
+        return (
+          <FormItem className={className}>
+            <FormLabel className="flex items-center gap-1">
+              {label}
+              {required && <span className="text-red-500">*</span>}
+            </FormLabel>
+            <FormControl>
+              {children(field, hasError)}
+            </FormControl>
+            {description && (
+              <FormDescription>{description}</FormDescription>
+            )}
+            <FormMessage data-testid={`field-error-${name}`} />
+          </FormItem>
+        );
+      }}
     />
   );
 }

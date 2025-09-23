@@ -727,7 +727,7 @@ export function ElementForm({
           label="UNIFORMAT Code"
           required
         >
-          {(field) => (
+          {(field, hasError) => (
             <UniformatCodeSelector
               value={field.value}
               onChange={field.onChange}
@@ -748,7 +748,7 @@ export function ElementForm({
             label="Element Name"
             required
           >
-            {(field) => (
+            {(field, hasError) => (
               <Input
                 {...field}
                 onChange={(e) => {
@@ -758,6 +758,7 @@ export function ElementForm({
                 placeholder="e.g., Exterior Wall - North"
                 data-testid="element-name-input"
                 disabled={isFormDisabled}
+                className={hasError ? 'border-red-500' : ''}
               />
             )}
           </FormFieldWrapper>
@@ -768,9 +769,9 @@ export function ElementForm({
             label="Current Condition"
             required
           >
-            {(field) => (
+            {(field, hasError) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
-                <SelectTrigger data-testid="condition-select">
+                <SelectTrigger data-testid="condition-select" className={hasError ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Select condition" />
                 </SelectTrigger>
                 <SelectContent>
@@ -811,13 +812,14 @@ export function ElementForm({
           label="Description"
           description="Optional detailed description of the element"
         >
-          {(field) => (
+          {(field, hasError) => (
             <Textarea
               {...field}
               placeholder="Describe the element location, specifications, or other relevant details..."
               rows={3}
               data-testid="element-description"
               disabled={isFormDisabled}
+              className={hasError ? 'border-red-500' : ''}
             />
           )}
         </FormFieldWrapper>
@@ -829,6 +831,7 @@ export function ElementForm({
             name="residenceId"
             label="Residence Assignment"
             description="Select if this element is building-wide or applies to specific residences"
+            required
           >
             {(field) => {
               const selectedResidenceId = field.value;
@@ -920,9 +923,9 @@ export function ElementForm({
             description="Access restrictions for this element"
             required
           >
-            {(field) => (
+            {(field, hasError) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
-                <SelectTrigger data-testid="access-select">
+                <SelectTrigger data-testid="access-select" className={hasError ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Select access type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -950,9 +953,9 @@ export function ElementForm({
             description="Who is responsible for costs"
             required
           >
-            {(field) => (
+            {(field, hasError) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
-                <SelectTrigger data-testid="charge-select">
+                <SelectTrigger data-testid="charge-select" className={hasError ? 'border-red-500' : ''}>
                   <SelectValue placeholder="Select charge type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -988,8 +991,9 @@ export function ElementForm({
               form={form as any}
               name="originalConstructionDate"
               label="Original Construction Date"
+              required
             >
-              {(field) => (
+              {(field, hasError) => (
                 <Input
                   value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
                   onChange={(e) => {
@@ -1001,6 +1005,7 @@ export function ElementForm({
                   max={format(new Date(), 'yyyy-MM-dd')}
                   data-testid="construction-date-input"
                   disabled={isFormDisabled}
+                  className={hasError ? 'border-red-500' : ''}
                 />
               )}
             </FormFieldWrapper>
@@ -1010,8 +1015,9 @@ export function ElementForm({
                 form={form as any}
                 name="originalLifespan"
                 label="Original Lifespan (years)"
+                required
               >
-                {(field) => (
+                {(field, hasError) => (
                   <Input
                     {...field}
                     type="number"
@@ -1020,6 +1026,7 @@ export function ElementForm({
                     placeholder="25"
                     data-testid="original-lifespan-input"
                     disabled={isFormDisabled}
+                    className={hasError ? 'border-red-500' : ''}
                   />
                 )}
               </FormFieldWrapper>
@@ -1028,8 +1035,9 @@ export function ElementForm({
                 form={form as any}
                 name="currentLifespan"
                 label="Years left to reconstruction"
+                required
               >
-                {(field) => (
+                {(field, hasError) => (
                   <Input
                     {...field}
                     type="number"
@@ -1038,6 +1046,7 @@ export function ElementForm({
                     placeholder="20"
                     data-testid="current-lifespan-input"
                     disabled={isFormDisabled}
+                    className={hasError ? 'border-red-500' : ''}
                   />
                 )}
               </FormFieldWrapper>
@@ -1060,7 +1069,7 @@ export function ElementForm({
               name="unitValue"
               label="Quantity"
             >
-              {(field) => (
+              {(field, hasError) => (
                 <Input
                   {...field}
                   type="number"
@@ -1069,6 +1078,7 @@ export function ElementForm({
                   placeholder="100"
                   data-testid="unit-value-input"
                   disabled={isFormDisabled}
+                  className={hasError ? 'border-red-500' : ''}
                 />
               )}
             </FormFieldWrapper>
@@ -1078,9 +1088,9 @@ export function ElementForm({
               name="unit"
               label="Unit"
             >
-              {(field) => (
+              {(field, hasError) => (
                 <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
-                  <SelectTrigger data-testid="unit-select">
+                  <SelectTrigger data-testid="unit-select" className={hasError ? 'border-red-500' : ''}>
                     <SelectValue placeholder="Select unit" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1103,7 +1113,7 @@ export function ElementForm({
           name="nextEvaluationDate"
           label="Next Evaluation Date"
         >
-          {(field) => (
+          {(field, hasError) => (
             <div className="space-y-2">
               <div className="flex items-center justify-end gap-2">
                 <input
@@ -1128,6 +1138,7 @@ export function ElementForm({
                 min={format(new Date(), 'yyyy-MM-dd')}
                 disabled={autoCalculateEvaluation || isFormDisabled}
                 data-testid="evaluation-date-input"
+                className={hasError ? 'border-red-500' : ''}
               />
               
               {autoCalculateEvaluation && field.value && (
@@ -1152,15 +1163,16 @@ export function ElementForm({
               form={form as any}
               name="reconstructionCost"
               label="Reconstruction Cost"
+              required
             >
-              {(field) => (
+              {(field, hasError) => (
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     {...field}
                     type="number"
                     placeholder="0.00"
-                    className="pl-9"
+                    className={`pl-9 ${hasError ? 'border-red-500' : ''}`}
                     step="0.01"
                     min="0"
                     data-testid="reconstruction-cost-input"
@@ -1174,8 +1186,9 @@ export function ElementForm({
               form={form as any}
               name="costEstimationDate"
               label="Date of Estimation"
+              required
             >
-              {(field) => (
+              {(field, hasError) => (
                 <Input
                   value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
                   onChange={(e) => {
@@ -1187,6 +1200,7 @@ export function ElementForm({
                   max={format(new Date(), 'yyyy-MM-dd')}
                   data-testid="cost-estimation-date-input"
                   disabled={isFormDisabled}
+                  className={hasError ? 'border-red-500' : ''}
                 />
               )}
             </FormFieldWrapper>
@@ -1242,8 +1256,9 @@ export function ElementForm({
             name="quantity"
             label="Quantity (Duplicate)"
             description="Number of identical elements to create (e.g., 30 windows, 5 doors)"
+            required
           >
-            {(field) => (
+            {(field, hasError) => (
               <Input
                 {...field}
                 type="number"
@@ -1251,7 +1266,7 @@ export function ElementForm({
                 max="1000"
                 placeholder="1"
                 data-testid="element-quantity"
-                className="w-32"
+                className={`w-32 ${hasError ? 'border-red-500' : ''}`}
                 disabled={isFormDisabled}
               />
             )}
@@ -1266,13 +1281,14 @@ export function ElementForm({
           name="notes"
           label="Notes"
         >
-          {(field) => (
+          {(field, hasError) => (
             <Textarea
               {...field}
               placeholder="Any additional notes about this element..."
               rows={3}
               data-testid="element-notes"
               disabled={isFormDisabled}
+              className={hasError ? 'border-red-500' : ''}
             />
           )}
         </FormFieldWrapper>
