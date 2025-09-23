@@ -83,6 +83,17 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // State for view mode
   const [viewMode, setViewMode] = useState<ViewMode>('table');
+  
+  // Debug log for state changes
+  const [lastStateChange, setLastStateChange] = useState<string>('');
+  
+  // Log state changes
+  const logStateChange = useCallback((action: string, details?: any) => {
+    const timestamp = new Date().toISOString();
+    const message = `📁 [PROJECTS STATE] ${action}`;
+    console.log(message, details ? details : '');
+    setLastStateChange(`${timestamp}: ${action}`);
+  }, []);
 
   // State for modals and panels
   const [selectedProject, setSelectedProject] = useState<MaintenanceProject | null>(null);
@@ -117,34 +128,46 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Project handlers
   const handleViewProject = useCallback((project: MaintenanceProject) => {
+    console.log('📁 [PROJECTS ACTION] handleViewProject called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setShowProjectDetails(true);
+    console.log('📁 [PROJECTS STATE] Project details panel opened');
   }, []);
 
   const handleEditProject = useCallback((project: MaintenanceProject) => {
+    console.log('📁 [PROJECTS ACTION] handleEditProject called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setProjectFormMode('edit');
     setShowProjectForm(true);
+    console.log('📁 [PROJECTS STATE] Project form opened in edit mode');
   }, []);
 
   const handleAddProject = useCallback(() => {
+    console.log('📁 [PROJECTS ACTION] handleAddProject called');
     setSelectedProject(null);
     setProjectFormMode('create');
     setShowProjectForm(true);
+    console.log('📁 [PROJECTS STATE] Project form opened in create mode');
   }, []);
 
   const handleCreateFromSuggestions = useCallback(() => {
+    console.log('📁 [PROJECTS ACTION] handleCreateFromSuggestions called');
     setShowSuggestionsIntegration(true);
+    console.log('📁 [PROJECTS STATE] Suggestions integration modal opened');
   }, []);
 
   const handleManageElements = useCallback((project: MaintenanceProject) => {
+    console.log('📁 [PROJECTS ACTION] handleManageElements called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setShowProjectElements(true);
+    console.log('📁 [PROJECTS STATE] Project elements modal opened');
   }, []);
 
   const handleManageTimeline = useCallback((project: MaintenanceProject) => {
+    console.log('📁 [PROJECTS ACTION] handleManageTimeline called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setShowProjectTimeline(true);
+    console.log('📁 [PROJECTS STATE] Project timeline modal opened');
   }, []);
 
   const handleManageNotes = useCallback((project: MaintenanceProject) => {
@@ -158,8 +181,10 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   }, []);
 
   const handleUpdateStatus = useCallback((project: MaintenanceProject) => {
+    console.log('📁 [PROJECTS ACTION] handleUpdateStatus called:', { projectId: project.id, projectTitle: project.title, currentStatus: project.status });
     setSelectedProject(project);
     setShowStatusStepper(true);
+    console.log('📁 [PROJECTS STATE] Status stepper modal opened');
   }, []);
 
   // Import/Export handlers
@@ -181,11 +206,14 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // View mode handlers
   const handleViewModeChange = useCallback((mode: ViewMode) => {
+    console.log('📁 [PROJECTS VIEW] View mode changed:', { from: viewMode, to: mode });
     setViewMode(mode);
-  }, []);
+    console.log('📁 [PROJECTS STATE] View mode updated');
+  }, [viewMode]);
 
   // Form success handlers
   const handleProjectFormSuccess = useCallback((project: MaintenanceProject) => {
+    console.log('📁 [PROJECTS SUCCESS] Project form success:', { projectId: project.id, projectTitle: project.title, mode: projectFormMode });
     setShowProjectForm(false);
     setSelectedProject(null);
     
@@ -194,6 +222,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       title: projectFormMode === 'create' ? 'Project Created' : 'Project Updated',
       description: `${project.title} has been ${projectFormMode === 'create' ? 'created' : 'updated'} successfully.`,
     });
+    console.log('📁 [PROJECTS STATE] Project form closed after success');
   }, [projectFormMode, toast]);
 
   const handleSuggestionsIntegrationSuccess = useCallback((projects: MaintenanceProject[]) => {
@@ -217,27 +246,33 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Filter handlers
   const handleSearchChange = useCallback((term: string) => {
+    console.log('📁 [PROJECTS FILTER] Search term changed:', term);
     setSearchTerm(term);
   }, []);
 
   const handleStatusFilterChange = useCallback((status: string) => {
+    console.log('📁 [PROJECTS FILTER] Status filter changed:', status);
     setStatusFilter(status);
   }, []);
 
   const handlePriorityFilterChange = useCallback((priority: string) => {
+    console.log('📁 [PROJECTS FILTER] Priority filter changed:', priority);
     setPriorityFilter(priority);
   }, []);
 
   const handleTypeFilterChange = useCallback((type: string) => {
+    console.log('📁 [PROJECTS FILTER] Type filter changed:', type);
     setTypeFilter(type);
   }, []);
 
   const handleShowOverdueChange = useCallback((overdue: boolean) => {
+    console.log('📁 [PROJECTS FILTER] Show overdue changed:', overdue);
     setShowOverdueOnly(overdue);
   }, []);
 
   // Selection handlers
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
+    console.log('📁 [PROJECTS SELECTION] Selection changed:', { count: selectedIds.length, selectedIds });
     setSelectedProjects(selectedIds);
   }, []);
 
@@ -379,8 +414,10 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         project={selectedProject}
         isOpen={showProjectDetails}
         onClose={() => {
+          console.log('📁 [PROJECTS ACTION] Project details panel closed');
           setShowProjectDetails(false);
           setSelectedProject(null);
+          console.log('📁 [PROJECTS STATE] Selected project cleared');
         }}
         onEdit={canEdit ? handleEditProject : undefined}
         onManageElements={canEdit ? handleManageElements : undefined}
@@ -397,7 +434,11 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       {/* Project Form Modal */}
       <ProjectForm
         isOpen={showProjectForm}
-        onOpenChange={setShowProjectForm}
+        onOpenChange={(open) => {
+          console.log('📁 [PROJECTS MODAL] Project form visibility changed:', { open, mode: projectFormMode, hasProject: !!selectedProject });
+          setShowProjectForm(open);
+          logStateChange('Project form visibility changed', { open, mode: projectFormMode });
+        }}
         project={projectFormMode === 'edit' ? selectedProject : null}
         onSuccess={handleProjectFormSuccess}
         mode={projectFormMode}
