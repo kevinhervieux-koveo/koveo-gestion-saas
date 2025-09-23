@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
@@ -40,6 +41,9 @@ import {
   BarChart3,
   Table,
   X,
+  ChevronDown,
+  ChevronRight,
+  Database,
 } from 'lucide-react';
 
 // View mode types
@@ -108,6 +112,10 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // State for view mode
   const [viewMode, setViewMode] = useState<ViewMode>('table');
+  
+  // State for collapsible sections
+  const [projectOverviewExpanded, setProjectOverviewExpanded] = useState(false);
+  const [projectsTableExpanded, setProjectsTableExpanded] = useState(false);
   
   // Debug log for state changes
   const [lastStateChange, setLastStateChange] = useState<string>('');
@@ -385,25 +393,67 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-auto">
           <div className="p-6 space-y-6">
-            {/* Overview Cards */}
-            <ProjectsOverview 
-              buildingId={buildingId}
-              organizationId={organizationId}
-            />
+            {/* Project Overview */}
+            <Collapsible 
+              open={projectOverviewExpanded} 
+              onOpenChange={(expanded) => {
+                console.log('📁 [PROJECTS UI] Project overview collapsible toggled:', expanded);
+                setProjectOverviewExpanded(expanded);
+                logStateChange('Project overview section toggled', { expanded });
+              }} 
+              className="space-y-4" 
+              data-testid="project-overview-section"
+            >
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="text-lg font-semibold">Project Overview</h2>
+                </div>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" data-testid="project-overview-toggle">
+                    {projectOverviewExpanded ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">Toggle project overview</span>
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+              
+              <CollapsibleContent className="space-y-4">
+                <ProjectsOverview 
+                  buildingId={buildingId}
+                  organizationId={organizationId}
+                />
+              </CollapsibleContent>
+            </Collapsible>
 
-            {/* Main Projects View */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">
-                  {viewMode === 'table' && 'Projects Table'}
-                  {viewMode === 'timeline' && 'Projects Timeline'}
-                  {viewMode === 'dashboard' && 'Projects Dashboard'}
-                </h2>
-                {selectedProjects.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {selectedProjects.length} project(s) selected
-                    </span>
+            {/* Projects Table */}
+            <Collapsible 
+              open={projectsTableExpanded} 
+              onOpenChange={(expanded) => {
+                console.log('📁 [PROJECTS UI] Projects table collapsible toggled:', expanded);
+                setProjectsTableExpanded(expanded);
+                logStateChange('Projects table section toggled', { expanded });
+              }} 
+              className="space-y-4" 
+              data-testid="projects-table-section"
+            >
+              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Database className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="text-lg font-semibold">Projects</h2>
+                  {selectedProjects.length > 0 && (
+                    <div className="flex items-center gap-2 ml-4">
+                      <span className="text-sm text-muted-foreground">
+                        {selectedProjects.length} project(s) selected
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedProjects.length > 0 && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -412,12 +462,34 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                     >
                       Clear Selection
                     </Button>
-                  </div>
-                )}
+                  )}
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" data-testid="projects-table-toggle">
+                      {projectsTableExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">Toggle projects table</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
               </div>
+              
+              <CollapsibleContent className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-md font-medium">
+                      {viewMode === 'table' && 'Projects Table'}
+                      {viewMode === 'timeline' && 'Projects Timeline'}
+                      {viewMode === 'dashboard' && 'Projects Dashboard'}
+                    </h3>
+                  </div>
 
-              {renderMainView}
-            </div>
+                  {renderMainView}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         </div>
       </div>
