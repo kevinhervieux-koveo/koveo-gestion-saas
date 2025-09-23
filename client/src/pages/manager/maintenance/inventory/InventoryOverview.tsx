@@ -104,11 +104,18 @@ export function InventoryOverview({ className, buildingId, organizationId, build
     setIsEditingYear(false);
   };
   
-  // Simplified placeholder - no API calls for now
-  const elementsLoading = false;
-  const summaryLoading = false;
-  const elements: BuildingElement[] = [];
-  const summary = {};
+  // Fetch building elements data (all elements, no filters)
+  const { data: elementsData, isLoading: elementsLoading } = useQuery({
+    queryKey: ['/api/maintenance/buildings', buildingId, 'elements'],
+    queryFn: async () => {
+      if (!buildingId) return { data: [] };
+      const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/elements`);
+      return await response.json();
+    },
+    enabled: !!buildingId,
+  });
+
+  const elements: BuildingElement[] = elementsData?.data || [];
 
   // Calculate metrics
   const metrics = useMemo(() => {
@@ -150,13 +157,18 @@ export function InventoryOverview({ className, buildingId, organizationId, build
 
     // Most common UNIFORMAT category
     const uniformatCounts = elements.reduce((acc, element) => {
-      const category = element.uniformatCode.charAt(0);
+      const category = element.uniformatCode ? element.uniformatCode.charAt(0) : 'Unknown';
       acc[category] = (acc[category] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
     const mostCommonCategory = Object.entries(uniformatCounts)
       .sort(([, a], [, b]) => b - a)[0]?.[0] || '';
+
+    // Asset value calculation (sum of all replacement costs)
+    const totalAssetValue = elements.reduce((sum, element) => {
+      return sum + (element.replacementCost || 0);
+    }, 0);
 
     return {
       totalElements,
@@ -167,10 +179,11 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       averageAge: Math.round(averageAge * 10) / 10,
       mostCommonCategory,
       uniformatCounts,
+      totalAssetValue,
     };
   }, [elements]);
 
-  const isLoading = elementsLoading || summaryLoading;
+  const isLoading = elementsLoading;
 
   if (isLoading) {
     return (
@@ -377,7 +390,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold" data-testid="asset-value-amount">
-            $—K
+            ${metrics.totalAssetValue > 0 ? Math.round(metrics.totalAssetValue / 1000).toLocaleString() : '—'}K
           </div>
           <p className="text-xs text-muted-foreground">
             Estimated replacement cost
@@ -448,10 +461,12 @@ export function InventoryOverview({ className, buildingId, organizationId, build
             <div className="space-y-1" data-testid="most-common-category-stat">
               <div className="text-sm text-muted-foreground">Most Common Category</div>
               <div className="text-lg font-semibold">
-                {metrics.mostCommonCategory && (
+                {metrics.mostCommonCategory ? (
                   <Badge variant="outline">
                     {metrics.mostCommonCategory} ({metrics.uniformatCounts[metrics.mostCommonCategory]})
                   </Badge>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
                 )}
               </div>
             </div>
