@@ -586,18 +586,7 @@ export function ElementForm({
       };
       
       
-      console.log('🔄 [EDIT MODE DEBUG] Loading element data:', {
-        elementId: element.id,
-        rawElement: element,
-        transformedFormData: formData,
-      });
-      
       form.reset(formData);
-      
-      console.log('✅ [EDIT MODE DEBUG] Form reset completed. Form state after reset:', {
-        isValid: form.formState.isValid,
-        errors: form.formState.errors,
-      });
       
       // Set building-wide state based on existing element data
       setIsBuildingWideExplicit(!element.residenceId);
