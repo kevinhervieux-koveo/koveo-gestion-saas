@@ -175,6 +175,36 @@ export function ProjectElements({
     },
   });
 
+  // Quick Project mutation
+  const quickProjectMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${project.id}`, {
+        isQuickProject: true,
+        estimatedCost: costAllocation ? parseFloat(costAllocation) : undefined,
+        planningDescription: workDescription || 'Quick Project for planning purposes',
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', project.id] 
+      });
+      toast({
+        title: "Quick Project Created",
+        description: "This project has been set as a Quick Project for planning purposes only.",
+      });
+      setIsAddElementOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Create Quick Project",
+        description: error.response?.data?.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Update element mutation
   const updateElementMutation = useMutation({
     mutationFn: async (elementData: {
@@ -305,6 +335,23 @@ export function ProjectElements({
     setLifespanImpact(element.lifespanImpact?.toString() || '');
     setIsEditCostOpen(true);
   };
+
+  const handleCreateQuickProject = () => {
+    if (!hasPermission('canEditMaintenance')) {
+      toast({
+        title: "Permission Denied",
+        description: "You don't have permission to create Quick Projects.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    quickProjectMutation.mutate();
+  };
+
+  // Helper variables
+  const isInPlanningPhase = project.status === 'planned';
+  const isQuickProject = (project as any).isQuickProject || false;
 
   // Define table columns
   const columns: ColumnDef<ProjectElementWithDetails>[] = useMemo(() => {
@@ -511,6 +558,25 @@ export function ProjectElements({
                   </DialogHeader>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                    {/* Quick Project Option - Only in planning phase */}
+                    {isInPlanningPhase && !isQuickProject && (
+                      <Card className="cursor-pointer hover:bg-accent transition-colors border-2 border-dashed border-primary/50" onClick={handleCreateQuickProject}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+                              <Target className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">Quick Project</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Planning-only project that cannot advance beyond planning phase
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
                     {isLoadingAvailable ? (
                       Array.from({ length: 4 }).map((_, i) => (
                         <Skeleton key={i} className="h-20" />
@@ -649,11 +715,32 @@ export function ProjectElements({
                 <div className="border rounded-lg p-4">
                   <h4 className="font-medium mb-3">Available Elements</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                    {/* Quick Project Option - Only in planning phase */}
+                    {isInPlanningPhase && !isQuickProject && (
+                      <div
+                        className="p-3 border-2 border-dashed border-primary/50 rounded-lg cursor-pointer hover:bg-accent transition-colors"
+                        onClick={handleCreateQuickProject}
+                        data-testid="quick-project-option"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-primary/10 rounded">
+                            <Target className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">Quick Project</div>
+                            <div className="text-xs text-muted-foreground">
+                              Planning-only project
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {isLoadingAvailable ? (
                       Array.from({ length: 4 }).map((_, i) => (
                         <Skeleton key={i} className="h-16" />
                       ))
-                    ) : unassignedElements.length === 0 ? (
+                    ) : unassignedElements.length === 0 && (!isInPlanningPhase || isQuickProject) ? (
                       <div className="col-span-full text-center py-4 text-muted-foreground">
                         <Building2 className="h-8 w-8 mx-auto mb-2" />
                         <p>All available elements are already assigned to this project.</p>

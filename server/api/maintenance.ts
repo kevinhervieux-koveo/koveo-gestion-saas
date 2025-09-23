@@ -18,6 +18,7 @@ import {
   submissionVendors,
   workflowTasks,
   projectNotifications,
+  elementProjectUpdates,
   // Import the types
   type UniformatCode,
   type Vendor,
@@ -42,6 +43,8 @@ import {
   type InsertWorkflowTask,
   type ProjectNotification,
   type InsertProjectNotification,
+  type ElementProjectUpdate,
+  type InsertElementProjectUpdate,
 } from '@shared/schemas/maintenance';
 import { buildings, organizations, userOrganizations, residences } from '@shared/schema';
 import multer from 'multer';
@@ -221,6 +224,15 @@ const elementHistoryCreateSchema = z.object({
   warrantyEndDate: z.coerce.date().optional(),
   notes: z.string().optional(),
 });
+
+const elementProjectUpdateCreateSchema = z.object({
+  elementId: z.string().uuid(),
+  updateStatus: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replace', 'nothing']),
+  actualCost: z.number().positive().optional(),
+  notes: z.string().optional(),
+});
+
+const elementProjectUpdateUpdateSchema = elementProjectUpdateCreateSchema.partial().omit({ elementId: true });
 
 const evaluationSuggestionCreateSchema = z.object({
   buildingId: z.string().uuid(),
@@ -3166,6 +3178,258 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.error('Error linking elements to project:', error);
       res.status(500).json({
         error: 'Failed to link elements to project',
+        details: error.message
+      });
+    }
+  });
+
+  // ===========================================
+  // ELEMENT PROJECT UPDATES (POST-WORK TRACKING)
+  // ===========================================
+
+  /**
+   * GET /api/maintenance/projects/:id/element-updates - Get element updates for a project
+   * Used in post-work phase to track what was actually done to each element
+   */
+  app.get('/api/maintenance/projects/:id/element-updates', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      const { id: projectId } = req.params;
+      
+      // Check project exists and user has access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+      
+      // Get element updates with element details
+      const updates = await db
+        .select({
+          id: elementProjectUpdates.id,
+          projectId: elementProjectUpdates.projectId,
+          elementId: elementProjectUpdates.elementId,
+          updateStatus: elementProjectUpdates.updateStatus,
+          actualCost: elementProjectUpdates.actualCost,
+          notes: elementProjectUpdates.notes,
+          createdAt: elementProjectUpdates.createdAt,
+          updatedAt: elementProjectUpdates.updatedAt,
+          elementName: buildingElements.name,
+          uniformatCode: buildingElements.uniformatCode,
+          elementDescription: buildingElements.description,
+        })
+        .from(elementProjectUpdates)
+        .innerJoin(buildingElements, eq(elementProjectUpdates.elementId, buildingElements.id))
+        .where(eq(elementProjectUpdates.projectId, projectId))
+        .orderBy(asc(buildingElements.name));
+      
+      res.json({
+        success: true,
+        data: updates
+      });
+    } catch (error: any) {
+      console.error('Error fetching project element updates:', error);
+      res.status(500).json({
+        error: 'Failed to fetch project element updates',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/maintenance/projects/:id/element-updates - Create or update element status
+   * Used in post-work phase to record what was actually done to elements
+   */
+  app.post('/api/maintenance/projects/:id/element-updates', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to update element status'
+        });
+      }
+      
+      const { id: projectId } = req.params;
+      const validation = elementProjectUpdateCreateSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid element update data',
+          details: validation.error.issues
+        });
+      }
+      
+      const { elementId, updateStatus, actualCost, notes } = validation.data;
+      
+      // Check project exists and user has access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+      
+      // Verify element exists and is linked to the project
+      const elementProjectLink = await db
+        .select({ id: projectElements.id })
+        .from(projectElements)
+        .where(and(
+          eq(projectElements.projectId, projectId),
+          eq(projectElements.elementId, elementId)
+        ))
+        .limit(1);
+      
+      if (elementProjectLink.length === 0) {
+        return res.status(400).json({
+          error: 'Element is not linked to this project'
+        });
+      }
+      
+      // Create or update element status
+      const [elementUpdate] = await db
+        .insert(elementProjectUpdates)
+        .values({
+          projectId,
+          elementId,
+          updateStatus,
+          actualCost,
+          notes,
+        })
+        .onConflictDoUpdate({
+          target: [elementProjectUpdates.projectId, elementProjectUpdates.elementId],
+          set: {
+            updateStatus,
+            actualCost,
+            notes,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+      
+      // Get the updated data with element details
+      const [updatedElement] = await db
+        .select({
+          id: elementProjectUpdates.id,
+          projectId: elementProjectUpdates.projectId,
+          elementId: elementProjectUpdates.elementId,
+          updateStatus: elementProjectUpdates.updateStatus,
+          actualCost: elementProjectUpdates.actualCost,
+          notes: elementProjectUpdates.notes,
+          createdAt: elementProjectUpdates.createdAt,
+          updatedAt: elementProjectUpdates.updatedAt,
+          elementName: buildingElements.name,
+          uniformatCode: buildingElements.uniformatCode,
+          elementDescription: buildingElements.description,
+        })
+        .from(elementProjectUpdates)
+        .innerJoin(buildingElements, eq(elementProjectUpdates.elementId, buildingElements.id))
+        .where(eq(elementProjectUpdates.id, elementUpdate.id));
+      
+      res.status(201).json({
+        success: true,
+        data: updatedElement,
+        message: 'Element update recorded successfully'
+      });
+    } catch (error: any) {
+      console.error('Error creating/updating element status:', error);
+      res.status(500).json({
+        error: 'Failed to record element update',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/maintenance/element-updates/:id - Remove element update
+   * Used to remove an element update record
+   */
+  app.delete('/api/maintenance/element-updates/:id', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to delete element updates'
+        });
+      }
+      
+      const { id: updateId } = req.params;
+      
+      if (!isValidUUID(updateId)) {
+        return res.status(400).json({ error: 'Invalid update ID format' });
+      }
+      
+      // Get the update and verify access
+      const updateResult = await db
+        .select({
+          projectId: elementProjectUpdates.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(elementProjectUpdates)
+        .innerJoin(maintenanceProjects, eq(elementProjectUpdates.projectId, maintenanceProjects.id))
+        .where(eq(elementProjectUpdates.id, updateId))
+        .limit(1);
+      
+      if (updateResult.length === 0) {
+        return res.status(404).json({ error: 'Element update not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, updateResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this element update'
+        });
+      }
+      
+      // Delete the element update
+      const [deletedUpdate] = await db
+        .delete(elementProjectUpdates)
+        .where(eq(elementProjectUpdates.id, updateId))
+        .returning();
+      
+      if (!deletedUpdate) {
+        return res.status(404).json({ error: 'Element update not found' });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Element update deleted successfully'
+      });
+    } catch (error: any) {
+      console.error('Error deleting element update:', error);
+      res.status(500).json({
+        error: 'Failed to delete element update',
         details: error.message
       });
     }

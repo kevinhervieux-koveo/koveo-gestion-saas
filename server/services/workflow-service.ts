@@ -1,10 +1,11 @@
 import { db } from '../db';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, count } from 'drizzle-orm';
 import {
   maintenanceProjects,
   submissionVendors,
   workflowTasks,
   projectNotifications,
+  projectElements,
   type MaintenanceProject,
 } from '@shared/schemas/maintenance';
 
@@ -43,6 +44,7 @@ export interface WorkflowState {
   completedStatuses: WorkflowStatus[];
   nextStatus: WorkflowStatus | null;
   canProgress: boolean;
+  isQuickProject: boolean;
   progressionHistory: {
     status: WorkflowStatus;
     completedAt: Date | null;
@@ -74,6 +76,7 @@ export class WorkflowService {
 
       const projectData = project[0];
       const currentStatus = projectData.status as WorkflowStatus;
+      const isQuickProject = projectData.isQuickProject || false;
       
       const skipFlags: SkipFlags = {
         skipSubmission: projectData.skipSubmission || false,
@@ -89,10 +92,20 @@ export class WorkflowService {
         .map(item => item.status);
 
       // Determine next status
-      const nextStatus = this.getNextStatus(currentStatus, skipFlags);
+      const nextStatus = this.getNextStatus(currentStatus, skipFlags, isQuickProject);
       
-      // Check if can progress (not completed and has next status)
-      const canProgress = currentStatus !== 'completed' && nextStatus !== null;
+      // Check if can progress - Quick Projects cannot progress beyond planning
+      let canProgress = currentStatus !== 'completed' && 
+                       nextStatus !== null && 
+                       !(isQuickProject && currentStatus === 'planned');
+      
+      // For non-Quick projects in 'planned' status, check if elements are linked
+      if (canProgress && !isQuickProject && currentStatus === 'planned') {
+        const linkedElementsCount = await this.countLinkedElements(projectId);
+        if (linkedElementsCount === 0) {
+          canProgress = false;
+        }
+      }
 
       return {
         projectId,
@@ -101,6 +114,7 @@ export class WorkflowService {
         completedStatuses,
         nextStatus,
         canProgress,
+        isQuickProject,
         progressionHistory,
       };
     } catch (error) {
@@ -127,6 +141,18 @@ export class WorkflowService {
 
       // Check if can progress
       if (!workflowState.canProgress) {
+        if (workflowState.isQuickProject && workflowState.currentStatus === 'planned') {
+          throw new Error('Quick Projects cannot advance beyond planning phase. Quick Projects are for planning purposes only.');
+        }
+        
+        // Check if it's a non-Quick project in 'planned' status with no linked elements
+        if (!workflowState.isQuickProject && workflowState.currentStatus === 'planned') {
+          const linkedElementsCount = await this.countLinkedElements(projectId);
+          if (linkedElementsCount === 0) {
+            throw new Error('Project cannot advance from planning phase without linked elements. All projects must be linked to at least one element in the inventory before proceeding to the next phase.');
+          }
+        }
+        
         throw new Error('Project cannot progress from current status');
       }
 
@@ -209,7 +235,12 @@ export class WorkflowService {
   /**
    * Determine next status in workflow based on current status and skip flags
    */
-  getNextStatus(currentStatus: WorkflowStatus, skipFlags: SkipFlags): WorkflowStatus | null {
+  getNextStatus(currentStatus: WorkflowStatus, skipFlags: SkipFlags, isQuickProject: boolean = false): WorkflowStatus | null {
+    // Quick Projects cannot advance beyond planned status
+    if (isQuickProject && currentStatus === 'planned') {
+      return null;
+    }
+    
     const currentIndex = STATUS_PROGRESSION.indexOf(currentStatus);
     
     if (currentIndex === -1 || currentIndex >= STATUS_PROGRESSION.length - 1) {
@@ -241,6 +272,23 @@ export class WorkflowService {
   /**
    * Private helper methods
    */
+
+  /**
+   * Count the number of linked elements for a project
+   */
+  private async countLinkedElements(projectId: string): Promise<number> {
+    try {
+      const result = await db
+        .select({ count: count() })
+        .from(projectElements)
+        .where(eq(projectElements.projectId, projectId));
+      
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('Error counting linked elements:', error);
+      return 0;
+    }
+  }
 
   private shouldSkipStatus(status: WorkflowStatus, skipFlags: SkipFlags): boolean {
     switch (status) {

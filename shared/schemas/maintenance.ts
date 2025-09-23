@@ -183,6 +183,17 @@ export const timingTypeEnum = pgEnum('timing_type', [
   'custom'
 ]);
 
+/**
+ * Enum for element update status in post-work phase
+ */
+export const elementUpdateStatusEnum = pgEnum('element_update_status', [
+  'repair',
+  'minor_rehab',
+  'major_rehab',
+  'replace',
+  'nothing'
+]);
+
 // Maintenance tables
 
 /**
@@ -391,6 +402,8 @@ export const maintenanceProjects = pgTable('maintenance_projects', {
   // Completion fields
   completionSummary: text('completion_summary'),
   workStartDate: date('work_start_date'),
+  // Quick Project flag - restricts workflow progression
+  isQuickProject: boolean('is_quick_project').notNull().default(false),
   createdBy: text('created_by')
     .notNull()
     .references(() => users.id),
@@ -547,6 +560,33 @@ export const projectNotifications = pgTable('project_notifications', {
   customDaysBeforeCheck: check('project_notifications_custom_days_before_check', sql`custom_days_before > 0`),
 }));
 
+/**
+ * Element project updates table for tracking actual work performed on elements in post-work phase.
+ * Records what was actually done to each element during the project completion.
+ */
+export const elementProjectUpdates = pgTable('element_project_updates', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => maintenanceProjects.id, { onDelete: 'cascade' }),
+  elementId: uuid('element_id')
+    .notNull()
+    .references(() => buildingElements.id, { onDelete: 'cascade' }),
+  updateStatus: elementUpdateStatusEnum('update_status').notNull(),
+  actualCost: decimal('actual_cost', { precision: 10, scale: 2 }), // optional cost for this specific element update
+  notes: text('notes'), // optional notes about the work performed
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  // Performance indexes
+  projectIdIdx: index('element_project_updates_project_id_idx').on(table.projectId),
+  elementIdIdx: index('element_project_updates_element_id_idx').on(table.elementId),
+  // Unique constraint: one update record per project-element combination
+  uniqueProjectElement: unique('element_project_updates_unique_project_element').on(table.projectId, table.elementId),
+  // Validation constraints
+  actualCostCheck: check('element_project_updates_actual_cost_check', sql`actual_cost >= 0`),
+}));
+
 // Insert schemas
 export const insertUniformatCodeSchema = createInsertSchema(uniformatCodes, {
   code: z.string().min(1).max(10),
@@ -689,6 +729,13 @@ export const insertProjectNotificationSchema = createInsertSchema(projectNotific
   customDaysBefore: z.number().int().positive().optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
+export const insertElementProjectUpdateSchema = createInsertSchema(elementProjectUpdates, {
+  projectId: z.string().uuid(),
+  elementId: z.string().uuid(),
+  actualCost: z.number().positive().optional(),
+  notes: z.string().optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
 // TypeScript types
 export type UniformatCode = typeof uniformatCodes.$inferSelect;
 export type InsertUniformatCode = z.infer<typeof insertUniformatCodeSchema>;
@@ -728,6 +775,9 @@ export type InsertWorkflowTask = z.infer<typeof insertWorkflowTaskSchema>;
 
 export type ProjectNotification = typeof projectNotifications.$inferSelect;
 export type InsertProjectNotification = z.infer<typeof insertProjectNotificationSchema>;
+
+export type ElementProjectUpdate = typeof elementProjectUpdates.$inferSelect;
+export type InsertElementProjectUpdate = z.infer<typeof insertElementProjectUpdateSchema>;
 
 // Relations
 export const uniformatCodesRelations = relations(uniformatCodes, ({ one, many }) => ({
@@ -834,6 +884,7 @@ export const maintenanceProjectsRelations = relations(maintenanceProjects, ({ on
   submissionVendors: many(submissionVendors),
   workflowTasks: many(workflowTasks),
   projectNotifications: many(projectNotifications),
+  elementUpdates: many(elementProjectUpdates),
 }));
 
 export const projectStepsRelations = relations(projectSteps, ({ one }) => ({
@@ -891,5 +942,16 @@ export const projectNotificationsRelations = relations(projectNotifications, ({ 
   project: one(maintenanceProjects, {
     fields: [projectNotifications.projectId],
     references: [maintenanceProjects.id],
+  }),
+}));
+
+export const elementProjectUpdatesRelations = relations(elementProjectUpdates, ({ one }) => ({
+  project: one(maintenanceProjects, {
+    fields: [elementProjectUpdates.projectId],
+    references: [maintenanceProjects.id],
+  }),
+  element: one(buildingElements, {
+    fields: [elementProjectUpdates.elementId],
+    references: [buildingElements.id],
   }),
 }));

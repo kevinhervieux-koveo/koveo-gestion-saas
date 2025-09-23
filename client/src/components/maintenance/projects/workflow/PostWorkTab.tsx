@@ -1,15 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { 
   useWorkflowTasks, 
   useWorkflowTaskMutations,
   useMarkStatusComplete, 
   type ProjectWorkflowState 
 } from '@/hooks/useProjectWorkflow';
-import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import {
   CheckCircle2,
@@ -24,6 +29,9 @@ import {
   Clock,
   ClipboardCheck,
   FileText,
+  Settings,
+  Building2,
+  Save,
 } from 'lucide-react';
 
 export interface PostWorkTabProps {
@@ -36,7 +44,37 @@ export interface PostWorkTabProps {
  * Post-Work tab component for cleanup and finalization tasks
  * Handles post-work tasks, cleanup activities, and finalization steps
  */
+type ElementUpdateStatus = 'repair' | 'minor_rehab' | 'major_rehab' | 'replace' | 'nothing';
+
+interface ProjectElementWithDetails {
+  id: string;
+  projectId: string;
+  elementId: string;
+  workDescription?: string;
+  costAllocation?: number;
+  lifespanImpact?: number;
+  element: BuildingElement;
+}
+
+interface ElementUpdate {
+  id: string;
+  projectId: string;
+  elementId: string;
+  updateStatus: ElementUpdateStatus;
+  actualCost?: number;
+  notes?: string;
+}
+
 export function PostWorkTab({ project, workflowState, onUpdate }: PostWorkTabProps) {
+  const { toast } = useToast();
+  
+  // Local state for element updates form
+  const [elementFormData, setElementFormData] = useState<Record<string, {
+    status: ElementUpdateStatus | '';
+    cost: string;
+    notes: string;
+  }>>({});
+  
   const { 
     data: postWorkTasks = [], 
     isLoading: isLoadingTasks 
@@ -44,6 +82,133 @@ export function PostWorkTab({ project, workflowState, onUpdate }: PostWorkTabPro
 
   const { createTask, updateTask, deleteTask } = useWorkflowTaskMutations();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
+
+  // Fetch project elements
+  const {
+    data: projectElementsResponse,
+    isLoading: isLoadingElements,
+  } = useQuery({
+    queryKey: ['/api/maintenance/projects', project.id, 'elements'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/maintenance/projects/${project.id}/elements`);
+      return await response.json();
+    },
+  });
+
+  // Fetch element updates
+  const {
+    data: elementUpdatesResponse,
+    isLoading: isLoadingUpdates,
+  } = useQuery({
+    queryKey: ['/api/maintenance/projects', project.id, 'element-updates'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/maintenance/projects/${project.id}/element-updates`);
+      return await response.json();
+    },
+  });
+
+  const projectElements: ProjectElementWithDetails[] = projectElementsResponse?.elements || [];
+  const elementUpdates: ElementUpdate[] = elementUpdatesResponse?.updates || [];
+
+  // Element update mutation
+  const elementUpdateMutation = useMutation({
+    mutationFn: async (updateData: {
+      elementId: string;
+      updateStatus: ElementUpdateStatus;
+      actualCost?: number;
+      notes?: string;
+    }) => {
+      const response = await apiRequest('POST', `/api/maintenance/projects/${project.id}/element-updates`, updateData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', project.id, 'element-updates'] 
+      });
+      toast({
+        title: "Element Updated",
+        description: "Element status has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Update Element",
+        description: error.response?.data?.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Initialize form data when element updates load
+  useEffect(() => {
+    if (elementUpdates.length > 0) {
+      const initialData: Record<string, { status: ElementUpdateStatus | ''; cost: string; notes: string }> = {};
+      elementUpdates.forEach(update => {
+        initialData[update.elementId] = {
+          status: update.updateStatus,
+          cost: update.actualCost?.toString() || '',
+          notes: update.notes || '',
+        };
+      });
+      setElementFormData(prevData => ({ ...prevData, ...initialData }));
+    }
+  }, [elementUpdates]);
+
+  // Helper function to get element update
+  const getElementUpdate = (elementId: string): ElementUpdate | undefined => {
+    return elementUpdates.find(update => update.elementId === elementId);
+  };
+
+  // Helper function to get element form data
+  const getElementFormData = (elementId: string) => {
+    return elementFormData[elementId] || {
+      status: '' as const,
+      cost: '',
+      notes: '',
+    };
+  };
+
+  // Helper function to update element form data
+  const updateElementFormData = (elementId: string, field: 'status' | 'cost' | 'notes', value: string) => {
+    setElementFormData(prev => ({
+      ...prev,
+      [elementId]: {
+        ...getElementFormData(elementId),
+        [field]: value,
+      },
+    }));
+  };
+
+  // Helper function to get status badge color
+  const getStatusBadgeVariant = (status: ElementUpdateStatus) => {
+    switch (status) {
+      case 'repair': return 'secondary';
+      case 'minor_rehab': return 'outline';
+      case 'major_rehab': return 'default';
+      case 'replace': return 'destructive';
+      case 'nothing': return 'secondary';
+      default: return 'outline';
+    }
+  };
+
+  // Helper function to format status for display
+  const formatStatus = (status: ElementUpdateStatus) => {
+    switch (status) {
+      case 'minor_rehab': return 'Minor Rehab';
+      case 'major_rehab': return 'Major Rehab';
+      case 'nothing': return 'No Work';
+      default: return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
+
+  const handleElementUpdate = (elementId: string, updateStatus: ElementUpdateStatus, actualCost?: number, notes?: string) => {
+    elementUpdateMutation.mutate({
+      elementId,
+      updateStatus,
+      actualCost,
+      notes,
+    });
+  };
 
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'post_work';
 
@@ -137,6 +302,132 @@ export function PostWorkTab({ project, workflowState, onUpdate }: PostWorkTabPro
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Tasks Column - Takes up 2/3 width */}
         <div className="lg:col-span-2 space-y-4">
+          {/* Element Updates Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Element Updates
+              </CardTitle>
+              <CardDescription>
+                Track what was actually done to each project element
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingElements || isLoadingUpdates ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <div key={i} className="h-20 bg-muted animate-pulse rounded" />
+                  ))}
+                </div>
+              ) : projectElements.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No elements linked to this project</p>
+                  <p className="text-sm mt-1">Elements must be added during the planning phase</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {projectElements.map((projectElement) => {
+                    const elementUpdate = getElementUpdate(projectElement.elementId);
+                    const formData = getElementFormData(projectElement.elementId);
+
+                    const handleSaveUpdate = () => {
+                      if (formData.status) {
+                        handleElementUpdate(
+                          projectElement.elementId,
+                          formData.status,
+                          formData.cost ? parseFloat(formData.cost) : undefined,
+                          formData.notes || undefined
+                        );
+                      }
+                    };
+
+                    return (
+                      <div key={projectElement.id} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{projectElement.element.name}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {projectElement.element.uniformatCode}
+                            </p>
+                            {projectElement.workDescription && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Planned work: {projectElement.workDescription}
+                              </p>
+                            )}
+                          </div>
+                          {elementUpdate && (
+                            <Badge variant={getStatusBadgeVariant(elementUpdate.updateStatus)}>
+                              {formatStatus(elementUpdate.updateStatus)}
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Update Status</label>
+                            <Select
+                              value={formData.status}
+                              onValueChange={(value) => updateElementFormData(projectElement.elementId, 'status', value)}
+                            >
+                              <SelectTrigger data-testid={`select-element-status-${projectElement.elementId}`}>
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="repair">Repair</SelectItem>
+                                <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
+                                <SelectItem value="major_rehab">Major Rehab</SelectItem>
+                                <SelectItem value="replace">Replace</SelectItem>
+                                <SelectItem value="nothing">No Work Done</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Actual Cost ($)</label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              placeholder="0.00"
+                              value={formData.cost}
+                              onChange={(e) => updateElementFormData(projectElement.elementId, 'cost', e.target.value)}
+                              data-testid={`input-element-cost-${projectElement.elementId}`}
+                            />
+                          </div>
+
+                          <div className="flex items-end">
+                            <Button
+                              onClick={handleSaveUpdate}
+                              disabled={!formData.status || elementUpdateMutation.isPending}
+                              size="sm"
+                              className="w-full"
+                              data-testid={`button-save-element-update-${projectElement.elementId}`}
+                            >
+                              <Save className="h-4 w-4 mr-1" />
+                              {elementUpdateMutation.isPending ? 'Saving...' : 'Save'}
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium mb-1 block">Notes (optional)</label>
+                          <Textarea
+                            placeholder="Additional notes about the work performed..."
+                            value={formData.notes}
+                            onChange={(e) => updateElementFormData(projectElement.elementId, 'notes', e.target.value)}
+                            rows={2}
+                            data-testid={`textarea-element-notes-${projectElement.elementId}`}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
