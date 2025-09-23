@@ -541,10 +541,10 @@ export function ElementForm({
         residenceId: element.residenceId || null, // Ensure null for building-wide
         description: element.description || '',
         notes: element.notes || '',
-        originalLifespan: element.originalLifespan || undefined,
-        currentLifespan: element.currentLifespan || undefined,
+        originalLifespan: element.originalLifespan || 20, // Required field - use default if missing
+        currentLifespan: element.currentLifespan || 15, // Required field - use default if missing  
         unitValue: element.unitValue ? Number(element.unitValue) : undefined,
-        reconstructionCost: element.reconstructionCost ? Number(element.reconstructionCost) : undefined,
+        reconstructionCost: element.reconstructionCost ? Number(element.reconstructionCost) : 1, // Required field - use valid minimum
         // Convert date strings to Date objects for form validation
         originalConstructionDate: parseDate(element.originalConstructionDate),
         lastInspectionDate: parseDate(element.lastInspectionDate),
@@ -554,11 +554,22 @@ export function ElementForm({
         access: element.access || 'not_restrained',
         charge: element.charge || 'common',
         autoCalculateEvaluation: true,
-        quantity: 1, // Default for existing elements
+        quantity: element.quantity || element.unitValue || 1, // Use existing quantity or unit value, default to 1
       };
       
       
+      console.log('🔄 [EDIT MODE DEBUG] Loading element data:', {
+        elementId: element.id,
+        rawElement: element,
+        transformedFormData: formData,
+      });
+      
       form.reset(formData);
+      
+      console.log('✅ [EDIT MODE DEBUG] Form reset completed. Form state after reset:', {
+        isValid: form.formState.isValid,
+        errors: form.formState.errors,
+      });
       
       // Set building-wide state based on existing element data
       setIsBuildingWideExplicit(!element.residenceId);
@@ -578,7 +589,7 @@ export function ElementForm({
         unit: '',
         unitValue: '',
         notes: '',
-        reconstructionCost: 0,
+        reconstructionCost: 1, // Set to valid minimum value above 0.01
         costEstimationDate: new Date(), // Use Date object for validation
         access: 'not_restrained',
         charge: 'common',
