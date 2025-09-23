@@ -70,15 +70,19 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       if (!buildingId) throw new Error('Building ID is required');
       if (!organizationId) throw new Error('Organization ID is required');
       
-      // Get building name from the query data
-      // Since building data might not be available, fetch it from the API
-      const buildingResponse = await apiRequest('GET', `/api/manager/buildings/${buildingId}`);
-      const buildingData = await buildingResponse.json();
-      const buildingName = buildingData?.data?.name;
-      
-      if (!buildingName) {
-        console.error('Building data not found for ID:', buildingId);
-        throw new Error('Building name is required');
+      // For admin building updates, we need to fetch building data
+      let buildingName;
+      try {
+        const buildingResponse = await apiRequest('GET', `/api/manager/buildings/${buildingId}`);
+        const buildingData = await buildingResponse.json();
+        buildingName = buildingData?.data?.name;
+        
+        if (!buildingName) {
+          throw new Error('Building name not found');
+        }
+      } catch (error) {
+        console.error('Failed to fetch building data:', error);
+        throw new Error('Unable to fetch building information');
       }
       
       const response = await apiRequest('PUT', `/api/admin/buildings/${buildingId}`, {
@@ -199,12 +203,8 @@ export function InventoryOverview({ className, buildingId, organizationId, build
     // Asset value calculation (sum of all reconstruction costs)
     const totalAssetValue = elements.reduce((sum, element) => {
       const cost = Number(element.reconstructionCost) || 0;
-      console.log(`🏗️ [ASSET VALUE DEBUG] Element "${element.name}": reconstructionCost="${element.reconstructionCost}" -> cost=${cost}`);
       return sum + cost;
     }, 0);
-    
-    console.log('🏗️ [ASSET VALUE DEBUG] Final total asset value:', totalAssetValue);
-    console.log('🏗️ [ASSET VALUE DEBUG] Formatted for display:', `$${totalAssetValue > 0 ? Math.round(totalAssetValue / 1000).toLocaleString() : '—'}K`);
 
     return {
       totalElements,
