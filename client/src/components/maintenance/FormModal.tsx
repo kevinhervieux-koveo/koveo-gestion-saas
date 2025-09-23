@@ -133,21 +133,38 @@ export function FormModal<T extends FieldValues>({
 
   // Check if form has errors - use React Hook Form's built-in validation state
   const { isValid, errors, isDirty } = form.formState;
-  const hasFormErrors = !isValid || Object.keys(errors).length > 0;
+  
+  // Create a more lenient validation approach - only block on critical required field errors
+  const criticalErrors = Object.keys(errors).filter(key => {
+    const error = errors[key];
+    // Only consider required field errors as critical, ignore optional field validation issues
+    const errorMessage = typeof error === 'string' ? error : error?.message;
+    return errorMessage && (
+      errorMessage.includes('required') || 
+      errorMessage.includes('Required') ||
+      errorMessage.includes('is required')
+    );
+  });
+  
+  // Allow save if no critical errors, even if form is technically invalid
+  const hasFormErrors = criticalErrors.length > 0;
   const hasValidationErrors = validationErrors && Object.keys(validationErrors).length > 0;
   
   // Debug form state for Save Changes button
   useEffect(() => {
-    console.log('🔍 [FORM MODAL DEBUG] Form state changed:', {
+    console.log('🔍 [FORM MODAL DEBUG] Enhanced validation state:', {
       mode,
       isValid,
       isDirty,
+      totalErrors: Object.keys(errors).length,
+      criticalErrors: criticalErrors.length,
+      criticalErrorsList: criticalErrors,
       hasFormErrors,
-      errors: Object.keys(errors).length > 0 ? errors : 'none',
       submitButtonDisabled: mode !== 'view' && (isSubmitting || hasFormErrors),
-      isSubmitting
+      isSubmitting,
+      allErrors: Object.keys(errors).length > 0 ? errors : 'none'
     });
-  }, [mode, isValid, isDirty, hasFormErrors, errors, isSubmitting]);
+  }, [mode, isValid, isDirty, hasFormErrors, errors, criticalErrors, isSubmitting]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
