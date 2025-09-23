@@ -71,7 +71,7 @@ export function DocumentAttachmentManager({
     queryKey: ['/api/maintenance/elements', element?.id, 'documents'],
     queryFn: async () => {
       if (!element?.id) return { documents: [] };
-      const response = await apiRequest('GET', `/api/maintenance/elements/${element.id}/documents`);
+      const response = await apiRequest('GET', `/api/maintenance/elements/${element?.id}/documents`);
       return await response.json();
     },
     enabled: !!element?.id && mode !== 'create',
@@ -84,12 +84,12 @@ export function DocumentAttachmentManager({
   const deleteMutation = useMutation({
     mutationFn: async (documentId: string) => {
       if (!element?.id) throw new Error('Element ID is required');
-      const response = await apiRequest('DELETE', `/api/maintenance/elements/${element.id}/documents/${documentId}`);
+      const response = await apiRequest('DELETE', `/api/maintenance/elements/${element?.id}/documents/${documentId}`);
       return await response.json();
     },
     onSuccess: (_, documentId) => {
       if (element?.id) {
-        queryClient.invalidateQueries({ queryKey: ['/api/maintenance/elements', element.id, 'documents'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/maintenance/elements', element?.id, 'documents'] });
       }
       onDocumentDeleted?.(documentId);
       toast({
@@ -125,7 +125,7 @@ export function DocumentAttachmentManager({
       }
       formData.append('documentType', documentType);
       
-      const response = await apiRequest('POST', `/api/maintenance/elements/${element.id}/documents`, {
+      const response = await apiRequest('POST', `/api/maintenance/elements/${element?.id}/documents`, {
         body: formData,
       });
       
@@ -134,7 +134,7 @@ export function DocumentAttachmentManager({
     onSuccess: (response) => {
       if (element?.id) {
         // Invalidate and refetch documents
-        queryClient.invalidateQueries({ queryKey: ['/api/maintenance/elements', element.id, 'documents'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/maintenance/elements', element?.id, 'documents'] });
       }
       onDocumentUploaded?.({
         id: response.data.id,
@@ -194,7 +194,7 @@ export function DocumentAttachmentManager({
   // Handle view document
   const handleViewDocument = useCallback((doc: DocumentFile) => {
     if (!element?.id) return;
-    const viewUrl = `/api/maintenance/elements/${element.id}/documents/${doc.id}`;
+    const viewUrl = `/api/maintenance/elements/${element?.id}/documents/${doc.id}`;
     window.open(viewUrl, '_blank');
   }, [element?.id]);
 
@@ -203,7 +203,7 @@ export function DocumentAttachmentManager({
     if (!element?.id) return;
     
     try {
-      const response = await fetch(`/api/maintenance/elements/${element.id}/documents/${doc.id}?download=true`, {
+      const response = await fetch(`/api/maintenance/elements/${element?.id}/documents/${doc.id}?download=true`, {
         method: 'GET',
         credentials: 'include',
       });
