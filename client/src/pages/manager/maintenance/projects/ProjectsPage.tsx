@@ -474,7 +474,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-md font-medium">
-                      {viewMode === 'table' && 'Projects Table'}
                       {viewMode === 'timeline' && 'Projects Timeline'}
                       {viewMode === 'dashboard' && 'Projects Dashboard'}
                     </h3>
