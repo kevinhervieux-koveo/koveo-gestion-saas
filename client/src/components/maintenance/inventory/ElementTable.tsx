@@ -89,7 +89,7 @@ export function ElementTable({
       if (!buildingId) {
         throw new Error('Building ID is required for deleting elements');
       }
-      const response = await apiRequest('DELETE', `/api/maintenance/buildings/${buildingId}/elements/${elementId}`);
+      const response = await apiRequest('DELETE', `/api/maintenance/elements/${elementId}`);
       // Only parse JSON if response has content (not 204 No Content)
       if (response.status !== 204 && response.headers.get('content-type')?.includes('application/json')) {
         return await response.json();
@@ -98,6 +98,8 @@ export function ElementTable({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
+      // Also invalidate the inventory overview data
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings'] });
       toast({
         title: 'Element deleted',
         description: 'The building element has been removed successfully',
