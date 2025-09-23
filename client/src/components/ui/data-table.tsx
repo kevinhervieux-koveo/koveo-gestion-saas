@@ -229,12 +229,12 @@ export function DataTable<TData, TValue>({
   const hasSelectedRows = selectedRows.length > 0;
 
   return (
-    <Card className={className} data-testid="data-table">
+    <div className={className} data-testid="data-table">
       {(title || description) && (
-        <CardHeader>
+        <div className="space-y-1.5 p-6">
           <div className="flex items-center justify-between">
             <div>
-              {title && <CardTitle data-testid="table-title">{title}</CardTitle>}
+              {title && <h3 className="text-2xl font-semibold leading-none tracking-tight" data-testid="table-title">{title}</h3>}
               {description && (
                 <p className="text-sm text-muted-foreground mt-1" data-testid="table-description">
                   {description}
@@ -242,10 +242,10 @@ export function DataTable<TData, TValue>({
               )}
             </div>
           </div>
-        </CardHeader>
+        </div>
       )}
       
-      <CardContent className="space-y-4">
+      <div className="space-y-4">
         {/* Search, Filter, and Bulk Actions Controls */}
         {(enableFiltering || (enableRowSelection && bulkActions.length > 0)) && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -514,8 +514,8 @@ export function DataTable<TData, TValue>({
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
