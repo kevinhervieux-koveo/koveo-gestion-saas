@@ -183,11 +183,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     console.log('📁 [PROJECTS STATE] Project form opened in create mode');
   }, []);
 
-  const handleCreateFromSuggestions = useCallback(() => {
-    console.log('📁 [PROJECTS ACTION] handleCreateFromSuggestions called');
-    setShowSuggestionsIntegration(true);
-    console.log('📁 [PROJECTS STATE] Suggestions integration modal opened');
-  }, []);
 
   const handleManageElements = useCallback((project: MaintenanceProject) => {
     console.log('📁 [PROJECTS ACTION] handleManageElements called:', { projectId: project.id, projectTitle: project.title });
@@ -371,7 +366,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
         onAddProject={canCreate ? handleAddProject : undefined}
-        onCreateFromSuggestions={canCreate ? handleCreateFromSuggestions : undefined}
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         statusFilter={statusFilter}

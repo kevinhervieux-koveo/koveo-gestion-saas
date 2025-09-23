@@ -32,7 +32,6 @@ import {
   Table,
   Calendar,
   BarChart3,
-  Lightbulb,
   Play,
   Pause,
   Archive,
@@ -47,7 +46,6 @@ export interface ProjectsHeaderProps {
   viewMode?: ViewMode;
   onViewModeChange?: (mode: ViewMode) => void;
   onAddProject?: () => void;
-  onCreateFromSuggestions?: () => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
   statusFilter?: string;
@@ -74,7 +72,6 @@ export function ProjectsHeader({
   viewMode = 'table',
   onViewModeChange,
   onAddProject,
-  onCreateFromSuggestions,
   searchTerm = '',
   onSearchChange,
   statusFilter = '',
@@ -178,18 +175,6 @@ export function ProjectsHeader({
 
           {/* Primary Action Buttons - Compact */}
           <div className="flex items-center gap-2">
-            {canCreate && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={onCreateFromSuggestions}
-                data-testid="create-from-suggestions-button"
-              >
-                <Lightbulb className="h-4 w-4 mr-1" />
-                From Suggestions
-              </Button>
-            )}
-
             {canCreate && (
               <Button onClick={onAddProject} size="sm" data-testid="add-project-button">
                 <Plus className="h-4 w-4 mr-1" />
