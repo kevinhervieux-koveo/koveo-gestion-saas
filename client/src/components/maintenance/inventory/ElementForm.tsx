@@ -597,17 +597,6 @@ export function ElementForm({
       console.log('✅ [EDIT MODE DEBUG] Form reset completed. Form state after reset:', {
         isValid: form.formState.isValid,
         errors: form.formState.errors,
-        fieldValues: form.getValues(),
-      });
-      
-      // Detailed validation debugging
-      console.log('🔍 [EDIT MODE VALIDATION] Detailed field validation:', {
-        charge: { value: formData.charge, expected: ['common', 'personnal'] },
-        access: { value: formData.access, expected: ['not_restrained', 'restrained'] },
-        currentCondition: { value: formData.currentCondition, expected: ['excellent', 'good', 'fair', 'poor', 'critical'] },
-        originalConstructionDate: { value: formData.originalConstructionDate, type: typeof formData.originalConstructionDate },
-        costEstimationDate: { value: formData.costEstimationDate, type: typeof formData.costEstimationDate },
-        reconstructionCost: { value: formData.reconstructionCost, type: typeof formData.reconstructionCost },
       });
       
       // Set building-wide state based on existing element data

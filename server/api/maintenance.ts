@@ -831,6 +831,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         db
           .select({
             id: buildingElements.id,
+            buildingId: buildingElements.buildingId,
+            residenceId: buildingElements.residenceId,
             uniformatCode: buildingElements.uniformatCode,
             name: buildingElements.name,
             description: buildingElements.description,
@@ -843,6 +845,10 @@ export function registerMaintenanceRoutes(app: Express): void {
             unit: buildingElements.unit,
             unitValue: buildingElements.unitValue,
             notes: buildingElements.notes,
+            reconstructionCost: buildingElements.reconstructionCost,
+            costEstimationDate: buildingElements.costEstimationDate,
+            access: buildingElements.access,
+            charge: buildingElements.charge,
             isActive: buildingElements.isActive,
             createdAt: buildingElements.createdAt,
             updatedAt: buildingElements.updatedAt,
