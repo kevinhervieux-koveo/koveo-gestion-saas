@@ -102,13 +102,13 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   }, []);
 
   const handleEditElement = useCallback((element: BuildingElement) => {
-    // Edit form permanently removed - viewing only
-    console.log('Edit functionality disabled - viewing only');
+    setSelectedElement(element);
+    setShowElementForm(true);
   }, []);
 
   const handleAddElement = useCallback(() => {
-    // Add form permanently removed - viewing only
-    console.log('Add functionality disabled - viewing only');
+    setSelectedElement(null); // null for create mode
+    setShowElementForm(true);
   }, []);
 
 
@@ -285,7 +285,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         </div>
       </div>
 
-      {/* Element Form - View Mode */}
+      {/* Element Form - Create/Edit Mode */}
       <ElementForm
         element={selectedElement}
         isOpen={showElementForm}
@@ -295,9 +295,13 @@ function InventoryPageContent(props: InventoryPageContentProps) {
             setSelectedElement(null);
           }
         }}
-        mode="view"
+        mode={selectedElement ? 'edit' : 'create'}
         buildingId={buildingId}
         organizationId={organizationId}
+        onSuccess={(element) => {
+          setShowElementForm(false);
+          setSelectedElement(null);
+        }}
       />
 
       {/* Modals and Dialogs */}

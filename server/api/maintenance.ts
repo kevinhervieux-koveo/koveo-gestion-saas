@@ -565,7 +565,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const [vendor] = await db
         .insert(vendors)
-        .values(vendorData)
+        .values([vendorData])
         .returning();
       
       res.status(201).json({
@@ -626,12 +626,19 @@ export function registerMaintenanceRoutes(app: Express): void {
         }
       }
       
+      const updateData = {
+        ...validation.data,
+        updatedAt: new Date(),
+      };
+      
+      // Convert rating to string if it exists (database expects decimal/string)
+      if (typeof updateData.rating === 'number') {
+        (updateData as any).rating = updateData.rating.toString();
+      }
+      
       const [updatedVendor] = await db
         .update(vendors)
-        .set({
-          ...validation.data,
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(vendors.id, id))
         .returning();
       
@@ -941,15 +948,16 @@ export function registerMaintenanceRoutes(app: Express): void {
       const elementData: InsertBuildingElement = {
         ...validation.data,
         buildingId,
-        originalConstructionDate: validation.data.originalConstructionDate || null,
-        lastInspectionDate: validation.data.lastInspectionDate || null,
-        nextEvaluationDate: validation.data.nextEvaluationDate || null,
+        // Date fields should remain as strings (YYYY-MM-DD) for database
+        originalConstructionDate: validation.data.originalConstructionDate || undefined,
+        lastInspectionDate: validation.data.lastInspectionDate || undefined,
+        nextEvaluationDate: validation.data.nextEvaluationDate || undefined,
       };
       
       // Create the building element
       const [element] = await db
         .insert(buildingElements)
-        .values(elementData)
+        .values([elementData])
         .returning();
       
       res.status(201).json({
@@ -1027,9 +1035,10 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const updateData = {
         ...validation.data,
-        originalConstructionDate: validation.data.originalConstructionDate ? new Date(validation.data.originalConstructionDate) : undefined,
-        lastInspectionDate: validation.data.lastInspectionDate ? new Date(validation.data.lastInspectionDate) : undefined,
-        nextEvaluationDate: validation.data.nextEvaluationDate ? new Date(validation.data.nextEvaluationDate) : undefined,
+        // Date fields in the database are string (YYYY-MM-DD format), not Date objects
+        originalConstructionDate: validation.data.originalConstructionDate || undefined,
+        lastInspectionDate: validation.data.lastInspectionDate || undefined,
+        nextEvaluationDate: validation.data.nextEvaluationDate || undefined,
         updatedAt: new Date(),
       };
       
@@ -1282,21 +1291,28 @@ export function registerMaintenanceRoutes(app: Express): void {
         ...validation.data,
         elementId,
         eventDate: validation.data.eventDate,
-        warrantyEndDate: validation.data.warrantyEndDate || null,
+        createdBy: user.id,
+        workDescription: validation.data.description,
+        // warranty field exists but warrantyEndDate doesn't - handle warranty data as JSON
+        warranty: validation.data.warrantyEndDate ? { endDate: validation.data.warrantyEndDate.toISOString().split('T')[0] } : null,
       };
+      
+      // Remove properties that don't exist in schema
+      delete (historyData as any).description;
+      delete (historyData as any).warrantyEndDate;
       
       // Create element history
       const [history] = await db
         .insert(elementHistory)
-        .values(historyData)
+        .values([historyData])
         .returning();
       
-      // Update element's last inspection date if this is an inspection
-      if (validation.data.eventType === 'inspection') {
+      // Update element's last inspection date if this is a minor rehab or repair that included inspection
+      if (['repair', 'minor_rehab'].includes(validation.data.eventType)) {
         await db
           .update(buildingElements)
           .set({
-            lastInspectionDate: validation.data.eventDate,
+            lastInspectionDate: validation.data.eventDate.toISOString().split('T')[0],
             updatedAt: new Date(),
           })
           .where(eq(buildingElements.id, elementId));
@@ -1362,12 +1378,23 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      const updateData = {
-        ...validation.data,
-        eventDate: validation.data.eventDate ? new Date(validation.data.eventDate) : undefined,
-        warrantyEndDate: validation.data.warrantyEndDate ? new Date(validation.data.warrantyEndDate) : undefined,
+      // Prepare update data, handling date fields and missing properties properly
+      const updateData: any = {
         updatedAt: new Date(),
       };
+      
+      // Only include fields that exist in the schema
+      if (validation.data.eventType !== undefined) updateData.eventType = validation.data.eventType;
+      if (validation.data.eventDate) updateData.eventDate = validation.data.eventDate; // Keep as string
+      if (validation.data.workDescription !== undefined) updateData.workDescription = validation.data.workDescription;
+      if (validation.data.cost !== undefined) updateData.cost = validation.data.cost;
+      if (validation.data.vendorId !== undefined) updateData.vendorId = validation.data.vendorId;
+      if (validation.data.lifespanImpact !== undefined) updateData.lifespanImpact = validation.data.lifespanImpact;
+      
+      // Handle warranty as JSON object
+      if (validation.data.warrantyEndDate) {
+        updateData.warranty = { endDate: validation.data.warrantyEndDate.toISOString().split('T')[0] };
+      }
       
       const [updatedHistory] = await db
         .update(elementHistory)
@@ -1498,7 +1525,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         type: 'maintenance',
         organizationId: elementResult[0].organizationId,
         buildingId: elementResult[0].buildingId,
-        elementId: elementId,
       };
       
       const storageResult = await secureFileStorage.storeFile(
@@ -1536,20 +1562,18 @@ export function registerMaintenanceRoutes(app: Express): void {
         }
       }
       
-      // Store document metadata
+      // Store document metadata (only use properties that exist in schema)
       const [document] = await db
         .insert(elementDocuments)
-        .values({
+        .values([{
           elementId,
           documentType,
-          title: req.body.title || file.originalname,
-          description: req.body.description || null,
           filePath: storageResult.filePath!,
           fileName: file.originalname,
           fileSize: file.size,
           mimeType: file.mimetype,
           uploadedBy: user.id,
-        })
+        }])
         .returning();
       
       res.status(201).json({
@@ -1560,7 +1584,11 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.error('Error uploading document:', error);
       // Clean up temp file on error
       if (req.file?.path) {
-        fs.unlinkSync(req.file.path).catch(() => {});
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          // Ignore cleanup errors
+        }
       }
       res.status(500).json({
         error: 'Failed to upload document',
