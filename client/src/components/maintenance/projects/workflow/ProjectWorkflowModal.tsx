@@ -10,13 +10,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
-import { WorkflowTabNavigation } from './WorkflowTabNavigation';
-import { PlannedTab } from './PlannedTab';
-import { SubmissionTab } from './SubmissionTab';
-import { PreWorkTab } from './PreWorkTab';
-import { InProgressTab } from './InProgressTab';
-import { PostWorkTab } from './PostWorkTab';
-import { CompleteTab } from './CompleteTab';
+import {
+  WorkflowTabNavigation,
+  PlannedTab,
+  SubmissionTab,
+  PreWorkTab,
+  InProgressTab,
+  PostWorkTab,
+  CompleteTab,
+} from './lazy-components';
 import { cn } from '@/lib/utils';
 import {
   AlertTriangle,

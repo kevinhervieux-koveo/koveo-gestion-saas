@@ -374,8 +374,8 @@ function Router() {
             <Route path='/manager/demands' component={ManagerDemands} />
             <Route path='/manager/user-management' component={ManagerUserManagement} />
             <Route path='/manager/common-spaces-stats'>{() => <ManagerCommonSpacesStats />}</Route>
-            <Route path='/manager/maintenance/inventory' component={ManagerMaintenanceInventory} />
-            <Route path='/manager/maintenance/projects' component={ManagerMaintenanceProjects} />
+            <Route path='/manager/maintenance/inventory'>{() => <ManagerMaintenanceInventory />}</Route>
+            <Route path='/manager/maintenance/projects'>{() => <ManagerMaintenanceProjects />}</Route>
 
 
             {/* Residents routes */}
