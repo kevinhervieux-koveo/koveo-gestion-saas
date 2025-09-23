@@ -63,16 +63,6 @@ const projectFormSchema = insertMaintenanceProjectSchema.extend({
   description: z.string().optional(),
   vendorId: z.string().uuid().optional(),
   plannedStartDate: z.date().optional(),
-  plannedEndDate: z.date().optional(),
-}).refine((data) => {
-  // End date must be after start date
-  if (data.plannedStartDate && data.plannedEndDate) {
-    return data.plannedEndDate > data.plannedStartDate;
-  }
-  return true;
-}, {
-  message: "End date must be after start date",
-  path: ["plannedEndDate"],
 });
 
 type ProjectFormData = z.infer<typeof projectFormSchema>;
@@ -121,6 +111,7 @@ export function ProjectForm({
   const [error, setError] = useState<string | null>(null);
   const [isVendorFormOpen, setIsVendorFormOpen] = useState(false);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
+  const [initialVendorId, setInitialVendorId] = useState<string | undefined>(undefined);
 
   // Fetch vendors for selection
   const {
@@ -134,6 +125,20 @@ export function ProjectForm({
       return await response.json();
     },
     enabled: !!buildingId,
+  });
+
+  // Fetch currently selected vendor for editing projects
+  const {
+    data: selectedVendorResponse,
+    isLoading: isLoadingSelectedVendor,
+  } = useQuery({
+    queryKey: ['/api/maintenance/projects', project?.id, 'vendors'],
+    queryFn: async () => {
+      if (!project?.id) throw new Error('Project ID is required');
+      const response = await apiRequest('GET', `/api/maintenance/projects/${project.id}/vendors`);
+      return await response.json();
+    },
+    enabled: !!project?.id && mode === 'edit',
   });
 
   const vendors = vendorsResponse?.vendors || [];
@@ -155,15 +160,13 @@ export function ProjectForm({
       projectNumber: project?.projectNumber || generateProjectNumber(),
       title: project?.title || evaluationSuggestion?.reason || '',
       type: project?.type || evaluationSuggestion?.suggestedType || 'repair',
-      status: project?.status || 'planned',
       priority: project?.priority || evaluationSuggestion?.priority || 'medium',
       totalBudget: project?.totalBudget ? parseFloat(project.totalBudget) : undefined,
       actualCost: project?.actualCost ? parseFloat(project.actualCost) : 0,
       plannedStartDate: project?.plannedStartDate ? new Date(project.plannedStartDate) : undefined,
-      plannedEndDate: project?.plannedEndDate ? new Date(project.plannedEndDate) : undefined,
       suggestionId: project?.suggestionId || evaluationSuggestion?.id,
-      description: '',
-      vendorId: project?.vendorId || undefined,
+      description: project?.planningDescription || '',
+      vendorId: undefined, // Will be populated from selectedVendorResponse when editing
       createdBy: project?.createdBy || '', // This will be set by the backend
     },
   });
@@ -187,6 +190,22 @@ export function ProjectForm({
     }
   }, [contextOrganizationId, vendorsData, vendorsResponse]);
 
+  // Update form with selected vendor when editing
+  useEffect(() => {
+    if (selectedVendorResponse && mode === 'edit') {
+      const vendors = selectedVendorResponse.vendors || selectedVendorResponse.data || [];
+      const selectedVendor = vendors.find((vendor: any) => vendor.isSelected);
+      
+      if (selectedVendor) {
+        const vendorId = selectedVendor.vendorId || selectedVendor.vendor?.id;
+        form.setValue('vendorId', vendorId);
+        setInitialVendorId(vendorId); // Track initial vendor selection
+      } else {
+        setInitialVendorId(undefined);
+      }
+    }
+  }, [selectedVendorResponse, mode, form]);
+
   // Update form when evaluation suggestion changes
   useEffect(() => {
     if (evaluationSuggestion && !project) {
@@ -209,21 +228,81 @@ export function ProjectForm({
         ? `/api/maintenance/projects/${project.id}`
         : '/api/maintenance/projects';
       
-      const method = project ? 'PATCH' : 'POST';
+      const method = project ? 'PUT' : 'POST';
       
-      const response = await apiRequest(method, endpoint, {
-        ...data,
-        totalBudget: data.totalBudget?.toString(),
-        actualCost: data.actualCost?.toString(),
-        plannedStartDate: data.plannedStartDate?.toISOString().split('T')[0],
-        plannedEndDate: data.plannedEndDate?.toISOString().split('T')[0],
-      });
+      // Remove vendorId from payload since it's not stored on the project
+      const { vendorId, ...projectData } = data;
       
-      return response.json();
+      const payload = {
+        ...projectData,
+        totalBudget: projectData.totalBudget?.toString(),
+        actualCost: projectData.actualCost?.toString(),
+        plannedStartDate: projectData.plannedStartDate?.toISOString().split('T')[0],
+      };
+      
+      // Only set status to 'planned' for new projects, preserve existing status for edits
+      if (!project) {
+        payload.status = 'planned';
+      }
+      
+      const response = await apiRequest(method, endpoint, payload);
+      const result = await response.json();
+      
+      return { ...result, vendorId: data.vendorId };
     },
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
+      const projectId = response.project?.id || response.data?.id;
+      
+      // Handle vendor changes (assignment or deselection)
+      const wasVendorCleared = mode === 'edit' && initialVendorId && !response.vendorId;
+      
+      if (wasVendorCleared && projectId) {
+        try {
+          // Deselect all vendors for this project
+          await apiRequest('POST', `/api/maintenance/projects/${projectId}/vendors/deselect`);
+        } catch (vendorError) {
+          console.warn('Failed to deselect vendor:', vendorError);
+          // Don't fail the whole operation if vendor deselection fails
+        }
+      } else if (response.vendorId && projectId) {
+        try {
+          // Check if vendor is already in submission vendors
+          const existingVendorsResponse = await apiRequest('GET', `/api/maintenance/projects/${projectId}/vendors`);
+          const existingVendors = await existingVendorsResponse.json();
+          const vendors = existingVendors.vendors || existingVendors.data || [];
+          
+          const existingVendor = vendors.find((v: any) => v.vendorId === response.vendorId || v.vendor?.id === response.vendorId);
+          
+          if (existingVendor) {
+            // If vendor exists in submissions, select it
+            await apiRequest('POST', `/api/maintenance/vendors/${existingVendor.id}/select`);
+          } else {
+            // If vendor doesn't exist in submissions, add it and select it
+            const newSubmission = await apiRequest('POST', `/api/maintenance/projects/${projectId}/vendors`, {
+              vendorId: response.vendorId,
+              contactInfo: '',
+              notes: 'Auto-assigned vendor',
+              projectType: response.project?.type || 'repair',
+            });
+            
+            const submissionResult = await newSubmission.json();
+            if (submissionResult.vendor?.id) {
+              await apiRequest('POST', `/api/maintenance/vendors/${submissionResult.vendor.id}/select`);
+            }
+          }
+        } catch (vendorError) {
+          console.warn('Failed to assign vendor:', vendorError);
+          // Don't fail the whole operation if vendor assignment fails
+        }
+      }
+      
       queryClient.invalidateQueries({ 
         queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] 
+      });
+      
+      // Invalidate vendor queries to refresh selection
+      queryClient.invalidateQueries({
+        queryKey: ['/api/maintenance/projects', projectId, 'vendors']
       });
       
       // Also invalidate evaluation suggestions if this was created from one
@@ -235,10 +314,10 @@ export function ProjectForm({
       
       toast({
         title: mode === 'create' ? "Project Created" : "Project Updated",
-        description: `Project "${response.project?.title}" has been ${mode === 'create' ? 'created' : 'updated'} successfully.`,
+        description: `Project "${response.project?.title || response.data?.title}" has been ${mode === 'create' ? 'created' : 'updated'} successfully.`,
       });
       
-      onSuccess?.(response.project);
+      onSuccess?.(response.project || response.data);
       onOpenChange(false);
       form.reset();
     },
@@ -300,6 +379,8 @@ export function ProjectForm({
   const handleVendorSelect = (value: string) => {
     if (value === 'create_new') {
       setIsVendorFormOpen(true);
+    } else if (value === 'to_be_determined') {
+      form.setValue('vendorId', undefined);
     } else {
       form.setValue('vendorId', value === 'none' ? undefined : value);
     }
@@ -479,133 +560,54 @@ export function ProjectForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
-                  <FormControl>
-                    <SelectTrigger data-testid="select-project-status">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {projectStatuses.map((status) => (
-                      <SelectItem key={status.value} value={status.value}>
-                        <div className="flex flex-col">
-                          <span>{status.label}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {status.description}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
         {/* Timeline */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="plannedStartDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Planned Start Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                        data-testid="button-start-date"
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a start date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date(new Date().setHours(0, 0, 0, 0))
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormDescription>
-                  When the project is planned to start
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="plannedEndDate"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Planned End Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                        data-testid="button-end-date"
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick an end date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) => {
-                        const startDate = form.getValues('plannedStartDate');
-                        return startDate ? date < startDate : 
-                               date < new Date(new Date().setHours(0, 0, 0, 0));
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormDescription>
-                  When the project is planned to complete
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="plannedStartDate"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Planned Start Date</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                      data-testid="button-start-date"
+                    >
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a start date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date < new Date(new Date().setHours(0, 0, 0, 0))
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormDescription>
+                When the project is planned to start
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Budget and Vendor */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -644,7 +646,7 @@ export function ProjectForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Assigned Vendor</FormLabel>
-                <Select onValueChange={handleVendorSelect} defaultValue={String(field.value || '')}>
+                <Select onValueChange={handleVendorSelect} value={String(field.value || '')}>
                   <FormControl>
                     <SelectTrigger data-testid="select-vendor">
                       <SelectValue placeholder="Select vendor (optional)" />
@@ -657,6 +659,7 @@ export function ProjectForm({
                         <span>Create New Vendor</span>
                       </div>
                     </SelectItem>
+                    <SelectItem value="to_be_determined">To be Determined</SelectItem>
                     <SelectItem value="none">No vendor assigned</SelectItem>
                     {isLoadingVendors ? (
                       <div className="p-2">

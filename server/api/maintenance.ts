@@ -5540,6 +5540,60 @@ export function registerMaintenanceRoutes(app: Express): void {
     }
   });
 
+  /**
+   * POST /api/maintenance/projects/:projectId/vendors/deselect - Deselect all vendors for a project
+   */
+  app.post('/api/maintenance/projects/:projectId/vendors/deselect', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { projectId } = req.params;
+      if (!isValidUUID(projectId)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      // Get project to check access
+      const project = await db
+        .select({
+          id: maintenanceProjects.id,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      // Deselect all vendors for this project
+      await db
+        .update(submissionVendors)
+        .set({ isSelected: false, updatedAt: new Date() })
+        .where(eq(submissionVendors.projectId, projectId));
+
+      res.json({
+        success: true,
+        message: 'All vendors deselected successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error deselecting vendors:', error);
+      res.status(500).json({
+        error: 'Failed to deselect vendors',
+        details: error.message
+      });
+    }
+  });
+
   // ===========================================
   // PAYMENT PLAN ENDPOINTS
   // ===========================================
