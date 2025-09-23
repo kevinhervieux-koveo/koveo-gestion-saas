@@ -1726,6 +1726,78 @@ export function registerMaintenanceRoutes(app: Express): void {
   });
   
   /**
+   * GET /api/maintenance/documents/:id - View/download document
+   */
+  console.log('🔧 [MAINTENANCE ROUTES] Registering GET /api/maintenance/documents/:id');
+  app.get('/api/maintenance/documents/:id', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      const { id } = req.params;
+      
+      // Security: Validate UUID format
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid document ID format' });
+      }
+      
+      // Get document info and check access
+      const documentResult = await db
+        .select({ 
+          filePath: elementDocuments.filePath,
+          fileName: elementDocuments.fileName,
+          mimeType: elementDocuments.mimeType,
+          fileSize: elementDocuments.fileSize,
+          buildingId: buildingElements.buildingId 
+        })
+        .from(elementDocuments)
+        .innerJoin(buildingElements, eq(elementDocuments.elementId, buildingElements.id))
+        .where(eq(elementDocuments.id, id))
+        .limit(1);
+      
+      if (documentResult.length === 0) {
+        return res.status(404).json({ error: 'Document not found' });
+      }
+      
+      const document = documentResult[0];
+      const hasAccess = await checkBuildingAccess(user.id, user.role, document.buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this document'
+        });
+      }
+      
+      // Serve the file
+      const fullPath = path.join(uploadsDir, document.filePath);
+      
+      // Check if file exists
+      if (!fs.existsSync(fullPath)) {
+        return res.status(404).json({ error: 'File not found on disk' });
+      }
+      
+      // Set appropriate headers
+      res.set({
+        'Content-Type': document.mimeType,
+        'Content-Disposition': `inline; filename="${document.fileName}"`,
+        'Content-Length': document.fileSize.toString(),
+      });
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(fullPath);
+      fileStream.pipe(res);
+      
+    } catch (error: any) {
+      console.error('Error serving document:', error);
+      res.status(500).json({
+        error: 'Failed to serve document',
+        details: error.message
+      });
+    }
+  });
+
+  /**
    * DELETE /api/maintenance/documents/:id - Delete document
    */
   console.log('🔧 [MAINTENANCE ROUTES] Registering DELETE /api/maintenance/documents/:id');

@@ -83,8 +83,7 @@ export function DocumentAttachmentManager({
   // Delete document mutation
   const deleteMutation = useMutation({
     mutationFn: async (documentId: string) => {
-      if (!element?.id) throw new Error('Element ID is required');
-      const response = await apiRequest('DELETE', `/api/maintenance/elements/${element?.id}/documents/${documentId}`);
+      const response = await apiRequest('DELETE', `/api/maintenance/documents/${documentId}`);
       return await response.json();
     },
     onSuccess: (_, documentId) => {
@@ -142,7 +141,7 @@ export function DocumentAttachmentManager({
           name: response.data.fileName || response.data.name || 'Unknown',
           type: response.data.mimeType || response.data.type || 'application/octet-stream',
           size: response.data.fileSize || response.data.size || 0,
-          url: `/api/maintenance/elements/${element?.id}/documents/${response.data.id}`,
+          url: `/api/maintenance/documents/${response.data.id}`,
           category: response.data.documentType || response.data.category || 'document',
           uploadedAt: response.data.uploadedAt || new Date().toISOString(),
         });
