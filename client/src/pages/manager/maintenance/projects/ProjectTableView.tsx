@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-// import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { ProjectTable } from '@/components/maintenance/projects';
@@ -52,9 +52,13 @@ export function ProjectTableView({
   buildingId,
   organizationId,
 }: ProjectTableViewProps) {
-  // Simplified placeholder - no context for now
-  const building = null;
-  const hasPermission = () => true;
+  // Use building context to get current building state
+  const { building, hasPermission } = useBuildingContext();
+
+  // Permission checks for various actions
+  const canCreateProjects = hasPermission ? hasPermission('canCreateProjects') : true;
+  const canEditMaintenance = hasPermission ? hasPermission('canEditMaintenance') : true;
+  const canViewMaintenance = hasPermission ? hasPermission('canViewMaintenance') : true;
 
   // Fetch projects for current building
   const {
@@ -155,8 +159,8 @@ export function ProjectTableView({
     );
   }
 
-  // Handle no building selected state
-  if (!building) {
+  // Handle no building selected state - check if buildingId prop is provided
+  if (!buildingId) {
     return (
       <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-building-selected">
         <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
@@ -177,7 +181,7 @@ export function ProjectTableView({
         <p className="text-muted-foreground text-center mb-4">
           No maintenance projects have been created for this building yet.
         </p>
-        {hasPermission() && (
+        {canCreateProjects && (
           <p className="text-sm text-muted-foreground text-center">
             Get started by creating your first project or generating projects from evaluation suggestions.
           </p>
@@ -252,7 +256,7 @@ export function ProjectTableView({
         onViewTimeline={handleViewTimeline}
         onAssignElements={handleAssignElements}
         showActions={true}
-        showBulkActions={hasPermission()}
+        showBulkActions={canEditMaintenance}
         compact={false}
         className="bg-card"
         data-testid="main-projects-table"
@@ -261,7 +265,7 @@ export function ProjectTableView({
       />
 
       {/* Additional Information */}
-      {hasPermission() && filteredProjects.length > 0 && (
+      {canEditMaintenance && filteredProjects.length > 0 && (
         <div className="text-xs text-muted-foreground text-center p-4 border-t">
           <p>
             Project data is updated in real-time. Use bulk actions to manage multiple projects at once.
@@ -272,4 +276,3 @@ export function ProjectTableView({
   );
 }
 
-export type { ProjectTableViewProps };

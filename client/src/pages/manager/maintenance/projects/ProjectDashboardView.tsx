@@ -23,7 +23,7 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
-// import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { format, subMonths, startOfMonth } from 'date-fns';
@@ -127,9 +127,13 @@ export function ProjectDashboardView({
   buildingId,
   organizationId,
 }: ProjectDashboardViewProps) {
-  // Simplified placeholder - no context for now
-  const building = null;
-  const hasPermission = () => true;
+  // Use building context to get current building state
+  const { building, hasPermission } = useBuildingContext();
+
+  // Permission checks for various actions
+  const canCreateProjects = hasPermission ? hasPermission('canCreateProjects') : true;
+  const canEditMaintenance = hasPermission ? hasPermission('canEditMaintenance') : true;
+  const canViewReports = hasPermission ? hasPermission('canViewReports') : true;
 
   // Fetch dashboard analytics data
   const {
@@ -271,10 +275,10 @@ export function ProjectDashboardView({
     );
   }
 
-  // Handle no building selected state
-  if (!building) {
+  // Handle no building selected state - check if buildingId prop is provided
+  if (!buildingId) {
     return (
-      <div className={cn('flex flex-col items-center justify-center p-8', className)}>
+      <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-building-selected">
         <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
         <p className="text-muted-foreground text-center">
@@ -296,7 +300,7 @@ export function ProjectDashboardView({
         </div>
 
         <div className="flex items-center gap-2">
-          {hasPermission() && (
+          {canViewReports && (
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Export Report

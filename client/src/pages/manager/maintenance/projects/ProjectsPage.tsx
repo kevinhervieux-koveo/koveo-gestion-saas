@@ -1,9 +1,10 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject, EvaluationSuggestion } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
@@ -80,6 +81,30 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   });
   
   const { toast } = useToast();
+
+  // Use building context to sync with HOC props
+  const { 
+    buildingId: contextBuildingId, 
+    organizationId: contextOrganizationId,
+    setBuildingId, 
+    setOrganizationId,
+    building: contextBuilding
+  } = useBuildingContext();
+
+  // Sync HOC props with building context
+  useEffect(() => {
+    if (organizationId && organizationId !== contextOrganizationId) {
+      console.log('📁 [PROJECTS PAGE] Syncing organization ID with context:', organizationId);
+      setOrganizationId(organizationId);
+    }
+  }, [organizationId, contextOrganizationId, setOrganizationId]);
+
+  useEffect(() => {
+    if (buildingId && buildingId !== contextBuildingId) {
+      console.log('📁 [PROJECTS PAGE] Syncing building ID with context:', buildingId);
+      setBuildingId(buildingId);
+    }
+  }, [buildingId, contextBuildingId, setBuildingId]);
 
   // State for view mode
   const [viewMode, setViewMode] = useState<ViewMode>('table');
