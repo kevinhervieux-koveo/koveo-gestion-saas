@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { SharedUploader } from '@/components/document-management/SharedUploader';
+import { DocumentAttachmentManager } from '@/components/maintenance/inventory/DocumentAttachmentManager';
 import { DollarSign } from 'lucide-react';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
@@ -1257,38 +1257,18 @@ export function ElementForm({
         <Separator />
 
         {/* Document Upload Section */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-medium flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Asset Documentation
-          </h4>
-          <p className="text-sm text-muted-foreground">
-            Upload pictures of the asset to help with identification and condition assessment.
-          </p>
-          <SharedUploader
-            onDocumentChange={(file, text) => {
-              // Handle file upload
-              console.log('Document uploaded:', { file, text });
-            }}
-            allowedFileTypes={[
-              'image/jpeg',
-              'image/png', 
-              'image/gif',
-              'image/webp',
-              'application/pdf'
-            ]}
-            maxFileSize={10}
-            defaultTab="file"
-            formType="maintenance"
-            uploadContext={{
-              organizationId: organizationId || '',
-              buildingId: buildingId || '',
-              type: 'maintenance'
-            }}
-            className="min-h-32"
-            disabled={isFormDisabled}
-          />
-        </div>
+        <DocumentAttachmentManager
+          element={element}
+          mode={mode || 'create'}
+          buildingId={buildingId || ''}
+          organizationId={organizationId || ''}
+          onDocumentUploaded={(document) => {
+            console.log('Document uploaded:', document);
+          }}
+          onDocumentDeleted={(documentId) => {
+            console.log('Document deleted:', documentId);
+          }}
+        />
 
         <Separator />
 
