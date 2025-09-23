@@ -752,6 +752,7 @@ export function ElementForm({
               placeholder="Describe the element location, specifications, or other relevant details..."
               rows={3}
               data-testid="element-description"
+              disabled={isFormDisabled}
             />
           )}
         </FormFieldWrapper>
@@ -1008,7 +1009,7 @@ export function ElementForm({
               label="Unit"
             >
               {(field) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
                   <SelectTrigger data-testid="unit-select">
                     <SelectValue placeholder="Select unit" />
                   </SelectTrigger>
@@ -1147,6 +1148,7 @@ export function ElementForm({
               type: 'maintenance'
             }}
             className="min-h-32"
+            disabled={isFormDisabled}
           />
         </div>
 
