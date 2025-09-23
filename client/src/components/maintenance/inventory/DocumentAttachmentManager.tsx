@@ -109,7 +109,9 @@ export function DocumentAttachmentManager({
   // Upload document mutation
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!element?.id) throw new Error('Element ID is required for upload');
+      if (!element?.id) {
+        throw new Error('Cannot upload documents before element is saved. Please save the element first.');
+      }
       
       const formData = new FormData();
       formData.append('file', file);
@@ -161,9 +163,17 @@ export function DocumentAttachmentManager({
   // Handle file selection
   const handleFileSelect = useCallback((files: File[]) => {
     if (files.length > 0 && !uploadMutation.isPending) {
+      if (!element?.id) {
+        toast({
+          title: 'Cannot upload documents',
+          description: 'Please save the element first before uploading documents.',
+          variant: 'destructive',
+        });
+        return;
+      }
       uploadMutation.mutate(files[0]);
     }
-  }, [uploadMutation]);
+  }, [uploadMutation, element?.id, toast]);
 
   // Get file icon based on type
   const getFileIcon = useCallback((fileType: string, category?: string) => {
@@ -306,7 +316,7 @@ export function DocumentAttachmentManager({
 
   // Determine whether to show upload interface
   const shouldShowUploadInterface = useMemo(() => {
-    if (mode === 'create') return true; // Always show in create mode
+    if (mode === 'create') return false; // Don't show in create mode - element must be saved first
     if (mode === 'view') return false; // Never show in view mode
     if (mode === 'edit') {
       // In edit mode, show if no documents exist or user clicked add
@@ -355,14 +365,14 @@ export function DocumentAttachmentManager({
         )}
       </div>
 
-      {mode !== 'create' && (
-        <p className="text-sm text-muted-foreground">
-          {mode === 'view' 
-            ? 'Attached documents for this asset'
+      <p className="text-sm text-muted-foreground">
+        {mode === 'view' 
+          ? 'Attached documents for this asset'
+          : mode === 'create'
+            ? 'Documents can be uploaded after saving the element'
             : 'Upload pictures and documents to help with identification and condition assessment'
-          }
-        </p>
-      )}
+        }
+      </p>
 
       {/* Show existing documents (for VIEW and EDIT modes) */}
       {mode !== 'create' && documents.length > 0 && (
@@ -412,6 +422,14 @@ export function DocumentAttachmentManager({
         <div className="text-center py-8 text-muted-foreground">
           <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm">No documents attached to this asset</p>
+        </div>
+      )}
+
+      {/* No documents message for CREATE mode */}
+      {mode === 'create' && (
+        <div className="text-center py-8 text-muted-foreground">
+          <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p className="text-sm">Save the element to enable document uploads</p>
         </div>
       )}
 
