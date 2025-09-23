@@ -1134,16 +1134,18 @@ export function ElementForm({
                       if (inputValue === '') {
                         field.onChange(null);
                       } else {
-                        try {
-                          // Create date from the input string (YYYY-MM-DD format)
-                          const [year, month, day] = inputValue.split('-').map(num => parseInt(num, 10));
-                          if (year && month && day) {
-                            const dateValue = new Date(year, month - 1, day); // month is 0-indexed
-                            field.onChange(dateValue);
+                        // Let the native date input handle the parsing
+                        // Only update when we have a complete valid date string (YYYY-MM-DD)
+                        if (inputValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                          try {
+                            const dateValue = new Date(inputValue + 'T00:00:00');
+                            // Validate that the date is valid
+                            if (!isNaN(dateValue.getTime())) {
+                              field.onChange(dateValue);
+                            }
+                          } catch (error) {
+                            console.warn('Date parsing error:', error);
                           }
-                        } catch (error) {
-                          // If parsing fails, keep the input value but don't update the field
-                          console.warn('Date parsing error:', error);
                         }
                       }
                     }}
