@@ -68,10 +68,17 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   const updateBuildingMutation = useMutation({
     mutationFn: async (constructionDate: Date) => {
       if (!buildingId) throw new Error('Building ID is required');
-      if (!building?.name) throw new Error('Building name is required');
       if (!organizationId) throw new Error('Organization ID is required');
+      
+      // Get building name - handle both direct name and nested data structure
+      const buildingName = building?.name || building?.data?.name;
+      if (!buildingName) {
+        console.error('Building data:', building);
+        throw new Error('Building name is required');
+      }
+      
       const response = await apiRequest('PUT', `/api/admin/buildings/${buildingId}`, {
-        buildingName: building.name,
+        buildingName: buildingName,
         organizationId: organizationId,
         yearBuilt: constructionDate.getFullYear(),
         constructionDate: constructionDate.toISOString(),
