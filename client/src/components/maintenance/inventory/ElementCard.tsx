@@ -122,7 +122,7 @@ export function ElementCard({
     return { status: 'scheduled', label: 'Scheduled', variant: 'secondary' as const };
   }, [element.nextEvaluationDate]);
 
-  const canEdit = hasPermission('canEditMaintenance');
+  const canEdit = hasPermission();
 
   return (
     <Card 
