@@ -9,6 +9,9 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -289,121 +292,184 @@ export function ElementDetailsPanel({
             <TabsTrigger value="projects">Projects</TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
+          {/* Overview Tab - Form-like View */}
           <TabsContent value="overview" className="space-y-6 mt-6">
-            {/* Status Card */}
-            <Card data-testid="status-card">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium">Status & Evaluation</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Current Condition</span>
-                  <ConditionBadge condition={element.currentCondition} />
+            <div className="space-y-6">
+              {/* UNIFORMAT Code Section */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">UNIFORMAT Code</label>
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="outline">{element.uniformatCode}</Badge>
+                    <span className="text-sm font-medium">{element.name}</span>
+                  </div>
+                  {element.description && (
+                    <div className="text-xs text-muted-foreground">{element.description}</div>
+                  )}
                 </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Next Evaluation</span>
-                  <div className={cn('flex items-center gap-2 px-2 py-1 rounded-full text-xs', urgency.bg, urgency.color)}>
-                    <urgency.icon className="h-3 w-3" />
-                    {element.nextEvaluationDate ? format(parseISO(element.nextEvaluationDate), 'MMM d, yyyy') : urgency.label}
+              </div>
+
+              <Separator />
+
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Element Name</label>
+                  <Input value={element.name} disabled />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Current Condition</label>
+                  <Select value={element.currentCondition} disabled>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={element.currentCondition}>
+                        <ConditionBadge condition={element.currentCondition} size="sm" />
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Description</label>
+                <Textarea value={element.description || ''} disabled rows={3} />
+              </div>
+
+              {/* Element Assignment */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Assignment Type</label>
+                  <Input value={element.residenceId ? 'Specific Residence' : 'Building-wide'} disabled />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Access</label>
+                  <Input value={element.access === 'not_restrained' ? 'Not Restrained' : 'Restrained'} disabled />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Charge</label>
+                  <Input value={element.charge === 'common' ? 'Common' : 'Personal'} disabled />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Dates Section */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Construction Date</label>
+                  <Input 
+                    type="date" 
+                    value={element.originalConstructionDate || ''} 
+                    disabled 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Last Inspection</label>
+                  <Input 
+                    type="date" 
+                    value={element.lastInspectionDate || ''} 
+                    disabled 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Next Evaluation</label>
+                  <Input 
+                    type="date" 
+                    value={element.nextEvaluationDate || ''} 
+                    disabled 
+                  />
+                </div>
+              </div>
+
+              {/* Lifespan Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Lifespan Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Original Lifespan (years)</label>
+                    <Input value={element.originalLifespan || ''} disabled />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Current Lifespan (years)</label>
+                    <Input value={element.currentLifespan || ''} disabled />
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Last Inspection</span>
-                  <span className="text-sm">
-                    {element.lastInspectionDate 
-                      ? format(parseISO(element.lastInspectionDate), 'MMM d, yyyy')
-                      : 'Never'
-                    }
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Lifespan & Age */}
-            {age !== null && originalLifespan && (
-              <Card data-testid="lifespan-card">
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Lifespan Analysis
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                
+                {/* Lifespan Progress Visual */}
+                {age !== null && originalLifespan && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span>Age Progress</span>
-                      <span className="font-medium">{age} / {currentLifespan} years</span>
+                      <span>Age Progress: {age} / {currentLifespan} years</span>
+                      <span className={cn(
+                        'text-xs px-2 py-1 rounded',
+                        lifespanProgress > 80 ? 'bg-red-100 text-red-700' :
+                        lifespanProgress > 60 ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-green-100 text-green-700'
+                      )}>
+                        {lifespanProgress > 80 ? '⚠️ Nearing end' :
+                         lifespanProgress > 60 ? '⚡ Aging' : '✓ Good condition'}
+                      </span>
                     </div>
-                    <Progress value={lifespanProgress} className="h-2" data-testid="lifespan-progress" />
-                    <div className="text-xs text-muted-foreground">
-                      {lifespanProgress > 80 ? (
-                        <span className="text-red-600">⚠️ Nearing end of lifespan</span>
-                      ) : lifespanProgress > 60 ? (
-                        <span className="text-yellow-600">⚡ Aging, monitor closely</span>
-                      ) : (
-                        <span className="text-green-600">✓ Good remaining lifespan</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <div className="text-muted-foreground">Original Lifespan</div>
-                      <div className="font-medium">{originalLifespan} years</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground">Current Lifespan</div>
-                      <div className="font-medium">{currentLifespan} years</div>
-                    </div>
-                  </div>
-
-                  {element.originalConstructionDate && (
-                    <div>
-                      <div className="text-muted-foreground text-sm">Construction Date</div>
-                      <div className="font-medium">{format(parseISO(element.originalConstructionDate), 'MMMM d, yyyy')}</div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Specifications */}
-            <Card data-testid="specifications-card">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Calculator className="h-4 w-4" />
-                  Specifications
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {element.unitValue && element.unit && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Quantity</span>
-                    <span className="font-medium">{element.unitValue} {element.unit}</span>
+                    <Progress value={lifespanProgress} className="h-2" />
                   </div>
                 )}
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">UNIFORMAT Code</span>
-                  <Badge variant="outline">{element.uniformatCode}</Badge>
+              </div>
+
+              {/* Quantity and Cost */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Unit</label>
+                  <Input value={element.unit || ''} disabled />
                 </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Unit Value</label>
+                  <Input value={element.unitValue || ''} disabled />
+                </div>
+              </div>
 
-                {element.notes && (
-                  <>
-                    <Separator />
-                    <div>
-                      <div className="text-sm text-muted-foreground mb-1">Notes</div>
-                      <p className="text-sm">{element.notes}</p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+              {/* Reconstruction Cost */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <Calculator className="h-4 w-4" />
+                  Reconstruction Evaluation
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Reconstruction Cost</label>
+                    <Input 
+                      value={element.reconstructionCost ? `$${element.reconstructionCost}` : ''} 
+                      disabled 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Date of Estimation</label>
+                    <Input 
+                      type="date" 
+                      value={element.costEstimationDate || ''} 
+                      disabled 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Notes */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Notes</label>
+                <Textarea 
+                  value={element.notes || ''} 
+                  disabled 
+                  rows={3} 
+                  placeholder="No additional notes" 
+                />
+              </div>
+            </div>
           </TabsContent>
 
 
