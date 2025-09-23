@@ -95,7 +95,9 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/buildings'] });
+      // Invalidate related queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings', buildingId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/manager/buildings'] });
       toast({
         title: 'Building updated',
         description: 'Construction date has been updated successfully',
