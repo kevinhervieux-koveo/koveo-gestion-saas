@@ -1769,9 +1769,17 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      // Serve the file
-      const uploadsDir = '/tmp/uploads/';
-      const fullPath = path.join(uploadsDir, document.filePath);
+      // Serve the file from permanent storage
+      const UPLOADS_ROOT = path.resolve(process.cwd(), 'uploads');
+      
+      // Clean the file path and prevent directory traversal
+      const cleanPath = document.filePath.replace(/^\/?uploads\//, '');
+      const fullPath = path.resolve(UPLOADS_ROOT, path.normalize(cleanPath));
+      
+      // Security: ensure the resolved path is within uploads root
+      if (!fullPath.startsWith(UPLOADS_ROOT)) {
+        return res.status(400).json({ error: 'Invalid file path' });
+      }
       
       // Check if file exists
       if (!fs.existsSync(fullPath)) {
