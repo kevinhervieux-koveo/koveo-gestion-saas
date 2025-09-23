@@ -32,6 +32,7 @@ import {
   Building,
   CheckSquare,
   X,
+  Package,
 } from 'lucide-react';
 
 interface ElementTableProps {
