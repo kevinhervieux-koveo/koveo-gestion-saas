@@ -54,7 +54,7 @@ interface ElementTableProps {
   onViewElement?: (element: BuildingElement) => void;
   onEditElement?: (element: BuildingElement) => void;
   onAddHistory?: (element: BuildingElement) => void;
-  onUploadDocuments?: (element: BuildingElement) => void;
+  onViewDocuments?: (element: BuildingElement) => void;
   onDeleteElement?: (element: BuildingElement) => void;
   selectedElements?: string[];
   onSelectionChange?: (selectedIds: string[]) => void;
@@ -72,7 +72,7 @@ export function ElementTable({
   onViewElement,
   onEditElement,
   onAddHistory,
-  onUploadDocuments,
+  onViewDocuments,
   onDeleteElement,
   selectedElements = [],
   onSelectionChange,
@@ -428,15 +428,15 @@ export function ElementTable({
             </DropdownMenuItem>
           )}
           
-          {canManageDocuments && (
+          {onViewDocuments && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                onClick={() => onUploadDocuments?.(element)}
-                data-testid={`upload-documents-${element.id}`}
+                onClick={() => onViewDocuments(element)}
+                data-testid={`view-documents-${element.id}`}
               >
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Documents
+                <FileText className="mr-2 h-4 w-4" />
+                View Documents
               </DropdownMenuItem>
             </>
           )}
@@ -484,7 +484,7 @@ export function ElementTable({
         </DropdownMenuContent>
       </DropdownMenu>
     );
-  }, [canEdit, canManageDocuments, onViewElement, onEditElement, onAddHistory, onUploadDocuments, onDeleteElement, deleteElementMutation]);
+  }, [canEdit, canManageDocuments, onViewElement, onEditElement, onAddHistory, onViewDocuments, onDeleteElement, deleteElementMutation]);
 
   // Bulk actions - get actual element IDs from selected rows
   const selectedElementsCount = Object.keys(rowSelection).filter(id => rowSelection[id]).length;

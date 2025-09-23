@@ -122,7 +122,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     setShowHistoryTable(true);
   }, []);
 
-  const handleUploadDocuments = useCallback((element: BuildingElement) => {
+  const handleViewDocuments = useCallback((element: BuildingElement) => {
     setSelectedElement(element);
     setShowDocumentManager(true);
   }, []);
@@ -295,7 +295,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                   onViewElement={handleViewElement}
                   onEditElement={canEdit ? handleEditElement : undefined}
                   onAddHistory={canEdit ? handleAddHistory : undefined}
-                  onUploadDocuments={canManageDocuments ? handleUploadDocuments : undefined}
+                  onViewDocuments={handleViewDocuments}
                   onDeleteElement={canEdit ? handleDeleteElement : undefined}
                   selectedElements={selectedElements}
                   onSelectionChange={handleSelectionChange}
