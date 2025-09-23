@@ -3,6 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
@@ -13,7 +21,6 @@ import { Header } from '@/components/layout/header';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 
 // Import inventory components
-import { InventoryHeader } from './InventoryHeader';
 import { InventoryOverview } from './InventoryOverview';
 // import { ElementDetailsPanel } from './ElementDetailsPanel'; // Replaced with ElementForm
 
@@ -33,6 +40,9 @@ import {
   ChevronDown,
   ChevronRight,
   Database,
+  Search,
+  Filter,
+  Plus,
 } from 'lucide-react';
 
 interface InventoryPageContentProps {
@@ -98,6 +108,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const [conditionFilter, setConditionFilter] = useState('');
   const [uniformatFilter, setUniformatFilter] = useState('');
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // State for bulk operations
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
@@ -232,21 +243,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
-      {/* Page Header */}
-      <InventoryHeader
-        buildingName={props.buildingName}
-        showBackButton={showBackButton}
-        onBack={onBack}
-        onAddElement={canCreate ? handleAddElement : undefined}
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        conditionFilter={conditionFilter}
-        onConditionFilterChange={handleConditionFilterChange}
-        uniformatFilter={uniformatFilter}
-        onUniformatFilterChange={handleUniformatFilterChange}
-        showOverdueOnly={showOverdueOnly}
-        onShowOverdueChange={handleShowOverdueChange}
-      />
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
@@ -301,6 +297,118 @@ function InventoryPageContent(props: InventoryPageContentProps) {
               </div>
               
               <CollapsibleContent className="space-y-4">
+                {/* Controls Section */}
+                <div className="flex flex-col md:flex-row gap-4 p-4 bg-muted/25 rounded-lg border">
+                  {/* Search Bar */}
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Search elements by name, UNIFORMAT code, or description..."
+                      value={searchTerm}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      className="pl-10"
+                      data-testid="element-search-input"
+                    />
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={conditionFilter || uniformatFilter ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setFiltersOpen(!filtersOpen)}
+                      data-testid="filters-toggle"
+                    >
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filters
+                      {(conditionFilter || uniformatFilter || showOverdueOnly) && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          {[conditionFilter, uniformatFilter, showOverdueOnly && 'Overdue'].filter(Boolean).length}
+                        </Badge>
+                      )}
+                    </Button>
+
+                    <Button
+                      variant={showOverdueOnly ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleShowOverdueChange(!showOverdueOnly)}
+                      data-testid="overdue-filter-button"
+                    >
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      Overdue Evaluations
+                    </Button>
+
+                    {canCreate && (
+                      <Button onClick={handleAddElement} data-testid="add-element-button">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Element
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Expanded Filters */}
+                {filtersOpen && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg border" data-testid="expanded-filters">
+                    {/* Condition Filter */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Condition</label>
+                      <Select value={conditionFilter} onValueChange={handleConditionFilterChange}>
+                        <SelectTrigger data-testid="condition-filter">
+                          <SelectValue placeholder="All conditions" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Conditions</SelectItem>
+                          <SelectItem value="excellent">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-green-500" />
+                              Excellent
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="good">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-blue-500" />
+                              Good
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="fair">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                              Fair
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="poor">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full bg-red-500" />
+                              Poor
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* UNIFORMAT Filter */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">UNIFORMAT Category</label>
+                      <Select value={uniformatFilter} onValueChange={handleUniformatFilterChange}>
+                        <SelectTrigger data-testid="uniformat-filter">
+                          <SelectValue placeholder="All categories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          <SelectItem value="A">A - Substructure</SelectItem>
+                          <SelectItem value="B">B - Shell</SelectItem>
+                          <SelectItem value="C">C - Interiors</SelectItem>
+                          <SelectItem value="D">D - Services</SelectItem>
+                          <SelectItem value="E">E - Equipment & Furnishings</SelectItem>
+                          <SelectItem value="F">F - Special Construction</SelectItem>
+                          <SelectItem value="G">G - Building Sitework</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+
                 <ElementTable
                   buildingId={buildingId}
                   organizationId={organizationId}
