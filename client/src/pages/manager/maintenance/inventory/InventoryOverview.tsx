@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
-import { differenceInDays, parseISO, isAfter } from 'date-fns';
+import { differenceInDays, parseISO, isAfter, format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import {
   Package,
@@ -314,7 +314,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
               ) : (
                 <div className="flex items-center justify-between w-full">
                   <div className="text-2xl font-bold">
-                    {building?.yearBuilt || '—'}
+                    {building?.yearBuilt ? format(new Date(building.yearBuilt, 0, 1), 'MMM yyyy') : '—'}
                   </div>
                   <Button
                     size="sm"
