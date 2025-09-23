@@ -322,6 +322,15 @@ export function ElementTable({
         enableSorting: true,
         sortingFn: 'datetime',
       },
+
+      // Actions column
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => renderRowActions(row),
+        enableSorting: false,
+        size: 60,
+      },
     ];
 
     return baseColumns;
@@ -391,9 +400,12 @@ export function ElementTable({
     );
   }, [hasPermission, onViewElement, onEditElement, onAddHistory, onUploadDocuments]);
 
-  // Bulk actions
+  // Bulk actions - get actual element IDs from selected rows
   const selectedElementsCount = Object.keys(rowSelection).filter(id => rowSelection[id]).length;
-  const selectedElementIds = Object.keys(rowSelection).filter(id => rowSelection[id]);
+  const selectedElementIds = Object.keys(rowSelection)
+    .filter(id => rowSelection[id])
+    .map(rowIndex => elements[parseInt(rowIndex)]?.id)
+    .filter(Boolean);
 
   const bulkActions = useMemo(() => {
     if (!enableBulkActions || selectedElementsCount === 0) return null;
@@ -441,6 +453,43 @@ export function ElementTable({
         </div>
         
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              // Get selected elements
+              const selectedElements = elements.filter(el => selectedElementIds.includes(el.id));
+              
+              if (selectedElements.length === 0) {
+                toast({
+                  title: 'No elements selected',
+                  description: 'Please select elements to edit',
+                  variant: 'destructive',
+                });
+                return;
+              }
+
+              // For now, open edit for the first element as an example
+              // In a full implementation, this would open a bulk edit modal
+              if (onEditElement && selectedElements[0]) {
+                onEditElement(selectedElements[0]);
+                toast({
+                  title: 'Bulk Edit',
+                  description: `Editing first of ${selectedElementsCount} selected element(s). Full bulk edit coming soon!`,
+                });
+              } else {
+                toast({
+                  title: 'Bulk Edit',
+                  description: `Ready to edit ${selectedElementsCount} element(s): ${selectedElements.map(el => el.name).join(', ')}`,
+                });
+              }
+            }}
+            data-testid="bulk-edit-button"
+          >
+            <Edit2 className="h-4 w-4 mr-2" />
+            Bulk Edit
+          </Button>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" data-testid="bulk-condition-button">
@@ -539,7 +588,6 @@ export function ElementTable({
         <DataTable 
           data={elements}
           columns={columns}
-          enableRowSelection={enableBulkActions}
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}
           enablePagination={true}
