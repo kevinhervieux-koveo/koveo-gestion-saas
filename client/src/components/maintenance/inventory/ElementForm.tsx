@@ -1105,19 +1105,16 @@ export function ElementForm({
         >
           {(field) => (
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Next Evaluation Date</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={autoCalculateEvaluation}
-                    onChange={(e) => form.setValue('autoCalculateEvaluation', e.target.checked)}
-                    className="rounded"
-                    data-testid="auto-calculate-checkbox"
-                    disabled={isFormDisabled}
-                  />
-                  <span className="text-xs text-muted-foreground">Auto-calculate</span>
-                </div>
+              <div className="flex items-center justify-end gap-2">
+                <input
+                  type="checkbox"
+                  checked={autoCalculateEvaluation}
+                  onChange={(e) => form.setValue('autoCalculateEvaluation', e.target.checked)}
+                  className="rounded"
+                  data-testid="auto-calculate-checkbox"
+                  disabled={isFormDisabled}
+                />
+                <span className="text-xs text-muted-foreground">Auto-calculate</span>
               </div>
               
               <Input
