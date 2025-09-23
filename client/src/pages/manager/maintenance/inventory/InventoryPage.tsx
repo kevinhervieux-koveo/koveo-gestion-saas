@@ -115,11 +115,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     enabled: !!buildingId,
   });
 
-  // Debug log the building data
-  console.log('🏠 [INVENTORY PAGE] Building data:', buildingData);
-  console.log('🏠 [INVENTORY PAGE] Building loading:', buildingLoading);
-  console.log('🏠 [INVENTORY PAGE] Building error:', buildingError);
-  console.log('🏠 [INVENTORY PAGE] Building data.data:', buildingData?.data);
 
   // State for modals and panels
   const [selectedElement, setSelectedElement] = useState<BuildingElement | null>(null);
@@ -300,7 +295,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
             <InventoryOverview 
               buildingId={buildingId}
               organizationId={organizationId}
-              building={buildingData?.data}
+              building={buildingData}
             />
 
             {/* Main Inventory Table */}

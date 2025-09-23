@@ -52,10 +52,6 @@ interface InventoryOverviewProps {
  * Shows element counts, condition breakdown, alerts, and cost information
  */
 export function InventoryOverview({ className, buildingId, organizationId, building }: InventoryOverviewProps) {
-  // Debug log the building prop
-  console.log('🏗️ [INVENTORY OVERVIEW] Building prop:', building);
-  console.log('🏗️ [INVENTORY OVERVIEW] Construction date:', building?.constructionDate);
-
   // Collapsible state - collapsed by default
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -67,7 +63,6 @@ export function InventoryOverview({ className, buildingId, organizationId, build
 
   // Sync editingDate with building prop changes
   useEffect(() => {
-    console.log('🏗️ [INVENTORY OVERVIEW] useEffect triggered, building?.constructionDate:', building?.constructionDate, 'isEditingDate:', isEditingDate);
     if (building?.constructionDate && !isEditingDate) {
       setEditingDate(new Date(building.constructionDate));
     }
