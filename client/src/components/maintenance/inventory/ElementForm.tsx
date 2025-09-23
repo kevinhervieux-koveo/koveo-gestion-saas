@@ -1115,21 +1115,46 @@ export function ElementForm({
               label="Original Construction Date"
               required
             >
-              {(field, hasError) => (
-                <Input
-                  value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                  onChange={(e) => {
-                    // Fix controlled/uncontrolled warning by always passing Date or null
-                    const dateValue = e.target.value ? new Date(e.target.value) : null;
-                    field.onChange(dateValue);
-                  }}
-                  type="date"
-                  max={format(new Date(), 'yyyy-MM-dd')}
-                  data-testid="construction-date-input"
-                  disabled={isFormDisabled}
-                  className={hasError ? 'border-red-500' : ''}
-                />
-              )}
+              {(field, hasError) => {
+                // Format the date value for the input
+                const formatDateForInput = (date: Date | null | undefined): string => {
+                  if (!date) return '';
+                  try {
+                    return format(date, 'yyyy-MM-dd');
+                  } catch {
+                    return '';
+                  }
+                };
+
+                return (
+                  <Input
+                    value={formatDateForInput(field.value)}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      if (inputValue === '') {
+                        field.onChange(null);
+                      } else {
+                        try {
+                          // Create date from the input string (YYYY-MM-DD format)
+                          const [year, month, day] = inputValue.split('-').map(num => parseInt(num, 10));
+                          if (year && month && day) {
+                            const dateValue = new Date(year, month - 1, day); // month is 0-indexed
+                            field.onChange(dateValue);
+                          }
+                        } catch (error) {
+                          // If parsing fails, keep the input value but don't update the field
+                          console.warn('Date parsing error:', error);
+                        }
+                      }
+                    }}
+                    type="date"
+                    max={format(new Date(), 'yyyy-MM-dd')}
+                    data-testid="construction-date-input"
+                    disabled={isFormDisabled}
+                    className={hasError ? 'border-red-500' : ''}
+                  />
+                );
+              }}
             </FormFieldWrapper>
 
             <div className="grid grid-cols-2 gap-2">
