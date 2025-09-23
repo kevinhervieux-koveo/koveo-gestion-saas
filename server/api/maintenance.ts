@@ -301,6 +301,7 @@ async function getUserOrganizations(userId: string): Promise<string[]> {
  * Register maintenance API routes
  */
 export function registerMaintenanceRoutes(app: Express): void {
+  console.log('🔧 [MAINTENANCE ROUTES] Starting registerMaintenanceRoutes function...');
   
   // ===========================================
   // UNIFORMAT CATALOG MANAGEMENT
@@ -562,22 +563,12 @@ export function registerMaintenanceRoutes(app: Express): void {
       const vendorData: InsertVendor = {
         ...validation.data,
         organizationId: finalOrganizationId,
+        rating: validation.data.rating ? validation.data.rating.toString() : undefined,
       };
-      
-      // Convert rating to string if it exists (database expects decimal/string)
-      if (validation.data.rating !== undefined) {
-        (vendorData as any).rating = validation.data.rating.toString();
-      }
-      
-      // Ensure rating is converted to string for database
-      const finalVendorData = { ...vendorData };
-      if (finalVendorData.rating) {
-        (finalVendorData as any).rating = finalVendorData.rating.toString();
-      }
       
       const [vendor] = await db
         .insert(vendors)
-        .values([finalVendorData])
+        .values([vendorData])
         .returning();
       
       res.status(201).json({
@@ -640,13 +631,9 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const updateData = {
         ...validation.data,
+        rating: validation.data.rating ? validation.data.rating.toString() : undefined,
         updatedAt: new Date(),
       };
-      
-      // Convert rating to string if it exists (database expects decimal/string)
-      if (updateData.rating !== undefined && typeof updateData.rating === 'number') {
-        (updateData as any).rating = updateData.rating.toString();
-      }
       
       const [updatedVendor] = await db
         .update(vendors)
@@ -1501,6 +1488,7 @@ export function registerMaintenanceRoutes(app: Express): void {
   /**
    * POST /api/maintenance/elements/:elementId/documents - Upload element document
    */
+  console.log('🔧 [MAINTENANCE ROUTES] Registering POST /api/maintenance/elements/:elementId/documents');
   app.post('/api/maintenance/elements/:elementId/documents', requireAuth, uploadRateLimit, upload.single('file'), async (req: any, res: any) => {
     try {
       const user = req.user;
@@ -1635,6 +1623,7 @@ export function registerMaintenanceRoutes(app: Express): void {
   /**
    * GET /api/maintenance/elements/:elementId/documents - List element documents
    */
+  console.log('🔧 [MAINTENANCE ROUTES] Registering GET /api/maintenance/elements/:elementId/documents');
   app.get('/api/maintenance/elements/:elementId/documents', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -1729,6 +1718,7 @@ export function registerMaintenanceRoutes(app: Express): void {
   /**
    * DELETE /api/maintenance/documents/:id - Delete document
    */
+  console.log('🔧 [MAINTENANCE ROUTES] Registering DELETE /api/maintenance/documents/:id');
   app.delete('/api/maintenance/documents/:id', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -3577,4 +3567,64 @@ export function registerMaintenanceRoutes(app: Express): void {
       });
     }
   });
+
+  // ===========================================
+  // SIMPLIFIED ELEMENT DOCUMENT ENDPOINTS FOR DEBUGGING
+  // ===========================================
+  
+  console.log('🔧 [MAINTENANCE ROUTES] Adding simplified element document endpoints...');
+  
+  /**
+   * GET /api/maintenance/elements/:elementId/documents - Simple version
+   */
+  app.get('/api/maintenance/elements/:elementId/documents', requireAuth, async (req: any, res) => {
+    console.log('🔧 [MAINTENANCE ROUTES] GET element documents endpoint called for elementId:', req.params.elementId);
+    try {
+      res.json({
+        success: true,
+        message: 'Element documents endpoint is working',
+        elementId: req.params.elementId,
+        data: []
+      });
+    } catch (error: any) {
+      console.error('Error in GET element documents:', error);
+      res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+  });
+  
+  /**
+   * POST /api/maintenance/elements/:elementId/documents - Simple version
+   */
+  app.post('/api/maintenance/elements/:elementId/documents', requireAuth, async (req: any, res) => {
+    console.log('🔧 [MAINTENANCE ROUTES] POST element documents endpoint called for elementId:', req.params.elementId);
+    try {
+      res.json({
+        success: true,
+        message: 'Element document upload endpoint is working',
+        elementId: req.params.elementId
+      });
+    } catch (error: any) {
+      console.error('Error in POST element documents:', error);
+      res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+  });
+  
+  /**
+   * DELETE /api/maintenance/documents/:id - Simple version
+   */
+  app.delete('/api/maintenance/documents/:id', requireAuth, async (req: any, res) => {
+    console.log('🔧 [MAINTENANCE ROUTES] DELETE document endpoint called for id:', req.params.id);
+    try {
+      res.json({
+        success: true,
+        message: 'Document delete endpoint is working',
+        documentId: req.params.id
+      });
+    } catch (error: any) {
+      console.error('Error in DELETE document:', error);
+      res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+  });
+  
+  console.log('🔧 [MAINTENANCE ROUTES] Successfully registered all maintenance routes including element document endpoints');
 }
