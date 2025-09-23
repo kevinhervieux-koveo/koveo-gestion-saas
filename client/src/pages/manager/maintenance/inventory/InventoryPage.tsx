@@ -32,6 +32,7 @@ import { ElementForm } from '@/components/maintenance/inventory/ElementForm';
 
 import { 
   AlertTriangle, 
+  ArrowLeft,
   Building, 
   Loader2, 
   RefreshCw,
@@ -243,6 +244,29 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
+      {/* Header */}
+      <Header 
+        title="Inventory Management" 
+        subtitle="Manage building elements, maintenance records, and asset documentation across your property portfolio." 
+      />
+      
+      {/* Back to Building Navigation */}
+      {buildingId && buildingName && showBackButton && onBack && (
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center px-6 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onBack}
+              className="flex items-center gap-2"
+              data-testid="button-back-to-building"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {backButtonLabel || `Back to ${buildingName}`}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
