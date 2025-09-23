@@ -2397,7 +2397,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         .select({
           id: maintenanceProjects.id,
           title: maintenanceProjects.title,
-          description: maintenanceProjects.description,
           type: maintenanceProjects.type,
           status: maintenanceProjects.status,
           priority: maintenanceProjects.priority,
@@ -2405,14 +2404,11 @@ export function registerMaintenanceRoutes(app: Express): void {
           actualCost: maintenanceProjects.actualCost,
           plannedStartDate: maintenanceProjects.plannedStartDate,
           plannedEndDate: maintenanceProjects.plannedEndDate,
-          // assignedVendorId: maintenanceProjects.assignedVendorId, // Property doesn't exist in schema,
-          evaluationSuggestionId: maintenanceProjects.evaluationSuggestionId,
+          suggestionId: maintenanceProjects.suggestionId,
           createdAt: maintenanceProjects.createdAt,
           updatedAt: maintenanceProjects.updatedAt,
-          vendorName: vendors.name,
         })
         .from(maintenanceProjects)
-        // .leftJoin(vendors, eq(maintenanceProjects.assignedVendorId, vendors.id)) // Property doesn't exist
         .where(eq(maintenanceProjects.buildingId, buildingId))
         .orderBy(
           sql`
@@ -2434,6 +2430,98 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.error('Error fetching maintenance projects:', error);
       res.status(500).json({
         error: 'Failed to fetch maintenance projects',
+        details: error.message
+      });
+    }
+  });
+  
+  /**
+   * GET /api/maintenance/buildings/:buildingId/projects/metrics - Get project metrics for building
+   */
+  app.get('/api/maintenance/buildings/:buildingId/projects/metrics', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      const { buildingId } = req.params;
+      
+      // Check building access
+      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this building'
+        });
+      }
+      
+      // Get project metrics
+      const metricsQuery = db
+        .select({
+          totalProjects: count(maintenanceProjects.id),
+          totalBudget: sum(maintenanceProjects.totalBudget),
+          spentBudget: sum(maintenanceProjects.actualCost),
+        })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.buildingId, buildingId));
+      
+      const statusQuery = db
+        .select({
+          status: maintenanceProjects.status,
+          count: count(maintenanceProjects.id),
+        })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.buildingId, buildingId))
+        .groupBy(maintenanceProjects.status);
+      
+      const [metricsResult, statusResult] = await Promise.all([
+        metricsQuery,
+        statusQuery
+      ]);
+      
+      const metrics = metricsResult[0] || {
+        totalProjects: 0,
+        totalBudget: '0',
+        spentBudget: '0',
+      };
+      
+      const projectsByStatus = statusResult.reduce((acc, item) => {
+        acc[item.status] = Number(item.count);
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const totalBudget = Number(metrics.totalBudget) || 0;
+      const spentBudget = Number(metrics.spentBudget) || 0;
+      
+      const response = {
+        totalProjects: Number(metrics.totalProjects) || 0,
+        activeProjects: projectsByStatus['in_progress'] || 0,
+        completedProjects: projectsByStatus['completed'] || 0,
+        overdueProjects: projectsByStatus['overdue'] || 0,
+        plannedProjects: projectsByStatus['planned'] || 0,
+        totalBudget,
+        spentBudget,
+        remainingBudget: totalBudget - spentBudget,
+        budgetUtilization: totalBudget > 0 ? Math.round((spentBudget / totalBudget) * 100) : 0,
+        averageDuration: 0,
+        completionRate: 0,
+        onTimeCompletion: 0,
+        pendingSuggestions: 0,
+        costEfficiency: 0,
+        projectsByStatus,
+        projectsByPriority: {},
+        upcomingDeadlines: 0,
+        resourceUtilization: 0,
+      };
+      
+      res.json({
+        success: true,
+        data: response
+      });
+    } catch (error: any) {
+      console.error('Error fetching project metrics:', error);
+      res.status(500).json({
+        error: 'Failed to fetch project metrics',
         details: error.message
       });
     }
@@ -2644,7 +2732,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           plannedStartDate: maintenanceProjects.plannedStartDate,
           plannedEndDate: maintenanceProjects.plannedEndDate,
           // assignedVendorId: maintenanceProjects.assignedVendorId, // Property doesn't exist in schema,
-          evaluationSuggestionId: maintenanceProjects.evaluationSuggestionId,
+          suggestionId: maintenanceProjects.suggestionId,
           createdAt: maintenanceProjects.createdAt,
           updatedAt: maintenanceProjects.updatedAt,
           vendorName: vendors.name,
