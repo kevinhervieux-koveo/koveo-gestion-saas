@@ -7,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
@@ -31,6 +33,7 @@ import {
   Edit2,
   Save,
   X,
+  CalendarIcon,
 } from 'lucide-react';
 
 interface InventoryOverviewProps {
@@ -41,6 +44,7 @@ interface InventoryOverviewProps {
     id: string;
     name: string;
     yearBuilt?: number;
+    constructionDate?: Date;
     [key: string]: any;
   };
 }
@@ -53,18 +57,21 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   // Collapsible state - collapsed by default
   const [isExpanded, setIsExpanded] = useState(false);
   
-  // Construction year editing state
-  const [isEditingYear, setIsEditingYear] = useState(false);
-  const [editingYear, setEditingYear] = useState(building?.yearBuilt?.toString() || '');
+  // Construction date editing state
+  const [isEditingDate, setIsEditingDate] = useState(false);
+  const [editingDate, setEditingDate] = useState<Date | undefined>(
+    building?.constructionDate || (building?.yearBuilt ? new Date(building.yearBuilt, 0, 1) : undefined)
+  );
   
   const { toast } = useToast();
   
-  // Mutation to update building construction year
+  // Mutation to update building construction date
   const updateBuildingMutation = useMutation({
-    mutationFn: async (yearBuilt: number) => {
+    mutationFn: async (constructionDate: Date) => {
       if (!buildingId) throw new Error('Building ID is required');
       const response = await apiRequest('PUT', `/api/admin/buildings/${buildingId}`, {
-        yearBuilt,
+        yearBuilt: constructionDate.getFullYear(),
+        constructionDate: constructionDate.toISOString(),
       });
       return await response.json();
     },
@@ -72,36 +79,46 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       queryClient.invalidateQueries({ queryKey: ['/api/buildings'] });
       toast({
         title: 'Building updated',
-        description: 'Construction year has been updated successfully',
+        description: 'Construction date has been updated successfully',
       });
-      setIsEditingYear(false);
+      setIsEditingDate(false);
     },
     onError: (error: any) => {
       toast({
         title: 'Update failed',
-        description: error.message || 'Failed to update building construction year',
+        description: error.message || 'Failed to update building construction date',
         variant: 'destructive',
       });
     },
   });
   
-  // Handle construction year editing
-  const handleSaveYear = () => {
-    const year = parseInt(editingYear, 10);
-    if (isNaN(year) || year < 1800 || year > new Date().getFullYear()) {
+  // Handle construction date editing
+  const handleSaveDate = () => {
+    if (!editingDate) {
       toast({
-        title: 'Invalid year',
-        description: 'Please enter a valid construction year',
+        title: 'Invalid date',
+        description: 'Please select a valid construction date',
         variant: 'destructive',
       });
       return;
     }
-    updateBuildingMutation.mutate(year);
+    
+    const currentYear = new Date().getFullYear();
+    if (editingDate.getFullYear() < 1800 || editingDate.getFullYear() > currentYear) {
+      toast({
+        title: 'Invalid date',
+        description: `Please select a date between 1800 and ${currentYear}`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    updateBuildingMutation.mutate(editingDate);
   };
 
   const handleCancelEdit = () => {
-    setEditingYear(building?.yearBuilt?.toString() || '');
-    setIsEditingYear(false);
+    setEditingDate(building?.constructionDate || (building?.yearBuilt ? new Date(building.yearBuilt, 0, 1) : undefined));
+    setIsEditingDate(false);
   };
   
   // Fetch building elements data (all elements, no filters)
@@ -273,31 +290,45 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       </div>
       
       <CollapsibleContent className="space-y-4">
-        {/* Building Construction Year Field */}
-        <Card data-testid="building-construction-year-card">
+        {/* Building Construction Date Field */}
+        <Card data-testid="building-construction-date-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Building Construction Year</CardTitle>
+            <CardTitle className="text-sm font-medium">Building Construction Date</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              {isEditingYear ? (
+              {isEditingDate ? (
                 <div className="flex items-center gap-2 w-full">
-                  <Input
-                    value={editingYear}
-                    onChange={(e) => setEditingYear(e.target.value)}
-                    placeholder="e.g., 2008"
-                    type="number"
-                    min="1800"
-                    max={new Date().getFullYear()}
-                    className="w-24"
-                    data-testid="construction-year-input"
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-auto justify-start text-left font-normal"
+                        data-testid="construction-date-picker"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {editingDate ? format(editingDate, 'PPP') : 'Select date'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={editingDate}
+                        onSelect={setEditingDate}
+                        disabled={(date) => 
+                          date > new Date() || date < new Date('1800-01-01')
+                        }
+                        initialFocus
+                        data-testid="construction-date-calendar"
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <Button
                     size="sm"
-                    onClick={handleSaveYear}
+                    onClick={handleSaveDate}
                     disabled={updateBuildingMutation.isPending}
-                    data-testid="save-construction-year"
+                    data-testid="save-construction-date"
                   >
                     <Save className="h-3 w-3" />
                   </Button>
@@ -306,7 +337,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
                     variant="outline"
                     onClick={handleCancelEdit}
                     disabled={updateBuildingMutation.isPending}
-                    data-testid="cancel-edit-construction-year"
+                    data-testid="cancel-edit-construction-date"
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -314,13 +345,14 @@ export function InventoryOverview({ className, buildingId, organizationId, build
               ) : (
                 <div className="flex items-center justify-between w-full">
                   <div className="text-2xl font-bold">
-                    {building?.yearBuilt ? format(new Date(building.yearBuilt, 0, 1), 'MMM yyyy') : '—'}
+                    {building?.constructionDate ? format(building.constructionDate, 'MMM dd, yyyy') : 
+                     building?.yearBuilt ? format(new Date(building.yearBuilt, 0, 1), 'yyyy') : '—'}
                   </div>
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setIsEditingYear(true)}
-                    data-testid="edit-construction-year"
+                    onClick={() => setIsEditingDate(true)}
+                    data-testid="edit-construction-date"
                   >
                     <Edit2 className="h-3 w-3" />
                   </Button>
