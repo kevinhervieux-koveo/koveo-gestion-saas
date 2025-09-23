@@ -109,7 +109,7 @@ export function ProjectsHeader({
   const building = null;
   const availableBuildings = [];
   const setBuildingId = () => {};
-  const hasPermission = () => true;
+  const hasPermission = (permission: string) => true;
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const canEdit = hasPermission('canEditMaintenance');
@@ -162,9 +162,9 @@ export function ProjectsHeader({
           </p>
         </div>
 
-        {/* View Mode Controls and Primary Actions */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          {/* View Mode Toggle */}
+        {/* Compact View Mode Controls and Primary Actions */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3">
+          {/* View Mode Toggle - Compact */}
           <ToggleGroup 
             type="single" 
             value={viewMode} 
@@ -173,16 +173,13 @@ export function ProjectsHeader({
             data-testid="view-mode-toggle"
           >
             <ToggleGroupItem value="table" size="sm" data-testid="table-view-toggle">
-              <Table className="h-4 w-4 mr-2" />
-              Table
+              <Table className="h-4 w-4" />
             </ToggleGroupItem>
             <ToggleGroupItem value="timeline" size="sm" data-testid="timeline-view-toggle">
-              <Calendar className="h-4 w-4 mr-2" />
-              Timeline
+              <Calendar className="h-4 w-4" />
             </ToggleGroupItem>
             <ToggleGroupItem value="dashboard" size="sm" data-testid="dashboard-view-toggle">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Dashboard
+              <BarChart3 className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
 
@@ -192,7 +189,7 @@ export function ProjectsHeader({
               value={building?.id || ''}
               onValueChange={setBuildingId}
             >
-              <SelectTrigger className="w-48" data-testid="building-selector">
+              <SelectTrigger className="w-40" data-testid="building-selector">
                 <SelectValue placeholder="Select building..." />
               </SelectTrigger>
               <SelectContent>
@@ -208,52 +205,54 @@ export function ProjectsHeader({
             </Select>
           )}
 
-          {/* Actions Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" data-testid="actions-dropdown">
-                <MoreHorizontal className="h-4 w-4 mr-2" />
-                Actions
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {canViewReports && (
-                <DropdownMenuItem onClick={onExportReport} data-testid="export-report-action">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export Report
-                </DropdownMenuItem>
-              )}
-              {canEdit && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onImportProjects} data-testid="import-projects-action">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import Projects
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex-1" />
 
-          {/* Primary Action Buttons */}
+          {/* Primary Action Buttons - Compact */}
           <div className="flex items-center gap-2">
             {canCreate && (
               <Button 
                 variant="outline" 
+                size="sm"
                 onClick={onCreateFromSuggestions}
                 data-testid="create-from-suggestions-button"
               >
-                <Lightbulb className="h-4 w-4 mr-2" />
+                <Lightbulb className="h-4 w-4 mr-1" />
                 From Suggestions
               </Button>
             )}
 
             {canCreate && (
-              <Button onClick={onAddProject} data-testid="add-project-button">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={onAddProject} size="sm" data-testid="add-project-button">
+                <Plus className="h-4 w-4 mr-1" />
                 New Project
               </Button>
             )}
+
+            {/* Actions Dropdown - Icon Only */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" data-testid="actions-dropdown">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {canViewReports && (
+                  <DropdownMenuItem onClick={onExportReport} data-testid="export-report-action">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Report
+                  </DropdownMenuItem>
+                )}
+                {canEdit && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={onImportProjects} data-testid="import-projects-action">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Import Projects
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -272,18 +271,18 @@ export function ProjectsHeader({
           />
         </div>
 
-        {/* Quick Filters */}
-        <div className="flex items-center gap-2">
+        {/* Compact Quick Filters */}
+        <div className="flex flex-wrap items-center gap-1.5">
           <Button
             variant={filtersOpen ? 'default' : 'outline'}
             size="sm"
             onClick={() => setFiltersOpen(!filtersOpen)}
             data-testid="filters-toggle"
           >
-            <Filter className="h-4 w-4 mr-2" />
+            <Filter className="h-4 w-4 mr-1" />
             Filters
             {activeFiltersCount > 0 && (
-              <Badge variant="secondary" className="ml-2 text-xs">
+              <Badge variant="secondary" className="ml-1 text-xs">
                 {activeFiltersCount}
               </Badge>
             )}
@@ -295,7 +294,7 @@ export function ProjectsHeader({
             onClick={() => onShowOverdueChange?.(!showOverdueOnly)}
             data-testid="overdue-filter-button"
           >
-            <AlertTriangle className="h-4 w-4 mr-2" />
+            <AlertTriangle className="h-4 w-4 mr-1" />
             Overdue
           </Button>
 
@@ -306,7 +305,7 @@ export function ProjectsHeader({
             onClick={() => onStatusFilterChange?.(statusFilter === 'work' ? '' : 'work')}
             data-testid="active-projects-filter"
           >
-            <Play className="h-4 w-4 mr-2" />
+            <Play className="h-4 w-4 mr-1" />
             Active
           </Button>
 
@@ -316,7 +315,7 @@ export function ProjectsHeader({
             onClick={() => onStatusFilterChange?.(statusFilter === 'completed' ? '' : 'completed')}
             data-testid="completed-projects-filter"
           >
-            <CheckCircle className="h-4 w-4 mr-2" />
+            <CheckCircle className="h-4 w-4 mr-1" />
             Completed
           </Button>
         </div>
@@ -479,5 +478,3 @@ export function ProjectsHeader({
     </div>
   );
 }
-
-export type { ProjectsHeaderProps };

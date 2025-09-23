@@ -558,7 +558,6 @@ function ProjectsPageInner(props: ProjectsPageProps) {
   
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden bg-background', props.className)} data-testid="projects-page">
-      <Header title="Projects Management" subtitle="Plan, track, and manage maintenance projects with vendor coordination and budget tracking." />
       <ProjectsPageContent {...props} />
     </div>
   );
