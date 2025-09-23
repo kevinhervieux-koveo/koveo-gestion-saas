@@ -467,7 +467,7 @@ export function ElementForm({
       unit: '',
       unitValue: '',
       notes: '',
-      reconstructionCost: 0,
+      reconstructionCost: 1, // Set to valid minimum value above 0.01
       costEstimationDate: new Date(),
       access: 'not_restrained',
       charge: 'common',
@@ -496,15 +496,28 @@ export function ElementForm({
 
   // Debug form state on mode/element changes
   useEffect(() => {
+    const errorDetails = Object.keys(form.formState.errors).length > 0 ? 
+      Object.entries(form.formState.errors).map(([field, error]) => ({
+        field,
+        message: typeof error === 'string' ? error : error?.message,
+        type: error?.type
+      })) : [];
+
     console.log('🔍 [ELEMENT FORM DEBUG] Form state:', {
       mode: currentMode,
       elementId: element?.id,
       isValid: form.formState.isValid,
       isDirty: form.formState.isDirty,
-      errors: form.formState.errors,
+      errorCount: Object.keys(form.formState.errors).length,
+      errorDetails,
       isFormDisabled,
       submitDisabled: currentMode === 'view' || !form.formState.isValid
     });
+
+    // Additional logging when form is invalid
+    if (!form.formState.isValid && Object.keys(form.formState.errors).length > 0) {
+      console.log('❌ [VALIDATION ERRORS] Form is invalid due to:', errorDetails);
+    }
   }, [currentMode, element?.id, form.formState.isValid, form.formState.isDirty, form.formState.errors, isFormDisabled]);
 
   // Reset current mode when modal opens or element changes
