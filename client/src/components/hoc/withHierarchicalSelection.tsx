@@ -108,7 +108,7 @@ export function withHierarchicalSelection<T extends object>(
       isLoading: isLoadingOrganizations
     } = useQuery<Organization[]>({
       queryKey: ['/api/users/me/organizations'],
-      enabled: currentLevel === 'organization',
+      enabled: Boolean(currentLevel === 'organization'),
       staleTime: 5 * 60 * 1000, // 5 minutes cache
       gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
       retry: 2,
@@ -122,7 +122,7 @@ export function withHierarchicalSelection<T extends object>(
       error: buildingCountsError
     } = useQuery<Record<string, number>>({
       queryKey: ['/api/organizations/accessible-building-counts', user?.role, config.checkResidenceAccess || false],
-      enabled: currentLevel === 'organization' && organizations.length > 0,
+      enabled: Boolean(currentLevel === 'organization' && organizations.length > 0),
       staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
       gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
       retry: 2,
@@ -249,7 +249,10 @@ export function withHierarchicalSelection<T extends object>(
         console.log(`✅ [withHierarchicalSelection] Returning all ${allBuildings.length} buildings (non-residence page)`);
         return allBuildings;
       },
-      enabled: (currentLevel === 'building' || currentLevel === 'complete' || (buildingId && config.hierarchy.includes('building'))) && (!!organizationId || config.hierarchy.length === 1),
+      enabled: Boolean(
+        (currentLevel === 'building' || currentLevel === 'complete' || (buildingId && config.hierarchy.includes('building'))) && 
+        (!!organizationId || config.hierarchy.length === 1)
+      ),
       staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
       gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
       retry: 2,
@@ -295,7 +298,7 @@ export function withHierarchicalSelection<T extends object>(
         console.log(`✅ [withHierarchicalSelection] Received ${data.length} residences`);
         return data;
       },
-      enabled: currentLevel === 'residence' && !!buildingId,
+      enabled: Boolean(currentLevel === 'residence' && !!buildingId),
       staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
       gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
       retry: 2,
