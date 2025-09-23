@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { SharedUploader } from '@/components/document-management/SharedUploader';
+import { CustomFileUploader } from './CustomFileUploader';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
@@ -20,6 +20,8 @@ import {
   Upload,
   Paperclip,
   Plus,
+  Camera,
+  X,
 } from 'lucide-react';
 
 interface DocumentFile {
@@ -76,7 +78,7 @@ export function DocumentAttachmentManager({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const documents: DocumentFile[] = documentsResponse?.documents || [];
+  const documents: DocumentFile[] = documentsResponse?.data || [];
 
   // Delete document mutation
   const deleteMutation = useMutation({
@@ -104,24 +106,64 @@ export function DocumentAttachmentManager({
     },
   });
 
-  // Handle file upload success
-  const handleDocumentChange = useCallback((file: File | null, text: string | null) => {
-    if (file) {
-      // Convert File to DocumentFile format for consistency
-      const newDocument: DocumentFile = {
-        id: `temp-${Date.now()}`, // Temporary ID until backend assigns real one
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        url: URL.createObjectURL(file), // Temporary URL for preview
-        category: file.type.startsWith('image/') ? 'image' : 'pdf',
-        uploadedAt: new Date().toISOString(),
-      };
+  // Upload document mutation
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!element?.id) throw new Error('Element ID is required for upload');
       
-      onDocumentUploaded?.(newDocument);
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      // Determine document type based on file type
+      let documentType: 'image' | 'pdf' | 'specification' | 'warranty' | 'report' = 'report';
+      if (file.type.startsWith('image/')) {
+        documentType = 'image';
+      } else if (file.type === 'application/pdf') {
+        documentType = 'pdf';
+      }
+      formData.append('documentType', documentType);
+      
+      const response = await apiRequest('POST', `/api/maintenance/elements/${element.id}/documents`, {
+        body: formData,
+      });
+      
+      return await response.json();
+    },
+    onSuccess: (response) => {
+      if (element?.id) {
+        // Invalidate and refetch documents
+        queryClient.invalidateQueries({ queryKey: ['/api/maintenance/elements', element.id, 'documents'] });
+      }
+      onDocumentUploaded?.({
+        id: response.data.id,
+        name: response.data.fileName,
+        type: response.data.mimeType,
+        size: response.data.fileSize,
+        url: `/api/maintenance/elements/${element?.id}/documents/${response.data.id}`,
+        category: response.data.documentType,
+        uploadedAt: response.data.uploadedAt,
+      });
       setShowUploader(false);
+      toast({
+        title: 'Document uploaded',
+        description: 'The document has been uploaded successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Upload failed',
+        description: error.message || 'Failed to upload document',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle file selection
+  const handleFileSelect = useCallback((files: File[]) => {
+    if (files.length > 0 && !uploadMutation.isPending) {
+      uploadMutation.mutate(files[0]);
     }
-  }, [onDocumentUploaded]);
+  }, [uploadMutation]);
 
   // Get file icon based on type
   const getFileIcon = useCallback((fileType: string, category?: string) => {
@@ -347,8 +389,8 @@ export function DocumentAttachmentManager({
             </div>
           )}
           
-          <SharedUploader
-            onDocumentChange={handleDocumentChange}
+          <CustomFileUploader
+            onFileSelect={handleFileSelect}
             allowedFileTypes={[
               'image/jpeg',
               'image/png', 
@@ -357,13 +399,8 @@ export function DocumentAttachmentManager({
               'application/pdf'
             ]}
             maxFileSize={10}
-            defaultTab="file"
-            formType="maintenance"
-            uploadContext={{
-              organizationId,
-              buildingId,
-              type: 'maintenance'
-            }}
+            disabled={uploadMutation.isPending}
+            isUploading={uploadMutation.isPending}
             className="min-h-32"
             data-testid="document-uploader"
           />
