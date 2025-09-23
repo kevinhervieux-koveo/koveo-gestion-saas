@@ -131,40 +131,16 @@ export function FormModal<T extends FieldValues>({
     }, 150); // Small delay to allow modal close animation
   };
 
-  // Check if form has errors - use React Hook Form's built-in validation state
+  // Use React Hook Form's built-in validation state
   const { isValid, errors, isDirty } = form.formState;
-  
-  // Create a more lenient validation approach - only block on critical required field errors
-  const criticalErrors = Object.keys(errors).filter(key => {
-    const error = errors[key];
-    // Only consider required field errors as critical, ignore optional field validation issues
-    const errorMessage = typeof error === 'string' ? error : (error as any)?.message;
-    return errorMessage && typeof errorMessage === 'string' && (
-      errorMessage.includes('required') || 
-      errorMessage.includes('Required') ||
-      errorMessage.includes('is required')
-    );
-  });
-  
-  // Allow save if no critical errors, even if form is technically invalid
-  const hasFormErrors = criticalErrors.length > 0;
   const hasValidationErrors = validationErrors && Object.keys(validationErrors).length > 0;
   
-  // Debug form state for Save Changes button
+  // Debug form validation state (minimal logging)
   useEffect(() => {
-    console.log('🔍 [FORM MODAL DEBUG] Enhanced validation state:', {
-      mode,
-      isValid,
-      isDirty,
-      totalErrors: Object.keys(errors).length,
-      criticalErrors: criticalErrors.length,
-      criticalErrorsList: criticalErrors,
-      hasFormErrors,
-      submitButtonDisabled: mode !== 'view' && (isSubmitting || hasFormErrors),
-      isSubmitting,
-      allErrors: Object.keys(errors).length > 0 ? errors : 'none'
-    });
-  }, [mode, isValid, isDirty, hasFormErrors, errors, criticalErrors, isSubmitting]);
+    if (Object.keys(errors).length > 0) {
+      console.log('Form validation errors:', errors);
+    }
+  }, [errors]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -264,7 +240,7 @@ export function FormModal<T extends FieldValues>({
                   {mode !== 'view' && (
                     <Button
                       type="submit"
-                      disabled={isSubmitting || hasFormErrors}
+                      disabled={isSubmitting || !isValid}
                       data-testid="submit-button"
                     >
                       {isSubmitting ? (

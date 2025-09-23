@@ -76,9 +76,10 @@ interface UniformatCodeSelectorProps {
   onCodeSelect?: (codeData: any) => void; // For auto-suggest functionality
   error?: string;
   disabled?: boolean;
+  hasError?: boolean;
 }
 
-function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled = false }: UniformatCodeSelectorProps) {
+function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled = false, hasError = false }: UniformatCodeSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showBrowser, setShowBrowser] = useState(false);
   const [selectedLevel1, setSelectedLevel1] = useState<string | null>(null);
@@ -156,7 +157,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
             placeholder="Search UNIFORMAT codes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className={cn("pl-10", hasError && "border-red-500")}
             data-testid="uniformat-search"
             disabled={disabled}
           />
@@ -167,6 +168,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
           onClick={() => setShowBrowser(true)}
           data-testid="browse-uniformat-button"
           disabled={disabled}
+          className={cn(hasError && "border-red-500")}
         >
           <Building className="h-4 w-4 mr-2" />
           Browse
@@ -734,6 +736,7 @@ export function ElementForm({
               onCodeSelect={handleUniformatCodeSelect}
               error={form.formState.errors.uniformatCode?.message}
               disabled={isFormDisabled}
+              hasError={hasError}
             />
           )}
         </FormFieldWrapper>
@@ -833,7 +836,7 @@ export function ElementForm({
             description="Select if this element is building-wide or applies to specific residences"
             required
           >
-            {(field) => {
+            {(field, hasError) => {
               const selectedResidenceId = field.value;
               const isBuildingWide = !selectedResidenceId;
               
@@ -881,7 +884,10 @@ export function ElementForm({
                       }}
                       disabled={isFormDisabled}
                     >
-                      <SelectTrigger data-testid="residence-select-trigger">
+                      <SelectTrigger 
+                        data-testid="residence-select-trigger"
+                        className={cn(hasError && "border-red-500")}
+                      >
                         <SelectValue placeholder="Select residence assignment" />
                       </SelectTrigger>
                       <SelectContent data-testid="residence-select-content">
