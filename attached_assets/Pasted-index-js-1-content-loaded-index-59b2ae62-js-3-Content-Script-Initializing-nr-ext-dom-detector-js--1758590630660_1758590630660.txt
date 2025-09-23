@@ -1,0 +1,23 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-DRgnk0Nl.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-DRgnk0Nl.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DRgnk0Nl.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-BsD4o10O.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BsD4o10O.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/f0e34e59-0d81-4c1a-b95f-e23dd1667a19/buildings
+withHierarchicalSelection-BsD4o10O.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BsD4o10O.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-DRgnk0Nl.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-DRgnk0Nl.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-DRgnk0Nl.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-DRgnk0Nl.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-DRgnk0Nl.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-DRgnk0Nl.js:11 🏗️ [ElementTable] Rendered with: {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', isLoading: true, error: undefined, elementsCount: 0, rawData: undefined}
+index-DRgnk0Nl.js:11 🔍 [ElementTable] Fetching elements for buildingId: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-DRgnk0Nl.js:11 📊 [ElementTable] API Response: {success: true, data: Array(3), pagination: {…}}
+index-DRgnk0Nl.js:11 🏗️ [ElementTable] Rendered with: {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', isLoading: false, error: undefined, elementsCount: 3, rawData: {…}}

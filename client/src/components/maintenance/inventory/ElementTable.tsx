@@ -74,25 +74,14 @@ export function ElementTable({
   const { data: elementsData, isLoading, error } = useQuery({
     queryKey: ['/api/maintenance/buildings', buildingId, 'elements'],
     queryFn: async () => {
-      console.log('🔍 [ElementTable] Fetching elements for buildingId:', buildingId);
       if (!buildingId) return { data: [] };
       const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/elements`);
-      const data = await response.json();
-      console.log('📊 [ElementTable] API Response:', data);
-      return data;
+      return await response.json();
     },
     enabled: !!buildingId,
   });
 
   const elements: BuildingElement[] = elementsData?.data || [];
-  
-  console.log('🏗️ [ElementTable] Rendered with:', { 
-    buildingId, 
-    isLoading, 
-    error: error?.message, 
-    elementsCount: elements.length,
-    rawData: elementsData 
-  });
 
   // Bulk operations mutation
   const bulkUpdateMutation = useMutation({
@@ -514,17 +503,49 @@ export function ElementTable({
     );
   }
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="animate-spin h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full mx-auto mb-4" />
+        <p className="text-muted-foreground">Loading building elements...</p>
+      </div>
+    );
+  }
+
+  // Empty state - no elements to display
+  if (!elements.length) {
+    return (
+      <div className={cn('space-y-4', className)} data-testid="element-table">
+        <div className="p-8 text-center space-y-4">
+          <Package className="h-12 w-12 text-muted-foreground mx-auto" />
+          <div>
+            <h3 className="text-lg font-semibold mb-2">No Elements Found</h3>
+            <p className="text-muted-foreground">
+              Start building your inventory by adding building elements.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main table rendering
   return (
     <div className={cn('space-y-4', className)} data-testid="element-table">
-      {/* Empty state - no elements to display */}
-      <div className="p-8 text-center space-y-4">
-        <Package className="h-12 w-12 text-muted-foreground mx-auto" />
-        <div>
-          <h3 className="text-lg font-semibold mb-2">No Elements Found</h3>
-          <p className="text-muted-foreground">
-            Start building your inventory by adding building elements.
-          </p>
-        </div>
+      {enableBulkActions && selectedElementsCount > 0 && bulkActions}
+      
+      <div className="rounded-md border">
+        <DataTable 
+          data={elements}
+          columns={columns}
+          enableRowSelection={enableBulkActions}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          enablePagination={true}
+          enableSorting={true}
+          enableFiltering={true}
+        />
       </div>
     </div>
   );
