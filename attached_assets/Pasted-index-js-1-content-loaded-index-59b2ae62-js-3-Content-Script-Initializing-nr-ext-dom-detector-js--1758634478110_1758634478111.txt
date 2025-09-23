@@ -1,0 +1,394 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-CZi_fZ61.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, isSubmitted: false, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-DwzfokH-.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DwzfokH-.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-CZi_fZ61.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, isSubmitted: false, …}
+withHierarchicalSelection-DwzfokH-.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-DwzfokH-.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CZi_fZ61.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-CZi_fZ61.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CZi_fZ61.js:6 🏠 [INVENTORY ACTION] handleEditElement called: {elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', elementName: 'Site Drainage'}
+index-CZi_fZ61.js:6 🏠 [INVENTORY STATE] Element form opened in edit mode
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CZi_fZ61.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: false, isDirty: false, errorCount: 0, …}
+index-CZi_fZ61.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, isSubmitted: false, …}
+index-CZi_fZ61.js:6 🔄 [EDIT MODE DEBUG] Loading element data: {elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', rawElement: {…}, transformedFormData: {…}}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 ✅ [EDIT MODE DEBUG] Form reset completed. Form state after reset: {isValid: false, errors: {…}}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: false, isDirty: false, errorCount: 0, …}
+index-CZi_fZ61.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, isSubmitted: false, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Thu Sep 23 2027 09:33:27 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-CkkvjRBK.js:163 Cannot update a component (`Er`) while rendering a different component (`fc`). To locate the bad setState() call inside `fc`, follow the stack trace as described in https://react.dev/link/setstate-in-render
+overrideMethod @ hook.js:608
+Ye @ index-CkkvjRBK.js:163
+ol @ index-CkkvjRBK.js:120
+$p @ index-CkkvjRBK.js:120
+callback @ vendor-forms-DXLf4S2w.js:1
+next @ vendor-forms-DXLf4S2w.js:1
+next @ vendor-forms-DXLf4S2w.js:1
+q @ vendor-forms-DXLf4S2w.js:1
+fe @ vendor-forms-DXLf4S2w.js:1
+S @ vendor-forms-DXLf4S2w.js:1
+F @ vendor-forms-DXLf4S2w.js:1
+ct @ vendor-forms-DXLf4S2w.js:1
+hn @ vendor-forms-DXLf4S2w.js:1
+fc @ vendor-forms-DXLf4S2w.js:1
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+Jh @ index-CkkvjRBK.js:163
+Wc @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+mg @ index-CkkvjRBK.js:185
+ml @ index-CkkvjRBK.js:185
+ad @ index-CkkvjRBK.js:185
+(anonymous) @ index-CkkvjRBK.js:185
+<fc>
+du.jsxDEV @ index-CkkvjRBK.js:15
+k @ form-DunwSZj6.js:1
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+Jh @ index-CkkvjRBK.js:163
+Wc @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+mg @ index-CkkvjRBK.js:185
+ml @ index-CkkvjRBK.js:185
+ad @ index-CkkvjRBK.js:185
+(anonymous) @ index-CkkvjRBK.js:185
+<k>
+du.jsxDEV @ index-CkkvjRBK.js:15
+An @ FormModal-C-xfkEEO.js:62
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+Jh @ index-CkkvjRBK.js:163
+Wc @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+mg @ index-CkkvjRBK.js:185
+ml @ index-CkkvjRBK.js:185
+ad @ index-CkkvjRBK.js:185
+(anonymous) @ index-CkkvjRBK.js:185
+<An>
+du.jsxDEV @ index-CkkvjRBK.js:15
+Er @ index-CZi_fZ61.js:6
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+Jh @ index-CkkvjRBK.js:163
+Wc @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+mg @ index-CkkvjRBK.js:185
+ml @ index-CkkvjRBK.js:185
+ad @ index-CkkvjRBK.js:185
+(anonymous) @ index-CkkvjRBK.js:185
+<Er>
+du.jsxDEV @ index-CkkvjRBK.js:15
+yr @ index-CZi_fZ61.js:6
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+WS @ index-CkkvjRBK.js:163
+KS @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+fg @ index-CkkvjRBK.js:185
+d @ index-CkkvjRBK.js:23
+<yr>
+du.jsxDEV @ index-CkkvjRBK.js:15
+Dr @ index-CZi_fZ61.js:6
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+WS @ index-CkkvjRBK.js:163
+KS @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+fg @ index-CkkvjRBK.js:185
+d @ index-CkkvjRBK.js:23
+<Dr>
+du.jsxDEV @ index-CkkvjRBK.js:15
+(anonymous) @ withHierarchicalSelection-DwzfokH-.js:1
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+WS @ index-CkkvjRBK.js:163
+KS @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+fg @ index-CkkvjRBK.js:185
+d @ index-CkkvjRBK.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-CkkvjRBK.js:240
+P @ index-CkkvjRBK.js:240
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+WS @ index-CkkvjRBK.js:163
+KS @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+fg @ index-CkkvjRBK.js:185
+d @ index-CkkvjRBK.js:23
+<P>
+du.jsxDEV @ index-CkkvjRBK.js:15
+ex @ index-CkkvjRBK.js:384
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+Jh @ index-CkkvjRBK.js:163
+Wc @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+mg @ index-CkkvjRBK.js:185
+ml @ index-CkkvjRBK.js:185
+ad @ index-CkkvjRBK.js:185
+(anonymous) @ index-CkkvjRBK.js:185
+<ex>
+du.jsxDEV @ index-CkkvjRBK.js:15
+tx @ index-CkkvjRBK.js:384
+react_stack_bottom_frame @ index-CkkvjRBK.js:229
+oc @ index-CkkvjRBK.js:120
+kc @ index-CkkvjRBK.js:141
+Pc @ index-CkkvjRBK.js:150
+q @ index-CkkvjRBK.js:45
+Kh @ index-CkkvjRBK.js:163
+Jh @ index-CkkvjRBK.js:163
+Wc @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+fg @ index-CkkvjRBK.js:185
+d @ index-CkkvjRBK.js:23
+<tx>
+du.jsxDEV @ index-CkkvjRBK.js:15
+(anonymous) @ index-CkkvjRBK.js:384
+index-CkkvjRBK.js:185 [Violation] 'click' handler took 178ms
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'currentLifespan', type: 'change', value: '55', isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'currentLifespan', type: 'change', value: '55', isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: false, isDirty: true, errorCount: 0, …}
+index-CZi_fZ61.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, isSubmitted: false, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Thu Sep 23 2027 09:33:48 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Thu Sep 23 2027 09:33:48 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'unitValue', type: 'change', value: '1', isValid: false, errors: {…}, …}
+index-CkkvjRBK.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-CkkvjRBK.js:186
+h1 @ index-CkkvjRBK.js:186
+q @ index-CkkvjRBK.js:45
+Qc @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+Vt @ index-CkkvjRBK.js:163
+zh @ index-CkkvjRBK.js:163
+tg @ index-CkkvjRBK.js:163
+ed @ index-CkkvjRBK.js:163
+Xh @ index-CkkvjRBK.js:163
+Ih @ index-CkkvjRBK.js:163
+mg @ index-CkkvjRBK.js:185
+ml @ index-CkkvjRBK.js:185
+jo @ index-CkkvjRBK.js:163
+Gm @ index-CkkvjRBK.js:83
+rd @ index-CkkvjRBK.js:185
+Ad @ index-CkkvjRBK.js:194
+L1 @ index-CkkvjRBK.js:194
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'unit', type: 'change', value: 'unit', isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'currentLifespan', type: 'change', value: '5', isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'currentLifespan', type: 'change', value: '5', isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 09:33:56 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 09:33:56 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '15', isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '150', isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '1500', isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '15000', isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'autoCalculateEvaluation', type: 'change', value: false, isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'autoCalculateEvaluation', type: undefined, value: false, isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: 'change', value: Mon Sep 22 2025 20:00:00 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: 'change', value: Mon Sep 22 2025 20:00:00 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'autoCalculateEvaluation', type: 'change', value: true, isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'autoCalculateEvaluation', type: undefined, value: true, isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 09:34:15 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-CZi_fZ61.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 09:34:15 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}errors: {}field: "nextEvaluationDate"hasErrors: falseisValid: falsetype: undefinedvalue: Wed Sep 23 2026 09:34:15 GMT-0400 (Eastern Daylight Time) {}[[Prototype]]: Object

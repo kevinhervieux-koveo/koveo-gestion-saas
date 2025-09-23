@@ -41,7 +41,7 @@ const elementFormSchema = z.object({
   residenceId: z.string().uuid().nullable(), // Required choice but can be null for building-wide
   originalConstructionDate: z.date({ message: "Original construction date is required" }),
   lastInspectionDate: z.date().nullable().optional(), // Use date objects, allow null
-  nextEvaluationDate: z.date().nullable().optional(), // Use date objects, allow null
+  nextEvaluationDate: z.date().optional(), // Use date objects, simplified validation
   originalLifespan: z.coerce.number().int().min(1, "Must be at least 1"),
   currentLifespan: z.coerce.number().int().min(1, "Must be at least 1"),
   currentCondition: z.enum(['excellent', 'good', 'fair', 'poor', 'critical']),
@@ -449,7 +449,7 @@ export function ElementForm({
   });
 
   const form = useForm<ElementFormData>({
-    resolver: zodResolver(elementFormSchema),
+    resolver: zodResolver(elementFormSchema) as any,
     mode: 'onChange', // Validate on every change
     reValidateMode: 'onChange', // Re-validate on every change
     defaultValues: {
@@ -460,7 +460,7 @@ export function ElementForm({
       uniformatCode: '',
       originalConstructionDate: new Date(new Date().getFullYear() - 10, 0, 1), // Default to 10 years ago
       lastInspectionDate: null,
-      nextEvaluationDate: null,
+      nextEvaluationDate: undefined,
       originalLifespan: 20, // Default 20 year lifespan
       currentLifespan: 15, // Default 15 years remaining
       currentCondition: 'good',
@@ -516,11 +516,19 @@ export function ElementForm({
 
     // Additional logging when form is invalid
     if (!form.formState.isValid) {
+      const nextEvalDate = form.getValues('nextEvaluationDate');
       console.log('❌ [VALIDATION STATE] Form is invalid:', {
         isValid: form.formState.isValid,
         errorCount: Object.keys(form.formState.errors).length,
         errorDetails,
         allFormValues: form.getValues(),
+        nextEvaluationDate: {
+          value: nextEvalDate,
+          type: typeof nextEvalDate,
+          isDate: nextEvalDate instanceof Date,
+          isNull: nextEvalDate === null,
+          isUndefined: nextEvalDate === undefined
+        },
         isSubmitted: form.formState.isSubmitted,
         isDirty: form.formState.isDirty,
         isValidating: form.formState.isValidating,
