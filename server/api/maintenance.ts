@@ -1481,6 +1481,16 @@ export function registerMaintenanceRoutes(app: Express): void {
         .delete(elementHistory)
         .where(eq(elementHistory.id, id));
 
+      res.json({
+        success: true,
+        message: 'Element history deleted successfully'
+      });
+    } catch (error: any) {
+      console.error('Error deleting element history:', error);
+      res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+  });
+
   // ===========================================
   // SECURE FILE UPLOAD FOR MAINTENANCE DOCUMENTS
   // ===========================================
@@ -1782,19 +1792,6 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.error('Error deleting document:', error);
       res.status(500).json({
         error: 'Failed to delete document',
-        details: error.message
-      });
-    }
-  });
-      
-      res.json({
-        success: true,
-        message: 'History entry deleted successfully'
-      });
-    } catch (error: any) {
-      console.error('Error deleting element history:', error);
-      res.status(500).json({
-        error: 'Failed to delete element history',
         details: error.message
       });
     }
