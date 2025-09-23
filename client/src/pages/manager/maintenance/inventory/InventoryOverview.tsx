@@ -181,9 +181,9 @@ export function InventoryOverview({ className, buildingId, organizationId, build
     const mostCommonCategory = Object.entries(uniformatCounts)
       .sort(([, a], [, b]) => b - a)[0]?.[0] || '';
 
-    // Asset value calculation (sum of all replacement costs)
+    // Asset value calculation (sum of all reconstruction costs)
     const totalAssetValue = elements.reduce((sum, element) => {
-      return sum + (element.replacementCost || 0);
+      return sum + (element.reconstructionCost || 0);
     }, 0);
 
     return {
