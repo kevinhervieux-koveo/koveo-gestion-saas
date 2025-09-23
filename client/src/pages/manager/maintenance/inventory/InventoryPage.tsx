@@ -11,6 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
@@ -41,6 +47,8 @@ import {
   ChevronDown,
   ChevronRight,
   Database,
+  Search,
+  Settings2,
   Filter,
   Plus,
 } from 'lucide-react';
@@ -114,7 +122,8 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const [showDocumentManager, setShowDocumentManager] = useState(false);
   const [showUniformatBrowser, setShowUniformatBrowser] = useState(false);
 
-  // State for filtering
+  // State for filtering and search
+  const [searchTerm, setSearchTerm] = useState('');
   const [conditionFilter, setConditionFilter] = useState('');
   const [uniformatFilter, setUniformatFilter] = useState('');
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
@@ -202,7 +211,11 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
 
 
-  // Filter handlers
+  // Filter and search handlers
+  const handleSearchChange = useCallback((term: string) => {
+    console.log('🏠 [INVENTORY FILTER] Search term changed:', term);
+    setSearchTerm(term);
+  }, []);
 
   const handleConditionFilterChange = useCallback((condition: string) => {
     console.log('🏠 [INVENTORY FILTER] Condition filter changed:', condition);
@@ -331,9 +344,22 @@ function InventoryPageContent(props: InventoryPageContentProps) {
               
               <CollapsibleContent className="space-y-4">
                 {/* Controls Section */}
-                <div className="flex flex-col md:flex-row gap-4 p-4 bg-muted/25 rounded-lg border">
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2 ml-auto">
+                <div className="p-4 bg-muted/25 rounded-lg border">
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* Search Bar */}
+                    <div className="relative flex-1 min-w-[280px] max-w-md">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input
+                        placeholder="Search elements by name, UNIFORMAT code, or description..."
+                        value={searchTerm}
+                        onChange={(e) => handleSearchChange(e.target.value)}
+                        className="pl-10"
+                        data-testid="element-search-input"
+                      />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2 flex-wrap">
                     <Button
                       variant={conditionFilter || uniformatFilter ? 'default' : 'outline'}
                       size="sm"
@@ -365,6 +391,54 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                         Add Element
                       </Button>
                     )}
+
+                    {/* Columns Button */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          data-testid="column-visibility-button"
+                        >
+                          <Settings2 className="h-4 w-4 mr-2" />
+                          Columns
+                          <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" data-testid="column-visibility-menu">
+                        <DropdownMenuCheckboxItem
+                          checked={true}
+                          onCheckedChange={() => {}}
+                        >
+                          Element
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={true}
+                          onCheckedChange={() => {}}
+                        >
+                          Condition
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={true}
+                          onCheckedChange={() => {}}
+                        >
+                          Age / Lifespan
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={true}
+                          onCheckedChange={() => {}}
+                        >
+                          Last Inspection
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                          checked={true}
+                          onCheckedChange={() => {}}
+                        >
+                          Next Evaluation
+                        </DropdownMenuCheckboxItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    </div>
                   </div>
                 </div>
 
@@ -440,6 +514,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                   selectedElements={selectedElements}
                   onSelectionChange={handleSelectionChange}
                   enableBulkActions={canEdit}
+                  searchTerm={searchTerm}
                   conditionFilter={conditionFilter}
                   uniformatFilter={uniformatFilter}
                   showOverdueOnly={showOverdueOnly}

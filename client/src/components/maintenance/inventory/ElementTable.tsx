@@ -589,7 +589,7 @@ export function ElementTable({
           getRowId={(row) => row.id}
           enablePagination={true}
           enableSorting={true}
-          enableFiltering={true}
+          enableFiltering={false}
         />
       </div>
 
