@@ -125,9 +125,7 @@ export function DocumentAttachmentManager({
       }
       formData.append('documentType', documentType);
       
-      const response = await apiRequest('POST', `/api/maintenance/elements/${element?.id}/documents`, {
-        body: formData,
-      });
+      const response = await apiRequest('POST', `/api/maintenance/elements/${element?.id}/documents`, formData);
       
       return await response.json();
     },
