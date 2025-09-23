@@ -744,7 +744,7 @@ export function ElementForm({
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!element?.id) throw new Error('No element to delete');
-      const response = await apiRequest('DELETE', `/api/maintenance/buildings/${buildingId}/elements/${element.id}`);
+      const response = await apiRequest('DELETE', `/api/maintenance/elements/${element.id}`);
       return response;
     },
     onSuccess: () => {
