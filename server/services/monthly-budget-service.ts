@@ -65,8 +65,8 @@ export class MonthlyBudgetService {
   async populateBudgetsForBuilding(building: Building): Promise<number> {
     // Calculate date range
     const constructionDate = new Date();
-    if (building.yearBuilt) {
-      constructionDate.setFullYear(building.yearBuilt, 0, 1); // January 1st of construction year
+    if (building.constructionDate) {
+      constructionDate = new Date(building.constructionDate);
     } else {
       // If no construction year, start from current year
       constructionDate.setFullYear(constructionDate.getFullYear(), 0, 1);

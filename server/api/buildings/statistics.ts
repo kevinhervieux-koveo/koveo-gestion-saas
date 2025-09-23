@@ -23,7 +23,7 @@ export interface BuildingWithStatistics {
   province: string;
   postalCode: string;
   buildingType: string;
-  yearBuilt?: number;
+  constructionDate?: string;
   totalUnits: number;
   totalFloors?: number;
   parkingSpaces?: number;

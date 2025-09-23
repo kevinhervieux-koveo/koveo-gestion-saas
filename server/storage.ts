@@ -442,7 +442,7 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
       totalUnits: building.totalUnits || 0,
       totalFloors: building.totalFloors || 0,
-      yearBuilt: building.yearBuilt || 0,
+      constructionDate: building.constructionDate || null,
       buildingType: building.buildingType as 'apartment' | 'condo' | 'rental',
       bankAccountNumber: building.bankAccountNumber || '',
       bankAccountMinimums: building.bankAccountMinimums ? JSON.stringify(building.bankAccountMinimums) : '',
