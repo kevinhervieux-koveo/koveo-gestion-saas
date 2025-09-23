@@ -46,7 +46,7 @@ const elementFormSchema = z.object({
   currentLifespan: z.coerce.number().int().min(1, "Must be at least 1"),
   currentCondition: z.enum(['excellent', 'good', 'fair', 'poor', 'critical']),
   unit: z.string().max(20).optional().or(z.literal('')), // Allow empty strings
-  unitValue: z.coerce.number().positive().optional().or(z.literal('')), // Allow empty strings
+  unitValue: z.coerce.number().min(0).optional().or(z.literal('')), // Allow empty strings and 0
   notes: z.string().optional().or(z.literal('')), // Allow empty strings
   reconstructionCost: z.coerce.number().min(0.01, "Must be greater than 0"),
   costEstimationDate: z.date({ message: "Cost estimation date is required" }),
@@ -554,7 +554,7 @@ export function ElementForm({
         access: element.access || 'not_restrained',
         charge: element.charge || 'common',
         autoCalculateEvaluation: true,
-        quantity: element.quantity || element.unitValue || 1, // Use existing quantity or unit value, default to 1
+        quantity: Number(element.unitValue) || 1, // Use unitValue as quantity, default to 1
       };
       
       
