@@ -579,19 +579,17 @@ export function ElementTable({
     <div className={cn('space-y-4', className)} data-testid="element-table">
       {enableBulkActions && selectedElementsCount > 0 && bulkActions}
       
-      <div className="rounded-md border">
-        <DataTable 
-          data={elements}
-          columns={columns}
-          rowSelection={rowSelection}
-          onRowSelectionChange={handleRowSelection}
-          enableRowSelection={true}
-          getRowId={(row) => row.id}
-          enablePagination={true}
-          enableSorting={true}
-          enableFiltering={false}
-        />
-      </div>
+      <DataTable 
+        data={elements}
+        columns={columns}
+        rowSelection={rowSelection}
+        onRowSelectionChange={handleRowSelection}
+        enableRowSelection={true}
+        getRowId={(row) => row.id}
+        enablePagination={true}
+        enableSorting={true}
+        enableFiltering={false}
+      />
 
       {/* Bulk Edit Dialogs */}
       {buildingId && (
