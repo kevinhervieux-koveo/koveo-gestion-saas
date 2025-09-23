@@ -120,7 +120,7 @@ export function ElementDetailsPanel({
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  // Fetch element documents
+  // Fetch element documents - handle 404 gracefully
   const {
     data: documentsResponse,
     isLoading: documentsLoading,
@@ -128,14 +128,22 @@ export function ElementDetailsPanel({
     queryKey: ['/api/maintenance/elements', element?.id, 'documents'],
     queryFn: async () => {
       if (!element?.id) throw new Error('Element ID required');
-      const response = await apiRequest('GET', `/api/maintenance/elements/${element.id}/documents`);
-      return await response.json();
+      try {
+        const response = await apiRequest('GET', `/api/maintenance/elements/${element.id}/documents`);
+        return await response.json();
+      } catch (error: any) {
+        // Handle 404 or other errors gracefully
+        if (error.status === 404 || error.message?.includes('404')) {
+          return { documents: [] };
+        }
+        throw error;
+      }
     },
     enabled: !!element?.id && isOpen,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  // Fetch related projects
+  // Fetch related projects - handle 404 gracefully
   const {
     data: projectsResponse,
     isLoading: projectsLoading,
@@ -143,8 +151,16 @@ export function ElementDetailsPanel({
     queryKey: ['/api/maintenance/elements', element?.id, 'projects'],
     queryFn: async () => {
       if (!element?.id) throw new Error('Element ID required');
-      const response = await apiRequest('GET', `/api/maintenance/elements/${element.id}/projects`);
-      return await response.json();
+      try {
+        const response = await apiRequest('GET', `/api/maintenance/elements/${element.id}/projects`);
+        return await response.json();
+      } catch (error: any) {
+        // Handle 404 or other errors gracefully
+        if (error.status === 404 || error.message?.includes('404')) {
+          return { projects: [] };
+        }
+        throw error;
+      }
     },
     enabled: !!element?.id && isOpen,
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -292,12 +308,12 @@ export function ElementDetailsPanel({
             <TabsTrigger value="projects">Projects</TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab - Form-like View */}
+          {/* Overview Tab - Form-like View matching Edit Form */}
           <TabsContent value="overview" className="space-y-6 mt-6">
             <div className="space-y-6">
-              {/* UNIFORMAT Code Section */}
+              {/* UNIFORMAT Code Selection - Read-only Display */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">UNIFORMAT Code</label>
+                <label className="text-sm font-medium">UNIFORMAT Code <span className="text-red-500">*</span></label>
                 <div className="p-3 bg-muted rounded-lg">
                   <div className="flex items-center gap-2 mb-1">
                     <Badge variant="outline">{element.uniformatCode}</Badge>
@@ -314,18 +330,44 @@ export function ElementDetailsPanel({
               {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Element Name</label>
-                  <Input value={element.name} disabled />
+                  <label className="text-sm font-medium">Element Name <span className="text-red-500">*</span></label>
+                  <Input 
+                    value={element.name} 
+                    disabled 
+                    placeholder="e.g., Exterior Wall - North"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Current Condition</label>
+                  <label className="text-sm font-medium">Current Condition <span className="text-red-500">*</span></label>
                   <Select value={element.currentCondition} disabled>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={element.currentCondition}>
-                        <ConditionBadge condition={element.currentCondition} size="sm" />
+                      <SelectItem value="excellent">
+                        <div className="flex items-center gap-2">
+                          <ConditionBadge condition="excellent" size="sm" />
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="good">
+                        <div className="flex items-center gap-2">
+                          <ConditionBadge condition="good" size="sm" />
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="fair">
+                        <div className="flex items-center gap-2">
+                          <ConditionBadge condition="fair" size="sm" />
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="poor">
+                        <div className="flex items-center gap-2">
+                          <ConditionBadge condition="poor" size="sm" />
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="critical">
+                        <div className="flex items-center gap-2">
+                          <ConditionBadge condition="critical" size="sm" />
+                        </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -334,69 +376,117 @@ export function ElementDetailsPanel({
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Description</label>
-                <Textarea value={element.description || ''} disabled rows={3} />
+                <div className="text-xs text-muted-foreground mb-1">Optional detailed description of the element</div>
+                <Textarea 
+                  value={element.description || ''} 
+                  disabled 
+                  rows={3}
+                  placeholder="Describe the element location, specifications, or other relevant details..."
+                />
               </div>
 
               {/* Element Assignment */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Assignment Type</label>
-                  <Input value={element.residenceId ? 'Specific Residence' : 'Building-wide'} disabled />
+                  <label className="text-sm font-medium">Residence Assignment</label>
+                  <Select value={element.residenceId ? 'specific' : 'building-wide'} disabled>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="building-wide">Building-wide element</SelectItem>
+                      <SelectItem value="specific">Specific residence</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Access</label>
-                  <Input value={element.access === 'not_restrained' ? 'Not Restrained' : 'Restrained'} disabled />
+                  <label className="text-sm font-medium">Access Type <span className="text-red-500">*</span></label>
+                  <Select value={element.access || 'not_restrained'} disabled>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="not_restrained">Not Restrained</SelectItem>
+                      <SelectItem value="restrained">Restrained</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Charge</label>
-                  <Input value={element.charge === 'common' ? 'Common' : 'Personal'} disabled />
+                  <label className="text-sm font-medium">Charge Type <span className="text-red-500">*</span></label>
+                  <Select value={element.charge || 'common'} disabled>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="common">Common</SelectItem>
+                      <SelectItem value="personnal">Personal</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               <Separator />
 
               {/* Dates Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Construction Date</label>
-                  <Input 
-                    type="date" 
-                    value={element.originalConstructionDate || ''} 
-                    disabled 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Last Inspection</label>
-                  <Input 
-                    type="date" 
-                    value={element.lastInspectionDate || ''} 
-                    disabled 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Next Evaluation</label>
-                  <Input 
-                    type="date" 
-                    value={element.nextEvaluationDate || ''} 
-                    disabled 
-                  />
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Timeline Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Construction Date</label>
+                    <Input 
+                      type="date" 
+                      value={element.originalConstructionDate || ''} 
+                      disabled 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Last Inspection</label>
+                    <Input 
+                      type="date" 
+                      value={element.lastInspectionDate || ''} 
+                      disabled 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Next Evaluation</label>
+                    <Input 
+                      type="date" 
+                      value={element.nextEvaluationDate || ''} 
+                      disabled 
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Lifespan Section */}
               <div className="space-y-4">
                 <h4 className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+                  <TrendingUp className="h-4 w-4" />
                   Lifespan Information
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Original Lifespan (years)</label>
-                    <Input value={element.originalLifespan || ''} disabled />
+                    <Input 
+                      type="number" 
+                      value={element.originalLifespan || ''} 
+                      disabled 
+                      min="1" 
+                      max="200"
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Current Lifespan (years)</label>
-                    <Input value={element.currentLifespan || ''} disabled />
+                    <Input 
+                      type="number" 
+                      value={element.currentLifespan || ''} 
+                      disabled 
+                      min="1" 
+                      max="200"
+                    />
                   </div>
                 </div>
                 
@@ -411,8 +501,8 @@ export function ElementDetailsPanel({
                         lifespanProgress > 60 ? 'bg-yellow-100 text-yellow-700' :
                         'bg-green-100 text-green-700'
                       )}>
-                        {lifespanProgress > 80 ? '⚠️ Nearing end' :
-                         lifespanProgress > 60 ? '⚡ Aging' : '✓ Good condition'}
+                        {lifespanProgress > 80 ? '⚠️ Nearing end of lifespan' :
+                         lifespanProgress > 60 ? '⚡ Aging, monitor closely' : '✓ Good remaining lifespan'}
                       </span>
                     </div>
                     <Progress value={lifespanProgress} className="h-2" />
@@ -424,11 +514,24 @@ export function ElementDetailsPanel({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Unit</label>
-                  <Input value={element.unit || ''} disabled />
+                  <div className="text-xs text-muted-foreground mb-1">Unit of measurement (e.g., m², units, linear meters)</div>
+                  <Input 
+                    value={element.unit || ''} 
+                    disabled 
+                    placeholder="e.g., m², units, m"
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Unit Value</label>
-                  <Input value={element.unitValue || ''} disabled />
+                  <div className="text-xs text-muted-foreground mb-1">Quantity for this element</div>
+                  <Input 
+                    type="number" 
+                    value={element.unitValue || ''} 
+                    disabled 
+                    min="0" 
+                    step="0.01"
+                    placeholder="0"
+                  />
                 </div>
               </div>
 
@@ -440,14 +543,20 @@ export function ElementDetailsPanel({
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Reconstruction Cost</label>
+                    <label className="text-sm font-medium">Reconstruction Cost ($)</label>
+                    <div className="text-xs text-muted-foreground mb-1">Total cost to reconstruct this element</div>
                     <Input 
-                      value={element.reconstructionCost ? `$${element.reconstructionCost}` : ''} 
+                      type="number" 
+                      value={element.reconstructionCost || ''} 
                       disabled 
+                      min="0" 
+                      step="0.01"
+                      placeholder="0.00"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Date of Estimation</label>
+                    <div className="text-xs text-muted-foreground mb-1">When was this cost estimated?</div>
                     <Input 
                       type="date" 
                       value={element.costEstimationDate || ''} 
@@ -462,11 +571,12 @@ export function ElementDetailsPanel({
               {/* Notes */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Notes</label>
+                <div className="text-xs text-muted-foreground mb-1">Additional information, maintenance notes, or observations</div>
                 <Textarea 
                   value={element.notes || ''} 
                   disabled 
                   rows={3} 
-                  placeholder="No additional notes" 
+                  placeholder="Add any additional notes about this element..."
                 />
               </div>
             </div>
