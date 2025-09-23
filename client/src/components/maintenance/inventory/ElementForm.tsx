@@ -48,7 +48,7 @@ const elementFormSchema = z.object({
   unit: z.string().max(20).optional().or(z.literal('')), // Allow empty strings
   unitValue: z.coerce.number().min(0).optional().or(z.literal('')), // Allow empty strings and 0
   notes: z.string().optional().or(z.literal('')), // Allow empty strings
-  reconstructionCost: z.coerce.number().min(0.01, "Must be greater than 0"),
+  reconstructionCost: z.coerce.number().positive("Must be greater than 0"),
   costEstimationDate: z.date({ message: "Cost estimation date is required" }),
   access: z.enum(['not_restrained', 'restrained'], { message: "Access type is required" }),
   charge: z.enum(['common', 'personnal'], { message: "Charge type is required" }),
@@ -517,6 +517,7 @@ export function ElementForm({
     // Additional logging when form is invalid
     if (!form.formState.isValid) {
       const nextEvalDate = form.getValues('nextEvaluationDate');
+      const reconstructionCost = form.getValues('reconstructionCost');
       console.log('❌ [VALIDATION STATE] Form is invalid:', {
         isValid: form.formState.isValid,
         errorCount: Object.keys(form.formState.errors).length,
@@ -528,6 +529,12 @@ export function ElementForm({
           isDate: nextEvalDate instanceof Date,
           isNull: nextEvalDate === null,
           isUndefined: nextEvalDate === undefined
+        },
+        reconstructionCost: {
+          value: reconstructionCost,
+          type: typeof reconstructionCost,
+          isNumber: typeof reconstructionCost === 'number',
+          isPositive: typeof reconstructionCost === 'number' && reconstructionCost > 0
         },
         isSubmitted: form.formState.isSubmitted,
         isDirty: form.formState.isDirty,
