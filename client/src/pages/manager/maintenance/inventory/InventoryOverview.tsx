@@ -299,30 +299,32 @@ export function InventoryOverview({ className, buildingId, organizationId, build
             <div className="flex items-center gap-2">
               {isEditingDate ? (
                 <div className="flex items-center gap-2 w-full">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-auto justify-start text-left font-normal"
-                        data-testid="construction-date-picker"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {editingDate ? format(editingDate, 'PPP') : 'Select date'}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={editingDate}
-                        onSelect={setEditingDate}
-                        disabled={(date) => 
-                          date > new Date() || date < new Date('1800-01-01')
+                  <Input
+                    type="date"
+                    value={editingDate ? format(editingDate, 'yyyy-MM-dd') : ''}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      if (inputValue === '') {
+                        setEditingDate(null);
+                      } else {
+                        // Let the native date input handle the parsing
+                        if (inputValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                          try {
+                            const dateValue = new Date(inputValue + 'T00:00:00');
+                            if (!isNaN(dateValue.getTime())) {
+                              setEditingDate(dateValue);
+                            }
+                          } catch (error) {
+                            console.warn('Date parsing error:', error);
+                          }
                         }
-                        initialFocus
-                        data-testid="construction-date-calendar"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                      }
+                    }}
+                    max={format(new Date(), 'yyyy-MM-dd')}
+                    min="1800-01-01"
+                    data-testid="construction-date-input"
+                    className="w-auto"
+                  />
                   <Button
                     size="sm"
                     onClick={handleSaveDate}
