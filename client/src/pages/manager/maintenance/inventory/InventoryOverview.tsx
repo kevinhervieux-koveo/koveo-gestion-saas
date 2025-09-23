@@ -90,7 +90,6 @@ export function InventoryOverview({ className, buildingId, organizationId, build
         name: buildingName,
         organizationId: organizationId,
         yearBuilt: constructionDate.getFullYear(),
-        constructionDate: constructionDate.toISOString(),
       });
       return await response.json();
     },
@@ -369,8 +368,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
               ) : (
                 <div className="flex items-center justify-between w-full">
                   <div className="text-2xl font-bold">
-                    {building?.constructionDate ? format(building.constructionDate, 'MMM dd, yyyy') : 
-                     building?.yearBuilt ? format(new Date(building.yearBuilt, 0, 1), 'yyyy') : '—'}
+                    {building?.yearBuilt ? building.yearBuilt : '—'}
                   </div>
                   <Button
                     size="sm"
