@@ -281,7 +281,7 @@ export function UniformatBrowser({
 
           <div className="flex items-center gap-1">
             <Badge variant="secondary" className="text-xs">
-              L{node.level}
+              Level {node.level}
             </Badge>
             
             {favoritesCodes.includes(node.code) && (
