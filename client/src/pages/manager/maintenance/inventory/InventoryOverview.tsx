@@ -42,8 +42,7 @@ interface InventoryOverviewProps {
   building?: {
     id: string;
     name: string;
-    yearBuilt?: number;
-    constructionDate?: Date;
+    constructionDate?: Date | string;
     [key: string]: any;
   };
 }
@@ -59,7 +58,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   // Construction date editing state
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [editingDate, setEditingDate] = useState<Date | undefined>(
-    building?.constructionDate || (building?.yearBuilt ? new Date(building.yearBuilt, 0, 1) : undefined)
+    building?.constructionDate ? new Date(building.constructionDate) : undefined
   );
   
   const { toast } = useToast();
@@ -89,7 +88,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       const response = await apiRequest('PUT', `/api/admin/buildings/${buildingId}`, {
         name: buildingName,
         organizationId: organizationId,
-        yearBuilt: constructionDate.getFullYear(),
+        constructionDate: constructionDate.toISOString().split('T')[0], // YYYY-MM-DD format
       });
       return await response.json();
     },
@@ -137,7 +136,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   };
 
   const handleCancelEdit = () => {
-    setEditingDate(building?.constructionDate || (building?.yearBuilt ? new Date(building.yearBuilt, 0, 1) : undefined));
+    setEditingDate(building?.constructionDate ? new Date(building.constructionDate) : undefined);
     setIsEditingDate(false);
   };
   
@@ -368,7 +367,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
               ) : (
                 <div className="flex items-center justify-between w-full">
                   <div className="text-2xl font-bold">
-                    {building?.yearBuilt ? building.yearBuilt : '—'}
+                    {building?.constructionDate ? format(new Date(building.constructionDate), 'MMM dd, yyyy') : '—'}
                   </div>
                   <Button
                     size="sm"

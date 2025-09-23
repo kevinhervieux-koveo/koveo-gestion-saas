@@ -54,7 +54,7 @@ export const buildings = pgTable('buildings', {
   province: varchar('province', { length: 3 }).notNull().default('QC'),
   postalCode: varchar('postal_code', { length: 10 }).notNull(),
   buildingType: buildingTypeEnum('building_type').notNull(),
-  yearBuilt: integer('year_built'),
+  constructionDate: date('construction_date'),
   totalUnits: integer('total_units').notNull(),
   totalFloors: integer('total_floors'),
   parkingSpaces: integer('parking_spaces'),
