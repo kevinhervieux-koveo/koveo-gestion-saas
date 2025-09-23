@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -24,7 +23,6 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { insertBuildingElementSchema, BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import {
-  CalendarIcon,
   Search,
   Building,
   Info,
@@ -976,40 +974,14 @@ export function ElementForm({
               name="originalConstructionDate"
               label="Original Construction Date"
             >
-              {(field) => {
-                const dateValue = field.value ? new Date(field.value) : undefined;
-                return (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                        data-testid="construction-date-button"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {field.value ? format(new Date(field.value), "PPP") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="calendar-popover-content">
-                      <Calendar
-                        mode="single"
-                        selected={dateValue}
-                        onSelect={(date) => {
-                          field.onChange(date ? format(date, 'yyyy-MM-dd') : undefined);
-                        }}
-                        showActions={true}
-                        onClear={() => field.onChange(undefined)}
-                        onToday={() => field.onChange(format(new Date(), 'yyyy-MM-dd'))}
-                        initialFocus
-                        disabled={(date) => date > new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                );
-              }}
+              {(field) => (
+                <Input
+                  {...field}
+                  type="date"
+                  max={format(new Date(), 'yyyy-MM-dd')}
+                  data-testid="construction-date-input"
+                />
+              )}
             </FormFieldWrapper>
 
             <div className="grid grid-cols-2 gap-2">
@@ -1107,66 +1079,38 @@ export function ElementForm({
           name="nextEvaluationDate"
           label="Next Evaluation Date"
         >
-          {(field) => {
-            const dateValue = field.value ? new Date(field.value) : undefined;
-            return (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Next Evaluation Date</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={autoCalculateEvaluation}
-                      onChange={(e) => form.setValue('autoCalculateEvaluation', e.target.checked)}
-                      className="rounded"
-                      data-testid="auto-calculate-checkbox"
-                    />
-                    <span className="text-xs text-muted-foreground">Auto-calculate</span>
-                  </div>
+          {(field) => (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Next Evaluation Date</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={autoCalculateEvaluation}
+                    onChange={(e) => form.setValue('autoCalculateEvaluation', e.target.checked)}
+                    className="rounded"
+                    data-testid="auto-calculate-checkbox"
+                  />
+                  <span className="text-xs text-muted-foreground">Auto-calculate</span>
                 </div>
-                
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                      disabled={autoCalculateEvaluation}
-                      data-testid="evaluation-date-button"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {field.value ? format(new Date(field.value), "PPP") : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="calendar-popover-content">
-                    <Calendar
-                      mode="single"
-                      selected={dateValue}
-                      onSelect={(date) => {
-                        if (!autoCalculateEvaluation) {
-                          field.onChange(date ? format(date, 'yyyy-MM-dd') : undefined);
-                        }
-                      }}
-                      showActions={!autoCalculateEvaluation}
-                      onClear={() => !autoCalculateEvaluation && field.onChange(undefined)}
-                      onToday={() => !autoCalculateEvaluation && field.onChange(format(new Date(), 'yyyy-MM-dd'))}
-                      initialFocus
-                      disabled={autoCalculateEvaluation || ((date) => date < new Date())}
-                    />
-                  </PopoverContent>
-                </Popover>
-                
-                {autoCalculateEvaluation && field.value && (
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    Automatically calculated based on condition and remaining years
-                  </div>
-                )}
               </div>
-            );
-          }}
+              
+              <Input
+                {...field}
+                type="date"
+                min={format(new Date(), 'yyyy-MM-dd')}
+                disabled={autoCalculateEvaluation}
+                data-testid="evaluation-date-input"
+              />
+              
+              {autoCalculateEvaluation && field.value && (
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Info className="h-3 w-3" />
+                  Automatically calculated based on condition and remaining years
+                </div>
+              )}
+            </div>
+          )}
         </FormFieldWrapper>
 
         {/* Reconstruction Cost Section */}
@@ -1203,40 +1147,14 @@ export function ElementForm({
               name="costEstimationDate"
               label="Date of Estimation"
             >
-              {(field) => {
-                const dateValue = field.value ? new Date(field.value) : undefined;
-                return (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                        data-testid="cost-estimation-date-button"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {field.value ? format(new Date(field.value), "PPP") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="calendar-popover-content">
-                      <Calendar
-                        mode="single"
-                        selected={dateValue}
-                        onSelect={(date) => {
-                          field.onChange(date ? format(date, 'yyyy-MM-dd') : undefined);
-                        }}
-                        showActions={true}
-                        onClear={() => field.onChange(undefined)}
-                        onToday={() => field.onChange(format(new Date(), 'yyyy-MM-dd'))}
-                        initialFocus
-                        disabled={(date) => date > new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                );
-              }}
+              {(field) => (
+                <Input
+                  {...field}
+                  type="date"
+                  max={format(new Date(), 'yyyy-MM-dd')}
+                  data-testid="cost-estimation-date-input"
+                />
+              )}
             </FormFieldWrapper>
           </div>
         </div>
