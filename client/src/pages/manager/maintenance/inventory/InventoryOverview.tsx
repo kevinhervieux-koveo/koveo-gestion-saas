@@ -505,40 +505,6 @@ export function InventoryOverview({ className, buildingId, organizationId, build
         </CardContent>
       </Card>
 
-      {/* Upcoming Evaluations */}
-      <Card data-testid="upcoming-evaluations-card">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Due Soon</CardTitle>
-          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-yellow-600" data-testid="due-soon-count">
-            {metrics.dueSoonElements}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Next 30 days
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Completion Rate */}
-      <Card data-testid="completion-rate-card">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Up to Date</CardTitle>
-          <CheckCircle className="h-4 w-4 text-green-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600" data-testid="up-to-date-percentage">
-            {metrics.totalElements > 0 
-              ? Math.round(((metrics.totalElements - metrics.overdueElements) / metrics.totalElements) * 100)
-              : 0
-            }%
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Evaluations current
-          </p>
-        </CardContent>
-      </Card>
         </div>
       </CollapsibleContent>
     </Collapsible>
