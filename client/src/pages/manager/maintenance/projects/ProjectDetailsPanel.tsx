@@ -83,10 +83,10 @@ export function ProjectDetailsPanel({
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['/api/maintenance/projects', project?.id, 'details'],
+    queryKey: ['/api/maintenance/projects', project?.id],
     queryFn: async () => {
       if (!project?.id) throw new Error('Project ID is required');
-      const response = await apiRequest('GET', `/api/maintenance/projects/${project.id}/details`);
+      const response = await apiRequest('GET', `/api/maintenance/projects/${project.id}`);
       return await response.json();
     },
     enabled: !!project?.id && isOpen,

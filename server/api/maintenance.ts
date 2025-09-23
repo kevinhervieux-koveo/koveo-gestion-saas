@@ -2311,6 +2311,10 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const { id } = req.params;
       
+      // Parse project defaults from request body
+      const projectDefaults = req.body || {};
+      const { defaultBudget, defaultDuration, defaultPriority } = projectDefaults;
+      
       // Get suggestion details
       const suggestionResult = await db
         .select()
@@ -2337,8 +2341,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         title: suggestion.title,
         description: suggestion.description,
         projectType: suggestion.suggestionType as any, // Type assertion needed
-        priority: suggestion.priority,
-        estimatedCost: suggestion.estimatedCost,
+        priority: defaultPriority || suggestion.priority,
+        estimatedCost: defaultBudget ? parseFloat(defaultBudget) : suggestion.estimatedCost,
         evaluationSuggestionId: suggestion.id,
       };
       

@@ -135,17 +135,17 @@ export function ProjectDashboardView({
   const canEditMaintenance = hasPermission ? hasPermission('canEditMaintenance') : true;
   const canViewReports = hasPermission ? hasPermission('canViewReports') : true;
 
-  // Fetch dashboard analytics data
+  // Fetch dashboard metrics data
   const {
     data: analyticsResponse,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ['/api/maintenance/buildings', buildingId, 'projects', 'analytics'],
+    queryKey: ['/api/maintenance/buildings', buildingId, 'projects', 'metrics'],
     queryFn: async () => {
       if (!buildingId) throw new Error('Building ID is required');
-      const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/projects/analytics`);
+      const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/projects/metrics`);
       return await response.json();
     },
     enabled: !!buildingId,

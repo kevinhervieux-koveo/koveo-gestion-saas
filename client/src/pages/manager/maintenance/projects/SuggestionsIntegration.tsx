@@ -89,23 +89,25 @@ export function SuggestionsIntegration({
     defaultPriority: 'medium' as const,
   });
 
-  // Fetch pending suggestions for current building
+  // Fetch suggestions for current building
   const {
     data: suggestionsResponse,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['/api/maintenance/buildings', buildingId, 'suggestions', 'pending'],
+    queryKey: ['/api/maintenance/buildings', buildingId, 'suggestions'],
     queryFn: async () => {
       if (!buildingId) throw new Error('Building ID is required');
-      const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/suggestions?status=pending`);
+      const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/suggestions`);
       return await response.json();
     },
     enabled: !!buildingId && isOpen,
     staleTime: 2 * 60 * 1000,
   });
 
-  const suggestions: SuggestionWithProject[] = suggestionsResponse?.suggestions || [];
+  // Filter to only pending suggestions client-side
+  const allSuggestions: SuggestionWithProject[] = suggestionsResponse?.suggestions || [];
+  const suggestions = allSuggestions.filter(suggestion => suggestion.status === 'pending');
 
   // Filter suggestions based on search and filters
   const filteredSuggestions = useMemo(() => {
@@ -134,14 +136,30 @@ export function SuggestionsIntegration({
     });
   }, [suggestions, searchTerm, priorityFilter, typeFilter]);
 
-  // Create projects from suggestions mutation
+  // Convert suggestions to projects mutation (using individual conversion endpoint)
   const createProjectsMutation = useMutation({
     mutationFn: async (selectedSuggestionIds: string[]) => {
-      const response = await apiRequest('POST', `/api/maintenance/buildings/${buildingId}/projects/from-suggestions`, {
-        suggestionIds: selectedSuggestionIds,
-        defaults: projectDefaults,
-      });
-      return response.json();
+      const createdProjects = [];
+      
+      // Convert each suggestion individually
+      for (const suggestionId of selectedSuggestionIds) {
+        try {
+          const response = await apiRequest('POST', `/api/maintenance/suggestions/${suggestionId}/convert-to-project`, {
+            defaultBudget: projectDefaults.defaultBudget,
+            defaultDuration: projectDefaults.defaultDuration,
+            defaultPriority: projectDefaults.defaultPriority,
+          });
+          const result = await response.json();
+          if (result.success && result.data) {
+            createdProjects.push(result.data);
+          }
+        } catch (error) {
+          console.error(`Failed to convert suggestion ${suggestionId}:`, error);
+          // Continue with other suggestions even if one fails
+        }
+      }
+      
+      return { projects: createdProjects };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
@@ -493,5 +511,3 @@ export function SuggestionsIntegration({
     </Dialog>
   );
 }
-
-export type { SuggestionsIntegrationProps };
