@@ -70,10 +70,18 @@ export function ElementTable({
   const { toast } = useToast();
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
 
-  // Simple placeholder - no API calls for now
-  const isLoading = false;
-  const error = null;
-  const elements: BuildingElement[] = [];
+  // Fetch building elements
+  const { data: elementsData, isLoading, error } = useQuery({
+    queryKey: ['/api/maintenance/buildings', buildingId, 'elements'],
+    queryFn: async () => {
+      if (!buildingId) return { data: [] };
+      const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/elements`);
+      return await response.json();
+    },
+    enabled: !!buildingId,
+  });
+
+  const elements: BuildingElement[] = elementsData?.data || [];
 
   // Bulk operations mutation
   const bulkUpdateMutation = useMutation({
