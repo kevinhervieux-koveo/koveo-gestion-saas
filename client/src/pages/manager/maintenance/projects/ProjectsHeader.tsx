@@ -11,13 +11,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/components/ui/toggle-group';
@@ -27,8 +20,6 @@ import {
   Plus,
   Search,
   Filter,
-  Download,
-  Upload,
   ChevronRight,
   ChevronLeft,
   Home,
@@ -38,7 +29,6 @@ import {
   AlertTriangle,
   Clock,
   CheckCircle,
-  MoreHorizontal,
   Table,
   Calendar,
   BarChart3,
@@ -58,8 +48,6 @@ export interface ProjectsHeaderProps {
   onViewModeChange?: (mode: ViewMode) => void;
   onAddProject?: () => void;
   onCreateFromSuggestions?: () => void;
-  onImportProjects?: () => void;
-  onExportReport?: () => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
   statusFilter?: string;
@@ -87,8 +75,6 @@ export function ProjectsHeader({
   onViewModeChange,
   onAddProject,
   onCreateFromSuggestions,
-  onImportProjects,
-  onExportReport,
   searchTerm = '',
   onSearchChange,
   statusFilter = '',
@@ -211,31 +197,6 @@ export function ProjectsHeader({
               </Button>
             )}
 
-            {/* Actions Dropdown - Icon Only */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="actions-dropdown">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {canViewReports && (
-                  <DropdownMenuItem onClick={onExportReport} data-testid="export-report-action">
-                    <Download className="h-4 w-4 mr-2" />
-                    Export Report
-                  </DropdownMenuItem>
-                )}
-                {canEdit && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={onImportProjects} data-testid="import-projects-action">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Import Projects
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
       </div>

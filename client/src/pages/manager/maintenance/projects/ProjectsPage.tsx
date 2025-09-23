@@ -212,22 +212,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     console.log('📁 [PROJECTS STATE] Status stepper modal opened');
   }, []);
 
-  // Import/Export handlers
-  const handleImportProjects = useCallback(() => {
-    // TODO: Implement project import
-    toast({
-      title: 'Feature Coming Soon',
-      description: 'Project import functionality will be available in a future update.',
-    });
-  }, [toast]);
-
-  const handleExportReport = useCallback(() => {
-    // TODO: Implement report export
-    toast({
-      title: 'Feature Coming Soon',
-      description: 'Report export functionality will be available in a future update.',
-    });
-  }, [toast]);
 
   // View mode handlers
   const handleViewModeChange = useCallback((mode: ViewMode) => {
@@ -380,8 +364,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         onViewModeChange={handleViewModeChange}
         onAddProject={canCreate ? handleAddProject : undefined}
         onCreateFromSuggestions={canCreate ? handleCreateFromSuggestions : undefined}
-        onImportProjects={canEdit ? handleImportProjects : undefined}
-        onExportReport={canViewReports ? handleExportReport : undefined}
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         statusFilter={statusFilter}
