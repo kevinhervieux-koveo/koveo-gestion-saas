@@ -436,19 +436,38 @@ export function ElementTable({
         return;
       }
       
-      try {
-        for (const elementId of selectedElementIds) {
+      const results = [];
+      let successCount = 0;
+      let failCount = 0;
+      
+      for (const elementId of selectedElementIds) {
+        try {
           await deleteElementMutation.mutateAsync(elementId);
+          successCount++;
+        } catch (error: any) {
+          failCount++;
+          console.error(`Failed to delete element ${elementId}:`, error);
+          results.push({ elementId, error: error.message || 'Unknown error' });
         }
-        setRowSelection({});
+      }
+      
+      setRowSelection({});
+      
+      if (failCount === 0) {
         toast({
           title: 'Elements deleted',
-          description: `Successfully deleted ${selectedElementsCount} element(s)`,
+          description: `Successfully deleted ${successCount} element(s)`,
         });
-      } catch (error) {
+      } else if (successCount > 0) {
+        toast({
+          title: 'Partially completed',
+          description: `Deleted ${successCount} elements, failed to delete ${failCount} elements`,
+          variant: 'destructive',
+        });
+      } else {
         toast({
           title: 'Delete failed',
-          description: 'Failed to delete some elements',
+          description: `Failed to delete all ${failCount} elements. Please try again.`,
           variant: 'destructive',
         });
       }
