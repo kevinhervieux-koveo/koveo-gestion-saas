@@ -143,25 +143,8 @@ export function ProjectsHeader({
         </div>
       )}
 
-      {/* Page Header */}
+      {/* View Mode Controls and Primary Actions */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-foreground" data-testid="page-title">
-              Projects - Maintenance Management
-            </h1>
-            {building && (
-              <Badge variant="outline" className="text-xs">
-                <Building className="h-3 w-3 mr-1" />
-                {building.name}
-              </Badge>
-            )}
-          </div>
-          <p className="text-muted-foreground">
-            Manage maintenance projects, track progress, and coordinate work schedules
-          </p>
-        </div>
-
         {/* Compact View Mode Controls and Primary Actions */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3">
           {/* View Mode Toggle - Compact */}

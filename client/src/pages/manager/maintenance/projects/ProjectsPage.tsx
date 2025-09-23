@@ -343,7 +343,13 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
-      {/* Page Header */}
+      {/* Page Title and Navigation */}
+      <Header 
+        title="Projects - Maintenance Management"
+        subtitle="Manage maintenance projects, track progress, and coordinate work schedules"
+      />
+      
+      {/* Project Controls and Filters */}
       <ProjectsHeader
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
