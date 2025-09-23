@@ -78,7 +78,16 @@ export function DocumentAttachmentManager({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const documents: DocumentFile[] = documentsResponse?.data || [];
+  // Transform API response to DocumentFile format
+  const documents: DocumentFile[] = documentsResponse?.data?.map((doc: any) => ({
+    id: doc.id,
+    name: doc.fileName || 'Unknown',
+    type: doc.mimeType || 'application/octet-stream',
+    size: doc.fileSize || 0,
+    url: `/api/maintenance/documents/${doc.id}`,
+    category: doc.documentType || 'document',
+    uploadedAt: doc.uploadedAt || new Date().toISOString(),
+  })) || [];
 
   // Delete document mutation
   const deleteMutation = useMutation({
