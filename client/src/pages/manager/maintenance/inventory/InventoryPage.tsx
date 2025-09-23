@@ -97,6 +97,17 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   
   const { toast } = useToast();
 
+  // Fetch building data for inventory overview
+  const { data: buildingData } = useQuery({
+    queryKey: ['/api/buildings', buildingId],
+    queryFn: async () => {
+      if (!buildingId) return null;
+      const response = await apiRequest('GET', `/api/buildings/${buildingId}`);
+      return await response.json();
+    },
+    enabled: !!buildingId,
+  });
+
   // State for modals and panels
   const [selectedElement, setSelectedElement] = useState<BuildingElement | null>(null);
   const [showElementForm, setShowElementForm] = useState(false);
@@ -273,7 +284,11 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         <div className="h-full overflow-auto">
           <div className="p-6 space-y-6">
             {/* Overview Cards */}
-            <InventoryOverview />
+            <InventoryOverview 
+              buildingId={buildingId}
+              organizationId={organizationId}
+              building={buildingData?.data}
+            />
 
             {/* Main Inventory Table */}
             <Collapsible 
