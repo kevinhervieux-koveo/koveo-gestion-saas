@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-// import { useBuildingContext } from '@/hooks/use-building-context';
-import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { differenceInDays, parseISO, isAfter } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -27,22 +28,83 @@ import {
   BarChart3,
   ChevronDown,
   ChevronRight,
+  Edit2,
+  Save,
+  X,
 } from 'lucide-react';
 
 interface InventoryOverviewProps {
   className?: string;
+  buildingId?: string;
+  organizationId?: string;
+  building?: {
+    id: string;
+    name: string;
+    yearBuilt?: number;
+    [key: string]: any;
+  };
 }
 
 /**
  * InventoryOverview component displaying key metrics and summary cards
  * Shows element counts, condition breakdown, alerts, and cost information
  */
-export function InventoryOverview({ className }: InventoryOverviewProps) {
+export function InventoryOverview({ className, buildingId, organizationId, building }: InventoryOverviewProps) {
   // Collapsible state - collapsed by default
   const [isExpanded, setIsExpanded] = useState(false);
   
+  // Construction year editing state
+  const [isEditingYear, setIsEditingYear] = useState(false);
+  const [editingYear, setEditingYear] = useState(building?.yearBuilt?.toString() || '');
+  
+  const { toast } = useToast();
+  
+  // Mutation to update building construction year
+  const updateBuildingMutation = useMutation({
+    mutationFn: async (yearBuilt: number) => {
+      if (!buildingId) throw new Error('Building ID is required');
+      const response = await apiRequest('PUT', `/api/admin/buildings/${buildingId}`, {
+        yearBuilt,
+      });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/buildings'] });
+      toast({
+        title: 'Building updated',
+        description: 'Construction year has been updated successfully',
+      });
+      setIsEditingYear(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Update failed',
+        description: error.message || 'Failed to update building construction year',
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Handle construction year editing
+  const handleSaveYear = () => {
+    const year = parseInt(editingYear, 10);
+    if (isNaN(year) || year < 1800 || year > new Date().getFullYear()) {
+      toast({
+        title: 'Invalid year',
+        description: 'Please enter a valid construction year',
+        variant: 'destructive',
+      });
+      return;
+    }
+    updateBuildingMutation.mutate(year);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingYear(building?.yearBuilt?.toString() || '');
+    setIsEditingYear(false);
+  };
+  
   // Simplified placeholder - no API calls for now
-  const buildingId = null;
   const elementsLoading = false;
   const summaryLoading = false;
   const elements: BuildingElement[] = [];
@@ -181,6 +243,9 @@ export function InventoryOverview({ className }: InventoryOverviewProps) {
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5 text-muted-foreground" />
           <h3 className="text-lg font-semibold">Inventory Overview</h3>
+          {building?.name && (
+            <span className="text-sm text-muted-foreground">- {building.name}</span>
+          )}
         </div>
         <CollapsibleTrigger asChild>
           <Button variant="ghost" size="sm" data-testid="inventory-overview-toggle">
@@ -195,6 +260,66 @@ export function InventoryOverview({ className }: InventoryOverviewProps) {
       </div>
       
       <CollapsibleContent className="space-y-4">
+        {/* Building Construction Year Field */}
+        <Card data-testid="building-construction-year-card">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Building Construction Year</CardTitle>
+            <Building className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              {isEditingYear ? (
+                <div className="flex items-center gap-2 w-full">
+                  <Input
+                    value={editingYear}
+                    onChange={(e) => setEditingYear(e.target.value)}
+                    placeholder="e.g., 2008"
+                    type="number"
+                    min="1800"
+                    max={new Date().getFullYear()}
+                    className="w-24"
+                    data-testid="construction-year-input"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={handleSaveYear}
+                    disabled={updateBuildingMutation.isPending}
+                    data-testid="save-construction-year"
+                  >
+                    <Save className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                    disabled={updateBuildingMutation.isPending}
+                    data-testid="cancel-edit-construction-year"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between w-full">
+                  <div className="text-2xl font-bold">
+                    {building?.yearBuilt || '—'}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditingYear(true)}
+                    data-testid="edit-construction-year"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Default for new elements
+            </p>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Elements */}
       <Card data-testid="total-elements-card">
