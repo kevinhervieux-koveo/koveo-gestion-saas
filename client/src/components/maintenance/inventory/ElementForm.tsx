@@ -45,8 +45,8 @@ const elementFormSchema = z.object({
   originalLifespan: z.coerce.number().int().min(1, "Must be at least 1"),
   currentLifespan: z.coerce.number().int().min(1, "Must be at least 1"),
   currentCondition: z.enum(['excellent', 'good', 'fair', 'poor', 'critical']),
-  unit: z.string().max(20).optional().or(z.literal('')), // Allow empty strings
-  unitValue: z.coerce.number().min(0).optional().or(z.literal('')), // Allow empty strings and 0
+  unit: z.string().max(20).default('unit'), // Default to 'unit'
+  unitValue: z.coerce.number().min(0).default(1), // Default to 1
   notes: z.string().optional().or(z.literal('')), // Allow empty strings
   reconstructionCost: z.coerce.number().positive("Must be greater than 0"),
   costEstimationDate: z.date({ message: "Cost estimation date is required" }),
@@ -449,8 +449,7 @@ export function ElementForm({
   });
 
   const form = useForm<ElementFormData>({
-    // Temporarily disable zodResolver to test if form works
-    // resolver: zodResolver(elementFormSchema) as any,
+    resolver: zodResolver(elementFormSchema) as any,
     mode: 'onChange', // Validate on every change
     reValidateMode: 'onChange', // Re-validate on every change
     defaultValues: {
@@ -465,8 +464,8 @@ export function ElementForm({
       originalLifespan: 20, // Default 20 year lifespan
       currentLifespan: 15, // Default 15 years remaining
       currentCondition: 'good',
-      unit: '',
-      unitValue: '',
+      unit: 'unit',
+      unitValue: 1,
       notes: '',
       reconstructionCost: 1, // Set to valid minimum value above 0.01
       costEstimationDate: new Date(),
@@ -569,7 +568,8 @@ export function ElementForm({
         notes: element.notes || '',
         originalLifespan: element.originalLifespan || 20, // Required field - use default if missing
         currentLifespan: element.currentLifespan || 15, // Required field - use default if missing  
-        unitValue: element.unitValue ? Number(element.unitValue) : undefined,
+        unit: element.unit || 'unit',
+        unitValue: element.unitValue ? Number(element.unitValue) : 1,
         reconstructionCost: element.reconstructionCost ? Number(element.reconstructionCost) : 1, // Required field - use valid minimum
         // Convert date strings to Date objects for form validation
         originalConstructionDate: parseDate(element.originalConstructionDate),
@@ -612,8 +612,8 @@ export function ElementForm({
         originalLifespan: 20, // Default 20 year lifespan
         currentLifespan: 15, // Default 15 years remaining
         currentCondition: 'good',
-        unit: '',
-        unitValue: '',
+        unit: 'unit',
+        unitValue: 1,
         notes: '',
         reconstructionCost: 1, // Set to valid minimum value above 0.01
         costEstimationDate: new Date(), // Use Date object for validation
