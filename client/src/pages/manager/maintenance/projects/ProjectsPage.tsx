@@ -59,15 +59,17 @@ export interface ProjectsPageProps {
  * Main projects page content component
  * Handles state management and component integration
  */
-function ProjectsPageContent({ 
-  className, 
-  organizationId, 
-  buildingId, 
-  residenceId,
-  showBackButton,
-  backButtonLabel,
-  onBack
-}: ProjectsPageProps) {
+function ProjectsPageContent(props: ProjectsPageProps) {
+  const { 
+    className, 
+    organizationId, 
+    buildingId, 
+    residenceId,
+    showBackButton,
+    backButtonLabel,
+    onBack,
+    buildingName
+  } = props;
   
   console.log('📁 [PROJECTS PAGE] Initializing with:', { 
     organizationId, 
@@ -326,6 +328,9 @@ function ProjectsPageContent({
         onShowOverdueChange={handleShowOverdueChange}
         buildingId={buildingId}
         organizationId={organizationId}
+        buildingName={buildingName}
+        showBackButton={showBackButton}
+        onBack={onBack}
       />
 
       {/* Main Content Area */}

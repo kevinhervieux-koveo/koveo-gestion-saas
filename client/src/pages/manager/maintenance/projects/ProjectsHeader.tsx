@@ -30,6 +30,7 @@ import {
   Download,
   Upload,
   ChevronRight,
+  ChevronLeft,
   Home,
   Building,
   Wrench,
@@ -71,6 +72,9 @@ export interface ProjectsHeaderProps {
   onShowOverdueChange?: (overdue: boolean) => void;
   buildingId?: string;
   organizationId?: string;
+  buildingName?: string;
+  showBackButton?: boolean;
+  onBack?: () => void;
 }
 
 /**
@@ -97,6 +101,9 @@ export function ProjectsHeader({
   onShowOverdueChange,
   buildingId,
   organizationId,
+  buildingName,
+  showBackButton,
+  onBack,
 }: ProjectsHeaderProps) {
   // Simplified placeholder - no context for now
   const building = null;
@@ -119,6 +126,23 @@ export function ProjectsHeader({
 
   return (
     <div className={cn('space-y-4 p-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60', className)}>
+      {/* Building Navigation Bar */}
+      {showBackButton && (
+        <div className="flex items-center gap-3 pb-2 border-b">
+          <Button variant="ghost" size="sm" onClick={onBack} data-testid="back-to-building">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Building
+          </Button>
+          {buildingName && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span>/</span>
+              <Building className="h-4 w-4" />
+              <span className="font-medium">{buildingName}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="space-y-1">
