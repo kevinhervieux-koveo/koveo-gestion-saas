@@ -20,7 +20,6 @@ import {
   Clock,
   DollarSign,
   TrendingUp,
-  Calendar,
   Activity,
   CheckCircle,
   Building,
@@ -502,12 +501,6 @@ export function InventoryOverview({ className, buildingId, organizationId, build
                 )}
               </div>
             </div>
-            <div className="space-y-1" data-testid="maintenance-cost-stat">
-              <div className="text-sm text-muted-foreground">Maintenance YTD</div>
-              <div className="text-lg font-semibold">
-                $—K
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -516,7 +509,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       <Card data-testid="upcoming-evaluations-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Due Soon</CardTitle>
-          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <CalendarIcon className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-yellow-600" data-testid="due-soon-count">
