@@ -40,6 +40,31 @@ interface SuggestionData {
   priority: 'low' | 'medium' | 'high' | 'critical';
   suggestedDate: Date;
   reason: string;
+  title: string;
+  description: string;
+}
+
+// Explicit condition/age/risk matrices for project type determination
+interface ProjectTypeMatrix {
+  condition: string;
+  ageRatioMin: number;
+  ageRatioMax: number;
+  riskScoreMin: number;
+  riskScoreMax: number;
+  projectType: 'inspection' | 'minor_rehab' | 'major_rehab' | 'replacement';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  daysOffset: number;
+  title: string;
+  description: string;
+}
+
+// Staged escalation rules for generating multiple interventions
+interface EscalationStage {
+  stageOrder: number;
+  triggerAgeRatio: number;
+  projectType: 'inspection' | 'minor_rehab' | 'major_rehab' | 'replacement';
+  daysFromNow: number;
+  prerequisiteTypes?: string[];
 }
 
 interface GenerationResult {
@@ -59,8 +84,198 @@ interface GenerationResult {
 
 /**
  * Main Maintenance Suggestion Service Class
+ * Redesigned to create diverse project types with explicit matrices and staged escalation
  */
 export class MaintenanceSuggestionService {
+  
+  // Explicit condition/age/risk → project type matrices
+  private readonly PROJECT_TYPE_MATRICES: ProjectTypeMatrix[] = [
+    // CRITICAL CONDITION - Immediate replacement needed
+    {
+      condition: 'critical',
+      ageRatioMin: 0,
+      ageRatioMax: 2,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'replacement',
+      priority: 'critical',
+      daysOffset: 15,
+      title: 'Emergency Replacement Required',
+      description: 'Element is in critical condition and poses safety/operational risks. Immediate replacement needed.'
+    },
+    
+    // POOR CONDITION matrices
+    {
+      condition: 'poor',
+      ageRatioMin: 0.9,
+      ageRatioMax: 2,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'replacement',
+      priority: 'high',
+      daysOffset: 60,
+      title: 'End-of-Life Replacement',
+      description: 'Element has reached end of useful life and requires full replacement to maintain functionality.'
+    },
+    {
+      condition: 'poor',
+      ageRatioMin: 0.7,
+      ageRatioMax: 0.9,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'major_rehab',
+      priority: 'high',
+      daysOffset: 90,
+      title: 'Major Rehabilitation Required',
+      description: 'Significant deterioration requires comprehensive restoration to extend service life.'
+    },
+    {
+      condition: 'poor',
+      ageRatioMin: 0,
+      ageRatioMax: 0.7,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'major_rehab',
+      priority: 'medium',
+      daysOffset: 120,
+      title: 'Extensive Restoration Needed',
+      description: 'Poor condition despite relatively low age indicates need for major rehabilitation.'
+    },
+    
+    // FAIR CONDITION matrices
+    {
+      condition: 'fair',
+      ageRatioMin: 0.8,
+      ageRatioMax: 2,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'major_rehab',
+      priority: 'medium',
+      daysOffset: 180,
+      title: 'Preventive Major Rehabilitation',
+      description: 'Advanced age with fair condition suggests need for comprehensive restoration before further decline.'
+    },
+    {
+      condition: 'fair',
+      ageRatioMin: 0.6,
+      ageRatioMax: 0.8,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'minor_rehab',
+      priority: 'medium',
+      daysOffset: 120,
+      title: 'Targeted Repair and Renewal',
+      description: 'Selective repairs and improvements needed to prevent further deterioration.'
+    },
+    {
+      condition: 'fair',
+      ageRatioMin: 0,
+      ageRatioMax: 0.6,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'minor_rehab',
+      priority: 'low',
+      daysOffset: 180,
+      title: 'Early Intervention Repairs',
+      description: 'Address specific issues to maintain functionality and prevent premature aging.'
+    },
+    
+    // GOOD CONDITION matrices
+    {
+      condition: 'good',
+      ageRatioMin: 0.8,
+      ageRatioMax: 2,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'minor_rehab',
+      priority: 'low',
+      daysOffset: 365,
+      title: 'Preventive Maintenance Upgrade',
+      description: 'Proactive improvements to extend service life as element approaches maturity.'
+    },
+    {
+      condition: 'good',
+      ageRatioMin: 0.5,
+      ageRatioMax: 0.8,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'inspection',
+      priority: 'medium',
+      daysOffset: 180,
+      title: 'Mid-Life Assessment',
+      description: 'Comprehensive inspection to assess condition and plan future maintenance needs.'
+    },
+    {
+      condition: 'good',
+      ageRatioMin: 0,
+      ageRatioMax: 0.5,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'inspection',
+      priority: 'low',
+      daysOffset: 365,
+      title: 'Routine Condition Assessment',
+      description: 'Standard inspection to document current condition and verify performance.'
+    },
+    
+    // EXCELLENT CONDITION matrices
+    {
+      condition: 'excellent',
+      ageRatioMin: 0.7,
+      ageRatioMax: 2,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'inspection',
+      priority: 'low',
+      daysOffset: 365,
+      title: 'Aging Element Monitoring',
+      description: 'Monitor excellent condition element as it approaches design life for early intervention planning.'
+    },
+    {
+      condition: 'excellent',
+      ageRatioMin: 0,
+      ageRatioMax: 0.7,
+      riskScoreMin: 0,
+      riskScoreMax: 1,
+      projectType: 'inspection',
+      priority: 'low',
+      daysOffset: 730,
+      title: 'Performance Verification',
+      description: 'Verify continued excellent performance and document baseline condition.'
+    }
+  ];
+  
+  // Staged escalation rules for generating multiple interventions over time
+  private readonly ESCALATION_STAGES: EscalationStage[] = [
+    {
+      stageOrder: 1,
+      triggerAgeRatio: 0.4,
+      projectType: 'inspection',
+      daysFromNow: 30,
+      prerequisiteTypes: []
+    },
+    {
+      stageOrder: 2,
+      triggerAgeRatio: 0.6,
+      projectType: 'minor_rehab',
+      daysFromNow: 180,
+      prerequisiteTypes: ['inspection']
+    },
+    {
+      stageOrder: 3,
+      triggerAgeRatio: 0.8,
+      projectType: 'major_rehab',
+      daysFromNow: 365,
+      prerequisiteTypes: ['inspection', 'minor_rehab']
+    },
+    {
+      stageOrder: 4,
+      triggerAgeRatio: 1.0,
+      projectType: 'replacement',
+      daysFromNow: 730,
+      prerequisiteTypes: ['inspection', 'minor_rehab', 'major_rehab']
+    }
+  ];
   
   /**
    * Generate suggestions for all elements in a building
@@ -217,51 +432,65 @@ export class MaintenanceSuggestionService {
       // Calculate risk score
       const riskData = this.computeRisk(element, uniformatData, effectiveLife);
       
-      // Determine suggestion type and priority
-      const suggestion = this.pickSuggestion(element, riskData, effectiveLife);
+      // Generate multiple suggestions using staged escalation model
+      const suggestions = this.generateStagedSuggestions(element, riskData, effectiveLife);
       
-      // Apply Quebec seasonal adjustments
-      const adjustedDate = this.seasonShift(suggestion.suggestedDate, element.uniformatCode, suggestion.type);
-      suggestion.suggestedDate = adjustedDate;
+      // Apply Quebec seasonal adjustments to all suggestions
+      suggestions.forEach(suggestion => {
+        const adjustedDate = this.seasonShift(suggestion.suggestedDate, element.uniformatCode, suggestion.type);
+        suggestion.suggestedDate = adjustedDate;
+      });
 
-      // Apply deduplication logic
-      const dedupeResult = this.dedupeLogic(element, suggestion, existingSuggestions);
+      // Process each suggestion through updated deduplication logic
+      let processedCount = 0;
+      let updatedCount = 0;
+      let skippedCount = 0;
+      let sampleSuggestion = null;
       
-      if (dedupeResult.action === 'skip') {
-        return { created: 0, updated: 0, skipped: 1, errors };
+      for (const suggestion of suggestions) {
+        const dedupeResult = this.dedupeLogic(element, suggestion, existingSuggestions);
+      
+        if (dedupeResult.action === 'skip') {
+          skippedCount++;
+          continue;
+        }
+
+        // Create sample data for first processed suggestion
+        if (!sampleSuggestion) {
+          sampleSuggestion = {
+            elementName: element.name,
+            uniformatCode: element.uniformatCode,
+            type: suggestion.type,
+            priority: suggestion.priority,
+            suggestedDate: suggestion.suggestedDate.toISOString().split('T')[0],
+            reason: suggestion.reason
+          };
+        }
+
+        // If dry run, don't actually create/update
+        if (options.dryRun) {
+          if (dedupeResult.action === 'create') processedCount++;
+          if (dedupeResult.action === 'update') updatedCount++;
+          continue;
+        }
+
+        // Execute the action
+        if (dedupeResult.action === 'create') {
+          await this.createSuggestion(element.id, suggestion);
+          processedCount++;
+        } else if (dedupeResult.action === 'update' && dedupeResult.existingId) {
+          await this.updateSuggestion(dedupeResult.existingId, suggestion);
+          updatedCount++;
+        }
       }
 
-      // Create sample data for response
-      const sample = {
-        elementName: element.name,
-        uniformatCode: element.uniformatCode,
-        type: suggestion.type,
-        priority: suggestion.priority,
-        suggestedDate: suggestion.suggestedDate.toISOString().split('T')[0],
-        reason: suggestion.reason
+      return {
+        created: processedCount,
+        updated: updatedCount,
+        skipped: skippedCount,
+        sample: sampleSuggestion,
+        errors
       };
-
-      // If dry run, don't actually create/update
-      if (options.dryRun) {
-        return {
-          created: dedupeResult.action === 'create' ? 1 : 0,
-          updated: dedupeResult.action === 'update' ? 1 : 0,
-          skipped: 0,
-          sample,
-          errors
-        };
-      }
-
-      // Execute the action
-      if (dedupeResult.action === 'create') {
-        await this.createSuggestion(element.id, suggestion);
-        return { created: 1, updated: 0, skipped: 0, sample, errors };
-      } else if (dedupeResult.action === 'update' && dedupeResult.existingId) {
-        await this.updateSuggestion(dedupeResult.existingId, suggestion);
-        return { created: 0, updated: 1, skipped: 0, sample, errors };
-      }
-
-      return { created: 0, updated: 0, skipped: 1, errors };
 
     } catch (error: any) {
       errors.push(error.message);
@@ -368,72 +597,194 @@ export class MaintenanceSuggestionService {
   }
 
   /**
-   * Determine suggestion type and priority based on risk score and conditions
+   * Generate multiple staged suggestions based on explicit matrices and escalation model
    */
-  pickSuggestion(element: BuildingElement, riskData: RiskScoreData, effectiveLife: EffectiveLifeData): SuggestionData {
-    const { riskScore, ageRatio } = riskData;
-    const { remainingLifeYears } = effectiveLife;
+  generateStagedSuggestions(element: BuildingElement, riskData: RiskScoreData, effectiveLife: EffectiveLifeData): SuggestionData[] {
+    const suggestions: SuggestionData[] = [];
+    const { ageRatio, riskScore } = riskData;
     const now = new Date();
-
+    
     // Check for inspection needs (no inspection in 12+ months)
     const needsInspection = !element.lastInspectionDate || 
       (now.getTime() - new Date(element.lastInspectionDate).getTime()) > (365 * 24 * 60 * 60 * 1000);
-
-    let type: 'inspection' | 'minor_rehab' | 'major_rehab' | 'replacement';
-    let priority: 'low' | 'medium' | 'high' | 'critical';
-    let suggestedDate = new Date();
-
-    // Replacement logic
-    if (element.currentCondition === 'critical' || remainingLifeYears <= 0) {
-      type = 'replacement';
-      priority = 'critical';
-      suggestedDate = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30 days
+    
+    // 1. Find immediate suggestion using explicit matrices
+    const immediateSuggestion = this.findMatrixBasedSuggestion(element, riskData, effectiveLife, needsInspection);
+    if (immediateSuggestion) {
+      suggestions.push(immediateSuggestion);
     }
-    // Major rehab logic  
-    else if (element.currentCondition === 'poor' || ageRatio >= 0.9) {
-      type = 'major_rehab';
-      priority = 'high';
-      suggestedDate = new Date(now.getTime() + (90 * 24 * 60 * 60 * 1000)); // 90 days
+    
+    // 2. Generate staged escalation suggestions if appropriate
+    const escalationSuggestions = this.generateEscalationSuggestions(element, riskData, effectiveLife);
+    suggestions.push(...escalationSuggestions);
+    
+    // 3. Add urgent inspection if needed and not already included
+    if (needsInspection && !suggestions.some(s => s.type === 'inspection')) {
+      const urgentInspection = this.createUrgentInspectionSuggestion(element, riskData, effectiveLife);
+      suggestions.unshift(urgentInspection); // Add at beginning for priority
     }
-    // Minor rehab logic
-    else if (element.currentCondition === 'fair' || (ageRatio >= 0.7 && ageRatio < 0.9)) {
-      type = 'minor_rehab';
-      priority = 'medium';
-      suggestedDate = new Date(now.getTime() + (180 * 24 * 60 * 60 * 1000)); // 180 days
+    
+    return suggestions;
+  }
+  
+  /**
+   * Find suggestion using explicit condition/age/risk matrices
+   */
+  private findMatrixBasedSuggestion(element: BuildingElement, riskData: RiskScoreData, effectiveLife: EffectiveLifeData, needsInspection: boolean): SuggestionData | null {
+    const { ageRatio, riskScore } = riskData;
+    
+    // Find matching matrix entry
+    const matchingMatrix = this.PROJECT_TYPE_MATRICES.find(matrix => {
+      return matrix.condition === element.currentCondition &&
+             ageRatio >= matrix.ageRatioMin &&
+             ageRatio < matrix.ageRatioMax &&
+             riskScore >= matrix.riskScoreMin &&
+             riskScore <= matrix.riskScoreMax;
+    });
+    
+    if (!matchingMatrix) {
+      // Fallback to default inspection if no matrix matches
+      return this.createDefaultInspectionSuggestion(element, riskData, effectiveLife);
     }
-    // Inspection logic
-    else if (needsInspection || (ageRatio >= 0.5 && ageRatio < 0.7)) {
-      type = 'inspection';
-      priority = ageRatio >= 0.6 ? 'medium' : 'low';
-      suggestedDate = new Date(now.getTime() + (60 * 24 * 60 * 60 * 1000)); // 60 days
-    }
-    // Default inspection
-    else {
-      type = 'inspection';
-      priority = 'low';
-      suggestedDate = new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000)); // 1 year
-    }
-
-    // Override priority based on final risk score
+    
+    const now = new Date();
+    const suggestedDate = new Date(now.getTime() + (matchingMatrix.daysOffset * 24 * 60 * 60 * 1000));
+    
+    // Adjust priority based on risk score
+    let priority = matchingMatrix.priority;
     if (riskScore >= 0.85) {
       priority = 'critical';
-    } else if (riskScore >= 0.7) {
+    } else if (riskScore >= 0.7 && priority !== 'critical') {
       priority = 'high';
-    } else if (riskScore >= 0.5) {
-      priority = 'medium';
-    } else if (type !== 'inspection') {
-      priority = 'low';
     }
-
-    // Build detailed reason
-    const reason = this.buildReasonText(element, riskData, effectiveLife, type, needsInspection);
-
+    
+    const reason = this.buildEnhancedReasonText(element, riskData, effectiveLife, matchingMatrix, needsInspection);
+    
     return {
-      type,
+      type: matchingMatrix.projectType,
       priority,
       suggestedDate,
-      reason
+      reason,
+      title: matchingMatrix.title,
+      description: matchingMatrix.description
     };
+  }
+  
+  /**
+   * Generate escalation suggestions for future interventions
+   */
+  private generateEscalationSuggestions(element: BuildingElement, riskData: RiskScoreData, effectiveLife: EffectiveLifeData): SuggestionData[] {
+    const { ageRatio } = riskData;
+    const suggestions: SuggestionData[] = [];
+    const now = new Date();
+    
+    // Only generate escalation for elements not already at critical condition
+    if (element.currentCondition === 'critical') {
+      return suggestions;
+    }
+    
+    // Find applicable escalation stages based on current age ratio
+    const applicableStages = this.ESCALATION_STAGES.filter(stage => 
+      ageRatio < stage.triggerAgeRatio // Only stages not yet reached
+    ).sort((a, b) => a.stageOrder - b.stageOrder); // Order by stage sequence
+    
+    for (const stage of applicableStages) {
+      // Calculate when this stage should be triggered
+      const yearsToTrigger = (stage.triggerAgeRatio - ageRatio) * effectiveLife.effectiveLifespan;
+      const daysToTrigger = Math.max(stage.daysFromNow, yearsToTrigger * 365);
+      const suggestedDate = new Date(now.getTime() + (daysToTrigger * 24 * 60 * 60 * 1000));
+      
+      // Determine priority based on urgency
+      let priority: 'low' | 'medium' | 'high' | 'critical' = 'low';
+      if (daysToTrigger < 90) priority = 'high';
+      else if (daysToTrigger < 365) priority = 'medium';
+      
+      const suggestion: SuggestionData = {
+        type: stage.projectType,
+        priority,
+        suggestedDate,
+        reason: `Staged escalation: ${stage.projectType} planned when element reaches ${(stage.triggerAgeRatio * 100).toFixed(0)}% of design life (${(yearsToTrigger).toFixed(1)} years from now)`,
+        title: this.getEscalationTitle(stage.projectType, stage.triggerAgeRatio),
+        description: this.getEscalationDescription(stage.projectType, yearsToTrigger)
+      };
+      
+      suggestions.push(suggestion);
+    }
+    
+    return suggestions;
+  }
+  
+  /**
+   * Create urgent inspection suggestion
+   */
+  private createUrgentInspectionSuggestion(element: BuildingElement, riskData: RiskScoreData, effectiveLife: EffectiveLifeData): SuggestionData {
+    const now = new Date();
+    const lastInspection = element.lastInspectionDate ? new Date(element.lastInspectionDate) : null;
+    const daysSinceInspection = lastInspection ? (now.getTime() - lastInspection.getTime()) / (1000 * 60 * 60 * 24) : 999;
+    
+    return {
+      type: 'inspection',
+      priority: daysSinceInspection > 730 ? 'high' : 'medium',
+      suggestedDate: new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)), // 30 days
+      reason: `Overdue inspection: Last inspected ${lastInspection ? daysSinceInspection.toFixed(0) + ' days ago' : 'never'}. Required for maintenance planning.`,
+      title: 'Overdue Condition Assessment',
+      description: `Element requires inspection to assess current condition and update maintenance strategy.`
+    };
+  }
+  
+  /**
+   * Create default inspection suggestion as fallback
+   */
+  private createDefaultInspectionSuggestion(element: BuildingElement, riskData: RiskScoreData, effectiveLife: EffectiveLifeData): SuggestionData {
+    const now = new Date();
+    return {
+      type: 'inspection',
+      priority: 'low',
+      suggestedDate: new Date(now.getTime() + (365 * 24 * 60 * 60 * 1000)), // 1 year
+      reason: this.buildEnhancedReasonText(element, riskData, effectiveLife, null, false),
+      title: 'Standard Condition Assessment',
+      description: 'Routine inspection to monitor element condition and performance.'
+    };
+  }
+  
+  /**
+   * Get escalation title based on project type and trigger ratio
+   */
+  private getEscalationTitle(projectType: string, triggerRatio: number): string {
+    const percentage = (triggerRatio * 100).toFixed(0);
+    
+    switch (projectType) {
+      case 'inspection':
+        return `Mid-Life Assessment (${percentage}% Design Life)`;
+      case 'minor_rehab':
+        return `Preventive Maintenance (${percentage}% Design Life)`;
+      case 'major_rehab':
+        return `Life Extension Project (${percentage}% Design Life)`;
+      case 'replacement':
+        return `End-of-Life Replacement (${percentage}% Design Life)`;
+      default:
+        return `Planned Intervention (${percentage}% Design Life)`;
+    }
+  }
+  
+  /**
+   * Get escalation description based on project type and years to trigger
+   */
+  private getEscalationDescription(projectType: string, yearsToTrigger: number): string {
+    const yearText = yearsToTrigger.toFixed(1);
+    
+    switch (projectType) {
+      case 'inspection':
+        return `Comprehensive assessment planned in ${yearText} years to evaluate condition and update maintenance strategy.`;
+      case 'minor_rehab':
+        return `Targeted repairs and improvements planned in ${yearText} years to maintain functionality and extend service life.`;
+      case 'major_rehab':
+        return `Comprehensive restoration planned in ${yearText} years to significantly extend element's useful life.`;
+      case 'replacement':
+        return `Full replacement planned in ${yearText} years as element approaches end of design life.`;
+      default:
+        return `Planned maintenance intervention in ${yearText} years based on predictive modeling.`;
+    }
   }
 
   /**
@@ -481,8 +832,8 @@ export class MaintenanceSuggestionService {
   }
 
   /**
-   * Apply deduplication logic to prevent duplicate suggestions
-   * Enhanced to handle Quebec seasonal compliance and date changes
+   * Apply enhanced deduplication logic to support multiple concurrent suggestion types
+   * Updated to allow diverse project types per element while preventing true duplicates
    */
   dedupeLogic(
     element: BuildingElement,
@@ -499,70 +850,107 @@ export class MaintenanceSuggestionService {
       return { action: 'create' };
     }
 
-    // Find matching suggestions by type
-    const matchingSuggestions = activeSuggestions.filter(s => s.suggestedType === newSuggestion.type);
+    // NEW LOGIC: Allow multiple concurrent suggestion types per element
+    // Only prevent duplicates of the SAME TYPE with similar dates
     
-    if (matchingSuggestions.length === 0) {
+    // Find suggestions of the same type
+    const sameTypeSuggestions = activeSuggestions.filter(s => s.suggestedType === newSuggestion.type);
+    
+    if (sameTypeSuggestions.length === 0) {
+      // No existing suggestions of this type - always create
+      console.log(`✅ Creating new ${newSuggestion.type} suggestion for ${element.name} - no existing suggestions of this type`);
       return { action: 'create' };
     }
 
-    // Check if we should update based on priority escalation or condition worsening
-    const highestExisting = matchingSuggestions.reduce((highest, current) => {
+    // For same-type suggestions, check if update is warranted
+    const candidateForUpdate = sameTypeSuggestions.reduce((best, current) => {
+      // Prefer the most recent or highest priority suggestion
       const priorityOrder = { 'low': 1, 'medium': 2, 'high': 3, 'critical': 4 };
       const currentLevel = priorityOrder[current.priority as keyof typeof priorityOrder] || 1;
-      const highestLevel = priorityOrder[highest.priority as keyof typeof priorityOrder] || 1;
-      return currentLevel > highestLevel ? current : highest;
-    }, matchingSuggestions[0]);
+      const bestLevel = priorityOrder[best.priority as keyof typeof priorityOrder] || 1;
+      
+      if (currentLevel > bestLevel) return current;
+      if (currentLevel < bestLevel) return best;
+      
+      // Same priority - prefer more recent
+      return new Date(current.createdAt || 0) > new Date(best.createdAt || 0) ? current : best;
+    }, sameTypeSuggestions[0]);
 
     const priorityOrder = { 'low': 1, 'medium': 2, 'high': 3, 'critical': 4 };
     const newPriorityLevel = priorityOrder[newSuggestion.priority];
-    const existingPriorityLevel = priorityOrder[highestExisting.priority as keyof typeof priorityOrder] || 1;
+    const existingPriorityLevel = priorityOrder[candidateForUpdate.priority as keyof typeof priorityOrder] || 1;
 
-    // ENHANCED LOGIC: Check for multiple update conditions
-    
-    // 1. Priority escalation (existing logic)
-    const hasPriorityEscalation = newPriorityLevel > existingPriorityLevel;
-    
-    // 2. Date difference check (≥1 day difference)
-    const existingDate = new Date(highestExisting.suggestedDate);
+    // Check for update conditions
+    const existingDate = new Date(candidateForUpdate.suggestedDate);
     const newDate = newSuggestion.suggestedDate;
     const dateDiffMs = Math.abs(newDate.getTime() - existingDate.getTime());
     const dateDiffDays = dateDiffMs / (1000 * 60 * 60 * 24);
-    const hasSignificantDateChange = dateDiffDays >= 1;
     
-    // 3. Quebec seasonal compliance check
+    // Update conditions (more permissive for staged escalation)
+    const hasPriorityEscalation = newPriorityLevel > existingPriorityLevel;
+    const hasSignificantDateChange = dateDiffDays >= 7; // Increased to 7 days to reduce noise
     const hasSeasonalViolation = this.checkQuebecSeasonalViolation(
-      highestExisting.suggestedDate, 
+      candidateForUpdate.suggestedDate, 
       element.uniformatCode, 
       newSuggestion.type
     );
-    
-    // 4. Season change detection
     const hasSeasonChange = this.hasSeasonChanged(
       existingDate, 
       newDate, 
       element.uniformatCode, 
       newSuggestion.type
     );
+    
+    // NEW: Check for significant content changes (title/description)
+    const hasContentChange = this.hasSignificantContentChange(candidateForUpdate, newSuggestion);
 
-    // Update if any of these conditions are met:
-    if (hasPriorityEscalation || hasSignificantDateChange || hasSeasonalViolation || hasSeasonChange) {
+    // Update if any significant changes are detected
+    if (hasPriorityEscalation || hasSignificantDateChange || hasSeasonalViolation || hasSeasonChange || hasContentChange) {
       
-      // Log the reasons for update
       const updateReasons = [];
-      if (hasPriorityEscalation) updateReasons.push('priority escalation');
+      if (hasPriorityEscalation) updateReasons.push(`priority escalation (${candidateForUpdate.priority} → ${newSuggestion.priority})`);
       if (hasSignificantDateChange) updateReasons.push(`date change (${dateDiffDays.toFixed(1)} days)`);
-      if (hasSeasonalViolation) updateReasons.push('Quebec seasonal compliance violation');
-      if (hasSeasonChange) updateReasons.push('seasonal shift change');
+      if (hasSeasonalViolation) updateReasons.push('Quebec seasonal compliance');
+      if (hasSeasonChange) updateReasons.push('seasonal shift');
+      if (hasContentChange) updateReasons.push('content update');
       
-      console.log(`🔄 Updating suggestion for element ${element.name} due to: ${updateReasons.join(', ')}`);
-      console.log(`   → Date change: ${existingDate.toISOString().split('T')[0]} → ${newDate.toISOString().split('T')[0]}`);
+      console.log(`🔄 Updating ${newSuggestion.type} suggestion for ${element.name}: ${updateReasons.join(', ')}`);
       
-      return { action: 'update', existingId: highestExisting.id };
+      return { action: 'update', existingId: candidateForUpdate.id };
     }
 
-    // Skip - no significant change warranted
-    return { action: 'skip' };
+    // Check for near-duplicate detection (same type, similar date, similar priority)
+    const isNearDuplicate = dateDiffDays < 7 && Math.abs(newPriorityLevel - existingPriorityLevel) <= 1;
+    
+    if (isNearDuplicate) {
+      console.log(`⏭️  Skipping ${newSuggestion.type} suggestion for ${element.name} - near-duplicate detected`);
+      return { action: 'skip' };
+    }
+
+    // Default to create for staged escalation scenarios
+    console.log(`✅ Creating additional ${newSuggestion.type} suggestion for ${element.name} - staged escalation`);
+    return { action: 'create' };
+  }
+  
+  /**
+   * Check if there are significant content changes between existing and new suggestions
+   */
+  private hasSignificantContentChange(existing: EvaluationSuggestion, newSuggestion: SuggestionData): boolean {
+    // For now, basic check on reason text changes
+    // Could be enhanced to check title/description if those fields are added to the database
+    if (!existing.reason || !newSuggestion.reason) {
+      return true; // If either is missing, consider it a change
+    }
+    
+    // Check for meaningful differences in reason text
+    const existingWords = existing.reason.toLowerCase().split(/\s+/);
+    const newWords = newSuggestion.reason.toLowerCase().split(/\s+/);
+    
+    // Simple heuristic: significant change if >30% of words are different
+    const commonWords = existingWords.filter(word => newWords.includes(word));
+    const similarityRatio = commonWords.length / Math.max(existingWords.length, newWords.length);
+    
+    return similarityRatio < 0.7; // Less than 70% similarity = significant change
   }
 
   /**
@@ -633,48 +1021,47 @@ export class MaintenanceSuggestionService {
   }
 
   /**
-   * Build detailed reason text with calculation details
+   * Build enhanced reason text with calculation details and matrix information
    */
-  private buildReasonText(
+  private buildEnhancedReasonText(
     element: BuildingElement,
     riskData: RiskScoreData,
     effectiveLife: EffectiveLifeData,
-    type: string,
+    matrix: ProjectTypeMatrix | null,
     needsInspection: boolean
   ): string {
     const { ageRatio, conditionFactor, exposureFactor, riskScore } = riskData;
     const { effectiveAgeYears, remainingLifeYears } = effectiveLife;
 
-    let reason = `Risk Score: ${(riskScore * 100).toFixed(1)}% | `;
+    let reason = `Risk Assessment: ${(riskScore * 100).toFixed(1)}% | `;
     reason += `Age: ${effectiveAgeYears.toFixed(1)}/${effectiveLife.effectiveLifespan} years (${(ageRatio * 100).toFixed(1)}%) | `;
-    reason += `Condition: ${element.currentCondition} (${(conditionFactor * 100).toFixed(0)}%) | `;
-    reason += `Exposure: ${(exposureFactor * 100).toFixed(0)}% | `;
+    reason += `Condition: ${element.currentCondition} | `;
+    reason += `Exposure Factor: ${(exposureFactor * 100).toFixed(0)}% | `;
     reason += `Remaining Life: ${remainingLifeYears.toFixed(1)} years`;
 
-    // Add specific triggers
-    if (type === 'replacement') {
+    // Add matrix-based trigger information
+    if (matrix) {
+      reason += ` | MATRIX: ${matrix.condition}+age(${(matrix.ageRatioMin * 100).toFixed(0)}-${(matrix.ageRatioMax * 100).toFixed(0)}%)`;
+    }
+
+    // Add specific triggers based on project type
+    if (matrix?.projectType === 'replacement') {
       if (element.currentCondition === 'critical') {
-        reason += ' | TRIGGER: Critical condition requires immediate replacement';
+        reason += ' | TRIGGER: Critical condition - safety/operational risk';
       } else if (remainingLifeYears <= 0) {
-        reason += ' | TRIGGER: End of service life reached';
-      }
-    } else if (type === 'major_rehab') {
-      if (element.currentCondition === 'poor') {
-        reason += ' | TRIGGER: Poor condition requires major rehabilitation';
-      } else if (ageRatio >= 0.9) {
-        reason += ' | TRIGGER: Age ratio exceeds 90%';
-      }
-    } else if (type === 'minor_rehab') {
-      if (element.currentCondition === 'fair') {
-        reason += ' | TRIGGER: Fair condition suggests preventive rehabilitation';
+        reason += ' | TRIGGER: End of design life reached';
       } else {
-        reason += ' | TRIGGER: Age-based preventive maintenance window';
+        reason += ' | TRIGGER: Matrix-based replacement criteria met';
       }
-    } else if (type === 'inspection') {
+    } else if (matrix?.projectType === 'major_rehab') {
+      reason += ' | TRIGGER: Significant rehabilitation needed to extend service life';
+    } else if (matrix?.projectType === 'minor_rehab') {
+      reason += ' | TRIGGER: Targeted repairs needed to prevent deterioration';
+    } else if (matrix?.projectType === 'inspection') {
       if (needsInspection) {
-        reason += ' | TRIGGER: No inspection in past 12 months';
+        reason += ' | TRIGGER: Overdue inspection required';
       } else {
-        reason += ' | TRIGGER: Routine inspection based on age and risk';
+        reason += ' | TRIGGER: Scheduled condition assessment';
       }
     }
 
@@ -704,7 +1091,7 @@ export class MaintenanceSuggestionService {
       .innerJoin(sql`project_elements`, sql`maintenance_projects.id = project_elements.project_id`)
       .where(and(
         sql`project_elements.element_id = ${elementId}`,
-        not(inArray(maintenanceProjects.status, ['completed', 'cancelled']))
+        not(eq(maintenanceProjects.status, 'completed'))
       ))
       .limit(1);
 
@@ -712,10 +1099,10 @@ export class MaintenanceSuggestionService {
   }
 
   /**
-   * Create new suggestion in database
+   * Create new suggestion in database with enhanced data
    */
   private async createSuggestion(elementId: string, suggestion: SuggestionData): Promise<void> {
-    const suggestionData: InsertEvaluationSuggestion = {
+    const suggestionData = {
       elementId,
       suggestedDate: suggestion.suggestedDate.toISOString().split('T')[0], // Convert Date to string (YYYY-MM-DD)
       suggestedType: suggestion.type,
@@ -724,13 +1111,15 @@ export class MaintenanceSuggestionService {
       status: 'pending'
     };
 
-    await db.insert(evaluationSuggestions).values(suggestionData);
+    console.log(`💾 Creating ${suggestion.type} suggestion: ${suggestion.title}`);
+    await db.insert(evaluationSuggestions).values(suggestionData as any);
   }
 
   /**
-   * Update existing suggestion in database
+   * Update existing suggestion in database with enhanced data
    */
   private async updateSuggestion(suggestionId: string, suggestion: SuggestionData): Promise<void> {
+    console.log(`💾 Updating suggestion: ${suggestion.title}`);
     await db
       .update(evaluationSuggestions)
       .set({
@@ -739,7 +1128,7 @@ export class MaintenanceSuggestionService {
         priority: suggestion.priority,
         reason: suggestion.reason,
         updatedAt: new Date()
-      })
+      } as any)
       .where(eq(evaluationSuggestions.id, suggestionId));
   }
 }
