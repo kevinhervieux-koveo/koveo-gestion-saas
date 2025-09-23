@@ -231,7 +231,7 @@ const maintenanceProjectCreateSchema = z.object({
   buildingId: z.string().uuid(),
   title: z.string().min(1).max(255),
   description: z.string().min(1),
-  projectType: z.enum(['evaluation', 'repair', 'minor_rehab', 'major_rehab', 'replacement']),
+  projectType: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure']),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   estimatedCost: z.number().positive().optional(),
   actualCost: z.number().positive().optional(),

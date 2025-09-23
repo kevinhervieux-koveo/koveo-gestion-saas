@@ -354,11 +354,11 @@ export function ProjectsHeader({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All Types</SelectItem>
-                <SelectItem value="evaluation">Evaluation</SelectItem>
                 <SelectItem value="repair">Repair</SelectItem>
                 <SelectItem value="minor_rehab">Minor Rehabilitation</SelectItem>
                 <SelectItem value="major_rehab">Major Rehabilitation</SelectItem>
                 <SelectItem value="replacement">Replacement</SelectItem>
+                <SelectItem value="not_sure">Not Sure</SelectItem>
               </SelectContent>
             </Select>
           </div>

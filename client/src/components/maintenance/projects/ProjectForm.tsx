@@ -77,11 +77,11 @@ const projectFormSchema = insertMaintenanceProjectSchema.extend({
 type ProjectFormData = z.infer<typeof projectFormSchema>;
 
 const projectTypes = [
-  { value: 'evaluation', label: 'Evaluation', icon: Target, description: 'Assessment and analysis' },
   { value: 'repair', label: 'Repair', icon: Wrench, description: 'Fix existing components' },
   { value: 'minor_rehab', label: 'Minor Rehabilitation', icon: Building2, description: 'Minor improvements' },
   { value: 'major_rehab', label: 'Major Rehabilitation', icon: Building2, description: 'Significant renovations' },
   { value: 'replacement', label: 'Replacement', icon: CheckCircle2, description: 'Full component replacement' },
+  { value: 'not_sure', label: 'Not Sure', icon: Target, description: 'Need assessment to determine type' },
 ];
 
 const projectStatuses = [

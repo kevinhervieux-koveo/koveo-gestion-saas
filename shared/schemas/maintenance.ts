@@ -79,11 +79,11 @@ export const evaluationStatusEnum = pgEnum('evaluation_status', [
  * Enum for maintenance project types
  */
 export const projectTypeEnum = pgEnum('project_type', [
-  'evaluation',
   'repair',
   'minor_rehab',
   'major_rehab',
-  'replacement'
+  'replacement',
+  'not_sure'
 ]);
 
 /**
