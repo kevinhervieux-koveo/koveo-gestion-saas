@@ -180,7 +180,7 @@ export function DocumentAttachmentManager({
 
   // Get file icon based on type
   const getFileIcon = useCallback((fileType: string, category?: string) => {
-    if (category === 'image' || fileType.startsWith('image/')) return Image;
+    if (category === 'image' || (fileType && fileType.startsWith('image/'))) return Image;
     if (category === 'pdf' || fileType === 'application/pdf') return FileText;
     return FileIcon;
   }, []);

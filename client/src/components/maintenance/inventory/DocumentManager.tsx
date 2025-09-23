@@ -167,7 +167,7 @@ export function DocumentManager({
 
   // Get file icon
   const getFileIcon = useCallback((fileType: string, category?: string) => {
-    if (category === 'image' || fileType.startsWith('image/')) return Image;
+    if (category === 'image' || (fileType && fileType.startsWith('image/'))) return Image;
     if (category === 'pdf' || fileType === 'application/pdf') return FileText;
     if (category === 'warranty') return Shield;
     if (category === 'specification') return FileCheck;
@@ -199,7 +199,7 @@ export function DocumentManager({
   // Render document card
   const renderDocumentCard = useCallback((doc: DocumentFile) => {
     const Icon = getFileIcon(doc.type, doc.category);
-    const isImage = doc.type.startsWith('image/');
+    const isImage = doc.type && doc.type.startsWith('image/');
 
     return (
       <Card 
