@@ -37,23 +37,23 @@ const elementFormSchema = z.object({
   buildingId: z.string().uuid(),
   uniformatCode: z.string().min(1, 'UNIFORMAT code is required'),
   name: z.string().min(1, 'Element name is required').max(200),
-  description: z.string().optional(),
+  description: z.string().optional().or(z.literal('')), // Allow empty strings
   residenceId: z.string().uuid().nullable().optional(), // Match database schema
-  originalConstructionDate: z.coerce.date().optional(), // Use date objects like database schema
-  lastInspectionDate: z.coerce.date().optional(), // Use date objects like database schema
-  nextEvaluationDate: z.coerce.date().optional(), // Use date objects like database schema
+  originalConstructionDate: z.date().nullable().optional(), // Use date objects, allow null
+  lastInspectionDate: z.date().nullable().optional(), // Use date objects, allow null
+  nextEvaluationDate: z.date().nullable().optional(), // Use date objects, allow null
   originalLifespan: z.coerce.number().int().positive().optional(), // Match database validation
   currentLifespan: z.coerce.number().int().positive().optional(), // Match database validation
   currentCondition: z.enum(['excellent', 'good', 'fair', 'poor', 'critical']),
-  unit: z.string().max(20).optional(),
-  unitValue: z.coerce.number().positive().optional(), // Match database validation (positive, not min 0)
-  notes: z.string().optional(),
-  reconstructionCost: z.coerce.number().positive().optional(), // Match database validation (positive, not min 0)
-  costEstimationDate: z.coerce.date().optional(), // Use date objects like database schema
-  access: z.enum(['not_restrained', 'restrained']).optional().default('not_restrained'),
-  charge: z.enum(['common', 'personnal']).optional().default('common'),
+  unit: z.string().max(20).optional().or(z.literal('')), // Allow empty strings
+  unitValue: z.coerce.number().positive().optional().or(z.literal('')), // Allow empty strings
+  notes: z.string().optional().or(z.literal('')), // Allow empty strings
+  reconstructionCost: z.coerce.number().positive().optional().or(z.literal('')), // Allow empty strings
+  costEstimationDate: z.date().nullable().optional(), // Use date objects, allow null
+  access: z.enum(['not_restrained', 'restrained']).default('not_restrained'),
+  charge: z.enum(['common', 'personnal']).default('common'),
   // Additional form-only fields
-  autoCalculateEvaluation: z.boolean().optional(),
+  autoCalculateEvaluation: z.boolean().optional().default(true),
   quantity: z.coerce.number().min(1).max(1000).default(1), // Duplicate/quantity field
 });
 
@@ -456,16 +456,16 @@ export function ElementForm({
       description: '',
       residenceId: null,
       uniformatCode: '',
-      originalConstructionDate: undefined,
-      lastInspectionDate: undefined,
-      nextEvaluationDate: undefined,
+      originalConstructionDate: null,
+      lastInspectionDate: null,
+      nextEvaluationDate: null,
       originalLifespan: undefined,
       currentLifespan: undefined,
       currentCondition: 'good',
       unit: '',
-      unitValue: undefined,
+      unitValue: '',
       notes: '',
-      reconstructionCost: undefined,
+      reconstructionCost: '',
       costEstimationDate: new Date(),
       access: 'not_restrained',
       charge: 'common',
@@ -473,6 +473,37 @@ export function ElementForm({
       quantity: 1,
     },
   });
+
+  // Debug form state
+  useEffect(() => {
+    const subscription = form.watch((value, { name, type }) => {
+      console.log('🔍 [ELEMENT FORM DEBUG] Form field changed:', {
+        field: name,
+        type,
+        value: value[name as string],
+        isValid: form.formState.isValid,
+        errors: form.formState.errors,
+        hasErrors: Object.keys(form.formState.errors).length > 0
+      });
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // Determine if form should be disabled
+  const isFormDisabled = currentMode === 'view';
+
+  // Debug form state on mode/element changes
+  useEffect(() => {
+    console.log('🔍 [ELEMENT FORM DEBUG] Form state:', {
+      mode: currentMode,
+      elementId: element?.id,
+      isValid: form.formState.isValid,
+      isDirty: form.formState.isDirty,
+      errors: form.formState.errors,
+      isFormDisabled,
+      submitDisabled: currentMode === 'view' || !form.formState.isValid
+    });
+  }, [currentMode, element?.id, form.formState.isValid, form.formState.isDirty, form.formState.errors, isFormDisabled]);
 
   // Reset current mode when modal opens or element changes
   useEffect(() => {
@@ -523,13 +554,16 @@ export function ElementForm({
         description: '',
         residenceId: null,
         uniformatCode: '',
+        originalConstructionDate: null,
+        lastInspectionDate: null,
+        nextEvaluationDate: null,
         originalLifespan: undefined,
         currentLifespan: undefined,
         currentCondition: 'good',
         unit: '',
-        unitValue: undefined,
+        unitValue: '',
         notes: '',
-        reconstructionCost: undefined,
+        reconstructionCost: '',
         costEstimationDate: new Date(), // Use Date object for validation
         access: 'not_restrained',
         charge: 'common',
@@ -652,9 +686,6 @@ export function ElementForm({
   const handleEnableEdit = () => {
     setCurrentMode('edit');
   };
-
-  // Determine if form should be disabled
-  const isFormDisabled = currentMode === 'view';
 
   // Create edit button for view mode
   const editButton = currentMode === 'view' && (
@@ -962,7 +993,8 @@ export function ElementForm({
                 <Input
                   value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
                   onChange={(e) => {
-                    const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                    // Fix controlled/uncontrolled warning by always passing Date or null
+                    const dateValue = e.target.value ? new Date(e.target.value) : null;
                     field.onChange(dateValue);
                   }}
                   type="date"
@@ -1091,7 +1123,8 @@ export function ElementForm({
               <Input
                 value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
                 onChange={(e) => {
-                  const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                  // Fix controlled/uncontrolled warning by always passing Date or null
+                  const dateValue = e.target.value ? new Date(e.target.value) : null;
                   field.onChange(dateValue);
                 }}
                 type="date"
@@ -1149,7 +1182,8 @@ export function ElementForm({
                 <Input
                   value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
                   onChange={(e) => {
-                    const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                    // Fix controlled/uncontrolled warning by always passing Date or null
+                    const dateValue = e.target.value ? new Date(e.target.value) : null;
                     field.onChange(dateValue);
                   }}
                   type="date"

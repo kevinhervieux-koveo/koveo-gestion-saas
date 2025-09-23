@@ -370,17 +370,30 @@ export function ElementTable({
     const element = row.original;
 
     return (
-      <Button 
-        variant="ghost" 
-        size="sm"
-        onClick={() => onViewElement?.(element)}
-        data-testid={`view-element-${element.id}`}
-      >
-        <Eye className="h-4 w-4 mr-2" />
-        View
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => onViewElement?.(element)}
+          data-testid={`view-element-${element.id}`}
+        >
+          <Eye className="h-4 w-4 mr-2" />
+          View
+        </Button>
+        {canEdit && onEditElement && (
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => onEditElement(element)}
+            data-testid={`edit-element-${element.id}`}
+          >
+            <Edit2 className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+        )}
+      </div>
     );
-  }, [onViewElement]);
+  }, [onViewElement, onEditElement, canEdit]);
 
   // Bulk actions - get actual element IDs from selected rows
   const selectedElementsCount = Object.keys(rowSelection).filter(id => rowSelection[id]).length;

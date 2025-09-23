@@ -132,9 +132,22 @@ export function FormModal<T extends FieldValues>({
   };
 
   // Check if form has errors - use React Hook Form's built-in validation state
-  const { isValid, errors } = form.formState;
+  const { isValid, errors, isDirty } = form.formState;
   const hasFormErrors = !isValid || Object.keys(errors).length > 0;
   const hasValidationErrors = validationErrors && Object.keys(validationErrors).length > 0;
+  
+  // Debug form state for Save Changes button
+  useEffect(() => {
+    console.log('🔍 [FORM MODAL DEBUG] Form state changed:', {
+      mode,
+      isValid,
+      isDirty,
+      hasFormErrors,
+      errors: Object.keys(errors).length > 0 ? errors : 'none',
+      submitButtonDisabled: mode !== 'view' && (isSubmitting || hasFormErrors),
+      isSubmitting
+    });
+  }, [mode, isValid, isDirty, hasFormErrors, errors, isSubmitting]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
