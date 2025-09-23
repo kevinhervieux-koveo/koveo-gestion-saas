@@ -730,18 +730,6 @@ export function ElementForm({
     setCurrentMode('edit');
   };
 
-  // Create edit button for view mode
-  const editButton = currentMode === 'view' && (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={handleEnableEdit}
-      data-testid="enable-edit-button"
-    >
-      <Edit2 className="h-4 w-4 mr-2" />
-      Edit
-    </Button>
-  );
 
   return (
     <FormModal
@@ -759,7 +747,6 @@ export function ElementForm({
       isSubmitting={mutation.isPending}
       mode={currentMode}
       size="lg"
-      additionalActions={editButton}
       data-testid="element-form"
     >
       <div className="space-y-6">
