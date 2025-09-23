@@ -125,6 +125,25 @@ export function ElementTable({
 
   const allElements: BuildingElement[] = elementsData?.data || [];
 
+  // Calculate element age and urgency
+  const calculateElementAge = useCallback((constructionDate: string | null): number => {
+    if (!constructionDate) return 0;
+    return differenceInYears(new Date(), parseISO(constructionDate));
+  }, []);
+
+  const getEvaluationUrgency = useCallback((nextEvaluationDate: string | null): 'overdue' | 'due-soon' | 'scheduled' | 'none' => {
+    if (!nextEvaluationDate) return 'none';
+    
+    const evaluationDate = parseISO(nextEvaluationDate);
+    const today = new Date();
+    const in30Days = new Date();
+    in30Days.setDate(today.getDate() + 30);
+
+    if (isAfter(today, evaluationDate)) return 'overdue';
+    if (isAfter(evaluationDate, today) && isAfter(in30Days, evaluationDate)) return 'due-soon';
+    return 'scheduled';
+  }, []);
+
   // Apply filtering logic
   const elements = useMemo(() => {
     let filteredElements = allElements;
@@ -164,26 +183,6 @@ export function ElementTable({
 
     return filteredElements;
   }, [allElements, searchTerm, conditionFilter, uniformatFilter, showOverdueOnly, getEvaluationUrgency]);
-
-
-  // Calculate element age and urgency
-  const calculateElementAge = useCallback((constructionDate: string | null): number => {
-    if (!constructionDate) return 0;
-    return differenceInYears(new Date(), parseISO(constructionDate));
-  }, []);
-
-  const getEvaluationUrgency = useCallback((nextEvaluationDate: string | null): 'overdue' | 'due-soon' | 'scheduled' | 'none' => {
-    if (!nextEvaluationDate) return 'none';
-    
-    const evaluationDate = parseISO(nextEvaluationDate);
-    const today = new Date();
-    const in30Days = new Date();
-    in30Days.setDate(today.getDate() + 30);
-
-    if (isAfter(today, evaluationDate)) return 'overdue';
-    if (isAfter(evaluationDate, today) && isAfter(in30Days, evaluationDate)) return 'due-soon';
-    return 'scheduled';
-  }, []);
 
   // Row selection handling
   const handleRowSelection = useCallback((updater: any) => {
@@ -512,7 +511,7 @@ export function ElementTable({
         </div>
       </div>
     );
-  }, [enableBulkActions, selectedElementsCount, selectedElementIds, elements, bulkUpdateMutation]);
+  }, [enableBulkActions, selectedElementsCount, selectedElementIds, elements]);
 
   // Error state
   if (error) {

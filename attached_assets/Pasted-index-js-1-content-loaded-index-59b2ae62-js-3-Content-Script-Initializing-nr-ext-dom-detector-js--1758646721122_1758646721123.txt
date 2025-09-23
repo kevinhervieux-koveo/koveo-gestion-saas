@@ -1,0 +1,170 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DzXsVJE_.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-DzXsVJE_.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-DzXsVJE_.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-DzXsVJE_.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-DzXsVJE_.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-BTXUqKng.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BTXUqKng.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-DzXsVJE_.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-DzXsVJE_.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BTXUqKng.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BTXUqKng.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DzXsVJE_.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-DzXsVJE_.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DzXsVJE_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bls87x86.js:136 ReferenceError: Cannot access 'v' before initialization
+    at Xr (index-DzXsVJE_.js:6:87967)
+    at Object.react_stack_bottom_frame (index-Bls87x86.js:229:12448)
+    at oc (index-Bls87x86.js:120:804)
+    at kc (index-Bls87x86.js:141:5839)
+    at Pc (index-Bls87x86.js:150:10147)
+    at q (index-Bls87x86.js:45:108)
+    at Kh (index-Bls87x86.js:163:29810)
+    at Jh (index-Bls87x86.js:163:28479)
+    at Wc (index-Bls87x86.js:163:28312)
+    at Ih (index-Bls87x86.js:163:24807)
+
+The above error occurred in the <Xr> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gR.
+
+overrideMethod @ hook.js:608
+oh @ index-Bls87x86.js:136
+lh @ index-Bls87x86.js:141
+q @ index-Bls87x86.js:45
+l.componentDidCatch.e.callback @ index-Bls87x86.js:141
+Dp @ index-Bls87x86.js:107
+Ep @ index-Bls87x86.js:107
+q @ index-Bls87x86.js:45
+Dh @ index-Bls87x86.js:163
+Nh @ index-Bls87x86.js:163
+Qn @ index-Bls87x86.js:163
+Nh @ index-Bls87x86.js:163
+Qn @ index-Bls87x86.js:163
+Nh @ index-Bls87x86.js:163
+Qn @ index-Bls87x86.js:163
+Nh @ index-Bls87x86.js:163
+Qn @ index-Bls87x86.js:163
+Nh @ index-Bls87x86.js:163
+Qn @ index-Bls87x86.js:163
+Nh @ index-Bls87x86.js:163
+Qn @ index-Bls87x86.js:163
+Nh @ index-Bls87x86.js:163
+ng @ index-Bls87x86.js:163
+ed @ index-Bls87x86.js:163
+Xh @ index-Bls87x86.js:163
+Ih @ index-Bls87x86.js:163
+mg @ index-Bls87x86.js:185
+ml @ index-Bls87x86.js:185
+ad @ index-Bls87x86.js:185
+(anonymous) @ index-Bls87x86.js:185
+<Xr>
+du.jsxDEV @ index-Bls87x86.js:15
+fa @ index-DzXsVJE_.js:6
+react_stack_bottom_frame @ index-Bls87x86.js:229
+oc @ index-Bls87x86.js:120
+kc @ index-Bls87x86.js:141
+Pc @ index-Bls87x86.js:150
+q @ index-Bls87x86.js:45
+Kh @ index-Bls87x86.js:163
+Jh @ index-Bls87x86.js:163
+Wc @ index-Bls87x86.js:163
+Ih @ index-Bls87x86.js:163
+mg @ index-Bls87x86.js:185
+ml @ index-Bls87x86.js:185
+ad @ index-Bls87x86.js:185
+(anonymous) @ index-Bls87x86.js:185
+<fa>
+du.jsxDEV @ index-Bls87x86.js:15
+ba @ index-DzXsVJE_.js:6
+react_stack_bottom_frame @ index-Bls87x86.js:229
+oc @ index-Bls87x86.js:120
+kc @ index-Bls87x86.js:141
+Pc @ index-Bls87x86.js:150
+q @ index-Bls87x86.js:45
+Kh @ index-Bls87x86.js:163
+WS @ index-Bls87x86.js:163
+KS @ index-Bls87x86.js:163
+Ih @ index-Bls87x86.js:163
+fg @ index-Bls87x86.js:185
+d @ index-Bls87x86.js:23
+<ba>
+du.jsxDEV @ index-Bls87x86.js:15
+(anonymous) @ withHierarchicalSelection-BTXUqKng.js:1
+react_stack_bottom_frame @ index-Bls87x86.js:229
+oc @ index-Bls87x86.js:120
+kc @ index-Bls87x86.js:141
+Pc @ index-Bls87x86.js:150
+q @ index-Bls87x86.js:45
+Kh @ index-Bls87x86.js:163
+WS @ index-Bls87x86.js:163
+KS @ index-Bls87x86.js:163
+Ih @ index-Bls87x86.js:163
+fg @ index-Bls87x86.js:185
+d @ index-Bls87x86.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-Bls87x86.js:240
+P @ index-Bls87x86.js:240
+react_stack_bottom_frame @ index-Bls87x86.js:229
+oc @ index-Bls87x86.js:120
+kc @ index-Bls87x86.js:141
+Pc @ index-Bls87x86.js:150
+q @ index-Bls87x86.js:45
+Kh @ index-Bls87x86.js:163
+WS @ index-Bls87x86.js:163
+KS @ index-Bls87x86.js:163
+Ih @ index-Bls87x86.js:163
+fg @ index-Bls87x86.js:185
+d @ index-Bls87x86.js:23
+<P>
+du.jsxDEV @ index-Bls87x86.js:15
+ex @ index-Bls87x86.js:384
+react_stack_bottom_frame @ index-Bls87x86.js:229
+oc @ index-Bls87x86.js:120
+kc @ index-Bls87x86.js:141
+Pc @ index-Bls87x86.js:150
+q @ index-Bls87x86.js:45
+Kh @ index-Bls87x86.js:163
+Jh @ index-Bls87x86.js:163
+Wc @ index-Bls87x86.js:163
+Ih @ index-Bls87x86.js:163
+mg @ index-Bls87x86.js:185
+ml @ index-Bls87x86.js:185
+ad @ index-Bls87x86.js:185
+(anonymous) @ index-Bls87x86.js:185
+<ex>
+du.jsxDEV @ index-Bls87x86.js:15
+tx @ index-Bls87x86.js:384
+react_stack_bottom_frame @ index-Bls87x86.js:229
+oc @ index-Bls87x86.js:120
+kc @ index-Bls87x86.js:141
+Pc @ index-Bls87x86.js:150
+q @ index-Bls87x86.js:45
+Kh @ index-Bls87x86.js:163
+Jh @ index-Bls87x86.js:163
+Wc @ index-Bls87x86.js:163
+Ih @ index-Bls87x86.js:163
+fg @ index-Bls87x86.js:185
+d @ index-Bls87x86.js:23
+<tx>
+du.jsxDEV @ index-Bls87x86.js:15
+(anonymous) @ index-Bls87x86.js:384
