@@ -474,10 +474,10 @@ export function ElementForm({
     },
   });
 
-  // Update current mode when prop changes
+  // Reset current mode when modal opens or element changes
   useEffect(() => {
     setCurrentMode(mode);
-  }, [mode]);
+  }, [mode, isOpen, element?.id]);
 
   // Update form when element changes
   useEffect(() => {
