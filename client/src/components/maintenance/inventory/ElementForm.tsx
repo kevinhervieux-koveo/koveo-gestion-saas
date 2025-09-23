@@ -30,6 +30,8 @@ import {
   Clock,
   FileText,
   Edit2,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 
 // Form schema based on the building element schema but with form-specific types
@@ -709,6 +711,33 @@ export function ElementForm({
     },
   });
 
+  // Delete mutation for removing elements
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!element?.id) throw new Error('No element to delete');
+      const response = await apiRequest('DELETE', `/api/maintenance/buildings/${buildingId}/elements/${element.id}`);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['building-elements'] });
+      onOpenChange(false);
+      toast({
+        title: 'Element deleted',
+        description: 'Building element has been successfully removed from the inventory.',
+      });
+      if (onSuccess && element) {
+        onSuccess(element);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Deletion failed',
+        description: error.message || 'Failed to delete element',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Auto-suggest element name when UNIFORMAT code is selected
   const handleUniformatCodeSelect = (codeData: any) => {
     if (!isNameManuallyEdited && codeData?.nameEn) {
@@ -730,6 +759,13 @@ export function ElementForm({
     setCurrentMode('edit');
   };
 
+  // Handle element deletion
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this element? This action cannot be undone.')) {
+      deleteMutation.mutate();
+    }
+  };
+
 
   return (
     <FormModal
@@ -748,6 +784,29 @@ export function ElementForm({
       mode={currentMode}
       size="lg"
       data-testid="element-form"
+      additionalActions={
+        currentMode === 'edit' && element ? (
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={deleteMutation.isPending || mutation.isPending}
+            data-testid="delete-element-button"
+          >
+            {deleteMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </>
+            )}
+          </Button>
+        ) : undefined
+      }
     >
       <div className="space-y-6">
         {/* UNIFORMAT Code Selection */}
