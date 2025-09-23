@@ -48,6 +48,7 @@ Preferred communication style: Simple, everyday language.
 - **Property Management**:
   - **Buildings**: Comprehensive management for Admin/Manager roles (view, create, edit, delete).
   - **Residences**: Auto-generated (max 300 units/building) with advanced search, filtering, pagination, and multi-parking/storage support.
+  - **Inventory Management**: Complete building element inventory system with UNIFORMAT code support, condition tracking, lifecycle management, and comprehensive asset documentation. Features enhanced view mode with all fields disabled to prevent accidental modifications, and seamless edit button functionality for authorized users to enable editing when needed.
 
 ### Development Framework (Pillar Methodology)
 
