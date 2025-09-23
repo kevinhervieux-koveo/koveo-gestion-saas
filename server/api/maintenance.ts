@@ -459,6 +459,9 @@ export function registerMaintenanceRoutes(app: Express): void {
       // Get user organizations
       const userOrgs = await getUserOrganizations(user.id);
       
+      // Determine organizationId using same logic as POST /vendors
+      let finalOrganizationId: string | undefined;
+      
       if (user.role === 'admin') {
         // Admin can see all vendors
         const allVendors = await db
@@ -467,9 +470,17 @@ export function registerMaintenanceRoutes(app: Express): void {
           .where(eq(vendors.isActive, true))
           .orderBy(asc(vendors.name));
         
+        // For admin, use first available organization from vendors or user orgs
+        if (allVendors.length > 0) {
+          finalOrganizationId = allVendors[0].organizationId;
+        } else if (userOrgs.length > 0) {
+          finalOrganizationId = userOrgs[0];
+        }
+        
         return res.json({
           success: true,
-          data: allVendors
+          data: allVendors,
+          organizationId: finalOrganizationId
         });
       } else if (user.role === 'manager' && userOrgs.length > 0) {
         // Manager can see vendors in their organizations
@@ -482,9 +493,13 @@ export function registerMaintenanceRoutes(app: Express): void {
           ))
           .orderBy(asc(vendors.name));
         
+        // Use first user organization as default for vendor creation
+        finalOrganizationId = userOrgs[0];
+        
         return res.json({
           success: true,
-          data: organizationVendors
+          data: organizationVendors,
+          organizationId: finalOrganizationId
         });
       } else {
         return res.status(403).json({

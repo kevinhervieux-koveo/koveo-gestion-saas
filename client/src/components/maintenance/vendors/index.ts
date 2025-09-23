@@ -1,0 +1,1 @@
+export { VendorForm, type VendorFormProps } from './VendorForm';

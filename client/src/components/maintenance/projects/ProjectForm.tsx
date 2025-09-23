@@ -31,10 +31,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-// import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { insertMaintenanceProjectSchema, MaintenanceProject, EvaluationSuggestion } from '@shared/schemas/maintenance';
+import { insertMaintenanceProjectSchema, MaintenanceProject, EvaluationSuggestion, Vendor } from '@shared/schemas/maintenance';
+import { VendorForm } from '@/components/maintenance/vendors';
 import { cn } from '@/lib/utils';
 import {
   CalendarIcon,
@@ -113,12 +114,13 @@ export function ProjectForm({
   mode = project ? 'edit' : 'create',
   onSuccess,
 }: ProjectFormProps) {
-  // Simplified placeholder - no context for now
-  const buildingId = 'placeholder-building-id';
-  const hasPermission = () => true;
+  // Get building context for real buildingId and permissions
+  const { buildingId, organizationId: contextOrganizationId, hasPermission } = useBuildingContext();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isVendorFormOpen, setIsVendorFormOpen] = useState(false);
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
 
   // Fetch vendors for selection
   const {
@@ -135,6 +137,7 @@ export function ProjectForm({
   });
 
   const vendors = vendorsResponse?.vendors || [];
+  const vendorsData = vendorsResponse?.data || vendors; // Handle different response structures
 
   // Generate default project number for new projects
   const generateProjectNumber = () => {
@@ -160,10 +163,29 @@ export function ProjectForm({
       plannedEndDate: project?.plannedEndDate ? new Date(project.plannedEndDate) : undefined,
       suggestionId: project?.suggestionId || evaluationSuggestion?.id,
       description: '',
-      vendorId: undefined,
+      vendorId: project?.vendorId || undefined,
       createdBy: project?.createdBy || '', // This will be set by the backend
     },
   });
+
+  // Get organization ID from context first, then vendors response as fallback
+  useEffect(() => {
+    if (contextOrganizationId) {
+      // Primary source: organizationId from building context
+      setOrganizationId(contextOrganizationId);
+    } else {
+      // Fallback sources: API response or first vendor
+      const apiOrganizationId = vendorsResponse?.organizationId;
+      
+      if (apiOrganizationId) {
+        setOrganizationId(apiOrganizationId);
+      } else if (vendorsData.length > 0) {
+        setOrganizationId(vendorsData[0].organizationId);
+      } else {
+        setOrganizationId(null);
+      }
+    }
+  }, [contextOrganizationId, vendorsData, vendorsResponse]);
 
   // Update form when evaluation suggestion changes
   useEffect(() => {
@@ -258,6 +280,31 @@ export function ProjectForm({
     saveMutation.mutate(data);
   };
 
+  // Handle vendor creation success
+  const handleVendorCreated = (vendor: Vendor) => {
+    // Invalidate vendor queries to refresh the list
+    queryClient.invalidateQueries({
+      queryKey: ['/api/maintenance/vendors', buildingId]
+    });
+    
+    // Auto-select the newly created vendor
+    form.setValue('vendorId', vendor.id);
+    
+    toast({
+      title: "Vendor Created",
+      description: `Vendor "${vendor.name}" has been created and selected for this project.`,
+    });
+  };
+
+  // Handle vendor dropdown selection
+  const handleVendorSelect = (value: string) => {
+    if (value === 'create_new') {
+      setIsVendorFormOpen(true);
+    } else {
+      form.setValue('vendorId', value === 'none' ? undefined : value);
+    }
+  };
+
   const title = mode === 'create' 
     ? (evaluationSuggestion ? 'Create Project from Suggestion' : 'Create New Project')
     : 'Edit Project';
@@ -267,6 +314,7 @@ export function ProjectForm({
     : 'Update project details and configuration.';
 
   return (
+    <>
     <FormModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
@@ -596,20 +644,26 @@ export function ProjectForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Assigned Vendor</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                <Select onValueChange={handleVendorSelect} defaultValue={String(field.value || '')}>
                   <FormControl>
                     <SelectTrigger data-testid="select-vendor">
                       <SelectValue placeholder="Select vendor (optional)" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="create_new" className="text-blue-600 font-medium">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>Create New Vendor</span>
+                      </div>
+                    </SelectItem>
                     <SelectItem value="none">No vendor assigned</SelectItem>
                     {isLoadingVendors ? (
                       <div className="p-2">
                         <Skeleton className="h-4 w-full" />
                       </div>
                     ) : (
-                      vendors.map((vendor: any) => (
+                      vendorsData.map((vendor: any) => (
                         <SelectItem key={vendor.id} value={vendor.id}>
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4" />
@@ -667,6 +721,16 @@ export function ProjectForm({
         )}
       </div>
     </FormModal>
+    
+    {/* Vendor Creation Dialog */}
+    <VendorForm
+      isOpen={isVendorFormOpen}
+      onOpenChange={setIsVendorFormOpen}
+      onSuccess={handleVendorCreated}
+      organizationId={organizationId || undefined}
+      buildingId={buildingId}
+    />
+    </>
   );
 }
 
