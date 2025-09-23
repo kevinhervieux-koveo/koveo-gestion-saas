@@ -558,14 +558,26 @@ export function registerMaintenanceRoutes(app: Express): void {
         finalOrganizationId = organizationId;
       }
       
+      // Convert rating to string if it exists (database expects decimal/string)
       const vendorData: InsertVendor = {
         ...validation.data,
         organizationId: finalOrganizationId,
       };
       
+      // Convert rating to string if it exists (database expects decimal/string)
+      if (validation.data.rating !== undefined) {
+        (vendorData as any).rating = validation.data.rating.toString();
+      }
+      
+      // Ensure rating is converted to string for database
+      const finalVendorData = { ...vendorData };
+      if (finalVendorData.rating) {
+        (finalVendorData as any).rating = finalVendorData.rating.toString();
+      }
+      
       const [vendor] = await db
         .insert(vendors)
-        .values([vendorData])
+        .values([finalVendorData])
         .returning();
       
       res.status(201).json({
@@ -632,7 +644,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       };
       
       // Convert rating to string if it exists (database expects decimal/string)
-      if (typeof updateData.rating === 'number') {
+      if (updateData.rating !== undefined && typeof updateData.rating === 'number') {
         (updateData as any).rating = updateData.rating.toString();
       }
       
@@ -954,10 +966,18 @@ export function registerMaintenanceRoutes(app: Express): void {
       const elementData: InsertBuildingElement = {
         ...validation.data,
         buildingId,
-        // Date fields should remain as strings (YYYY-MM-DD) for database
-        originalConstructionDate: validation.data.originalConstructionDate || undefined,
-        lastInspectionDate: validation.data.lastInspectionDate || undefined,
-        nextEvaluationDate: validation.data.nextEvaluationDate || undefined,
+        // Convert Date objects to strings for database (YYYY-MM-DD format)
+        originalConstructionDate: validation.data.originalConstructionDate ? 
+          validation.data.originalConstructionDate.toISOString().split('T')[0] : undefined,
+        lastInspectionDate: validation.data.lastInspectionDate ? 
+          validation.data.lastInspectionDate.toISOString().split('T')[0] : undefined,
+        nextEvaluationDate: validation.data.nextEvaluationDate ? 
+          validation.data.nextEvaluationDate.toISOString().split('T')[0] : undefined,
+        costEstimationDate: validation.data.costEstimationDate ? 
+          validation.data.costEstimationDate.toISOString().split('T')[0] : undefined,
+        // Convert decimal fields to strings
+        unitValue: validation.data.unitValue ? validation.data.unitValue.toString() : undefined,
+        reconstructionCost: validation.data.reconstructionCost ? validation.data.reconstructionCost.toString() : undefined,
       };
       
       // Create the building element
@@ -1041,10 +1061,18 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const updateData = {
         ...validation.data,
-        // Date fields in the database are string (YYYY-MM-DD format), not Date objects
-        originalConstructionDate: validation.data.originalConstructionDate || undefined,
-        lastInspectionDate: validation.data.lastInspectionDate || undefined,
-        nextEvaluationDate: validation.data.nextEvaluationDate || undefined,
+        // Convert Date objects to strings for database (YYYY-MM-DD format)
+        originalConstructionDate: validation.data.originalConstructionDate ? 
+          validation.data.originalConstructionDate.toISOString().split('T')[0] : undefined,
+        lastInspectionDate: validation.data.lastInspectionDate ? 
+          validation.data.lastInspectionDate.toISOString().split('T')[0] : undefined,
+        nextEvaluationDate: validation.data.nextEvaluationDate ? 
+          validation.data.nextEvaluationDate.toISOString().split('T')[0] : undefined,
+        costEstimationDate: validation.data.costEstimationDate ? 
+          validation.data.costEstimationDate.toISOString().split('T')[0] : undefined,
+        // Convert decimal fields to strings
+        unitValue: validation.data.unitValue ? validation.data.unitValue.toString() : undefined,
+        reconstructionCost: validation.data.reconstructionCost ? validation.data.reconstructionCost.toString() : undefined,
         updatedAt: new Date(),
       };
       
@@ -1296,9 +1324,11 @@ export function registerMaintenanceRoutes(app: Express): void {
       const historyData: InsertElementHistory = {
         ...validation.data,
         elementId,
-        eventDate: validation.data.eventDate,
+        eventDate: validation.data.eventDate.toISOString().split('T')[0], // Convert Date to string
         createdBy: user.id,
-        workDescription: validation.data.description,
+        workDescription: validation.data.description, // Map description to workDescription
+        // Convert cost to string if provided
+        cost: validation.data.cost ? validation.data.cost.toString() : undefined,
         // warranty field exists but warrantyEndDate doesn't - handle warranty data as JSON
         warranty: validation.data.warrantyEndDate ? { endDate: validation.data.warrantyEndDate.toISOString().split('T')[0] } : null,
       };
@@ -1391,11 +1421,10 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       // Only include fields that exist in the schema
       if (validation.data.eventType !== undefined) updateData.eventType = validation.data.eventType;
-      if (validation.data.eventDate) updateData.eventDate = validation.data.eventDate; // Keep as string
-      if (validation.data.workDescription !== undefined) updateData.workDescription = validation.data.workDescription;
+      if (validation.data.eventDate) updateData.eventDate = validation.data.eventDate.toISOString().split('T')[0]; // Convert Date to string
+      if (validation.data.description !== undefined) updateData.workDescription = validation.data.description; // Map description to workDescription
       if (validation.data.cost !== undefined) updateData.cost = validation.data.cost;
       if (validation.data.vendorId !== undefined) updateData.vendorId = validation.data.vendorId;
-      if (validation.data.lifespanImpact !== undefined) updateData.lifespanImpact = validation.data.lifespanImpact;
       
       // Handle warranty as JSON object
       if (validation.data.warrantyEndDate) {
@@ -1805,27 +1834,25 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
+      // Get suggestions by joining with building elements to filter by building
       const suggestions = await db
         .select({
           id: evaluationSuggestions.id,
           elementId: evaluationSuggestions.elementId,
-          uniformatCode: evaluationSuggestions.uniformatCode,
-          suggestionType: evaluationSuggestions.suggestionType,
+          suggestedType: evaluationSuggestions.suggestedType, // Correct property name
           priority: evaluationSuggestions.priority,
-          title: evaluationSuggestions.title,
-          description: evaluationSuggestions.description,
-          estimatedCost: evaluationSuggestions.estimatedCost,
           suggestedDate: evaluationSuggestions.suggestedDate,
           status: evaluationSuggestions.status,
-          postponedUntil: evaluationSuggestions.postponedUntil,
-          reasoning: evaluationSuggestions.reasoning,
-          notes: evaluationSuggestions.notes,
+          postponedTo: evaluationSuggestions.postponedTo, // Correct property name
+          reason: evaluationSuggestions.reason, // Correct property name
           createdAt: evaluationSuggestions.createdAt,
+          updatedAt: evaluationSuggestions.updatedAt,
           elementName: buildingElements.name,
+          uniformatCode: buildingElements.uniformatCode, // Get from buildingElements instead
         })
         .from(evaluationSuggestions)
         .leftJoin(buildingElements, eq(evaluationSuggestions.elementId, buildingElements.id))
-        .where(eq(evaluationSuggestions.buildingId, buildingId))
+        .where(eq(buildingElements.buildingId, buildingId)) // Filter by buildingId through join
         .orderBy(
           sql`
             CASE ${evaluationSuggestions.priority}
@@ -1884,15 +1911,17 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       const suggestionData: InsertEvaluationSuggestion = {
-        ...validation.data,
-        suggestedDate: validation.data.suggestedDate,
-        isSystemGenerated: false,
+        elementId: validation.data.elementId!,
+        suggestedDate: validation.data.suggestedDate.toISOString().split('T')[0], // Convert Date to string
+        suggestedType: validation.data.suggestionType, // Map suggestionType to suggestedType
+        reason: validation.data.reasoning || validation.data.description || 'Manual suggestion', // Map to reason field
+        priority: validation.data.priority,
       };
       
       // Create evaluation suggestion
       const [suggestion] = await db
         .insert(evaluationSuggestions)
-        .values(suggestionData)
+        .values([suggestionData])
         .returning();
       
       res.status(201).json({
@@ -1933,10 +1962,11 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      // Check suggestion exists and user has access
+      // Check suggestion exists and user has access (get buildingId through join)
       const suggestionResult = await db
-        .select({ buildingId: evaluationSuggestions.buildingId })
+        .select({ buildingId: buildingElements.buildingId })
         .from(evaluationSuggestions)
+        .leftJoin(buildingElements, eq(evaluationSuggestions.elementId, buildingElements.id))
         .where(eq(evaluationSuggestions.id, id))
         .limit(1);
       
@@ -1952,8 +1982,8 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       const updateData = {
-        ...validation.data,
-        postponedUntil: validation.data.postponedUntil ? new Date(validation.data.postponedUntil) : undefined,
+        status: validation.data.status,
+        postponedTo: validation.data.postponedUntil ? validation.data.postponedUntil.toISOString().split('T')[0] : undefined, // Map postponedUntil to postponedTo
         updatedAt: new Date(),
       };
       
