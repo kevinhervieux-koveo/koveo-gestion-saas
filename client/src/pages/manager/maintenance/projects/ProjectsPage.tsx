@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
-import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingContext, BuildingContextProvider } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject, EvaluationSuggestion } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
@@ -642,9 +642,14 @@ function ProjectsPageInner(props: ProjectsPageProps) {
   });
   
   return (
-    <div className={cn('flex-1 flex flex-col overflow-hidden bg-background', props.className)} data-testid="projects-page">
-      <ProjectsPageContent {...props} />
-    </div>
+    <BuildingContextProvider 
+      initialOrganizationId={props.organizationId}
+      initialBuildingId={props.buildingId}
+    >
+      <div className={cn('flex-1 flex flex-col overflow-hidden bg-background', props.className)} data-testid="projects-page">
+        <ProjectsPageContent {...props} />
+      </div>
+    </BuildingContextProvider>
   );
 }
 
