@@ -20,7 +20,7 @@ import { ElementDetailsPanel } from './ElementDetailsPanel';
 // Import existing maintenance components
 import { ElementTable } from '@/components/maintenance/inventory/ElementTable';
 import { ElementForm } from '@/components/maintenance/inventory/ElementForm';
-import { DocumentManager } from '@/components/maintenance/inventory/DocumentManager';
+import { ElementDocumentViewer } from '@/components/maintenance/inventory/ElementDocumentViewer';
 import { UniformatBrowser } from '@/components/maintenance/inventory/UniformatBrowser';
 import { HistoryTable } from '@/components/maintenance/inventory/HistoryTable';
 
@@ -169,14 +169,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     });
   }, [elementFormMode, toast]);
 
-  const handleDocumentManagerSuccess = useCallback(() => {
-    setShowDocumentManager(false);
-    
-    toast({
-      title: 'Documents Uploaded',
-      description: 'Documents have been successfully uploaded and attached to the element.',
-    });
-  }, [toast]);
 
   // Filter handlers
   const handleSearchChange = useCallback((term: string) => {
@@ -318,7 +310,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         }}
         onEdit={canEdit ? handleEditElement : undefined}
         onAddHistory={canEdit ? handleAddHistory : undefined}
-        onUploadDocuments={canManageDocuments ? handleUploadDocuments : undefined}
         onScheduleEvaluation={handleScheduleEvaluation}
       />
 
@@ -340,17 +331,15 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Document Manager - {selectedElement.name}</h2>
+              <h2 className="text-lg font-semibold">Element Documents - {selectedElement.name}</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowDocumentManager(false)}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
             <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
-              <DocumentManager
-                element={selectedElement}
-                onDocumentUploaded={handleDocumentManagerSuccess}
-                buildingId={buildingId}
-                organizationId={organizationId}
+              <ElementDocumentViewer
+                elementId={selectedElement.id}
+                elementName={selectedElement.name}
               />
             </div>
           </div>
