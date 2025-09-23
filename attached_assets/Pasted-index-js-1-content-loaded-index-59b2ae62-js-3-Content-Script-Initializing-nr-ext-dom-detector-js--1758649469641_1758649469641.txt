@@ -1,0 +1,331 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Elements for calculation: 0
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Sample element: undefined
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Total asset value: 0
+index-CPIOYFnq.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-CPIOYFnq.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-CPIOYFnq.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CPIOYFnq.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CPIOYFnq.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-DqCLpGv6.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DqCLpGv6.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CPIOYFnq.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-CPIOYFnq.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Elements for calculation: 11
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Sample element: {id: '66f6952e-e9c3-4562-ae26-cd0447211229', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: null, uniformatCode: 'G2010', name: 'Site Drainage', …}
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element Site Drainage: cost=1500.00
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element Electrical System: cost=0
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element Interior Partitions: cost=0
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element Main Building Roof: cost=0
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element  Roof Coverings: cost=0
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element windowssss - 5: cost=2500.00
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element windowssss - 4: cost=2500.00
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element windowssss - 3: cost=2500.00
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element Windows: cost=1.00
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element test: cost=150000.00
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Element test: cost=150000.00
+index-CPIOYFnq.js:6 🏗️ [ASSET VALUE DEBUG] Total asset value: 01500.0000002500.002500.002500.001.00150000.00150000.00
+withHierarchicalSelection-DqCLpGv6.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-DqCLpGv6.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CPIOYFnq.js:6 Building data: undefined
+overrideMethod @ hook.js:608
+mutationFn @ index-CPIOYFnq.js:6
+fn @ vendor-query-DvoMLT1F.js:1
+y @ vendor-query-DvoMLT1F.js:1
+start @ vendor-query-DvoMLT1F.js:1
+execute @ vendor-query-DvoMLT1F.js:1
+await in execute
+mutate @ vendor-query-DvoMLT1F.js:1
+(anonymous) @ vendor-query-DvoMLT1F.js:1
+x @ index-CPIOYFnq.js:6
+lr @ index-DZrkqScz.js:185
+q @ index-DZrkqScz.js:45
+yg @ index-DZrkqScz.js:185
+(anonymous) @ index-DZrkqScz.js:185
+Gm @ index-DZrkqScz.js:83
+rd @ index-DZrkqScz.js:185
+Ad @ index-DZrkqScz.js:194
+L1 @ index-DZrkqScz.js:194
+<button>
+du.jsxDEV @ index-DZrkqScz.js:15
+Button @ index-DZrkqScz.js:380
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+sh @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+Jh @ index-DZrkqScz.js:163
+Wc @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+mg @ index-DZrkqScz.js:185
+ml @ index-DZrkqScz.js:185
+ad @ index-DZrkqScz.js:185
+(anonymous) @ index-DZrkqScz.js:185
+<Button>
+du.jsxDEV @ index-DZrkqScz.js:15
+Br @ index-CPIOYFnq.js:6
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+Jh @ index-DZrkqScz.js:163
+Wc @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+mg @ index-DZrkqScz.js:185
+ml @ index-DZrkqScz.js:185
+ad @ index-DZrkqScz.js:185
+(anonymous) @ index-DZrkqScz.js:185
+<Br>
+du.jsxDEV @ index-DZrkqScz.js:15
+fa @ index-CPIOYFnq.js:6
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+WS @ index-DZrkqScz.js:163
+KS @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<fa>
+du.jsxDEV @ index-DZrkqScz.js:15
+ba @ index-CPIOYFnq.js:6
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+WS @ index-DZrkqScz.js:163
+KS @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<ba>
+du.jsxDEV @ index-DZrkqScz.js:15
+(anonymous) @ withHierarchicalSelection-DqCLpGv6.js:1
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+WS @ index-DZrkqScz.js:163
+KS @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-DZrkqScz.js:240
+P @ index-DZrkqScz.js:240
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+WS @ index-DZrkqScz.js:163
+KS @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<P>
+du.jsxDEV @ index-DZrkqScz.js:15
+ex @ index-DZrkqScz.js:384
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+Jh @ index-DZrkqScz.js:163
+Wc @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+mg @ index-DZrkqScz.js:185
+ml @ index-DZrkqScz.js:185
+ad @ index-DZrkqScz.js:185
+(anonymous) @ index-DZrkqScz.js:185
+<ex>
+du.jsxDEV @ index-DZrkqScz.js:15
+tx @ index-DZrkqScz.js:384
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+Jh @ index-DZrkqScz.js:163
+Wc @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<tx>
+du.jsxDEV @ index-DZrkqScz.js:15
+(anonymous) @ index-DZrkqScz.js:384
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CPIOYFnq.js:6 Building data: undefined
+overrideMethod @ hook.js:608
+mutationFn @ index-CPIOYFnq.js:6
+fn @ vendor-query-DvoMLT1F.js:1
+y @ vendor-query-DvoMLT1F.js:1
+start @ vendor-query-DvoMLT1F.js:1
+execute @ vendor-query-DvoMLT1F.js:1
+await in execute
+mutate @ vendor-query-DvoMLT1F.js:1
+(anonymous) @ vendor-query-DvoMLT1F.js:1
+x @ index-CPIOYFnq.js:6
+lr @ index-DZrkqScz.js:185
+q @ index-DZrkqScz.js:45
+yg @ index-DZrkqScz.js:185
+(anonymous) @ index-DZrkqScz.js:185
+Gm @ index-DZrkqScz.js:83
+rd @ index-DZrkqScz.js:185
+Ad @ index-DZrkqScz.js:194
+L1 @ index-DZrkqScz.js:194
+<button>
+du.jsxDEV @ index-DZrkqScz.js:15
+Button @ index-DZrkqScz.js:380
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+sh @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+Jh @ index-DZrkqScz.js:163
+Wc @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+mg @ index-DZrkqScz.js:185
+ml @ index-DZrkqScz.js:185
+ad @ index-DZrkqScz.js:185
+(anonymous) @ index-DZrkqScz.js:185
+<Button>
+du.jsxDEV @ index-DZrkqScz.js:15
+Br @ index-CPIOYFnq.js:6
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+Jh @ index-DZrkqScz.js:163
+Wc @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+mg @ index-DZrkqScz.js:185
+ml @ index-DZrkqScz.js:185
+ad @ index-DZrkqScz.js:185
+(anonymous) @ index-DZrkqScz.js:185
+<Br>
+du.jsxDEV @ index-DZrkqScz.js:15
+fa @ index-CPIOYFnq.js:6
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+WS @ index-DZrkqScz.js:163
+KS @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<fa>
+du.jsxDEV @ index-DZrkqScz.js:15
+ba @ index-CPIOYFnq.js:6
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+WS @ index-DZrkqScz.js:163
+KS @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<ba>
+du.jsxDEV @ index-DZrkqScz.js:15
+(anonymous) @ withHierarchicalSelection-DqCLpGv6.js:1
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+WS @ index-DZrkqScz.js:163
+KS @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-DZrkqScz.js:240
+P @ index-DZrkqScz.js:240
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+WS @ index-DZrkqScz.js:163
+KS @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<P>
+du.jsxDEV @ index-DZrkqScz.js:15
+ex @ index-DZrkqScz.js:384
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+Jh @ index-DZrkqScz.js:163
+Wc @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+mg @ index-DZrkqScz.js:185
+ml @ index-DZrkqScz.js:185
+ad @ index-DZrkqScz.js:185
+(anonymous) @ index-DZrkqScz.js:185
+<ex>
+du.jsxDEV @ index-DZrkqScz.js:15
+tx @ index-DZrkqScz.js:384
+react_stack_bottom_frame @ index-DZrkqScz.js:229
+oc @ index-DZrkqScz.js:120
+kc @ index-DZrkqScz.js:141
+Pc @ index-DZrkqScz.js:150
+q @ index-DZrkqScz.js:45
+Kh @ index-DZrkqScz.js:163
+Jh @ index-DZrkqScz.js:163
+Wc @ index-DZrkqScz.js:163
+Ih @ index-DZrkqScz.js:163
+fg @ index-DZrkqScz.js:185
+d @ index-DZrkqScz.js:23
+<tx>
+du.jsxDEV @ index-DZrkqScz.js:15
+(anonymous) @ index-DZrkqScz.js:384
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CPIOYFnq.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24

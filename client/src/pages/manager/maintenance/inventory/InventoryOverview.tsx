@@ -70,10 +70,14 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       if (!buildingId) throw new Error('Building ID is required');
       if (!organizationId) throw new Error('Organization ID is required');
       
-      // Get building name - handle both direct name and nested data structure
-      const buildingName = building?.name || building?.data?.name;
+      // Get building name from the query data
+      // Since building data might not be available, fetch it from the API
+      const buildingResponse = await apiRequest('GET', `/api/manager/buildings/${buildingId}`);
+      const buildingData = await buildingResponse.json();
+      const buildingName = buildingData?.data?.name;
+      
       if (!buildingName) {
-        console.error('Building data:', building);
+        console.error('Building data not found for ID:', buildingId);
         throw new Error('Building name is required');
       }
       
@@ -193,16 +197,10 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       .sort(([, a], [, b]) => b - a)[0]?.[0] || '';
 
     // Asset value calculation (sum of all reconstruction costs)
-    console.log('🏗️ [ASSET VALUE DEBUG] Elements for calculation:', elements?.length || 0);
-    console.log('🏗️ [ASSET VALUE DEBUG] Sample element:', elements?.[0]);
-    
     const totalAssetValue = elements.reduce((sum, element) => {
-      const cost = element.reconstructionCost || 0;
-      console.log(`🏗️ [ASSET VALUE DEBUG] Element ${element.name}: cost=${cost}`);
+      const cost = Number(element.reconstructionCost) || 0;
       return sum + cost;
     }, 0);
-    
-    console.log('🏗️ [ASSET VALUE DEBUG] Total asset value:', totalAssetValue);
 
     return {
       totalElements,
