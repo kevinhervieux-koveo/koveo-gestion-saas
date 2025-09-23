@@ -21,6 +21,9 @@ import { ProjectTableView } from './ProjectTableView';
 import { ProjectTimelineView } from './ProjectTimelineView';
 import { ProjectDashboardView } from './ProjectDashboardView';
 
+// Import auto-projects components
+import { AutoProjectsSection } from '@/components/maintenance/auto-projects';
+
 // Import existing maintenance components
 import {
   ProjectForm,
@@ -247,6 +250,16 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     });
   }, [toast]);
 
+  // Handle auto-project acceptance success
+  const handleAutoProjectAccepted = useCallback((project: MaintenanceProject) => {
+    console.log('📁 [PROJECTS SUCCESS] Auto-project accepted:', { projectId: project.id, projectTitle: project.title });
+    toast({
+      title: "Project Created Successfully",
+      description: `Auto-generated project "${project.title}" has been converted to a maintenance project.`,
+    });
+    // Projects will be automatically refreshed by React Query cache invalidation
+  }, [toast]);
+
   const handleStatusStepperSuccess = useCallback(() => {
     setShowStatusStepper(false);
     
@@ -387,6 +400,13 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-auto">
           <div className="p-6 space-y-6">
+            {/* Auto-Generated Projects Section */}
+            <AutoProjectsSection
+              buildingId={buildingId}
+              onProjectAccepted={handleAutoProjectAccepted}
+              defaultExpanded={true}
+            />
+
             {/* Project Overview */}
             <Collapsible 
               open={projectOverviewExpanded} 
