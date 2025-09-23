@@ -565,12 +565,12 @@ export function ElementForm({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
-      onSuccess?.(data.element);
+      onSuccess?.(data.data);
       onOpenChange(false);
       
       toast({
         title: mode === 'create' ? 'Element created' : 'Element updated',
-        description: `${data.element.name} has been ${mode === 'create' ? 'created' : 'updated'} successfully`,
+        description: `${data.data.name} has been ${mode === 'create' ? 'created' : 'updated'} successfully`,
       });
     },
     onError: (error: any) => {

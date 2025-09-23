@@ -1,0 +1,205 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-C7c4O_OT.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-C7c4O_OT.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/f0e34e59-0d81-4c1a-b95f-e23dd1667a19/buildings
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-C7c4O_OT.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-C7c4O_OT.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-DdbG8-QC.js:185 [Violation] 'setTimeout' handler took 60ms
+index-DdbG8-QC.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-DdbG8-QC.js:186
+h1 @ index-DdbG8-QC.js:186
+q @ index-DdbG8-QC.js:45
+Qc @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+Vt @ index-DdbG8-QC.js:163
+zh @ index-DdbG8-QC.js:163
+tg @ index-DdbG8-QC.js:163
+ed @ index-DdbG8-QC.js:163
+Xh @ index-DdbG8-QC.js:163
+Ih @ index-DdbG8-QC.js:163
+mg @ index-DdbG8-QC.js:185
+ml @ index-DdbG8-QC.js:185
+jo @ index-DdbG8-QC.js:163
+Gm @ index-DdbG8-QC.js:83
+rd @ index-DdbG8-QC.js:185
+Ad @ index-DdbG8-QC.js:194
+L1 @ index-DdbG8-QC.js:194
+index-D7FKSkCG.js:12 Document uploaded: {file: File, text: null}
+index-CYlQ17kP.js:41 Form submission error: TypeError: Cannot read properties of undefined (reading 'name')
+    at index-D7FKSkCG.js:12:132397
+    at Object.onSuccess (index-D7FKSkCG.js:12:23432)
+    at qt.execute (vendor-query-7MgX5BiQ.js:1:15570)
+    at async l (index-D7FKSkCG.js:12:23925)
+    at async J (index-CYlQ17kP.js:41:5757)
+    at async vendor-forms-gPm21tRI.js:1:21154
+overrideMethod @ hook.js:608
+J @ index-CYlQ17kP.js:41
+await in J
+(anonymous) @ vendor-forms-gPm21tRI.js:1
+await in (anonymous)
+lr @ index-DdbG8-QC.js:185
+q @ index-DdbG8-QC.js:45
+yg @ index-DdbG8-QC.js:185
+(anonymous) @ index-DdbG8-QC.js:185
+Gm @ index-DdbG8-QC.js:83
+rd @ index-DdbG8-QC.js:185
+Ad @ index-DdbG8-QC.js:194
+L1 @ index-DdbG8-QC.js:194
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-D7FKSkCG.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
