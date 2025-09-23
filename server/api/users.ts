@@ -1921,7 +1921,7 @@ export function registerUserRoutes(app: Express): void {
           province: schema.buildings.province,
           postalCode: schema.buildings.postalCode,
           buildingType: schema.buildings.buildingType,
-          yearBuilt: schema.buildings.yearBuilt,
+          constructionDate: schema.buildings.constructionDate,
           totalFloors: schema.buildings.totalFloors,
           parkingSpaces: schema.buildings.parkingSpaces,
           storageSpaces: schema.buildings.storageSpaces,

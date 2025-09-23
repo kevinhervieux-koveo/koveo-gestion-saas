@@ -21,7 +21,7 @@ export interface BuildingCreateData {
   province?: string;
   postalCode?: string;
   buildingType?: 'apartment' | 'condo' | 'rental';
-  yearBuilt?: number;
+  constructionDate?: string;
   totalUnits?: number;
   totalFloors?: number;
   parkingSpaces?: number;
@@ -60,7 +60,7 @@ export async function createBuilding(buildingData: BuildingCreateData) {
       province: buildingData.province || 'QC',
       postalCode: buildingData.postalCode || '',
       buildingType: (buildingData.buildingType as 'apartment' | 'condo' | 'rental') || 'condo',
-      yearBuilt: buildingData.yearBuilt,
+      constructionDate: buildingData.constructionDate,
       totalUnits: buildingData.totalUnits || 0,
       totalFloors: buildingData.totalFloors,
       parkingSpaces: buildingData.parkingSpaces,
@@ -310,7 +310,7 @@ export async function updateBuilding(buildingId: string, buildingData: BuildingU
       province: buildingData.province || 'QC',
       postalCode: buildingData.postalCode || '',
       buildingType: (buildingData.buildingType as 'apartment' | 'condo' | 'rental') || 'condo',
-      yearBuilt: buildingData.yearBuilt,
+      constructionDate: buildingData.constructionDate,
       totalUnits: buildingData.totalUnits || 0,
       totalFloors: buildingData.totalFloors,
       parkingSpaces: buildingData.parkingSpaces,

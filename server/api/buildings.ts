@@ -739,7 +739,7 @@ export function registerBuildingRoutes(app: Express): void {
           province: buildings.province,
           postalCode: buildings.postalCode,
           buildingType: buildings.buildingType,
-          yearBuilt: buildings.yearBuilt,
+          constructionDate: buildings.constructionDate,
           totalUnits: buildings.totalUnits,
           totalFloors: buildings.totalFloors,
           parkingSpaces: buildings.parkingSpaces,
