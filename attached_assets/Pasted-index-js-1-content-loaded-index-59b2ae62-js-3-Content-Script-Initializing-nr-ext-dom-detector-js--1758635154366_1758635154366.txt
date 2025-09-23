@@ -1,0 +1,113 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-BdkMkOYT.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-Cr9_W8MO.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-Cr9_W8MO.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-BdkMkOYT.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: true, isDirty: false, errorCount: 0, …}
+withHierarchicalSelection-Cr9_W8MO.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-Cr9_W8MO.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BdkMkOYT.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-BdkMkOYT.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BdkMkOYT.js:6 🏠 [INVENTORY ACTION] handleEditElement called: {elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', elementName: 'Site Drainage'}
+index-BdkMkOYT.js:6 🏠 [INVENTORY STATE] Element form opened in edit mode
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: true, isDirty: false, errorCount: 0, …}
+index-BdkMkOYT.js:6 🔄 [EDIT MODE DEBUG] Loading element data: {elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', rawElement: {…}, transformedFormData: {…}}
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: true, errors: {…}, …}
+index-BdkMkOYT.js:6 ✅ [EDIT MODE DEBUG] Form reset completed. Form state after reset: {isValid: true, errors: {…}}
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: true, isDirty: false, errorCount: 0, …}
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Thu Sep 23 2027 09:45:36 GMT-0400 (Eastern Daylight Time), isValid: true, errors: {…}, …}
+index-BdkMkOYT.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: true, isDirty: false, errorCount: 0, …}
+index-BWgnyq99.js:240  PUT https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/elements/66f6952e-e9c3-4562-ae26-cd0447211229 400 (Bad Request)
+sx @ index-BWgnyq99.js:240
+mutationFn @ index-BdkMkOYT.js:6
+fn @ vendor-query-7MgX5BiQ.js:1
+y @ vendor-query-7MgX5BiQ.js:1
+start @ vendor-query-7MgX5BiQ.js:1
+execute @ vendor-query-7MgX5BiQ.js:1
+await in execute
+mutate @ vendor-query-7MgX5BiQ.js:1
+z @ index-BdkMkOYT.js:6
+y @ FormModal-CrBnb5o9.js:62
+(anonymous) @ vendor-forms-DXLf4S2w.js:1
+await in (anonymous)
+lr @ index-BWgnyq99.js:185
+q @ index-BWgnyq99.js:45
+yg @ index-BWgnyq99.js:185
+(anonymous) @ index-BWgnyq99.js:185
+Gm @ index-BWgnyq99.js:83
+rd @ index-BWgnyq99.js:185
+Ad @ index-BWgnyq99.js:194
+L1 @ index-BWgnyq99.js:194
+<form>
+du.jsxDEV @ index-BWgnyq99.js:15
+Hn @ FormModal-CrBnb5o9.js:62
+react_stack_bottom_frame @ index-BWgnyq99.js:229
+oc @ index-BWgnyq99.js:120
+kc @ index-BWgnyq99.js:141
+Pc @ index-BWgnyq99.js:150
+q @ index-BWgnyq99.js:45
+Kh @ index-BWgnyq99.js:163
+Jh @ index-BWgnyq99.js:163
+Wc @ index-BWgnyq99.js:163
+Ih @ index-BWgnyq99.js:163
+mg @ index-BWgnyq99.js:185
+ml @ index-BWgnyq99.js:185
+ad @ index-BWgnyq99.js:185
+(anonymous) @ index-BWgnyq99.js:185
+FormModal-CrBnb5o9.js:62 Form submission error: Error: 400: {"error":"Invalid element data","details":[{"expected":"string","code":"invalid_type","path":["unit"],"message":"Invalid input: expected string, received null"}]}
+    at k0 (index-BWgnyq99.js:240:6803)
+    at async sx (index-BWgnyq99.js:240:7065)
+    at async Object.mutationFn (index-BdkMkOYT.js:6:130550)
+overrideMethod @ hook.js:608
+y @ FormModal-CrBnb5o9.js:62
+await in y
+(anonymous) @ vendor-forms-DXLf4S2w.js:1
+await in (anonymous)
+lr @ index-BWgnyq99.js:185
+q @ index-BWgnyq99.js:45
+yg @ index-BWgnyq99.js:185
+(anonymous) @ index-BWgnyq99.js:185
+Gm @ index-BWgnyq99.js:83
+rd @ index-BWgnyq99.js:185
+Ad @ index-BWgnyq99.js:194
+L1 @ index-BWgnyq99.js:194
+<form>
+du.jsxDEV @ index-BWgnyq99.js:15
+Hn @ FormModal-CrBnb5o9.js:62
+react_stack_bottom_frame @ index-BWgnyq99.js:229
+oc @ index-BWgnyq99.js:120
+kc @ index-BWgnyq99.js:141
+Pc @ index-BWgnyq99.js:150
+q @ index-BWgnyq99.js:45
+Kh @ index-BWgnyq99.js:163
+Jh @ index-BWgnyq99.js:163
+Wc @ index-BWgnyq99.js:163
+Ih @ index-BWgnyq99.js:163
+mg @ index-BWgnyq99.js:185
+ml @ index-BWgnyq99.js:185
+ad @ index-BWgnyq99.js:185
+(anonymous) @ index-BWgnyq99.js:185
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BdkMkOYT.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
