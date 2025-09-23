@@ -113,7 +113,7 @@ export function ProjectForm({
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [initialVendorId, setInitialVendorId] = useState<string | undefined>(undefined);
 
-  // Fetch vendors for selection
+  // Fetch vendors for selection (only needed for edit mode)
   const {
     data: vendorsResponse,
     isLoading: isLoadingVendors,
@@ -124,7 +124,7 @@ export function ProjectForm({
       const response = await apiRequest('GET', `/api/maintenance/vendors?buildingId=${buildingId}`);
       return await response.json();
     },
-    enabled: !!buildingId,
+    enabled: !!buildingId && mode === 'edit',
   });
 
   // Fetch currently selected vendor for editing projects
@@ -166,7 +166,7 @@ export function ProjectForm({
       plannedStartDate: project?.plannedStartDate ? new Date(project.plannedStartDate) : undefined,
       suggestionId: project?.suggestionId || evaluationSuggestion?.id,
       description: project?.planningDescription || '',
-      vendorId: undefined, // Will be populated from selectedVendorResponse when editing
+      vendorId: mode === 'create' ? undefined : undefined, // Automatically 'to be determined' for new projects, populated for editing
       createdBy: project?.createdBy || '', // This will be set by the backend
     },
   });
@@ -640,55 +640,71 @@ export function ProjectForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="vendorId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Assigned Vendor</FormLabel>
-                <Select onValueChange={handleVendorSelect} value={String(field.value || '')}>
-                  <FormControl>
-                    <SelectTrigger data-testid="select-vendor">
-                      <SelectValue placeholder="Select vendor (optional)" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="create_new" className="text-blue-600 font-medium">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span>Create New Vendor</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="to_be_determined">To be Determined</SelectItem>
-                    <SelectItem value="none">No vendor assigned</SelectItem>
-                    {isLoadingVendors ? (
-                      <div className="p-2">
-                        <Skeleton className="h-4 w-full" />
-                      </div>
-                    ) : (
-                      vendorsData.map((vendor: any) => (
-                        <SelectItem key={vendor.id} value={vendor.id}>
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            <div className="flex flex-col">
-                              <span>{vendor.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {vendor.category}
-                              </span>
+          {/* Show vendor selection only in edit mode */}
+          {mode === 'edit' && (
+            <FormField
+              control={form.control}
+              name="vendorId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned Vendor</FormLabel>
+                  <Select onValueChange={handleVendorSelect} value={String(field.value || '')}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-vendor">
+                        <SelectValue placeholder="Select vendor (optional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="create_new" className="text-blue-600 font-medium">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          <span>Create New Vendor</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="to_be_determined">To be Determined</SelectItem>
+                      <SelectItem value="none">No vendor assigned</SelectItem>
+                      {isLoadingVendors ? (
+                        <div className="p-2">
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                      ) : (
+                        vendorsData.map((vendor: any) => (
+                          <SelectItem key={vendor.id} value={vendor.id}>
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4" />
+                              <div className="flex flex-col">
+                                <span>{vendor.name}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {vendor.category}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Contractor or vendor assigned to this project
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Contractor or vendor assigned to this project
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
+          {/* Show vendor info for create mode */}
+          {mode === 'create' && (
+            <div className="flex items-center justify-center p-4 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
+              <div className="text-center space-y-2">
+                <User className="h-8 w-8 mx-auto text-muted-foreground" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-muted-foreground">Vendor Assignment</p>
+                  <p className="text-xs text-muted-foreground">Vendor selection will be available during the submission phase</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Current Cost (for edit mode) */}
@@ -725,14 +741,16 @@ export function ProjectForm({
       </div>
     </FormModal>
     
-    {/* Vendor Creation Dialog */}
-    <VendorForm
-      isOpen={isVendorFormOpen}
-      onOpenChange={setIsVendorFormOpen}
-      onSuccess={handleVendorCreated}
-      organizationId={organizationId || undefined}
-      buildingId={buildingId}
-    />
+    {/* Vendor Creation Dialog - only for edit mode */}
+    {mode === 'edit' && (
+      <VendorForm
+        isOpen={isVendorFormOpen}
+        onOpenChange={setIsVendorFormOpen}
+        onSuccess={handleVendorCreated}
+        organizationId={organizationId || undefined}
+        buildingId={buildingId}
+      />
+    )}
     </>
   );
 }
