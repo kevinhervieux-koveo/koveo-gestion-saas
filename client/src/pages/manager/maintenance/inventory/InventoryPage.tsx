@@ -110,10 +110,15 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     queryFn: async () => {
       if (!buildingId) return null;
       const response = await apiRequest('GET', `/api/manager/buildings/${buildingId}`);
-      return await response.json();
+      const result = await response.json();
+      console.log('🏠 [INVENTORY PAGE] API Response:', result);
+      console.log('🏠 [INVENTORY PAGE] Construction Date in API:', result?.constructionDate);
+      return result;
     },
     enabled: !!buildingId,
   });
+
+  console.log('🏠 [INVENTORY PAGE] buildingData passed to InventoryOverview:', buildingData);
 
 
   // State for modals and panels
