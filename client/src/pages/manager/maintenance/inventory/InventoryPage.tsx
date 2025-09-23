@@ -289,7 +289,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-auto">
-          <div className="p-6 space-y-6">
+          <div className="space-y-6">
             {/* Overview Cards */}
             <InventoryOverview 
               buildingId={buildingId}
@@ -342,7 +342,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                 </div>
               </div>
               
-              <CollapsibleContent className="space-y-4">
+              <CollapsibleContent>
                 {/* Controls Section */}
                 <div className="p-4 bg-muted/25 rounded-lg border">
                   <div className="flex flex-wrap items-center gap-3">
