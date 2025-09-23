@@ -485,38 +485,41 @@ export function ElementTable({
   const bulkActions = useMemo(() => {
     if (!enableBulkActions || selectedElementsCount === 0) return null;
 
-    const handleBulkConditionUpdate = async (condition: string) => {
-      await bulkUpdateMutation.mutateAsync({
-        elementIds: selectedElementIds,
-        updates: { currentCondition: condition as any },
+    const handleBulkDelete = async () => {
+      if (!confirm(`Are you sure you want to delete ${selectedElementsCount} element(s)? This action cannot be undone.`)) {
+        return;
+      }
+      
+      try {
+        for (const elementId of selectedElementIds) {
+          await deleteElementMutation.mutateAsync(elementId);
+        }
+        setRowSelection({});
+        toast({
+          title: 'Elements deleted',
+          description: `Successfully deleted ${selectedElementsCount} element(s)`,
+        });
+      } catch (error) {
+        toast({
+          title: 'Delete failed',
+          description: 'Failed to delete some elements',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    const handleResidenceAssignment = () => {
+      toast({
+        title: 'Residence Assignment',
+        description: `Ready to assign ${selectedElementsCount} element(s) to residence. Feature coming soon!`,
       });
     };
 
-    const handleBulkExport = () => {
-      const selectedElements = elements.filter(el => selectedElementIds.includes(el.id));
-      const csvData = selectedElements.map(el => ({
-        Name: el.name,
-        'UNIFORMAT Code': el.uniformatCode,
-        Condition: el.currentCondition,
-        'Construction Date': el.originalConstructionDate || '',
-        'Original Lifespan': el.originalLifespan || '',
-        'Current Lifespan': el.currentLifespan || '',
-        'Last Inspection': el.lastInspectionDate || '',
-        'Next Evaluation': el.nextEvaluationDate || '',
-      }));
-      
-      const csvContent = [
-        Object.keys(csvData[0]).join(','),
-        ...csvData.map(row => Object.values(row).join(','))
-      ].join('\n');
-      
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `building-elements-${format(new Date(), 'yyyy-MM-dd')}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+    const handleCostUpdate = () => {
+      toast({
+        title: 'Cost Update',
+        description: `Ready to update cost for ${selectedElementsCount} element(s). Feature coming soon!`,
+      });
     };
 
     return (
@@ -528,78 +531,36 @@ export function ElementTable({
         </div>
         
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              // Get selected elements
-              const selectedElements = elements.filter(el => selectedElementIds.includes(el.id));
-              
-              if (selectedElements.length === 0) {
-                toast({
-                  title: 'No elements selected',
-                  description: 'Please select elements to edit',
-                  variant: 'destructive',
-                });
-                return;
-              }
-
-              // For now, open edit for the first element as an example
-              // In a full implementation, this would open a bulk edit modal
-              if (onEditElement && selectedElements[0]) {
-                onEditElement(selectedElements[0]);
-                toast({
-                  title: 'Bulk Edit',
-                  description: `Editing first of ${selectedElementsCount} selected element(s). Full bulk edit coming soon!`,
-                });
-              } else {
-                toast({
-                  title: 'Bulk Edit',
-                  description: `Ready to edit ${selectedElementsCount} element(s): ${selectedElements.map(el => el.name).join(', ')}`,
-                });
-              }
-            }}
-            data-testid="bulk-edit-button"
-          >
-            <Edit2 className="h-4 w-4 mr-2" />
-            Bulk Edit
-          </Button>
-          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" data-testid="bulk-condition-button">
-                <CheckSquare className="h-4 w-4 mr-2" />
-                Update Condition
+              <Button 
+                variant="outline" 
+                size="sm"
+                data-testid="bulk-edit-button"
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                Bulk Edit
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleBulkConditionUpdate('excellent')}>
-                Excellent
+              <DropdownMenuItem onClick={handleResidenceAssignment}>
+                <Building className="h-4 w-4 mr-2" />
+                Change Residence Assignment
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleBulkConditionUpdate('good')}>
-                Good
+              <DropdownMenuItem onClick={handleCostUpdate}>
+                <Package className="h-4 w-4 mr-2" />
+                Update Cost
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleBulkConditionUpdate('fair')}>
-                Fair
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleBulkConditionUpdate('poor')}>
-                Poor
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleBulkConditionUpdate('critical')}>
-                Critical
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={handleBulkDelete}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Selected
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleBulkExport}
-            data-testid="bulk-export-button"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
           
           <Button 
             variant="ghost" 
@@ -670,7 +631,6 @@ export function ElementTable({
           enablePagination={true}
           enableSorting={true}
           enableFiltering={true}
-          renderRowActions={renderRowActions}
         />
       </div>
     </div>
