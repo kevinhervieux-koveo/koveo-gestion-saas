@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, UseFormReturn, FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { format, addYears } from 'date-fns';
@@ -38,20 +38,20 @@ const elementFormSchema = z.object({
   uniformatCode: z.string().min(1, 'UNIFORMAT code is required'),
   name: z.string().min(1, 'Element name is required').max(200),
   description: z.string().optional(),
-  residenceId: z.string().uuid().nullable().default(null), // Single residence selection, null for building-wide
-  originalConstructionDate: z.string().optional(),
-  lastInspectionDate: z.string().optional(),
-  nextEvaluationDate: z.string().optional(),
-  originalLifespan: z.coerce.number().min(1).max(200).optional(),
-  currentLifespan: z.coerce.number().min(1).max(200).optional(),
+  residenceId: z.string().uuid().nullable().optional(), // Match database schema
+  originalConstructionDate: z.coerce.date().optional(), // Use date objects like database schema
+  lastInspectionDate: z.coerce.date().optional(), // Use date objects like database schema
+  nextEvaluationDate: z.coerce.date().optional(), // Use date objects like database schema
+  originalLifespan: z.coerce.number().int().positive().optional(), // Match database validation
+  currentLifespan: z.coerce.number().int().positive().optional(), // Match database validation
   currentCondition: z.enum(['excellent', 'good', 'fair', 'poor', 'critical']),
   unit: z.string().max(20).optional(),
-  unitValue: z.coerce.number().min(0).optional(),
+  unitValue: z.coerce.number().positive().optional(), // Match database validation (positive, not min 0)
   notes: z.string().optional(),
-  reconstructionCost: z.coerce.number().min(0).optional(),
-  costEstimationDate: z.string().optional(),
-  access: z.enum(['not_restrained', 'restrained']).default('not_restrained'),
-  charge: z.enum(['common', 'personnal']).default('common'),
+  reconstructionCost: z.coerce.number().positive().optional(), // Match database validation (positive, not min 0)
+  costEstimationDate: z.coerce.date().optional(), // Use date objects like database schema
+  access: z.enum(['not_restrained', 'restrained']).optional().default('not_restrained'),
+  charge: z.enum(['common', 'personnal']).optional().default('common'),
   // Additional form-only fields
   autoCalculateEvaluation: z.boolean().optional(),
   quantity: z.coerce.number().min(1).max(1000).default(1), // Duplicate/quantity field
@@ -466,7 +466,7 @@ export function ElementForm({
       unitValue: undefined,
       notes: '',
       reconstructionCost: undefined,
-      costEstimationDate: format(new Date(), 'yyyy-MM-dd'),
+      costEstimationDate: new Date(),
       access: 'not_restrained',
       charge: 'common',
       autoCalculateEvaluation: true,
@@ -482,18 +482,35 @@ export function ElementForm({
   // Update form when element changes
   useEffect(() => {
     if (element && (mode === 'edit' || mode === 'view')) {
+      // Helper function to convert date strings to Date objects
+      const parseDate = (dateString: string | null | undefined): Date | undefined => {
+        if (!dateString) return undefined;
+        const date = new Date(dateString);
+        return isNaN(date.getTime()) ? undefined : date;
+      };
+
       const formData = {
         ...element,
         buildingId: element.buildingId,
+        residenceId: element.residenceId || null, // Ensure null for building-wide
         description: element.description || '',
         notes: element.notes || '',
         originalLifespan: element.originalLifespan || undefined,
         currentLifespan: element.currentLifespan || undefined,
         unitValue: element.unitValue ? Number(element.unitValue) : undefined,
         reconstructionCost: element.reconstructionCost ? Number(element.reconstructionCost) : undefined,
-        costEstimationDate: element.costEstimationDate || format(new Date(), 'yyyy-MM-dd'),
+        // Convert date strings to Date objects for form validation
+        originalConstructionDate: parseDate(element.originalConstructionDate),
+        lastInspectionDate: parseDate(element.lastInspectionDate),
+        nextEvaluationDate: parseDate(element.nextEvaluationDate),
+        costEstimationDate: parseDate(element.costEstimationDate) || new Date(),
+        // Ensure required enum fields are set
+        access: element.access || 'not_restrained',
+        charge: element.charge || 'common',
         autoCalculateEvaluation: true,
+        quantity: 1, // Default for existing elements
       };
+      
       
       form.reset(formData);
       
@@ -513,7 +530,7 @@ export function ElementForm({
         unitValue: undefined,
         notes: '',
         reconstructionCost: undefined,
-        costEstimationDate: format(new Date(), 'yyyy-MM-dd'),
+        costEstimationDate: new Date(), // Use Date object for validation
         access: 'not_restrained',
         charge: 'common',
         autoCalculateEvaluation: true,
@@ -528,7 +545,7 @@ export function ElementForm({
       const constructionYear = buildingData?.constructionYear || buildingData?.yearBuilt || buildingData?.year;
       if (constructionYear) {
         const defaultConstructionDate = new Date(constructionYear, 0, 1); // January 1st of the year
-        form.setValue('originalConstructionDate', format(defaultConstructionDate, 'yyyy-MM-dd'));
+        form.setValue('originalConstructionDate', defaultConstructionDate); // Use Date object
       } else {
         form.setValue('originalConstructionDate', undefined);
       }
@@ -541,6 +558,7 @@ export function ElementForm({
   const selectedCondition = form.watch('currentCondition');
   const currentLifespan = form.watch('currentLifespan');
   const originalLifespan = form.watch('originalLifespan');
+
 
   useEffect(() => {
     if (autoCalculateEvaluation && (currentLifespan || originalLifespan)) {
@@ -559,7 +577,7 @@ export function ElementForm({
       const yearsUntilEvaluation = Math.max(1, Math.round(yearsLeft * multiplier * 0.15));
       
       const calculatedDate = addYears(new Date(), yearsUntilEvaluation);
-      form.setValue('nextEvaluationDate', format(calculatedDate, 'yyyy-MM-dd'));
+      form.setValue('nextEvaluationDate', calculatedDate); // Use Date object directly
     }
   }, [autoCalculateEvaluation, currentLifespan, originalLifespan, selectedCondition, form]);
 
@@ -568,10 +586,24 @@ export function ElementForm({
   // Create/update mutation
   const mutation = useMutation({
     mutationFn: async (data: ElementFormData) => {
+      // Convert Date objects back to ISO strings for API
+      const formatDate = (date: Date | undefined): string | undefined => {
+        if (!date) return undefined;
+        return date.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+      };
+
       const payload = {
         ...data,
-        // Date fields are already in the correct format from the form
+        // Convert Date objects to strings for API
+        originalConstructionDate: formatDate(data.originalConstructionDate),
+        lastInspectionDate: formatDate(data.lastInspectionDate),
+        nextEvaluationDate: formatDate(data.nextEvaluationDate),
+        costEstimationDate: formatDate(data.costEstimationDate),
+        // Remove form-only fields
+        autoCalculateEvaluation: undefined,
+        quantity: undefined,
       };
+
 
       if (mode === 'edit' && element) {
         const response = await apiRequest('PUT', `/api/maintenance/elements/${element.id}`, payload);
@@ -648,7 +680,7 @@ export function ElementForm({
         ? 'View building element information and condition'
         : 'Update the building element information and condition'
       }
-      form={form}
+      form={form as any}
       onSubmit={handleSubmit}
       isSubmitting={mutation.isPending}
       mode={currentMode}
@@ -928,7 +960,11 @@ export function ElementForm({
             >
               {(field) => (
                 <Input
-                  {...field}
+                  value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => {
+                    const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                    field.onChange(dateValue);
+                  }}
                   type="date"
                   max={format(new Date(), 'yyyy-MM-dd')}
                   data-testid="construction-date-input"
@@ -1053,7 +1089,11 @@ export function ElementForm({
               </div>
               
               <Input
-                {...field}
+                value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                onChange={(e) => {
+                  const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                  field.onChange(dateValue);
+                }}
                 type="date"
                 min={format(new Date(), 'yyyy-MM-dd')}
                 disabled={autoCalculateEvaluation || isFormDisabled}
@@ -1107,7 +1147,11 @@ export function ElementForm({
             >
               {(field) => (
                 <Input
-                  {...field}
+                  value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => {
+                    const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                    field.onChange(dateValue);
+                  }}
                   type="date"
                   max={format(new Date(), 'yyyy-MM-dd')}
                   data-testid="cost-estimation-date-input"
