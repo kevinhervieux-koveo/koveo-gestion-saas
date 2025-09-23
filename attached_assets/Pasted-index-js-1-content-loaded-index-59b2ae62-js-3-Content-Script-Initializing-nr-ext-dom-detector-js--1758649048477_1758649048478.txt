@@ -1,0 +1,176 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CeuvfR6G.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-CeuvfR6G.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-CeuvfR6G.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CeuvfR6G.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CeuvfR6G.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-DZj-NehO.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DZj-NehO.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CeuvfR6G.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-CeuvfR6G.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-CeuvfR6G.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-CeuvfR6G.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-DZj-NehO.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-DZj-NehO.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-cJbvjfFs.js:185 [Violation] 'setTimeout' handler took 63ms
+index-cJbvjfFs.js:240  PUT https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/buildings/15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24 400 (Bad Request)
+sx @ index-cJbvjfFs.js:240
+mutationFn @ index-CeuvfR6G.js:6
+fn @ vendor-query-n3iRAaxs.js:1
+y @ vendor-query-n3iRAaxs.js:1
+start @ vendor-query-n3iRAaxs.js:1
+execute @ vendor-query-n3iRAaxs.js:1
+await in execute
+mutate @ vendor-query-n3iRAaxs.js:1
+(anonymous) @ vendor-query-n3iRAaxs.js:1
+x @ index-CeuvfR6G.js:6
+lr @ index-cJbvjfFs.js:185
+q @ index-cJbvjfFs.js:45
+yg @ index-cJbvjfFs.js:185
+(anonymous) @ index-cJbvjfFs.js:185
+Gm @ index-cJbvjfFs.js:83
+rd @ index-cJbvjfFs.js:185
+Ad @ index-cJbvjfFs.js:194
+L1 @ index-cJbvjfFs.js:194
+<button>
+du.jsxDEV @ index-cJbvjfFs.js:15
+Button @ index-cJbvjfFs.js:380
+react_stack_bottom_frame @ index-cJbvjfFs.js:229
+oc @ index-cJbvjfFs.js:120
+sh @ index-cJbvjfFs.js:141
+Pc @ index-cJbvjfFs.js:150
+q @ index-cJbvjfFs.js:45
+Kh @ index-cJbvjfFs.js:163
+Jh @ index-cJbvjfFs.js:163
+Wc @ index-cJbvjfFs.js:163
+Ih @ index-cJbvjfFs.js:163
+mg @ index-cJbvjfFs.js:185
+ml @ index-cJbvjfFs.js:185
+ad @ index-cJbvjfFs.js:185
+(anonymous) @ index-cJbvjfFs.js:185
+<Button>
+du.jsxDEV @ index-cJbvjfFs.js:15
+Br @ index-CeuvfR6G.js:6
+react_stack_bottom_frame @ index-cJbvjfFs.js:229
+oc @ index-cJbvjfFs.js:120
+kc @ index-cJbvjfFs.js:141
+Pc @ index-cJbvjfFs.js:150
+q @ index-cJbvjfFs.js:45
+Kh @ index-cJbvjfFs.js:163
+Jh @ index-cJbvjfFs.js:163
+Wc @ index-cJbvjfFs.js:163
+Ih @ index-cJbvjfFs.js:163
+mg @ index-cJbvjfFs.js:185
+ml @ index-cJbvjfFs.js:185
+ad @ index-cJbvjfFs.js:185
+(anonymous) @ index-cJbvjfFs.js:185
+<Br>
+du.jsxDEV @ index-cJbvjfFs.js:15
+fa @ index-CeuvfR6G.js:6
+react_stack_bottom_frame @ index-cJbvjfFs.js:229
+oc @ index-cJbvjfFs.js:120
+kc @ index-cJbvjfFs.js:141
+Pc @ index-cJbvjfFs.js:150
+q @ index-cJbvjfFs.js:45
+Kh @ index-cJbvjfFs.js:163
+WS @ index-cJbvjfFs.js:163
+KS @ index-cJbvjfFs.js:163
+Ih @ index-cJbvjfFs.js:163
+fg @ index-cJbvjfFs.js:185
+d @ index-cJbvjfFs.js:23
+<fa>
+du.jsxDEV @ index-cJbvjfFs.js:15
+ba @ index-CeuvfR6G.js:6
+react_stack_bottom_frame @ index-cJbvjfFs.js:229
+oc @ index-cJbvjfFs.js:120
+kc @ index-cJbvjfFs.js:141
+Pc @ index-cJbvjfFs.js:150
+q @ index-cJbvjfFs.js:45
+Kh @ index-cJbvjfFs.js:163
+WS @ index-cJbvjfFs.js:163
+KS @ index-cJbvjfFs.js:163
+Ih @ index-cJbvjfFs.js:163
+fg @ index-cJbvjfFs.js:185
+d @ index-cJbvjfFs.js:23
+<ba>
+du.jsxDEV @ index-cJbvjfFs.js:15
+(anonymous) @ withHierarchicalSelection-DZj-NehO.js:1
+react_stack_bottom_frame @ index-cJbvjfFs.js:229
+oc @ index-cJbvjfFs.js:120
+kc @ index-cJbvjfFs.js:141
+Pc @ index-cJbvjfFs.js:150
+q @ index-cJbvjfFs.js:45
+Kh @ index-cJbvjfFs.js:163
+WS @ index-cJbvjfFs.js:163
+KS @ index-cJbvjfFs.js:163
+Ih @ index-cJbvjfFs.js:163
+fg @ index-cJbvjfFs.js:185
+d @ index-cJbvjfFs.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-cJbvjfFs.js:240
+P @ index-cJbvjfFs.js:240
+react_stack_bottom_frame @ index-cJbvjfFs.js:229
+oc @ index-cJbvjfFs.js:120
+kc @ index-cJbvjfFs.js:141
+Pc @ index-cJbvjfFs.js:150
+q @ index-cJbvjfFs.js:45
+Kh @ index-cJbvjfFs.js:163
+WS @ index-cJbvjfFs.js:163
+KS @ index-cJbvjfFs.js:163
+Ih @ index-cJbvjfFs.js:163
+fg @ index-cJbvjfFs.js:185
+d @ index-cJbvjfFs.js:23
+<P>
+du.jsxDEV @ index-cJbvjfFs.js:15
+ex @ index-cJbvjfFs.js:384
+react_stack_bottom_frame @ index-cJbvjfFs.js:229
+oc @ index-cJbvjfFs.js:120
+kc @ index-cJbvjfFs.js:141
+Pc @ index-cJbvjfFs.js:150
+q @ index-cJbvjfFs.js:45
+Kh @ index-cJbvjfFs.js:163
+Jh @ index-cJbvjfFs.js:163
+Wc @ index-cJbvjfFs.js:163
+Ih @ index-cJbvjfFs.js:163
+mg @ index-cJbvjfFs.js:185
+ml @ index-cJbvjfFs.js:185
+ad @ index-cJbvjfFs.js:185
+(anonymous) @ index-cJbvjfFs.js:185
+<ex>
+du.jsxDEV @ index-cJbvjfFs.js:15
+tx @ index-cJbvjfFs.js:384
+react_stack_bottom_frame @ index-cJbvjfFs.js:229
+oc @ index-cJbvjfFs.js:120
+kc @ index-cJbvjfFs.js:141
+Pc @ index-cJbvjfFs.js:150
+q @ index-cJbvjfFs.js:45
+Kh @ index-cJbvjfFs.js:163
+Jh @ index-cJbvjfFs.js:163
+Wc @ index-cJbvjfFs.js:163
+Ih @ index-cJbvjfFs.js:163
+fg @ index-cJbvjfFs.js:185
+d @ index-cJbvjfFs.js:23
+<tx>
+du.jsxDEV @ index-cJbvjfFs.js:15
+(anonymous) @ index-cJbvjfFs.js:384
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CeuvfR6G.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24

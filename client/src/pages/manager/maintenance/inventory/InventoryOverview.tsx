@@ -68,7 +68,11 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   const updateBuildingMutation = useMutation({
     mutationFn: async (constructionDate: Date) => {
       if (!buildingId) throw new Error('Building ID is required');
+      if (!building?.name) throw new Error('Building name is required');
+      if (!organizationId) throw new Error('Organization ID is required');
       const response = await apiRequest('PUT', `/api/admin/buildings/${buildingId}`, {
+        buildingName: building.name,
+        organizationId: organizationId,
         yearBuilt: constructionDate.getFullYear(),
         constructionDate: constructionDate.toISOString(),
       });
