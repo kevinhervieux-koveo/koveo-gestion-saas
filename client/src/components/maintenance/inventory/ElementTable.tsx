@@ -19,6 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { BulkEditCostDialog } from './BulkEditCostDialog';
+import { BulkEditResidenceDialog } from './BulkEditResidenceDialog';
 import {
   Eye,
   Edit2,
@@ -69,6 +71,8 @@ export function ElementTable({
   const canManageDocuments = hasPermission('canManageDocuments');
   const { toast } = useToast();
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  const [costDialogOpen, setCostDialogOpen] = useState(false);
+  const [residenceDialogOpen, setResidenceDialogOpen] = useState(false);
 
   // Delete element mutation
   const deleteElementMutation = useMutation({
@@ -112,31 +116,6 @@ export function ElementTable({
 
   const elements: BuildingElement[] = elementsData?.data || [];
 
-  // Bulk operations mutation
-  const bulkUpdateMutation = useMutation({
-    mutationFn: async ({ elementIds, updates }: { elementIds: string[]; updates: Partial<BuildingElement> }) => {
-      const response = await apiRequest('PATCH', '/api/maintenance/elements/bulk', {
-        elementIds,
-        updates,
-      });
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
-      setRowSelection({});
-      toast({
-        title: 'Elements updated',
-        description: 'Selected elements have been updated successfully',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Update failed',
-        description: error.message || 'Failed to update elements',
-        variant: 'destructive',
-      });
-    },
-  });
 
   // Calculate element age and urgency
   const calculateElementAge = useCallback((constructionDate: string | null): number => {
@@ -395,12 +374,9 @@ export function ElementTable({
     );
   }, [onViewElement, onEditElement, canEdit]);
 
-  // Bulk actions - get actual element IDs from selected rows
+  // Bulk actions - row selection keys are element IDs directly
   const selectedElementsCount = Object.keys(rowSelection).filter(id => rowSelection[id]).length;
-  const selectedElementIds = Object.keys(rowSelection)
-    .filter(id => rowSelection[id])
-    .map(rowIndex => elements[parseInt(rowIndex)]?.id)
-    .filter(Boolean);
+  const selectedElementIds = Object.keys(rowSelection).filter(id => rowSelection[id]);
 
   const bulkActions = useMemo(() => {
     if (!enableBulkActions || selectedElementsCount === 0) return null;
@@ -429,17 +405,11 @@ export function ElementTable({
     };
 
     const handleResidenceAssignment = () => {
-      toast({
-        title: 'Residence Assignment',
-        description: `Ready to assign ${selectedElementsCount} element(s) to residence. Feature coming soon!`,
-      });
+      setResidenceDialogOpen(true);
     };
 
     const handleCostUpdate = () => {
-      toast({
-        title: 'Cost Update',
-        description: `Ready to update cost for ${selectedElementsCount} element(s). Feature coming soon!`,
-      });
+      setCostDialogOpen(true);
     };
 
     return (
@@ -545,7 +515,7 @@ export function ElementTable({
           data={elements}
           columns={columns}
           rowSelection={rowSelection}
-          onRowSelectionChange={setRowSelection}
+          onRowSelectionChange={handleRowSelection}
           enableRowSelection={true}
           getRowId={(row) => row.id}
           enablePagination={true}
@@ -553,6 +523,26 @@ export function ElementTable({
           enableFiltering={true}
         />
       </div>
+
+      {/* Bulk Edit Dialogs */}
+      {buildingId && (
+        <>
+          <BulkEditCostDialog
+            isOpen={costDialogOpen}
+            onOpenChange={setCostDialogOpen}
+            selectedElementIds={selectedElementIds}
+            buildingId={buildingId}
+            onSuccess={() => setRowSelection({})}
+          />
+          <BulkEditResidenceDialog
+            isOpen={residenceDialogOpen}
+            onOpenChange={setResidenceDialogOpen}
+            selectedElementIds={selectedElementIds}
+            buildingId={buildingId}
+            onSuccess={() => setRowSelection({})}
+          />
+        </>
+      )}
     </div>
   );
 }

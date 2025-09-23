@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import {
   Dialog,
@@ -34,6 +34,14 @@ export function BulkEditCostDialog({
   const { toast } = useToast();
   const [costType, setCostType] = useState<'per-element' | 'per-unit'>('per-element');
   const [costValue, setCostValue] = useState<string>('');
+
+  // Reset form state when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setCostValue('');
+      setCostType('per-element');
+    }
+  }, [isOpen]);
 
   // Bulk cost update mutation
   const updateCostMutation = useMutation({

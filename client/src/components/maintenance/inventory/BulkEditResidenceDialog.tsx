@@ -49,6 +49,22 @@ export function BulkEditResidenceDialog({
     chargeType: false,
   });
 
+  // Reset form state when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({
+        residenceId: null,
+        accessType: '',
+        chargeType: '',
+      });
+      setFieldsToUpdate({
+        residenceId: false,
+        accessType: false,
+        chargeType: false,
+      });
+    }
+  }, [isOpen]);
+
   // Fetch residences for the building
   const { data: residences } = useQuery({
     queryKey: ['residences', buildingId],

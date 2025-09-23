@@ -31,7 +31,7 @@ import {
   type ElementDocument,
   type InsertElementDocument,
 } from '@shared/schemas/maintenance';
-import { buildings, organizations, userOrganizations } from '@shared/schema';
+import { buildings, organizations, userOrganizations, residences } from '@shared/schema';
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
@@ -1135,6 +1135,225 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.error('Error deleting building element:', error);
       res.status(500).json({
         error: 'Failed to delete building element',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/elements/bulk-cost - Bulk update reconstruction costs
+   */
+  app.patch('/api/maintenance/elements/bulk-cost', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to update element costs'
+        });
+      }
+
+      const { elementIds, buildingId, costType, costValue } = req.body;
+
+      // Validate input
+      if (!Array.isArray(elementIds) || elementIds.length === 0) {
+        return res.status(400).json({ error: 'Element IDs array is required' });
+      }
+
+      if (!buildingId) {
+        return res.status(400).json({ error: 'Building ID is required' });
+      }
+
+      if (!costType || !['per-element', 'per-unit'].includes(costType)) {
+        return res.status(400).json({ error: 'Valid cost type is required (per-element or per-unit)' });
+      }
+
+      if (!costValue || isNaN(parseFloat(costValue)) || parseFloat(costValue) <= 0) {
+        return res.status(400).json({ error: 'Valid cost value is required' });
+      }
+
+      // Check building access
+      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this building'
+        });
+      }
+
+      // Verify all elements belong to the building and are active
+      const elements = await db
+        .select({ id: buildingElements.id })
+        .from(buildingElements)
+        .where(and(
+          inArray(buildingElements.id, elementIds),
+          eq(buildingElements.buildingId, buildingId),
+          eq(buildingElements.isActive, true)
+        ));
+
+      if (elements.length !== elementIds.length) {
+        return res.status(400).json({
+          error: 'Some elements not found or not accessible'
+        });
+      }
+
+      // Update reconstruction costs based on cost type
+      const cost = parseFloat(costValue);
+      const updateData: any = {
+        costEstimationDate: new Date(),
+        updatedAt: new Date(),
+      };
+
+      if (costType === 'per-element') {
+        updateData.reconstructionCost = cost;
+      } else {
+        // For per-unit, store the unit cost - the total will be calculated based on unitValue
+        updateData.reconstructionCost = cost; // This will be the per-unit cost
+      }
+
+      await db
+        .update(buildingElements)
+        .set(updateData)
+        .where(inArray(buildingElements.id, elementIds));
+
+      res.json({
+        success: true,
+        message: `Successfully updated costs for ${elementIds.length} element(s)`,
+        data: {
+          updatedCount: elementIds.length,
+          costType,
+          costValue: cost
+        }
+      });
+    } catch (error: any) {
+      console.error('Error updating element costs:', error);
+      res.status(500).json({
+        error: 'Failed to update element costs',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/elements/bulk-assignment - Bulk update residence assignments
+   */
+  app.patch('/api/maintenance/elements/bulk-assignment', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to update element assignments'
+        });
+      }
+
+      const { elementIds, buildingId, updates } = req.body;
+
+      // Validate input
+      if (!Array.isArray(elementIds) || elementIds.length === 0) {
+        return res.status(400).json({ error: 'Element IDs array is required' });
+      }
+
+      if (!buildingId) {
+        return res.status(400).json({ error: 'Building ID is required' });
+      }
+
+      if (!updates || typeof updates !== 'object') {
+        return res.status(400).json({ error: 'Updates object is required' });
+      }
+
+      // Check building access
+      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this building'
+        });
+      }
+
+      // Verify all elements belong to the building and are active
+      const elements = await db
+        .select({ id: buildingElements.id })
+        .from(buildingElements)
+        .where(and(
+          inArray(buildingElements.id, elementIds),
+          eq(buildingElements.buildingId, buildingId),
+          eq(buildingElements.isActive, true)
+        ));
+
+      if (elements.length !== elementIds.length) {
+        return res.status(400).json({
+          error: 'Some elements not found or not accessible'
+        });
+      }
+
+      // If residenceId is being updated, verify it exists in the building
+      if (updates.residenceId) {
+        const residence = await db
+          .select({ id: residences.id })
+          .from(residences)
+          .where(and(
+            eq(residences.id, updates.residenceId),
+            eq(residences.buildingId, buildingId)
+          ))
+          .limit(1);
+
+        if (residence.length === 0) {
+          return res.status(400).json({
+            error: 'Specified residence not found in this building'
+          });
+        }
+      }
+
+      // Validate access and charge types
+      if (updates.accessType && !['not_restrained', 'restrained'].includes(updates.accessType)) {
+        return res.status(400).json({
+          error: 'Invalid access type. Must be "not_restrained" or "restrained"'
+        });
+      }
+
+      if (updates.chargeType && !['common', 'personnal'].includes(updates.chargeType)) {
+        return res.status(400).json({
+          error: 'Invalid charge type. Must be "common" or "personnal"'
+        });
+      }
+
+      // Build update object
+      const updateData: any = {
+        updatedAt: new Date(),
+      };
+
+      if (updates.hasOwnProperty('residenceId')) {
+        updateData.residenceId = updates.residenceId;
+      }
+      if (updates.accessType) {
+        updateData.access = updates.accessType;
+      }
+      if (updates.chargeType) {
+        updateData.charge = updates.chargeType;
+      }
+
+      await db
+        .update(buildingElements)
+        .set(updateData)
+        .where(inArray(buildingElements.id, elementIds));
+
+      res.json({
+        success: true,
+        message: `Successfully updated assignments for ${elementIds.length} element(s)`,
+        data: {
+          updatedCount: elementIds.length,
+          updates
+        }
+      });
+    } catch (error: any) {
+      console.error('Error updating element assignments:', error);
+      res.status(500).json({
+        error: 'Failed to update element assignments',
         details: error.message
       });
     }
