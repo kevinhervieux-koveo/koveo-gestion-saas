@@ -392,52 +392,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                       </Button>
                     )}
 
-                    {/* Columns Button */}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          data-testid="column-visibility-button"
-                        >
-                          <Settings2 className="h-4 w-4 mr-2" />
-                          Columns
-                          <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" data-testid="column-visibility-menu">
-                        <DropdownMenuCheckboxItem
-                          checked={true}
-                          onCheckedChange={() => {}}
-                        >
-                          Element
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={true}
-                          onCheckedChange={() => {}}
-                        >
-                          Condition
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={true}
-                          onCheckedChange={() => {}}
-                        >
-                          Age / Lifespan
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={true}
-                          onCheckedChange={() => {}}
-                        >
-                          Last Inspection
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                          checked={true}
-                          onCheckedChange={() => {}}
-                        >
-                          Next Evaluation
-                        </DropdownMenuCheckboxItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                     </div>
                   </div>
                 </div>
