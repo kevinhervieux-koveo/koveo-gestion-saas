@@ -6,6 +6,7 @@ import { Button } from './button';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 
+// Keep the original interface for backward compatibility
 export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
   showActions?: boolean;
   onClear?: () => void;
@@ -47,9 +48,9 @@ function Calendar({
           nav_button_previous: 'absolute left-0',
           nav_button_next: 'absolute right-0',
           table: 'w-full border-collapse space-y-0',
-          head_row: 'flex w-full mb-2',
-          head_cell: 'text-muted-foreground rounded-md w-10 h-10 font-normal text-xs text-center flex items-center justify-center flex-shrink-0',
-          row: 'flex w-full',
+          head_row: 'grid grid-cols-7 w-full mb-2',
+          head_cell: 'text-muted-foreground w-10 h-10 font-normal text-xs text-center flex items-center justify-center flex-shrink-0',
+          row: 'grid grid-cols-7 w-full',
           cell: 'relative h-10 w-10 text-center text-sm p-0 focus-within:relative focus-within:z-20 flex items-center justify-center flex-shrink-0',
           day: cn(
             buttonVariants({ variant: 'ghost' }),

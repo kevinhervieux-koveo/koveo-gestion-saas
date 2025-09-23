@@ -196,62 +196,13 @@
   }
 }
 
-/* Fix for react-day-picker scattered numbers issue */
-/* Override react-day-picker z-index values to prevent elements from escaping popover containers */
-[data-radix-popper-content-wrapper] .rdp-caption_label,
-[data-state="open"] .rdp-caption_label {
-  z-index: 0 !important;
-}
-
-[data-radix-popper-content-wrapper] .rdp-dropdown,
-[data-state="open"] .rdp-dropdown {
-  z-index: 0 !important;
-}
-
-[data-radix-popper-content-wrapper] .rdp-button_next,
-[data-radix-popper-content-wrapper] .rdp-button_previous,
-[data-state="open"] .rdp-button_next,
-[data-state="open"] .rdp-button_previous {
-  z-index: 0 !important;
-}
-
-/* Ensure calendar elements stay contained within popovers and dialogs */
-[data-radix-popover-content] .rdp-root *,
-[data-radix-dialog-content] .rdp-root *,
-.popover-content .rdp-root * {
-  z-index: unset !important;
-}
-
-/* Reset all react-day-picker z-index values globally to prevent escaping */
-.rdp-caption_label {
-  z-index: unset !important;
-}
-
-.rdp-dropdown {
-  z-index: unset !important;
-}
-
-.rdp-button_next,
-.rdp-button_previous {
-  z-index: unset !important;
-}
-
-/* Enhanced calendar styling for perfect grid alignment */
-.rdp {
-  margin: 0;
-}
-
-.rdp-table {
-  width: 100% !important;
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-
+/* Perfect calendar grid alignment fix */
 .rdp-head_row,
 .rdp-row {
-  display: flex !important;
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
   width: 100% !important;
-  gap: 0;
+  gap: 0 !important;
 }
 
 .rdp-head_cell,
@@ -263,8 +214,7 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  flex-shrink: 0 !important;
-  text-align: center;
+  text-align: center !important;
 }
 
 .rdp-day {
@@ -272,75 +222,5 @@
   height: 40px !important;
   min-width: 40px !important;
   max-width: 40px !important;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 400;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-shrink: 0 !important;
-  transition: all 0.15s ease-in-out;
 }
 
-.rdp-day:hover {
-  background-color: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
-}
-
-.rdp-day_selected {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  font-weight: 500;
-}
-
-.rdp-day_today {
-  background-color: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
-  font-weight: 600;
-}
-
-.rdp-day_outside {
-  opacity: 0.5;
-  color: hsl(var(--muted-foreground));
-}
-
-.rdp-head_cell {
-  font-size: 12px;
-  font-weight: 500;
-  color: hsl(var(--muted-foreground));
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.rdp-caption {
-  margin-bottom: 16px;
-}
-
-.rdp-caption_label {
-  font-size: 14px;
-  font-weight: 600;
-  color: hsl(var(--foreground));
-}
-
-.rdp-nav_button {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 6px;
-  border: 1px solid hsl(var(--border));
-  background-color: transparent;
-  color: hsl(var(--foreground));
-  opacity: 0.7;
-  transition: opacity 0.15s ease-in-out;
-}
-
-.rdp-nav_button:hover {
-  opacity: 1;
-  background-color: hsl(var(--accent));
-}
-
-/* Popover content sizing for calendars */
-.calendar-popover-content {
-  width: auto !important;
-  min-width: 300px;
-  padding: 0 !important;
-}
