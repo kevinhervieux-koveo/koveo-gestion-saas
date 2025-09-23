@@ -87,7 +87,7 @@ export function ElementDocumentViewer({ elementId, elementName, className }: Ele
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load documents: {error.message}
+            Failed to load documents: {(error as any)?.message || 'Unknown error'}
           </AlertDescription>
         </Alert>
         <Button variant="outline" onClick={() => refetch()} data-testid="button-retry-documents">
@@ -98,8 +98,9 @@ export function ElementDocumentViewer({ elementId, elementName, className }: Ele
     );
   }
 
-  const documents = documentsResponse?.documents || [];
-  const totalDocuments = documentsResponse?.total || 0;
+  // Support both response shapes: { documents, total } and { data, total }
+  const documents = documentsResponse?.documents || documentsResponse?.data || [];
+  const totalDocuments = documentsResponse?.total || documents.length;
 
   if (documents.length === 0) {
     return (
