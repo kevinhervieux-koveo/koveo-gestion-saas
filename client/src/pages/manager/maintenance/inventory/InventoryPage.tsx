@@ -15,12 +15,13 @@ import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSele
 // Import inventory components
 import { InventoryHeader } from './InventoryHeader';
 import { InventoryOverview } from './InventoryOverview';
-import { ElementDetailsPanel } from './ElementDetailsPanel';
+// import { ElementDetailsPanel } from './ElementDetailsPanel'; // Replaced with ElementForm
 
 // Import existing maintenance components
 import { ElementTable } from '@/components/maintenance/inventory/ElementTable';
 import { ElementDocumentViewer } from '@/components/maintenance/inventory/ElementDocumentViewer';
 import { UniformatBrowser } from '@/components/maintenance/inventory/UniformatBrowser';
+import { ElementForm } from '@/components/maintenance/inventory/ElementForm';
 
 import { 
   AlertTriangle, 
@@ -76,7 +77,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // State for modals and panels
   const [selectedElement, setSelectedElement] = useState<BuildingElement | null>(null);
-  const [showElementDetails, setShowElementDetails] = useState(false);
+  const [showElementForm, setShowElementForm] = useState(false);
   const [showDocumentManager, setShowDocumentManager] = useState(false);
   const [showUniformatBrowser, setShowUniformatBrowser] = useState(false);
 
@@ -97,7 +98,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   // Element handlers
   const handleViewElement = useCallback((element: BuildingElement) => {
     setSelectedElement(element);
-    setShowElementDetails(true);
+    setShowElementForm(true);
   }, []);
 
   const handleEditElement = useCallback((element: BuildingElement) => {
@@ -125,8 +126,8 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   }, [toast]);
 
   const handleDeleteElement = useCallback((element: BuildingElement) => {
-    // Close the details panel first
-    setShowElementDetails(false);
+    // Close the element form first
+    setShowElementForm(false);
     setSelectedElement(null);
     
     // Show success message
@@ -284,17 +285,19 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         </div>
       </div>
 
-      {/* Element Details Panel */}
-      <ElementDetailsPanel
+      {/* Element Form - View Mode */}
+      <ElementForm
         element={selectedElement}
-        isOpen={showElementDetails}
-        onClose={() => {
-          setShowElementDetails(false);
-          setSelectedElement(null);
+        isOpen={showElementForm}
+        onOpenChange={(open) => {
+          setShowElementForm(open);
+          if (!open) {
+            setSelectedElement(null);
+          }
         }}
-        onEdit={canEdit ? handleEditElement : undefined}
-        onScheduleEvaluation={handleScheduleEvaluation}
-        onDelete={canEdit ? handleDeleteElement : undefined}
+        mode="view"
+        buildingId={buildingId}
+        organizationId={organizationId}
       />
 
       {/* Modals and Dialogs */}
