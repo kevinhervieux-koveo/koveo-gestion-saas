@@ -671,7 +671,7 @@ export function ElementForm({
         return date.toISOString().split('T')[0]; // Get YYYY-MM-DD format
       };
 
-      const payload = {
+      const basePayload = {
         ...data,
         // Convert Date objects to strings for API
         originalConstructionDate: formatDate(data.originalConstructionDate),
@@ -683,13 +683,35 @@ export function ElementForm({
         quantity: undefined,
       };
 
-
       if (mode === 'edit' && element) {
-        const response = await apiRequest('PUT', `/api/maintenance/elements/${element.id}`, payload);
+        const response = await apiRequest('PUT', `/api/maintenance/elements/${element.id}`, basePayload);
         return await response.json();
       } else {
-        const response = await apiRequest('POST', `/api/maintenance/buildings/${data.buildingId}/elements`, payload);
-        return await response.json();
+        // Handle quantity for creating multiple elements
+        const quantity = data.quantity || 1;
+        
+        if (quantity === 1) {
+          // Single element creation
+          const response = await apiRequest('POST', `/api/maintenance/buildings/${data.buildingId}/elements`, basePayload);
+          return await response.json();
+        } else {
+          // Multiple element creation with numbered names
+          const createdElements = [];
+          
+          for (let i = 1; i <= quantity; i++) {
+            const numberedPayload = {
+              ...basePayload,
+              name: `${data.name} - ${i}`,
+            };
+            
+            const response = await apiRequest('POST', `/api/maintenance/buildings/${data.buildingId}/elements`, numberedPayload);
+            const result = await response.json();
+            createdElements.push(result.data);
+          }
+          
+          // Return the first element for consistency, but all elements are created
+          return { data: createdElements[0], createdCount: createdElements.length };
+        }
       }
     },
     onSuccess: (data) => {
@@ -697,9 +719,16 @@ export function ElementForm({
       onSuccess?.(data.data);
       onOpenChange(false);
       
+      const createdCount = data.createdCount || 1;
+      const isMultiple = createdCount > 1;
+      
       toast({
-        title: mode === 'create' ? 'Element created' : 'Element updated',
-        description: `${data.data.name} has been ${mode === 'create' ? 'created' : 'updated'} successfully`,
+        title: mode === 'create' ? 
+          (isMultiple ? `${createdCount} Elements created` : 'Element created') : 
+          'Element updated',
+        description: mode === 'create' ? 
+          (isMultiple ? `Successfully created ${createdCount} numbered elements` : `${data.data.name} has been created successfully`) :
+          `${data.data.name} has been updated successfully`,
       });
     },
     onError: (error: any) => {
