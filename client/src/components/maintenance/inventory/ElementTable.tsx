@@ -74,14 +74,25 @@ export function ElementTable({
   const { data: elementsData, isLoading, error } = useQuery({
     queryKey: ['/api/maintenance/buildings', buildingId, 'elements'],
     queryFn: async () => {
+      console.log('🔍 [ElementTable] Fetching elements for buildingId:', buildingId);
       if (!buildingId) return { data: [] };
       const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/elements`);
-      return await response.json();
+      const data = await response.json();
+      console.log('📊 [ElementTable] API Response:', data);
+      return data;
     },
     enabled: !!buildingId,
   });
 
   const elements: BuildingElement[] = elementsData?.data || [];
+  
+  console.log('🏗️ [ElementTable] Rendered with:', { 
+    buildingId, 
+    isLoading, 
+    error: error?.message, 
+    elementsCount: elements.length,
+    rawData: elementsData 
+  });
 
   // Bulk operations mutation
   const bulkUpdateMutation = useMutation({
