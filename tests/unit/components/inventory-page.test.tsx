@@ -192,11 +192,11 @@ jest.mock('../../../client/src/lib/queryClient', () => ({
   },
 }));
 
-// Import the component
-import { InventoryPageContent } from '../../../client/src/pages/manager/maintenance/inventory/InventoryPage';
+// Import the component - note: InventoryPageContent is an internal function, need to test the exported component
+import InventoryPage from '../../../client/src/pages/manager/maintenance/inventory/InventoryPage';
 
-// Create the HOC-wrapped component for testing
-const WrappedInventoryPage = mockWithHierarchicalSelection(InventoryPageContent);
+// Use the already wrapped component from the import
+const WrappedInventoryPage = InventoryPage;
 
 describe('InventoryPage Construction Date Integration Tests', () => {
   let queryClient: QueryClient;
@@ -428,7 +428,7 @@ describe('InventoryPage Construction Date Integration Tests', () => {
 
       // Re-render with new building ID
       const NewWrappedComponent = mockWithHierarchicalSelection((props: any) => (
-        <InventoryPageContent {...props} />
+        <WrappedInventoryPage {...props} />
       ));
 
       rerender(
@@ -509,7 +509,7 @@ describe('InventoryPage Construction Date Integration Tests', () => {
 
     it('should handle missing required props gracefully', () => {
       // Test with minimal props
-      const MinimalComponent = () => <InventoryPageContent />;
+      const MinimalComponent = () => <WrappedInventoryPage />;
 
       render(
         <QueryClientProvider client={queryClient}>
