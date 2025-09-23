@@ -1,0 +1,226 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-DTNhuUew.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DTNhuUew.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+withHierarchicalSelection-DTNhuUew.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-DTNhuUew.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-C9tDcq3V.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-C9tDcq3V.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-C9tDcq3V.js:6 🏠 [INVENTORY ACTION] handleViewElement called: {elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', elementName: 'Site Drainage'}
+index-C9tDcq3V.js:6 🏠 [INVENTORY STATE] Element form opened in view mode
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: false, isDirty: false, errorCount: 0, …}
+index-C9tDcq3V.js:6 🔄 [EDIT MODE DEBUG] Loading element data: {elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', rawElement: {…}, transformedFormData: {…}}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 ✅ [EDIT MODE DEBUG] Form reset completed. Form state after reset: {isValid: false, errors: {…}}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'view', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: false, isDirty: false, errorCount: 0, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Thu Sep 23 2027 09:29:54 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-BcJC2jP_.js:185 [Violation] 'click' handler took 153ms
+index-C9tDcq3V.js:6 🏠 [INVENTORY MODAL] Element form visibility changed: {open: false, hasElement: true}
+index-C9tDcq3V.js:6 🏠 [INVENTORY STATE] Clearing selected element
+index-C9tDcq3V.js:6 🏠 [INVENTORY STATE] Element form visibility changed {open: false}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'view', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-C9tDcq3V.js:6 🏠 [INVENTORY ACTION] handleEditElement called: {elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', elementName: 'Site Drainage'}
+index-C9tDcq3V.js:6 🏠 [INVENTORY STATE] Element form opened in edit mode
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-C9tDcq3V.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'view', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: false, isDirty: false, errorCount: 0, …}
+index-C9tDcq3V.js:6 🔄 [EDIT MODE DEBUG] Loading element data: {elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', rawElement: {…}, transformedFormData: {…}}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 ✅ [EDIT MODE DEBUG] Form reset completed. Form state after reset: {isValid: false, errors: {…}}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: false, isDirty: false, errorCount: 0, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'currentLifespan', type: 'change', value: '5', isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'currentLifespan', type: 'change', value: '5', isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '66f6952e-e9c3-4562-ae26-cd0447211229', isValid: false, isDirty: true, errorCount: 0, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 09:30:13 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 09:30:13 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'unit', type: 'change', value: 'unit', isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'unitValue', type: 'change', value: '1', isValid: false, errors: {…}, …}
+index-BcJC2jP_.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-BcJC2jP_.js:186
+h1 @ index-BcJC2jP_.js:186
+q @ index-BcJC2jP_.js:45
+Qc @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+Vt @ index-BcJC2jP_.js:163
+zh @ index-BcJC2jP_.js:163
+tg @ index-BcJC2jP_.js:163
+ed @ index-BcJC2jP_.js:163
+Xh @ index-BcJC2jP_.js:163
+Ih @ index-BcJC2jP_.js:163
+mg @ index-BcJC2jP_.js:185
+ml @ index-BcJC2jP_.js:185
+jo @ index-BcJC2jP_.js:163
+Gm @ index-BcJC2jP_.js:83
+rd @ index-BcJC2jP_.js:185
+Ad @ index-BcJC2jP_.js:194
+L1 @ index-BcJC2jP_.js:194
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '15', isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '150', isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '1500', isValid: false, errors: {…}, …}
+index-C9tDcq3V.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '15000', isValid: false, errors: {…}, …}

@@ -449,7 +449,7 @@ export function ElementForm({
   });
 
   const form = useForm<ElementFormData>({
-    resolver: zodResolver(elementFormSchema) as any,
+    resolver: zodResolver(elementFormSchema),
     mode: 'onChange', // Validate on every change
     reValidateMode: 'onChange', // Re-validate on every change
     defaultValues: {
@@ -515,8 +515,18 @@ export function ElementForm({
     });
 
     // Additional logging when form is invalid
-    if (!form.formState.isValid && Object.keys(form.formState.errors).length > 0) {
-      console.log('❌ [VALIDATION ERRORS] Form is invalid due to:', errorDetails);
+    if (!form.formState.isValid) {
+      console.log('❌ [VALIDATION STATE] Form is invalid:', {
+        isValid: form.formState.isValid,
+        errorCount: Object.keys(form.formState.errors).length,
+        errorDetails,
+        allFormValues: form.getValues(),
+        isSubmitted: form.formState.isSubmitted,
+        isDirty: form.formState.isDirty,
+        isValidating: form.formState.isValidating,
+        touchedFields: form.formState.touchedFields,
+        dirtyFields: form.formState.dirtyFields
+      });
     }
   }, [currentMode, element?.id, form.formState.isValid, form.formState.isDirty, form.formState.errors, isFormDisabled]);
 
