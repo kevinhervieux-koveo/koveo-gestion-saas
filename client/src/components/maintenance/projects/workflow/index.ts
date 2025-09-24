@@ -1,5 +1,5 @@
 // Workflow Modal System
-export { ProjectWorkflowModal } from './ProjectWorkflowModal';
+// Note: ProjectWorkflowModal is lazy-loaded via lazy-components.tsx to prevent Vite build warnings
 // Note: WorkflowTabNavigation is lazy-loaded within ProjectWorkflowModal, so not exported statically
 
 // Note: Individual Tab Components are lazy-loaded within ProjectWorkflowModal, so not exported statically

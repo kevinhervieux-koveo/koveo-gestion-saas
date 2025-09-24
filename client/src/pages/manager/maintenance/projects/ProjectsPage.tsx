@@ -35,7 +35,7 @@ import {
 } from '@/components/maintenance/projects';
 
 // Import new workflow modal components
-import { ProjectWorkflowModal } from '@/components/maintenance/projects/workflow';
+import { ProjectWorkflowModal } from '@/components/maintenance/projects/workflow/lazy-components';
 
 import { 
   AlertTriangle, 
