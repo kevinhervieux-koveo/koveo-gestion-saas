@@ -5,19 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState, type SubmissionVendor } from '@/hooks/useProjectWorkflow';
-import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
 import { cn, formatStatus, safeCapitalize } from '@/lib/utils';
 import {
   CheckCircle2,
   Users,
-  Building,
   DollarSign,
   FileText,
   Calendar,
   Info,
-  ExternalLink,
   Star,
   Phone,
   Mail,
@@ -116,12 +114,14 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     });
   };
 
-  const formatCurrency = (amount?: number) => {
+  const formatCurrency = (amount?: string | number) => {
     if (!amount) return 'Not specified';
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    if (isNaN(numericAmount)) return 'Not specified';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(amount);
+    }).format(numericAmount);
   };
 
   const formatPaymentSchedule = (schedule?: string) => {
@@ -147,24 +147,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         </div>
       </div>
 
-      {/* Vendor Management Placeholder Alert */}
-      <Alert>
-        <Building className="h-4 w-4" />
-        <AlertDescription>
-          <div className="space-y-2">
-            <p className="font-medium">Vendor Management Interface</p>
-            <p>
-              The vendor management interface will be implemented in the next task. This includes:
-            </p>
-            <ul className="list-disc ml-4 space-y-1">
-              <li>Adding and inviting vendors to submit proposals</li>
-              <li>Vendor portal for quote submission</li>
-              <li>Document upload and management</li>
-              <li>Automated vendor communications</li>
-            </ul>
-          </div>
-        </AlertDescription>
-      </Alert>
 
       {/* Loading State */}
       {isLoadingVendors && (
@@ -201,15 +183,11 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
             <div className="text-center py-8 space-y-4">
               <Users className="h-12 w-12 text-muted-foreground mx-auto" />
               <div>
-                <h4 className="text-lg font-semibold">Waiting for Vendor Submissions</h4>
+                <h4 className="text-lg font-semibold">No Vendor Submissions Yet</h4>
                 <p className="text-muted-foreground">
-                  Vendors will be able to submit their proposals and quotes here
+                  Add vendor submissions with their quotes, availability, and proposal documents.
                 </p>
               </div>
-              <Button variant="outline" disabled>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Invite Vendors (Coming Soon)
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -256,6 +234,12 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     <div>
                       <CardTitle className="text-lg">{vendor.vendorName}</CardTitle>
                       <CardDescription className="flex items-center gap-4 mt-1">
+                        {vendor.availableDate && (
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Available: {new Date(vendor.availableDate).toLocaleDateString()}
+                          </span>
+                        )}
                         {vendor.contactInfo && (
                           <span className="flex items-center gap-1">
                             <Phone className="h-3 w-3" />
@@ -306,26 +290,36 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                   {/* Proposal Details */}
                   <div className="space-y-2">
                     <h5 className="font-medium text-sm">Proposal Details</h5>
+                    
+                    {/* Description */}
+                    {vendor.notes ? (
+                      <div className="p-2 bg-muted/50 rounded text-sm">
+                        <p className="text-muted-foreground">{vendor.notes}</p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic">No description provided</p>
+                    )}
+                    
                     <div className="text-sm text-muted-foreground space-y-1">
+                      {vendor.availableDate && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Available for work: {new Date(vendor.availableDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
                       {vendor.addedLifespan && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           <span>Extends lifespan: {vendor.addedLifespan} years</span>
                         </div>
                       )}
-                      {vendor.documents && vendor.documents.length > 0 && (
+                      {vendor.documents && Array.isArray(vendor.documents) && vendor.documents.length > 0 && (
                         <div className="flex items-center gap-1">
                           <FileText className="h-3 w-3" />
                           <span>{vendor.documents.length} document(s) submitted</span>
                         </div>
                       )}
                     </div>
-                    
-                    {vendor.notes && (
-                      <div className="mt-2">
-                        <p className="text-sm text-muted-foreground">{vendor.notes}</p>
-                      </div>
-                    )}
                   </div>
 
                   {/* Payment Plan */}

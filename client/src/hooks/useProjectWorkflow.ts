@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { MaintenanceProject, SubmissionVendor } from '@shared/schemas/maintenance';
 
 // Types for workflow management
 export interface ProjectWorkflowState {
@@ -32,26 +32,6 @@ export interface WorkflowTask {
   updatedAt: string;
 }
 
-export interface SubmissionVendor {
-  id: string;
-  projectId: string;
-  vendorId: string;
-  vendorName: string;
-  contactInfo?: string;
-  notes?: string;
-  price?: number;
-  projectType: string;
-  addedLifespan?: number;
-  documents?: any[];
-  paymentPlanCosts?: number[];
-  paymentPlanSchedule?: string;
-  paymentPlanCustomDates?: string[];
-  paymentPlanStartDate?: string;
-  isSelected: boolean;
-  preferred: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface ProjectNotification {
   id: string;
