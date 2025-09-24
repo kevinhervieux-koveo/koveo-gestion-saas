@@ -182,10 +182,9 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
       }
       
       // Add new elements
-      for (const elementId of toAdd) {
+      if (toAdd.length > 0) {
         await apiRequest('POST', `/api/maintenance/projects/${project.id}/elements`, {
-          elementId,
-          projectId: project.id,
+          elementIds: toAdd,
         });
       }
       

@@ -3511,6 +3511,76 @@ export function registerMaintenanceRoutes(app: Express): void {
     }
   });
 
+  /**
+   * DELETE /api/maintenance/project-elements/:id - Remove element from project
+   */
+  app.delete('/api/maintenance/project-elements/:id', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to manage project elements'
+        });
+      }
+      
+      const { id: projectElementId } = req.params;
+      
+      // Get the project element to verify access
+      const projectElement = await db
+        .select({ 
+          id: projectElements.id,
+          projectId: projectElements.projectId,
+          elementId: projectElements.elementId
+        })
+        .from(projectElements)
+        .innerJoin(maintenanceProjects, eq(projectElements.projectId, maintenanceProjects.id))
+        .where(eq(projectElements.id, projectElementId))
+        .limit(1);
+      
+      if (projectElement.length === 0) {
+        return res.status(404).json({ error: 'Project element link not found' });
+      }
+      
+      // Check project access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectElement[0].projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+      
+      // Delete the project element link
+      await db
+        .delete(projectElements)
+        .where(eq(projectElements.id, projectElementId));
+      
+      res.json({
+        success: true,
+        message: 'Element removed from project'
+      });
+    } catch (error: any) {
+      console.error('Error removing element from project:', error);
+      res.status(500).json({
+        error: 'Failed to remove element from project',
+        details: error.message
+      });
+    }
+  });
+
   // ===========================================
   // ELEMENT PROJECT UPDATES (POST-WORK TRACKING)
   // ===========================================
