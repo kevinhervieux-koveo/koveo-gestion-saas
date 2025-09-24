@@ -40,6 +40,20 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
 
+  // Defensive null check for project data
+  if (!project) {
+    return (
+      <div className="p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Project data is missing. Unable to load the submission tab.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   const { 
     data: submissionVendors = [], 
     isLoading: isLoadingVendors,

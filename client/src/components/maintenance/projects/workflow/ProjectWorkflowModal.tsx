@@ -87,6 +87,32 @@ export function ProjectWorkflowModal({
   initialTab,
   onProjectUpdate,
 }: ProjectWorkflowModalProps) {
+  // Defensive null check for project prop
+  if (!project) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl" data-testid="project-workflow-modal-no-project">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Project Missing
+            </DialogTitle>
+            <DialogDescription>
+              No project data provided to the workflow modal
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Project information is missing. Please close this modal and try again.
+            </AlertDescription>
+          </Alert>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   // Fetch workflow state
   const {
     data: workflowState,
@@ -140,6 +166,18 @@ export function ProjectWorkflowModal({
   // Render tab content based on active tab
   const renderTabContent = () => {
     if (!workflowState || !activeTab) return null;
+
+    // Defensive null check for project data
+    if (!workflowState.project) {
+      return (
+        <Alert className="m-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Project data is missing or still loading. Please wait a moment and try again.
+          </AlertDescription>
+        </Alert>
+      );
+    }
 
     const tabProps = {
       project: workflowState.project,
@@ -255,10 +293,10 @@ export function ProjectWorkflowModal({
             <CurrentTabIcon className="h-6 w-6 text-primary" />
             <div className="flex flex-col">
               <span className="text-lg font-semibold">
-                {workflowState.project.title}
+                {project.title}
               </span>
               <span className="text-sm text-muted-foreground font-normal">
-                Project #{workflowState.project.projectNumber}
+                Project #{project.projectNumber}
               </span>
             </div>
           </DialogTitle>

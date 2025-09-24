@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   useWorkflowTasks, 
   useWorkflowTaskMutations,
@@ -32,6 +33,7 @@ import {
   Settings,
   Building2,
   Save,
+  AlertTriangle,
 } from 'lucide-react';
 
 export interface PostWorkTabProps {
@@ -67,6 +69,20 @@ interface ElementUpdate {
 
 export function PostWorkTab({ project, workflowState, onUpdate }: PostWorkTabProps) {
   const { toast } = useToast();
+  
+  // Defensive null check for project data
+  if (!project) {
+    return (
+      <div className="p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Project data is missing. Unable to load the post-work tab.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
   
   // Local state for element updates form
   const [elementFormData, setElementFormData] = useState<Record<string, {

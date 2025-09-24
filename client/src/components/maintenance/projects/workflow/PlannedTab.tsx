@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -42,6 +43,7 @@ import {
   Target,
   Wrench,
   Building2,
+  AlertTriangle,
 } from 'lucide-react';
 
 export interface PlannedTabProps {
@@ -99,6 +101,20 @@ const projectTypes = [
 export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps) {
   const { toast } = useToast();
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Defensive null check for project data
+  if (!project) {
+    return (
+      <div className="p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Project data is missing. Unable to load the planning tab.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   const { mutate: updateProject, isPending: isUpdating } = useUpdateProjectDetails();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();

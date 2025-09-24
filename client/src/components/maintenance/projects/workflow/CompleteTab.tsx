@@ -56,6 +56,20 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
   const { toast } = useToast();
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Defensive null check for project data
+  if (!project) {
+    return (
+      <div className="p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Project data is missing. Unable to load the completion tab.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   const { mutate: updateProject, isPending: isUpdating } = useUpdateProjectDetails();
 
   const form = useForm<CompleteTabData>({

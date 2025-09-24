@@ -113,14 +113,6 @@ export function useProjectWorkflowState(projectId: string) {
       if (error.message?.includes('not found')) return false;
       return failureCount < 2;
     },
-    onError: (error: Error) => {
-      console.error('Failed to fetch project workflow state:', error);
-      toast({
-        title: 'Error Loading Workflow',
-        description: error.message || 'Failed to load project workflow state',
-        variant: 'destructive',
-      });
-    },
   });
 }
 

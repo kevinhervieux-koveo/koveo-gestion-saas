@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   useWorkflowTasks, 
   useWorkflowTaskMutations,
@@ -46,6 +47,7 @@ import {
   GripVertical,
   Check,
   X,
+  AlertTriangle,
 } from 'lucide-react';
 
 export interface PreWorkTabProps {
@@ -70,6 +72,20 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   const { toast } = useToast();
   const [userMessage, setUserMessage] = useState('');
   const [hasMessageChanges, setHasMessageChanges] = useState(false);
+
+  // Defensive null check for project data
+  if (!project) {
+    return (
+      <div className="p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Project data is missing. Unable to load the pre-work tab.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   const { 
     data: preWorkTasks = [], 

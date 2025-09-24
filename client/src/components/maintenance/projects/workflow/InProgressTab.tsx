@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Popover,
   PopoverContent,
@@ -44,7 +45,7 @@ import {
   GripVertical,
   Check,
   Clock,
-  AlertCircle,
+  AlertTriangle,
 } from 'lucide-react';
 
 export interface InProgressTabProps {
@@ -67,6 +68,20 @@ type InProgressData = z.infer<typeof inProgressSchema>;
 export function InProgressTab({ project, workflowState, onUpdate }: InProgressTabProps) {
   const { toast } = useToast();
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Defensive null check for project data
+  if (!project) {
+    return (
+      <div className="p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Project data is missing. Unable to load the in-progress tab.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   const { 
     data: inProgressTasks = [], 
