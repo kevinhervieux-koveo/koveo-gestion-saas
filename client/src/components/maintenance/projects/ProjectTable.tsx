@@ -681,10 +681,8 @@ export function ProjectTable({
         columns={columns}
         data={projects}
         isLoading={isLoading}
-        searchPlaceholder="Search projects by name or number..."
-        searchableColumn="title"
         enableRowSelection={showBulkActions}
-        enableFiltering={true}
+        enableFiltering={false}
         enableSorting={true}
         enableColumnVisibility={false}
         enablePagination={true}
