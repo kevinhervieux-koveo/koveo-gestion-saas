@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, X, Building2 } from "lucide-react";
+import { Check, ChevronsUpDown, X, Building2, CheckSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +84,13 @@ export function BuildingElementsMultiSelect({
     onValueChange?.([]);
   };
 
+  const selectAllFiltered = () => {
+    if (disabled) return;
+    const filteredIds = filteredElements.map(element => element.id);
+    const newValue = [...new Set([...value, ...filteredIds])];
+    onValueChange?.(newValue);
+  };
+
   return (
     <div className="w-full space-y-2">
       {/* Selected Elements Display */}
@@ -155,15 +162,33 @@ export function BuildingElementsMultiSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0" align="start">
-          <Command>
+          <Command shouldFilter={false}>
             <CommandInput 
               placeholder={searchPlaceholder} 
               value={searchQuery}
               onValueChange={setSearchQuery}
             />
             <CommandList className={maxHeight}>
-              <CommandEmpty>{emptyMessage}</CommandEmpty>
-              <CommandGroup>
+              {filteredElements.length === 0 ? (
+                <CommandEmpty>{emptyMessage}</CommandEmpty>
+              ) : (
+                <>
+                  {filteredElements.length > 1 && searchQuery && (
+                    <div className="px-2 py-1 border-b">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={selectAllFiltered}
+                        disabled={disabled}
+                        className="w-full justify-start gap-2"
+                        data-testid="select-all-filtered"
+                      >
+                        <CheckSquare className="h-4 w-4" />
+                        Select all filtered ({filteredElements.length} items)
+                      </Button>
+                    </div>
+                  )}
+                  <CommandGroup>
                 {filteredElements.map((element) => {
                   const isSelected = value.includes(element.id);
                   
@@ -201,7 +226,9 @@ export function BuildingElementsMultiSelect({
                     </CommandItem>
                   );
                 })}
-              </CommandGroup>
+                  </CommandGroup>
+                </>
+              )}
             </CommandList>
           </Command>
         </PopoverContent>
