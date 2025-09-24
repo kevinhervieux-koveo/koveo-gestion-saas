@@ -22,12 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -38,7 +32,6 @@ import { insertMaintenanceProjectSchema, MaintenanceProject, EvaluationSuggestio
 import { VendorForm } from '@/components/maintenance/vendors';
 import { cn } from '@/lib/utils';
 import {
-  CalendarIcon,
   Building2,
   Target,
   Wrench,
@@ -566,47 +559,55 @@ export function ProjectForm({
         <FormField
           control={form.control}
           name="plannedStartDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Planned Start Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                      data-testid="button-start-date"
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a start date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date < new Date(new Date().setHours(0, 0, 0, 0))
-                    }
-                    initialFocus
+          render={({ field }) => {
+            // Format the date value for the input
+            const formatDateForInput = (date: Date | null | undefined): string => {
+              if (!date) return '';
+              try {
+                return format(date, 'yyyy-MM-dd');
+              } catch {
+                return '';
+              }
+            };
+
+            return (
+              <FormItem>
+                <FormLabel>Planned Start Date</FormLabel>
+                <FormControl>
+                  <Input
+                    value={formatDateForInput(field.value)}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      if (inputValue === '') {
+                        field.onChange(undefined);
+                      } else {
+                        // Let the native date input handle the parsing
+                        // Only update when we have a complete valid date string (YYYY-MM-DD)
+                        if (inputValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                          try {
+                            const dateValue = new Date(inputValue + 'T00:00:00');
+                            // Validate that the date is valid
+                            if (!isNaN(dateValue.getTime())) {
+                              field.onChange(dateValue);
+                            }
+                          } catch (error) {
+                            console.warn('Date parsing error:', error);
+                          }
+                        }
+                      }
+                    }}
+                    type="date"
+                    min={format(new Date(), 'yyyy-MM-dd')}
+                    data-testid="input-start-date"
                   />
-                </PopoverContent>
-              </Popover>
-              <FormDescription>
-                When the project is planned to start
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
+                </FormControl>
+                <FormDescription>
+                  When the project is planned to start
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         {/* Budget and Vendor */}
