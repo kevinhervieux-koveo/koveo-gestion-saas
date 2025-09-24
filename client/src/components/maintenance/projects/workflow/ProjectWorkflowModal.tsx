@@ -13,7 +13,6 @@ import { useProjectWorkflowState, useMarkStatusComplete, ProjectWorkflowState } 
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import {
   WorkflowTabNavigation,
-  ConfigurationTab,
   PlannedTab,
   SubmissionTab,
   PreWorkTab,
