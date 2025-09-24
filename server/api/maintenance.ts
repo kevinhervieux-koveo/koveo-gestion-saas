@@ -3498,7 +3498,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         .from(projectElements)
         .innerJoin(buildingElements, eq(projectElements.elementId, buildingElements.id))
         .where(eq(projectElements.projectId, projectId))
-        .orderBy(buildingElements.uniformatCode, buildingElements.name);
+        .orderBy(asc(buildingElements.uniformatCode), asc(buildingElements.name));
       
       res.json({
         success: true,
