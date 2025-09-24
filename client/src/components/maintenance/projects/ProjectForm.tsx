@@ -253,6 +253,25 @@ export function ProjectForm({
         payload.status = 'planned';
       }
       
+      // DEBUG: Log the exact payload being sent to backend
+      console.group(`🚀 [ProjectForm] ${method} ${endpoint}`);
+      console.log('📋 Original form data:', data);
+      console.log('📦 Transformed payload:', payload);
+      console.log('🔍 Payload types:', {
+        buildingId: typeof payload.buildingId,
+        projectNumber: typeof payload.projectNumber,
+        title: typeof payload.title,
+        type: typeof payload.type,
+        priority: typeof payload.priority,
+        totalBudget: typeof payload.totalBudget,
+        actualCost: typeof payload.actualCost,
+        plannedStartDate: typeof payload.plannedStartDate,
+        planningDescription: typeof payload.planningDescription,
+        suggestionId: typeof payload.suggestionId,
+        status: typeof payload.status
+      });
+      console.groupEnd();
+      
       const response = await apiRequest(method, endpoint, payload);
       const result = await response.json();
       
@@ -330,11 +349,28 @@ export function ProjectForm({
       form.reset();
     },
     onError: (error: any) => {
+      // DEBUG: Log detailed error information
+      console.group(`❌ [ProjectForm] ${mode === 'create' ? 'Creation' : 'Update'} Failed`);
+      console.error('Raw error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Validation issues:', error.response?.data?.details);
+      console.groupEnd();
+      
       const message = error.response?.data?.message || error.message || 'An error occurred';
+      const validationDetails = error.response?.data?.details;
+      
+      // Show validation details in console for debugging
+      if (validationDetails) {
+        console.table(validationDetails);
+      }
+      
       setError(message);
       toast({
         title: mode === 'create' ? "Creation Failed" : "Update Failed",
-        description: message,
+        description: validationDetails ? 
+          `${message}. Check console for validation details.` : 
+          message,
         variant: "destructive",
       });
     },

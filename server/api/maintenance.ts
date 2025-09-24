@@ -276,6 +276,10 @@ const maintenanceProjectCreateSchema = z.object({
 
 const maintenanceProjectUpdateSchema = maintenanceProjectCreateSchema.partial().extend({
   status: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed']).optional(),
+  actualStartDate: z.coerce.date().optional(),
+  actualEndDate: z.coerce.date().optional(),
+  planningStartDate: z.coerce.date().optional(),
+  workStartDate: z.coerce.date().optional(),
 });
 
 const projectStepUpdateSchema = z.object({
@@ -699,7 +703,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       // Convert rating to string if it exists (database expects decimal/string)
-      const vendorData: InsertVendor = {
+      const vendorData: any = {
         ...validation.data,
         organizationId: finalOrganizationId,
         rating: validation.data.rating ? validation.data.rating.toString() : undefined,
@@ -1089,7 +1093,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      const elementData: InsertBuildingElement = {
+      const elementData: any = {
         ...validation.data,
         buildingId,
         // Convert Date objects to strings for database (YYYY-MM-DD format)
@@ -1666,7 +1670,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      const historyData: InsertElementHistory = {
+      const historyData: any = {
         ...validation.data,
         elementId,
         eventDate: validation.data.eventDate.toISOString().split('T')[0], // Convert Date to string
@@ -2336,7 +2340,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      const suggestionData: InsertEvaluationSuggestion = {
+      const suggestionData: any = {
         elementId: validation.data.elementId!,
         suggestedDate: validation.data.suggestedDate.toISOString().split('T')[0], // Convert Date to string
         suggestedType: validation.data.suggestionType, // Map suggestionType to suggestedType
@@ -2454,10 +2458,14 @@ export function registerMaintenanceRoutes(app: Express): void {
       const projectDefaults = req.body || {};
       const { defaultBudget, defaultDuration, defaultPriority } = projectDefaults;
       
-      // Get suggestion details
+      // Get suggestion details with element relationship for buildingId
       const suggestionResult = await db
-        .select()
+        .select({
+          suggestion: evaluationSuggestions,
+          element: buildingElements,
+        })
         .from(evaluationSuggestions)
+        .innerJoin(buildingElements, eq(evaluationSuggestions.elementId, buildingElements.id))
         .where(eq(evaluationSuggestions.id, id))
         .limit(1);
       
@@ -2465,29 +2473,34 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Suggestion not found' });
       }
       
-      const suggestion = suggestionResult[0];
+      const { suggestion, element } = suggestionResult[0];
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, suggestion.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, user.role, element.buildingId);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this suggestion'
         });
       }
       
+      // Generate project number
+      const projectNumber = `PROJ-${Date.now().toString().slice(-8)}`;
+      
       // Create maintenance project from suggestion
-      const projectData: InsertMaintenanceProject = {
-        buildingId: suggestion.buildingId,
-        title: suggestion.title,
-        planningDescription: suggestion.description,
-        type: suggestion.suggestionType as any, // Type assertion needed
+      const projectData: any = {
+        buildingId: element.buildingId,
+        projectNumber: projectNumber,
+        title: suggestion.reason || 'Project from suggestion',
+        planningDescription: suggestion.reason,
+        type: suggestion.suggestedType,
         priority: defaultPriority || suggestion.priority,
-        estimatedCost: defaultBudget ? parseFloat(defaultBudget) : suggestion.estimatedCost,
+        estimatedCost: defaultBudget ? parseFloat(defaultBudget) : undefined,
         suggestionId: suggestion.id,
+        createdBy: user.id,
       };
       
       const [project] = await db
         .insert(maintenanceProjects)
-        .values(projectData)
+        .values([projectData])
         .returning();
       
       // Update suggestion status
@@ -2686,11 +2699,57 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
+      // DEBUG: Log incoming request data
+      console.group(`📝 [BACKEND] POST /api/maintenance/projects - User: ${user.email || user.id}`);
+      console.log('📋 Raw request body:', req.body);
+      console.log('🔍 Request body types:', {
+        buildingId: typeof req.body.buildingId,
+        projectNumber: typeof req.body.projectNumber,
+        title: typeof req.body.title,
+        type: typeof req.body.type,
+        priority: typeof req.body.priority,
+        totalBudget: typeof req.body.totalBudget,
+        actualCost: typeof req.body.actualCost,
+        plannedStartDate: typeof req.body.plannedStartDate,
+        planningDescription: typeof req.body.planningDescription,
+        suggestionId: typeof req.body.suggestionId,
+        status: typeof req.body.status
+      });
+      console.log('📋 Request headers (content-type):', req.headers['content-type']);
+      console.groupEnd();
+      
       const validation = maintenanceProjectCreateSchema.safeParse(req.body);
       if (!validation.success) {
+        // DEBUG: Log detailed validation errors
+        console.group(`❌ [VALIDATION ERROR] Project creation validation failed`);
+        console.error('Validation issues:', validation.error.issues);
+        console.error('Detailed error format:', validation.error.format());
+        console.error('Failed data:', req.body);
+        
+        // Log each validation error in detail
+        validation.error.issues.forEach((issue, index) => {
+          console.error(`Issue ${index + 1}:`, {
+            path: issue.path.join('.'),
+            message: issue.message,
+            code: issue.code,
+            received: 'received' in issue ? issue.received : 'N/A',
+            expected: 'expected' in issue ? issue.expected : 'N/A',
+            fullIssue: issue
+          });
+        });
+        console.groupEnd();
+        
         return res.status(400).json({
           error: 'Invalid project data',
-          details: validation.error.issues
+          message: 'Project validation failed. Check the details for specific field errors.',
+          details: validation.error.issues,
+          // Additional debugging info
+          debugInfo: {
+            receivedFields: Object.keys(req.body),
+            schemaRequiredFields: ['buildingId', 'projectNumber', 'title', 'type', 'priority'],
+            validationErrorsCount: validation.error.issues.length,
+            timestamp: new Date().toISOString()
+          }
         });
       }
       
@@ -2702,37 +2761,60 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      const projectData: InsertMaintenanceProject = {
+      const projectData: any = {
         ...validation.data,
         status: 'planned', // Default new projects to 'planned' status
-        plannedStartDate: validation.data.plannedStartDate ? new Date(validation.data.plannedStartDate) : null,
-        plannedEndDate: validation.data.plannedEndDate ? new Date(validation.data.plannedEndDate) : null,
-        actualStartDate: validation.data.actualStartDate ? new Date(validation.data.actualStartDate) : null,
-        actualEndDate: validation.data.actualEndDate ? new Date(validation.data.actualEndDate) : null,
+        plannedStartDate: validation.data.plannedStartDate ? new Date(validation.data.plannedStartDate).toISOString().split('T')[0] : null,
+        plannedEndDate: validation.data.plannedEndDate ? new Date(validation.data.plannedEndDate).toISOString().split('T')[0] : null,
         // Initialize skip flags to false by default
         skipSubmission: validation.data.skipSubmission || false,
         skipPreWork: validation.data.skipPreWork || false,
         skipInProgress: validation.data.skipInProgress || false,
         skipPostWork: validation.data.skipPostWork || false,
-        // Include planned fields
-        planningStartDate: validation.data.planningStartDate ? new Date(validation.data.planningStartDate) : null,
-        workStartDate: validation.data.workStartDate ? new Date(validation.data.workStartDate) : null,
+        createdBy: user.id, // Set the creator
       };
+      
+      // DEBUG: Log the data being inserted
+      console.group(`✅ [DATABASE] Inserting project data`);
+      console.log('Validated project data:', projectData);
+      console.groupEnd();
       
       const [project] = await db
         .insert(maintenanceProjects)
-        .values(projectData)
+        .values([projectData])
         .returning();
+      
+      // DEBUG: Log successful creation
+      console.log(`✅ [SUCCESS] Project created with ID: ${project.id}`);
       
       res.status(201).json({
         success: true,
         data: project
       });
     } catch (error: any) {
-      console.error('Error creating maintenance project:', error);
+      // DEBUG: Log detailed error information
+      console.group(`❌ [ERROR] Failed to create maintenance project`);
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      console.error('Error details:', error);
+      
+      // Check if it's a database constraint error
+      if (error.code) {
+        console.error('Database error code:', error.code);
+        console.error('Database error detail:', error.detail);
+        console.error('Database error constraint:', error.constraint);
+      }
+      console.groupEnd();
+      
       res.status(500).json({
         error: 'Failed to create maintenance project',
-        details: error.message
+        details: error.message,
+        debugInfo: {
+          errorType: error.constructor.name,
+          timestamp: new Date().toISOString(),
+          databaseCode: error.code || null
+        }
       });
     }
   });
