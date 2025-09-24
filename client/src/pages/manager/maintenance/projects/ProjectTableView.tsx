@@ -29,6 +29,12 @@ export interface ProjectTableViewProps {
   onSelectionChange?: (selectedIds: string[]) => void;
   buildingId?: string;
   organizationId?: string;
+  // Filter change handlers
+  onSearchChange?: (term: string) => void;
+  onStatusFilterChange?: (status: string) => void;
+  onPriorityFilterChange?: (priority: string) => void;
+  onTypeFilterChange?: (type: string) => void;
+  onShowOverdueChange?: (overdue: boolean) => void;
 }
 
 /**
@@ -51,6 +57,12 @@ export function ProjectTableView({
   onSelectionChange,
   buildingId,
   organizationId,
+  // Filter change handlers
+  onSearchChange,
+  onStatusFilterChange,
+  onPriorityFilterChange,
+  onTypeFilterChange,
+  onShowOverdueChange,
 }: ProjectTableViewProps) {
   // Use building context to get current building state
   const { building, hasPermission } = useBuildingContext();
@@ -272,6 +284,16 @@ export function ProjectTableView({
         data-testid="main-projects-table"
         buildingId={buildingId}
         organizationId={organizationId}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+        priorityFilter={priorityFilter}
+        typeFilter={typeFilter}
+        showOverdueOnly={showOverdueOnly}
+        onSearchChange={onSearchChange}
+        onStatusFilterChange={onStatusFilterChange}
+        onPriorityFilterChange={onPriorityFilterChange}
+        onTypeFilterChange={onTypeFilterChange}
+        onShowOverdueChange={onShowOverdueChange}
       />
 
       {/* Additional Information */}

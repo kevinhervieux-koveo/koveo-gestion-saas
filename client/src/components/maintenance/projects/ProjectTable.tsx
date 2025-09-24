@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +56,18 @@ export interface ProjectTableProps {
   compact?: boolean;
   buildingId?: string;
   organizationId?: string;
+  // Filter props for external filtering
+  searchTerm?: string;
+  statusFilter?: string;
+  priorityFilter?: string;
+  typeFilter?: string;
+  showOverdueOnly?: boolean;
+  // Filter change handlers
+  onSearchChange?: (term: string) => void;
+  onStatusFilterChange?: (status: string) => void;
+  onPriorityFilterChange?: (priority: string) => void;
+  onTypeFilterChange?: (type: string) => void;
+  onShowOverdueChange?: (overdue: boolean) => void;
 }
 
 interface ProjectWithMetrics extends MaintenanceProject {
@@ -78,6 +94,18 @@ export function ProjectTable({
   compact = false,
   buildingId,
   organizationId,
+  // Filter props
+  searchTerm = '',
+  statusFilter = '',
+  priorityFilter = '',
+  typeFilter = '',
+  showOverdueOnly = false,
+  // Filter change handlers
+  onSearchChange,
+  onStatusFilterChange,
+  onPriorityFilterChange,
+  onTypeFilterChange,
+  onShowOverdueChange,
 }: ProjectTableProps) {
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
@@ -107,10 +135,52 @@ export function ProjectTable({
   });
 
   // Fix: Backend returns { success: true, data: projects }, but frontend expects { projects: [...] }
-  const projects: ProjectWithMetrics[] = projectsResponse?.data || [];
+  const allProjects: ProjectWithMetrics[] = projectsResponse?.data || [];
   
-  console.log('🔍 [PROJECT TABLE DEBUG] Final projects array:', projects);
-  console.log('🔍 [PROJECT TABLE DEBUG] Projects count:', projects.length);
+  console.log('🔍 [PROJECT TABLE DEBUG] Final projects array:', allProjects);
+  console.log('🔍 [PROJECT TABLE DEBUG] Projects count:', allProjects.length);
+
+  // Apply external filtering logic
+  const projects = useMemo(() => {
+    return allProjects.filter(project => {
+      // Search filter
+      if (searchTerm.trim()) {
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch = 
+          project.title.toLowerCase().includes(searchLower) ||
+          project.projectNumber.toLowerCase().includes(searchLower) ||
+          (project.type && project.type.toLowerCase().includes(searchLower));
+        
+        if (!matchesSearch) return false;
+      }
+
+      // Status filter
+      if (statusFilter && statusFilter !== 'all' && project.status !== statusFilter) {
+        return false;
+      }
+
+      // Priority filter
+      if (priorityFilter && priorityFilter !== 'all' && project.priority !== priorityFilter) {
+        return false;
+      }
+
+      // Type filter
+      if (typeFilter && typeFilter !== 'all' && project.type !== typeFilter) {
+        return false;
+      }
+
+      // Overdue filter
+      if (showOverdueOnly) {
+        const now = new Date();
+        const endDate = project.plannedEndDate ? new Date(project.plannedEndDate) : null;
+        const isOverdue = endDate && endDate < now && project.status !== 'completed';
+        
+        if (!isOverdue) return false;
+      }
+
+      return true;
+    });
+  }, [allProjects, searchTerm, statusFilter, priorityFilter, typeFilter, showOverdueOnly]);
 
   // Bulk status update mutation
   const updateStatusMutation = useMutation({
@@ -216,7 +286,7 @@ export function ProjectTable({
                 #{project.projectNumber}
               </div>
               {project.isOverdue && (
-                <Badge variant="destructive" size="sm" className="text-xs">
+                <Badge variant="destructive" className="text-xs">
                   <AlertTriangle className="h-3 w-3 mr-1" />
                   Overdue
                 </Badge>
@@ -257,7 +327,6 @@ export function ProjectTable({
         cell: ({ row }) => (
           <StatusBadge 
             status={row.getValue('status')} 
-            size="sm"
             data-testid={`project-status-${row.original.id}`}
           />
         ),
@@ -268,7 +337,6 @@ export function ProjectTable({
         cell: ({ row }) => (
           <PriorityBadge 
             priority={row.getValue('priority')} 
-            size="sm"
             data-testid={`project-priority-${row.original.id}`}
           />
         ),
@@ -395,7 +463,7 @@ export function ProjectTable({
                   View Details
                 </DropdownMenuItem>
                 
-                {hasPermission('canEditMaintenance') && (
+                {hasPermission() && (
                   <DropdownMenuItem 
                     onClick={() => onEditProject?.(project)}
                     data-testid={`action-edit-${project.id}`}
@@ -413,7 +481,7 @@ export function ProjectTable({
                   View Timeline
                 </DropdownMenuItem>
                 
-                {hasPermission('canEditMaintenance') && (
+                {hasPermission() && (
                   <DropdownMenuItem 
                     onClick={() => onAssignElements?.(project)}
                     data-testid={`action-assign-elements-${project.id}`}
@@ -425,11 +493,11 @@ export function ProjectTable({
                 
                 <DropdownMenuSeparator />
                 
-                {project.status !== 'work' && hasPermission('canEditMaintenance') && (
+                {project.status !== 'in_progress' && hasPermission() && (
                   <DropdownMenuItem 
                     onClick={() => updateStatusMutation.mutate({ 
                       projectIds: [project.id], 
-                      status: 'work' 
+                      status: 'in_progress' 
                     })}
                     data-testid={`action-start-work-${project.id}`}
                   >
@@ -449,7 +517,7 @@ export function ProjectTable({
 
   // Bulk actions for selected rows
   const bulkActions = useMemo(() => {
-    if (!showBulkActions || !hasPermission('canEditMaintenance')) return [];
+    if (!showBulkActions || !hasPermission()) return [];
 
     return [
       {
@@ -458,7 +526,7 @@ export function ProjectTable({
         onClick: (selectedRows: Row<ProjectWithMetrics>[]) => {
           // This would typically open a status selection dialog
           const projectIds = selectedRows.map(row => row.original.id);
-          updateStatusMutation.mutate({ projectIds, status: 'work' });
+          updateStatusMutation.mutate({ projectIds, status: 'in_progress' });
         },
         disabled: (selectedRows: Row<ProjectWithMetrics>[]) => selectedRows.length === 0,
       },
@@ -496,23 +564,158 @@ export function ProjectTable({
     );
   }
 
+  // Search and filter card component
+  const hasActiveFilters = searchTerm || statusFilter || priorityFilter || typeFilter || showOverdueOnly;
+
+  const searchFilterCard = (
+    <Card className="border bg-muted/30">
+      <CardContent className="p-4">
+        <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 sm:items-end">
+          {/* Search Input */}
+          <div className="flex-1 space-y-2">
+            <label className="text-sm font-medium">Search Projects</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search by name, number, or type..."
+                value={searchTerm}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                className="pl-10"
+                data-testid="search-projects-input"
+              />
+            </div>
+          </div>
+
+          {/* Status Filter */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Status</label>
+            <Select value={statusFilter} onValueChange={(value) => onStatusFilterChange?.(value)}>
+              <SelectTrigger className="w-[140px]" data-testid="status-filter">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="planned">Planned</SelectItem>
+                <SelectItem value="submission">Submission</SelectItem>
+                <SelectItem value="pre_work">Pre-Work</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="post_work">Post-Work</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Priority Filter */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Priority</label>
+            <Select value={priorityFilter} onValueChange={(value) => onPriorityFilterChange?.(value)}>
+              <SelectTrigger className="w-[120px]" data-testid="priority-filter">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Type Filter */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Type</label>
+            <Select value={typeFilter} onValueChange={(value) => onTypeFilterChange?.(value)}>
+              <SelectTrigger className="w-[140px]" data-testid="type-filter">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="repair">Repair</SelectItem>
+                <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
+                <SelectItem value="major_rehab">Major Rehab</SelectItem>
+                <SelectItem value="replacement">Replacement</SelectItem>
+                <SelectItem value="not_sure">Not Sure</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Overdue Filter */}
+          <div className="flex items-center space-x-2 pb-2">
+            <Checkbox
+              id="overdue-filter"
+              checked={showOverdueOnly}
+              onCheckedChange={(checked) => onShowOverdueChange?.(!!checked)}
+              data-testid="overdue-filter"
+            />
+            <label
+              htmlFor="overdue-filter"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Overdue Only
+            </label>
+          </div>
+        </div>
+
+        {/* Filter Summary */}
+        {hasActiveFilters && (
+          <div className="mt-4 flex items-center justify-between pt-3 border-t border-border">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Filter className="h-4 w-4" />
+              <span>
+                Showing {projects.length} of {allProjects.length} projects
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {searchTerm && (
+                <Badge variant="secondary" className="text-xs">
+                  Search: {searchTerm}
+                </Badge>
+              )}
+              {statusFilter && statusFilter !== 'all' && (
+                <Badge variant="secondary" className="text-xs">
+                  Status: {statusFilter}
+                </Badge>
+              )}
+              {priorityFilter && priorityFilter !== 'all' && (
+                <Badge variant="secondary" className="text-xs">
+                  Priority: {priorityFilter}
+                </Badge>
+              )}
+              {typeFilter && typeFilter !== 'all' && (
+                <Badge variant="secondary" className="text-xs">
+                  Type: {typeFilter}
+                </Badge>
+              )}
+              {showOverdueOnly && (
+                <Badge variant="destructive" className="text-xs">
+                  Overdue Only
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className={cn("space-y-4", className)} data-testid="project-table">
+      {/* Search and Filter Controls Card */}
+      {searchFilterCard}
+      
       <DataTable
         columns={columns}
         data={projects}
-        title="Maintenance Projects"
-        description="Manage and track maintenance projects for your building"
         isLoading={isLoading}
         searchPlaceholder="Search projects by name or number..."
         searchableColumn="title"
         enableRowSelection={showBulkActions}
         enableFiltering={true}
         enableSorting={true}
-        enableColumnVisibility={true}
+        enableColumnVisibility={false}
         enablePagination={true}
         pageSize={compact ? 5 : 10}
-        bulkActions={bulkActions}
         onSelectionChange={setSelectedProjects}
         onRowClick={(row) => onProjectSelect?.(row.original)}
         emptyState={{
@@ -527,4 +730,3 @@ export function ProjectTable({
   );
 }
 
-export type { ProjectTableProps };

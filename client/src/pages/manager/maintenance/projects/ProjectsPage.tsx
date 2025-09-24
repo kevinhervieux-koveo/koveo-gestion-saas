@@ -345,6 +345,12 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       onSelectionChange: handleSelectionChange,
       buildingId,
       organizationId,
+      // Filter change handlers
+      onSearchChange: handleSearchChange,
+      onStatusFilterChange: handleStatusFilterChange,
+      onPriorityFilterChange: handlePriorityFilterChange,
+      onTypeFilterChange: handleTypeFilterChange,
+      onShowOverdueChange: handleShowOverdueChange,
     };
 
     switch (viewMode) {

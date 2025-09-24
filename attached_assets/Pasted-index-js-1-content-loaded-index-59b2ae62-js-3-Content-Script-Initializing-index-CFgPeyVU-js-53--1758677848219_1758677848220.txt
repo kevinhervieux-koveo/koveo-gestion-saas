@@ -1,0 +1,356 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BnZF3KNk.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BnZF3KNk.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BnZF3KNk.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BnZF3KNk.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CFgPeyVU.js:53 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-CFgPeyVU.js:53 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CFgPeyVU.js:53 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-CFgPeyVU.js:53 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-CFgPeyVU.js:53 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(2)}
+index-CFgPeyVU.js:53 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-CFgPeyVU.js:53 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 2
+index-CFgPeyVU.js:53 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (2) [{…}, {…}]
+index-CFgPeyVU.js:53 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 2
+index-CFgPeyVU.js:37 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-CFgPeyVU.js:37 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-CFgPeyVU.js:37 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-CFgPeyVU.js:37 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-0xke6egx.js:185 [Violation] 'setTimeout' handler took 53ms
+index-CFgPeyVU.js:53 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-CFgPeyVU.js:53 📁 [PROJECTS STATE] Project workflow modal opened
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-0xke6egx.js:79 In HTML, <div> cannot be a descendant of <p>.
+This will cause a hydration error.
+
+  ...
+    <FocusScope asChild={true} loop={true} trapped={true} onMountAutoFocus={undefined} onUnmountAutoFocus={function}>
+      <Primitive.div tabIndex={-1} asChild={true} ref={function} onKeyDown={function}>
+        <Primitive.div.Slot tabIndex={-1} onKeyDown={function} ref={function}>
+          <Primitive.div.SlotClone tabIndex={-1} onKeyDown={function} ref={function}>
+            <DismissableLayer role="dialog" id="radix-«r12»" aria-describedby="radix-«r14»" aria-labelledby="radix-«r13»" ...>
+              <Primitive.div role="dialog" id="radix-«r12»" aria-describedby="radix-«r14»" aria-labelledby="radix-«r13»" ...>
+                <div role="dialog" id="radix-«r12»" aria-describedby="radix-«r14»" aria-labelledby="radix-«r13»" ...>
+                  <DialogHeader>
+                    <div className="flex flex-...">
+                      <DialogTitle>
+                      <DialogDescription>
+                        <DialogDescription ref={null} className="text-sm te...">
+                          <Primitive.p id="radix-«r14»" className="text-sm te..." ref={null}>
+>                           <p id="radix-«r14»" className="text-sm text-muted-foreground" ref={null}>
+                              <m className="h-4 w-64">
+>                               <div className="animate-pulse rounded-md bg-muted h-4 w-64">
+                  ...
+                  ...
+    ...
+
+overrideMethod @ hook.js:608
+zu @ index-0xke6egx.js:79
+qS @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+ir @ index-0xke6egx.js:163
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ag @ index-0xke6egx.js:163
+ed @ index-0xke6egx.js:163
+Xh @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+fg @ index-0xke6egx.js:185
+d @ index-0xke6egx.js:23
+<div>
+du.jsxDEV @ index-0xke6egx.js:15
+m @ skeleton-Ch7OUOpD.js:1
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+kc @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ag @ index-0xke6egx.js:163
+ed @ index-0xke6egx.js:163
+Xh @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+fg @ index-0xke6egx.js:185
+d @ index-0xke6egx.js:23
+<m>
+du.jsxDEV @ index-0xke6egx.js:15
+uo @ ProjectWorkflowModal-DGut0Rij.js:1
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+kc @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+WS @ index-0xke6egx.js:163
+KS @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+fg @ index-0xke6egx.js:185
+d @ index-0xke6egx.js:23
+<...>
+du.jsxDEV @ index-0xke6egx.js:15
+Pm @ index-CFgPeyVU.js:53
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+kc @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ad @ index-0xke6egx.js:185
+(anonymous) @ index-0xke6egx.js:185
+<Pm>
+du.jsxDEV @ index-0xke6egx.js:15
+Vm @ index-CFgPeyVU.js:53
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+kc @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ad @ index-0xke6egx.js:185
+(anonymous) @ index-0xke6egx.js:185
+index-0xke6egx.js:80 <p> cannot contain a nested <div>.
+See this log for the ancestor stack trace.
+overrideMethod @ hook.js:608
+(anonymous) @ index-0xke6egx.js:80
+q @ index-0xke6egx.js:45
+zu @ index-0xke6egx.js:80
+qS @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+ir @ index-0xke6egx.js:163
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ag @ index-0xke6egx.js:163
+ed @ index-0xke6egx.js:163
+Xh @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+fg @ index-0xke6egx.js:185
+d @ index-0xke6egx.js:23
+<p>
+Je.jsx @ vendor-ui-FHn4g_G0.js:14
+Primitive.p @ vendor-ui-FHn4g_G0.js:14
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+sh @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ag @ index-0xke6egx.js:163
+ed @ index-0xke6egx.js:163
+Xh @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+fg @ index-0xke6egx.js:185
+d @ index-0xke6egx.js:23
+<Primitive.p>
+Je.jsx @ vendor-ui-FHn4g_G0.js:14
+DialogDescription @ vendor-ui-FHn4g_G0.js:54
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+sh @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ag @ index-0xke6egx.js:163
+ed @ index-0xke6egx.js:163
+Xh @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+fg @ index-0xke6egx.js:185
+d @ index-0xke6egx.js:23
+<DialogDescription>
+du.jsxDEV @ index-0xke6egx.js:15
+DialogDescription @ dialog-D9UlZ_1c.js:1
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+sh @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ag @ index-0xke6egx.js:163
+ed @ index-0xke6egx.js:163
+Xh @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+fg @ index-0xke6egx.js:185
+d @ index-0xke6egx.js:23
+<DialogDescription>
+du.jsxDEV @ index-0xke6egx.js:15
+uo @ ProjectWorkflowModal-DGut0Rij.js:1
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+kc @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+WS @ index-0xke6egx.js:163
+KS @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+fg @ index-0xke6egx.js:185
+d @ index-0xke6egx.js:23
+<...>
+du.jsxDEV @ index-0xke6egx.js:15
+Pm @ index-CFgPeyVU.js:53
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+kc @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ad @ index-0xke6egx.js:185
+(anonymous) @ index-0xke6egx.js:185
+<Pm>
+du.jsxDEV @ index-0xke6egx.js:15
+Vm @ index-CFgPeyVU.js:53
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+kc @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ad @ index-0xke6egx.js:185
+(anonymous) @ index-0xke6egx.js:185
+index-CFgPeyVU.js:53 📁 [PROJECTS MODAL] Project workflow visibility changed: {open: false, projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470'}
+index-CFgPeyVU.js:53 📁 [PROJECTS STATE] Project workflow visibility changed {open: false, projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470'}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CFgPeyVU.js:53 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-CFgPeyVU.js:53 📁 [PROJECTS STATE] Project workflow modal opened
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CFgPeyVU.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-0xke6egx.js:136 TypeError: Cannot read properties of undefined (reading 'title')
+    at uo (ProjectWorkflowModal-DGut0Rij.js:1:12109)
+    at Object.react_stack_bottom_frame (index-0xke6egx.js:229:12448)
+    at oc (index-0xke6egx.js:120:804)
+    at kc (index-0xke6egx.js:141:5839)
+    at Pc (index-0xke6egx.js:150:9693)
+    at q (index-0xke6egx.js:45:108)
+    at Kh (index-0xke6egx.js:163:29810)
+    at Jh (index-0xke6egx.js:163:28479)
+    at Wc (index-0xke6egx.js:163:28312)
+    at Ih (index-0xke6egx.js:163:24807)
+
+The above error occurred in the <uo> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gx.
+
+overrideMethod @ hook.js:608
+oh @ index-0xke6egx.js:136
+lh @ index-0xke6egx.js:141
+q @ index-0xke6egx.js:45
+l.componentDidCatch.e.callback @ index-0xke6egx.js:141
+Dp @ index-0xke6egx.js:107
+Ep @ index-0xke6egx.js:107
+q @ index-0xke6egx.js:45
+Dh @ index-0xke6egx.js:163
+Nh @ index-0xke6egx.js:163
+Qn @ index-0xke6egx.js:163
+Nh @ index-0xke6egx.js:163
+Qn @ index-0xke6egx.js:163
+Nh @ index-0xke6egx.js:163
+Qn @ index-0xke6egx.js:163
+Nh @ index-0xke6egx.js:163
+Qn @ index-0xke6egx.js:163
+Nh @ index-0xke6egx.js:163
+Qn @ index-0xke6egx.js:163
+Nh @ index-0xke6egx.js:163
+Qn @ index-0xke6egx.js:163
+Nh @ index-0xke6egx.js:163
+ng @ index-0xke6egx.js:163
+ed @ index-0xke6egx.js:163
+Xh @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ad @ index-0xke6egx.js:185
+(anonymous) @ index-0xke6egx.js:185
+<...>
+du.jsxDEV @ index-0xke6egx.js:15
+Pm @ index-CFgPeyVU.js:53
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+kc @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ad @ index-0xke6egx.js:185
+(anonymous) @ index-0xke6egx.js:185
+<Pm>
+du.jsxDEV @ index-0xke6egx.js:15
+Vm @ index-CFgPeyVU.js:53
+react_stack_bottom_frame @ index-0xke6egx.js:229
+oc @ index-0xke6egx.js:120
+kc @ index-0xke6egx.js:141
+Pc @ index-0xke6egx.js:150
+q @ index-0xke6egx.js:45
+Kh @ index-0xke6egx.js:163
+Jh @ index-0xke6egx.js:163
+Wc @ index-0xke6egx.js:163
+Ih @ index-0xke6egx.js:163
+mg @ index-0xke6egx.js:185
+ml @ index-0xke6egx.js:185
+ad @ index-0xke6egx.js:185
+(anonymous) @ index-0xke6egx.js:185
