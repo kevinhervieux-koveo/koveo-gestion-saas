@@ -11,14 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadges';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
@@ -26,7 +18,6 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import {
-  MoreHorizontal,
   Eye,
   Edit2,
   Play,
@@ -440,73 +431,55 @@ export function ProjectTable({
           const project = row.original;
           
           return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onProjectSelect?.(project)}
+                data-testid={`button-view-${project.id}`}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                <span className="text-xs">View</span>
+              </Button>
+              
+              {hasPermission() && (
                 <Button 
                   variant="ghost" 
-                  className="h-8 w-8 p-0"
-                  data-testid={`project-actions-${project.id}`}
+                  size="sm"
+                  className="h-8 px-2"
+                  onClick={() => onEditProject?.(project)}
+                  data-testid={`button-edit-${project.id}`}
                 >
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
+                  <Edit2 className="h-4 w-4 mr-1" />
+                  <span className="text-xs">Edit</span>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
-                  onClick={() => onProjectSelect?.(project)}
-                  data-testid={`action-view-${project.id}`}
+              )}
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onViewTimeline?.(project)}
+                data-testid={`button-timeline-${project.id}`}
+              >
+                <Calendar className="h-4 w-4 mr-1" />
+                <span className="text-xs">Timeline</span>
+              </Button>
+              
+              {hasPermission() && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="h-8 px-2"
+                  onClick={() => onAssignElements?.(project)}
+                  data-testid={`button-assign-elements-${project.id}`}
                 >
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Details
-                </DropdownMenuItem>
-                
-                {hasPermission() && (
-                  <DropdownMenuItem 
-                    onClick={() => onEditProject?.(project)}
-                    data-testid={`action-edit-${project.id}`}
-                  >
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Edit Project
-                  </DropdownMenuItem>
-                )}
-                
-                <DropdownMenuItem 
-                  onClick={() => onViewTimeline?.(project)}
-                  data-testid={`action-timeline-${project.id}`}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  View Timeline
-                </DropdownMenuItem>
-                
-                {hasPermission() && (
-                  <DropdownMenuItem 
-                    onClick={() => onAssignElements?.(project)}
-                    data-testid={`action-assign-elements-${project.id}`}
-                  >
-                    <Users className="mr-2 h-4 w-4" />
-                    Assign Elements
-                  </DropdownMenuItem>
-                )}
-                
-                <DropdownMenuSeparator />
-                
-                {project.status !== 'in_progress' && hasPermission() && (
-                  <DropdownMenuItem 
-                    onClick={() => updateStatusMutation.mutate({ 
-                      projectIds: [project.id], 
-                      status: 'in_progress' 
-                    })}
-                    data-testid={`action-start-work-${project.id}`}
-                  >
-                    <Play className="mr-2 h-4 w-4" />
-                    Start Work
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <Users className="h-4 w-4 mr-1" />
+                  <span className="text-xs">Assign</span>
+                </Button>
+              )}
+            </div>
           );
         },
       });
