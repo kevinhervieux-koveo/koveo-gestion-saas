@@ -486,9 +486,8 @@ export const submissionVendors = pgTable('submission_vendors', {
   projectId: uuid('project_id')
     .notNull()
     .references(() => maintenanceProjects.id, { onDelete: 'cascade' }),
-  vendorId: uuid('vendor_id')
-    .notNull()
-    .references(() => vendors.id, { onDelete: 'cascade' }),
+  vendorName: varchar('vendor_name', { length: 255 }).notNull(),
+  availableDate: date('available_date'),
   contactInfo: text('contact_info'),
   notes: text('notes'),
   price: decimal('price', { precision: 12, scale: 2 }),
@@ -507,7 +506,7 @@ export const submissionVendors = pgTable('submission_vendors', {
 }, (table) => ({
   // Performance indexes
   projectIdIdx: index('submission_vendors_project_id_idx').on(table.projectId),
-  vendorIdIdx: index('submission_vendors_vendor_id_idx').on(table.vendorId),
+  vendorNameIdx: index('submission_vendors_vendor_name_idx').on(table.vendorName),
   // Validation constraints
   priceCheck: check('submission_vendors_price_check', sql`price >= 0`),
   addedLifespanCheck: check('submission_vendors_added_lifespan_check', sql`added_lifespan >= 0`),
@@ -704,7 +703,8 @@ export const insertElementDocumentSchema = createInsertSchema(elementDocuments, 
 
 export const insertSubmissionVendorSchema = createInsertSchema(submissionVendors, {
   projectId: z.string().uuid(),
-  vendorId: z.string().uuid(),
+  vendorName: z.string().min(1, 'Vendor name is required').max(255),
+  availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   contactInfo: z.string().optional(),
   notes: z.string().optional(),
   price: z.number().positive().optional(),
@@ -926,10 +926,6 @@ export const submissionVendorsRelations = relations(submissionVendors, ({ one })
   project: one(maintenanceProjects, {
     fields: [submissionVendors.projectId],
     references: [maintenanceProjects.id],
-  }),
-  vendor: one(vendors, {
-    fields: [submissionVendors.vendorId],
-    references: [vendors.id],
   }),
 }));
 

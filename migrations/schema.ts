@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm"
 
 export const action = pgEnum("action", ['read', 'create', 'update', 'delete', 'manage', 'approve', 'assign', 'share', 'export', 'backup', 'restore'])
 export const actionableItemStatus = pgEnum("actionable_item_status", ['pending', 'in-progress', 'completed', 'blocked'])
+export const autoProjectStatus = pgEnum("auto_project_status", ['pending', 'accepted', 'dismissed'])
 export const billCategory = pgEnum("bill_category", ['insurance', 'maintenance', 'salary', 'utilities', 'cleaning', 'security', 'landscaping', 'professional_services', 'administration', 'repairs', 'supplies', 'taxes', 'technology', 'reserves', 'other'])
 export const billStatus = pgEnum("bill_status", ['draft', 'sent', 'overdue', 'paid', 'cancelled'])
 export const bookingStatus = pgEnum("booking_status", ['confirmed', 'cancelled'])
@@ -15,7 +16,10 @@ export const contactEntity = pgEnum("contact_entity", ['organization', 'building
 export const demandStatus = pgEnum("demand_status", ['draft', 'submitted', 'under_review', 'approved', 'in_progress', 'completed', 'rejected', 'cancelled'])
 export const demandType = pgEnum("demand_type", ['maintenance', 'complaint', 'information', 'other'])
 export const documentType = pgEnum("document_type", ['image', 'pdf', 'specification', 'warranty', 'report'])
+export const elementAccess = pgEnum("element_access", ['not_restrained', 'restrained'])
+export const elementCharge = pgEnum("element_charge", ['common', 'personnal'])
 export const elementCondition = pgEnum("element_condition", ['excellent', 'good', 'fair', 'poor', 'critical'])
+export const elementUpdateStatus = pgEnum("element_update_status", ['repair', 'minor_rehab', 'major_rehab', 'replace', 'nothing'])
 export const evaluationStatus = pgEnum("evaluation_status", ['pending', 'scheduled', 'postponed', 'completed', 'dismissed'])
 export const eventType = pgEnum("event_type", ['construction', 'repair', 'minor_rehab', 'major_rehab', 'replacement'])
 export const featureCategory = pgEnum("feature_category", ['Dashboard & Home', 'Property Management', 'Resident Management', 'Financial Management', 'Maintenance & Requests', 'Document Management', 'Communication', 'AI & Automation', 'Compliance & Security', 'Analytics & Reporting', 'Integration & API', 'Infrastructure & Performance', 'Website'])
@@ -38,19 +42,22 @@ export const notificationType = pgEnum("notification_type", ['bill_reminder', 'm
 export const paymentStatus = pgEnum("payment_status", ['pending', 'overdue', 'paid', 'cancelled'])
 export const paymentType = pgEnum("payment_type", ['unique', 'recurrent'])
 export const priority = pgEnum("priority", ['low', 'medium', 'high', 'critical'])
-export const projectStatus = pgEnum("project_status", ['planned', 'evaluation', 'submission', 'pre_work', 'work', 'post_work', 'completed'])
-export const projectType = pgEnum("project_type", ['evaluation', 'repair', 'minor_rehab', 'major_rehab', 'replacement'])
+export const projectOrigin = pgEnum("project_origin", ['manual', 'auto'])
+export const projectStatus = pgEnum("project_status", ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'])
+export const projectType = pgEnum("project_type", ['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure'])
 export const resourceType = pgEnum("resource_type", ['user', 'users', 'organization', 'building', 'residence', 'bill', 'budget', 'maintenance_request', 'document', 'audit_log', 'system_settings', 'development_pillar', 'quality_metric', 'feature', 'actionable_item', 'improvement_suggestion'])
 export const schedulePayment = pgEnum("schedule_payment", ['weekly', 'monthly', 'quarterly', 'yearly', 'custom'])
 export const sslStatus = pgEnum("ssl_status", ['active', 'pending', 'expired', 'revoked', 'failed'])
 export const stepStatus = pgEnum("step_status", ['pending', 'in_progress', 'completed', 'skipped'])
-export const stepType = pgEnum("step_type", ['evaluation', 'submission', 'pre_work', 'work', 'post_work', 'completion'])
+export const stepType = pgEnum("step_type", ['submission', 'pre_work', 'in_progress', 'post_work', 'completion'])
 export const suggestionCategory = pgEnum("suggestion_category", ['Code Quality', 'Security', 'Testing', 'Documentation', 'Performance', 'Continuous Improvement', 'Replit AI Agent Monitoring', 'Replit App'])
 export const suggestionPriority = pgEnum("suggestion_priority", ['Low', 'Medium', 'High', 'Critical'])
 export const suggestionStatus = pgEnum("suggestion_status", ['New', 'Acknowledged', 'Done'])
 export const suggestionType = pgEnum("suggestion_type", ['inspection', 'minor_rehab', 'major_rehab', 'replacement'])
+export const timingType = pgEnum("timing_type", ['one_day_before', 'three_days_before', 'one_week_before', 'custom'])
 export const userRole = pgEnum("user_role", ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident'])
 export const validationStatus = pgEnum("validation_status", ['pending', 'true_positive', 'false_positive', 'true_negative', 'false_negative'])
+export const workflowPhase = pgEnum("workflow_phase", ['pre_work', 'in_progress', 'post_work'])
 
 
 export const invoices = pgTable("invoices", {
@@ -286,6 +293,96 @@ export const financialCache = pgTable("financial_cache", {
 		}),
 ]);
 
+export const submissionVendors = pgTable("submission_vendors", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	projectId: uuid("project_id").notNull(),
+	contactInfo: text("contact_info"),
+	notes: text(),
+	price: numeric({ precision: 12, scale:  2 }),
+	projectType: projectType("project_type").notNull(),
+	addedLifespan: integer("added_lifespan"),
+	documents: jsonb(),
+	isSelected: boolean("is_selected").default(false).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+	paymentPlanCosts: numeric("payment_plan_costs", { precision: 10, scale:  2 }).array(),
+	paymentPlanSchedule: schedulePayment("payment_plan_schedule"),
+	paymentPlanCustomDates: date("payment_plan_custom_dates").array(),
+	paymentPlanStartDate: date("payment_plan_start_date"),
+	preferred: boolean().default(false).notNull(),
+	vendorName: varchar("vendor_name", { length: 255 }).notNull(),
+	availableDate: date("available_date"),
+}, (table) => [
+	index("submission_vendors_project_id_idx").using("btree", table.projectId.asc().nullsLast().op("uuid_ops")),
+	index("submission_vendors_vendor_name_idx").using("btree", table.vendorName.asc().nullsLast().op("text_ops")),
+	foreignKey({
+			columns: [table.projectId],
+			foreignColumns: [maintenanceProjects.id],
+			name: "submission_vendors_project_id_maintenance_projects_id_fk"
+		}).onDelete("cascade"),
+	check("submission_vendors_price_check", sql`price >= (0)::numeric`),
+	check("submission_vendors_added_lifespan_check", sql`added_lifespan >= 0`),
+]);
+
+export const autoGeneratedProjects = pgTable("auto_generated_projects", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	buildingId: text("building_id").notNull(),
+	elementId: uuid("element_id").notNull(),
+	suggestionId: uuid("suggestion_id"),
+	status: autoProjectStatus().default('pending').notNull(),
+	title: varchar({ length: 200 }).notNull(),
+	description: text().notNull(),
+	suggestedType: projectType("suggested_type").notNull(),
+	suggestedPriority: priority("suggested_priority").default('medium').notNull(),
+	estimatedCost: numeric("estimated_cost", { precision: 12, scale:  2 }),
+	confidence: numeric({ precision: 3, scale:  2 }),
+	metadata: jsonb(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("auto_generated_projects_building_id_idx").using("btree", table.buildingId.asc().nullsLast().op("text_ops")),
+	index("auto_generated_projects_element_id_idx").using("btree", table.elementId.asc().nullsLast().op("uuid_ops")),
+	index("auto_generated_projects_status_idx").using("btree", table.status.asc().nullsLast().op("enum_ops")),
+	foreignKey({
+			columns: [table.suggestionId],
+			foreignColumns: [evaluationSuggestions.id],
+			name: "auto_generated_projects_suggestion_id_evaluation_suggestions_id"
+		}).onDelete("set null"),
+	foreignKey({
+			columns: [table.buildingId],
+			foreignColumns: [buildings.id],
+			name: "auto_generated_projects_building_id_buildings_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.elementId],
+			foreignColumns: [buildingElements.id],
+			name: "auto_generated_projects_element_id_building_elements_id_fk"
+		}).onDelete("cascade"),
+	unique("auto_generated_projects_unique_pending_per_element").on(table.elementId, table.status),
+	check("auto_generated_projects_estimated_cost_check", sql`estimated_cost >= (0)::numeric`),
+	check("auto_generated_projects_confidence_check", sql`(confidence >= (0)::numeric) AND (confidence <= (1)::numeric)`),
+]);
+
+export const projectNotifications = pgTable("project_notifications", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	projectId: uuid("project_id").notNull(),
+	messageText: text("message_text").notNull(),
+	timingType: timingType("timing_type").notNull(),
+	customDaysBefore: integer("custom_days_before"),
+	isSent: boolean("is_sent").default(false).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("project_notifications_is_sent_idx").using("btree", table.isSent.asc().nullsLast().op("bool_ops")),
+	index("project_notifications_project_id_idx").using("btree", table.projectId.asc().nullsLast().op("uuid_ops")),
+	foreignKey({
+			columns: [table.projectId],
+			foreignColumns: [maintenanceProjects.id],
+			name: "project_notifications_project_id_maintenance_projects_id_fk"
+		}).onDelete("cascade"),
+	check("project_notifications_custom_days_before_check", sql`custom_days_before > 0`),
+]);
+
 export const developmentPillars = pgTable("development_pillars", {
 	id: varchar().default(gen_random_uuid()).primaryKey().notNull(),
 	name: text().notNull(),
@@ -408,6 +505,28 @@ export const features = pgTable("features", {
 	syncedAt: timestamp("synced_at", { mode: 'string' }),
 });
 
+export const workflowTasks = pgTable("workflow_tasks", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	projectId: uuid("project_id").notNull(),
+	phase: workflowPhase().notNull(),
+	taskName: text("task_name").notNull(),
+	description: text(),
+	cost: numeric({ precision: 10, scale:  2 }),
+	isCompleted: boolean("is_completed").default(false).notNull(),
+	orderIndex: integer("order_index").notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("workflow_tasks_order_idx").using("btree", table.projectId.asc().nullsLast().op("uuid_ops"), table.orderIndex.asc().nullsLast().op("int4_ops")),
+	index("workflow_tasks_project_phase_idx").using("btree", table.projectId.asc().nullsLast().op("enum_ops"), table.phase.asc().nullsLast().op("enum_ops")),
+	foreignKey({
+			columns: [table.projectId],
+			foreignColumns: [maintenanceProjects.id],
+			name: "workflow_tasks_project_id_maintenance_projects_id_fk"
+		}).onDelete("cascade"),
+	check("workflow_tasks_cost_check", sql`cost >= (0)::numeric`),
+]);
+
 export const notifications = pgTable("notifications", {
 	id: text().default(gen_random_uuid()).primaryKey().notNull(),
 	userId: varchar("user_id").notNull(),
@@ -445,6 +564,32 @@ export const userPermissions = pgTable("user_permissions", {
 			foreignColumns: [users.id],
 			name: "user_permissions_user_id_users_id_fk"
 		}),
+]);
+
+export const elementProjectUpdates = pgTable("element_project_updates", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	projectId: uuid("project_id").notNull(),
+	elementId: uuid("element_id").notNull(),
+	updateStatus: elementUpdateStatus("update_status").notNull(),
+	actualCost: numeric("actual_cost", { precision: 10, scale:  2 }),
+	notes: text(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("element_project_updates_element_id_idx").using("btree", table.elementId.asc().nullsLast().op("uuid_ops")),
+	index("element_project_updates_project_id_idx").using("btree", table.projectId.asc().nullsLast().op("uuid_ops")),
+	foreignKey({
+			columns: [table.projectId],
+			foreignColumns: [maintenanceProjects.id],
+			name: "element_project_updates_project_id_maintenance_projects_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.elementId],
+			foreignColumns: [buildingElements.id],
+			name: "element_project_updates_element_id_building_elements_id_fk"
+		}).onDelete("cascade"),
+	unique("element_project_updates_unique_project_element").on(table.projectId, table.elementId),
+	check("element_project_updates_actual_cost_check", sql`actual_cost >= (0)::numeric`),
 ]);
 
 export const rolePermissions = pgTable("role_permissions", {
@@ -548,14 +693,14 @@ export const notificationDispatchLog = pgTable("notification_dispatch_log", {
 	sentAt: timestamp("sent_at", { mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
 	foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "notification_dispatch_log_user_id_users_id_fk"
-		}),
-	foreignKey({
 			columns: [table.configurationId],
 			foreignColumns: [notificationConfigurations.id],
 			name: "notification_dispatch_log_configuration_id_notification_configu"
+		}),
+	foreignKey({
+			columns: [table.userId],
+			foreignColumns: [users.id],
+			name: "notification_dispatch_log_user_id_users_id_fk"
 		}),
 	unique("notification_dispatch_log_configuration_id_user_id_period_key_u").on(table.configurationId, table.userId, table.periodKey),
 ]);
@@ -826,6 +971,45 @@ export const notificationConfigurations = pgTable("notification_configurations",
 		}),
 ]);
 
+export const buildings = pgTable("buildings", {
+	id: text().default(gen_random_uuid()).primaryKey().notNull(),
+	organizationId: varchar("organization_id").notNull(),
+	name: varchar({ length: 200 }).notNull(),
+	address: text().notNull(),
+	city: varchar({ length: 100 }).notNull(),
+	province: varchar({ length: 3 }).default('QC').notNull(),
+	postalCode: varchar("postal_code", { length: 10 }).notNull(),
+	buildingType: buildingType("building_type").notNull(),
+	totalUnits: integer("total_units").notNull(),
+	totalFloors: integer("total_floors"),
+	parkingSpaces: integer("parking_spaces"),
+	storageSpaces: integer("storage_spaces"),
+	amenities: jsonb(),
+	managementCompany: text("management_company"),
+	isActive: boolean("is_active").default(true).notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+	bankAccountNumber: text("bank_account_number"),
+	bankAccountNotes: text("bank_account_notes"),
+	bankAccountUpdatedAt: timestamp("bank_account_updated_at", { mode: 'string' }),
+	bankAccountStartDate: timestamp("bank_account_start_date", { mode: 'string' }),
+	bankAccountStartAmount: numeric("bank_account_start_amount", { precision: 10, scale:  2 }),
+	bankAccountMinimums: text("bank_account_minimums"),
+	inflationSettings: text("inflation_settings"),
+	generalInflationRate: numeric("general_inflation_rate", { precision: 5, scale:  2 }).default('2.0').notNull(),
+	revenueInflationRate: numeric("revenue_inflation_rate", { precision: 5, scale:  2 }).default('2.0').notNull(),
+	unplannedBillsAmount: numeric("unplanned_bills_amount", { precision: 10, scale:  2 }).default('0'),
+	financialYearStart: date("financial_year_start"),
+	unplannedBillsStartDate: date("unplanned_bills_start_date"),
+	constructionDate: date("construction_date"),
+}, (table) => [
+	foreignKey({
+			columns: [table.organizationId],
+			foreignColumns: [organizations.id],
+			name: "buildings_organization_id_organizations_id_fk"
+		}).onDelete("cascade"),
+]);
+
 export const improvementSuggestions = pgTable("improvement_suggestions", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	title: text().notNull(),
@@ -940,45 +1124,6 @@ export const bills = pgTable("bills", {
 			name: "bills_building_id_buildings_id_fk"
 		}),
 	unique("bills_bill_number_unique").on(table.billNumber),
-]);
-
-export const buildings = pgTable("buildings", {
-	id: text().default(gen_random_uuid()).primaryKey().notNull(),
-	organizationId: varchar("organization_id").notNull(),
-	name: varchar({ length: 200 }).notNull(),
-	address: text().notNull(),
-	city: varchar({ length: 100 }).notNull(),
-	province: varchar({ length: 3 }).default('QC').notNull(),
-	postalCode: varchar("postal_code", { length: 10 }).notNull(),
-	buildingType: buildingType("building_type").notNull(),
-	yearBuilt: integer("year_built"),
-	totalUnits: integer("total_units").notNull(),
-	totalFloors: integer("total_floors"),
-	parkingSpaces: integer("parking_spaces"),
-	storageSpaces: integer("storage_spaces"),
-	amenities: jsonb(),
-	managementCompany: text("management_company"),
-	isActive: boolean("is_active").default(true).notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-	bankAccountNumber: text("bank_account_number"),
-	bankAccountNotes: text("bank_account_notes"),
-	bankAccountUpdatedAt: timestamp("bank_account_updated_at", { mode: 'string' }),
-	bankAccountStartDate: timestamp("bank_account_start_date", { mode: 'string' }),
-	bankAccountStartAmount: numeric("bank_account_start_amount", { precision: 10, scale:  2 }),
-	bankAccountMinimums: text("bank_account_minimums"),
-	inflationSettings: text("inflation_settings"),
-	generalInflationRate: numeric("general_inflation_rate", { precision: 5, scale:  2 }).default('2.0').notNull(),
-	revenueInflationRate: numeric("revenue_inflation_rate", { precision: 5, scale:  2 }).default('2.0').notNull(),
-	unplannedBillsAmount: numeric("unplanned_bills_amount", { precision: 10, scale:  2 }).default('0'),
-	financialYearStart: date("financial_year_start"),
-	unplannedBillsStartDate: date("unplanned_bills_start_date"),
-}, (table) => [
-	foreignKey({
-			columns: [table.organizationId],
-			foreignColumns: [organizations.id],
-			name: "buildings_organization_id_organizations_id_fk"
-		}).onDelete("cascade"),
 ]);
 
 export const monthlyBudgets = pgTable("monthly_budgets", {
@@ -1207,8 +1352,14 @@ export const buildingElements = pgTable("building_elements", {
 	isActive: boolean("is_active").default(true).notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+	reconstructionCost: numeric("reconstruction_cost", { precision: 10, scale:  2 }),
+	costEstimationDate: date("cost_estimation_date"),
+	residenceId: text("residence_id"),
+	access: elementAccess().default('not_restrained').notNull(),
+	charge: elementCharge().default('common').notNull(),
 }, (table) => [
 	index("building_elements_building_id_idx").using("btree", table.buildingId.asc().nullsLast().op("text_ops")),
+	index("building_elements_residence_id_idx").using("btree", table.residenceId.asc().nullsLast().op("text_ops")),
 	index("building_elements_uniformat_code_idx").using("btree", table.uniformatCode.asc().nullsLast().op("text_ops")),
 	foreignKey({
 			columns: [table.buildingId],
@@ -1220,7 +1371,6 @@ export const buildingElements = pgTable("building_elements", {
 			foreignColumns: [uniformatCodes.code],
 			name: "building_elements_uniformat_code_uniformat_codes_code_fk"
 		}),
-	unique("building_elements_building_id_uniformat_code_name_unique").on(table.buildingId, table.uniformatCode, table.name),
 ]);
 
 export const maintenanceRequests = pgTable("maintenance_requests", {
@@ -1382,46 +1532,6 @@ export const evaluationSuggestions = pgTable("evaluation_suggestions", {
 		}).onDelete("set null"),
 ]);
 
-export const maintenanceProjects = pgTable("maintenance_projects", {
-	id: uuid().defaultRandom().primaryKey().notNull(),
-	buildingId: text("building_id").notNull(),
-	suggestionId: uuid("suggestion_id"),
-	projectNumber: varchar("project_number", { length: 50 }).notNull(),
-	title: varchar({ length: 200 }).notNull(),
-	type: projectType().notNull(),
-	status: projectStatus().default('planned').notNull(),
-	plannedStartDate: date("planned_start_date"),
-	plannedEndDate: date("planned_end_date"),
-	actualStartDate: date("actual_start_date"),
-	actualEndDate: date("actual_end_date"),
-	totalBudget: numeric("total_budget", { precision: 12, scale:  2 }),
-	actualCost: numeric("actual_cost", { precision: 12, scale:  2 }).default('0'),
-	priority: priority().default('medium').notNull(),
-	createdBy: text("created_by").notNull(),
-	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-}, (table) => [
-	index("maintenance_projects_building_status_idx").using("btree", table.buildingId.asc().nullsLast().op("text_ops"), table.status.asc().nullsLast().op("text_ops")),
-	foreignKey({
-			columns: [table.buildingId],
-			foreignColumns: [buildings.id],
-			name: "maintenance_projects_building_id_buildings_id_fk"
-		}).onDelete("cascade"),
-	foreignKey({
-			columns: [table.suggestionId],
-			foreignColumns: [evaluationSuggestions.id],
-			name: "maintenance_projects_suggestion_id_evaluation_suggestions_id_fk"
-		}).onDelete("set null"),
-	foreignKey({
-			columns: [table.createdBy],
-			foreignColumns: [users.id],
-			name: "maintenance_projects_created_by_users_id_fk"
-		}),
-	unique("maintenance_projects_project_number_unique").on(table.projectNumber),
-	check("maintenance_projects_total_budget_check", sql`total_budget >= (0)::numeric`),
-	check("maintenance_projects_actual_cost_check", sql`actual_cost >= (0)::numeric`),
-]);
-
 export const metricPredictions = pgTable("metric_predictions", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	metricType: metricType("metric_type").notNull(),
@@ -1556,4 +1666,62 @@ export const projectElements = pgTable("project_elements", {
 			name: "project_elements_project_id_maintenance_projects_id_fk"
 		}).onDelete("cascade"),
 	check("project_elements_cost_allocation_check", sql`cost_allocation >= (0)::numeric`),
+]);
+
+export const maintenanceProjects = pgTable("maintenance_projects", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	buildingId: text("building_id").notNull(),
+	suggestionId: uuid("suggestion_id"),
+	projectNumber: varchar("project_number", { length: 50 }).notNull(),
+	title: varchar({ length: 200 }).notNull(),
+	type: projectType().notNull(),
+	status: projectStatus().default('planned').notNull(),
+	plannedStartDate: date("planned_start_date"),
+	plannedEndDate: date("planned_end_date"),
+	actualStartDate: date("actual_start_date"),
+	actualEndDate: date("actual_end_date"),
+	totalBudget: numeric("total_budget", { precision: 12, scale:  2 }),
+	actualCost: numeric("actual_cost", { precision: 12, scale:  2 }).default('0'),
+	priority: priority().default('medium').notNull(),
+	createdBy: text("created_by").notNull(),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
+	autoGeneratedId: uuid("auto_generated_id"),
+	origin: projectOrigin().default('manual').notNull(),
+	planningDescription: text("planning_description"),
+	planningStartDate: date("planning_start_date"),
+	estimatedCost: numeric("estimated_cost", { precision: 12, scale:  2 }),
+	skipSubmission: boolean("skip_submission").default(false).notNull(),
+	skipPreWork: boolean("skip_pre_work").default(false).notNull(),
+	skipInProgress: boolean("skip_in_progress").default(false).notNull(),
+	skipPostWork: boolean("skip_post_work").default(false).notNull(),
+	completionSummary: text("completion_summary"),
+	workStartDate: date("work_start_date"),
+	isQuickProject: boolean("is_quick_project").default(false).notNull(),
+}, (table) => [
+	index("maintenance_projects_building_status_idx").using("btree", table.buildingId.asc().nullsLast().op("text_ops"), table.status.asc().nullsLast().op("text_ops")),
+	foreignKey({
+			columns: [table.autoGeneratedId],
+			foreignColumns: [autoGeneratedProjects.id],
+			name: "maintenance_projects_auto_generated_id_auto_generated_projects_"
+		}).onDelete("set null"),
+	foreignKey({
+			columns: [table.buildingId],
+			foreignColumns: [buildings.id],
+			name: "maintenance_projects_building_id_buildings_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.suggestionId],
+			foreignColumns: [evaluationSuggestions.id],
+			name: "maintenance_projects_suggestion_id_evaluation_suggestions_id_fk"
+		}).onDelete("set null"),
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "maintenance_projects_created_by_users_id_fk"
+		}),
+	unique("maintenance_projects_project_number_unique").on(table.projectNumber),
+	check("maintenance_projects_total_budget_check", sql`total_budget >= (0)::numeric`),
+	check("maintenance_projects_actual_cost_check", sql`actual_cost >= (0)::numeric`),
+	check("maintenance_projects_estimated_cost_check", sql`estimated_cost >= (0)::numeric`),
 ]);
