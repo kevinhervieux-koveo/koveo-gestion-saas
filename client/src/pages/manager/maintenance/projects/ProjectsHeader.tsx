@@ -10,14 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from '@/components/ui/toggle-group';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { cn } from '@/lib/utils';
 import {
-  Plus,
   Search,
   Filter,
   ChevronRight,
@@ -29,23 +24,15 @@ import {
   AlertTriangle,
   Clock,
   CheckCircle,
-  Table,
-  Calendar,
-  BarChart3,
   Play,
   Pause,
   Archive,
   DollarSign,
 } from 'lucide-react';
 
-// View mode types
-type ViewMode = 'table' | 'timeline' | 'dashboard';
 
 export interface ProjectsHeaderProps {
   className?: string;
-  viewMode?: ViewMode;
-  onViewModeChange?: (mode: ViewMode) => void;
-  onAddProject?: () => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
   statusFilter?: string;
@@ -69,9 +56,6 @@ export interface ProjectsHeaderProps {
  */
 export function ProjectsHeader({
   className,
-  viewMode = 'table',
-  onViewModeChange,
-  onAddProject,
   searchTerm = '',
   onSearchChange,
   statusFilter = '',
@@ -126,29 +110,9 @@ export function ProjectsHeader({
         </div>
       )}
 
-      {/* View Mode Controls and Primary Actions */}
+      {/* Building Navigation */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        {/* Compact View Mode Controls and Primary Actions */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3">
-          {/* View Mode Toggle - Compact */}
-          <ToggleGroup 
-            type="single" 
-            value={viewMode} 
-            onValueChange={(value: ViewMode) => value && onViewModeChange?.(value)}
-            className="bg-muted rounded-md p-1"
-            data-testid="view-mode-toggle"
-          >
-            <ToggleGroupItem value="table" size="sm" data-testid="table-view-toggle">
-              <Table className="h-4 w-4" />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="timeline" size="sm" data-testid="timeline-view-toggle">
-              <Calendar className="h-4 w-4" />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="dashboard" size="sm" data-testid="dashboard-view-toggle">
-              <BarChart3 className="h-4 w-4" />
-            </ToggleGroupItem>
-          </ToggleGroup>
-
+        <div className="flex items-center gap-3">
           {/* Building Selector */}
           {availableBuildings.length > 1 && (
             <Select
@@ -170,19 +134,6 @@ export function ProjectsHeader({
               </SelectContent>
             </Select>
           )}
-
-          <div className="flex-1" />
-
-          {/* Primary Action Buttons - Compact */}
-          <div className="flex items-center gap-2">
-            {canCreate && (
-              <Button onClick={onAddProject} size="sm" data-testid="add-project-button">
-                <Plus className="h-4 w-4 mr-1" />
-                New Project
-              </Button>
-            )}
-
-          </div>
         </div>
       </div>
 

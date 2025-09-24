@@ -18,8 +18,6 @@ import { ProjectsOverview } from './ProjectsOverview';
 import { ProjectDetailsPanel } from './ProjectDetailsPanel';
 import { SuggestionsIntegration } from './SuggestionsIntegration';
 import { ProjectTableView } from './ProjectTableView';
-import { ProjectTimelineView } from './ProjectTimelineView';
-import { ProjectDashboardView } from './ProjectDashboardView';
 
 // Import auto-projects components
 import { AutoProjectsSection } from '@/components/maintenance/auto-projects';
@@ -43,17 +41,16 @@ import {
   Loader2, 
   RefreshCw,
   Folder,
-  Calendar,
-  BarChart3,
-  Table,
   X,
   ChevronDown,
   ChevronRight,
   Database,
+  Plus,
+  BarChart3,
 } from 'lucide-react';
 
-// View mode types
-type ViewMode = 'table' | 'timeline' | 'dashboard';
+// View mode types - simplified to table only
+type ViewMode = 'table';
 
 export interface ProjectsPageProps {
   className?: string;
@@ -116,8 +113,8 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     }
   }, [buildingId, contextBuildingId, setBuildingId]);
 
-  // State for view mode
-  const [viewMode, setViewMode] = useState<ViewMode>('table');
+  // State for view mode - fixed to table only
+  const [viewMode] = useState<ViewMode>('table');
   
   // State for collapsible sections
   const [projectOverviewExpanded, setProjectOverviewExpanded] = useState(false);
@@ -236,12 +233,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   }, []);
 
 
-  // View mode handlers
-  const handleViewModeChange = useCallback((mode: ViewMode) => {
-    console.log('📁 [PROJECTS VIEW] View mode changed:', { from: viewMode, to: mode });
-    setViewMode(mode);
-    console.log('📁 [PROJECTS STATE] View mode updated');
-  }, [viewMode]);
+  // View mode handlers - removed as only table view is available
 
   // Form success handlers
   const handleProjectFormSuccess = useCallback((project: MaintenanceProject) => {
@@ -328,7 +320,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     setSelectedProjects(selectedIds);
   }, []);
 
-  // Render current view
+  // Render main view - simplified to only show table view
   const renderMainView = useMemo(() => {
     const commonProps = {
       onProjectSelect: handleViewProject,
@@ -353,17 +345,8 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       onShowOverdueChange: handleShowOverdueChange,
     };
 
-    switch (viewMode) {
-      case 'timeline':
-        return <ProjectTimelineView {...commonProps} />;
-      case 'dashboard':
-        return <ProjectDashboardView {...commonProps} />;
-      case 'table':
-      default:
-        return <ProjectTableView {...commonProps} />;
-    }
+    return <ProjectTableView {...commonProps} />;
   }, [
-    viewMode,
     handleViewProject,
     canEdit,
     handleEditProject,
@@ -409,9 +392,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       
       {/* Project Controls and Filters */}
       <ProjectsHeader
-        viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
-        onAddProject={canCreate ? handleAddProject : undefined}
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         statusFilter={statusFilter}
@@ -500,6 +480,12 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
+                  {canCreate && (
+                    <Button onClick={handleAddProject} size="sm" data-testid="add-project-button">
+                      <Plus className="h-4 w-4 mr-1" />
+                      New Project
+                    </Button>
+                  )}
                   {selectedProjects.length > 0 && (
                     <Button
                       variant="outline"
@@ -527,8 +513,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-md font-medium">
-                      {viewMode === 'timeline' && 'Projects Timeline'}
-                      {viewMode === 'dashboard' && 'Projects Dashboard'}
+                      Project Table
                     </h3>
                   </div>
 
