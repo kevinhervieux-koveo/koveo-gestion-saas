@@ -144,6 +144,14 @@ export function ProjectWorkflowModal({
         ? initialTab
         : workflowState.firstIncompleteTab;
       
+      console.log('🔍 [WORKFLOW MODAL] Setting activeTab:', {
+        targetTab,
+        initialTab,
+        firstIncompleteTab: workflowState.firstIncompleteTab,
+        accessibleTabs: workflowState.accessibleTabs,
+        currentStatus: workflowState.currentStatus
+      });
+      
       setActiveTab(targetTab);
     }
   }, [workflowState, activeTab, initialTab]);
@@ -253,6 +261,12 @@ export function ProjectWorkflowModal({
 
   // Render tab content based on active tab
   const renderTabContent = () => {
+    console.log('🔍 [WORKFLOW MODAL] renderTabContent called with:', { 
+      activeTab, 
+      hasWorkflowState: !!workflowState,
+      currentStatus: workflowState?.currentStatus 
+    });
+    
     if (!workflowState || !activeTab) return null;
 
     // Defensive null check for project data

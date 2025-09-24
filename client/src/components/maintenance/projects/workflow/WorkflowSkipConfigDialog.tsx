@@ -187,6 +187,7 @@ export function WorkflowSkipConfigDialog({
                       {isSkipped ? 'Skip this step' : 'Include this step'}
                     </Label>
                     <Switch
+                      key={`${projectId}-${config.key}-${isSkipped}`}
                       id={`skip-${stepId}`}
                       checked={isSkipped}
                       disabled={!canToggle || isPending}
