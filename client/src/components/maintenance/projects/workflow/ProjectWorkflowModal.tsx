@@ -138,12 +138,22 @@ export function ProjectWorkflowModal({
 
   // Set initial active tab when workflow state loads
   useEffect(() => {
+    console.log('🔍 [MODAL] useEffect for setting activeTab:', {
+      hasWorkflowState: !!workflowState,
+      activeTab,
+      initialTab,
+      accessibleTabs: workflowState?.accessibleTabs,
+      firstIncompleteTab: workflowState?.firstIncompleteTab,
+      currentStatus: workflowState?.currentStatus
+    });
+    
     if (workflowState && !activeTab) {
       // Use initialTab if provided and accessible, otherwise use first incomplete tab
-      const targetTab = initialTab && workflowState.accessibleTabs.includes(initialTab)
+      const targetTab = initialTab && workflowState.accessibleTabs?.includes(initialTab)
         ? initialTab
         : workflowState.firstIncompleteTab;
       
+      console.log('🔍 [MODAL] Setting activeTab to:', targetTab);
       setActiveTab(targetTab);
     }
   }, [workflowState, activeTab, initialTab]);
