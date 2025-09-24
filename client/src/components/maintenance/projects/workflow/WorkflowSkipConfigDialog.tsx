@@ -74,6 +74,10 @@ export function WorkflowSkipConfigDialog({
       {
         onSuccess: () => {
           onUpdate();
+          // Force a small delay to ensure state updates properly
+          setTimeout(() => {
+            onUpdate();
+          }, 100);
         },
       }
     );

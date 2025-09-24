@@ -141,7 +141,7 @@ export function WorkflowTabNavigation({
           
           {/* Progress Steps */}
           <div className="flex items-center space-x-2">
-            {allTabs.map((tab, index) => {
+            {allTabs.filter(tab => !isTabSkipped(tab.id)).map((tab, index) => {
               const tabStatus = getTabStatus(tab.id);
               const isSkipped = isTabSkipped(tab.id);
               const isAccessible = accessibleTabs && accessibleTabs.includes(tab.id);
@@ -207,7 +207,7 @@ export function WorkflowTabNavigation({
                     </TooltipContent>
                   </Tooltip>
                   
-                  {index < allTabs.length - 1 && (
+                  {index < allTabs.filter(tab => !isTabSkipped(tab.id)).length - 1 && (
                     <div
                       className={cn(
                         'w-8 h-0.5 mx-1 transition-all',
@@ -227,7 +227,7 @@ export function WorkflowTabNavigation({
 
         {/* Tab Navigation */}
         <div className="space-y-2">
-          {allTabs.map((tab) => {
+          {allTabs.filter(tab => !isTabSkipped(tab.id)).map((tab) => {
             const config = tabConfig[tab.id];
             const status = getTabStatus(tab.id);
             const isSkipped = isTabSkipped(tab.id);
