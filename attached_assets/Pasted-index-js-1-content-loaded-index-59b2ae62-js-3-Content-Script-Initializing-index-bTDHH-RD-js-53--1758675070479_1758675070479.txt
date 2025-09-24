@@ -1,0 +1,293 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BJsYGPu8.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BJsYGPu8.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BJsYGPu8.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BJsYGPu8.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-bTDHH_RD.js:53 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-bTDHH_RD.js:53 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-bTDHH_RD.js:53 📁 [PROJECTS ACTION] handleAddProject called
+index-bTDHH_RD.js:53 📁 [PROJECTS STATE] Project form opened for new project creation
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CAdlTjBc.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-CAdlTjBc.js:186
+h1 @ index-CAdlTjBc.js:186
+q @ index-CAdlTjBc.js:45
+Qc @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+Vt @ index-CAdlTjBc.js:163
+zh @ index-CAdlTjBc.js:163
+tg @ index-CAdlTjBc.js:163
+ed @ index-CAdlTjBc.js:163
+Xh @ index-CAdlTjBc.js:163
+Ih @ index-CAdlTjBc.js:163
+mg @ index-CAdlTjBc.js:185
+ml @ index-CAdlTjBc.js:185
+jo @ index-CAdlTjBc.js:163
+Gm @ index-CAdlTjBc.js:83
+rd @ index-CAdlTjBc.js:185
+Ad @ index-CAdlTjBc.js:194
+L1 @ index-CAdlTjBc.js:194
+<input>
+du.jsxDEV @ index-CAdlTjBc.js:15
+Input @ input-CUM4cGOR.js:1
+react_stack_bottom_frame @ index-CAdlTjBc.js:229
+oc @ index-CAdlTjBc.js:120
+sh @ index-CAdlTjBc.js:141
+Pc @ index-CAdlTjBc.js:150
+q @ index-CAdlTjBc.js:45
+Kh @ index-CAdlTjBc.js:163
+Jh @ index-CAdlTjBc.js:163
+Wc @ index-CAdlTjBc.js:163
+Ih @ index-CAdlTjBc.js:163
+mg @ index-CAdlTjBc.js:185
+ml @ index-CAdlTjBc.js:185
+ad @ index-CAdlTjBc.js:185
+(anonymous) @ index-CAdlTjBc.js:185
+<Input>
+du.jsxDEV @ index-CAdlTjBc.js:15
+render @ index-bTDHH_RD.js:37
+fc @ vendor-forms-ihkSd2aT.js:1
+react_stack_bottom_frame @ index-CAdlTjBc.js:229
+oc @ index-CAdlTjBc.js:120
+kc @ index-CAdlTjBc.js:141
+Pc @ index-CAdlTjBc.js:150
+q @ index-CAdlTjBc.js:45
+Kh @ index-CAdlTjBc.js:163
+Jh @ index-CAdlTjBc.js:163
+Wc @ index-CAdlTjBc.js:163
+Ih @ index-CAdlTjBc.js:163
+mg @ index-CAdlTjBc.js:185
+ml @ index-CAdlTjBc.js:185
+ad @ index-CAdlTjBc.js:185
+(anonymous) @ index-CAdlTjBc.js:185
+<fc>
+du.jsxDEV @ index-CAdlTjBc.js:15
+k @ form-BMo6TyMC.js:1
+react_stack_bottom_frame @ index-CAdlTjBc.js:229
+oc @ index-CAdlTjBc.js:120
+kc @ index-CAdlTjBc.js:141
+Pc @ index-CAdlTjBc.js:150
+q @ index-CAdlTjBc.js:45
+Kh @ index-CAdlTjBc.js:163
+Jh @ index-CAdlTjBc.js:163
+Wc @ index-CAdlTjBc.js:163
+Ih @ index-CAdlTjBc.js:163
+mg @ index-CAdlTjBc.js:185
+ml @ index-CAdlTjBc.js:185
+ad @ index-CAdlTjBc.js:185
+(anonymous) @ index-CAdlTjBc.js:185
+<k>
+du.jsxDEV @ index-CAdlTjBc.js:15
+Kc @ index-bTDHH_RD.js:37
+react_stack_bottom_frame @ index-CAdlTjBc.js:229
+oc @ index-CAdlTjBc.js:120
+kc @ index-CAdlTjBc.js:141
+Pc @ index-CAdlTjBc.js:150
+q @ index-CAdlTjBc.js:45
+Kh @ index-CAdlTjBc.js:163
+Jh @ index-CAdlTjBc.js:163
+Wc @ index-CAdlTjBc.js:163
+Ih @ index-CAdlTjBc.js:163
+mg @ index-CAdlTjBc.js:185
+ml @ index-CAdlTjBc.js:185
+ad @ index-CAdlTjBc.js:185
+(anonymous) @ index-CAdlTjBc.js:185
+index-CAdlTjBc.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects 400 (Bad Request)
+sR @ index-CAdlTjBc.js:240
+mutationFn @ index-bTDHH_RD.js:37
+fn @ vendor-query-Ciq08bnh.js:1
+y @ vendor-query-Ciq08bnh.js:1
+start @ vendor-query-Ciq08bnh.js:1
+execute @ vendor-query-Ciq08bnh.js:1
+await in execute
+mutate @ vendor-query-Ciq08bnh.js:1
+(anonymous) @ vendor-query-Ciq08bnh.js:1
+F @ index-bTDHH_RD.js:37
+y @ FormModal-DlOanWDr.js:62
+(anonymous) @ vendor-forms-ihkSd2aT.js:1
+await in (anonymous)
+lr @ index-CAdlTjBc.js:185
+q @ index-CAdlTjBc.js:45
+yg @ index-CAdlTjBc.js:185
+(anonymous) @ index-CAdlTjBc.js:185
+Gm @ index-CAdlTjBc.js:83
+rd @ index-CAdlTjBc.js:185
+Ad @ index-CAdlTjBc.js:194
+L1 @ index-CAdlTjBc.js:194
+<form>
+du.jsxDEV @ index-CAdlTjBc.js:15
+Hn @ FormModal-DlOanWDr.js:62
+react_stack_bottom_frame @ index-CAdlTjBc.js:229
+oc @ index-CAdlTjBc.js:120
+kc @ index-CAdlTjBc.js:141
+Pc @ index-CAdlTjBc.js:150
+q @ index-CAdlTjBc.js:45
+Kh @ index-CAdlTjBc.js:163
+Jh @ index-CAdlTjBc.js:163
+Wc @ index-CAdlTjBc.js:163
+Ih @ index-CAdlTjBc.js:163
+mg @ index-CAdlTjBc.js:185
+ml @ index-CAdlTjBc.js:185
+ad @ index-CAdlTjBc.js:185
+(anonymous) @ index-CAdlTjBc.js:185
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-bTDHH_RD.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
