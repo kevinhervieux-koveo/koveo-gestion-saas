@@ -5274,14 +5274,25 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
 
       // Get workflow state
+      console.log('🔍 [WORKFLOW API] Getting workflow state for project:', id);
       const workflowState = await workflowService.getProjectWorkflowState(id);
+      console.log('🔍 [WORKFLOW API] Raw workflow state from service:', workflowState);
+      
       if (!workflowState) {
+        console.log('🔍 [WORKFLOW API] No workflow state found');
         return res.status(404).json({ error: 'Workflow state not found' });
       }
 
       // Calculate UI properties for the frontend
       const accessibleTabs = calculateAccessibleTabs(workflowState.currentStatus, workflowState.skipFlags);
       const firstIncompleteTab = calculateFirstIncompleteTab(workflowState.currentStatus, workflowState.skipFlags);
+      
+      console.log('🔍 [WORKFLOW API] Calculated values:', {
+        currentStatus: workflowState.currentStatus,
+        skipFlags: workflowState.skipFlags,
+        accessibleTabs,
+        firstIncompleteTab
+      });
 
       // Create response matching frontend interface expectations
       const projectWorkflowState = {
@@ -5298,6 +5309,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         accessibleTabs,
         firstIncompleteTab,
       };
+
+      console.log('🔍 [WORKFLOW API] Final response data:', projectWorkflowState);
 
       res.json({
         success: true,

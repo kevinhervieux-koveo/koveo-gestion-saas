@@ -115,6 +115,13 @@ export function useProjectWorkflowState(projectId: string) {
       
       const data = await response.json();
       console.log('🔍 [WORKFLOW HOOK] Success response:', data);
+      
+      // Check if we need to extract data from {success: true, data: {...}} format
+      if (data.success && data.data) {
+        console.log('🔍 [WORKFLOW HOOK] Extracting data from success wrapper:', data.data);
+        return data.data;
+      }
+      
       return data;
     },
     enabled: !!projectId,
