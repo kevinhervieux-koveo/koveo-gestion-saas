@@ -62,6 +62,7 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
   const { toast } = useToast();
   const { buildingId } = useBuildingContext();
   const [hasChanges, setHasChanges] = useState(false);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   
   // Defensive null check for project data
   if (!project) {
@@ -120,12 +121,20 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
     },
   });
 
-  // Update form when project elements load
+  // Reset initial data loaded flag when project changes
   useEffect(() => {
-    if (currentElementIds.length > 0) {
-      form.setValue('selectedElements', currentElementIds, { shouldValidate: false });
+    setInitialDataLoaded(false);
+    setHasChanges(false);
+  }, [project.id]);
+
+  // Update form when project elements load initially
+  useEffect(() => {
+    if (!initialDataLoaded && projectElementsResponse) {
+      form.setValue('selectedElements', currentElementIds, { shouldValidate: false, shouldDirty: false });
+      setInitialDataLoaded(true);
+      setHasChanges(false); // Ensure form is not marked dirty from initial load
     }
-  }, [currentElementIds, form]);
+  }, [currentElementIds, form, initialDataLoaded, projectElementsResponse]);
 
   // Watch for form changes
   useEffect(() => {
@@ -158,6 +167,45 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
       },
     });
   };
+
+  const handleMarkComplete = async () => {
+    const result = await form.trigger();
+    if (!result) return; // Don't save if validation fails
+
+    const values = form.getValues();
+    
+    // Update project and mark as complete
+    updateProject({
+      projectId: project.id,
+      updates: {
+        planningDescription: values.planningDescription,
+        planningStartDate: values.planningStartDate?.toISOString().split('T')[0],
+        estimatedCost: values.estimatedCost,
+      },
+      status: 'submission', // Advance to next stage
+    }, {
+      onSuccess: () => {
+        handleUpdateProjectElements(values.selectedElements || []);
+        setHasChanges(false);
+        onUpdate();
+        toast({
+          title: 'Success',
+          description: 'Project planning completed and moved to submission stage.',
+        });
+      },
+    });
+  };
+
+  // Check if all required fields are filled
+  const values = form.watch();
+  const isComplete = !!(
+    values.planningDescription &&
+    values.planningDescription.trim().length > 0 &&
+    values.planningStartDate &&
+    values.estimatedCost !== undefined &&
+    values.selectedElements &&
+    values.selectedElements.length > 0
+  );
 
   const handleUpdateProjectElements = async (selectedElementIds: string[]) => {
     try {
@@ -343,14 +391,33 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
         </div>
       </div>
       
-      {/* Save button at bottom */}
-      {hasChanges && (
-        <div className="pt-4 border-t flex justify-end">
-          <Button onClick={handleSave} disabled={isUpdating} data-testid="button-save-changes">
-            {isUpdating ? 'Saving...' : 'Save Changes'}
-          </Button>
+      {/* Save and Complete buttons at bottom */}
+      <div className="pt-4 border-t flex justify-between">
+        <div>
+          {isComplete && (
+            <Button 
+              onClick={handleMarkComplete} 
+              disabled={isUpdating} 
+              data-testid="button-mark-complete"
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isUpdating ? 'Completing...' : 'Mark as Complete'}
+            </Button>
+          )}
         </div>
-      )}
+        <div>
+          {hasChanges && (
+            <Button 
+              variant="outline" 
+              onClick={handleSave} 
+              disabled={isUpdating} 
+              data-testid="button-save-changes"
+            >
+              {isUpdating ? 'Saving...' : 'Save Changes'}
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
