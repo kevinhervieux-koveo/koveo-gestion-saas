@@ -138,22 +138,12 @@ export function ProjectWorkflowModal({
 
   // Set initial active tab when workflow state loads
   useEffect(() => {
-    console.log('🔍 [MODAL] useEffect for setting activeTab:', {
-      hasWorkflowState: !!workflowState,
-      activeTab,
-      initialTab,
-      accessibleTabs: workflowState?.accessibleTabs,
-      firstIncompleteTab: workflowState?.firstIncompleteTab,
-      currentStatus: workflowState?.currentStatus
-    });
-    
     if (workflowState && !activeTab) {
       // Use initialTab if provided and accessible, otherwise use first incomplete tab
       const targetTab = initialTab && workflowState.accessibleTabs?.includes(initialTab)
         ? initialTab
         : workflowState.firstIncompleteTab;
       
-      console.log('🔍 [MODAL] Setting activeTab to:', targetTab);
       setActiveTab(targetTab);
     }
   }, [workflowState, activeTab, initialTab]);
@@ -263,16 +253,7 @@ export function ProjectWorkflowModal({
 
   // Render tab content based on active tab
   const renderTabContent = () => {
-    console.log('🔍 [MODAL] renderTabContent called:', { 
-      activeTab, 
-      hasWorkflowState: !!workflowState,
-      currentStatus: workflowState?.currentStatus 
-    });
-    
-    if (!workflowState || !activeTab) {
-      console.log('🔍 [MODAL] Early return - no workflowState or activeTab');
-      return null;
-    }
+    if (!workflowState || !activeTab) return null;
 
     // Defensive null check for project data
     if (!workflowState.project) {
@@ -292,11 +273,8 @@ export function ProjectWorkflowModal({
       onUpdate: handleWorkflowUpdate,
     };
 
-    console.log('🔍 [MODAL] About to render tab:', activeTab);
-    
     switch (activeTab) {
       case 'planned':
-        console.log('🔍 [MODAL] Rendering PlannedTab with project:', workflowState.project?.id);
         return <PlannedTab {...tabProps} />;
       case 'submission':
         return <SubmissionTab {...tabProps} />;

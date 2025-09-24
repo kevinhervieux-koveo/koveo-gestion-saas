@@ -5176,6 +5176,65 @@ export function registerMaintenanceRoutes(app: Express): void {
   });
 
   // ===========================================
+  // PROJECT WORKFLOW HELPER FUNCTIONS
+  // ===========================================
+  
+  /**
+   * Calculate accessible tabs based on current status and skip flags
+   */
+  function calculateAccessibleTabs(currentStatus: string, skipFlags: any): string[] {
+    const tabs = ['planned']; // planned is always accessible
+    
+    // Add tabs based on progression through workflow
+    switch (currentStatus) {
+      case 'planned':
+        // In planned status, only planned tab is accessible
+        break;
+      case 'submission':
+        if (!skipFlags?.skipSubmission) tabs.push('submission');
+        break;
+      case 'pre_work':
+        if (!skipFlags?.skipSubmission) tabs.push('submission');
+        if (!skipFlags?.skipPreWork) tabs.push('pre_work');
+        break;
+      case 'in_progress':
+        if (!skipFlags?.skipSubmission) tabs.push('submission');
+        if (!skipFlags?.skipPreWork) tabs.push('pre_work');
+        if (!skipFlags?.skipInProgress) tabs.push('in_progress');
+        break;
+      case 'post_work':
+        if (!skipFlags?.skipSubmission) tabs.push('submission');
+        if (!skipFlags?.skipPreWork) tabs.push('pre_work');
+        if (!skipFlags?.skipInProgress) tabs.push('in_progress');
+        if (!skipFlags?.skipPostWork) tabs.push('post_work');
+        break;
+      case 'completed':
+        if (!skipFlags?.skipSubmission) tabs.push('submission');
+        if (!skipFlags?.skipPreWork) tabs.push('pre_work');
+        if (!skipFlags?.skipInProgress) tabs.push('in_progress');
+        if (!skipFlags?.skipPostWork) tabs.push('post_work');
+        tabs.push('completed');
+        break;
+    }
+    
+    return tabs;
+  }
+  
+  /**
+   * Calculate the first incomplete tab based on current status and skip flags
+   */
+  function calculateFirstIncompleteTab(currentStatus: string, skipFlags: any): string {
+    // Return the current status as the first incomplete tab
+    // unless it's completed, then return 'completed'
+    if (currentStatus === 'completed') {
+      return 'completed';
+    }
+    
+    // For all other statuses, the current status is the first incomplete
+    return currentStatus || 'planned';
+  }
+
+  // ===========================================
   // PROJECT WORKFLOW ENDPOINTS
   // ===========================================
   
