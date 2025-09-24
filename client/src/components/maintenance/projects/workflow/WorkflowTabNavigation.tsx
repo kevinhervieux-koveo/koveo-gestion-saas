@@ -40,7 +40,29 @@ export function WorkflowTabNavigation({
 }: WorkflowTabNavigationProps) {
   const { mutate: updateSkipFlags, isPending: isUpdatingSkipFlags } = useUpdateSkipFlags();
 
-  const { currentStatus, accessibleTabs, skipFlags } = workflowState;
+  // Handle case where workflowState is not yet available
+  if (!workflowState) {
+    return (
+      <div className="p-4" data-testid="workflow-tab-navigation">
+        <div className="text-center text-muted-foreground">
+          Loading workflow navigation...
+        </div>
+      </div>
+    );
+  }
+
+  // Add fallback values to prevent undefined access
+  const { 
+    currentStatus = 'planned', 
+    accessibleTabs = [], 
+    skipFlags = {
+      skipSubmission: false,
+      skipPreWork: false,
+      skipInProgress: false,
+      skipPostWork: false,
+    },
+    project,
+  } = workflowState || {};
 
   // Define all tabs in order with skip capability
   const allTabs = [
@@ -61,12 +83,13 @@ export function WorkflowTabNavigation({
     const currentIndex = statusOrder.indexOf(currentStatus);
     
     if (tabIndex < currentIndex) return 'completed';
-    if (accessibleTabs.includes(tabId)) return 'accessible';
+    if (accessibleTabs && accessibleTabs.includes(tabId)) return 'accessible';
     return 'locked';
   };
 
   // Check if tab is skipped
   const isTabSkipped = (tabId: string) => {
+    if (!skipFlags) return false;
     switch (tabId) {
       case 'submission': return skipFlags.skipSubmission;
       case 'pre_work': return skipFlags.skipPreWork;
@@ -78,8 +101,12 @@ export function WorkflowTabNavigation({
 
   // Handle skip flag change
   const handleSkipChange = (tabId: string, skipFlag: keyof typeof skipFlags, checked: boolean) => {
+    if (!project?.id) {
+      console.warn('Cannot update skip flags: project ID not available');
+      return;
+    }
     updateSkipFlags({
-      projectId: workflowState.project.id,
+      projectId: project.id,
       skipFlags: {
         [skipFlag]: checked,
       },
@@ -174,7 +201,7 @@ export function WorkflowTabNavigation({
             const config = tabConfig[tab.id];
             const status = getTabStatus(tab.id);
             const isSkipped = isTabSkipped(tab.id);
-            const isAccessible = accessibleTabs.includes(tab.id);
+            const isAccessible = accessibleTabs && accessibleTabs.includes(tab.id);
             const isActive = activeTab === tab.id;
             const TabIcon = config?.icon || Settings;
 
@@ -261,7 +288,7 @@ export function WorkflowTabNavigation({
         {/* Workflow Actions Summary */}
         <Separator className="my-4" />
         <div className="text-xs text-muted-foreground text-center">
-          {workflowState.canAdvance && workflowState.nextStatus && (
+          {workflowState?.canAdvance && workflowState?.nextStatus && (
             <div>
               Next: <span className="font-medium capitalize">{formatStatus(workflowState.nextStatus)}</span>
             </div>
