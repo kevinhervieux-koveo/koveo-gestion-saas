@@ -1,16 +1,11 @@
 // Workflow Modal System
 export { ProjectWorkflowModal } from './ProjectWorkflowModal';
-export { WorkflowTabNavigation } from './WorkflowTabNavigation';
+// Note: WorkflowTabNavigation is lazy-loaded within ProjectWorkflowModal, so not exported statically
 
-// Individual Tab Components
-export { PlannedTab } from './PlannedTab';
-export { SubmissionTab } from './SubmissionTab';
-export { PreWorkTab } from './PreWorkTab';
-export { InProgressTab } from './InProgressTab';
-export { PostWorkTab } from './PostWorkTab';
-export { CompleteTab } from './CompleteTab';
+// Note: Individual Tab Components are lazy-loaded within ProjectWorkflowModal, so not exported statically
+// This prevents Vite build warnings about components being both statically and dynamically imported
 
-// Types and interfaces
+// Types and interfaces (these don't cause bundling conflicts)
 export type { ProjectWorkflowModalProps } from './ProjectWorkflowModal';
 export type { WorkflowTabNavigationProps } from './WorkflowTabNavigation';
 export type { PlannedTabProps } from './PlannedTab';

@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { useProjectWorkflowState, ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import {
   WorkflowTabNavigation,
@@ -93,7 +93,12 @@ export function ProjectWorkflowModal({
     isLoading: isLoadingWorkflow,
     error: workflowError,
     refetch: refetchWorkflow,
-  } = useProjectWorkflowState(project.id);
+  } = useProjectWorkflowState(project.id) as {
+    data: ProjectWorkflowState | undefined;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => void;
+  };
 
   // Current active tab state
   const [activeTab, setActiveTab] = useState<string>('');
