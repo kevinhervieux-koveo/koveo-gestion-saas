@@ -144,14 +144,6 @@ export function ProjectWorkflowModal({
         ? initialTab
         : workflowState.firstIncompleteTab;
       
-      console.log('🔍 [WORKFLOW MODAL] Setting activeTab:', {
-        targetTab,
-        initialTab,
-        firstIncompleteTab: workflowState.firstIncompleteTab,
-        accessibleTabs: workflowState.accessibleTabs,
-        currentStatus: workflowState.currentStatus
-      });
-      
       setActiveTab(targetTab);
     }
   }, [workflowState, activeTab, initialTab]);
@@ -261,12 +253,6 @@ export function ProjectWorkflowModal({
 
   // Render tab content based on active tab
   const renderTabContent = () => {
-    console.log('🔍 [WORKFLOW MODAL] renderTabContent called with:', { 
-      activeTab, 
-      hasWorkflowState: !!workflowState,
-      currentStatus: workflowState?.currentStatus 
-    });
-    
     if (!workflowState || !activeTab) return null;
 
     // Defensive null check for project data
@@ -424,20 +410,23 @@ export function ProjectWorkflowModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Tab Navigation */}
-        <div className="flex-shrink-0 border-b">
-          <WorkflowTabNavigation
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            workflowState={workflowState}
-            tabConfig={TAB_CONFIG}
-          />
-        </div>
+        {/* Main Content Area - Side by side layout */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Tab Navigation Sidebar */}
+          <div className="w-80 flex-shrink-0 border-r overflow-y-auto">
+            <WorkflowTabNavigation
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              workflowState={workflowState}
+              tabConfig={TAB_CONFIG}
+            />
+          </div>
 
-        {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-6 pb-20"> {/* Add bottom padding for button */}
-            {renderTabContent()}
+          {/* Tab Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-6 pb-20"> {/* Add bottom padding for button */}
+              {renderTabContent()}
+            </div>
           </div>
         </div>
 
