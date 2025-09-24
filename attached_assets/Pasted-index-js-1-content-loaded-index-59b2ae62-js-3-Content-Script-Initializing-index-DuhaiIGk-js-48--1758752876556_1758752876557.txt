@@ -1,0 +1,845 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-KuGbyp05.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-KuGbyp05.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-DuhaiIGk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-DuhaiIGk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(2)}
+index-DuhaiIGk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-DuhaiIGk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 2
+index-DuhaiIGk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 2
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-BwJTi13g.js:185 [Violation] 'setTimeout' handler took 89ms
+withHierarchicalSelection-KuGbyp05.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-KuGbyp05.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 2
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-DuhaiIGk.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+index-DuhaiIGk.js:48 📁 [PROJECTS MODAL] Project workflow visibility changed: {open: false, projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow visibility changed {open: false, projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+index-DuhaiIGk.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+index-BwJTi13g.js:185 [Violation] 'setTimeout' handler took 64ms
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-0-ifGMHA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-DuhaiIGk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DuhaiIGk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DuhaiIGk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: []
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 0
+index-BwJTi13g.js:136 Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at Cs (index-BwJTi13g.js:83:16795)
+    at Bu (index-BwJTi13g.js:83:16313)
+    at ol (index-BwJTi13g.js:120:18325)
+    at $p (index-BwJTi13g.js:120:17921)
+    at xo (vendor-ui-B9Lwe8V-.js:14:1708)
+    at vendor-ui-B9Lwe8V-.js:14:1800
+    at Array.map (<anonymous>)
+    at vendor-ui-B9Lwe8V-.js:14:1784
+    at xo (vendor-ui-B9Lwe8V-.js:14:1708)
+    at vendor-ui-B9Lwe8V-.js:14:1800
+
+The above error occurred in the <button> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gx.
+
+overrideMethod @ hook.js:608
+oh @ index-BwJTi13g.js:136
+lh @ index-BwJTi13g.js:141
+q @ index-BwJTi13g.js:45
+l.componentDidCatch.e.callback @ index-BwJTi13g.js:141
+Dp @ index-BwJTi13g.js:107
+Ep @ index-BwJTi13g.js:107
+q @ index-BwJTi13g.js:45
+Dh @ index-BwJTi13g.js:163
+Nh @ index-BwJTi13g.js:163
+Qn @ index-BwJTi13g.js:163
+Nh @ index-BwJTi13g.js:163
+Qn @ index-BwJTi13g.js:163
+Nh @ index-BwJTi13g.js:163
+Qn @ index-BwJTi13g.js:163
+Nh @ index-BwJTi13g.js:163
+Qn @ index-BwJTi13g.js:163
+Nh @ index-BwJTi13g.js:163
+Qn @ index-BwJTi13g.js:163
+Nh @ index-BwJTi13g.js:163
+Qn @ index-BwJTi13g.js:163
+Nh @ index-BwJTi13g.js:163
+ng @ index-BwJTi13g.js:163
+ed @ index-BwJTi13g.js:163
+Xh @ index-BwJTi13g.js:163
+Ih @ index-BwJTi13g.js:163
+mg @ index-BwJTi13g.js:185
+ml @ index-BwJTi13g.js:185
+ag @ index-BwJTi13g.js:163
+ed @ index-BwJTi13g.js:163
+Xh @ index-BwJTi13g.js:163
+Ih @ index-BwJTi13g.js:163
+fg @ index-BwJTi13g.js:185
+d @ index-BwJTi13g.js:23
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DOUFDVzG.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Raw response from backend: {success: true, data: Array(2)}
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Response structure: (2) ['success', 'data']
+index-DuhaiIGk.js:32 🔍 [PROJECT TABLE DEBUG] Projects found in data property: 2

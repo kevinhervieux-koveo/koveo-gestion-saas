@@ -133,16 +133,6 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
     return () => subscription.unsubscribe();
   }, [form]);
 
-  // Auto-save when user stops typing
-  useEffect(() => {
-    if (!hasChanges) return;
-
-    const timer = setTimeout(() => {
-      handleSave();
-    }, 2000); // 2 second debounce
-
-    return () => clearTimeout(timer);
-  }, [hasChanges]); // Fixed: removed form.getValues() from dependencies to avoid constant timer resets
 
   const handleSave = async () => {
     const result = await form.trigger();
@@ -218,18 +208,11 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
 
   return (
     <div className="space-y-6" data-testid="planned-tab">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h3 className="text-lg font-semibold">Project Planning</h3>
-          <p className="text-sm text-muted-foreground">
-            Define the project description, planning timeline, and estimated cost
-          </p>
-        </div>
-        {hasChanges && (
-          <Button variant="outline" size="sm" onClick={handleSave} disabled={isUpdating}>
-            {isUpdating ? 'Saving...' : 'Save Changes'}
-          </Button>
-        )}
+      <div className="space-y-1">
+        <h3 className="text-lg font-semibold">Project Planning</h3>
+        <p className="text-sm text-muted-foreground">
+          Define the project description, planning timeline, and estimated cost
+        </p>
       </div>
 
       <Form {...form}>
@@ -359,6 +342,15 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
           Current Status: <span className="font-medium capitalize">{formatStatus(workflowState.currentStatus)}</span>
         </div>
       </div>
+      
+      {/* Save button at bottom */}
+      {hasChanges && (
+        <div className="pt-4 border-t flex justify-end">
+          <Button onClick={handleSave} disabled={isUpdating} data-testid="button-save-changes">
+            {isUpdating ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
