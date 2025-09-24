@@ -144,7 +144,7 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
     }, 2000); // 2 second debounce
 
     return () => clearTimeout(timer);
-  }, [hasChanges, form.getValues()]);
+  }, [hasChanges]); // Fixed: removed form.getValues() from dependencies to avoid constant timer resets
 
   const handleSave = async () => {
     const result = await form.trigger();
@@ -163,10 +163,8 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
       status: 'planned',
     }, {
       onSuccess: () => {
-        // Then update project elements if they changed
-        if (values.selectedElements && values.selectedElements.length > 0) {
-          handleUpdateProjectElements(values.selectedElements);
-        }
+        // Always update project elements, even if empty (to handle removals)
+        handleUpdateProjectElements(values.selectedElements || []);
         setHasChanges(false);
         onUpdate();
       },
@@ -179,6 +177,11 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
       const currentIds = currentElementIds;
       const toAdd = selectedElementIds.filter(id => !currentIds.includes(id));
       const toRemove = currentIds.filter(id => !selectedElementIds.includes(id));
+      
+      // Skip API calls if no changes needed
+      if (toAdd.length === 0 && toRemove.length === 0) {
+        return;
+      }
       
       // Add new elements
       for (const elementId of toAdd) {
@@ -198,6 +201,11 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
           await apiRequest('DELETE', `/api/maintenance/project-elements/${projectElement.id}`);
         }
       }
+      
+      // Invalidate queries to keep cache in sync
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', project.id, 'elements'] 
+      });
       
     } catch (error) {
       console.error('Error updating project elements:', error);
@@ -233,10 +241,8 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
         status: 'planned',
       }, {
         onSuccess: () => {
-          // Update project elements if changed
-          if (values.selectedElements && values.selectedElements.length > 0) {
-            handleUpdateProjectElements(values.selectedElements);
-          }
+          // Always update project elements, even if empty (to handle removals)
+          handleUpdateProjectElements(values.selectedElements || []);
           
           // Then mark as complete
           markComplete({
