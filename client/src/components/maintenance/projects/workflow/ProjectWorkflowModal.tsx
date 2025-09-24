@@ -6,9 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useProjectWorkflowState, ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { useProjectWorkflowState, useMarkStatusComplete, ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import {
   WorkflowTabNavigation,
@@ -23,9 +24,11 @@ import {
 import { cn, formatStatus } from '@/lib/utils';
 import {
   AlertTriangle,
+  ArrowRight,
   Building2,
   CheckCircle2,
   Clock,
+  Loader2,
   Settings,
   Users,
 } from 'lucide-react';
@@ -130,6 +133,9 @@ export function ProjectWorkflowModal({
   // Current active tab state
   const [activeTab, setActiveTab] = useState<string>('');
 
+  // Mark status complete hook
+  const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
+
   // Set initial active tab when workflow state loads
   useEffect(() => {
     if (workflowState && !activeTab) {
@@ -156,6 +162,80 @@ export function ProjectWorkflowModal({
       onProjectUpdate(workflowState.project);
     }
   };
+
+  // Handle mark current step complete
+  const handleMarkCurrentStepComplete = () => {
+    if (!workflowState?.canAdvance || !workflowState.currentStatus) {
+      return;
+    }
+
+    // Special handling for final project completion
+    if (workflowState.currentStatus === 'completed') {
+      markComplete({
+        projectId: project.id,
+        currentStatus: workflowState.currentStatus,
+      }, {
+        onSuccess: () => {
+          // Refresh workflow state to reflect final completion
+          handleWorkflowUpdate();
+          
+          // Close modal after successful project completion
+          setTimeout(() => {
+            onOpenChange(false);
+          }, 1000);
+        },
+      });
+      return;
+    }
+
+    // Standard workflow advancement
+    markComplete({
+      projectId: project.id,
+      currentStatus: workflowState.currentStatus,
+    }, {
+      onSuccess: (data) => {
+        // Refresh workflow state
+        handleWorkflowUpdate();
+        
+        // Navigate to the next accessible tab if it's different from current
+        if (data.newStatus && data.newStatus !== activeTab) {
+          // Small delay to allow state to update before navigation
+          setTimeout(() => {
+            if (workflowState.accessibleTabs.includes(data.newStatus)) {
+              setActiveTab(data.newStatus);
+            }
+          }, 500);
+        }
+      },
+    });
+  };
+
+  // Get appropriate button text based on current status
+  const getMarkCompleteButtonText = () => {
+    if (!workflowState?.currentStatus) return 'Complete Step';
+    
+    switch (workflowState.currentStatus) {
+      case 'planned':
+        return 'Complete Planning';
+      case 'submission':
+        return 'Complete Submissions';
+      case 'pre_work':
+        return 'Complete Pre-Work';
+      case 'in_progress':
+        return 'Complete Work';
+      case 'post_work':
+        return 'Complete Post-Work';
+      case 'completed':
+        return 'Complete Project';
+      default:
+        return 'Complete Step';
+    }
+  };
+
+  // Check if we can show the mark complete button
+  const showMarkCompleteButton = workflowState?.canAdvance && 
+    workflowState.currentStatus === activeTab && 
+    (workflowState.currentStatus !== 'completed' || activeTab === 'completed');
 
   // Handle tab change
   const handleTabChange = (tabId: string) => {
@@ -325,10 +405,38 @@ export function ProjectWorkflowModal({
 
         {/* Tab Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-6">
+          <div className="p-6 pb-20"> {/* Add bottom padding for button */}
             {renderTabContent()}
           </div>
         </div>
+
+        {/* Mark Complete Button - Fixed at bottom left */}
+        {showMarkCompleteButton && (
+          <div className="absolute bottom-4 left-4 z-10">
+            <Button
+              onClick={handleMarkCurrentStepComplete}
+              disabled={isMarkingComplete}
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg border-0 min-w-[200px]"
+              data-testid="button-mark-step-complete"
+            >
+              {isMarkingComplete ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Completing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-5 w-5 mr-2" />
+                  {getMarkCompleteButtonText()}
+                  {workflowState.nextStatus && (
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  )}
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

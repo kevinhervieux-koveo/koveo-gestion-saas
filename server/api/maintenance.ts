@@ -337,7 +337,7 @@ const skipFlagsUpdateSchema = z.object({
 });
 
 const markCompleteSchema = z.object({
-  currentStatus: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work']),
+  currentStatus: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed']),
 });
 
 const submissionVendorCreateSchema = z.object({
@@ -6665,10 +6665,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(400).json({ error: 'Project ID is required' });
       }
 
-      // Validate current status from request body
-      const validation = z.object({
-        currentStatus: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed']),
-      }).safeParse(req.body);
+      // Validate current status from request body using the existing schema
+      const validation = markCompleteSchema.safeParse(req.body);
 
       if (!validation.success) {
         return res.status(400).json({
@@ -6701,7 +6699,48 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(403).json({ error: 'No access to this project' });
       }
 
-      // Use workflow service to advance status
+      // Special handling for final project completion
+      if (validation.data.currentStatus === 'completed') {
+        // Mark all workflow steps as complete for this project
+        await db
+          .update(projectSteps)
+          .set({
+            status: 'completed',
+            completedDate: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(projectSteps.projectId, id),
+              or(
+                eq(projectSteps.status, 'pending'),
+                eq(projectSteps.status, 'in_progress')
+              )
+            )
+          );
+
+        // Update project with final completion timestamp and mark as fully completed
+        const updatedProject = await db
+          .update(maintenanceProjects)
+          .set({
+            status: 'completed',
+            actualEndDate: new Date(), // Final completion timestamp
+            updatedAt: new Date(),
+          })
+          .where(eq(maintenanceProjects.id, id))
+          .returning();
+
+        return res.json({
+          success: true,
+          project: updatedProject[0],
+          previousStatus: validation.data.currentStatus,
+          newStatus: 'completed',
+          finalCompletion: true,
+          message: 'Project has been fully completed and finalized'
+        });
+      }
+
+      // Use workflow service to advance status for normal workflow progression
       const nextStatus = await workflowService.getNextStatus(id, validation.data.currentStatus as any);
       
       if (!nextStatus) {

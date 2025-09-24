@@ -144,21 +144,46 @@ export function WorkflowTabNavigation({
             {allTabs.map((tab, index) => {
               const tabStatus = getTabStatus(tab.id);
               const isSkipped = isTabSkipped(tab.id);
+              const isAccessible = accessibleTabs && accessibleTabs.includes(tab.id);
+              const isClickable = isAccessible && !isSkipped;
               const TabIcon = tabConfig[tab.id]?.icon || Settings;
+              
+              const handleStepClick = () => {
+                if (isClickable) {
+                  onTabChange(tab.id);
+                }
+              };
               
               return (
                 <div key={tab.id} className="flex items-center">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div
+                        onClick={handleStepClick}
                         className={cn(
                           'flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all',
+                          // Base styling
                           tabStatus === 'completed' && 'bg-green-600 border-green-600 text-white',
                           tabStatus === 'current' && 'bg-blue-600 border-blue-600 text-white',
                           tabStatus === 'accessible' && 'border-blue-300 text-blue-600',
                           tabStatus === 'locked' && 'border-muted text-muted-foreground',
-                          isSkipped && 'border-dashed bg-muted/50'
+                          isSkipped && 'border-dashed bg-muted/50',
+                          // Interactive styling
+                          isClickable && 'cursor-pointer hover:scale-105',
+                          isClickable && tabStatus === 'completed' && 'hover:bg-green-700 hover:border-green-700',
+                          isClickable && tabStatus === 'current' && 'hover:bg-blue-700 hover:border-blue-700',
+                          isClickable && tabStatus === 'accessible' && 'hover:bg-blue-50 hover:border-blue-400',
+                          !isClickable && 'cursor-default'
                         )}
+                        data-testid={`progress-step-${tab.id}`}
+                        role={isClickable ? 'button' : 'presentation'}
+                        tabIndex={isClickable ? 0 : -1}
+                        onKeyDown={(e) => {
+                          if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+                            e.preventDefault();
+                            handleStepClick();
+                          }
+                        }}
                       >
                         {isSkipped ? (
                           <Circle className="h-4 w-4" />
@@ -172,6 +197,11 @@ export function WorkflowTabNavigation({
                         <div className="font-semibold">{tabConfig[tab.id]?.label || tab.id}</div>
                         <div className="text-xs text-muted-foreground mt-1">
                           {isSkipped ? 'Skipped' : tabStatus}
+                          {isClickable && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              Click to navigate
+                            </div>
+                          )}
                         </div>
                       </div>
                     </TooltipContent>
