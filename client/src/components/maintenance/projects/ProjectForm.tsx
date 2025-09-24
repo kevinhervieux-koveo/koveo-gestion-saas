@@ -323,9 +323,25 @@ export function ProjectForm({
         }
       }
       
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] 
-      });
+      // Use the buildingId from the actual form data that was used to create the project
+      // This ensures we invalidate the correct cache even if the context buildingId differs
+      const actualBuildingId = response.project?.buildingId || response.data?.buildingId || buildingId;
+      
+      if (actualBuildingId) {
+        console.log(`[ProjectForm] Invalidating projects cache for building: ${actualBuildingId}`);
+        queryClient.invalidateQueries({ 
+          queryKey: ['/api/maintenance/buildings', actualBuildingId, 'projects'] 
+        });
+      } else {
+        console.warn('[ProjectForm] Could not determine buildingId for cache invalidation');
+        // Invalidate all project queries as fallback
+        queryClient.invalidateQueries({ 
+          predicate: (query) => {
+            return query.queryKey.includes('/api/maintenance/buildings') && 
+                   query.queryKey.includes('projects');
+          }
+        });
+      }
       
       // Invalidate vendor queries to refresh selection
       queryClient.invalidateQueries({
