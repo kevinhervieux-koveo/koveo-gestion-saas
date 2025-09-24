@@ -253,7 +253,16 @@ export function ProjectWorkflowModal({
 
   // Render tab content based on active tab
   const renderTabContent = () => {
-    if (!workflowState || !activeTab) return null;
+    console.log('🔍 [MODAL] renderTabContent called:', { 
+      activeTab, 
+      hasWorkflowState: !!workflowState,
+      currentStatus: workflowState?.currentStatus 
+    });
+    
+    if (!workflowState || !activeTab) {
+      console.log('🔍 [MODAL] Early return - no workflowState or activeTab');
+      return null;
+    }
 
     // Defensive null check for project data
     if (!workflowState.project) {
@@ -273,8 +282,11 @@ export function ProjectWorkflowModal({
       onUpdate: handleWorkflowUpdate,
     };
 
+    console.log('🔍 [MODAL] About to render tab:', activeTab);
+    
     switch (activeTab) {
       case 'planned':
+        console.log('🔍 [MODAL] Rendering PlannedTab with project:', workflowState.project?.id);
         return <PlannedTab {...tabProps} />;
       case 'submission':
         return <SubmissionTab {...tabProps} />;

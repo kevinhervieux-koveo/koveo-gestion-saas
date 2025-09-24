@@ -157,30 +157,7 @@ export function WorkflowTabNavigation({
           };
 
           return (
-            <div key={tab.id} className="flex items-center gap-3">
-              {/* Skip Checkbox for applicable steps */}
-              {tab.canSkip && (
-                <div className="flex items-center space-x-1 min-w-[50px]">
-                  <Checkbox
-                    id={`skip-${tab.id}`}
-                    checked={isSkipped}
-                    disabled={isUpdatingSkipFlags || status === 'completed'}
-                    onCheckedChange={(checked) => 
-                      handleSkipChange(tab.id, tab.skipFlag!, checked as boolean)
-                    }
-                    data-testid={`checkbox-skip-${tab.id}`}
-                  />
-                  <label
-                    htmlFor={`skip-${tab.id}`}
-                    className="text-xs text-muted-foreground cursor-pointer select-none"
-                  >
-                    Skip
-                  </label>
-                </div>
-              )}
-              
-              {!tab.canSkip && <div className="w-[50px]" />}
-
+            <div key={tab.id} className="flex items-center gap-3 relative">
               {/* Progress Step */}
               <div
                 onClick={handleStepClick}
@@ -227,10 +204,10 @@ export function WorkflowTabNavigation({
 
               {/* Connection Line */}
               {index < allTabs.filter(tab => !isTabSkipped(tab.id)).length - 1 && (
-                <div className="absolute left-[83px] mt-10">
+                <div className="absolute left-[14px] top-7 z-0">
                   <div
                     className={cn(
-                      'w-0.5 h-4 transition-all',
+                      'w-0.5 h-6 transition-all',
                       status === 'completed' && 'bg-green-600',
                       status === 'current' && 'bg-blue-600',
                       'bg-muted'

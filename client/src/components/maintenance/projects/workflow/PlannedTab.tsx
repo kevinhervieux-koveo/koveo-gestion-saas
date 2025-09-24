@@ -57,6 +57,13 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
   const { toast } = useToast();
   const [hasChanges, setHasChanges] = useState(false);
   
+  console.log('🔍 [PLANNED TAB] Rendering with project:', { 
+    project: !!project,
+    projectId: project?.id,
+    workflowState: !!workflowState,
+    skipFlags: workflowState?.skipFlags
+  });
+  
   // Defensive null check for project data
   if (!project) {
     return (
