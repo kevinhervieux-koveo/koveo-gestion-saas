@@ -126,7 +126,8 @@ export function ProjectTimeline({
     enabled: !!buildingId && !externalProjects,
   });
 
-  const rawProjects: MaintenanceProject[] = externalProjects || projectsResponse?.projects || [];
+  // Fix: Backend returns { success: true, data: projects }, but frontend expects { projects: [...] }
+  const rawProjects: MaintenanceProject[] = externalProjects || projectsResponse?.data || [];
 
   // Calculate timeline boundaries
   const timelineBounds = useMemo(() => {

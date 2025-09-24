@@ -94,13 +94,23 @@ export function ProjectTable({
     queryFn: async () => {
       if (!buildingId) throw new Error('Building ID is required');
       const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/projects`);
-      return await response.json();
+      const data = await response.json();
+      console.log('🔍 [PROJECT TABLE DEBUG] Raw response from backend:', data);
+      console.log('🔍 [PROJECT TABLE DEBUG] Response structure:', Object.keys(data || {}));
+      if (data?.data) {
+        console.log('🔍 [PROJECT TABLE DEBUG] Projects found in data property:', data.data.length);
+      }
+      return data;
     },
     enabled: !!buildingId,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  const projects: ProjectWithMetrics[] = projectsResponse?.projects || [];
+  // Fix: Backend returns { success: true, data: projects }, but frontend expects { projects: [...] }
+  const projects: ProjectWithMetrics[] = projectsResponse?.data || [];
+  
+  console.log('🔍 [PROJECT TABLE DEBUG] Final projects array:', projects);
+  console.log('🔍 [PROJECT TABLE DEBUG] Projects count:', projects.length);
 
   // Bulk status update mutation
   const updateStatusMutation = useMutation({

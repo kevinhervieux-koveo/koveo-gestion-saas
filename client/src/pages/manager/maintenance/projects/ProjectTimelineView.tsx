@@ -106,7 +106,8 @@ export function ProjectTimelineView({
     staleTime: 2 * 60 * 1000,
   });
 
-  const projects: MaintenanceProject[] = projectsResponse?.projects || [];
+  // Fix: Backend returns { success: true, data: projects }, but frontend expects { projects: [...] }
+  const projects: MaintenanceProject[] = projectsResponse?.data || [];
 
   // Filter projects based on current filters
   const filteredProjects = useMemo(() => {

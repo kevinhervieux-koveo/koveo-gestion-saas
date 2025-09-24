@@ -70,13 +70,23 @@ export function ProjectTableView({
     queryFn: async () => {
       if (!buildingId) throw new Error('Building ID is required');
       const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/projects`);
-      return await response.json();
+      const data = await response.json();
+      console.log('🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend:', data);
+      console.log('🔍 [PROJECT TABLE VIEW DEBUG] Response structure:', Object.keys(data || {}));
+      if (data?.data) {
+        console.log('🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property:', data.data.length);
+      }
+      return data;
     },
     enabled: !!buildingId,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  const projects: MaintenanceProject[] = projectsResponse?.projects || [];
+  // Fix: Backend returns { success: true, data: projects }, but frontend expects { projects: [...] }
+  const projects: MaintenanceProject[] = projectsResponse?.data || [];
+  
+  console.log('🔍 [PROJECT TABLE VIEW DEBUG] Final projects array:', projects);
+  console.log('🔍 [PROJECT TABLE VIEW DEBUG] Projects count:', projects.length);
 
   // Apply filters to projects
   const filteredProjects = useMemo(() => {
