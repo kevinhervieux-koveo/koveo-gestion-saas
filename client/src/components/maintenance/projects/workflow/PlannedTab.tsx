@@ -41,6 +41,7 @@ export interface PlannedTabProps {
   project: MaintenanceProject;
   workflowState: ProjectWorkflowState;
   onUpdate: () => void;
+  onAdvanceToNext?: (newStatus?: string) => void;
 }
 
 const plannedTabSchema = z.object({
@@ -58,7 +59,7 @@ type PlannedTabData = z.infer<typeof plannedTabSchema>;
  * Planned tab component for project planning with 3 specific fields
  * Handles project description, start planning date, and estimated cost
  */
-export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps) {
+export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }: PlannedTabProps) {
   const { toast } = useToast();
   const { buildingId } = useBuildingContext();
   const [hasChanges, setHasChanges] = useState(false);
@@ -192,6 +193,10 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
           title: 'Success',
           description: 'Project planning completed and moved to submission stage.',
         });
+        // Advance to the next tab
+        if (onAdvanceToNext) {
+          setTimeout(() => onAdvanceToNext('submission'), 500); // Small delay for toast to show
+        }
       },
     });
   };

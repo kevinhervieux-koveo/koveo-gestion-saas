@@ -283,6 +283,11 @@ export function ProjectWorkflowModal({
       project: workflowState.project,
       workflowState,
       onUpdate: handleWorkflowUpdate,
+      onAdvanceToNext: (newStatus?: string) => {
+        if (newStatus) {
+          setActiveTab(newStatus);
+        }
+      },
     };
 
     switch (activeTab) {
