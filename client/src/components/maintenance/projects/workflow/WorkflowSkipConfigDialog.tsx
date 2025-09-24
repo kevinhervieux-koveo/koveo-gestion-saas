@@ -104,7 +104,7 @@ export function WorkflowSkipConfigDialog({
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl" data-testid="workflow-skip-config-dialog">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="workflow-skip-config-dialog">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
