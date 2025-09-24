@@ -16,7 +16,7 @@ import {
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, formatStatus, safeCapitalize } from '@/lib/utils';
 import {
   CheckCircle2,
   Plus,
@@ -207,13 +207,13 @@ export function PostWorkTab({ project, workflowState, onUpdate }: PostWorkTabPro
     }
   };
 
-  // Helper function to format status for display
-  const formatStatus = (status: ElementUpdateStatus) => {
+  // Helper function to format element status for display
+  const formatElementStatus = (status: ElementUpdateStatus) => {
     switch (status) {
       case 'minor_rehab': return 'Minor Rehab';
       case 'major_rehab': return 'Major Rehab';
       case 'nothing': return 'No Work';
-      default: return status.charAt(0).toUpperCase() + status.slice(1);
+      default: return safeCapitalize(status, 'Unknown');
     }
   };
 
@@ -375,7 +375,7 @@ export function PostWorkTab({ project, workflowState, onUpdate }: PostWorkTabPro
                           </div>
                           {elementUpdate && (
                             <Badge variant={getStatusBadgeVariant(elementUpdate.updateStatus)}>
-                              {formatStatus(elementUpdate.updateStatus)}
+                              {formatElementStatus(elementUpdate.updateStatus)}
                             </Badge>
                           )}
                         </div>
@@ -684,7 +684,7 @@ export function PostWorkTab({ project, workflowState, onUpdate }: PostWorkTabPro
       <div className="flex items-center justify-between pt-6 border-t">
         <div className="text-sm text-muted-foreground">
           {workflowState.nextStatus && (
-            <>Next: <span className="capitalize">{workflowState.nextStatus.replace('_', ' ')}</span></>
+            <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
           )}
         </div>
         

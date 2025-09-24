@@ -22,6 +22,7 @@ import {
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { formatStatus } from '@/lib/utils';
 import {
   CheckCircle2,
   Calendar,
@@ -353,7 +354,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                 <div>
                   <div className="text-muted-foreground">Project Type</div>
                   <div className="capitalize font-medium">
-                    {project.type.replace('_', ' ')}
+                    {formatStatus(project.type, 'Not specified')}
                   </div>
                 </div>
                 

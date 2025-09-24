@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState, type SubmissionVendor } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
-import { cn } from '@/lib/utils';
+import { cn, formatStatus, safeCapitalize } from '@/lib/utils';
 import {
   CheckCircle2,
   Users,
@@ -126,7 +126,8 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
 
   const formatPaymentSchedule = (schedule?: string) => {
     if (!schedule) return 'Not specified';
-    return schedule.replace('_', ' ').charAt(0).toUpperCase() + schedule.slice(1);
+    const formatted = formatStatus(schedule, 'Not specified');
+    return safeCapitalize(formatted, 'Not specified');
   };
 
   return (
@@ -262,7 +263,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                           </span>
                         )}
                         <Badge variant="outline" className="text-xs">
-                          {vendor.projectType.replace('_', ' ')}
+                          {formatStatus(vendor.projectType, 'Not specified')}
                         </Badge>
                       </CardDescription>
                     </div>
@@ -393,7 +394,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       <div className="flex items-center justify-between pt-6 border-t">
         <div className="text-sm text-muted-foreground">
           {workflowState.nextStatus && (
-            <>Next: <span className="capitalize">{workflowState.nextStatus.replace('_', ' ')}</span></>
+            <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
           )}
         </div>
         

@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUpdateSkipFlags, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
-import { cn } from '@/lib/utils';
+import { cn, formatStatus } from '@/lib/utils';
 import {
   CheckCircle2,
   Circle,
@@ -263,7 +263,7 @@ export function WorkflowTabNavigation({
         <div className="text-xs text-muted-foreground text-center">
           {workflowState.canAdvance && workflowState.nextStatus && (
             <div>
-              Next: <span className="font-medium capitalize">{workflowState.nextStatus.replace('_', ' ')}</span>
+              Next: <span className="font-medium capitalize">{formatStatus(workflowState.nextStatus)}</span>
             </div>
           )}
           {currentStatus === 'completed' && (

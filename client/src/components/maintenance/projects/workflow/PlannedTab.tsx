@@ -32,7 +32,7 @@ import {
 import { useUpdateProjectDetails, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, formatStatus } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
   CalendarIcon,
@@ -418,7 +418,7 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
             <div className="text-sm text-muted-foreground">
               {hasChanges && 'Unsaved changes • '}
               {workflowState.nextStatus && (
-                <>Next: <span className="capitalize">{workflowState.nextStatus.replace('_', ' ')}</span></>
+                <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
               )}
             </div>
             

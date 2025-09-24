@@ -19,7 +19,7 @@ import {
   PostWorkTab,
   CompleteTab,
 } from './lazy-components';
-import { cn } from '@/lib/utils';
+import { cn, formatStatus } from '@/lib/utils';
 import {
   AlertTriangle,
   Building2,
@@ -306,7 +306,7 @@ export function ProjectWorkflowModal({
             </span>
             {workflowState.currentStatus !== 'completed' && (
               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                Status: {workflowState.currentStatus.replace('_', ' ')}
+                Status: {formatStatus(workflowState.currentStatus)}
               </span>
             )}
           </DialogDescription>

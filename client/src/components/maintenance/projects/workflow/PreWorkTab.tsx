@@ -33,7 +33,7 @@ import {
 } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, formatStatus } from '@/lib/utils';
 import {
   CheckCircle2,
   Plus,
@@ -446,7 +446,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                           <p className="text-muted-foreground text-xs">
                             {notification.timingType === 'custom' 
                               ? `${notification.customDaysBefore} days before`
-                              : notification.timingType.replace('_', ' ')
+                              : formatStatus(notification.timingType, 'Not specified')
                             }
                           </p>
                         </div>
@@ -467,7 +467,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
       <div className="flex items-center justify-between pt-6 border-t">
         <div className="text-sm text-muted-foreground">
           {workflowState.nextStatus && (
-            <>Next: <span className="capitalize">{workflowState.nextStatus.replace('_', ' ')}</span></>
+            <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
           )}
         </div>
         
