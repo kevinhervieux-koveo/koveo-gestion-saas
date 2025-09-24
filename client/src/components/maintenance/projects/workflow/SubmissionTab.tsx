@@ -12,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
+import { UploadDropzone, type UploadedFile } from '@/components/maintenance/UploadDropzone';
 import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
@@ -57,6 +58,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedFile[]>([]);
 
   // Defensive null check for project data
   if (!project) {
@@ -171,6 +173,13 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       price: data.price,
       description: data.description || '',
       preferred: data.preferred,
+      documents: uploadedDocuments.map(doc => ({
+        id: doc.id,
+        name: doc.name,
+        url: doc.url,
+        size: doc.size,
+        type: doc.type,
+      })),
     };
 
     console.log('Creating new submission:', submissionData);
@@ -178,9 +187,14 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     // For now, close the dialog - we'll implement the actual API call in the next task
     setShowSubmissionDialog(false);
     submissionForm.reset();
+    setUploadedDocuments([]);
     
     // TODO: Implement actual submission creation
     // createSubmissionVendor(submissionData);
+  };
+
+  const handleDocumentsUploaded = (files: UploadedFile[]) => {
+    setUploadedDocuments(prev => [...prev, ...files]);
   };
 
   return (
@@ -201,7 +215,17 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
           </div>
           
           {/* Add Submission Button */}
-          <Dialog open={showSubmissionDialog} onOpenChange={setShowSubmissionDialog}>
+          <Dialog 
+            open={showSubmissionDialog} 
+            onOpenChange={(open) => {
+              setShowSubmissionDialog(open);
+              // Clear uploaded documents when dialog closes
+              if (!open) {
+                setUploadedDocuments([]);
+                submissionForm.reset();
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button data-testid="button-add-submission">
                 <Plus className="h-4 w-4 mr-2" />
@@ -315,6 +339,24 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     )}
                   />
 
+                  {/* Document Upload */}
+                  <div className="space-y-2">
+                    <FormLabel>Documents</FormLabel>
+                    <FormDescription>
+                      Upload vendor documents such as quotes, proposals, or certifications
+                    </FormDescription>
+                    <UploadDropzone
+                      onFilesUploaded={handleDocumentsUploaded}
+                      existingFiles={uploadedDocuments}
+                      uploadEndpoint="/api/maintenance/projects/documents"
+                      maxFiles={5}
+                      className="border-dashed border-2 border-muted-foreground/25"
+                      buildingId={project.buildingId}
+                      elementId={project.id}
+                      data-testid="submission-document-upload"
+                    />
+                  </div>
+
                   {/* Preferred Checkbox */}
                   <FormField
                     control={submissionForm.control}
@@ -345,6 +387,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                       onClick={() => {
                         setShowSubmissionDialog(false);
                         submissionForm.reset();
+                        setUploadedDocuments([]);
                       }}
                       data-testid="button-cancel"
                     >
