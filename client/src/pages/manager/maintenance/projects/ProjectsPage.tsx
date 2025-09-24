@@ -392,16 +392,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       
       {/* Project Controls and Filters */}
       <ProjectsHeader
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
-        statusFilter={statusFilter}
-        onStatusFilterChange={handleStatusFilterChange}
-        priorityFilter={priorityFilter}
-        onPriorityFilterChange={handlePriorityFilterChange}
-        typeFilter={typeFilter}
-        onTypeFilterChange={handleTypeFilterChange}
-        showOverdueOnly={showOverdueOnly}
-        onShowOverdueChange={handleShowOverdueChange}
         buildingId={buildingId}
         organizationId={organizationId}
         buildingName={buildingName}
