@@ -168,8 +168,8 @@ export class WorkflowService {
           status: nextStatus,
           updatedAt: new Date(),
           // Set specific date fields based on status
-          ...(nextStatus === 'in_progress' && { actualStartDate: new Date() }),
-          ...(nextStatus === 'completed' && { actualEndDate: new Date() }),
+          ...(nextStatus === 'in_progress' && { actualStartDate: new Date().toISOString().split('T')[0] }),
+          ...(nextStatus === 'completed' && { actualEndDate: new Date().toISOString().split('T')[0] }),
         })
         .where(eq(maintenanceProjects.id, projectId));
 
@@ -387,7 +387,7 @@ export class WorkflowService {
       
       const averageCompletionTime = completedProjects.length > 0
         ? completedProjects.reduce((acc, p) => {
-            const duration = p.actualEndDate!.getTime() - p.createdAt.getTime();
+            const duration = new Date(p.actualEndDate!).getTime() - p.createdAt.getTime();
             return acc + duration;
           }, 0) / completedProjects.length / (1000 * 60 * 60 * 24) // Convert to days
         : null;

@@ -39,12 +39,6 @@ export interface ProjectWorkflowModalProps {
 }
 
 const TAB_CONFIG = {
-  configuration: {
-    id: 'configuration',
-    label: 'Configuration',
-    icon: Settings,
-    description: 'Project configuration and setup',
-  },
   planned: {
     id: 'planned',
     label: 'Planned',
@@ -193,8 +187,6 @@ export function ProjectWorkflowModal({
     };
 
     switch (activeTab) {
-      case 'configuration':
-        return <ConfigurationTab {...tabProps} />;
       case 'planned':
         return <PlannedTab {...tabProps} />;
       case 'submission':

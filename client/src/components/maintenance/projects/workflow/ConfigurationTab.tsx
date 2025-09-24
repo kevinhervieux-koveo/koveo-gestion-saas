@@ -262,7 +262,8 @@ export function ConfigurationTab({ project, workflowState, onUpdate }: Configura
     deleteProjectMutation.mutate(project.id);
   };
 
-  const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'configuration';
+  // Configuration is no longer part of the workflow progression
+  const canAdvance = false;
 
   return (
     <div className="space-y-6" data-testid="configuration-tab">
