@@ -4,7 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { format } from 'date-fns';
 import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
@@ -22,7 +29,19 @@ import {
   AlertTriangle,
   Edit,
   Settings,
+  Plus,
 } from 'lucide-react';
+
+// Form schema for new submission
+const newSubmissionSchema = z.object({
+  vendorName: z.string().min(1, 'Vendor name is required'),
+  availableDate: z.date().optional(),
+  price: z.number().min(0, 'Price must be a positive number').optional(),
+  description: z.string().optional(),
+  preferred: z.boolean().default(false),
+});
+
+type NewSubmissionForm = z.infer<typeof newSubmissionSchema>;
 
 export interface SubmissionTabProps {
   project: MaintenanceProject;
@@ -37,6 +56,7 @@ export interface SubmissionTabProps {
 export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTabProps) {
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
+  const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
 
   // Defensive null check for project data
   if (!project) {
@@ -60,6 +80,18 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
 
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
   const { selectSubmissionVendor, updateSubmissionVendor, updatePreferredStatus } = useSubmissionVendorMutations();
+
+  // Form for new submission
+  const submissionForm = useForm<NewSubmissionForm>({
+    resolver: zodResolver(newSubmissionSchema),
+    defaultValues: {
+      vendorName: '',
+      availableDate: undefined,
+      price: undefined,
+      description: '',
+      preferred: false,
+    },
+  });
 
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'submission';
 
@@ -130,6 +162,27 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     return safeCapitalize(formatted, 'Not specified');
   };
 
+  const handleSubmissionSubmit = (data: NewSubmissionForm) => {
+    // Convert form data to the API format
+    const submissionData = {
+      projectId: project.id,
+      vendorName: data.vendorName,
+      availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
+      price: data.price,
+      description: data.description || '',
+      preferred: data.preferred,
+    };
+
+    console.log('Creating new submission:', submissionData);
+    
+    // For now, close the dialog - we'll implement the actual API call in the next task
+    setShowSubmissionDialog(false);
+    submissionForm.reset();
+    
+    // TODO: Implement actual submission creation
+    // createSubmissionVendor(submissionData);
+  };
+
   return (
     <div className="space-y-6" data-testid="submission-tab">
       <div className="flex items-center justify-between">
@@ -140,10 +193,171 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
           </p>
         </div>
         
-        {/* Skip option info */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Info className="h-4 w-4" />
-          <span>This step can be skipped in tab navigation</span>
+        <div className="flex items-center gap-3">
+          {/* Skip option info */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Info className="h-4 w-4" />
+            <span>This step can be skipped in tab navigation</span>
+          </div>
+          
+          {/* Add Submission Button */}
+          <Dialog open={showSubmissionDialog} onOpenChange={setShowSubmissionDialog}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-submission">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Submission
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Add New Vendor Submission</DialogTitle>
+              </DialogHeader>
+              <Form {...submissionForm}>
+                <form onSubmit={submissionForm.handleSubmit(handleSubmissionSubmit)} className="space-y-4">
+                  {/* Vendor Name */}
+                  <FormField
+                    control={submissionForm.control}
+                    name="vendorName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vendor Name *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter vendor name"
+                            data-testid="input-vendor-name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Available Date */}
+                  <FormField
+                    control={submissionForm.control}
+                    name="availableDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Available Date</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            min={format(new Date(), 'yyyy-MM-dd')}
+                            value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                field.onChange(new Date(e.target.value));
+                              } else {
+                                field.onChange(undefined);
+                              }
+                            }}
+                            data-testid="input-available-date"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          When can the vendor start the work?
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Price */}
+                  <FormField
+                    control={submissionForm.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={field.value ?? ''}
+                            onChange={(e) => {
+                              const value = e.target.value ? parseFloat(e.target.value) : undefined;
+                              field.onChange(value);
+                            }}
+                            data-testid="input-price"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Enter the quoted price for the work
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Description */}
+                  <FormField
+                    control={submissionForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe the vendor's proposal..."
+                            rows={3}
+                            data-testid="textarea-description"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Additional details about the vendor's submission
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Preferred Checkbox */}
+                  <FormField
+                    control={submissionForm.control}
+                    name="preferred"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-preferred"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Mark as preferred vendor</FormLabel>
+                          <FormDescription>
+                            Flag this vendor as a preferred choice
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowSubmissionDialog(false);
+                        submissionForm.reset();
+                      }}
+                      data-testid="button-cancel"
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" data-testid="button-submit">
+                      Add Submission
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
