@@ -126,210 +126,122 @@ export function WorkflowTabNavigation({
   };
 
   return (
-    <TooltipProvider>
-      <div className="p-4" data-testid="workflow-tab-navigation">
-        {/* Progress Indicator */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-muted-foreground">
-              Workflow Progress
-            </span>
-            <Badge variant="secondary">
-              {currentStatus === 'completed' ? 'Complete' : 'In Progress'}
-            </Badge>
-          </div>
-          
-          {/* Progress Steps */}
-          <div className="flex items-center space-x-2">
-            {allTabs.filter(tab => !isTabSkipped(tab.id)).map((tab, index) => {
-              const tabStatus = getTabStatus(tab.id);
-              const isSkipped = isTabSkipped(tab.id);
-              const isAccessible = accessibleTabs && accessibleTabs.includes(tab.id);
-              const isClickable = isAccessible && !isSkipped;
-              const TabIcon = tabConfig[tab.id]?.icon || Settings;
-              
-              const handleStepClick = () => {
-                if (isClickable) {
-                  onTabChange(tab.id);
-                }
-              };
-              
-              return (
-                <div key={tab.id} className="flex items-center">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={handleStepClick}
-                        className={cn(
-                          'flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all',
-                          // Base styling
-                          tabStatus === 'completed' && 'bg-green-600 border-green-600 text-white',
-                          tabStatus === 'current' && 'bg-blue-600 border-blue-600 text-white',
-                          tabStatus === 'accessible' && 'border-blue-300 text-blue-600',
-                          tabStatus === 'locked' && 'border-muted text-muted-foreground',
-                          isSkipped && 'border-dashed bg-muted/50',
-                          // Interactive styling
-                          isClickable && 'cursor-pointer hover:scale-105',
-                          isClickable && tabStatus === 'completed' && 'hover:bg-green-700 hover:border-green-700',
-                          isClickable && tabStatus === 'current' && 'hover:bg-blue-700 hover:border-blue-700',
-                          isClickable && tabStatus === 'accessible' && 'hover:bg-blue-50 hover:border-blue-400',
-                          !isClickable && 'cursor-default'
-                        )}
-                        data-testid={`progress-step-${tab.id}`}
-                        role={isClickable ? 'button' : 'presentation'}
-                        tabIndex={isClickable ? 0 : -1}
-                        onKeyDown={(e) => {
-                          if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
-                            e.preventDefault();
-                            handleStepClick();
-                          }
-                        }}
-                      >
-                        {isSkipped ? (
-                          <Circle className="h-4 w-4" />
-                        ) : (
-                          <TabIcon className="h-4 w-4" />
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="text-center">
-                        <div className="font-semibold">{tabConfig[tab.id]?.label || tab.id}</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {isSkipped ? 'Skipped' : tabStatus}
-                          {isClickable && (
-                            <div className="text-xs text-blue-600 mt-1">
-                              Click to navigate
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                  
-                  {index < allTabs.filter(tab => !isTabSkipped(tab.id)).length - 1 && (
-                    <div
-                      className={cn(
-                        'w-8 h-0.5 mx-1 transition-all',
-                        tabStatus === 'completed' && 'bg-green-600',
-                        tabStatus === 'current' && 'bg-blue-600',
-                        'bg-muted'
-                      )}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <Separator className="my-4" />
-
-        {/* Tab Navigation */}
-        <div className="space-y-2">
-          {allTabs.filter(tab => !isTabSkipped(tab.id)).map((tab) => {
-            const config = tabConfig[tab.id];
-            const status = getTabStatus(tab.id);
-            const isSkipped = isTabSkipped(tab.id);
-            const isAccessible = accessibleTabs && accessibleTabs.includes(tab.id);
-            const isActive = activeTab === tab.id;
-            const TabIcon = config?.icon || Settings;
-
-            if (!config) return null;
-
-            return (
-              <div key={tab.id} className="flex items-center gap-3">
-                {/* Skip Checkbox */}
-                {tab.canSkip && (
-                  <div className="flex items-center space-x-2 min-w-[80px]">
-                    <Checkbox
-                      id={`skip-${tab.id}`}
-                      checked={isSkipped}
-                      disabled={isUpdatingSkipFlags || status === 'completed'}
-                      onCheckedChange={(checked) => 
-                        handleSkipChange(tab.id, tab.skipFlag!, checked as boolean)
-                      }
-                      data-testid={`checkbox-skip-${tab.id}`}
-                    />
-                    <label
-                      htmlFor={`skip-${tab.id}`}
-                      className="text-xs text-muted-foreground cursor-pointer select-none"
-                    >
-                      Skip
-                    </label>
-                  </div>
-                )}
-                
-                {!tab.canSkip && <div className="w-[80px]" />} {/* Spacing for non-skippable tabs */}
-
-                {/* Tab Button */}
-                <Button
-                  variant={isActive ? 'default' : 'ghost'}
-                  disabled={!isAccessible || isSkipped}
-                  onClick={() => onTabChange(tab.id)}
-                  className={cn(
-                    'flex items-center gap-2 h-auto p-3 justify-start flex-1',
-                    isSkipped && 'opacity-50',
-                    status === 'completed' && !isActive && 'text-green-700 hover:text-green-800',
-                    status === 'locked' && 'cursor-not-allowed opacity-40'
-                  )}
-                  data-testid={`tab-${tab.id}`}
-                >
-                  {/* Status Icon */}
-                  <div className="flex-shrink-0">
-                    {getStatusIcon(tab.id)}
-                  </div>
-
-                  {/* Tab Content */}
-                  <div className="flex flex-col items-start flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <TabIcon className="h-4 w-4 flex-shrink-0" />
-                      <span className="font-medium">{config.label}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground text-left truncate max-w-full">
-                      {isSkipped ? 'This step will be skipped' : config.description}
-                    </span>
-                  </div>
-
-                  {/* Status Badges */}
-                  <div className="flex-shrink-0">
-                    {status === 'current' && (
-                      <Badge variant="secondary" className="text-xs">
-                        Current
-                      </Badge>
-                    )}
-                    {status === 'completed' && (
-                      <Badge variant="default" className="text-xs bg-green-600">
-                        Done
-                      </Badge>
-                    )}
-                    {isSkipped && (
-                      <Badge variant="outline" className="text-xs">
-                        Skipped
-                      </Badge>
-                    )}
-                  </div>
-                </Button>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Workflow Actions Summary */}
-        <Separator className="my-4" />
-        <div className="text-xs text-muted-foreground text-center">
-          {workflowState?.canAdvance && workflowState?.nextStatus && (
-            <div>
-              Next: <span className="font-medium capitalize">{formatStatus(workflowState.nextStatus)}</span>
-            </div>
-          )}
-          {currentStatus === 'completed' && (
-            <div className="text-green-600 font-medium">
-              Project workflow completed
-            </div>
-          )}
-        </div>
+    <div className="p-4" data-testid="workflow-tab-navigation">
+      {/* Simple Vertical Progress */}
+      <div className="mb-2">
+        <span className="text-sm font-medium text-muted-foreground">
+          Workflow Progress
+        </span>
+        <Badge variant="secondary" className="ml-2 text-xs">
+          {currentStatus === 'completed' ? 'Complete' : 'In Progress'}
+        </Badge>
       </div>
-    </TooltipProvider>
+      
+      {/* Clean Vertical Progress Steps */}
+      <div className="space-y-3">
+        {allTabs.filter(tab => !isTabSkipped(tab.id)).map((tab, index) => {
+          const config = tabConfig[tab.id];
+          const status = getTabStatus(tab.id);
+          const isSkipped = isTabSkipped(tab.id);
+          const isAccessible = accessibleTabs && accessibleTabs.includes(tab.id);
+          const isActive = activeTab === tab.id;
+          const isClickable = isAccessible && !isSkipped;
+          const TabIcon = config?.icon || Settings;
+
+          if (!config) return null;
+
+          const handleStepClick = () => {
+            if (isClickable) {
+              onTabChange(tab.id);
+            }
+          };
+
+          return (
+            <div key={tab.id} className="flex items-center gap-3">
+              {/* Skip Checkbox for applicable steps */}
+              {tab.canSkip && (
+                <div className="flex items-center space-x-1 min-w-[50px]">
+                  <Checkbox
+                    id={`skip-${tab.id}`}
+                    checked={isSkipped}
+                    disabled={isUpdatingSkipFlags || status === 'completed'}
+                    onCheckedChange={(checked) => 
+                      handleSkipChange(tab.id, tab.skipFlag!, checked as boolean)
+                    }
+                    data-testid={`checkbox-skip-${tab.id}`}
+                  />
+                  <label
+                    htmlFor={`skip-${tab.id}`}
+                    className="text-xs text-muted-foreground cursor-pointer select-none"
+                  >
+                    Skip
+                  </label>
+                </div>
+              )}
+              
+              {!tab.canSkip && <div className="w-[50px]" />}
+
+              {/* Progress Step */}
+              <div
+                onClick={handleStepClick}
+                className={cn(
+                  'flex items-center justify-center w-7 h-7 rounded-full border-2 transition-all flex-shrink-0',
+                  status === 'completed' && 'bg-green-600 border-green-600 text-white',
+                  status === 'current' && 'bg-blue-600 border-blue-600 text-white',
+                  status === 'accessible' && 'border-blue-300 text-blue-600',
+                  status === 'locked' && 'border-muted text-muted-foreground',
+                  isSkipped && 'border-dashed bg-muted/50',
+                  isClickable && 'cursor-pointer hover:scale-105',
+                  !isClickable && 'cursor-default'
+                )}
+                data-testid={`progress-step-${tab.id}`}
+              >
+                {isSkipped ? (
+                  <Circle className="h-3 w-3" />
+                ) : (
+                  <TabIcon className="h-3 w-3" />
+                )}
+              </div>
+
+              {/* Step Name */}
+              <div
+                onClick={handleStepClick}
+                className={cn(
+                  'flex items-center gap-2 flex-1 transition-colors',
+                  isClickable && 'cursor-pointer hover:text-primary',
+                  status === 'current' && 'font-medium text-blue-600',
+                  status === 'completed' && 'text-green-600',
+                  isSkipped && 'text-muted-foreground line-through opacity-60',
+                  !isClickable && 'cursor-default'
+                )}
+              >
+                <span className="text-sm">{config.label}</span>
+              </div>
+
+              {/* Status Badge */}
+              {status === 'current' && (
+                <Badge variant="secondary" className="text-xs">
+                  Current
+                </Badge>
+              )}
+
+              {/* Connection Line */}
+              {index < allTabs.filter(tab => !isTabSkipped(tab.id)).length - 1 && (
+                <div className="absolute left-[83px] mt-10">
+                  <div
+                    className={cn(
+                      'w-0.5 h-4 transition-all',
+                      status === 'completed' && 'bg-green-600',
+                      status === 'current' && 'bg-blue-600',
+                      'bg-muted'
+                    )}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
