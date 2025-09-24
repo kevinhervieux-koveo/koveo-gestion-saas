@@ -81,7 +81,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   } = useSubmissionVendors(project.id);
 
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
-  const { selectSubmissionVendor, updateSubmissionVendor, updatePreferredStatus } = useSubmissionVendorMutations();
+  const { createSubmissionVendor, selectSubmissionVendor, updateSubmissionVendor, updatePreferredStatus } = useSubmissionVendorMutations();
 
   // Form for new submission
   const submissionForm = useForm<NewSubmissionForm>({
@@ -165,14 +165,13 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   };
 
   const handleSubmissionSubmit = (data: NewSubmissionForm) => {
-    // Convert form data to the API format
-    const submissionData = {
-      projectId: project.id,
+    // Convert form data to the API format - note that we need to match the expected mutation interface
+    const vendorData = {
       vendorName: data.vendorName,
       availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
-      price: data.price,
+      price: data.price?.toString(), // Convert number to string for decimal field
       description: data.description || '',
-      preferred: data.preferred,
+      preferred: data.preferred || false,
       documents: uploadedDocuments.map(doc => ({
         id: doc.id,
         name: doc.name,
@@ -180,17 +179,35 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         size: doc.size,
         type: doc.type,
       })),
+      // Add other required fields with defaults
+      contactInfo: '',
+      notes: data.description || '',
+      projectType: 'renovation' as const, // Default project type
+      addedLifespan: undefined,
+      paymentPlanCosts: [],
+      paymentPlanSchedule: undefined,
+      paymentPlanCustomDates: [],
+      paymentPlanStartDate: undefined,
+      isSelected: false,
     };
 
-    console.log('Creating new submission:', submissionData);
-    
-    // For now, close the dialog - we'll implement the actual API call in the next task
-    setShowSubmissionDialog(false);
-    submissionForm.reset();
-    setUploadedDocuments([]);
-    
-    // TODO: Implement actual submission creation
-    // createSubmissionVendor(submissionData);
+    console.log('Creating new submission:', vendorData);
+
+    createSubmissionVendor.mutate(
+      { projectId: project.id, vendorData },
+      {
+        onSuccess: () => {
+          setShowSubmissionDialog(false);
+          submissionForm.reset();
+          setUploadedDocuments([]);
+          onUpdate(); // Refresh the project data
+        },
+        onError: (error) => {
+          console.error('Failed to create submission:', error);
+          // Keep the dialog open on error so user can retry
+        },
+      }
+    );
   };
 
   const handleDocumentsUploaded = (files: UploadedFile[]) => {
@@ -393,8 +410,8 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" data-testid="button-submit">
-                      Add Submission
+                    <Button type="submit" data-testid="button-submit" disabled={createSubmissionVendor.isPending}>
+                      {createSubmissionVendor.isPending ? 'Adding...' : 'Add Submission'}
                     </Button>
                   </div>
                 </form>
