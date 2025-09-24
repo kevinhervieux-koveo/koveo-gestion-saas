@@ -425,6 +425,67 @@ async function getUserOrganizations(userId: string): Promise<string[]> {
   return result.map(r => r.organizationId);
 }
 
+// Helper function to calculate accessible tabs based on current status and skip flags
+function calculateAccessibleTabs(currentStatus: string, skipFlags: any): string[] {
+  const tabs = ['planned']; // Always include planned tab
+  
+  // Always include current status tab
+  if (currentStatus !== 'planned' && !tabs.includes(currentStatus)) {
+    tabs.push(currentStatus);
+  }
+  
+  // Add tabs based on progression through workflow
+  switch (currentStatus) {
+    case 'planned':
+      // In planned status, only planned tab is accessible
+      break;
+    case 'submission':
+      if (!skipFlags.skipSubmission) tabs.push('submission');
+      break;
+    case 'pre_work':
+      if (!skipFlags.skipSubmission) tabs.push('submission');
+      if (!skipFlags.skipPreWork) tabs.push('pre_work');
+      break;
+    case 'in_progress':
+      if (!skipFlags.skipSubmission) tabs.push('submission');
+      if (!skipFlags.skipPreWork) tabs.push('pre_work');
+      if (!skipFlags.skipInProgress) tabs.push('in_progress');
+      break;
+    case 'post_work':
+      if (!skipFlags.skipSubmission) tabs.push('submission');
+      if (!skipFlags.skipPreWork) tabs.push('pre_work');
+      if (!skipFlags.skipInProgress) tabs.push('in_progress');
+      if (!skipFlags.skipPostWork) tabs.push('post_work');
+      break;
+    case 'completed':
+      // All tabs are accessible when completed
+      if (!skipFlags.skipSubmission) tabs.push('submission');
+      if (!skipFlags.skipPreWork) tabs.push('pre_work');
+      if (!skipFlags.skipInProgress) tabs.push('in_progress');
+      if (!skipFlags.skipPostWork) tabs.push('post_work');
+      tabs.push('completed');
+      break;
+  }
+  
+  return [...new Set(tabs)]; // Remove duplicates
+}
+
+// Helper function to calculate the first incomplete tab
+function calculateFirstIncompleteTab(currentStatus: string, skipFlags: any): string {
+  // If we're in the planned status, that's the first incomplete tab
+  if (currentStatus === 'planned') {
+    return 'planned';
+  }
+  
+  // If completed, show the completed tab
+  if (currentStatus === 'completed') {
+    return 'completed';
+  }
+  
+  // For any other status, the current status is the first incomplete tab
+  return currentStatus;
+}
+
 /**
  * Register maintenance API routes
  */
@@ -5157,9 +5218,29 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Workflow state not found' });
       }
 
+      // Calculate UI properties for the frontend
+      const accessibleTabs = calculateAccessibleTabs(workflowState.currentStatus, workflowState.skipFlags);
+      const firstIncompleteTab = calculateFirstIncompleteTab(workflowState.currentStatus, workflowState.skipFlags);
+
+      // Create response matching frontend interface expectations
+      const projectWorkflowState = {
+        project: project[0],
+        currentStatus: workflowState.currentStatus,
+        nextStatus: workflowState.nextStatus,
+        canAdvance: workflowState.canProgress,
+        skipFlags: {
+          skipSubmission: workflowState.skipFlags.skipSubmission || false,
+          skipPreWork: workflowState.skipFlags.skipPreWork || false,
+          skipInProgress: workflowState.skipFlags.skipInProgress || false,
+          skipPostWork: workflowState.skipFlags.skipPostWork || false,
+        },
+        accessibleTabs,
+        firstIncompleteTab,
+      };
+
       res.json({
         success: true,
-        data: workflowState
+        data: projectWorkflowState
       });
 
     } catch (error: any) {
