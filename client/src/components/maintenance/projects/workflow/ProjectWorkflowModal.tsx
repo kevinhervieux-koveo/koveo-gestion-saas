@@ -253,7 +253,19 @@ export function ProjectWorkflowModal({
 
   // Render tab content based on active tab
   const renderTabContent = () => {
-    if (!workflowState || !activeTab) return null;
+    console.log('🔍 [MODAL] renderTabContent:', { 
+      activeTab, 
+      hasWorkflowState: !!workflowState,
+      workflowData: workflowState
+    });
+    
+    if (!workflowState || !activeTab) {
+      console.log('🔍 [MODAL] No content because:', { 
+        hasWorkflowState: !!workflowState,
+        activeTab
+      });
+      return null;
+    }
 
     // Defensive null check for project data
     if (!workflowState.project) {
