@@ -218,41 +218,23 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
             control={form.control}
             name="planningStartDate"
             render={({ field }) => (
-              <FormItem className="flex flex-col" data-testid="form-item-start-planning-date">
+              <FormItem data-testid="form-item-start-planning-date">
                 <FormLabel>Start Planning Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                        data-testid="button-date-picker"
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date(new Date().setDate(new Date().getDate() - 1))
+                <FormControl>
+                  <Input
+                    type="date"
+                    min={format(new Date(), 'yyyy-MM-dd')}
+                    value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        field.onChange(new Date(e.target.value));
+                      } else {
+                        field.onChange(undefined);
                       }
-                      initialFocus
-                      data-testid="calendar-start-planning-date"
-                    />
-                  </PopoverContent>
-                </Popover>
+                    }}
+                    data-testid="input-start-planning-date"
+                  />
+                </FormControl>
                 <FormDescription>
                   When do you plan to start working on this project?
                 </FormDescription>

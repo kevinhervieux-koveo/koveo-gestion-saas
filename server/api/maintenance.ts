@@ -2977,6 +2977,123 @@ export function registerMaintenanceRoutes(app: Express): void {
   });
   
   /**
+   * PATCH /api/maintenance/projects/:id - Update basic project fields
+   */
+  app.patch('/api/maintenance/projects/:id', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to update projects'
+        });
+      }
+      
+      const { id } = req.params;
+      
+      // Validation schema for PATCH (partial updates)
+      const patchValidation = z.object({
+        planningDescription: z.string().optional(),
+        planningStartDate: z.string().optional(),
+        estimatedCost: z.number().optional(),
+        totalBudget: z.string().optional(),
+        plannedStartDate: z.string().optional(),
+        plannedEndDate: z.string().optional(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
+        type: z.string().optional(),
+        status: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed']).optional(),
+      }).safeParse(req.body);
+      
+      if (!patchValidation.success) {
+        return res.status(400).json({
+          error: 'Invalid project data',
+          details: patchValidation.error.issues
+        });
+      }
+      
+      // Check project exists and user has access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+      
+      // Build update object with only provided fields
+      const updateData: any = {
+        updatedAt: new Date(),
+      };
+      
+      // Add fields that were provided in the request
+      if (patchValidation.data.planningDescription !== undefined) {
+        updateData.planningDescription = patchValidation.data.planningDescription;
+      }
+      if (patchValidation.data.planningStartDate !== undefined) {
+        updateData.planningStartDate = patchValidation.data.planningStartDate;
+      }
+      if (patchValidation.data.estimatedCost !== undefined) {
+        updateData.estimatedCost = patchValidation.data.estimatedCost.toString();
+      }
+      if (patchValidation.data.totalBudget !== undefined) {
+        updateData.totalBudget = patchValidation.data.totalBudget;
+      }
+      if (patchValidation.data.plannedStartDate !== undefined) {
+        updateData.plannedStartDate = new Date(patchValidation.data.plannedStartDate);
+      }
+      if (patchValidation.data.plannedEndDate !== undefined) {
+        updateData.plannedEndDate = new Date(patchValidation.data.plannedEndDate);
+      }
+      if (patchValidation.data.title !== undefined) {
+        updateData.title = patchValidation.data.title;
+      }
+      if (patchValidation.data.description !== undefined) {
+        updateData.description = patchValidation.data.description;
+      }
+      if (patchValidation.data.priority !== undefined) {
+        updateData.priority = patchValidation.data.priority;
+      }
+      if (patchValidation.data.type !== undefined) {
+        updateData.type = patchValidation.data.type;
+      }
+      if (patchValidation.data.status !== undefined) {
+        updateData.status = patchValidation.data.status;
+      }
+      
+      const [updatedProject] = await db
+        .update(maintenanceProjects)
+        .set(updateData)
+        .where(eq(maintenanceProjects.id, id))
+        .returning();
+      
+      res.json({
+        success: true,
+        data: updatedProject
+      });
+    } catch (error: any) {
+      console.error('Error updating maintenance project:', error);
+      res.status(500).json({
+        error: 'Failed to update maintenance project',
+        details: error.message
+      });
+    }
+  });
+  
+  /**
    * DELETE /api/maintenance/projects/:id - Delete project
    */
   app.delete('/api/maintenance/projects/:id', requireAuth, async (req: any, res) => {
