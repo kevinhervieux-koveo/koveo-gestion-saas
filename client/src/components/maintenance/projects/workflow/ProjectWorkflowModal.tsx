@@ -185,7 +185,7 @@ export function ProjectWorkflowModal({
               </div>
             </DialogTitle>
             <DialogDescription>
-              <Skeleton className="h-4 w-64" />
+              Loading project workflow information...
             </DialogDescription>
           </DialogHeader>
           
