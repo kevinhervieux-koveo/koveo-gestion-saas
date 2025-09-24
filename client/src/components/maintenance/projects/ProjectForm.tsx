@@ -52,11 +52,14 @@ export interface ProjectFormProps {
 }
 
 // Extended schema with additional validation
-const projectFormSchema = insertMaintenanceProjectSchema.extend({
-  description: z.string().optional(),
-  vendorId: z.string().uuid().optional(),
-  plannedStartDate: z.date().optional(),
-});
+// Remove createdBy since it's set by the backend based on current user
+const projectFormSchema = insertMaintenanceProjectSchema
+  .omit({ createdBy: true })
+  .extend({
+    description: z.string().optional(),
+    vendorId: z.string().uuid().optional(),
+    buildingId: z.string().uuid('Building ID is required'),
+  });
 
 type ProjectFormData = z.infer<typeof projectFormSchema>;
 
@@ -149,10 +152,10 @@ export function ProjectForm({
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
-      buildingId: buildingId || '',
+      buildingId: buildingId || undefined, // Will be validated to ensure it's available
       projectNumber: project?.projectNumber || generateProjectNumber(),
       title: project?.title || evaluationSuggestion?.reason || '',
-      type: project?.type || evaluationSuggestion?.suggestedType || 'repair',
+      type: project?.type || evaluationSuggestion?.suggestedType || 'not_sure',
       priority: project?.priority || evaluationSuggestion?.priority || 'medium',
       totalBudget: project?.totalBudget ? parseFloat(project.totalBudget) : undefined,
       actualCost: project?.actualCost ? parseFloat(project.actualCost) : 0,
@@ -160,9 +163,16 @@ export function ProjectForm({
       suggestionId: project?.suggestionId || evaluationSuggestion?.id,
       description: project?.planningDescription || '',
       vendorId: mode === 'create' ? undefined : undefined, // Automatically 'to be determined' for new projects, populated for editing
-      createdBy: project?.createdBy || '', // This will be set by the backend
+      // createdBy removed - will be set by the backend based on current user
     },
   });
+
+  // Update buildingId when it becomes available
+  useEffect(() => {
+    if (buildingId && !form.getValues('buildingId')) {
+      form.setValue('buildingId', buildingId);
+    }
+  }, [buildingId, form]);
 
   // Get organization ID from context first, then vendors response as fallback
   useEffect(() => {
@@ -225,6 +235,11 @@ export function ProjectForm({
       
       // Remove vendorId from payload since it's not stored on the project
       const { vendorId, ...projectData } = data;
+      
+      // Ensure required fields are properly set
+      if (!projectData.buildingId) {
+        throw new Error('Building ID is required');
+      }
       
       const payload = {
         ...projectData,
@@ -329,6 +344,17 @@ export function ProjectForm({
   });
 
   const handleSubmit = async (data: ProjectFormData) => {
+    // Validate buildingId is available
+    if (!data.buildingId) {
+      setError('Building ID is required but not available. Please refresh the page and try again.');
+      toast({
+        title: "Validation Error",
+        description: "Building ID is required but not available. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!hasPermission('canCreateProjects') && mode === 'create') {
       toast({
         title: "Permission Denied",
