@@ -1,0 +1,292 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-B1hG7v4t.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-B1hG7v4t.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-B1hG7v4t.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-B1hG7v4t.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B01NpHfA.js:53 📁 [PROJECTS ACTION] handleAddProject called
+index-B01NpHfA.js:53 📁 [PROJECTS STATE] Project form opened for new project creation
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-C43_qbkf.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-C43_qbkf.js:186
+h1 @ index-C43_qbkf.js:186
+q @ index-C43_qbkf.js:45
+Qc @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+Vt @ index-C43_qbkf.js:163
+zh @ index-C43_qbkf.js:163
+tg @ index-C43_qbkf.js:163
+ed @ index-C43_qbkf.js:163
+Xh @ index-C43_qbkf.js:163
+Ih @ index-C43_qbkf.js:163
+mg @ index-C43_qbkf.js:185
+ml @ index-C43_qbkf.js:185
+jo @ index-C43_qbkf.js:163
+Gm @ index-C43_qbkf.js:83
+rd @ index-C43_qbkf.js:185
+Ad @ index-C43_qbkf.js:194
+L1 @ index-C43_qbkf.js:194
+index-B01NpHfA.js:37 🚀 [ProjectForm] POST /api/maintenance/projects
+index-B01NpHfA.js:37 📋 Original form data: {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', suggestionId: undefined, projectNumber: 'Window Changes 12345', title: 'Window Changes', type: 'not_sure', …}
+index-B01NpHfA.js:37 📦 Transformed payload: {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', suggestionId: undefined, projectNumber: 'Window Changes 12345', title: 'Window Changes', type: 'not_sure', …}
+index-B01NpHfA.js:37 🔍 Payload types: {buildingId: 'string', projectNumber: 'string', title: 'string', type: 'string', priority: 'string', …}
+index-C43_qbkf.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects 400 (Bad Request)
+sR @ index-C43_qbkf.js:240
+mutationFn @ index-B01NpHfA.js:37
+fn @ vendor-query-Ciq08bnh.js:1
+y @ vendor-query-Ciq08bnh.js:1
+start @ vendor-query-Ciq08bnh.js:1
+execute @ vendor-query-Ciq08bnh.js:1
+await in execute
+mutate @ vendor-query-Ciq08bnh.js:1
+(anonymous) @ vendor-query-Ciq08bnh.js:1
+O @ index-B01NpHfA.js:37
+y @ FormModal-BEL1LeEO.js:62
+(anonymous) @ vendor-forms-ihkSd2aT.js:1
+await in (anonymous)
+lr @ index-C43_qbkf.js:185
+q @ index-C43_qbkf.js:45
+yg @ index-C43_qbkf.js:185
+(anonymous) @ index-C43_qbkf.js:185
+Gm @ index-C43_qbkf.js:83
+rd @ index-C43_qbkf.js:185
+Ad @ index-C43_qbkf.js:194
+L1 @ index-C43_qbkf.js:194
+index-B01NpHfA.js:37 ❌ [ProjectForm] Creation Failed
+index-B01NpHfA.js:37 Raw error: Error: 400: {"error":"Invalid project data","message":"Project validation failed. Check the details for specific field errors.","details":[{"expected":"number","code":"invalid_type","path":["totalBudget"],"message":"Invalid input: expected number, received string"},{"expected":"number","code":"invalid_type","path":["actualCost"],"message":"Invalid input: expected number, received string"}],"debugInfo":{"receivedFields":["buildingId","projectNumber","title","type","plannedStartDate","totalBudget","actualCost","priority","description","status"],"schemaRequiredFields":["buildingId","projectNumber","title","type","priority"],"validationErrorsCount":2,"timestamp":"2025-09-24T01:10:44.589Z"}}
+    at k0 (index-C43_qbkf.js:240:6803)
+    at async sR (index-C43_qbkf.js:240:7065)
+    at async Object.mutationFn (index-B01NpHfA.js:37:197656)
+overrideMethod @ hook.js:608
+onError @ index-B01NpHfA.js:37
+execute @ vendor-query-Ciq08bnh.js:1
+await in execute
+mutate @ vendor-query-Ciq08bnh.js:1
+(anonymous) @ vendor-query-Ciq08bnh.js:1
+O @ index-B01NpHfA.js:37
+y @ FormModal-BEL1LeEO.js:62
+(anonymous) @ vendor-forms-ihkSd2aT.js:1
+await in (anonymous)
+lr @ index-C43_qbkf.js:185
+q @ index-C43_qbkf.js:45
+yg @ index-C43_qbkf.js:185
+(anonymous) @ index-C43_qbkf.js:185
+Gm @ index-C43_qbkf.js:83
+rd @ index-C43_qbkf.js:185
+Ad @ index-C43_qbkf.js:194
+L1 @ index-C43_qbkf.js:194
+index-B01NpHfA.js:37 Error response: undefined
+overrideMethod @ hook.js:608
+onError @ index-B01NpHfA.js:37
+execute @ vendor-query-Ciq08bnh.js:1
+await in execute
+mutate @ vendor-query-Ciq08bnh.js:1
+(anonymous) @ vendor-query-Ciq08bnh.js:1
+O @ index-B01NpHfA.js:37
+y @ FormModal-BEL1LeEO.js:62
+(anonymous) @ vendor-forms-ihkSd2aT.js:1
+await in (anonymous)
+lr @ index-C43_qbkf.js:185
+q @ index-C43_qbkf.js:45
+yg @ index-C43_qbkf.js:185
+(anonymous) @ index-C43_qbkf.js:185
+Gm @ index-C43_qbkf.js:83
+rd @ index-C43_qbkf.js:185
+Ad @ index-C43_qbkf.js:194
+L1 @ index-C43_qbkf.js:194
+index-B01NpHfA.js:37 Error response data: undefined
+overrideMethod @ hook.js:608
+onError @ index-B01NpHfA.js:37
+execute @ vendor-query-Ciq08bnh.js:1
+await in execute
+mutate @ vendor-query-Ciq08bnh.js:1
+(anonymous) @ vendor-query-Ciq08bnh.js:1
+O @ index-B01NpHfA.js:37
+y @ FormModal-BEL1LeEO.js:62
+(anonymous) @ vendor-forms-ihkSd2aT.js:1
+await in (anonymous)
+lr @ index-C43_qbkf.js:185
+q @ index-C43_qbkf.js:45
+yg @ index-C43_qbkf.js:185
+(anonymous) @ index-C43_qbkf.js:185
+Gm @ index-C43_qbkf.js:83
+rd @ index-C43_qbkf.js:185
+Ad @ index-C43_qbkf.js:194
+L1 @ index-C43_qbkf.js:194
+index-B01NpHfA.js:37 Validation issues: undefined
+overrideMethod @ hook.js:608
+onError @ index-B01NpHfA.js:37
+execute @ vendor-query-Ciq08bnh.js:1
+await in execute
+mutate @ vendor-query-Ciq08bnh.js:1
+(anonymous) @ vendor-query-Ciq08bnh.js:1
+O @ index-B01NpHfA.js:37
+y @ FormModal-BEL1LeEO.js:62
+(anonymous) @ vendor-forms-ihkSd2aT.js:1
+await in (anonymous)
+lr @ index-C43_qbkf.js:185
+q @ index-C43_qbkf.js:45
+yg @ index-C43_qbkf.js:185
+(anonymous) @ index-C43_qbkf.js:185
+Gm @ index-C43_qbkf.js:83
+rd @ index-C43_qbkf.js:185
+Ad @ index-C43_qbkf.js:194
+L1 @ index-C43_qbkf.js:194
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B01NpHfA.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
