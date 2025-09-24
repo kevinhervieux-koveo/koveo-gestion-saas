@@ -23,7 +23,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { BuildingElementsMultiSelect } from '@/components/ui/building-elements-multi-select';
-import { useUpdateProjectDetails, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { useUpdateProjectDetails, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
 import { useBuildingContext } from '@/hooks/use-building-context';
@@ -32,7 +32,6 @@ import { cn, formatStatus } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
   CalendarIcon,
-  CheckCircle2,
   DollarSign,
   AlertTriangle,
   Building2,
@@ -79,7 +78,6 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
   }
 
   const { mutate: updateProject, isPending: isUpdating } = useUpdateProjectDetails();
-  const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
 
   // Fetch building elements for selection
   const {
@@ -108,7 +106,7 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
-  const availableElements: BuildingElement[] = elementsResponse?.elements || [];
+  const availableElements: BuildingElement[] = elementsResponse?.data || [];
   const currentProjectElements = projectElementsResponse?.elements || [];
   const currentElementIds = currentProjectElements.map((pe: any) => pe.elementId);
 
@@ -217,58 +215,7 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
     }
   };
 
-  const handleMarkComplete = async () => {
-    const isValid = await form.trigger();
-    if (!isValid) {
-      toast({
-        title: 'Validation Error',
-        description: 'Please fix the errors before completing this step',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Save current changes first
-    if (hasChanges) {
-      const values = form.getValues();
-      updateProject({
-        projectId: project.id,
-        updates: {
-          planningDescription: values.planningDescription,
-          planningStartDate: values.planningStartDate?.toISOString().split('T')[0],
-          estimatedCost: values.estimatedCost,
-        },
-        status: 'planned',
-      }, {
-        onSuccess: () => {
-          // Always update project elements, even if empty (to handle removals)
-          handleUpdateProjectElements(values.selectedElements || []);
-          
-          // Then mark as complete
-          markComplete({
-            projectId: project.id,
-            currentStatus: 'planned',
-          }, {
-            onSuccess: () => {
-              onUpdate();
-            },
-          });
-        },
-      });
-    } else {
-      // Just mark as complete
-      markComplete({
-        projectId: project.id,
-        currentStatus: 'planned',
-      }, {
-        onSuccess: () => {
-          onUpdate();
-        },
-      });
-    }
-  };
-
-  const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'planned';
+  // Removed handleMarkComplete function - user requested button removal
 
   return (
     <div className="space-y-6" data-testid="planned-tab">
@@ -407,22 +354,11 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
         </form>
       </Form>
 
-      {/* Action Buttons */}
+      {/* Status Display */}
       <div className="flex items-center justify-between pt-4">
         <div className="text-sm text-muted-foreground">
           Current Status: <span className="font-medium capitalize">{formatStatus(workflowState.currentStatus)}</span>
         </div>
-        
-        {canAdvance && (
-          <Button 
-            onClick={handleMarkComplete}
-            disabled={isMarkingComplete}
-            data-testid="button-complete-planning"
-          >
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            {isMarkingComplete ? 'Completing...' : 'Complete Planning'}
-          </Button>
-        )}
       </div>
     </div>
   );
