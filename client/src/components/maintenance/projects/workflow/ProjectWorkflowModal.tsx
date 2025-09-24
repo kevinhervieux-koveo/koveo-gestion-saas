@@ -127,7 +127,7 @@ export function ProjectWorkflowModal({
     data: ProjectWorkflowState | undefined;
     isLoading: boolean;
     error: Error | null;
-    refetch: () => void;
+    refetch: () => Promise<any>;
   };
 
   // Current active tab state
@@ -193,18 +193,25 @@ export function ProjectWorkflowModal({
       projectId: project.id,
       currentStatus: workflowState.currentStatus,
     }, {
-      onSuccess: (data) => {
-        // Refresh workflow state
-        handleWorkflowUpdate();
-        
-        // Navigate to the next accessible tab if it's different from current
+      onSuccess: async (data) => {
+        // Navigate immediately to the new status from mutation response
+        // The backend has already validated this transition, so it's safe to navigate
         if (data.newStatus && data.newStatus !== activeTab) {
-          // Small delay to allow state to update before navigation
-          setTimeout(() => {
-            if (workflowState.accessibleTabs.includes(data.newStatus)) {
-              setActiveTab(data.newStatus);
-            }
-          }, 500);
+          setActiveTab(data.newStatus);
+        }
+        
+        // Refresh workflow state after navigation to get fresh data
+        // Use await to ensure the refetch completes and provides fresh data
+        try {
+          await refetchWorkflow();
+          // Call handleWorkflowUpdate to trigger onProjectUpdate callback if provided
+          if (onProjectUpdate && workflowState?.project) {
+            onProjectUpdate(workflowState.project);
+          }
+        } catch (error) {
+          console.error('Failed to refresh workflow state after advancement:', error);
+          // Still call handleWorkflowUpdate as fallback
+          handleWorkflowUpdate();
         }
       },
     });
