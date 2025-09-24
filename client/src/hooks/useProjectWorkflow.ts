@@ -48,6 +48,7 @@ export interface SubmissionVendor {
   paymentPlanCustomDates?: string[];
   paymentPlanStartDate?: string;
   isSelected: boolean;
+  preferred: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -522,7 +523,45 @@ export function useSubmissionVendorMutations() {
     },
   });
 
-  return { createSubmissionVendor, updateSubmissionVendor, selectSubmissionVendor };
+  const updatePreferredStatus = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      vendorId, 
+      preferred 
+    }: { 
+      projectId: string; 
+      vendorId: string; 
+      preferred: boolean;
+    }) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/vendors/${vendorId}/preferred`, {
+        preferred,
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to update preferred status' }));
+        throw new Error(error.message || 'Failed to update preferred status');
+      }
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'vendors'] 
+      });
+      toast({
+        title: variables.preferred ? 'Marked as Preferred' : 'Unmarked as Preferred',
+        description: `Vendor has been ${variables.preferred ? 'marked as your preferred choice' : 'unmarked as preferred'}`,
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to update preferred status:', error);
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update preferred status',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  return { createSubmissionVendor, updateSubmissionVendor, selectSubmissionVendor, updatePreferredStatus };
 }
 
 /**

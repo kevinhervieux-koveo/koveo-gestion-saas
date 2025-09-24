@@ -5320,6 +5320,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           addedLifespan: submissionVendors.addedLifespan,
           documents: submissionVendors.documents,
           isSelected: submissionVendors.isSelected,
+          preferred: submissionVendors.preferred,
           createdAt: submissionVendors.createdAt,
           updatedAt: submissionVendors.updatedAt,
           vendor: {
@@ -5470,6 +5471,102 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.error('Error removing vendor submission:', error);
       res.status(500).json({
         error: 'Failed to remove vendor submission',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/projects/:projectId/vendors/:vendorId/preferred - Update preferred submission status
+   * Ensures only one submission can be marked as preferred at a time
+   */
+  app.patch('/api/maintenance/projects/:projectId/vendors/:vendorId/preferred', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { projectId, vendorId } = req.params;
+      const { preferred } = req.body;
+
+      if (!isValidUUID(projectId)) {
+        return res.status(400).json({ error: 'Invalid project ID format' });
+      }
+
+      if (!isValidUUID(vendorId)) {
+        return res.status(400).json({ error: 'Invalid vendor submission ID format' });
+      }
+
+      if (typeof preferred !== 'boolean') {
+        return res.status(400).json({ error: 'Preferred field must be a boolean' });
+      }
+
+      // Get submission vendor and project to check access
+      const submissionVendor = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(submissionVendors)
+        .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .where(and(
+          eq(submissionVendors.id, vendorId),
+          eq(submissionVendors.projectId, projectId)
+        ))
+        .limit(1);
+
+      if (submissionVendor.length === 0) {
+        return res.status(404).json({ error: 'Submission vendor not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this submission vendor' });
+      }
+
+      // Use a transaction to ensure atomicity
+      const result = await db.transaction(async (tx) => {
+        if (preferred) {
+          // First, unmark all other vendors in this project as not preferred
+          await tx
+            .update(submissionVendors)
+            .set({
+              preferred: false,
+              updatedAt: new Date(),
+            })
+            .where(and(
+              eq(submissionVendors.projectId, projectId),
+              sql`${submissionVendors.id} != ${vendorId}`
+            ));
+        }
+
+        // Then update the target vendor's preferred status
+        const updatedSubmissionVendor = await tx
+          .update(submissionVendors)
+          .set({
+            preferred: preferred,
+            updatedAt: new Date(),
+          })
+          .where(eq(submissionVendors.id, vendorId))
+          .returning();
+
+        return updatedSubmissionVendor[0];
+      });
+
+      res.json({
+        success: true,
+        data: result,
+        message: preferred 
+          ? 'Vendor marked as preferred successfully' 
+          : 'Vendor unmarked as preferred successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error updating preferred status:', error);
+      res.status(500).json({
+        error: 'Failed to update preferred status',
         details: error.message
       });
     }

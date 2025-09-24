@@ -47,7 +47,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   } = useSubmissionVendors(project.id);
 
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
-  const { selectSubmissionVendor, updateSubmissionVendor } = useSubmissionVendorMutations();
+  const { selectSubmissionVendor, updateSubmissionVendor, updatePreferredStatus } = useSubmissionVendorMutations();
 
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'submission';
 
@@ -81,6 +81,14 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
 
   const handleCancelPaymentPlan = () => {
     setEditingPaymentPlan(null);
+  };
+
+  const handleTogglePreferred = (vendor: SubmissionVendor) => {
+    updatePreferredStatus.mutate({
+      projectId: project.id,
+      vendorId: vendor.id,
+      preferred: !vendor.preferred,
+    });
   };
 
   const handleMarkComplete = () => {
@@ -198,9 +206,17 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
             <h4 className="text-base font-semibold">
               Vendor Submissions ({submissionVendors.length})
             </h4>
-            <Badge variant="secondary">
-              {submissionVendors.filter(v => v.isSelected).length} Selected
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">
+                {submissionVendors.filter(v => v.isSelected).length} Selected
+              </Badge>
+              {submissionVendors.some(v => v.preferred) && (
+                <Badge variant="outline" className="border-yellow-400 text-yellow-600">
+                  <Star className="h-3 w-3 mr-1" />
+                  {submissionVendors.filter(v => v.preferred).length} Preferred
+                </Badge>
+              )}
+            </div>
           </div>
 
           {submissionVendors.map((vendor) => (
@@ -209,6 +225,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
               className={cn(
                 'transition-all cursor-pointer hover:shadow-md',
                 vendor.isSelected && 'ring-2 ring-primary',
+                vendor.preferred && 'ring-2 ring-yellow-400 bg-yellow-50 dark:bg-yellow-950',
                 selectedVendorId === vendor.id && 'ring-2 ring-blue-500'
               )}
               onClick={() => handleVendorSelect(vendor)}
@@ -237,13 +254,34 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     </div>
                   </div>
                   
-                  <div className="text-right">
+                  <div className="text-right space-y-2">
                     <div className="text-lg font-semibold">
                       {formatCurrency(vendor.price)}
                     </div>
-                    {vendor.isSelected && (
-                      <Badge className="bg-green-600">Selected</Badge>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      {vendor.isSelected && (
+                        <Badge className="bg-green-600">Selected</Badge>
+                      )}
+                      {vendor.preferred && (
+                        <Badge className="bg-yellow-600">
+                          <Star className="h-3 w-3 mr-1" />
+                          Preferred
+                        </Badge>
+                      )}
+                    </div>
+                    <Button
+                      variant={vendor.preferred ? "secondary" : "outline"}
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTogglePreferred(vendor);
+                      }}
+                      data-testid={`button-toggle-preferred-${vendor.id}`}
+                      className="w-full"
+                    >
+                      <Star className={cn("h-3 w-3 mr-1", vendor.preferred && "fill-yellow-400 text-yellow-400")} />
+                      {vendor.preferred ? 'Unmark Preferred' : 'Mark as Preferred'}
+                    </Button>
                   </div>
                 </div>
               </CardHeader>

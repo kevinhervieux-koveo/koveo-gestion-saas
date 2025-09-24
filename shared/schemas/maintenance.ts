@@ -501,6 +501,7 @@ export const submissionVendors = pgTable('submission_vendors', {
   paymentPlanCustomDates: date('payment_plan_custom_dates').array(), // for custom scheduling
   paymentPlanStartDate: date('payment_plan_start_date'), // when payments begin
   isSelected: boolean('is_selected').notNull().default(false),
+  preferred: boolean('preferred').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
@@ -713,6 +714,7 @@ export const insertSubmissionVendorSchema = createInsertSchema(submissionVendors
   paymentPlanSchedule: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   paymentPlanCustomDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
   paymentPlanStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  preferred: z.boolean().optional(),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
 export const insertWorkflowTaskSchema = createInsertSchema(workflowTasks, {
