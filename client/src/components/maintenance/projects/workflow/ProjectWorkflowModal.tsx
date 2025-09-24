@@ -31,6 +31,7 @@ import {
   Settings,
   Users,
 } from 'lucide-react';
+import { WorkflowSkipConfigDialog } from './WorkflowSkipConfigDialog';
 
 export interface ProjectWorkflowModalProps {
   isOpen: boolean;
@@ -376,17 +377,27 @@ export function ProjectWorkflowModal({
         data-testid="project-workflow-modal"
       >
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center gap-3">
-            <CurrentTabIcon className="h-6 w-6 text-primary" />
-            <div className="flex flex-col">
-              <span className="text-lg font-semibold">
-                {project.title}
-              </span>
-              <span className="text-sm text-muted-foreground font-normal">
-                Project #{project.projectNumber}
-              </span>
-            </div>
-          </DialogTitle>
+          <div className="flex items-start justify-between">
+            <DialogTitle className="flex items-center gap-3">
+              <CurrentTabIcon className="h-6 w-6 text-primary" />
+              <div className="flex flex-col">
+                <span className="text-lg font-semibold">
+                  {project.title}
+                </span>
+                <span className="text-sm text-muted-foreground font-normal">
+                  Project #{project.projectNumber}
+                </span>
+              </div>
+            </DialogTitle>
+            
+            {/* Configuration Button */}
+            <WorkflowSkipConfigDialog
+              projectId={project.id}
+              workflowState={workflowState}
+              onUpdate={handleWorkflowUpdate}
+            />
+          </div>
+          
           <DialogDescription className="flex items-center gap-2">
             <span>
               {currentTabConfig?.description || 'Managing project workflow'}
