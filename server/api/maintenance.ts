@@ -341,22 +341,27 @@ const markCompleteSchema = z.object({
 });
 
 const submissionVendorCreateSchema = z.object({
-  vendorId: z.string().uuid(),
+  vendorName: z.string().min(1, 'Vendor name is required').max(255),
+  availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   contactInfo: z.string().optional(),
   notes: z.string().optional(),
-  price: z.number().positive().optional(),
+  price: z.string().optional(), // Changed to string to match decimal field
   projectType: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure']),
   addedLifespan: z.number().int().positive().optional(),
-  documents: z.array(z.string()).optional(),
+  preferred: z.boolean().optional(),
+  documents: z.any().optional(), // Allow any structure for jsonb field
 });
 
 const submissionVendorUpdateSchema = z.object({
+  vendorName: z.string().min(1, 'Vendor name is required').max(255).optional(),
+  availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   contactInfo: z.string().optional(),
   notes: z.string().optional(),
-  price: z.number().positive().optional(),
+  price: z.string().optional(), // Changed to string to match decimal field
   projectType: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure']).optional(),
   addedLifespan: z.number().int().positive().optional(),
-  documents: z.array(z.string()).optional(),
+  preferred: z.boolean().optional(),
+  documents: z.any().optional(), // Allow any structure for jsonb field
 });
 
 const workflowTaskCreateSchema = z.object({
@@ -7254,13 +7259,13 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(403).json({ error: 'No access to this project' });
       }
 
-      // Get submission vendors with vendor details
+      // Get submission vendors - no need to join with vendors table since vendorName is stored directly
       const submissions = await db
         .select({
           id: submissionVendors.id,
           projectId: submissionVendors.projectId,
-          vendorId: submissionVendors.vendorId,
-          vendorName: vendors.name,
+          vendorName: submissionVendors.vendorName,
+          availableDate: submissionVendors.availableDate,
           contactInfo: submissionVendors.contactInfo,
           notes: submissionVendors.notes,
           price: submissionVendors.price,
@@ -7272,11 +7277,11 @@ export function registerMaintenanceRoutes(app: Express): void {
           paymentPlanCustomDates: submissionVendors.paymentPlanCustomDates,
           paymentPlanStartDate: submissionVendors.paymentPlanStartDate,
           isSelected: submissionVendors.isSelected,
+          preferred: submissionVendors.preferred,
           createdAt: submissionVendors.createdAt,
           updatedAt: submissionVendors.updatedAt,
         })
         .from(submissionVendors)
-        .innerJoin(vendors, eq(vendors.id, submissionVendors.vendorId))
         .where(eq(submissionVendors.projectId, id))
         .orderBy(desc(submissionVendors.createdAt));
 
@@ -7341,30 +7346,15 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(403).json({ error: 'No access to this project' });
       }
 
-      // Verify vendor exists
-      const vendor = await db
-        .select({ id: vendors.id, name: vendors.name })
-        .from(vendors)
-        .where(eq(vendors.id, validation.data.vendorId))
-        .limit(1);
-
-      if (vendor.length === 0) {
-        return res.status(400).json({ error: 'Vendor not found' });
-      }
-
-      // Create submission vendor
+      // Create submission vendor (no vendor lookup needed since vendorName is stored directly)
       const submissionVendor = await db
         .insert(submissionVendors)
         .values(validation.data)
         .returning();
 
-      // Return with vendor name for convenience
       res.status(201).json({
         success: true,
-        vendor: {
-          ...submissionVendor[0],
-          vendorName: vendor[0].name,
-        }
+        vendor: submissionVendor[0]
       });
 
     } catch (error: any) {
