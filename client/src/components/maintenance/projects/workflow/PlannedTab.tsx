@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -21,9 +22,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { BuildingElementsMultiSelect } from '@/components/ui/building-elements-multi-select';
 import { useUpdateProjectDetails, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
-import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
+import { useBuildingContext } from '@/hooks/use-building-context';
+import { apiRequest } from '@/lib/queryClient';
 import { cn, formatStatus } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -31,6 +35,7 @@ import {
   CheckCircle2,
   DollarSign,
   AlertTriangle,
+  Building2,
 } from 'lucide-react';
 
 export interface PlannedTabProps {
@@ -45,6 +50,7 @@ const plannedTabSchema = z.object({
     message: 'Start planning date is required'
   }),
   estimatedCost: z.number().min(0, 'Cost must be non-negative').max(1000000, 'Cost must be less than $1,000,000'),
+  selectedElements: z.array(z.string()).optional().default([]),
 });
 
 type PlannedTabData = z.infer<typeof plannedTabSchema>;
@@ -55,6 +61,7 @@ type PlannedTabData = z.infer<typeof plannedTabSchema>;
  */
 export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps) {
   const { toast } = useToast();
+  const { buildingId } = useBuildingContext();
   const [hasChanges, setHasChanges] = useState(false);
   
   // Defensive null check for project data
@@ -74,14 +81,53 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
   const { mutate: updateProject, isPending: isUpdating } = useUpdateProjectDetails();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
 
+  // Fetch building elements for selection
+  const {
+    data: elementsResponse,
+    isLoading: isLoadingElements,
+  } = useQuery({
+    queryKey: ['/api/maintenance/buildings', buildingId, 'elements'],
+    queryFn: async () => {
+      if (!buildingId) throw new Error('Building ID is required');
+      const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/elements`);
+      return await response.json();
+    },
+    enabled: !!buildingId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Fetch current project elements
+  const {
+    data: projectElementsResponse,
+  } = useQuery({
+    queryKey: ['/api/maintenance/projects', project.id, 'elements'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/maintenance/projects/${project.id}/elements`);
+      return await response.json();
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  const availableElements: BuildingElement[] = elementsResponse?.elements || [];
+  const currentProjectElements = projectElementsResponse?.elements || [];
+  const currentElementIds = currentProjectElements.map((pe: any) => pe.elementId);
+
   const form = useForm<PlannedTabData>({
     resolver: zodResolver(plannedTabSchema),
     defaultValues: {
       planningDescription: project.planningDescription || '',
       planningStartDate: project.planningStartDate ? new Date(project.planningStartDate) : undefined,
       estimatedCost: project.estimatedCost ? parseFloat(project.estimatedCost) : undefined,
+      selectedElements: currentElementIds,
     },
   });
+
+  // Update form when project elements load
+  useEffect(() => {
+    if (currentElementIds.length > 0) {
+      form.setValue('selectedElements', currentElementIds, { shouldValidate: false });
+    }
+  }, [currentElementIds, form]);
 
   // Watch for form changes
   useEffect(() => {
@@ -106,6 +152,7 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
 
     const values = form.getValues();
     
+    // Update project details first
     updateProject({
       projectId: project.id,
       updates: {
@@ -116,10 +163,50 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
       status: 'planned',
     }, {
       onSuccess: () => {
+        // Then update project elements if they changed
+        if (values.selectedElements && values.selectedElements.length > 0) {
+          handleUpdateProjectElements(values.selectedElements);
+        }
         setHasChanges(false);
         onUpdate();
       },
     });
+  };
+
+  const handleUpdateProjectElements = async (selectedElementIds: string[]) => {
+    try {
+      // Get current project elements to see what needs to be added/removed
+      const currentIds = currentElementIds;
+      const toAdd = selectedElementIds.filter(id => !currentIds.includes(id));
+      const toRemove = currentIds.filter(id => !selectedElementIds.includes(id));
+      
+      // Add new elements
+      for (const elementId of toAdd) {
+        await apiRequest('POST', `/api/maintenance/projects/${project.id}/elements`, {
+          elementId,
+          projectId: project.id,
+        });
+      }
+      
+      // Remove elements that are no longer selected
+      if (toRemove.length > 0) {
+        const projectElementsToRemove = currentProjectElements.filter((pe: any) => 
+          toRemove.includes(pe.elementId)
+        );
+        
+        for (const projectElement of projectElementsToRemove) {
+          await apiRequest('DELETE', `/api/maintenance/project-elements/${projectElement.id}`);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error updating project elements:', error);
+      toast({
+        title: 'Warning',
+        description: 'Project saved but there was an issue updating the selected elements.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleMarkComplete = async () => {
@@ -146,6 +233,11 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
         status: 'planned',
       }, {
         onSuccess: () => {
+          // Update project elements if changed
+          if (values.selectedElements && values.selectedElements.length > 0) {
+            handleUpdateProjectElements(values.selectedElements);
+          }
+          
           // Then mark as complete
           markComplete({
             projectId: project.id,
@@ -269,6 +361,38 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
                 </FormControl>
                 <FormDescription>
                   Estimated total cost for this project in dollars
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Building Elements Selection */}
+          <FormField
+            control={form.control}
+            name="selectedElements"
+            render={({ field }) => (
+              <FormItem data-testid="form-item-building-elements">
+                <FormLabel>Building Elements</FormLabel>
+                <FormControl>
+                  <BuildingElementsMultiSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    elements={availableElements}
+                    disabled={isLoadingElements}
+                    placeholder={isLoadingElements ? "Loading elements..." : "Select building elements for this project"}
+                    searchPlaceholder="Search by name, code, or condition..."
+                    emptyMessage={isLoadingElements ? "Loading..." : "No building elements found"}
+                    data-testid="select-building-elements"
+                  />
+                </FormControl>
+                <FormDescription>
+                  Select the building elements that will be affected by this maintenance project.
+                  {availableElements.length === 0 && !isLoadingElements && (
+                    <span className="text-amber-600 dark:text-amber-400 block mt-1">
+                      No building elements available. You may need to add elements to this building first.
+                    </span>
+                  )}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
