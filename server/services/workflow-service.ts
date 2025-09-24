@@ -99,13 +99,9 @@ export class WorkflowService {
                        nextStatus !== null && 
                        !(isQuickProject && currentStatus === 'planned');
       
-      // For non-Quick projects in 'planned' status, check if elements are linked
-      if (canProgress && !isQuickProject && currentStatus === 'planned') {
-        const linkedElementsCount = await this.countLinkedElements(projectId);
-        if (linkedElementsCount === 0) {
-          canProgress = false;
-        }
-      }
+      // Note: Removed the requirement for linked elements in planned stage
+      // Projects can now advance from planned stage without requiring building elements
+      // This allows users to complete the planning phase and move to subsequent stages
 
       return {
         projectId,
