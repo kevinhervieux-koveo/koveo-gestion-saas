@@ -60,8 +60,9 @@ export function WorkflowSkipConfigDialog({
   const { mutate: updateSkipFlags, isPending } = useUpdateSkipFlags();
 
   const handleSkipFlagChange = (stepKey: keyof typeof workflowState.skipFlags, enabled: boolean) => {
+    const currentSkipFlags = workflowState.skipFlags || {};
     const newSkipFlags = {
-      ...workflowState.skipFlags,
+      ...currentSkipFlags,
       [stepKey]: enabled,
     };
 
@@ -118,7 +119,8 @@ export function WorkflowSkipConfigDialog({
           {Object.entries(STEP_CONFIG).map(([stepId, config]) => {
             const Icon = config.icon;
             const stepStatus = getStepStatus(stepId);
-            const isSkipped = workflowState.skipFlags[config.key];
+            const skipFlags = workflowState.skipFlags || {};
+            const isSkipped = skipFlags[config.key] || false;
             const canToggle = stepStatus !== 'completed';
 
             return (
