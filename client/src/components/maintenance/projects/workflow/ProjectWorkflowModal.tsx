@@ -442,33 +442,6 @@ export function ProjectWorkflowModal({
           </div>
         </div>
 
-        {/* Mark Complete Button - Fixed at bottom left */}
-        {showMarkCompleteButton && (
-          <div className="absolute bottom-4 left-4 z-10">
-            <Button
-              onClick={handleMarkCurrentStepComplete}
-              disabled={isMarkingComplete}
-              size="lg"
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg border-0 min-w-[200px]"
-              data-testid="button-mark-step-complete"
-            >
-              {isMarkingComplete ? (
-                <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Completing...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="h-5 w-5 mr-2" />
-                  {getMarkCompleteButtonText()}
-                  {workflowState.nextStatus && (
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  )}
-                </>
-              )}
-            </Button>
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   );
