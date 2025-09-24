@@ -639,7 +639,7 @@ export function useProjectNotificationMutations() {
 
 // Utility functions for workflow logic
 export function getNextStatus(currentStatus: string, skipFlags: SkipFlagsUpdate): string | null {
-  const statusOrder = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
+  const statusOrder = ['configuration', 'planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
   const currentIndex = statusOrder.indexOf(currentStatus);
   
   if (currentIndex === -1 || currentIndex === statusOrder.length - 1) {
@@ -666,10 +666,10 @@ export function getNextStatus(currentStatus: string, skipFlags: SkipFlagsUpdate)
 }
 
 export function getAccessibleTabs(currentStatus: string, skipFlags: SkipFlagsUpdate): string[] {
-  const allTabs = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
+  const allTabs = ['configuration', 'planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
   const currentIndex = allTabs.indexOf(currentStatus);
   
-  if (currentIndex === -1) return ['planned']; // Invalid status, show planned
+  if (currentIndex === -1) return ['configuration']; // Invalid status, show configuration
   
   const accessible: string[] = [];
   
@@ -693,10 +693,10 @@ export function getAccessibleTabs(currentStatus: string, skipFlags: SkipFlagsUpd
 }
 
 export function getFirstIncompleteTab(currentStatus: string, skipFlags: SkipFlagsUpdate): string {
-  const allTabs = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
+  const allTabs = ['configuration', 'planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
   const currentIndex = allTabs.indexOf(currentStatus);
   
-  if (currentIndex === -1) return 'planned'; // Invalid status
+  if (currentIndex === -1) return 'configuration'; // Invalid status
   if (currentStatus === 'completed') return 'completed'; // Already completed
   
   // Return current status as it's the first incomplete tab

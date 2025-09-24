@@ -91,6 +91,7 @@ export const projectTypeEnum = pgEnum('project_type', [
  * Enum for maintenance project status
  */
 export const projectStatusEnum = pgEnum('project_status', [
+  'configuration',
   'planned',
   'submission',
   'pre_work',

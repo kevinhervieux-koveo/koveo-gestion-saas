@@ -15,6 +15,10 @@ export const LazyWorkflowTabNavigation = lazy(() =>
   import('./WorkflowTabNavigation').then(module => ({ default: module.WorkflowTabNavigation }))
 );
 
+export const LazyConfigurationTab = lazy(() => 
+  import('./ConfigurationTab').then(module => ({ default: module.ConfigurationTab }))
+);
+
 export const LazyPlannedTab = lazy(() => 
   import('./PlannedTab').then(module => ({ default: module.PlannedTab }))
 );
@@ -52,6 +56,14 @@ export function WorkflowTabNavigation(props: any) {
   return (
     <Suspense fallback={<div className="h-16 flex items-center justify-center">Loading...</div>}>
       <LazyWorkflowTabNavigation {...props} />
+    </Suspense>
+  );
+}
+
+export function ConfigurationTab(props: any) {
+  return (
+    <Suspense fallback={<div className="p-4">Loading configuration tab...</div>}>
+      <LazyConfigurationTab {...props} />
     </Suspense>
   );
 }

@@ -12,6 +12,7 @@ import { useProjectWorkflowState, ProjectWorkflowState } from '@/hooks/useProjec
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import {
   WorkflowTabNavigation,
+  ConfigurationTab,
   PlannedTab,
   SubmissionTab,
   PreWorkTab,
@@ -38,11 +39,17 @@ export interface ProjectWorkflowModalProps {
 }
 
 const TAB_CONFIG = {
+  configuration: {
+    id: 'configuration',
+    label: 'Configuration',
+    icon: Settings,
+    description: 'Project configuration and setup',
+  },
   planned: {
     id: 'planned',
     label: 'Planned',
-    icon: Settings,
-    description: 'Project planning and setup',
+    icon: Clock,
+    description: 'Project planning and timeline',
   },
   submission: {
     id: 'submission',
@@ -53,7 +60,7 @@ const TAB_CONFIG = {
   pre_work: {
     id: 'pre_work',
     label: 'Pre-Work',
-    icon: Clock,
+    icon: Building2,
     description: 'Preparation and coordination',
   },
   in_progress: {
@@ -186,6 +193,8 @@ export function ProjectWorkflowModal({
     };
 
     switch (activeTab) {
+      case 'configuration':
+        return <ConfigurationTab {...tabProps} />;
       case 'planned':
         return <PlannedTab {...tabProps} />;
       case 'submission':

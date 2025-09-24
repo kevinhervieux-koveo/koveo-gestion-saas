@@ -53,7 +53,7 @@ export function WorkflowTabNavigation({
 
   // Add fallback values to prevent undefined access
   const { 
-    currentStatus = 'planned', 
+    currentStatus = 'configuration', 
     accessibleTabs = [], 
     skipFlags = {
       skipSubmission: false,
@@ -66,6 +66,7 @@ export function WorkflowTabNavigation({
 
   // Define all tabs in order with skip capability
   const allTabs = [
+    { id: 'configuration', canSkip: false },
     { id: 'planned', canSkip: false },
     { id: 'submission', canSkip: true, skipFlag: 'skipSubmission' as const },
     { id: 'pre_work', canSkip: true, skipFlag: 'skipPreWork' as const },
@@ -78,7 +79,7 @@ export function WorkflowTabNavigation({
   const getTabStatus = (tabId: string) => {
     if (tabId === currentStatus) return 'current';
     
-    const statusOrder = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
+    const statusOrder = ['configuration', 'planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
     const tabIndex = statusOrder.indexOf(tabId);
     const currentIndex = statusOrder.indexOf(currentStatus);
     
