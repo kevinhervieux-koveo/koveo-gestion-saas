@@ -255,102 +255,117 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
   // Removed handleMarkComplete function - user requested button removal
 
   return (
-    <div className="space-y-6" data-testid="planned-tab">
-      <div className="space-y-1">
+    <div className="h-full flex flex-col" data-testid="planned-tab">
+      {/* Header */}
+      <div className="space-y-1 mb-6">
         <h3 className="text-lg font-semibold">Project Planning</h3>
         <p className="text-sm text-muted-foreground">
           Define the project description, planning timeline, and estimated cost
         </p>
       </div>
 
-      <Form {...form}>
-        <form className="space-y-6">
-          {/* Project Description */}
-          <FormField
-            control={form.control}
-            name="planningDescription"
-            render={({ field }) => (
-              <FormItem data-testid="form-item-description">
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Describe the maintenance work needed, including scope, specific areas, and any special requirements..."
-                    rows={4}
-                    data-testid="textarea-description"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Provide a detailed description of the planned maintenance work
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Start Planning Date */}
-          <FormField
-            control={form.control}
-            name="planningStartDate"
-            render={({ field }) => (
-              <FormItem data-testid="form-item-start-planning-date">
-                <FormLabel>Start Planning Date</FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    min={format(new Date(), 'yyyy-MM-dd')}
-                    value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        field.onChange(new Date(e.target.value));
-                      } else {
-                        field.onChange(undefined);
-                      }
-                    }}
-                    data-testid="input-start-planning-date"
-                  />
-                </FormControl>
-                <FormDescription>
-                  When do you plan to start working on this project?
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Estimated Cost */}
-          <FormField
-            control={form.control}
-            name="estimatedCost"
-            render={({ field }) => (
-              <FormItem data-testid="form-item-estimated-cost">
-                <FormLabel>Estimated Cost</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      step="0.01"
-                      min="0"
-                      max="1000000"
-                      className="pl-9"
-                      data-testid="input-estimated-cost"
+      {/* Scrollable form content */}
+      <div className="flex-1 overflow-y-auto pr-2 -mr-2">
+        <Form {...form}>
+          <form className="space-y-6">
+            {/* Project Description */}
+            <FormField
+              control={form.control}
+              name="planningDescription"
+              render={({ field }) => (
+                <FormItem data-testid="form-item-description">
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe the maintenance work needed, including scope, specific areas, and any special requirements..."
+                      rows={4}
+                      data-testid="textarea-description"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                      value={field.value || ''}
                     />
-                  </div>
-                </FormControl>
-                <FormDescription>
-                  Estimated total cost for this project in dollars
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  </FormControl>
+                  <FormDescription>
+                    Provide a detailed description of the planned maintenance work
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Building Elements Selection */}
+            {/* Start Planning Date */}
+            <FormField
+              control={form.control}
+              name="planningStartDate"
+              render={({ field }) => (
+                <FormItem data-testid="form-item-start-planning-date">
+                  <FormLabel>Start Planning Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      min={format(new Date(), 'yyyy-MM-dd')}
+                      value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          field.onChange(new Date(e.target.value));
+                        } else {
+                          field.onChange(undefined);
+                        }
+                      }}
+                      data-testid="input-start-planning-date"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    When do you plan to start working on this project?
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Estimated Cost */}
+            <FormField
+              control={form.control}
+              name="estimatedCost"
+              render={({ field }) => (
+                <FormItem data-testid="form-item-estimated-cost">
+                  <FormLabel>Estimated Cost</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                        max="1000000"
+                        className="pl-9"
+                        data-testid="input-estimated-cost"
+                        {...field}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                        value={field.value || ''}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Estimated total cost for this project in dollars
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Status Display */}
+            <div className="flex items-center justify-between pt-4">
+              <div className="text-sm text-muted-foreground">
+                Current Status: <span className="font-medium capitalize">{formatStatus(workflowState.currentStatus)}</span>
+              </div>
+            </div>
+          </form>
+        </Form>
+      </div>
+
+      {/* Fixed Building Elements Selection at Bottom */}
+      <div className="border-t bg-background pt-4 mt-4">
+        <Form {...form}>
           <FormField
             control={form.control}
             name="selectedElements"
@@ -381,16 +396,9 @@ export function PlannedTab({ project, workflowState, onUpdate }: PlannedTabProps
               </FormItem>
             )}
           />
-        </form>
-      </Form>
-
-      {/* Status Display */}
-      <div className="flex items-center justify-between pt-4">
-        <div className="text-sm text-muted-foreground">
-          Current Status: <span className="font-medium capitalize">{formatStatus(workflowState.currentStatus)}</span>
-        </div>
+        </Form>
       </div>
-      
+
       {/* Save and Complete buttons at bottom */}
       <div className="pt-4 border-t flex justify-between">
         <div>
