@@ -3449,6 +3449,69 @@ export function registerMaintenanceRoutes(app: Express): void {
       });
     }
   });
+  
+  /**
+   * GET /api/maintenance/projects/:id/elements - Get linked elements for project
+   */
+  app.get('/api/maintenance/projects/:id/elements', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      const { id: projectId } = req.params;
+      
+      // Check project exists and user has access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+      
+      // Get linked elements with full element details
+      const linkedElements = await db
+        .select({
+          id: projectElements.id,
+          elementId: projectElements.elementId,
+          projectId: projectElements.projectId,
+          workDescription: projectElements.workDescription,
+          createdAt: projectElements.createdAt,
+          updatedAt: projectElements.updatedAt,
+          // Element details
+          elementName: buildingElements.name,
+          uniformatCode: buildingElements.uniformatCode,
+          description: buildingElements.description,
+          currentCondition: buildingElements.currentCondition,
+        })
+        .from(projectElements)
+        .innerJoin(buildingElements, eq(projectElements.elementId, buildingElements.id))
+        .where(eq(projectElements.projectId, projectId))
+        .orderBy(buildingElements.uniformatCode, buildingElements.name);
+      
+      res.json({
+        success: true,
+        elements: linkedElements
+      });
+    } catch (error: any) {
+      console.error('Error fetching project elements:', error);
+      res.status(500).json({
+        error: 'Failed to fetch project elements',
+        details: error.message
+      });
+    }
+  });
 
   // ===========================================
   // ELEMENT PROJECT UPDATES (POST-WORK TRACKING)
