@@ -5185,36 +5185,38 @@ export function registerMaintenanceRoutes(app: Express): void {
   function calculateAccessibleTabs(currentStatus: string, skipFlags: any): string[] {
     const tabs = ['planned']; // planned is always accessible
     
+    // Always include current status to ensure it's accessible
+    if (currentStatus && !tabs.includes(currentStatus)) {
+      tabs.push(currentStatus);
+    }
+    
     // Add tabs based on progression through workflow
-    switch (currentStatus) {
-      case 'planned':
-        // In planned status, only planned tab is accessible
-        break;
-      case 'submission':
-        if (!skipFlags?.skipSubmission) tabs.push('submission');
-        break;
-      case 'pre_work':
-        if (!skipFlags?.skipSubmission) tabs.push('submission');
-        if (!skipFlags?.skipPreWork) tabs.push('pre_work');
-        break;
-      case 'in_progress':
-        if (!skipFlags?.skipSubmission) tabs.push('submission');
-        if (!skipFlags?.skipPreWork) tabs.push('pre_work');
-        if (!skipFlags?.skipInProgress) tabs.push('in_progress');
-        break;
-      case 'post_work':
-        if (!skipFlags?.skipSubmission) tabs.push('submission');
-        if (!skipFlags?.skipPreWork) tabs.push('pre_work');
-        if (!skipFlags?.skipInProgress) tabs.push('in_progress');
-        if (!skipFlags?.skipPostWork) tabs.push('post_work');
-        break;
-      case 'completed':
-        if (!skipFlags?.skipSubmission) tabs.push('submission');
-        if (!skipFlags?.skipPreWork) tabs.push('pre_work');
-        if (!skipFlags?.skipInProgress) tabs.push('in_progress');
-        if (!skipFlags?.skipPostWork) tabs.push('post_work');
-        tabs.push('completed');
-        break;
+    const statusOrder = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
+    const currentIndex = statusOrder.indexOf(currentStatus);
+    
+    // Add all accessible tabs up to and including current status
+    for (let i = 0; i <= currentIndex; i++) {
+      const status = statusOrder[i];
+      
+      // Skip if this step is marked to be skipped
+      switch (status) {
+        case 'submission':
+          if (skipFlags?.skipSubmission) continue;
+          break;
+        case 'pre_work':
+          if (skipFlags?.skipPreWork) continue;
+          break;
+        case 'in_progress':
+          if (skipFlags?.skipInProgress) continue;
+          break;
+        case 'post_work':
+          if (skipFlags?.skipPostWork) continue;
+          break;
+      }
+      
+      if (!tabs.includes(status)) {
+        tabs.push(status);
+      }
     }
     
     return tabs;
