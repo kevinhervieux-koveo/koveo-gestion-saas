@@ -410,7 +410,8 @@ export function PaymentPlanForm({
               </div>
             )}
 
-            {/* Initial Payment Configuration */}
+            {/* Initial Payment Configuration - hide when custom schedule is selected */}
+            {watchedSchedule !== 'custom' && (
             <FormField
               control={form.control}
               name="hasInitialPayment"
@@ -434,6 +435,7 @@ export function PaymentPlanForm({
                 </FormItem>
               )}
             />
+            )}
 
             {/* Initial Payment Amount */}
             {watchedHasInitialPayment && (
@@ -463,8 +465,8 @@ export function PaymentPlanForm({
               />
             )}
 
-            {/* Recurring Payment Configuration (only for recurring payments) */}
-            {watchedPaymentType === 'recurring' && (
+            {/* Recurring Payment Configuration (only for recurring payments, hide when custom schedule is selected) */}
+            {watchedPaymentType === 'recurring' && watchedSchedule !== 'custom' && (
               <>
                 <FormField
                   control={form.control}
