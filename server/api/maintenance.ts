@@ -19,6 +19,8 @@ import {
   workflowTasks,
   projectNotifications,
   elementProjectUpdates,
+  // Import the schemas
+  insertSubmissionVendorSchema,
   // Import the types
   type UniformatCode,
   type Vendor,
