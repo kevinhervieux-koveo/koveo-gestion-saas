@@ -6025,34 +6025,32 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(403).json({ error: 'No access to this submission vendor' });
       }
 
-      // Use a transaction to ensure atomicity
-      const result = await db.transaction(async (tx) => {
-        if (preferred) {
-          // First, unmark all other vendors in this project as not preferred
-          await tx
-            .update(submissionVendors)
-            .set({
-              preferred: false,
-              updatedAt: new Date(),
-            })
-            .where(and(
-              eq(submissionVendors.projectId, projectId),
-              sql`${submissionVendors.id} != ${vendorId}`
-            ));
-        }
-
-        // Then update the target vendor's preferred status
-        const updatedSubmissionVendor = await tx
+      // Update preferred status without transaction (neon-http doesn't support transactions)
+      if (preferred) {
+        // First, unmark all other vendors in this project as not preferred
+        await db
           .update(submissionVendors)
           .set({
-            preferred: preferred,
+            preferred: false,
             updatedAt: new Date(),
           })
-          .where(eq(submissionVendors.id, vendorId))
-          .returning();
+          .where(and(
+            eq(submissionVendors.projectId, projectId),
+            sql`${submissionVendors.id} != ${vendorId}`
+          ));
+      }
 
-        return updatedSubmissionVendor[0];
-      });
+      // Then update the target vendor's preferred status
+      const updatedSubmissionVendor = await db
+        .update(submissionVendors)
+        .set({
+          preferred: preferred,
+          updatedAt: new Date(),
+        })
+        .where(eq(submissionVendors.id, vendorId))
+        .returning();
+
+      const result = updatedSubmissionVendor[0];
 
       res.json({
         success: true,

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -35,16 +36,29 @@ import {
   Upload,
 } from 'lucide-react';
 
-// Form schema for new submission
+// Form schema for new submission with payment plan (matching bills structure)
 const newSubmissionSchema = z.object({
   vendorName: z.string().min(1, 'Vendor name is required'),
   availableDate: z.date().optional(),
   price: z.number().min(0, 'Price must be a positive number').optional(),
   description: z.string().optional(),
   preferred: z.boolean().default(false),
+  // Payment plan fields matching bills structure
+  paymentType: z.enum(['unique', 'recurrent']).default('unique'),
+  totalAmount: z.string().default('0'),
+  schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+  hasInitialPayment: z.boolean().default(false),
+  recurringPaymentsEqual: z.boolean().default(true),
+  initialPaymentAmount: z.string().optional(),
+  recurringPaymentAmount: z.string().optional(),
+  customPayments: z.array(z.object({
+    amount: z.string().min(1, 'Amount is required'),
+    date: z.string().min(1, 'Date is required'),
+    description: z.string().optional()
+  })).default([]),
 });
 
-// Form schema for editing existing vendor
+// Form schema for editing existing vendor with payment plan
 const editVendorSchema = z.object({
   vendorName: z.string().min(1, 'Vendor name is required'),
   availableDate: z.date().optional(),
@@ -52,6 +66,19 @@ const editVendorSchema = z.object({
   description: z.string().optional(),
   contactInfo: z.string().optional(),
   preferred: z.boolean().default(false),
+  // Payment plan fields matching bills structure
+  paymentType: z.enum(['unique', 'recurrent']).default('unique'),
+  totalAmount: z.string().default('0'),
+  schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+  hasInitialPayment: z.boolean().default(false),
+  recurringPaymentsEqual: z.boolean().default(true),
+  initialPaymentAmount: z.string().optional(),
+  recurringPaymentAmount: z.string().optional(),
+  customPayments: z.array(z.object({
+    amount: z.string().min(1, 'Amount is required'),
+    date: z.string().min(1, 'Date is required'),
+    description: z.string().optional()
+  })).default([]),
 });
 
 type NewSubmissionForm = z.infer<typeof newSubmissionSchema>;
@@ -107,6 +134,15 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       price: undefined,
       description: '',
       preferred: false,
+      // Payment plan defaults - unique payment of 0$
+      paymentType: 'unique',
+      totalAmount: '0',
+      schedulePayment: undefined,
+      hasInitialPayment: false,
+      recurringPaymentsEqual: true,
+      initialPaymentAmount: '',
+      recurringPaymentAmount: '',
+      customPayments: [],
     },
   });
 
@@ -120,6 +156,15 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       description: '',
       contactInfo: '',
       preferred: false,
+      // Payment plan defaults - unique payment of 0$
+      paymentType: 'unique',
+      totalAmount: '0',
+      schedulePayment: undefined,
+      hasInitialPayment: false,
+      recurringPaymentsEqual: true,
+      initialPaymentAmount: '',
+      recurringPaymentAmount: '',
+      customPayments: [],
     },
   });
 
@@ -159,7 +204,60 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
 
   const handleEditVendor = (vendor: SubmissionVendor) => {
     setEditingVendor(vendor);
-    // Populate form with vendor data
+    
+    // Convert existing payment plan data back to form format
+    const paymentPlanCosts = vendor.paymentPlanCosts || [];
+    const hasPaymentPlan = paymentPlanCosts.length > 0;
+    
+    let paymentType: 'unique' | 'recurrent' = 'unique';
+    let totalAmount = vendor.price || '0';
+    let schedulePayment: string | undefined;
+    let hasInitialPayment = false;
+    let recurringPaymentsEqual = true;
+    let initialPaymentAmount = '';
+    let recurringPaymentAmount = '';
+    let customPayments: any[] = [];
+
+    if (hasPaymentPlan) {
+      if (vendor.paymentPlanSchedule) {
+        // Has a schedule, so it's recurrent
+        paymentType = 'recurrent';
+        schedulePayment = vendor.paymentPlanSchedule;
+        
+        if (vendor.paymentPlanSchedule === 'custom' && vendor.paymentPlanCustomDates?.length > 0) {
+          // Custom payment schedule
+          recurringPaymentsEqual = false;
+          customPayments = paymentPlanCosts.map((cost, index) => ({
+            amount: cost.toString(),
+            date: vendor.paymentPlanCustomDates?.[index] || '',
+            description: `Payment ${index + 1}`
+          }));
+        } else {
+          // Regular recurring payments
+          if (paymentPlanCosts.length === 1) {
+            recurringPaymentAmount = paymentPlanCosts[0].toString();
+          } else if (paymentPlanCosts.length > 1) {
+            // Check if first payment is different (initial payment)
+            const firstCost = paymentPlanCosts[0];
+            const otherCosts = paymentPlanCosts.slice(1);
+            
+            if (otherCosts.length > 0 && otherCosts.every(cost => cost === otherCosts[0])) {
+              hasInitialPayment = true;
+              initialPaymentAmount = firstCost.toString();
+              recurringPaymentAmount = otherCosts[0].toString();
+            } else {
+              recurringPaymentAmount = firstCost.toString();
+            }
+          }
+        }
+      } else {
+        // No schedule, single payment
+        paymentType = 'unique';
+        totalAmount = paymentPlanCosts[0]?.toString() || totalAmount;
+      }
+    }
+
+    // Populate form with vendor data including payment plan
     editVendorForm.reset({
       vendorName: vendor.vendorName,
       availableDate: vendor.availableDate ? new Date(vendor.availableDate) : undefined,
@@ -167,11 +265,51 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       description: vendor.notes || '',
       contactInfo: vendor.contactInfo || '',
       preferred: vendor.preferred,
+      // Payment plan fields
+      paymentType,
+      totalAmount,
+      schedulePayment,
+      hasInitialPayment,
+      recurringPaymentsEqual,
+      initialPaymentAmount,
+      recurringPaymentAmount,
+      customPayments,
     });
   };
 
   const handleSaveVendorEdit = (data: EditVendorForm) => {
     if (!editingVendor) return;
+
+    // Convert payment plan data from bills format to submission vendor format
+    let paymentPlanCosts: number[] = [];
+    let paymentPlanSchedule: string | undefined;
+    let paymentPlanCustomDates: string[] = [];
+    let paymentPlanStartDate: string | undefined;
+
+    if (data.paymentType === 'unique') {
+      // Single payment
+      const amount = parseFloat(data.totalAmount || '0');
+      if (amount > 0) {
+        paymentPlanCosts = [amount];
+      }
+    } else if (data.paymentType === 'recurrent') {
+      // Recurring payments
+      paymentPlanSchedule = data.schedulePayment;
+      
+      if (data.schedulePayment === 'custom' && data.customPayments.length > 0) {
+        // Custom payment schedule
+        paymentPlanCosts = data.customPayments.map(p => parseFloat(p.amount));
+        paymentPlanCustomDates = data.customPayments.map(p => p.date);
+      } else {
+        // Regular recurring payments
+        if (data.hasInitialPayment && data.initialPaymentAmount) {
+          paymentPlanCosts.push(parseFloat(data.initialPaymentAmount));
+        }
+        if (data.recurringPaymentAmount) {
+          paymentPlanCosts.push(parseFloat(data.recurringPaymentAmount));
+        }
+      }
+    }
 
     updateSubmissionVendor.mutate({
       projectId: project.id,
@@ -179,10 +317,15 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       updates: {
         vendorName: data.vendorName,
         availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
-        price: data.price?.toString(),
+        price: data.totalAmount || '0', // Use totalAmount for price
         notes: data.description,
         contactInfo: data.contactInfo,
         preferred: data.preferred,
+        // Payment plan data
+        paymentPlanCosts,
+        paymentPlanSchedule,
+        paymentPlanCustomDates,
+        paymentPlanStartDate,
       },
     }, {
       onSuccess: () => {
@@ -234,11 +377,42 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   };
 
   const handleSubmissionSubmit = (data: NewSubmissionForm) => {
-    // Convert form data to the API format - note that we need to match the expected mutation interface
+    // Convert payment plan data from bills format to submission vendor format
+    let paymentPlanCosts: number[] = [];
+    let paymentPlanSchedule: string | undefined;
+    let paymentPlanCustomDates: string[] = [];
+    let paymentPlanStartDate: string | undefined;
+
+    if (data.paymentType === 'unique') {
+      // Single payment
+      const amount = parseFloat(data.totalAmount || '0');
+      if (amount > 0) {
+        paymentPlanCosts = [amount];
+      }
+    } else if (data.paymentType === 'recurrent') {
+      // Recurring payments
+      paymentPlanSchedule = data.schedulePayment;
+      
+      if (data.schedulePayment === 'custom' && data.customPayments.length > 0) {
+        // Custom payment schedule
+        paymentPlanCosts = data.customPayments.map(p => parseFloat(p.amount));
+        paymentPlanCustomDates = data.customPayments.map(p => p.date);
+      } else {
+        // Regular recurring payments
+        if (data.hasInitialPayment && data.initialPaymentAmount) {
+          paymentPlanCosts.push(parseFloat(data.initialPaymentAmount));
+        }
+        if (data.recurringPaymentAmount) {
+          paymentPlanCosts.push(parseFloat(data.recurringPaymentAmount));
+        }
+      }
+    }
+
+    // Convert form data to the API format
     const vendorData = {
       vendorName: data.vendorName,
       availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
-      price: data.price?.toString(), // Convert number to string for decimal field
+      price: data.price?.toString(), // Keep original price behavior
       description: data.description || '',
       preferred: data.preferred || false,
       documents: uploadedDocuments.map(doc => ({
@@ -253,10 +427,11 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       notes: data.description || '',
       projectType: 'not_sure' as const, // Default project type
       addedLifespan: undefined,
-      paymentPlanCosts: [],
-      paymentPlanSchedule: undefined,
-      paymentPlanCustomDates: [],
-      paymentPlanStartDate: undefined,
+      // Payment plan data
+      paymentPlanCosts,
+      paymentPlanSchedule,
+      paymentPlanCustomDates,
+      paymentPlanStartDate,
       isSelected: false,
     };
 
@@ -700,18 +875,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <h5 className="font-medium text-sm">Payment Plan</h5>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditPaymentPlan(vendor);
-                        }}
-                        data-testid={`button-edit-payment-plan-${vendor.id}`}
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div className="flex items-center gap-1">

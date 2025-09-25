@@ -1,0 +1,965 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DlSoFRfG.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-DlSoFRfG.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-DlSoFRfG.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-DlSoFRfG.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-DlSoFRfG.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-vqJgeExS.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-vqJgeExS.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-DlSoFRfG.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-DlSoFRfG.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+withHierarchicalSelection-vqJgeExS.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-vqJgeExS.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DlSoFRfG.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-DlSoFRfG.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DlSoFRfG.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B5F_4ThL.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-B5F_4ThL.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B5F_4ThL.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-B5F_4ThL.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-B5F_4ThL.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-B5F_4ThL.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-B5F_4ThL.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 3
+index-B5F_4ThL.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-B5F_4ThL.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-CWsTjra_.js:185 [Violation] 'setTimeout' handler took 88ms
+index-B5F_4ThL.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '400e859d-1d21-49c3-a6c9-34d7175739b0', projectTitle: 'Porte extérieurs'}
+index-B5F_4ThL.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-C6S676nD.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-C6S676nD.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-C6S676nD.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-C6S676nD.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-C6S676nD.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'submission', nextStatus: 'pre_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-DfBMxMGK.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-DfBMxMGK.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-DfBMxMGK.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-CWsTjra_.js:240  PATCH https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/vendors/db285e4e-b886-489a-b3f9-c959ee89f176/preferred 500 (Internal Server Error)
+sR @ index-CWsTjra_.js:240
+mutationFn @ useProjectWorkflow-C6S676nD.js:1
+fn @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+execute @ vendor-query-D7rmUEQz.js:1
+await in execute
+mutate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Ce @ SubmissionTab-COrc8_zv.js:1
+onClick @ SubmissionTab-COrc8_zv.js:1
+lr @ index-CWsTjra_.js:185
+q @ index-CWsTjra_.js:45
+yg @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+Gm @ index-CWsTjra_.js:83
+rd @ index-CWsTjra_.js:185
+Ad @ index-CWsTjra_.js:194
+L1 @ index-CWsTjra_.js:194
+<button>
+du.jsxDEV @ index-CWsTjra_.js:15
+Button @ index-CWsTjra_.js:380
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<Button>
+du.jsxDEV @ index-CWsTjra_.js:15
+(anonymous) @ SubmissionTab-COrc8_zv.js:1
+ns @ SubmissionTab-COrc8_zv.js:1
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<...>
+du.jsxDEV @ index-CWsTjra_.js:15
+Um @ index-B5F_4ThL.js:48
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<Um>
+du.jsxDEV @ index-CWsTjra_.js:15
+d @ ProjectWorkflowModal-DfBMxMGK.js:1
+yo @ ProjectWorkflowModal-DfBMxMGK.js:1
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<...>
+du.jsxDEV @ index-CWsTjra_.js:15
+El @ index-B5F_4ThL.js:48
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<El>
+du.jsxDEV @ index-CWsTjra_.js:15
+Pl @ index-B5F_4ThL.js:48
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+useProjectWorkflow-C6S676nD.js:1 Failed to update preferred status: Error: 500: {"error":"Failed to update preferred status","details":"No transactions support in neon-http driver"}
+    at k0 (index-CWsTjra_.js:240:6803)
+    at async sR (index-CWsTjra_.js:240:7065)
+    at async Object.mutationFn (useProjectWorkflow-C6S676nD.js:1:8014)
+overrideMethod @ hook.js:608
+onError @ useProjectWorkflow-C6S676nD.js:1
+execute @ vendor-query-D7rmUEQz.js:1
+await in execute
+mutate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Ce @ SubmissionTab-COrc8_zv.js:1
+onClick @ SubmissionTab-COrc8_zv.js:1
+lr @ index-CWsTjra_.js:185
+q @ index-CWsTjra_.js:45
+yg @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+Gm @ index-CWsTjra_.js:83
+rd @ index-CWsTjra_.js:185
+Ad @ index-CWsTjra_.js:194
+L1 @ index-CWsTjra_.js:194
+<button>
+du.jsxDEV @ index-CWsTjra_.js:15
+Button @ index-CWsTjra_.js:380
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<Button>
+du.jsxDEV @ index-CWsTjra_.js:15
+(anonymous) @ SubmissionTab-COrc8_zv.js:1
+ns @ SubmissionTab-COrc8_zv.js:1
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<...>
+du.jsxDEV @ index-CWsTjra_.js:15
+Um @ index-B5F_4ThL.js:48
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<Um>
+du.jsxDEV @ index-CWsTjra_.js:15
+d @ ProjectWorkflowModal-DfBMxMGK.js:1
+yo @ ProjectWorkflowModal-DfBMxMGK.js:1
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<...>
+du.jsxDEV @ index-CWsTjra_.js:15
+El @ index-B5F_4ThL.js:48
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<El>
+du.jsxDEV @ index-CWsTjra_.js:15
+Pl @ index-B5F_4ThL.js:48
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-DfBMxMGK.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+vendor-ui-B9Lwe8V-.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-B9Lwe8V-.js:58
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+q @ index-CWsTjra_.js:45
+sl @ index-CWsTjra_.js:150
+Ah @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+ig @ index-CWsTjra_.js:163
+dl @ index-CWsTjra_.js:163
+ag @ index-CWsTjra_.js:163
+ed @ index-CWsTjra_.js:163
+Xh @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<jd>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+DialogContent @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<DialogContent>
+du.jsxDEV @ index-CWsTjra_.js:15
+DialogContent @ dialog-B9QyN_-Z.js:1
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<DialogContent>
+du.jsxDEV @ index-CWsTjra_.js:15
+ns @ SubmissionTab-COrc8_zv.js:1
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+WS @ index-CWsTjra_.js:163
+KS @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+fg @ index-CWsTjra_.js:185
+d @ index-CWsTjra_.js:23
+<...>
+du.jsxDEV @ index-CWsTjra_.js:15
+Um @ index-B5F_4ThL.js:48
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<Um>
+du.jsxDEV @ index-CWsTjra_.js:15
+d @ ProjectWorkflowModal-DfBMxMGK.js:1
+yo @ ProjectWorkflowModal-DfBMxMGK.js:1
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<...>
+du.jsxDEV @ index-CWsTjra_.js:15
+El @ index-B5F_4ThL.js:48
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<El>
+du.jsxDEV @ index-CWsTjra_.js:15
+Pl @ index-B5F_4ThL.js:48
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+kc @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-DfBMxMGK.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+vendor-ui-B9Lwe8V-.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-B9Lwe8V-.js:58
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+q @ index-CWsTjra_.js:45
+sl @ index-CWsTjra_.js:150
+Ah @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+En @ index-CWsTjra_.js:163
+Bh @ index-CWsTjra_.js:163
+ig @ index-CWsTjra_.js:163
+dl @ index-CWsTjra_.js:163
+ag @ index-CWsTjra_.js:163
+ed @ index-CWsTjra_.js:163
+Xh @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<jd>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+DialogContent @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+<DialogContent>
+du.jsxDEV @ index-CWsTjra_.js:15
+DialogContent @ dialog-B9QyN_-Z.js:1
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+index-CWsTjra_.js:240  PATCH https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/vendors/db285e4e-b886-489a-b3f9-c959ee89f176/preferred 500 (Internal Server Error)
+sR @ index-CWsTjra_.js:240
+mutationFn @ useProjectWorkflow-C6S676nD.js:1
+fn @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+execute @ vendor-query-D7rmUEQz.js:1
+await in execute
+mutate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Ce @ SubmissionTab-COrc8_zv.js:1
+onClick @ SubmissionTab-COrc8_zv.js:1
+lr @ index-CWsTjra_.js:185
+q @ index-CWsTjra_.js:45
+yg @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+Gm @ index-CWsTjra_.js:83
+rd @ index-CWsTjra_.js:185
+Ad @ index-CWsTjra_.js:194
+L1 @ index-CWsTjra_.js:194
+<button>
+du.jsxDEV @ index-CWsTjra_.js:15
+Button @ index-CWsTjra_.js:380
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+useProjectWorkflow-C6S676nD.js:1 Failed to update preferred status: Error: 500: {"error":"Failed to update preferred status","details":"No transactions support in neon-http driver"}
+    at k0 (index-CWsTjra_.js:240:6803)
+    at async sR (index-CWsTjra_.js:240:7065)
+    at async Object.mutationFn (useProjectWorkflow-C6S676nD.js:1:8014)
+overrideMethod @ hook.js:608
+onError @ useProjectWorkflow-C6S676nD.js:1
+execute @ vendor-query-D7rmUEQz.js:1
+await in execute
+mutate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Ce @ SubmissionTab-COrc8_zv.js:1
+onClick @ SubmissionTab-COrc8_zv.js:1
+lr @ index-CWsTjra_.js:185
+q @ index-CWsTjra_.js:45
+yg @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+Gm @ index-CWsTjra_.js:83
+rd @ index-CWsTjra_.js:185
+Ad @ index-CWsTjra_.js:194
+L1 @ index-CWsTjra_.js:194
+<button>
+du.jsxDEV @ index-CWsTjra_.js:15
+Button @ index-CWsTjra_.js:380
+react_stack_bottom_frame @ index-CWsTjra_.js:229
+oc @ index-CWsTjra_.js:120
+sh @ index-CWsTjra_.js:141
+Pc @ index-CWsTjra_.js:150
+q @ index-CWsTjra_.js:45
+Kh @ index-CWsTjra_.js:163
+Jh @ index-CWsTjra_.js:163
+Wc @ index-CWsTjra_.js:163
+Ih @ index-CWsTjra_.js:163
+mg @ index-CWsTjra_.js:185
+ml @ index-CWsTjra_.js:185
+ad @ index-CWsTjra_.js:185
+(anonymous) @ index-CWsTjra_.js:185
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-DfBMxMGK.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-B5F_4ThL.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-B5F_4ThL.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-DfBMxMGK.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
