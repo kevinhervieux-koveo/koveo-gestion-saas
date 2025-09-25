@@ -227,6 +227,16 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   const [editVendorDocuments, setEditVendorDocuments] = useState<AttachedFile[]>([]);
   const [editUploadProgress, setEditUploadProgress] = useState<{ [key: string]: number }>({});
 
+  // Get category from file name
+  const getCategoryFromFileName = (fileName: string): string => {
+    const lower = fileName.toLowerCase();
+    if (lower.includes('invoice') || lower.includes('bill')) return 'invoice';
+    if (lower.includes('receipt')) return 'receipt';
+    if (lower.includes('contract')) return 'contract';
+    if (lower.includes('quote') || lower.includes('estimate')) return 'quote';
+    return 'document';
+  };
+
   // Defensive null check for project data
   if (!project) {
     return (
@@ -331,8 +341,13 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     const existingDocs: AttachedFile[] = (vendor.documents && Array.isArray(vendor.documents)) 
       ? vendor.documents.map(doc => ({
           id: doc.id || crypto.randomUUID(),
-          file: new File([], doc.name || 'unknown', { type: doc.type || 'application/octet-stream' }),
+          isExisting: true,
+          name: doc.name,
+          size: doc.size || 0,
+          type: doc.type || 'application/octet-stream',
+          url: doc.id ? `/api/maintenance/documents/${doc.id}/file` : undefined,
           uploadProgress: 100, // Existing files are already uploaded
+          category: getCategoryFromFileName(doc.name || ''),
         }))
       : [];
     setEditVendorDocuments(existingDocs);
@@ -465,14 +480,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         paymentPlanSchedule,
         paymentPlanCustomDates,
         paymentPlanStartDate,
-        // Documents data
-        documents: editVendorDocuments.map(doc => ({
-          id: doc.id,
-          name: doc.file?.name || 'unknown',
-          url: '', // This would be set by the server after upload
-          size: doc.file?.size || 0,
-          type: doc.file?.type || 'application/octet-stream',
-        })),
       },
     }, {
       onSuccess: () => {
@@ -640,7 +647,27 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   };
 
   // Handle removing files for edit vendor
-  const handleEditRemoveFile = (fileId: string) => {
+  const handleEditRemoveFile = async (fileId: string) => {
+    const docToRemove = editVendorDocuments.find(doc => doc.id === fileId);
+    
+    // If it's an existing document, delete it from the server
+    if (docToRemove?.isExisting) {
+      try {
+        const response = await fetch(`/api/maintenance/documents/${fileId}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to delete document from server');
+          return;
+        }
+      } catch (error) {
+        console.error('Error deleting document:', error);
+        return;
+      }
+    }
+    
+    // Remove from local state
     setEditVendorDocuments(prev => prev.filter(doc => doc.id !== fileId));
   };
 
@@ -2007,21 +2034,32 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                   )}
                 />
 
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleCancelVendorEdit}
-                    disabled={updateSubmissionVendor.isPending}
-                  >
-                    Cancel
-                  </Button>
+                <div className="flex justify-between pt-4">
                   <Button 
-                    type="submit"
+                    type="button" 
+                    variant="destructive"
+                    onClick={() => editingVendor && handleDeleteVendor(editingVendor)}
                     disabled={updateSubmissionVendor.isPending}
+                    data-testid="button-delete-vendor"
                   >
-                    {updateSubmissionVendor.isPending ? 'Saving...' : 'Save Changes'}
+                    Delete Vendor
                   </Button>
+                  <div className="flex space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancelVendorEdit}
+                      disabled={updateSubmissionVendor.isPending}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit"
+                      disabled={updateSubmissionVendor.isPending}
+                    >
+                      {updateSubmissionVendor.isPending ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Form>

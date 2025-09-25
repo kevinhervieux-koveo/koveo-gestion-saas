@@ -15,11 +15,17 @@ import { sanitizeFileName } from '@/utils/sanitize';
 
 export interface AttachedFile {
   id: string;
-  file: File;
+  file?: File; // Optional for existing documents
   preview?: string;
   uploadProgress?: number;
   aiAnalyzed?: boolean;
   category?: string;
+  // For existing documents
+  isExisting?: boolean;
+  name?: string;
+  size?: number;
+  type?: string;
+  url?: string;
 }
 
 interface StandardDocumentAttachmentsProps {
@@ -250,7 +256,7 @@ export function StandardDocumentAttachments({
                             <div className="w-12 h-12 rounded overflow-hidden border">
                               <img 
                                 src={attachment.preview} 
-                                alt={sanitizeFileName(attachment.file.name)}
+                                alt={sanitizeFileName(attachment.file?.name || attachment.name || 'unknown')}
                                 className="w-full h-full object-cover"
                               />
                             </div>
@@ -265,7 +271,7 @@ export function StandardDocumentAttachments({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                              {sanitizeFileName(attachment.file.name)}
+                              {sanitizeFileName(attachment.file?.name || attachment.name || 'unknown')}
                             </p>
                             {attachment.aiAnalyzed && (
                               <Badge variant="outline" className="flex items-center gap-1 text-xs">
@@ -279,8 +285,8 @@ export function StandardDocumentAttachments({
                           </div>
                           
                           <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                            <span>{(attachment.file.size / 1024 / 1024).toFixed(2)} MB</span>
-                            <span className="capitalize">{attachment.file.type.split('/')[1]}</span>
+                            <span>{((attachment.file?.size || attachment.size || 0) / 1024 / 1024).toFixed(2)} MB</span>
+                            <span className="capitalize">{(attachment.file?.type || attachment.type || 'unknown').split('/')[1]}</span>
                             
                             {/* Upload Progress */}
                             {uploadProgress[attachment.id] !== undefined && uploadProgress[attachment.id] < 100 && (
@@ -304,18 +310,25 @@ export function StandardDocumentAttachments({
 
                         {/* File Actions */}
                         <div className="flex items-center gap-1">
-                          {attachment.preview && (
+                          {/* View/Download button for existing documents or preview for new files */}
+                          {(attachment.isExisting && attachment.url) || attachment.preview ? (
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(attachment.preview, '_blank')}
-                              data-testid={`button-preview-${attachment.id}`}
-                              title="Preview file"
+                              onClick={() => {
+                                if (attachment.isExisting && attachment.url) {
+                                  window.open(attachment.url, '_blank');
+                                } else if (attachment.preview) {
+                                  window.open(attachment.preview, '_blank');
+                                }
+                              }}
+                              data-testid={`button-view-${attachment.id}`}
+                              title={attachment.isExisting ? "View document" : "Preview file"}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                          )}
+                          ) : null}
                           <Button
                             type="button"
                             variant="ghost"
