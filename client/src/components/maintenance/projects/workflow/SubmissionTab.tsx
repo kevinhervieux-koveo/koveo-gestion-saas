@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { UploadDropzone, type UploadedFile } from '@/components/maintenance/UploadDropzone';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
@@ -31,6 +32,7 @@ import {
   Edit,
   Settings,
   Plus,
+  Upload,
 } from 'lucide-react';
 
 // Form schema for new submission
@@ -59,6 +61,11 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<UploadedFile[]>([]);
+  const [activeUploadTab, setActiveUploadTab] = useState<'file' | 'text'>('file');
+  const [textContent, setTextContent] = useState('');
+  const [textDocumentId, setTextDocumentId] = useState<string | null>(null);
+  const [isUploadingText, setIsUploadingText] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
 
   // Defensive null check for project data
   if (!project) {
@@ -182,7 +189,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       // Add other required fields with defaults
       contactInfo: '',
       notes: data.description || '',
-      projectType: 'renovation' as const, // Default project type
+      projectType: 'not_sure' as const, // Default project type
       addedLifespan: undefined,
       paymentPlanCosts: [],
       paymentPlanSchedule: undefined,
@@ -200,6 +207,8 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
           setShowSubmissionDialog(false);
           submissionForm.reset();
           setUploadedDocuments([]);
+          setTextContent('');
+          setTextDocumentId(null);
           onUpdate(); // Refresh the project data
         },
         onError: (error) => {
@@ -213,6 +222,164 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   const handleDocumentsUploaded = (files: UploadedFile[]) => {
     setUploadedDocuments(prev => [...prev, ...files]);
   };
+
+  // Delete document from server
+  const deleteTextDocument = async (documentId: string) => {
+    try {
+      const response = await fetch(`/api/maintenance/documents/${documentId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        console.error('Failed to delete text document from server');
+      }
+    } catch (error) {
+      console.error('Error deleting text document:', error);
+    }
+  };
+
+  // Debounced text document upload
+  const uploadTextDocument = useCallback(async (content: string) => {
+    // Check if operation was cancelled
+    if (isCancelled) {
+      // Abort any existing request before returning
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      return;
+    }
+    
+    if (!content.trim()) {
+      // Abort any existing request before clearing
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      
+      // If content is empty, delete existing text document from server
+      if (textDocumentId) {
+        await deleteTextDocument(textDocumentId);
+        setUploadedDocuments(prev => prev.filter(doc => doc.id !== textDocumentId));
+        setTextDocumentId(null);
+      }
+      return;
+    }
+
+    let abortController: AbortController | null = null;
+    
+    try {
+      setIsUploadingText(true);
+      
+      // Abort any existing request before starting a new one
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Create new AbortController for this upload
+      abortController = new AbortController();
+      abortControllerRef.current = abortController;
+      
+      const textFile = new File([content], 'text-document.txt', { type: 'text/plain' });
+      const formData = new FormData();
+      formData.append('file', textFile);
+      formData.append('elementId', project.id);
+      formData.append('buildingId', project.buildingId);
+      
+      // Upload to the same endpoint as file uploads with abort signal
+      const response = await fetch('/api/maintenance/projects/documents', {
+        method: 'POST',
+        body: formData,
+        signal: abortController.signal,
+      });
+      
+      // Check if cancelled after fetch completes
+      if (isCancelled || abortController.signal.aborted) {
+        return;
+      }
+      
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Double-check cancellation before updating state
+        if (isCancelled) {
+          // If cancelled, delete the newly uploaded document
+          await deleteTextDocument(result.id);
+          return;
+        }
+        
+        const textDoc: UploadedFile = {
+          id: result.id,
+          name: 'text-document.txt',
+          size: content.length,
+          type: 'text/plain',
+          url: result.url || result.filePath,
+          status: 'success'
+        };
+        
+        // Remove old text document if it exists (delete from server)
+        if (textDocumentId) {
+          await deleteTextDocument(textDocumentId);
+          setUploadedDocuments(prev => prev.filter(doc => doc.id !== textDocumentId));
+        }
+        
+        // Add new text document
+        setUploadedDocuments(prev => [...prev, textDoc]);
+        setTextDocumentId(result.id);
+      } else {
+        console.error('Failed to upload text document');
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Text document upload was cancelled');
+        return;
+      }
+      console.error('Error uploading text document:', error);
+    } finally {
+      setIsUploadingText(false);
+      // Only clear the ref if it still points to this controller
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+      }
+    }
+  }, [project.id, project.buildingId, isCancelled, textDocumentId, deleteTextDocument, setUploadedDocuments, setTextDocumentId, setIsUploadingText]);
+
+  // Custom debounce implementation with AbortController
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  
+  const debouncedUploadText = useCallback((content: string) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      uploadTextDocument(content);
+    }, 1000);
+  }, [uploadTextDocument]);
+
+  // Cancel pending upload and clean up text document
+  const cancelPendingTextUpload = async () => {
+    setIsCancelled(true);
+    
+    // Clear pending timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    
+    // Abort any in-flight upload request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    
+    // Delete existing text document from server
+    if (textDocumentId) {
+      await deleteTextDocument(textDocumentId);
+      setTextDocumentId(null);
+    }
+  };
+
+  // Removed unused attachment handlers
 
   return (
     <div className="space-y-6" data-testid="submission-tab">
@@ -234,11 +401,17 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
           {/* Add Submission Button */}
           <Dialog 
             open={showSubmissionDialog} 
-            onOpenChange={(open) => {
+            onOpenChange={async (open) => {
               setShowSubmissionDialog(open);
-              // Clear uploaded documents when dialog closes
-              if (!open) {
+              if (open) {
+                // Reset cancellation flag when opening dialog
+                setIsCancelled(false);
+              } else {
+                // Clear uploaded documents when dialog closes
+                await cancelPendingTextUpload();
                 setUploadedDocuments([]);
+                setTextContent('');
+                setTextDocumentId(null);
                 submissionForm.reset();
               }
             }}
@@ -356,22 +529,63 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     )}
                   />
 
-                  {/* Document Upload */}
+                  {/* Document Upload with Tabs (like bills/documents management) */}
                   <div className="space-y-2">
-                    <FormLabel>Documents</FormLabel>
+                    <FormLabel>Documents (Optional)</FormLabel>
                     <FormDescription>
                       Upload vendor documents such as quotes, proposals, or certifications
                     </FormDescription>
-                    <UploadDropzone
-                      onFilesUploaded={handleDocumentsUploaded}
-                      existingFiles={uploadedDocuments}
-                      uploadEndpoint="/api/maintenance/projects/documents"
-                      maxFiles={5}
-                      className="border-dashed border-2 border-muted-foreground/25"
-                      buildingId={project.buildingId}
-                      elementId={project.id}
-                      data-testid="submission-document-upload"
-                    />
+                    
+                    <Tabs value={activeUploadTab} onValueChange={(value: 'file' | 'text') => setActiveUploadTab(value)} className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="file" className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          Upload File
+                        </TabsTrigger>
+                        <TabsTrigger value="text" className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Text Document
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="file" className="space-y-4">
+                        <UploadDropzone
+                          onFilesUploaded={handleDocumentsUploaded}
+                          existingFiles={uploadedDocuments}
+                          uploadEndpoint="/api/maintenance/projects/documents"
+                          maxFiles={5}
+                          className="border-dashed border-2 border-muted-foreground/25"
+                          buildingId={project.buildingId}
+                          elementId={project.id}
+                          data-testid="submission-document-upload"
+                        />
+                      </TabsContent>
+                      
+                      <TabsContent value="text" className="space-y-4">
+                        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+                          <div className="text-center mb-4">
+                            <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                            <p className="text-sm text-muted-foreground mb-4">Create a text document</p>
+                          </div>
+                          <Textarea
+                            placeholder="Enter document content here..."
+                            rows={6}
+                            className="w-full"
+                            value={textContent}
+                            onChange={(e) => {
+                              setTextContent(e.target.value);
+                              debouncedUploadText(e.target.value);
+                            }}
+                            disabled={isUploadingText}
+                          />
+                          {isUploadingText && (
+                            <p className="text-sm text-muted-foreground mt-2">
+                              Saving text document...
+                            </p>
+                          )}
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                   </div>
 
                   {/* Preferred Checkbox */}
@@ -401,10 +615,13 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => {
+                      onClick={async () => {
+                        await cancelPendingTextUpload();
                         setShowSubmissionDialog(false);
                         submissionForm.reset();
                         setUploadedDocuments([]);
+                        setTextContent('');
+                        setTextDocumentId(null);
                       }}
                       data-testid="button-cancel"
                     >
