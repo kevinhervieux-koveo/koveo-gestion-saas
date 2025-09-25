@@ -53,6 +53,8 @@ const newSubmissionSchema = z.object({
     return !isNaN(num) && num > 0 && num <= 999999.99;
   }, 'Total amount must be between $0.01 and $999,999.99'),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+  dateFirstPayment: z.date().optional(),
+  dateEndPayment: z.date().optional(),
   hasInitialPayment: z.boolean().default(false),
   recurringPaymentsEqual: z.boolean().default(true),
   initialPaymentAmount: z.string().optional().refine((val) => {
@@ -128,6 +130,8 @@ const editVendorSchema = z.object({
     return !isNaN(num) && num > 0 && num <= 999999.99;
   }, 'Total amount must be between $0.01 and $999,999.99'),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+  dateFirstPayment: z.date().optional(),
+  dateEndPayment: z.date().optional(),
   hasInitialPayment: z.boolean().default(false),
   recurringPaymentsEqual: z.boolean().default(true),
   initialPaymentAmount: z.string().optional().refine((val) => {
@@ -245,6 +249,8 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       paymentType: 'unique',
       totalAmount: '',
       schedulePayment: undefined,
+      dateFirstPayment: undefined,
+      dateEndPayment: undefined,
       hasInitialPayment: false,
       recurringPaymentsEqual: true,
       initialPaymentAmount: '',
@@ -267,6 +273,8 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       paymentType: 'unique',
       totalAmount: '',
       schedulePayment: undefined,
+      dateFirstPayment: undefined,
+      dateEndPayment: undefined,
       hasInitialPayment: false,
       recurringPaymentsEqual: true,
       initialPaymentAmount: '',
@@ -877,6 +885,48 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                                   <SelectItem value="custom">Custom Schedule</SelectItem>
                                 </SelectContent>
                               </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Date First Payment */}
+                        <FormField
+                          control={submissionForm.control}
+                          name="dateFirstPayment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Date First Payment</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                                  onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                                  data-testid="input-date-first-payment"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Date End Payment */}
+                        <FormField
+                          control={submissionForm.control}
+                          name="dateEndPayment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Date End Payment</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                                  onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                                  data-testid="input-date-end-payment"
+                                />
+                              </FormControl>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -1593,6 +1643,48 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                                 <SelectItem value="custom">Custom Schedule</SelectItem>
                               </SelectContent>
                             </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Date First Payment */}
+                      <FormField
+                        control={editVendorForm.control}
+                        name="dateFirstPayment"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date First Payment</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...field}
+                                value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                                onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                                data-testid="input-edit-date-first-payment"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Date End Payment */}
+                      <FormField
+                        control={editVendorForm.control}
+                        name="dateEndPayment"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date End Payment</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...field}
+                                value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                                onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                                data-testid="input-edit-date-end-payment"
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
