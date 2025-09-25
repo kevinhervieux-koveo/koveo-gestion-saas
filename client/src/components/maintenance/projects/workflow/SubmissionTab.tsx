@@ -500,9 +500,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     }).format(numericAmount);
   };
 
-  // Check if there's at least one preferred vendor
-  const hasPreferredVendor = vendors.some(vendor => vendor.preferred);
-
   const formatPaymentSchedule = (schedule?: string) => {
     if (!schedule) return 'Not specified';
     const formatted = formatStatus(schedule, 'Not specified');
