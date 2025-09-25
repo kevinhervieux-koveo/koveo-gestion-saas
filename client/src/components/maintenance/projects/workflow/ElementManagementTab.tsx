@@ -52,7 +52,7 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
       const response = await apiRequest('GET', `/api/maintenance/buildings/${project.buildingId}/elements`);
       if (!response.ok) throw new Error('Failed to fetch building elements');
       const data = await response.json();
-      return data.elements || [];
+      return data.data || [];
     },
   });
 
@@ -249,11 +249,8 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
           ) : (
             <div className="grid gap-3">
               {projectElements.map((projectElement) => {
-                const element = buildingElements.find(e => e.id === projectElement.elementId);
                 const projectTypeDisplay = getProjectTypeDisplay(projectElement.projectType);
                 const isSelected = selectedElements.includes(projectElement.elementId);
-
-                if (!element) return null;
 
                 return (
                   <Card key={projectElement.id} className={cn("transition-all", isSelected && "ring-2 ring-primary")}>
@@ -269,14 +266,14 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
                         
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-medium">{element.name}</h4>
+                            <h4 className="font-medium">{projectElement.elementName}</h4>
                             <Badge variant="outline">
-                              {element.uniformatCode}
+                              {projectElement.uniformatCode}
                             </Badge>
                           </div>
-                          {element.description && (
+                          {projectElement.description && (
                             <p className="text-sm text-muted-foreground mb-2">
-                              {element.description}
+                              {projectElement.description}
                             </p>
                           )}
                           
