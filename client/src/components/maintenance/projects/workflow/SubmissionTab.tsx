@@ -46,17 +46,69 @@ const newSubmissionSchema = z.object({
   preferred: z.boolean().default(false),
   // Payment plan fields matching bills structure
   paymentType: z.enum(['unique', 'recurrent']).default('unique'),
-  totalAmount: z.string().default('0'),
+  totalAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Total amount must be between $0.01 and $999,999.99'),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   hasInitialPayment: z.boolean().default(false),
   recurringPaymentsEqual: z.boolean().default(true),
-  initialPaymentAmount: z.string().optional(),
-  recurringPaymentAmount: z.string().optional(),
+  initialPaymentAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Initial payment amount must be between $0.01 and $999,999.99'),
+  recurringPaymentAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Recurring payment amount must be between $0.01 and $999,999.99'),
   customPayments: z.array(z.object({
-    amount: z.string().min(1, 'Amount is required'),
-    date: z.string().min(1, 'Date is required'),
+    amount: z.string().min(1, 'Amount is required').refine((val) => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num > 0 && num <= 999999.99;
+    }, 'Amount must be between $0.01 and $999,999.99'),
+    date: z.string().min(1, 'Date is required').refine((val) => {
+      return !isNaN(Date.parse(val));
+    }, 'Date must be a valid date'),
     description: z.string().optional()
   })).default([]),
+}).superRefine((data, ctx) => {
+  // Custom validation logic for payment structure with specific field error targeting
+  if (data.paymentType === 'unique') {
+    // For unique payments, total amount is required
+    if (!data.totalAmount || data.totalAmount.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Total amount is required for one-time bills',
+        path: ['totalAmount']
+      });
+    }
+  } else if (data.paymentType === 'recurrent') {
+    // For recurring payments, validate based on configuration
+    if (data.hasInitialPayment && (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Initial payment amount is required when initial payment is enabled',
+        path: ['initialPaymentAmount']
+      });
+    }
+    if (data.recurringPaymentsEqual && (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Recurring payment amount is required for equal recurring payments',
+        path: ['recurringPaymentAmount']
+      });
+    }
+    if (!data.recurringPaymentsEqual && (!data.customPayments || data.customPayments.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one custom payment is required for unequal recurring payments',
+        path: ['customPayments']
+      });
+    }
+  }
 });
 
 // Form schema for editing existing vendor with payment plan
@@ -69,17 +121,69 @@ const editVendorSchema = z.object({
   preferred: z.boolean().default(false),
   // Payment plan fields matching bills structure
   paymentType: z.enum(['unique', 'recurrent']).default('unique'),
-  totalAmount: z.string().default('0'),
+  totalAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Total amount must be between $0.01 and $999,999.99'),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   hasInitialPayment: z.boolean().default(false),
   recurringPaymentsEqual: z.boolean().default(true),
-  initialPaymentAmount: z.string().optional(),
-  recurringPaymentAmount: z.string().optional(),
+  initialPaymentAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Initial payment amount must be between $0.01 and $999,999.99'),
+  recurringPaymentAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Recurring payment amount must be between $0.01 and $999,999.99'),
   customPayments: z.array(z.object({
-    amount: z.string().min(1, 'Amount is required'),
-    date: z.string().min(1, 'Date is required'),
+    amount: z.string().min(1, 'Amount is required').refine((val) => {
+      const num = parseFloat(val);
+      return !isNaN(num) && num > 0 && num <= 999999.99;
+    }, 'Amount must be between $0.01 and $999,999.99'),
+    date: z.string().min(1, 'Date is required').refine((val) => {
+      return !isNaN(Date.parse(val));
+    }, 'Date must be a valid date'),
     description: z.string().optional()
   })).default([]),
+}).superRefine((data, ctx) => {
+  // Custom validation logic for payment structure with specific field error targeting
+  if (data.paymentType === 'unique') {
+    // For unique payments, total amount is required
+    if (!data.totalAmount || data.totalAmount.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Total amount is required for one-time bills',
+        path: ['totalAmount']
+      });
+    }
+  } else if (data.paymentType === 'recurrent') {
+    // For recurring payments, validate based on configuration
+    if (data.hasInitialPayment && (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Initial payment amount is required when initial payment is enabled',
+        path: ['initialPaymentAmount']
+      });
+    }
+    if (data.recurringPaymentsEqual && (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Recurring payment amount is required for equal recurring payments',
+        path: ['recurringPaymentAmount']
+      });
+    }
+    if (!data.recurringPaymentsEqual && (!data.customPayments || data.customPayments.length === 0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one custom payment is required for unequal recurring payments',
+        path: ['customPayments']
+      });
+    }
+  }
 });
 
 type NewSubmissionForm = z.infer<typeof newSubmissionSchema>;
@@ -135,9 +239,9 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       price: undefined,
       description: '',
       preferred: false,
-      // Payment plan defaults - unique payment of 0$
+      // Payment plan defaults - unique payment
       paymentType: 'unique',
-      totalAmount: '0',
+      totalAmount: '',
       schedulePayment: undefined,
       hasInitialPayment: false,
       recurringPaymentsEqual: true,
@@ -157,9 +261,9 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       description: '',
       contactInfo: '',
       preferred: false,
-      // Payment plan defaults - unique payment of 0$
+      // Payment plan defaults - unique payment
       paymentType: 'unique',
-      totalAmount: '0',
+      totalAmount: '',
       schedulePayment: undefined,
       hasInitialPayment: false,
       recurringPaymentsEqual: true,
