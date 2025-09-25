@@ -34,6 +34,7 @@ import {
   Settings,
   Plus,
   Upload,
+  X,
 } from 'lucide-react';
 
 // Form schema for new submission with payment plan (matching bills structure)
@@ -633,6 +634,291 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     className="border rounded-lg"
                   />
 
+                  {/* Payment Plan Section */}
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <h4 className="text-sm font-semibold">Payment Plan</h4>
+                    </div>
+
+                    {/* Payment Type */}
+                    <FormField
+                      control={submissionForm.control}
+                      name="paymentType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Payment Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-payment-type">
+                                <SelectValue placeholder="Select payment type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="unique">One-time Payment</SelectItem>
+                              <SelectItem value="recurrent">Recurring Payments</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Choose whether this is a single payment or multiple payments over time
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Total Amount (for unique payments) */}
+                    {submissionForm.watch('paymentType') === 'unique' && (
+                      <FormField
+                        control={submissionForm.control}
+                        name="totalAmount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Total Amount</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                data-testid="input-total-amount"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the total amount for this one-time payment
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {/* Recurring Payment Options */}
+                    {submissionForm.watch('paymentType') === 'recurrent' && (
+                      <div className="space-y-4">
+                        {/* Schedule Payment */}
+                        <FormField
+                          control={submissionForm.control}
+                          name="schedulePayment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Payment Schedule</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-schedule-payment">
+                                    <SelectValue placeholder="Select payment schedule" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="weekly">Weekly</SelectItem>
+                                  <SelectItem value="monthly">Monthly</SelectItem>
+                                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                                  <SelectItem value="yearly">Yearly</SelectItem>
+                                  <SelectItem value="custom">Custom Schedule</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Has Initial Payment */}
+                        <FormField
+                          control={submissionForm.control}
+                          name="hasInitialPayment"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid="checkbox-has-initial-payment"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Has initial payment</FormLabel>
+                                <FormDescription>
+                                  Check if there's a different initial payment amount
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Initial Payment Amount */}
+                        {submissionForm.watch('hasInitialPayment') && (
+                          <FormField
+                            control={submissionForm.control}
+                            name="initialPaymentAmount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Initial Payment Amount</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    data-testid="input-initial-payment-amount"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+
+                        {/* Recurring Payments Equal */}
+                        <FormField
+                          control={submissionForm.control}
+                          name="recurringPaymentsEqual"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  data-testid="checkbox-recurring-payments-equal"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>Equal recurring payments</FormLabel>
+                                <FormDescription>
+                                  Check if all recurring payments are the same amount
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Recurring Payment Amount */}
+                        {submissionForm.watch('recurringPaymentsEqual') && (
+                          <FormField
+                            control={submissionForm.control}
+                            name="recurringPaymentAmount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Recurring Payment Amount</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    data-testid="input-recurring-payment-amount"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+
+                        {/* Custom Payments */}
+                        {!submissionForm.watch('recurringPaymentsEqual') && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <FormLabel>Custom Payment Amounts</FormLabel>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const currentPayments = submissionForm.getValues('customPayments') || [];
+                                  submissionForm.setValue('customPayments', [
+                                    ...currentPayments,
+                                    { amount: '', date: '', description: '' }
+                                  ]);
+                                }}
+                                data-testid="button-add-custom-payment"
+                              >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Payment
+                              </Button>
+                            </div>
+                            
+                            {submissionForm.watch('customPayments')?.map((_, index) => (
+                              <div key={index} className="flex items-center gap-2 p-3 border rounded">
+                                <div className="flex-1 space-y-2">
+                                  <FormField
+                                    control={submissionForm.control}
+                                    name={`customPayments.${index}.amount`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-xs">Amount</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder="0.00"
+                                            data-testid={`input-custom-payment-amount-${index}`}
+                                            {...field}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={submissionForm.control}
+                                    name={`customPayments.${index}.date`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-xs">Date</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="date"
+                                            data-testid={`input-custom-payment-date-${index}`}
+                                            {...field}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  <FormField
+                                    control={submissionForm.control}
+                                    name={`customPayments.${index}.description`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-xs">Description (Optional)</FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            placeholder="Payment description"
+                                            data-testid={`input-custom-payment-description-${index}`}
+                                            {...field}
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const currentPayments = submissionForm.getValues('customPayments') || [];
+                                    const newPayments = currentPayments.filter((_, i) => i !== index);
+                                    submissionForm.setValue('customPayments', newPayments);
+                                  }}
+                                  data-testid={`button-remove-custom-payment-${index}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Preferred Checkbox */}
                   <FormField
                     control={submissionForm.control}
@@ -1064,6 +1350,291 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     </FormItem>
                   )}
                 />
+
+                {/* Payment Plan Section for Edit Vendor */}
+                <div className="space-y-4 border-t pt-4">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    <h4 className="text-sm font-semibold">Payment Plan</h4>
+                  </div>
+
+                  {/* Payment Type */}
+                  <FormField
+                    control={editVendorForm.control}
+                    name="paymentType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Type</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-edit-payment-type">
+                              <SelectValue placeholder="Select payment type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="unique">One-time Payment</SelectItem>
+                            <SelectItem value="recurrent">Recurring Payments</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>
+                          Choose whether this is a single payment or multiple payments over time
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Total Amount (for unique payments) */}
+                  {editVendorForm.watch('paymentType') === 'unique' && (
+                    <FormField
+                      control={editVendorForm.control}
+                      name="totalAmount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Total Amount</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              data-testid="input-edit-total-amount"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Enter the total amount for this one-time payment
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {/* Recurring Payment Options */}
+                  {editVendorForm.watch('paymentType') === 'recurrent' && (
+                    <div className="space-y-4">
+                      {/* Schedule Payment */}
+                      <FormField
+                        control={editVendorForm.control}
+                        name="schedulePayment"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Payment Schedule</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-edit-schedule-payment">
+                                  <SelectValue placeholder="Select payment schedule" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="weekly">Weekly</SelectItem>
+                                <SelectItem value="monthly">Monthly</SelectItem>
+                                <SelectItem value="quarterly">Quarterly</SelectItem>
+                                <SelectItem value="yearly">Yearly</SelectItem>
+                                <SelectItem value="custom">Custom Schedule</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Has Initial Payment */}
+                      <FormField
+                        control={editVendorForm.control}
+                        name="hasInitialPayment"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                data-testid="checkbox-edit-has-initial-payment"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Has initial payment</FormLabel>
+                              <FormDescription>
+                                Check if there's a different initial payment amount
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Initial Payment Amount */}
+                      {editVendorForm.watch('hasInitialPayment') && (
+                        <FormField
+                          control={editVendorForm.control}
+                          name="initialPaymentAmount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Initial Payment Amount</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="0.00"
+                                  data-testid="input-edit-initial-payment-amount"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {/* Recurring Payments Equal */}
+                      <FormField
+                        control={editVendorForm.control}
+                        name="recurringPaymentsEqual"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                data-testid="checkbox-edit-recurring-payments-equal"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Equal recurring payments</FormLabel>
+                              <FormDescription>
+                                Check if all recurring payments are the same amount
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Recurring Payment Amount */}
+                      {editVendorForm.watch('recurringPaymentsEqual') && (
+                        <FormField
+                          control={editVendorForm.control}
+                          name="recurringPaymentAmount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Recurring Payment Amount</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="0.00"
+                                  data-testid="input-edit-recurring-payment-amount"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {/* Custom Payments */}
+                      {!editVendorForm.watch('recurringPaymentsEqual') && (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Custom Payment Amounts</FormLabel>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const currentPayments = editVendorForm.getValues('customPayments') || [];
+                                editVendorForm.setValue('customPayments', [
+                                  ...currentPayments,
+                                  { amount: '', date: '', description: '' }
+                                ]);
+                              }}
+                              data-testid="button-edit-add-custom-payment"
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Payment
+                            </Button>
+                          </div>
+                          
+                          {editVendorForm.watch('customPayments')?.map((_, index) => (
+                            <div key={index} className="flex items-center gap-2 p-3 border rounded">
+                              <div className="flex-1 space-y-2">
+                                <FormField
+                                  control={editVendorForm.control}
+                                  name={`customPayments.${index}.amount`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">Amount</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          min="0"
+                                          step="0.01"
+                                          placeholder="0.00"
+                                          data-testid={`input-edit-custom-payment-amount-${index}`}
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={editVendorForm.control}
+                                  name={`customPayments.${index}.date`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">Date</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="date"
+                                          data-testid={`input-edit-custom-payment-date-${index}`}
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={editVendorForm.control}
+                                  name={`customPayments.${index}.description`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-xs">Description (Optional)</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Payment description"
+                                          data-testid={`input-edit-custom-payment-description-${index}`}
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const currentPayments = editVendorForm.getValues('customPayments') || [];
+                                  const newPayments = currentPayments.filter((_, i) => i !== index);
+                                  editVendorForm.setValue('customPayments', newPayments);
+                                }}
+                                data-testid={`button-edit-remove-custom-payment-${index}`}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <FormField
                   control={editVendorForm.control}
