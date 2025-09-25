@@ -10,6 +10,7 @@ export interface UploadContext {
   organizationId?: string;
   buildingId?: string;
   residenceId?: string;
+  projectId?: string; // For project-specific organization
   userRole?: string;
   userId?: string;
 }
@@ -159,10 +160,39 @@ export function normalizeUserRole(role: string): string {
  * Generate secure storage directory path based on context and user role
  */
 export function generateStorageDirectory(context: UploadContext): string {
-  const { type, organizationId, buildingId, residenceId, userRole: rawUserRole, userId } = context;
+  const { type, organizationId, buildingId, residenceId, projectId, userRole: rawUserRole, userId } = context;
   
   // Normalize the user role to handle demo roles and prefixes
   const userRole = normalizeUserRole(rawUserRole || 'user');
+  
+  // For maintenance projects, organize files under documents with project structure
+  if (type === 'maintenance' && projectId) {
+    const baseParts: string[] = ['documents']; // Store maintenance project files under documents
+    
+    // Organization level
+    const orgId = organizationId || 'default';
+    baseParts.push(`org_${orgId}`);
+    
+    // Building level (if applicable)
+    if (buildingId) {
+      baseParts.push(`building_${buildingId}`);
+    }
+    
+    // Project-specific folder
+    baseParts.push(`project_${projectId}`);
+    
+    // Role-based access control
+    if (userRole) {
+      baseParts.push(`role_${userRole}`);
+    }
+    
+    // User-specific directory for private uploads (if needed)
+    if (userRole === 'tenant' || userRole === 'resident') {
+      baseParts.push(`user_${userId}`);
+    }
+    
+    return baseParts.join('/').replace(/\\/g, '/');
+  }
   
   // Base directory structure: {type}/{org_or_default}/{building?}/{residence?}/{user_role}
   const baseParts: string[] = [type];
