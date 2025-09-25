@@ -1955,13 +1955,15 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       </Dialog>
         </TabsContent>
 
-        <TabsContent value="elements" className="space-y-6">
-          <ElementManagementTab 
-            project={project} 
-            workflowState={workflowState}
-            onUpdate={onUpdate}
-          />
-        </TabsContent>
+        {hasPreferredVendor && (
+          <TabsContent value="elements" className="space-y-6">
+            <ElementManagementTab 
+              project={project} 
+              workflowState={workflowState}
+              onUpdate={onUpdate}
+            />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
