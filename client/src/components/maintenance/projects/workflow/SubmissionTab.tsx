@@ -500,6 +500,9 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     }).format(numericAmount);
   };
 
+  // Check if there's at least one preferred vendor
+  const hasPreferredVendor = vendors.some(vendor => vendor.preferred);
+
   const formatPaymentSchedule = (schedule?: string) => {
     if (!schedule) return 'Not specified';
     const formatted = formatStatus(schedule, 'Not specified');
@@ -638,13 +641,15 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       </div>
 
       <Tabs defaultValue="vendors" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className={cn("grid w-full", hasPreferredVendor ? "grid-cols-2" : "grid-cols-1")}>
           <TabsTrigger value="vendors" data-testid="tab-vendor-submissions">
             Vendor Submissions
           </TabsTrigger>
-          <TabsTrigger value="elements" data-testid="tab-element-management">
-            Element Management  
-          </TabsTrigger>
+          {hasPreferredVendor && (
+            <TabsTrigger value="elements" data-testid="tab-element-management">
+              Element Management  
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="vendors" className="space-y-6">
