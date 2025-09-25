@@ -533,7 +533,7 @@ export function useSubmissionVendorMutations() {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', variables.projectId, 'vendors'] 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'submission-vendors'] 
       });
       toast({
         title: variables.preferred ? 'Marked as Preferred' : 'Unmarked as Preferred',

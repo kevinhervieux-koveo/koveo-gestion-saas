@@ -6105,20 +6105,18 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(403).json({ error: 'No access to this vendor submission' });
       }
 
-      // Use transaction to ensure only one vendor is selected
-      await db.transaction(async (tx) => {
-        // Deselect all vendors for this project
-        await tx
-          .update(submissionVendors)
-          .set({ isSelected: false, updatedAt: new Date() })
-          .where(eq(submissionVendors.projectId, submissionVendor[0].projectId));
+      // Update vendor selection without transaction (neon-http doesn't support transactions)
+      // First, deselect all vendors for this project
+      await db
+        .update(submissionVendors)
+        .set({ isSelected: false, updatedAt: new Date() })
+        .where(eq(submissionVendors.projectId, submissionVendor[0].projectId));
 
-        // Select the specified vendor
-        await tx
-          .update(submissionVendors)
-          .set({ isSelected: true, updatedAt: new Date() })
-          .where(eq(submissionVendors.id, vendorId));
-      });
+      // Then select the specified vendor
+      await db
+        .update(submissionVendors)
+        .set({ isSelected: true, updatedAt: new Date() })
+        .where(eq(submissionVendors.id, vendorId));
 
       res.json({
         success: true,

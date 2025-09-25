@@ -816,19 +816,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                         <Star className={cn("h-3 w-3 mr-1", vendor.preferred && "fill-yellow-400 text-yellow-400")} />
                         {vendor.preferred ? 'Unmark Preferred' : 'Mark as Preferred'}
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditVendor(vendor);
-                        }}
-                        data-testid={`button-edit-vendor-${vendor.id}`}
-                        className="w-full"
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit Vendor
-                      </Button>
                     </div>
                   </div>
                 </div>
