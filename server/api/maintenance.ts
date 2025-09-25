@@ -3588,6 +3588,104 @@ export function registerMaintenanceRoutes(app: Express): void {
     }
   });
 
+  /**
+   * PATCH /api/maintenance/project-elements/:id - Update project element
+   */
+  app.patch('/api/maintenance/project-elements/:id', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to update project elements'
+        });
+      }
+      
+      const { id: projectElementId } = req.params;
+      const { projectType, workDescription, lifespanImpact, costAllocation } = req.body;
+      
+      // Validate inputs
+      if (projectType && !['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure'].includes(projectType)) {
+        return res.status(400).json({
+          error: 'Invalid project type. Must be one of: repair, minor_rehab, major_rehab, replacement, not_sure'
+        });
+      }
+
+      if (lifespanImpact !== undefined && (lifespanImpact < 0 || !Number.isInteger(lifespanImpact))) {
+        return res.status(400).json({
+          error: 'Lifespan impact must be a non-negative integer'
+        });
+      }
+
+      if (costAllocation !== undefined && costAllocation < 0) {
+        return res.status(400).json({
+          error: 'Cost allocation must be non-negative'
+        });
+      }
+      
+      // Get the project element to verify access
+      const projectElement = await db
+        .select({ 
+          id: projectElements.id,
+          projectId: projectElements.projectId,
+          elementId: projectElements.elementId
+        })
+        .from(projectElements)
+        .innerJoin(maintenanceProjects, eq(projectElements.projectId, maintenanceProjects.id))
+        .where(eq(projectElements.id, projectElementId))
+        .limit(1);
+      
+      if (projectElement.length === 0) {
+        return res.status(404).json({ error: 'Project element not found' });
+      }
+      
+      // Check project access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectElement[0].projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+
+      // Prepare update data
+      const updateData: any = {};
+      if (projectType !== undefined) updateData.projectType = projectType;
+      if (workDescription !== undefined) updateData.workDescription = workDescription;
+      if (lifespanImpact !== undefined) updateData.lifespanImpact = lifespanImpact;
+      if (costAllocation !== undefined) updateData.costAllocation = costAllocation.toString();
+
+      // Update the project element
+      await db
+        .update(projectElements)
+        .set(updateData)
+        .where(eq(projectElements.id, projectElementId));
+      
+      res.json({
+        success: true,
+        message: 'Project element updated successfully'
+      });
+    } catch (error: any) {
+      console.error('Error updating project element:', error);
+      res.status(500).json({
+        error: 'Failed to update project element',
+        details: error.message
+      });
+    }
+  });
+
   // ===========================================
   // ELEMENT PROJECT UPDATES (POST-WORK TRACKING)
   // ===========================================

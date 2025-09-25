@@ -448,6 +448,7 @@ export const projectElements = pgTable('project_elements', {
   elementId: uuid('element_id')
     .notNull()
     .references(() => buildingElements.id, { onDelete: 'cascade' }),
+  projectType: projectTypeEnum('project_type'), // type of work planned for this element
   workDescription: text('work_description'),
   lifespanImpact: integer('lifespan_impact'), // years added to element's life
   costAllocation: decimal('cost_allocation', { precision: 10, scale: 2 }), // cost assigned to this element
@@ -687,6 +688,7 @@ export const insertProjectStepSchema = createInsertSchema(projectSteps, {
 export const insertProjectElementSchema = createInsertSchema(projectElements, {
   projectId: z.string().uuid(),
   elementId: z.string().uuid(),
+  projectType: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure']).optional(),
   lifespanImpact: z.number().int().optional(),
   costAllocation: z.number().positive().optional(),
 }).omit({ id: true });
