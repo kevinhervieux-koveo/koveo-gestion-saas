@@ -7316,29 +7316,35 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(400).json({ error: 'Project ID is required' });
       }
 
-      // Temporary inline schema that matches the shared schema exactly
+      console.log('🔍 [SUBMISSION DEBUG] Request body:', JSON.stringify(req.body, null, 2));
+      
+      // Simple validation that matches what frontend sends
       const submissionVendorValidationSchema = z.object({
         projectId: z.string().uuid(),
-        vendorName: z.string().min(1, 'Vendor name is required').max(255),
-        availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        vendorName: z.string().min(1, 'Vendor name is required'),
+        availableDate: z.string().optional(),
         contactInfo: z.string().optional(),
         notes: z.string().optional(),
-        price: z.number().positive().optional(),
+        price: z.string().optional(), // Accept string, convert later
         projectType: z.string().optional(),
-        addedLifespan: z.number().int().positive().optional(),
-        // Payment plan fields following financial service patterns
-        paymentPlanCosts: z.array(z.number().positive()).min(1).optional(),
-        paymentPlanSchedule: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
-        paymentPlanCustomDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
-        paymentPlanStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        addedLifespan: z.number().optional(),
+        documents: z.array(z.any()).optional(), // Accept any array format for documents
+        paymentPlanCosts: z.array(z.any()).optional(),
+        paymentPlanSchedule: z.string().optional(),
+        paymentPlanCustomDates: z.array(z.string()).optional(),
+        paymentPlanStartDate: z.string().optional(),
         isSelected: z.boolean().optional(),
         preferred: z.boolean().optional(),
       });
 
-      const validation = submissionVendorValidationSchema.safeParse({
+      const validationData = {
         ...req.body,
         projectId: id,
-      });
+      };
+      
+      console.log('🔍 [SUBMISSION DEBUG] Validation data:', JSON.stringify(validationData, null, 2));
+      
+      const validation = submissionVendorValidationSchema.safeParse(validationData);
 
       if (!validation.success) {
         return res.status(400).json({
