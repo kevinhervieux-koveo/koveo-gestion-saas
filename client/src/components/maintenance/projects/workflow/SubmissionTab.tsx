@@ -249,12 +249,12 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                 Add Submission
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Vendor Submission</DialogTitle>
               </DialogHeader>
               <Form {...submissionForm}>
-                <form onSubmit={submissionForm.handleSubmit(handleSubmissionSubmit)} className="space-y-4">
+                <form onSubmit={submissionForm.handleSubmit(handleSubmissionSubmit)} className="space-y-4 pb-4">
                   {/* Vendor Name */}
                   <FormField
                     control={submissionForm.control}
