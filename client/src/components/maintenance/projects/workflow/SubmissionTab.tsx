@@ -80,12 +80,19 @@ const newSubmissionSchema = z.object({
 }).superRefine((data, ctx) => {
   // Custom validation logic for payment structure with specific field error targeting
   if (data.paymentType === 'unique') {
-    // For unique payments, total amount is required
+    // For unique payments, total amount and payment date are required
     if (!data.totalAmount || data.totalAmount.trim() === '') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Total amount is required for one-time bills',
+        message: 'Total amount is required for one-time payments',
         path: ['totalAmount']
+      });
+    }
+    if (!data.dateFirstPayment) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Payment date is required for one-time payments',
+        path: ['dateFirstPayment']
       });
     }
   } else if (data.paymentType === 'recurrent') {
@@ -157,12 +164,19 @@ const editVendorSchema = z.object({
 }).superRefine((data, ctx) => {
   // Custom validation logic for payment structure with specific field error targeting
   if (data.paymentType === 'unique') {
-    // For unique payments, total amount is required
+    // For unique payments, total amount and payment date are required
     if (!data.totalAmount || data.totalAmount.trim() === '') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Total amount is required for one-time bills',
+        message: 'Total amount is required for one-time payments',
         path: ['totalAmount']
+      });
+    }
+    if (!data.dateFirstPayment) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Payment date is required for one-time payments',
+        path: ['dateFirstPayment']
       });
     }
   } else if (data.paymentType === 'recurrent') {
@@ -387,6 +401,8 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       paymentType,
       totalAmount,
       schedulePayment,
+      dateFirstPayment: vendor.paymentPlanStartDate ? new Date(vendor.paymentPlanStartDate) : undefined,
+      dateEndPayment: undefined, // Not used in current implementation
       hasInitialPayment,
       recurringPaymentsEqual,
       initialPaymentAmount,
@@ -403,6 +419,11 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     let paymentPlanSchedule: string | undefined;
     let paymentPlanCustomDates: string[] = [];
     let paymentPlanStartDate: string | undefined;
+
+    // Set payment start date from dateFirstPayment
+    if (data.dateFirstPayment) {
+      paymentPlanStartDate = format(data.dateFirstPayment, 'yyyy-MM-dd');
+    }
 
     if (data.paymentType === 'unique') {
       // Single payment
@@ -512,6 +533,11 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     let paymentPlanSchedule: string | undefined;
     let paymentPlanCustomDates: string[] = [];
     let paymentPlanStartDate: string | undefined;
+
+    // Set payment start date from dateFirstPayment
+    if (data.dateFirstPayment) {
+      paymentPlanStartDate = format(data.dateFirstPayment, 'yyyy-MM-dd');
+    }
 
     if (data.paymentType === 'unique') {
       // Single payment
@@ -838,31 +864,57 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                       )}
                     />
 
-                    {/* Total Amount (for unique payments) */}
+                    {/* One-time Payment Options */}
                     {submissionForm.watch('paymentType') === 'unique' && (
-                      <FormField
-                        control={submissionForm.control}
-                        name="totalAmount"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Total Amount</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                                data-testid="input-total-amount"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Enter the total amount for this one-time payment
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="space-y-4">
+                        <FormField
+                          control={submissionForm.control}
+                          name="totalAmount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Total Amount</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  placeholder="0.00"
+                                  data-testid="input-total-amount"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Enter the total amount for this one-time payment
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Payment Date (for one-time payments) */}
+                        <FormField
+                          control={submissionForm.control}
+                          name="dateFirstPayment"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Payment Date</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  {...field}
+                                  value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                                  onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                                  data-testid="input-unique-payment-date"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                The date when this payment is due
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     )}
 
                     {/* Recurring Payment Options */}
@@ -1596,31 +1648,57 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     )}
                   />
 
-                  {/* Total Amount (for unique payments) */}
+                  {/* One-time Payment Options */}
                   {editVendorForm.watch('paymentType') === 'unique' && (
-                    <FormField
-                      control={editVendorForm.control}
-                      name="totalAmount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Total Amount</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              placeholder="0.00"
-                              data-testid="input-edit-total-amount"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Enter the total amount for this one-time payment
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="space-y-4">
+                      <FormField
+                        control={editVendorForm.control}
+                        name="totalAmount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Total Amount</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                data-testid="input-edit-total-amount"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Enter the total amount for this one-time payment
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Payment Date (for one-time payments) */}
+                      <FormField
+                        control={editVendorForm.control}
+                        name="dateFirstPayment"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Payment Date</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...field}
+                                value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                                onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                                data-testid="input-edit-unique-payment-date"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              The date when this payment is due
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   )}
 
                   {/* Recurring Payment Options */}
