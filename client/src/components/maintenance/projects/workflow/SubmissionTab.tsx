@@ -791,7 +791,9 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     uploadProgress={uploadProgress}
                     uploadContext={{
                       type: 'maintenance',
+                      organizationId: project.organizationId,
                       buildingId: project.buildingId,
+                      projectId: project.id,
                     }}
                     title="Documents (Optional)"
                     showUploadTabs={false}
@@ -1895,7 +1897,9 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     uploadProgress={editUploadProgress}
                     uploadContext={{
                       type: 'maintenance',
+                      organizationId: project.organizationId,
                       buildingId: project.buildingId,
+                      projectId: project.id,
                     }}
                     title="Documents"
                     description="Upload or modify vendor documents and attachments"
