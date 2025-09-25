@@ -520,7 +520,8 @@ export function PaymentPlanForm({
               </>
             )}
 
-            {/* Payment Amounts */}
+            {/* Payment Amounts - show for single payments or non-equal recurring payments */}
+            {(watchedPaymentType === 'single' || (watchedPaymentType === 'recurring' && !watchedEqualRecurringPayments)) && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>Payment Amounts</Label>
@@ -580,36 +581,42 @@ export function PaymentPlanForm({
                 ))}
               </div>
 
-              {/* Payment Summary */}
-              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                <div className="space-y-1">
-                  <div className="text-sm font-medium">Payment Summary</div>
-                  <div className="text-xs text-muted-foreground">
-                    {watchedCosts.length} payment{watchedCosts.length !== 1 ? 's' : ''}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-semibold">
-                    ${total.toFixed(2)}
-                  </div>
-                  {totalAmount > 0 && Math.abs(total - totalAmount) > 0.01 && (
-                    <Badge variant="outline" className="text-xs">
-                      {total > totalAmount ? 'Over' : 'Under'} by ${Math.abs(total - totalAmount).toFixed(2)}
-                    </Badge>
-                  )}
+              </div>
+            )}
+
+            {/* Payment Summary - always visible */}
+            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+              <div className="space-y-1">
+                <div className="text-sm font-medium">Payment Summary</div>
+                <div className="text-xs text-muted-foreground">
+                  {watchedPaymentType === 'single' 
+                    ? `Single payment${watchedHasInitialPayment ? ' with initial payment' : ''}` 
+                    : watchedEqualRecurringPayments 
+                    ? `${calculateRecurringPaymentCount()} equal recurring payments${watchedHasInitialPayment ? ' + initial payment' : ''}` 
+                    : `${watchedCosts.length} custom payment${watchedCosts.length !== 1 ? 's' : ''}${watchedHasInitialPayment ? ' + initial payment' : ''}`}
                 </div>
               </div>
-
-              {/* Validation alerts */}
-              {totalAmount > 0 && Math.abs(total - totalAmount) > 0.01 && (
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Payment plan total (${total.toFixed(2)}) does not match the vendor price (${totalAmount.toFixed(2)})
-                  </AlertDescription>
-                </Alert>
-              )}
+              <div className="text-right">
+                <div className="text-lg font-semibold">
+                  ${total.toFixed(2)}
+                </div>
+                {totalAmount > 0 && Math.abs(total - totalAmount) > 0.01 && (
+                  <Badge variant="outline" className="text-xs">
+                    {total > totalAmount ? 'Over' : 'Under'} by ${Math.abs(total - totalAmount).toFixed(2)}
+                  </Badge>
+                )}
+              </div>
             </div>
+
+            {/* Validation alerts */}
+            {totalAmount > 0 && Math.abs(total - totalAmount) > 0.01 && (
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  Payment plan total (${total.toFixed(2)}) does not match the vendor price (${totalAmount.toFixed(2)})
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-3 pt-4 border-t">
