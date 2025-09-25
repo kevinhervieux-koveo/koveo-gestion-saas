@@ -206,6 +206,8 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<AttachedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
+  const [editVendorDocuments, setEditVendorDocuments] = useState<AttachedFile[]>([]);
+  const [editUploadProgress, setEditUploadProgress] = useState<{ [key: string]: number }>({});
 
   // Defensive null check for project data
   if (!project) {
@@ -302,6 +304,17 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
 
   const handleEditVendor = (vendor: SubmissionVendor) => {
     setEditingVendor(vendor);
+
+    // Convert existing documents to AttachedFile format for editing
+    const existingDocs: AttachedFile[] = (vendor.documents || []).map(doc => ({
+      id: doc.id || crypto.randomUUID(),
+      name: doc.name,
+      url: doc.url,
+      size: doc.size || 0,
+      type: doc.type || 'application/octet-stream',
+      uploadProgress: 100, // Existing files are already uploaded
+    }));
+    setEditVendorDocuments(existingDocs);
     
     // Convert existing payment plan data back to form format
     const paymentPlanCosts = vendor.paymentPlanCosts || [];
@@ -424,11 +437,21 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         paymentPlanSchedule,
         paymentPlanCustomDates,
         paymentPlanStartDate,
+        // Documents data
+        documents: editVendorDocuments.map(doc => ({
+          id: doc.id,
+          name: doc.name,
+          url: doc.url,
+          size: doc.size,
+          type: doc.type,
+        })),
       },
     }, {
       onSuccess: () => {
         setEditingVendor(null);
         editVendorForm.reset();
+        setEditVendorDocuments([]);
+        setEditUploadProgress({});
         onUpdate();
       },
     });
@@ -437,6 +460,8 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   const handleCancelVendorEdit = () => {
     setEditingVendor(null);
     editVendorForm.reset();
+    setEditVendorDocuments([]);
+    setEditUploadProgress({});
   };
 
   const handleTogglePreferred = (vendor: SubmissionVendor) => {
@@ -566,6 +591,23 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   // Handle removing files
   const handleRemoveFile = (fileId: string) => {
     setUploadedDocuments(prev => prev.filter(doc => doc.id !== fileId));
+  };
+
+  // Handle document changes from StandardDocumentAttachments for edit vendor
+  const handleEditDocumentChange = (file: File | null, text: string | null) => {
+    if (file) {
+      const newAttachment: AttachedFile = {
+        id: crypto.randomUUID(),
+        file,
+        uploadProgress: 0,
+      };
+      setEditVendorDocuments(prev => [...prev, newAttachment]);
+    }
+  };
+
+  // Handle removing files for edit vendor
+  const handleEditRemoveFile = (fileId: string) => {
+    setEditVendorDocuments(prev => prev.filter(doc => doc.id !== fileId));
   };
 
   return (
@@ -1751,6 +1793,23 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                       )}
                     </div>
                   )}
+                </div>
+
+                {/* Document Upload using StandardDocumentAttachments */}
+                <div className="space-y-2">
+                  <StandardDocumentAttachments
+                    onDocumentChange={handleEditDocumentChange}
+                    attachedFiles={editVendorDocuments}
+                    onRemoveFile={handleEditRemoveFile}
+                    uploadProgress={editUploadProgress}
+                    uploadContext={{
+                      type: 'maintenance',
+                      buildingId: project.buildingId,
+                      elementId: project.id,
+                    }}
+                    title="Documents"
+                    description="Upload or modify vendor documents and attachments"
+                  />
                 </div>
 
                 <FormField
