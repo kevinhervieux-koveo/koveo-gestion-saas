@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -200,7 +199,6 @@ export interface SubmissionTabProps {
  * Displays vendor submissions, payment plans, and selection interface
  */
 export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTabProps) {
-  const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
   const [editingVendor, setEditingVendor] = useState<SubmissionVendor | null>(null);
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
@@ -228,7 +226,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   } = useSubmissionVendors(project.id);
 
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
-  const { createSubmissionVendor, selectSubmissionVendor, updateSubmissionVendor, updatePreferredStatus } = useSubmissionVendorMutations();
+  const { createSubmissionVendor, updateSubmissionVendor, updatePreferredStatus } = useSubmissionVendorMutations();
 
   // Form for new submission
   const submissionForm = useForm<NewSubmissionForm>({
@@ -274,15 +272,8 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   });
 
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'submission';
+  const hasPreferredVendor = submissionVendors.some(v => v.preferred);
 
-  const handleVendorSelect = (vendor: SubmissionVendor) => {
-    setSelectedVendorId(vendor.id);
-    selectSubmissionVendor.mutate({
-      projectId: project.id,
-      vendorId: vendor.id,
-      isSelected: !vendor.isSelected,
-    });
-  };
 
   const handleEditPaymentPlan = (vendor: SubmissionVendor) => {
     setEditingPaymentPlan(vendor);
@@ -537,7 +528,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       paymentPlanSchedule,
       paymentPlanCustomDates,
       paymentPlanStartDate,
-      isSelected: false,
     };
 
     console.log('Creating new submission:', vendorData);
@@ -1124,9 +1114,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
               Vendor Submissions ({submissionVendors.length})
             </h4>
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">
-                {submissionVendors.filter(v => v.isSelected).length} Selected
-              </Badge>
               {submissionVendors.some(v => v.preferred) && (
                 <Badge variant="outline" className="border-yellow-400 text-yellow-600">
                   <Star className="h-3 w-3 mr-1" />
@@ -1140,21 +1127,13 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
             <Card 
               key={vendor.id} 
               className={cn(
-                'transition-all cursor-pointer hover:shadow-md',
-                vendor.isSelected && 'ring-2 ring-primary',
-                vendor.preferred && 'ring-2 ring-yellow-400 bg-yellow-50 dark:bg-yellow-950',
-                selectedVendorId === vendor.id && 'ring-2 ring-blue-500'
+                'transition-all',
+                vendor.preferred && 'ring-2 ring-yellow-400 bg-yellow-50 dark:bg-yellow-950'
               )}
-              onClick={() => handleVendorSelect(vendor)}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={vendor.isSelected}
-                      onChange={() => handleVendorSelect(vendor)}
-                      className="mt-1"
-                    />
                     <div>
                       <CardTitle className="text-lg">{vendor.vendorName}</CardTitle>
                       <CardDescription className="flex items-center gap-4 mt-1">
@@ -1182,9 +1161,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                       {formatCurrency(vendor.price)}
                     </div>
                     <div className="flex flex-col gap-1">
-                      {vendor.isSelected && (
-                        <Badge className="bg-green-600">Selected</Badge>
-                      )}
                       {vendor.preferred && (
                         <Badge className="bg-yellow-600">
                           <Star className="h-3 w-3 mr-1" />
@@ -1193,6 +1169,19 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                       )}
                     </div>
                     <div className="flex flex-col gap-1 w-full">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditVendor(vendor);
+                        }}
+                        data-testid={`button-edit-${vendor.id}`}
+                        className="w-full mb-1"
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
                       <Button
                         variant={vendor.preferred ? "secondary" : "outline"}
                         size="sm"
@@ -1309,7 +1298,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         {canAdvance && (
           <Button 
             onClick={handleMarkComplete}
-            disabled={isMarkingComplete}
+            disabled={isMarkingComplete || !hasPreferredVendor}
             className="flex items-center gap-2"
             data-testid="button-mark-submission-complete"
           >
