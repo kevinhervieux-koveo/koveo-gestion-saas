@@ -3494,6 +3494,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           elementId: projectElements.elementId,
           projectId: projectElements.projectId,
           workDescription: projectElements.workDescription,
+          projectType: projectElements.projectType,
           // Element details
           elementName: buildingElements.name,
           uniformatCode: buildingElements.uniformatCode,
