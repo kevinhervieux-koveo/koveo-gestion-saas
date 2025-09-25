@@ -306,14 +306,13 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     setEditingVendor(vendor);
 
     // Convert existing documents to AttachedFile format for editing
-    const existingDocs: AttachedFile[] = (vendor.documents || []).map(doc => ({
-      id: doc.id || crypto.randomUUID(),
-      name: doc.name,
-      url: doc.url,
-      size: doc.size || 0,
-      type: doc.type || 'application/octet-stream',
-      uploadProgress: 100, // Existing files are already uploaded
-    }));
+    const existingDocs: AttachedFile[] = (vendor.documents && Array.isArray(vendor.documents)) 
+      ? vendor.documents.map(doc => ({
+          id: doc.id || crypto.randomUUID(),
+          file: new File([], doc.name || 'unknown', { type: doc.type || 'application/octet-stream' }),
+          uploadProgress: 100, // Existing files are already uploaded
+        }))
+      : [];
     setEditVendorDocuments(existingDocs);
     
     // Convert existing payment plan data back to form format
@@ -440,10 +439,10 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         // Documents data
         documents: editVendorDocuments.map(doc => ({
           id: doc.id,
-          name: doc.name,
-          url: doc.url,
-          size: doc.size,
-          type: doc.type,
+          name: doc.file?.name || 'unknown',
+          url: '', // This would be set by the server after upload
+          size: doc.file?.size || 0,
+          type: doc.file?.type || 'application/octet-stream',
         })),
       },
     }, {
@@ -540,16 +539,17 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       preferred: data.preferred || false,
       documents: uploadedDocuments.map(doc => ({
         id: doc.id,
-        name: doc.name,
-        url: doc.url,
-        size: doc.size,
-        type: doc.type,
+        name: doc.file?.name || 'unknown',
+        url: '', // This would be set by the server after upload
+        size: doc.file?.size || 0,
+        type: doc.file?.type || 'application/octet-stream',
       })),
       // Add other required fields with defaults
       contactInfo: '',
       notes: data.description || '',
       projectType: 'not_sure' as const, // Default project type
       addedLifespan: undefined,
+      isSelected: false,
       // Payment plan data
       paymentPlanCosts,
       paymentPlanSchedule,
@@ -784,7 +784,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     uploadContext={{
                       type: 'maintenance',
                       buildingId: project.buildingId,
-                      elementId: project.id,
                     }}
                     title="Documents (Optional)"
                     showUploadTabs={false}
@@ -1805,7 +1804,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                     uploadContext={{
                       type: 'maintenance',
                       buildingId: project.buildingId,
-                      elementId: project.id,
                     }}
                     title="Documents"
                     description="Upload or modify vendor documents and attachments"
