@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -19,6 +20,8 @@ import {
   Building2,
   Wrench,
   AlertCircle,
+  Search,
+  X,
 } from 'lucide-react';
 
 interface ElementManagementTabProps {
@@ -44,6 +47,8 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
   const [showBulkEdit, setShowBulkEdit] = useState(false);
   const [bulkProjectType, setBulkProjectType] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [bulkAction, setBulkAction] = useState<'update_type' | 'remove'>('update_type');
 
   // Fetch building elements
   const { data: buildingElements = [], isLoading: loadingElements } = useQuery({
@@ -183,6 +188,49 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
     });
   };
 
+  const handleBulkRemoveElements = () => {
+    if (selectedElements.length === 0) return;
+
+    // Remove all selected elements that are in the project
+    const selectedProjectElements = projectElements.filter(pe => 
+      selectedElements.includes(pe.elementId)
+    );
+
+    selectedProjectElements.forEach(pe => {
+      removeElementMutation.mutate(pe.id);
+    });
+
+    setShowBulkEdit(false);
+    setSelectedElements([]);
+  };
+
+  const handleBulkAction = () => {
+    if (bulkAction === 'remove') {
+      handleBulkRemoveElements();
+    } else if (bulkAction === 'update_type') {
+      handleBulkProjectTypeUpdate();
+    }
+  };
+
+  // Filter function for search
+  const filterElements = (elements: any[]) => {
+    if (!searchTerm.trim()) return elements;
+    
+    const term = searchTerm.toLowerCase();
+    return elements.filter(element => {
+      // For project elements, search in both element name and description
+      if (element.elementName) {
+        return element.elementName.toLowerCase().includes(term) ||
+               element.uniformatCode?.toLowerCase().includes(term) ||
+               element.description?.toLowerCase().includes(term);
+      }
+      // For building elements, search in name and description
+      return element.name?.toLowerCase().includes(term) ||
+             element.uniformatCode?.toLowerCase().includes(term) ||
+             element.description?.toLowerCase().includes(term);
+    });
+  };
+
   const getProjectTypeDisplay = (projectType?: string) => {
     const type = PROJECT_TYPES.find(t => t.value === projectType);
     return type || { value: 'not_sure', label: 'Assessment Needed', icon: '❓', description: 'Requires evaluation' };
@@ -192,6 +240,10 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
   const availableElements = buildingElements.filter(element => 
     !linkedElementIds.includes(element.id)
   );
+
+  // Apply filters
+  const filteredProjectElements = filterElements(projectElements);
+  const filteredAvailableElements = filterElements(availableElements);
 
   if (loadingElements || loadingProjectElements) {
     return (
@@ -211,6 +263,38 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
 
   return (
     <div className="space-y-6">
+      {/* Search Bar */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search elements by name, description, or UNIFORMAT code..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-10"
+              data-testid="input-search-elements"
+            />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
+                onClick={() => setSearchTerm('')}
+                data-testid="button-clear-search"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          {searchTerm && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              Filtering by: "{searchTerm}" • {filteredProjectElements.length + filteredAvailableElements.length} results
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Project Elements */}
       <Card>
         <CardHeader>
@@ -230,25 +314,39 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
                   variant="outline"
                   size="sm"
                   onClick={() => setShowBulkEdit(true)}
-                  data-testid="button-bulk-edit-project-type"
+                  data-testid="button-bulk-edit"
                 >
                   <Settings className="h-4 w-4 mr-2" />
-                  Bulk Edit Project Type ({selectedElements.length})
+                  Bulk Actions ({selectedElements.length})
                 </Button>
               </div>
             )}
           </div>
         </CardHeader>
         <CardContent>
-          {projectElements.length === 0 ? (
+          {filteredProjectElements.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>No elements added to this project yet.</p>
-              <p className="text-sm">Add elements from the available elements below.</p>
+              {searchTerm ? (
+                <div>
+                  <p>No elements found matching "{searchTerm}"</p>
+                  <p className="text-sm">Try adjusting your search terms.</p>
+                </div>
+              ) : projectElements.length === 0 ? (
+                <div>
+                  <p>No elements added to this project yet.</p>
+                  <p className="text-sm">Add elements from the available elements below.</p>
+                </div>
+              ) : (
+                <div>
+                  <p>No elements match your search.</p>
+                  <p className="text-sm">Try different search terms.</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid gap-3">
-              {projectElements.map((projectElement) => {
+              {filteredProjectElements.map((projectElement) => {
                 const projectTypeDisplay = getProjectTypeDisplay(projectElement.projectType);
                 const isSelected = selectedElements.includes(projectElement.elementId);
 
@@ -324,17 +422,18 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
       </Card>
 
       {/* Available Elements */}
-      {availableElements.length > 0 && (
+      {filteredAvailableElements.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Plus className="h-5 w-5" />
-                  Available Building Elements ({availableElements.length})
+                  Available Building Elements ({searchTerm ? filteredAvailableElements.length : availableElements.length})
                 </CardTitle>
                 <CardDescription>
                   Add elements to this maintenance project
+                  {searchTerm && ` • Filtered by "${searchTerm}"`}
                 </CardDescription>
               </div>
               {selectedElements.length > 0 && (
@@ -351,7 +450,7 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
-              {availableElements.map((element) => {
+              {filteredAvailableElements.map((element) => {
                 const isSelected = selectedElements.includes(element.id);
 
                 return (
@@ -396,32 +495,83 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
       <Dialog open={showBulkEdit} onOpenChange={setShowBulkEdit}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bulk Edit Project Type</DialogTitle>
+            <DialogTitle>Bulk Actions</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground mb-4">
-                Update project type for {selectedElements.length} selected elements
+                Choose an action for {selectedElements.length} selected elements
               </p>
               
-              <Select value={bulkProjectType} onValueChange={setBulkProjectType}>
-                <SelectTrigger data-testid="select-bulk-project-type">
-                  <SelectValue placeholder="Select project type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROJECT_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      <div className="flex items-center gap-2">
-                        <span>{type.icon}</span>
-                        <div>
-                          <div className="font-medium">{type.label}</div>
-                          <div className="text-xs text-muted-foreground">{type.description}</div>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Action Selection */}
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="update_type"
+                    checked={bulkAction === 'update_type'}
+                    onCheckedChange={(checked) => checked && setBulkAction('update_type')}
+                    data-testid="checkbox-bulk-update-type"
+                  />
+                  <label
+                    htmlFor="update_type"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Change Project Type
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remove"
+                    checked={bulkAction === 'remove'}
+                    onCheckedChange={(checked) => checked && setBulkAction('remove')}
+                    data-testid="checkbox-bulk-remove"
+                  />
+                  <label
+                    htmlFor="remove"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Remove Elements from Project
+                  </label>
+                </div>
+              </div>
+
+              {/* Project Type Selection - only show when updating type */}
+              {bulkAction === 'update_type' && (
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Select New Project Type:</label>
+                  <Select value={bulkProjectType} onValueChange={setBulkProjectType}>
+                    <SelectTrigger data-testid="select-bulk-project-type">
+                      <SelectValue placeholder="Select project type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROJECT_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          <div className="flex items-center gap-2">
+                            <span>{type.icon}</span>
+                            <div>
+                              <div className="font-medium">{type.label}</div>
+                              <div className="text-xs text-muted-foreground">{type.description}</div>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Warning for remove action */}
+              {bulkAction === 'remove' && (
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">Warning</span>
+                  </div>
+                  <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                    This will remove {selectedElements.length} selected elements from the project. This action cannot be undone.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-2">
@@ -430,18 +580,33 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
                 onClick={() => {
                   setShowBulkEdit(false);
                   setBulkProjectType('');
+                  setBulkAction('update_type');
                 }}
                 data-testid="button-cancel-bulk-edit"
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleBulkProjectTypeUpdate}
-                disabled={!bulkProjectType || updateProjectElementMutation.isPending}
+                onClick={handleBulkAction}
+                disabled={
+                  (bulkAction === 'update_type' && !bulkProjectType) ||
+                  updateProjectElementMutation.isPending ||
+                  removeElementMutation.isPending
+                }
+                variant={bulkAction === 'remove' ? 'destructive' : 'default'}
                 data-testid="button-confirm-bulk-edit"
               >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Update Project Type
+                {bulkAction === 'remove' ? (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove Elements
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Update Project Type
+                  </>
+                )}
               </Button>
             </div>
           </div>
