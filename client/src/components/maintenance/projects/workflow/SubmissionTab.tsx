@@ -203,8 +203,6 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
           setShowSubmissionDialog(false);
           submissionForm.reset();
           setUploadedDocuments([]);
-          setTextContent('');
-          setTextDocumentId(null);
           onUpdate(); // Refresh the project data
         },
         onError: (error) => {

@@ -7316,9 +7316,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(400).json({ error: 'Project ID is required' });
       }
 
-      console.log('🔍 [SUBMISSION DEBUG] Request body:', JSON.stringify(req.body, null, 2));
-      
-      // Simple validation that matches what frontend sends
+      // Validate submission vendor data using the schema
       const submissionVendorValidationSchema = z.object({
         projectId: z.string().uuid(),
         vendorName: z.string().min(1, 'Vendor name is required'),
@@ -7337,14 +7335,10 @@ export function registerMaintenanceRoutes(app: Express): void {
         preferred: z.boolean().optional(),
       });
 
-      const validationData = {
+      const validation = submissionVendorValidationSchema.safeParse({
         ...req.body,
         projectId: id,
-      };
-      
-      console.log('🔍 [SUBMISSION DEBUG] Validation data:', JSON.stringify(validationData, null, 2));
-      
-      const validation = submissionVendorValidationSchema.safeParse(validationData);
+      });
 
       if (!validation.success) {
         return res.status(400).json({
