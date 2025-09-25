@@ -7316,8 +7316,26 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(400).json({ error: 'Project ID is required' });
       }
 
-      // Validate submission vendor data using the schema
-      const validation = insertSubmissionVendorSchema.safeParse({
+      // Temporary inline schema that matches the shared schema exactly
+      const submissionVendorValidationSchema = z.object({
+        projectId: z.string().uuid(),
+        vendorName: z.string().min(1, 'Vendor name is required').max(255),
+        availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        contactInfo: z.string().optional(),
+        notes: z.string().optional(),
+        price: z.number().positive().optional(),
+        projectType: z.string().optional(),
+        addedLifespan: z.number().int().positive().optional(),
+        // Payment plan fields following financial service patterns
+        paymentPlanCosts: z.array(z.number().positive()).min(1).optional(),
+        paymentPlanSchedule: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+        paymentPlanCustomDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+        paymentPlanStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        isSelected: z.boolean().optional(),
+        preferred: z.boolean().optional(),
+      });
+
+      const validation = submissionVendorValidationSchema.safeParse({
         ...req.body,
         projectId: id,
       });
@@ -7383,8 +7401,27 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(400).json({ error: 'Project ID and Vendor ID are required' });
       }
 
+      // Temporary inline schema that matches the shared schema exactly
+      const submissionVendorValidationSchema = z.object({
+        projectId: z.string().uuid(),
+        vendorName: z.string().min(1, 'Vendor name is required').max(255),
+        availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        contactInfo: z.string().optional(),
+        notes: z.string().optional(),
+        price: z.number().positive().optional(),
+        projectType: z.string().optional(),
+        addedLifespan: z.number().int().positive().optional(),
+        // Payment plan fields following financial service patterns
+        paymentPlanCosts: z.array(z.number().positive()).min(1).optional(),
+        paymentPlanSchedule: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+        paymentPlanCustomDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+        paymentPlanStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        isSelected: z.boolean().optional(),
+        preferred: z.boolean().optional(),
+      });
+
       // Validate update data using partial schema
-      const validation = insertSubmissionVendorSchema.partial().omit({ projectId: true }).safeParse(req.body);
+      const validation = submissionVendorValidationSchema.partial().omit({ projectId: true }).safeParse(req.body);
 
       if (!validation.success) {
         return res.status(400).json({
