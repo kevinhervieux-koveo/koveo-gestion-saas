@@ -44,7 +44,18 @@ const newSubmissionSchema = z.object({
   preferred: z.boolean().default(false),
 });
 
+// Form schema for editing existing vendor
+const editVendorSchema = z.object({
+  vendorName: z.string().min(1, 'Vendor name is required'),
+  availableDate: z.date().optional(),
+  price: z.number().min(0, 'Price must be a positive number').optional(),
+  description: z.string().optional(),
+  contactInfo: z.string().optional(),
+  preferred: z.boolean().default(false),
+});
+
 type NewSubmissionForm = z.infer<typeof newSubmissionSchema>;
+type EditVendorForm = z.infer<typeof editVendorSchema>;
 
 export interface SubmissionTabProps {
   project: MaintenanceProject;
@@ -59,6 +70,7 @@ export interface SubmissionTabProps {
 export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTabProps) {
   const [selectedVendorId, setSelectedVendorId] = useState<string | null>(null);
   const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
+  const [editingVendor, setEditingVendor] = useState<SubmissionVendor | null>(null);
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<AttachedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
@@ -98,6 +110,19 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     },
   });
 
+  // Form for editing vendor
+  const editVendorForm = useForm<EditVendorForm>({
+    resolver: zodResolver(editVendorSchema),
+    defaultValues: {
+      vendorName: '',
+      availableDate: undefined,
+      price: undefined,
+      description: '',
+      contactInfo: '',
+      preferred: false,
+    },
+  });
+
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'submission';
 
   const handleVendorSelect = (vendor: SubmissionVendor) => {
@@ -130,6 +155,47 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
 
   const handleCancelPaymentPlan = () => {
     setEditingPaymentPlan(null);
+  };
+
+  const handleEditVendor = (vendor: SubmissionVendor) => {
+    setEditingVendor(vendor);
+    // Populate form with vendor data
+    editVendorForm.reset({
+      vendorName: vendor.vendorName,
+      availableDate: vendor.availableDate ? new Date(vendor.availableDate) : undefined,
+      price: vendor.price ? parseFloat(vendor.price) : undefined,
+      description: vendor.notes || '',
+      contactInfo: vendor.contactInfo || '',
+      preferred: vendor.preferred,
+    });
+  };
+
+  const handleSaveVendorEdit = (data: EditVendorForm) => {
+    if (!editingVendor) return;
+
+    updateSubmissionVendor.mutate({
+      projectId: project.id,
+      vendorId: editingVendor.id,
+      updates: {
+        vendorName: data.vendorName,
+        availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
+        price: data.price?.toString(),
+        notes: data.description,
+        contactInfo: data.contactInfo,
+        preferred: data.preferred,
+      },
+    }, {
+      onSuccess: () => {
+        setEditingVendor(null);
+        editVendorForm.reset();
+        onUpdate();
+      },
+    });
+  };
+
+  const handleCancelVendorEdit = () => {
+    setEditingVendor(null);
+    editVendorForm.reset();
   };
 
   const handleTogglePreferred = (vendor: SubmissionVendor) => {
@@ -561,19 +627,34 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                         </Badge>
                       )}
                     </div>
-                    <Button
-                      variant={vendor.preferred ? "secondary" : "outline"}
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleTogglePreferred(vendor);
-                      }}
-                      data-testid={`button-toggle-preferred-${vendor.id}`}
-                      className="w-full"
-                    >
-                      <Star className={cn("h-3 w-3 mr-1", vendor.preferred && "fill-yellow-400 text-yellow-400")} />
-                      {vendor.preferred ? 'Unmark Preferred' : 'Mark as Preferred'}
-                    </Button>
+                    <div className="flex flex-col gap-1 w-full">
+                      <Button
+                        variant={vendor.preferred ? "secondary" : "outline"}
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTogglePreferred(vendor);
+                        }}
+                        data-testid={`button-toggle-preferred-${vendor.id}`}
+                        className="w-full"
+                      >
+                        <Star className={cn("h-3 w-3 mr-1", vendor.preferred && "fill-yellow-400 text-yellow-400")} />
+                        {vendor.preferred ? 'Unmark Preferred' : 'Mark as Preferred'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditVendor(vendor);
+                        }}
+                        data-testid={`button-edit-vendor-${vendor.id}`}
+                        className="w-full"
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Edit Vendor
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -724,6 +805,155 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
               onCancel={handleCancelPaymentPlan}
               isLoading={updateSubmissionVendor.isPending}
             />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Vendor Dialog */}
+      <Dialog 
+        open={!!editingVendor} 
+        onOpenChange={(open) => !open && handleCancelVendorEdit()}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              Edit Vendor - {editingVendor?.vendorName}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {editingVendor && (
+            <Form {...editVendorForm}>
+              <form onSubmit={editVendorForm.handleSubmit(handleSaveVendorEdit)} className="space-y-4">
+                <FormField
+                  control={editVendorForm.control}
+                  name="vendorName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vendor Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter vendor name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editVendorForm.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01"
+                          placeholder="Enter price" 
+                          {...field}
+                          value={field.value || ''}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editVendorForm.control}
+                  name="availableDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Available Date</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date"
+                          {...field}
+                          value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editVendorForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter description or notes" 
+                          {...field}
+                          value={field.value || ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editVendorForm.control}
+                  name="contactInfo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Information</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter contact information" 
+                          {...field}
+                          value={field.value || ''}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editVendorForm.control}
+                  name="preferred"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Mark as Preferred</FormLabel>
+                        <FormDescription>
+                          Mark this vendor as preferred for this project
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancelVendorEdit}
+                    disabled={updateSubmissionVendor.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={updateSubmissionVendor.isPending}
+                  >
+                    {updateSubmissionVendor.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           )}
         </DialogContent>
       </Dialog>
