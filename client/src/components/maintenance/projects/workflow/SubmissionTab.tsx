@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
+import { ElementManagementTab } from './ElementManagementTab';
 import { cn, formatStatus, safeCapitalize } from '@/lib/utils';
 import {
   CheckCircle2,
@@ -570,9 +571,9 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     <div className="space-y-6" data-testid="submission-tab">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold">Vendor Submissions</h3>
+          <h3 className="text-lg font-semibold">Submission Management</h3>
           <p className="text-sm text-muted-foreground">
-            Review and select from vendor proposals and quotes
+            Manage vendor submissions and project elements
           </p>
         </div>
         
@@ -582,9 +583,31 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
             <Info className="h-4 w-4" />
             <span>This step can be skipped in tab navigation</span>
           </div>
+        </div>
+      </div>
+
+      <Tabs defaultValue="vendors" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="vendors" data-testid="tab-vendor-submissions">
+            Vendor Submissions
+          </TabsTrigger>
+          <TabsTrigger value="elements" data-testid="tab-element-management">
+            Element Management  
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="vendors" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="text-md font-semibold">Vendor Submissions</h4>
+              <p className="text-sm text-muted-foreground">
+                Review and select from vendor proposals and quotes
+              </p>
+            </div>
           
-          {/* Add Submission Button */}
-          <Dialog 
+            <div className="flex items-center gap-3">
+              {/* Add Submission Button */}
+              <Dialog 
             open={showSubmissionDialog} 
             onOpenChange={(open) => {
               setShowSubmissionDialog(open);
@@ -1771,6 +1794,16 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
           )}
         </DialogContent>
       </Dialog>
+        </TabsContent>
+
+        <TabsContent value="elements" className="space-y-6">
+          <ElementManagementTab 
+            project={project} 
+            workflowState={workflowState}
+            onUpdate={onUpdate}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
