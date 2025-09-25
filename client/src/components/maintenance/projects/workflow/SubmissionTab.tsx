@@ -387,7 +387,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                       elementId: project.id,
                     }}
                     title="Documents (Optional)"
-                    showUploadTabs={true}
+                    showUploadTabs={false}
                     defaultUploadTab="file"
                     aiEnabled={false}
                     showAiToggle={false}
