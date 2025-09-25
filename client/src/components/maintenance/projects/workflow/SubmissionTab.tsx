@@ -456,7 +456,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
       updates: {
         vendorName: data.vendorName,
         availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
-        price: data.totalAmount || '0', // Use totalAmount for price
+        price: data.totalAmount ? parseFloat(data.totalAmount) : undefined, // Convert to number
         notes: data.description,
         contactInfo: data.contactInfo,
         preferred: data.preferred,
