@@ -277,13 +277,13 @@ export function useUpdateProjectDetails() {
  */
 export function useWorkflowTasks(projectId: string, phase?: 'pre_work' | 'in_progress' | 'post_work') {
   return useQuery({
-    queryKey: ['/api/maintenance/projects', projectId, 'workflow-tasks', phase],
+    queryKey: ['/api/maintenance/projects', projectId, 'tasks', phase],
     queryFn: async (): Promise<WorkflowTask[]> => {
       if (!projectId) throw new Error('Project ID is required');
       
       const url = phase 
-        ? `/api/maintenance/projects/${projectId}/workflow-tasks?phase=${phase}`
-        : `/api/maintenance/projects/${projectId}/workflow-tasks`;
+        ? `/api/maintenance/projects/${projectId}/tasks?phase=${phase}`
+        : `/api/maintenance/projects/${projectId}/tasks`;
         
       const response = await apiRequest('GET', url);
       if (!response.ok) {
@@ -314,13 +314,13 @@ export function useWorkflowTaskMutations() {
       projectId: string; 
       taskData: Omit<WorkflowTask, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>;
     }) => {
-      const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/workflow-tasks`, taskData);
+      const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/tasks`, taskData);
       if (!response.ok) throw new Error('Failed to create task');
       return await response.json();
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', variables.projectId, 'workflow-tasks'] 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'tasks'] 
       });
       toast({
         title: 'Task Created',
@@ -339,13 +339,13 @@ export function useWorkflowTaskMutations() {
       taskId: string; 
       updates: Partial<WorkflowTask>;
     }) => {
-      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/workflow-tasks/${taskId}`, updates);
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/tasks/${taskId}`, updates);
       if (!response.ok) throw new Error('Failed to update task');
       return await response.json();
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', variables.projectId, 'workflow-tasks'] 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'tasks'] 
       });
       toast({
         title: 'Task Updated',
@@ -356,13 +356,13 @@ export function useWorkflowTaskMutations() {
 
   const deleteTask = useMutation({
     mutationFn: async ({ projectId, taskId }: { projectId: string; taskId: string }) => {
-      const response = await apiRequest('DELETE', `/api/maintenance/projects/${projectId}/workflow-tasks/${taskId}`);
+      const response = await apiRequest('DELETE', `/api/maintenance/projects/${projectId}/tasks/${taskId}`);
       if (!response.ok) throw new Error('Failed to delete task');
       return await response.json();
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', variables.projectId, 'workflow-tasks'] 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'tasks'] 
       });
       toast({
         title: 'Task Deleted',
