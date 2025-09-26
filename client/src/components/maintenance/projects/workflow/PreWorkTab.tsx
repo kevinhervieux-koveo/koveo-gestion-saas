@@ -48,6 +48,7 @@ import {
   Check,
   X,
   AlertTriangle,
+  Calendar,
 } from 'lucide-react';
 
 export interface PreWorkTabProps {
@@ -89,11 +90,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     data: preWorkTasks = [], 
     isLoading: isLoadingTasks 
   } = useWorkflowTasks(project.id, 'pre_work');
-
-  // Debug logging for task data
-  console.log('🔍 [PREWORK TAB] preWorkTasks:', preWorkTasks);
-  console.log('🔍 [PREWORK TAB] isLoadingTasks:', isLoadingTasks);
-  console.log('🔍 [PREWORK TAB] tasks length:', preWorkTasks.length);
 
   const { 
     data: notifications = [], 
