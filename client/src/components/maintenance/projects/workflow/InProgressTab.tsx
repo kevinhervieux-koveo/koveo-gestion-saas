@@ -238,7 +238,7 @@ export function InProgressTab({ project, workflowState, onUpdate }: InProgressTa
                         Work Tasks
                       </CardTitle>
                       <CardDescription>
-                        Track specific tasks being completed during work
+                        Set reminder to for task to do by the manager during the work
                       </CardDescription>
                     </div>
                     <div className="text-right">
