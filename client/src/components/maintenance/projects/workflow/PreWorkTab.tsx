@@ -112,7 +112,12 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     },
   });
 
-  const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'pre_work';
+  // Calculate task completion status
+  const completedTasks = preWorkTasks.filter(task => task.isCompleted);
+  const totalTasks = preWorkTasks.length;
+  const allTasksCompleted = totalTasks > 0 ? completedTasks.length === totalTasks : true;
+
+  const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'pre_work' && allTasksCompleted;
 
   // Handle notification deletion
   const handleDeleteNotification = (notificationId: string) => {
