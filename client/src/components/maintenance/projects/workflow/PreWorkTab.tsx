@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { FormDatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -351,15 +352,20 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                 data-testid={`input-task-cost-${index}`}
                               />
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <Input
-                                type="date"
-                                value={getTaskValue(task, 'dueDate') ? new Date(getTaskValue(task, 'dueDate')).toISOString().split('T')[0] : ''}
-                                onChange={(e) => handleTaskEdit(task.id, 'dueDate', e.target.value || null)}
-                                onBlur={(e) => handleTaskBlur(task.id, 'dueDate', e.target.value || null)}
-                                className="w-32 text-sm"
-                                data-testid={`input-task-due-date-${index}`}
+                            <div className="flex items-center gap-1 w-40">
+                              <FormDatePicker
+                                value={getTaskValue(task, 'dueDate') ? new Date(getTaskValue(task, 'dueDate')) : undefined}
+                                onChange={(date) => {
+                                  handleTaskEdit(task.id, 'dueDate', date || null);
+                                  if (!date) {
+                                    // Immediately save when clearing the date
+                                    handleTaskBlur(task.id, 'dueDate', null);
+                                  }
+                                }}
+                                placeholder="Set due date"
+                                className="flex-1"
+                                buttonClassName="w-full text-xs h-8"
+                                min={new Date()}
                               />
                             </div>
                             <Button
