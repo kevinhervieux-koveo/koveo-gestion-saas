@@ -160,9 +160,8 @@ export function InProgressTab({ project, workflowState, onUpdate }: InProgressTa
       taskData: {
         phase: 'in_progress',
         taskName: 'New Work Task',
-        description: '',
-        cost: 0,
-        isCompleted: false,
+        description: undefined,
+        cost: undefined,
         orderIndex: newTaskIndex,
       },
     });
