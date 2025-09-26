@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { DatePicker } from '@/components/ui/date-picker';
+import { format } from 'date-fns';
 import {
   Select,
   SelectContent,
@@ -392,16 +392,18 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               />
                             </div>
                             <div className="flex items-center gap-1 w-40">
-                              <DatePicker
-                                date={getTaskValue(task, 'dueDate') ? new Date(getTaskValue(task, 'dueDate')) : undefined}
-                                onDateChange={(date) => {
-                                  handleTaskEdit(task.id, 'dueDate', date || null);
+                              <Input
+                                type="date"
+                                min={format(new Date(), 'yyyy-MM-dd')}
+                                value={getTaskValue(task, 'dueDate') ? format(new Date(getTaskValue(task, 'dueDate')), 'yyyy-MM-dd') : ''}
+                                onChange={(e) => {
+                                  const date = e.target.value ? new Date(e.target.value) : null;
+                                  handleTaskEdit(task.id, 'dueDate', date);
                                   if (!date) {
                                     // Immediately save when clearing the date
                                     handleTaskBlur(task.id, 'dueDate', null);
                                   }
                                 }}
-                                placeholder="Set due date"
                                 className="flex-1"
                                 data-testid={`input-task-due-date-${index}`}
                               />

@@ -8,7 +8,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePicker } from '@/components/ui/date-picker';
+import { format } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -802,11 +802,17 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                       <FormItem>
                         <FormLabel>Available Date</FormLabel>
                         <FormControl>
-                          <DatePicker
-                            date={field.value}
-                            onSelect={field.onChange}
-                            placeholder="When can the vendor start?"
-                            min={new Date()}
+                          <Input
+                            type="date"
+                            min={format(new Date(), 'yyyy-MM-dd')}
+                            value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                field.onChange(new Date(e.target.value));
+                              } else {
+                                field.onChange(undefined);
+                              }
+                            }}
                             data-testid="input-available-date"
                           />
                         </FormControl>
@@ -1580,11 +1586,17 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                     <FormItem>
                       <FormLabel>Available Date</FormLabel>
                       <FormControl>
-                        <DatePicker
-                          date={field.value}
-                          onSelect={field.onChange}
-                          placeholder="When can the vendor start?"
-                          min={new Date()}
+                        <Input
+                          type="date"
+                          min={format(new Date(), 'yyyy-MM-dd')}
+                          value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              field.onChange(new Date(e.target.value));
+                            } else {
+                              field.onChange(undefined);
+                            }
+                          }}
                           data-testid="input-edit-available-date"
                         />
                       </FormControl>
