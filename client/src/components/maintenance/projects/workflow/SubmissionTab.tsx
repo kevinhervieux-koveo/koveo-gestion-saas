@@ -338,17 +338,26 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     setEditingVendor(vendor);
 
     // Convert existing documents to AttachedFile format for editing
+    // Filter out documents with invalid/incomplete metadata
     const existingDocs: AttachedFile[] = (vendor.documents && Array.isArray(vendor.documents)) 
-      ? vendor.documents.map(doc => ({
-          id: doc.id || crypto.randomUUID(),
-          isExisting: true,
-          name: doc.name,
-          size: doc.size || 0,
-          type: doc.type || 'application/octet-stream',
-          url: doc.id ? `/api/maintenance/documents/${doc.id}/file` : undefined,
-          uploadProgress: 100, // Existing files are already uploaded
-          category: getCategoryFromFileName(doc.name || ''),
-        }))
+      ? vendor.documents
+          .filter(doc => {
+            // Filter out documents with incomplete or invalid metadata
+            const hasValidName = doc.name && doc.name !== 'unknown' && doc.name.trim() !== '';
+            const hasValidSize = doc.size !== null && doc.size !== undefined && doc.size > 0;
+            const hasValidId = doc.id && doc.id.trim() !== '';
+            return hasValidName && hasValidSize && hasValidId;
+          })
+          .map(doc => ({
+            id: doc.id || crypto.randomUUID(),
+            isExisting: true,
+            name: doc.name,
+            size: doc.size || 0,
+            type: doc.type || 'application/octet-stream',
+            url: doc.id ? `/api/maintenance/documents/${doc.id}/file` : undefined,
+            uploadProgress: 100, // Existing files are already uploaded
+            category: getCategoryFromFileName(doc.name || ''),
+          }))
       : [];
     setEditVendorDocuments(existingDocs);
     
@@ -475,6 +484,14 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         notes: data.description,
         contactInfo: data.contactInfo,
         preferred: data.preferred,
+        // Include documents from editVendorDocuments
+        documents: editVendorDocuments.map(doc => ({
+          id: doc.id,
+          name: doc.file?.name || doc.name || 'unknown',
+          url: doc.url || '', 
+          size: doc.file?.size || doc.size || 0,
+          type: doc.file?.type || doc.type || 'application/octet-stream',
+        })),
         // Payment plan data
         paymentPlanCosts,
         paymentPlanSchedule,
