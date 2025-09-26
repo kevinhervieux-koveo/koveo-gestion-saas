@@ -309,10 +309,10 @@ export function InProgressTab({ project, workflowState, onUpdate }: InProgressTa
                                     onChange={(e) => {
                                       const date = e.target.value ? new Date(e.target.value) : null;
                                       handleTaskEdit(task.id, 'dueDate', date);
-                                      if (!date) {
-                                        // Immediately save when clearing the date
-                                        handleTaskBlur(task.id, 'dueDate', null);
-                                      }
+                                    }}
+                                    onBlur={(e) => {
+                                      const date = e.target.value ? new Date(e.target.value) : null;
+                                      handleTaskBlur(task.id, 'dueDate', date);
                                     }}
                                     className="flex-1"
                                     data-testid={`input-work-task-due-date-${index}`}
