@@ -2377,7 +2377,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       // Search for the file in the uploads directory by the document ID
       const findFileRecursively = async (dir: string, targetId: string): Promise<string | null> => {
         try {
-          const entries = await fs.readdir(dir, { withFileTypes: true });
+          const entries = await fs.promises.readdir(dir, { withFileTypes: true });
           
           for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
@@ -2390,8 +2390,8 @@ export function registerMaintenanceRoutes(app: Express): void {
               return fullPath;
             }
           }
-        } catch (error) {
-          console.log(`⚠️ Error reading directory ${dir}:`, error.message);
+        } catch (error: any) {
+          console.log(`⚠️ Error reading directory ${dir}:`, error?.message || error);
         }
         return null;
       };
