@@ -129,6 +129,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
         taskName: 'New Task',
         description: '',
         orderIndex: newTaskIndex,
+        isCompleted: false,
       },
     });
   };
