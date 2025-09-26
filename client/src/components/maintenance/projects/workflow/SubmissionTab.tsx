@@ -226,6 +226,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [editVendorDocuments, setEditVendorDocuments] = useState<AttachedFile[]>([]);
   const [editUploadProgress, setEditUploadProgress] = useState<{ [key: string]: number }>({});
+  const [activeTab, setActiveTab] = useState<string>("vendors");
 
   // Get category from file name
   const getCategoryFromFileName = (fileName: string): string => {
@@ -728,7 +729,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         </div>
       </div>
 
-      <Tabs defaultValue="vendors" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className={cn("grid w-full", hasPreferredVendor ? "grid-cols-2" : "grid-cols-1")}>
           <TabsTrigger value="vendors" data-testid="tab-vendor-submissions">
             Vendor Submissions
@@ -1534,15 +1535,14 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
           )}
         </div>
         
-        {canAdvance && (
+        {canAdvance && hasPreferredVendor && (
           <Button 
-            onClick={handleMarkComplete}
-            disabled={isMarkingComplete || !hasPreferredVendor}
+            onClick={() => setActiveTab("elements")}
             className="flex items-center gap-2"
-            data-testid="button-mark-submission-complete"
+            data-testid="button-confirm-element"
           >
             <CheckCircle2 className="h-4 w-4" />
-            {isMarkingComplete ? 'Completing...' : 'Complete Submission Phase'}
+            Confirm Element
           </Button>
         )}
       </div>

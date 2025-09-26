@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { BuildingElement, ProjectElement } from '@shared/schemas/maintenance';
+import { BuildingElement, ProjectElement, ProjectWorkflowState } from '@shared/schemas/maintenance';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { useMarkStatusComplete } from '@/hooks/useProjectWorkflow';
 import { cn, safeCapitalize } from '@/lib/utils';
 import {
   Settings,
@@ -26,6 +27,7 @@ import {
 
 interface ElementManagementTabProps {
   project: MaintenanceProject;
+  workflowState: ProjectWorkflowState;
   onUpdate: () => void;
 }
 
@@ -41,7 +43,7 @@ const PROJECT_TYPES = [
   { value: 'not_sure', label: 'Assessment Needed', icon: '❓', description: 'Requires evaluation' },
 ];
 
-export function ElementManagementTab({ project, onUpdate }: ElementManagementTabProps) {
+export function ElementManagementTab({ project, workflowState, onUpdate }: ElementManagementTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
@@ -49,6 +51,20 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
   const [bulkProjectType, setBulkProjectType] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [bulkAction, setBulkAction] = useState<'update_type' | 'remove'>('update_type');
+
+  // Add workflow completion functionality
+  const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
+
+  const handleMarkComplete = () => {
+    markComplete({
+      projectId: project.id,
+      currentStatus: 'submission',
+    }, {
+      onSuccess: () => {
+        onUpdate();
+      },
+    });
+  };
 
   // Fetch building elements
   const { data: buildingElements = [], isLoading: loadingElements } = useQuery({
@@ -612,6 +628,27 @@ export function ElementManagementTab({ project, onUpdate }: ElementManagementTab
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Complete Submission Phase Button */}
+      {workflowState.canAdvance && workflowState.currentStatus === 'submission' && (
+        <div className="flex items-center justify-between pt-6 border-t">
+          <div className="text-sm text-muted-foreground">
+            {workflowState.nextStatus && (
+              <>Next: <span className="capitalize">{workflowState.nextStatus.replace(/_/g, ' ')}</span></>
+            )}
+          </div>
+          
+          <Button 
+            onClick={handleMarkComplete}
+            disabled={isMarkingComplete}
+            className="flex items-center gap-2"
+            data-testid="button-complete-submission-phase"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {isMarkingComplete ? 'Completing...' : 'Complete Submission Phase'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
