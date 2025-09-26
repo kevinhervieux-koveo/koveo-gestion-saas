@@ -25,6 +25,7 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  Target,
 } from 'lucide-react';
 
 interface ElementManagementTabProps {
@@ -38,11 +39,11 @@ interface ProjectElementWithDetails extends ProjectElement {
 }
 
 const PROJECT_TYPES = [
-  { value: 'repair', label: 'Repair', icon: '🔧', description: 'Fix existing components' },
-  { value: 'minor_rehab', label: 'Minor Rehabilitation', icon: '🔨', description: 'Minor improvements' },
-  { value: 'major_rehab', label: 'Major Rehabilitation', icon: '🏗️', description: 'Significant renovations' },
-  { value: 'replacement', label: 'Replacement', icon: '🔄', description: 'Full component replacement' },
-  { value: 'not_sure', label: 'Assessment Needed', icon: '❓', description: 'Requires evaluation' },
+  { value: 'repair', label: 'Repair', icon: Wrench, description: 'Fix existing components' },
+  { value: 'minor_rehab', label: 'Minor Rehabilitation', icon: Building2, description: 'Minor improvements' },
+  { value: 'major_rehab', label: 'Major Rehabilitation', icon: Building2, description: 'Significant renovations' },
+  { value: 'replacement', label: 'Replacement', icon: CheckCircle2, description: 'Full component replacement' },
+  { value: 'not_sure', label: 'Assessment Needed', icon: Target, description: 'Requires evaluation' },
 ];
 
 export function ElementManagementTab({ project, workflowState, onUpdate }: ElementManagementTabProps) {
@@ -445,7 +446,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
                                 {PROJECT_TYPES.map((type) => (
                                   <SelectItem key={type.value} value={type.value}>
                                     <div className="flex items-center gap-2">
-                                      <span>{type.icon}</span>
+                                      <type.icon className="h-4 w-4" />
                                       <div>
                                         <div className="font-medium">{type.label}</div>
                                         <div className="text-xs text-muted-foreground">{type.description}</div>
@@ -616,7 +617,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
                       {PROJECT_TYPES.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
                           <div className="flex items-center gap-2">
-                            <span>{type.icon}</span>
+                            <type.icon className="h-4 w-4" />
                             <div>
                               <div className="font-medium">{type.label}</div>
                               <div className="text-xs text-muted-foreground">{type.description}</div>
