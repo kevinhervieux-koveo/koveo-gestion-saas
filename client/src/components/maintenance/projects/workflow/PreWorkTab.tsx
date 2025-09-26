@@ -366,6 +366,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                 className="flex-1"
                                 buttonClassName="w-full text-xs h-8"
                                 min={new Date()}
+                                data-testid={`input-task-due-date-${index}`}
                               />
                             </div>
                             <Button

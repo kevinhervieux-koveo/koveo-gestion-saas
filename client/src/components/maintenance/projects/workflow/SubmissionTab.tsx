@@ -807,6 +807,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                             onChange={field.onChange}
                             placeholder="When can the vendor start?"
                             min={new Date()}
+                            data-testid="input-available-date"
                           />
                         </FormControl>
                         <FormDescription>
@@ -1584,6 +1585,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                           onChange={field.onChange}
                           placeholder="When can the vendor start?"
                           min={new Date()}
+                          data-testid="input-edit-available-date"
                         />
                       </FormControl>
                       <FormMessage />

@@ -19,6 +19,7 @@ interface DatePickerProps {
   buttonClassName?: string;
   min?: Date;
   max?: Date;
+  'data-testid'?: string;
 }
 
 export function DatePicker({
@@ -30,6 +31,7 @@ export function DatePicker({
   buttonClassName,
   min,
   max,
+  'data-testid': dataTestId,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -56,7 +58,7 @@ export function DatePicker({
               buttonClassName
             )}
             disabled={disabled}
-            data-testid="date-picker-trigger"
+            data-testid={dataTestId || "date-picker-trigger"}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date ? format(date, "PPP") : <span>{placeholder}</span>}
