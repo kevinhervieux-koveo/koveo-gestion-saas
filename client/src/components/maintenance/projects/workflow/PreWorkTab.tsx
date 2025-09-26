@@ -70,8 +70,6 @@ type NotificationData = z.infer<typeof notificationSchema>;
  */
 export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps) {
   const { toast } = useToast();
-  const [userMessage, setUserMessage] = useState('');
-  const [hasMessageChanges, setHasMessageChanges] = useState(false);
 
   // Defensive null check for project data
   if (!project) {
@@ -169,18 +167,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     });
   };
 
-  // Auto-save user message
-  useEffect(() => {
-    if (!hasMessageChanges) return;
-
-    const timer = setTimeout(() => {
-      // TODO: Implement user message save to project
-      console.log('Saving user message:', userMessage);
-      setHasMessageChanges(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [hasMessageChanges, userMessage]);
 
   const timingOptions = [
     { value: 'one_day_before', label: '1 Day Before' },
@@ -314,36 +300,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
           </Card>
         </div>
 
-        {/* Right Column - User Communication */}
+        {/* Right Column - Notifications */}
         <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5" />
-                User Message
-              </CardTitle>
-              <CardDescription>
-                Information for residents about access, noise, or other important details
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Textarea
-                value={userMessage}
-                onChange={(e) => {
-                  setUserMessage(e.target.value);
-                  setHasMessageChanges(true);
-                }}
-                placeholder="Enter information for residents about the upcoming work..."
-                className="min-h-[120px]"
-                data-testid="textarea-user-message"
-              />
-              {hasMessageChanges && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Changes will be saved automatically
-                </p>
-              )}
-            </CardContent>
-          </Card>
 
           <Card>
             <CardHeader>
