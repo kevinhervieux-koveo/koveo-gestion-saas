@@ -339,7 +339,7 @@ export function useWorkflowTaskMutations() {
       taskId: string; 
       updates: Partial<WorkflowTask>;
     }) => {
-      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/tasks/${taskId}`, updates);
+      const response = await apiRequest('PATCH', `/api/maintenance/tasks/${taskId}`, updates);
       if (!response.ok) throw new Error('Failed to update task');
       return await response.json();
     },
@@ -356,7 +356,7 @@ export function useWorkflowTaskMutations() {
 
   const deleteTask = useMutation({
     mutationFn: async ({ projectId, taskId }: { projectId: string; taskId: string }) => {
-      const response = await apiRequest('DELETE', `/api/maintenance/projects/${projectId}/tasks/${taskId}`);
+      const response = await apiRequest('DELETE', `/api/maintenance/tasks/${taskId}`);
       if (!response.ok) throw new Error('Failed to delete task');
       return await response.json();
     },
