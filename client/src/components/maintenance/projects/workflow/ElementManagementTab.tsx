@@ -26,6 +26,7 @@ import {
   ChevronDown,
   ChevronRight,
   Target,
+  HelpCircle,
 } from 'lucide-react';
 
 interface ElementManagementTabProps {
@@ -268,7 +269,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
 
   const getProjectTypeDisplay = (projectType?: string) => {
     const type = PROJECT_TYPES.find(t => t.value === projectType);
-    return type || { value: 'not_sure', label: 'Assessment Needed', icon: '❓', description: 'Requires evaluation' };
+    return type || { value: 'not_sure', label: 'Assessment Needed', icon: HelpCircle, description: 'Requires evaluation' };
   };
 
   const linkedElementIds = projectElements.map(pe => pe.elementId);
