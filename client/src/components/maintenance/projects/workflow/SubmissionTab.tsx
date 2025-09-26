@@ -44,7 +44,7 @@ const newSubmissionSchema = z.object({
   availableDate: z.date().optional(),
   price: z.number().min(0, 'Price must be a positive number').optional(),
   description: z.string().optional(),
-  preferred: z.boolean().default(false),
+  preferred: z.boolean(),
   // Payment plan fields matching bills structure
   paymentType: z.enum(['unique', 'recurrent']).default('unique'),
   totalAmount: z.string().optional().refine((val) => {
@@ -128,7 +128,7 @@ const editVendorSchema = z.object({
   price: z.number().min(0, 'Price must be a positive number').optional(),
   description: z.string().optional(),
   contactInfo: z.string().optional(),
-  preferred: z.boolean().default(false),
+  preferred: z.boolean(),
   // Payment plan fields matching bills structure
   paymentType: z.enum(['unique', 'recurrent']).default('unique'),
   totalAmount: z.string().optional().refine((val) => {
@@ -258,7 +258,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   } = useSubmissionVendors(project.id);
 
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
-  const { createSubmissionVendor, updateSubmissionVendor, updatePreferredStatus } = useSubmissionVendorMutations();
+  const { createSubmissionVendor, updateSubmissionVendor, updatePreferredStatus, deleteSubmissionVendor } = useSubmissionVendorMutations();
 
   // Form for new submission
   const submissionForm = useForm<NewSubmissionForm>({
@@ -430,7 +430,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     if (!editingVendor) return;
 
     // Convert payment plan data from bills format to submission vendor format
-    let paymentPlanCosts: number[] = [];
+    let paymentPlanCosts: string[] = [];
     let paymentPlanSchedule: string | undefined;
     let paymentPlanCustomDates: string[] = [];
     let paymentPlanStartDate: string | undefined;
@@ -500,30 +500,24 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
   };
 
   // Handle deleting a vendor
-  const handleDeleteVendor = async (vendorToDelete: SubmissionVendor) => {
+  const handleDeleteVendor = (vendorToDelete: SubmissionVendor) => {
     if (!window.confirm(`Are you sure you want to delete the submission from ${vendorToDelete.vendorName}? This action cannot be undone.`)) {
       return;
     }
 
-    try {
-      const response = await fetch(`/api/maintenance/projects/${project.id}/submission-vendors/${vendorToDelete.id}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to delete vendor submission');
-      }
-      
-      // Close edit dialog and refresh data
-      setEditingVendor(null);
-      editVendorForm.reset();
-      setEditVendorDocuments([]);
-      setEditUploadProgress({});
-      onUpdate();
-    } catch (error) {
-      console.error('Error deleting vendor:', error);
-      // You could add a toast notification here
-    }
+    deleteSubmissionVendor.mutate({
+      projectId: project.id,
+      vendorId: vendorToDelete.id,
+    }, {
+      onSuccess: () => {
+        // Close edit dialog and refresh data
+        setEditingVendor(null);
+        editVendorForm.reset();
+        setEditVendorDocuments([]);
+        setEditUploadProgress({});
+        onUpdate();
+      },
+    });
   };
 
   const handleTogglePreferred = (vendor: SubmissionVendor) => {

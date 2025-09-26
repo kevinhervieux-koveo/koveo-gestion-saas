@@ -550,7 +550,53 @@ export function useSubmissionVendorMutations() {
     },
   });
 
-  return { createSubmissionVendor, updateSubmissionVendor, selectSubmissionVendor, updatePreferredStatus };
+  const deleteSubmissionVendor = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      vendorId 
+    }: { 
+      projectId: string; 
+      vendorId: string; 
+    }) => {
+      const response = await apiRequest('DELETE', `/api/maintenance/projects/${projectId}/submission-vendors/${vendorId}`);
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to delete submission vendor' }));
+        throw new Error(error.message || 'Failed to delete submission vendor');
+      }
+      
+      // Handle 204 No Content responses (no body to parse)
+      if (response.status === 204) {
+        return undefined;
+      }
+      
+      // Only parse JSON if there's content
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      }
+      
+      return undefined;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'submission-vendors'] 
+      });
+      toast({
+        title: 'Vendor Deleted',
+        description: 'Vendor submission has been deleted successfully',
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to delete submission vendor:', error);
+      toast({
+        title: 'Delete Failed',
+        description: error.message || 'Failed to delete vendor submission',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  return { createSubmissionVendor, updateSubmissionVendor, selectSubmissionVendor, updatePreferredStatus, deleteSubmissionVendor };
 }
 
 /**
