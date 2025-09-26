@@ -42,7 +42,6 @@ import {
 const newSubmissionSchema = z.object({
   vendorName: z.string().min(1, 'Vendor name is required'),
   availableDate: z.date().optional(),
-  price: z.number().min(0, 'Price must be a positive number').optional(),
   description: z.string().optional(),
   preferred: z.boolean(),
   // Payment plan fields matching bills structure
@@ -125,7 +124,6 @@ const newSubmissionSchema = z.object({
 const editVendorSchema = z.object({
   vendorName: z.string().min(1, 'Vendor name is required'),
   availableDate: z.date().optional(),
-  price: z.number().min(0, 'Price must be a positive number').optional(),
   description: z.string().optional(),
   contactInfo: z.string().optional(),
   preferred: z.boolean(),
@@ -268,7 +266,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
     defaultValues: {
       vendorName: '',
       availableDate: undefined,
-      price: undefined,
       description: '',
       preferred: false,
       // Payment plan defaults - unique payment
@@ -291,7 +288,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
     defaultValues: {
       vendorName: '',
       availableDate: undefined,
-      price: undefined,
       description: '',
       contactInfo: '',
       preferred: false,
@@ -419,7 +415,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
     editVendorForm.reset({
       vendorName: vendor.vendorName,
       availableDate: vendor.availableDate ? new Date(vendor.availableDate) : undefined,
-      price: vendor.price ? parseFloat(vendor.price) : undefined,
       description: vendor.notes || '',
       contactInfo: vendor.contactInfo || '',
       preferred: vendor.preferred,
@@ -482,7 +477,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
       updates: {
         vendorName: data.vendorName,
         availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
-        price: data.totalAmount ? parseFloat(data.totalAmount) : undefined, // Convert to number
         notes: data.description,
         contactInfo: data.contactInfo,
         preferred: data.preferred,
@@ -829,34 +823,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                     )}
                   />
 
-                  {/* Price */}
-                  <FormField
-                    control={submissionForm.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Price</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0.00"
-                            value={field.value ?? ''}
-                            onChange={(e) => {
-                              const value = e.target.value ? parseFloat(e.target.value) : undefined;
-                              field.onChange(value);
-                            }}
-                            data-testid="input-price"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Enter the quoted price for the work
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
                   {/* Description */}
                   <FormField
@@ -1398,9 +1364,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                   </div>
                   
                   <div className="text-right space-y-2">
-                    <div className="text-lg font-semibold">
-                      {formatCurrency(vendor.price)}
-                    </div>
                     <div className="flex flex-col gap-1">
                       {vendor.preferred && (
                         <Badge className="bg-yellow-600">
@@ -1572,7 +1535,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                 paymentPlanStartDate: editingPaymentPlan.paymentPlanStartDate,
                 paymentPlanCustomDates: editingPaymentPlan.paymentPlanCustomDates,
               }}
-              totalAmount={editingPaymentPlan.price}
+              totalAmount={undefined}
               onSave={handleSavePaymentPlan}
               onCancel={handleCancelPaymentPlan}
               isLoading={updateSubmissionVendor.isPending}
@@ -1614,26 +1577,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                   )}
                 />
 
-                <FormField
-                  control={editVendorForm.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Price</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.01"
-                          placeholder="Enter price" 
-                          {...field}
-                          value={field.value || ''}
-                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={editVendorForm.control}
