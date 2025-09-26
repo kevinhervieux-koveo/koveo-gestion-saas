@@ -499,6 +499,33 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
     setEditUploadProgress({});
   };
 
+  // Handle deleting a vendor
+  const handleDeleteVendor = async (vendorToDelete: SubmissionVendor) => {
+    if (!window.confirm(`Are you sure you want to delete the submission from ${vendorToDelete.vendorName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/maintenance/projects/${project.id}/submission-vendors/${vendorToDelete.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete vendor submission');
+      }
+      
+      // Close edit dialog and refresh data
+      setEditingVendor(null);
+      editVendorForm.reset();
+      setEditVendorDocuments([]);
+      setEditUploadProgress({});
+      onUpdate();
+    } catch (error) {
+      console.error('Error deleting vendor:', error);
+      // You could add a toast notification here
+    }
+  };
+
   const handleTogglePreferred = (vendor: SubmissionVendor) => {
     updatePreferredStatus.mutate({
       projectId: project.id,
@@ -731,9 +758,12 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                 Add Submission
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="add-submission-description">
               <DialogHeader>
                 <DialogTitle>Add New Vendor Submission</DialogTitle>
+                <div id="add-submission-description" className="sr-only">
+                  Create a new vendor submission with payment plan and document attachments
+                </div>
               </DialogHeader>
               <Form {...submissionForm}>
                 <form onSubmit={submissionForm.handleSubmit(handleSubmissionSubmit)} className="space-y-4 pb-4">
@@ -1511,12 +1541,15 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         open={!!editingPaymentPlan} 
         onOpenChange={(open) => !open && handleCancelPaymentPlan()}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="payment-plan-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
               Edit Payment Plan - {editingPaymentPlan?.vendorName}
             </DialogTitle>
+            <div id="payment-plan-description" className="sr-only">
+              Configure payment schedule, costs, and timing for this vendor submission
+            </div>
           </DialogHeader>
           
           {editingPaymentPlan && (
@@ -1541,12 +1574,15 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
         open={!!editingVendor} 
         onOpenChange={(open) => !open && handleCancelVendorEdit()}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="edit-vendor-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
               Edit Vendor - {editingVendor?.vendorName}
             </DialogTitle>
+            <div id="edit-vendor-description" className="sr-only">
+              Edit vendor information, documents, and preferences for this submission
+            </div>
           </DialogHeader>
           
           {editingVendor && (
