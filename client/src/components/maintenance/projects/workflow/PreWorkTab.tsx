@@ -302,6 +302,55 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
 
         {/* Right Column - Notifications */}
         <div className="space-y-4">
+          {/* Configured Notifications Display */}
+          {notifications.length > 0 && (
+            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                  <Bell className="h-5 w-5" />
+                  Configured Notifications ({notifications.length})
+                </CardTitle>
+                <CardDescription className="text-blue-600 dark:text-blue-300">
+                  Active notification reminders for this project
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {notifications.map((notification) => (
+                    <div key={notification.id} className="p-3 bg-white dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Bell className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <span className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                              {notification.timingType === 'custom' 
+                                ? `${notification.customDaysBefore} days before`
+                                : formatStatus(notification.timingType, 'Not specified').replace('_', ' ')
+                              }
+                            </span>
+                          </div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">{notification.messageText}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {notification.isSent ? (
+                            <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                              <Check className="h-4 w-4" />
+                              <span className="text-xs font-medium">Sent</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                              <Clock className="h-4 w-4" />
+                              <span className="text-xs font-medium">Pending</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader>
@@ -395,30 +444,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                 </form>
               </Form>
 
-              {/* Existing Notifications */}
-              {notifications.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  <h4 className="text-sm font-medium">Scheduled Notifications</h4>
-                  {notifications.map((notification) => (
-                    <div key={notification.id} className="p-2 border rounded text-sm">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-medium">{notification.messageText}</p>
-                          <p className="text-muted-foreground text-xs">
-                            {notification.timingType === 'custom' 
-                              ? `${notification.customDaysBefore} days before`
-                              : formatStatus(notification.timingType, 'Not specified')
-                            }
-                          </p>
-                        </div>
-                        {notification.isSent && (
-                          <Check className="h-4 w-4 text-green-600" />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
