@@ -615,7 +615,7 @@ export function useProjectNotifications(projectId: string) {
       }
       
       const data = await response.json();
-      return data.notifications || [];
+      return data.data || [];
     },
     enabled: !!projectId,
     staleTime: 60000, // 1 minute
