@@ -127,9 +127,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
         phase: 'pre_work',
         taskName: 'New Task',
         description: '',
-        cost: 0,
-        dueDate: undefined,
-        isCompleted: false,
         orderIndex: newTaskIndex,
       },
     });
