@@ -245,7 +245,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
       updateNotification.mutate({
         projectId: project.id,
         notificationId: editingNotification,
-        notificationData: data,
+        updates: data,
       }, {
         onSuccess: () => {
           notificationForm.reset();
