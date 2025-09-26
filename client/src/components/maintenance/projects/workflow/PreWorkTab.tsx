@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { DatePicker } from '@/components/ui/date-picker';
+import { DatePickerAlt as DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,

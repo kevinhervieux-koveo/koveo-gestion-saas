@@ -8,7 +8,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FormDatePicker } from '@/components/ui/date-picker';
+import { DatePickerAlt as DatePicker } from '@/components/ui/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -802,9 +802,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                       <FormItem>
                         <FormLabel>Available Date</FormLabel>
                         <FormControl>
-                          <FormDatePicker
-                            value={field.value}
-                            onChange={field.onChange}
+                          <DatePicker
+                            date={field.value}
+                            onSelect={field.onChange}
                             placeholder="When can the vendor start?"
                             min={new Date()}
                             data-testid="input-available-date"
@@ -1580,9 +1580,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                     <FormItem>
                       <FormLabel>Available Date</FormLabel>
                       <FormControl>
-                        <FormDatePicker
-                          value={field.value}
-                          onChange={field.onChange}
+                        <DatePicker
+                          date={field.value}
+                          onSelect={field.onChange}
                           placeholder="When can the vendor start?"
                           min={new Date()}
                           data-testid="input-edit-available-date"
