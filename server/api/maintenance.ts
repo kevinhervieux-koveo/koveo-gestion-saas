@@ -2308,6 +2308,131 @@ export function registerMaintenanceRoutes(app: Express): void {
     }
   });
   
+  /**
+   * GET /api/maintenance/documents/:id/file - View/download vendor submission document
+   */
+  console.log('🔧 [MAINTENANCE ROUTES] Registering GET /api/maintenance/documents/:id/file');
+  app.get('/api/maintenance/documents/:id/file', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      const { id } = req.params;
+      
+      // Security: Validate UUID format
+      if (!isValidUUID(id)) {
+        return res.status(400).json({ error: 'Invalid document ID format' });
+      }
+      
+      // Find the vendor submission that contains this document
+      const vendorSubmissionResult = await db
+        .select({
+          id: submissionVendors.id,
+          projectId: submissionVendors.projectId,
+          documents: submissionVendors.documents,
+          buildingId: maintenanceProjects.buildingId,
+        })
+        .from(submissionVendors)
+        .innerJoin(maintenanceProjects, eq(submissionVendors.projectId, maintenanceProjects.id))
+        .where(sql`JSON_EXTRACT(${submissionVendors.documents}, '$[*].id') LIKE '%${id}%'`);
+      
+      if (vendorSubmissionResult.length === 0) {
+        return res.status(404).json({ error: 'Document not found' });
+      }
+      
+      const vendorSubmission = vendorSubmissionResult[0];
+      
+      // Check building access
+      const hasAccess = await checkBuildingAccess(user.id, user.role, vendorSubmission.buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this document' });
+      }
+      
+      // Parse the documents JSON to find the specific document
+      let documents: any[] = [];
+      try {
+        documents = typeof vendorSubmission.documents === 'string' 
+          ? JSON.parse(vendorSubmission.documents) 
+          : vendorSubmission.documents || [];
+      } catch (parseError) {
+        console.error('Error parsing vendor submission documents:', parseError);
+        return res.status(500).json({ error: 'Invalid document data' });
+      }
+      
+      const document = documents.find((doc: any) => doc.id === id);
+      if (!document) {
+        return res.status(404).json({ error: 'Document not found in submission' });
+      }
+      
+      // Try to find the file using the secure file storage pattern
+      // The file should be stored in the uploads directory with a structure like:
+      // uploads/maintenance/org_{orgId}/building_{buildingId}/...
+      const UPLOADS_ROOT = path.resolve(process.cwd(), 'uploads');
+      
+      // Search for the file in the uploads directory by the document ID
+      const findFileRecursively = async (dir: string, targetId: string): Promise<string | null> => {
+        try {
+          const entries = await fs.readdir(dir, { withFileTypes: true });
+          
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            
+            if (entry.isDirectory()) {
+              const found = await findFileRecursively(fullPath, targetId);
+              if (found) return found;
+            } else if (entry.isFile() && entry.name.includes(targetId)) {
+              return fullPath;
+            }
+          }
+        } catch (error) {
+          // Directory doesn't exist or can't be read
+        }
+        return null;
+      };
+      
+      const filePath = await findFileRecursively(UPLOADS_ROOT, id);
+      
+      if (!filePath || !fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found on disk' });
+      }
+      
+      // Security: ensure the resolved path is within uploads root
+      const resolvedPath = path.resolve(filePath);
+      if (!resolvedPath.startsWith(UPLOADS_ROOT)) {
+        return res.status(400).json({ error: 'Invalid file path' });
+      }
+      
+      // Set appropriate headers
+      res.set({
+        'Content-Type': document.type || 'application/octet-stream',
+        'Content-Disposition': `inline; filename="${document.name}"`,
+        'Content-Length': document.size?.toString() || '',
+      });
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.on('error', (streamError) => {
+        console.error('Error streaming file:', streamError);
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Failed to stream file' });
+        }
+      });
+      
+      fileStream.pipe(res);
+      
+    } catch (error: any) {
+      console.error('Error serving vendor submission document:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: 'Failed to serve document',
+          details: error.message
+        });
+      }
+    }
+  });
+  
   // ===========================================
   // EVALUATION SUGGESTIONS
   // ===========================================
