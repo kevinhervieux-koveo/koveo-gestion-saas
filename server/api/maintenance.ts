@@ -2386,20 +2386,30 @@ export function registerMaintenanceRoutes(app: Express): void {
               const found = await findFileRecursively(fullPath, targetId);
               if (found) return found;
             } else if (entry.isFile() && entry.name.includes(targetId)) {
+              console.log(`🔍 Found matching file for document ID ${targetId}: ${fullPath}`);
               return fullPath;
             }
           }
         } catch (error) {
-          // Directory doesn't exist or can't be read
+          console.log(`⚠️ Error reading directory ${dir}:`, error.message);
         }
         return null;
       };
       
+      console.log(`🔍 Searching for document ID: ${id} in directory: ${UPLOADS_ROOT}`);
       const filePath = await findFileRecursively(UPLOADS_ROOT, id);
       
-      if (!filePath || !fs.existsSync(filePath)) {
+      if (!filePath) {
+        console.log(`❌ File not found for document ID: ${id}`);
         return res.status(404).json({ error: 'File not found on disk' });
       }
+      
+      if (!fs.existsSync(filePath)) {
+        console.log(`❌ File path exists but file not accessible: ${filePath}`);
+        return res.status(404).json({ error: 'File not found on disk' });
+      }
+      
+      console.log(`✅ Found file for document ID ${id}: ${filePath}`);
       
       // Security: ensure the resolved path is within uploads root
       const resolvedPath = path.resolve(filePath);
