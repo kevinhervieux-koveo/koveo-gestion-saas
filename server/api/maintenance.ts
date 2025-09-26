@@ -2336,7 +2336,10 @@ export function registerMaintenanceRoutes(app: Express): void {
         })
         .from(submissionVendors)
         .innerJoin(maintenanceProjects, eq(submissionVendors.projectId, maintenanceProjects.id))
-        .where(sql`JSON_EXTRACT(${submissionVendors.documents}, '$[*].id') LIKE '%${id}%'`);
+        .where(sql`EXISTS (
+          SELECT 1 FROM jsonb_array_elements(${submissionVendors.documents}) AS elem 
+          WHERE elem->>'id' = ${id}
+        )`);
       
       if (vendorSubmissionResult.length === 0) {
         return res.status(404).json({ error: 'Document not found' });
