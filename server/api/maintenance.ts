@@ -7506,6 +7506,14 @@ export function registerMaintenanceRoutes(app: Express): void {
         price: z.number().positive().optional(),
         projectType: z.string().optional(),
         addedLifespan: z.number().int().positive().optional(),
+        // Documents field for file attachments
+        documents: z.array(z.object({
+          id: z.string(),
+          name: z.string(),
+          url: z.string(),
+          size: z.number(),
+          type: z.string(),
+        })).optional(),
         // Payment plan fields following financial service patterns
         paymentPlanCosts: z.array(z.number().positive()).min(1).optional(),
         paymentPlanSchedule: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
