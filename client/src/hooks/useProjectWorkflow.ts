@@ -662,7 +662,7 @@ export function useProjectNotificationMutations() {
       notificationId: string; 
       updates: Partial<ProjectNotification>;
     }) => {
-      const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/notifications/${notificationId}`, updates);
+      const response = await apiRequest('PATCH', `/api/maintenance/notifications/${notificationId}`, updates);
       if (!response.ok) throw new Error('Failed to update notification');
       return await response.json();
     },
