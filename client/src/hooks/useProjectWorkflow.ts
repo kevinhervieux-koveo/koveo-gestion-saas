@@ -292,7 +292,7 @@ export function useWorkflowTasks(projectId: string, phase?: 'pre_work' | 'in_pro
       }
       
       const data = await response.json();
-      return data.tasks || [];
+      return data.data || [];
     },
     enabled: !!projectId,
     staleTime: 60000, // 1 minute
