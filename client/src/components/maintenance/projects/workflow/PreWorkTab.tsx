@@ -49,6 +49,7 @@ import {
   GripVertical,
   Check,
   X,
+  Edit2,
   AlertTriangle,
   Calendar,
 } from 'lucide-react';
@@ -139,6 +140,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   // Handle task update
   // Local state for task editing to prevent API calls on every keystroke
   const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
+  // State for notification editing
+  const [editingNotification, setEditingNotification] = useState<string | null>(null);
   const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
 
   // Debounced save function that only calls API after user stops typing
@@ -235,15 +238,50 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     });
   };
 
-  // Handle notification creation
-  const handleCreateNotification = (data: NotificationData) => {
-    createNotification.mutate({
-      projectId: project.id,
-      notificationData: data,
-    }, {
-      onSuccess: () => {
-        notificationForm.reset();
-      },
+  // Handle notification submission (create or update)
+  const handleSubmitNotification = (data: NotificationData) => {
+    if (editingNotification) {
+      // Update existing notification
+      updateNotification.mutate({
+        projectId: project.id,
+        notificationId: editingNotification,
+        notificationData: data,
+      }, {
+        onSuccess: () => {
+          notificationForm.reset();
+          setEditingNotification(null);
+        },
+      });
+    } else {
+      // Create new notification
+      createNotification.mutate({
+        projectId: project.id,
+        notificationData: data,
+      }, {
+        onSuccess: () => {
+          notificationForm.reset();
+        },
+      });
+    }
+  };
+
+  // Handle notification editing
+  const handleEditNotification = (notification: any) => {
+    setEditingNotification(notification.id);
+    notificationForm.reset({
+      messageText: notification.messageText,
+      timingType: notification.timingType,
+      customDaysBefore: notification.customDaysBefore,
+    });
+  };
+
+  // Handle cancel editing
+  const handleCancelEdit = () => {
+    setEditingNotification(null);
+    notificationForm.reset({
+      messageText: '',
+      timingType: 'one_day_before',
+      customDaysBefore: 1,
     });
   };
 
@@ -414,7 +452,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
             </CardHeader>
             <CardContent>
               <Form {...notificationForm}>
-                <form onSubmit={notificationForm.handleSubmit(handleCreateNotification)} className="space-y-4">
+                <form onSubmit={notificationForm.handleSubmit(handleSubmitNotification)} className="space-y-4">
                   <FormField
                     control={notificationForm.control}
                     name="messageText"
@@ -482,15 +520,38 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                     )}
                   </div>
 
-                  <Button 
-                    type="submit" 
-                    disabled={createNotification.isPending}
-                    size="sm"
-                    data-testid="button-create-notification"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Notification
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      type="submit" 
+                      disabled={createNotification.isPending || updateNotification.isPending}
+                      size="sm"
+                      data-testid="button-submit-notification"
+                    >
+                      {editingNotification ? (
+                        <>
+                          <Check className="h-4 w-4 mr-1" />
+                          Update Notification
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Notification
+                        </>
+                      )}
+                    </Button>
+                    {editingNotification && (
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancelEdit}
+                        data-testid="button-cancel-edit"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
                 </form>
               </Form>
 
@@ -529,16 +590,28 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               {notification.messageText}
                             </p>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteNotification(notification.id)}
-                            disabled={deleteNotification.isPending}
-                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 h-8 w-8 p-0"
-                            data-testid={`button-delete-notification-${notification.id}`}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditNotification(notification)}
+                              disabled={!!editingNotification}
+                              className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 h-8 w-8 p-0"
+                              data-testid={`button-edit-notification-${notification.id}`}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteNotification(notification.id)}
+                              disabled={deleteNotification.isPending || !!editingNotification}
+                              className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 h-8 w-8 p-0"
+                              data-testid={`button-delete-notification-${notification.id}`}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
