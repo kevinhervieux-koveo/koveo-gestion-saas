@@ -170,6 +170,20 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
     }
   };
 
+  const handleSelectAllProjectElements = () => {
+    const allProjectElementIds = filteredProjectElements.map(pe => pe.elementId);
+    const allSelected = allProjectElementIds.every(id => selectedElements.includes(id));
+    
+    if (allSelected) {
+      // Deselect all project elements
+      setSelectedElements(prev => prev.filter(id => !allProjectElementIds.includes(id)));
+    } else {
+      // Select all project elements
+      const newSelections = [...new Set([...selectedElements, ...allProjectElementIds])];
+      setSelectedElements(newSelections);
+    }
+  };
+
   const handleAddSelectedElements = () => {
     if (selectedElements.length > 0) {
       addElementsMutation.mutate(selectedElements);
@@ -324,8 +338,19 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
                 Elements included in this maintenance project
               </CardDescription>
             </div>
-            {selectedElements.length > 0 && (
-              <div className="flex gap-2">
+            <div className="flex gap-2">
+              {filteredProjectElements.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAllProjectElements}
+                  data-testid="button-select-all-project-elements"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  {filteredProjectElements.every(pe => selectedElements.includes(pe.elementId)) ? 'Deselect All' : 'Select All'}
+                </Button>
+              )}
+              {selectedElements.length > 0 && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -335,8 +360,8 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
                   <Settings className="h-4 w-4 mr-2" />
                   Bulk Actions ({selectedElements.length})
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
