@@ -7326,11 +7326,14 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
 
       // Use workflow service to advance status for normal workflow progression
-      const nextStatus = await workflowService.getNextStatus(id, validation.data.currentStatus as any);
+      // Get current workflow state to determine if advancement is possible
+      const workflowState = await workflowService.getProjectWorkflowState(id);
       
-      if (!nextStatus) {
+      if (!workflowState || !workflowState.canProgress || !workflowState.nextStatus) {
         return res.status(400).json({ error: 'Cannot advance from current status or project is already complete' });
       }
+      
+      const nextStatus = workflowState.nextStatus;
 
       // Update project status
       const updatedProject = await db
