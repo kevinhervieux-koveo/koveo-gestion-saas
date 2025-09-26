@@ -27,7 +27,7 @@ import { useUpdateProjectDetails, type ProjectWorkflowState } from '@/hooks/useP
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
 import { useBuildingContext } from '@/hooks/use-building-context';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { cn, formatStatus } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -50,7 +50,7 @@ const plannedTabSchema = z.object({
     message: 'Start planning date is required'
   }),
   estimatedCost: z.number().min(0, 'Cost must be non-negative').max(1000000, 'Cost must be less than $1,000,000'),
-  selectedElements: z.array(z.string()).optional().default([]),
+  selectedElements: z.array(z.string()).default([]),
 });
 
 type PlannedTabData = z.infer<typeof plannedTabSchema>;
