@@ -1,0 +1,519 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BAeoM_z_.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BAeoM_z_.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-BAeoM_z_.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BAeoM_z_.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-D2PmO2-9.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-D2PmO2-9.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 3
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-Bskfz-Yb.js:185 [Violation] 'setTimeout' handler took 89ms
+index-D2PmO2-9.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '400e859d-1d21-49c3-a6c9-34d7175739b0', projectTitle: 'Porte extérieurs'}
+index-D2PmO2-9.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-BZrbSG6s.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BZrbSG6s.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-BZrbSG6s.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BZrbSG6s.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+vendor-ui-B9Lwe8V-.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-B9Lwe8V-.js:58
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+q @ index-Bskfz-Yb.js:45
+sl @ index-Bskfz-Yb.js:150
+Ah @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+En @ index-Bskfz-Yb.js:163
+Bh @ index-Bskfz-Yb.js:163
+ig @ index-Bskfz-Yb.js:163
+dl @ index-Bskfz-Yb.js:163
+ag @ index-Bskfz-Yb.js:163
+ed @ index-Bskfz-Yb.js:163
+Xh @ index-Bskfz-Yb.js:163
+<jd>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+sh @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+sh @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+DialogContent @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+sh @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<DialogContent>
+du.jsxDEV @ index-Bskfz-Yb.js:15
+DialogContent @ dialog-B7-AzUoF.js:1
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+sh @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<DialogContent>
+du.jsxDEV @ index-Bskfz-Yb.js:15
+Yo @ SubmissionTab-DkDUCYjI.js:6
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+kc @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+WS @ index-Bskfz-Yb.js:163
+KS @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+fg @ index-Bskfz-Yb.js:185
+d @ index-Bskfz-Yb.js:23
+<...>
+du.jsxDEV @ index-Bskfz-Yb.js:15
+Um @ index-D2PmO2-9.js:48
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+kc @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<Um>
+du.jsxDEV @ index-Bskfz-Yb.js:15
+k @ ProjectWorkflowModal-BZrbSG6s.js:1
+yo @ ProjectWorkflowModal-BZrbSG6s.js:1
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+kc @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<...>
+du.jsxDEV @ index-Bskfz-Yb.js:15
+El @ index-D2PmO2-9.js:48
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+kc @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<El>
+du.jsxDEV @ index-Bskfz-Yb.js:15
+Pl @ index-D2PmO2-9.js:48
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+kc @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+ProjectWorkflowModal-BZrbSG6s.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+index-D2PmO2-9.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: '400e859d-1d21-49c3-a6c9-34d7175739b0', projectTitle: 'Porte extérieurs'}
+index-D2PmO2-9.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-D2PmO2-9.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-BZrbSG6s.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Response structure: (2) ['success', 'data']
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Projects found in data property: 3
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D2PmO2-9.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D2PmO2-9.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-Bskfz-Yb.js:136 TypeError: Cannot destructure property 'variant' of 'e' as it is undefined.
+    at pe (FormModal-BeOc90NP.js:62:3550)
+    at Object.react_stack_bottom_frame (index-Bskfz-Yb.js:229:12448)
+    at oc (index-Bskfz-Yb.js:120:804)
+    at kc (index-Bskfz-Yb.js:141:5839)
+    at Pc (index-Bskfz-Yb.js:150:10147)
+    at q (index-Bskfz-Yb.js:45:108)
+    at Kh (index-Bskfz-Yb.js:163:29810)
+    at Jh (index-Bskfz-Yb.js:163:28479)
+    at Wc (index-Bskfz-Yb.js:163:28312)
+    at Ih (index-Bskfz-Yb.js:163:24807)
+
+The above error occurred in the <pe> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gx.
+
+overrideMethod @ hook.js:608
+oh @ index-Bskfz-Yb.js:136
+lh @ index-Bskfz-Yb.js:141
+q @ index-Bskfz-Yb.js:45
+l.componentDidCatch.e.callback @ index-Bskfz-Yb.js:141
+Dp @ index-Bskfz-Yb.js:107
+Ep @ index-Bskfz-Yb.js:107
+q @ index-Bskfz-Yb.js:45
+Dh @ index-Bskfz-Yb.js:163
+Nh @ index-Bskfz-Yb.js:163
+Qn @ index-Bskfz-Yb.js:163
+Nh @ index-Bskfz-Yb.js:163
+Qn @ index-Bskfz-Yb.js:163
+Nh @ index-Bskfz-Yb.js:163
+Qn @ index-Bskfz-Yb.js:163
+Nh @ index-Bskfz-Yb.js:163
+Qn @ index-Bskfz-Yb.js:163
+Nh @ index-Bskfz-Yb.js:163
+Qn @ index-Bskfz-Yb.js:163
+Nh @ index-Bskfz-Yb.js:163
+Qn @ index-Bskfz-Yb.js:163
+Nh @ index-Bskfz-Yb.js:163
+ng @ index-Bskfz-Yb.js:163
+ed @ index-Bskfz-Yb.js:163
+Xh @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<pe>
+du.jsxDEV @ index-Bskfz-Yb.js:15
+kn @ FormModal-BeOc90NP.js:62
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+kc @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<kn>
+du.jsxDEV @ index-Bskfz-Yb.js:15
+cell @ index-D2PmO2-9.js:32
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+kc @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+<cell>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Dn @ FormModal-BeOc90NP.js:62
+(anonymous) @ index-D2PmO2-9.js:32
+(anonymous) @ index-D2PmO2-9.js:32
+Wr @ index-D2PmO2-9.js:32
+react_stack_bottom_frame @ index-Bskfz-Yb.js:229
+oc @ index-Bskfz-Yb.js:120
+kc @ index-Bskfz-Yb.js:141
+Pc @ index-Bskfz-Yb.js:150
+q @ index-Bskfz-Yb.js:45
+Kh @ index-Bskfz-Yb.js:163
+Jh @ index-Bskfz-Yb.js:163
+Wc @ index-Bskfz-Yb.js:163
+Ih @ index-Bskfz-Yb.js:163
+mg @ index-Bskfz-Yb.js:185
+ml @ index-Bskfz-Yb.js:185
+ad @ index-Bskfz-Yb.js:185
+(anonymous) @ index-Bskfz-Yb.js:185
+index-Bskfz-Yb.js:185 [Violation] 'setTimeout' handler took 63ms
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-BCjPz0R6.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
