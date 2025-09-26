@@ -2056,7 +2056,10 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
                       projectId: project.id,
                     }}
                     title="Documents"
-                    description="Upload or modify vendor documents and attachments"
+                    showUploadTabs={false}
+                    defaultUploadTab="file"
+                    aiEnabled={false}
+                    showAiToggle={false}
                   />
                 </div>
 
