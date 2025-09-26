@@ -23,6 +23,8 @@ import {
   AlertCircle,
   Search,
   X,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 
 interface ElementManagementTabProps {
@@ -51,6 +53,8 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
   const [bulkProjectType, setBulkProjectType] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [bulkAction, setBulkAction] = useState<'update_type' | 'remove'>('update_type');
+  const [isProjectElementsCollapsed, setIsProjectElementsCollapsed] = useState<boolean>(false);
+  const [isAvailableElementsCollapsed, setIsAvailableElementsCollapsed] = useState<boolean>(true);
 
   // Add workflow completion functionality
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
@@ -329,14 +333,24 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Project Elements ({projectElements.length})
-              </CardTitle>
-              <CardDescription>
-                Elements included in this maintenance project
-              </CardDescription>
+            <div 
+              className="flex items-center gap-2 cursor-pointer" 
+              onClick={() => setIsProjectElementsCollapsed(!isProjectElementsCollapsed)}
+            >
+              {isProjectElementsCollapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <ChevronDown className="h-5 w-5" />
+              )}
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  Project Elements ({projectElements.length})
+                </CardTitle>
+                <CardDescription>
+                  Elements included in this maintenance project
+                </CardDescription>
+              </div>
             </div>
             <div className="flex gap-2">
               {filteredProjectElements.length > 0 && (
@@ -364,6 +378,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
             </div>
           </div>
         </CardHeader>
+        {!isProjectElementsCollapsed && (
         <CardContent>
           {filteredProjectElements.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -460,6 +475,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
             </div>
           )}
         </CardContent>
+        )}
       </Card>
 
       {/* Available Elements */}
@@ -467,15 +483,25 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  Available Building Elements ({searchTerm ? filteredAvailableElements.length : availableElements.length})
-                </CardTitle>
-                <CardDescription>
-                  Add elements to this maintenance project
-                  {searchTerm && ` • Filtered by "${searchTerm}"`}
-                </CardDescription>
+              <div 
+                className="flex items-center gap-2 cursor-pointer" 
+                onClick={() => setIsAvailableElementsCollapsed(!isAvailableElementsCollapsed)}
+              >
+                {isAvailableElementsCollapsed ? (
+                  <ChevronRight className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Available Building Elements ({searchTerm ? filteredAvailableElements.length : availableElements.length})
+                  </CardTitle>
+                  <CardDescription>
+                    Add elements to this maintenance project
+                    {searchTerm && ` • Filtered by "${searchTerm}"`}
+                  </CardDescription>
+                </div>
               </div>
               {selectedElements.length > 0 && (
                 <Button
@@ -489,6 +515,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
               )}
             </div>
           </CardHeader>
+          {!isAvailableElementsCollapsed && (
           <CardContent>
             <div className="grid gap-3">
               {filteredAvailableElements.map((element) => {
@@ -529,6 +556,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
               })}
             </div>
           </CardContent>
+          )}
         </Card>
       )}
 
