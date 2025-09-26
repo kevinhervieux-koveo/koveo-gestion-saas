@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -134,6 +134,51 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   };
 
   // Handle task update
+  // Local state for task editing to prevent API calls on every keystroke
+  const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
+  const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
+
+  // Debounced save function that only calls API after user stops typing
+  const debouncedSaveTask = useCallback((taskId: string, updates: any) => {
+    // Clear existing timeout for this task
+    if (debounceTimeouts.current[taskId]) {
+      clearTimeout(debounceTimeouts.current[taskId]);
+    }
+
+    // Set new timeout to save after 500ms of inactivity
+    debounceTimeouts.current[taskId] = setTimeout(() => {
+      updateTask.mutate({
+        projectId: project.id,
+        taskId,
+        updates,
+      }, {
+        onSuccess: () => {
+          // Clear local edits after successful save
+          setLocalTaskEdits(prev => {
+            const { [taskId]: removed, ...rest } = prev;
+            return rest;
+          });
+        }
+      });
+      delete debounceTimeouts.current[taskId];
+    }, 500);
+  }, [project.id, updateTask]);
+
+  // Handle local task updates (for typing)
+  const handleTaskEdit = (taskId: string, field: string, value: any) => {
+    setLocalTaskEdits(prev => ({
+      ...prev,
+      [taskId]: {
+        ...prev[taskId],
+        [field]: value
+      }
+    }));
+    
+    // Trigger debounced save
+    debouncedSaveTask(taskId, { [field]: value });
+  };
+
+  // Handle immediate task updates (for buttons like completion toggle)
   const handleUpdateTask = (taskId: string, updates: any) => {
     updateTask.mutate({
       projectId: project.id,
@@ -141,6 +186,43 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
       updates,
     });
   };
+
+  // Get the current value for a task field (local edit or original value)
+  const getTaskValue = (task: any, field: string) => {
+    return localTaskEdits[task.id]?.[field] ?? task[field];
+  };
+
+  // Handle blur events to immediately save any pending changes
+  const handleTaskBlur = (taskId: string, field: string, value: any) => {
+    if (debounceTimeouts.current[taskId]) {
+      clearTimeout(debounceTimeouts.current[taskId]);
+      delete debounceTimeouts.current[taskId];
+      
+      // Immediately save on blur
+      updateTask.mutate({
+        projectId: project.id,
+        taskId,
+        updates: { [field]: value },
+      }, {
+        onSuccess: () => {
+          // Clear local edits after successful save
+          setLocalTaskEdits(prev => {
+            const { [taskId]: removed, ...rest } = prev;
+            return rest;
+          });
+        }
+      });
+    }
+  };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(debounceTimeouts.current).forEach(timeout => {
+        clearTimeout(timeout);
+      });
+    };
+  }, []);
 
   // Handle task deletion
   const handleDeleteTask = (taskId: string) => {
@@ -246,8 +328,9 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                         <GripVertical className="h-4 w-4 text-muted-foreground mt-1" />
                         <div className="flex-1 space-y-2">
                           <Input
-                            value={task.taskName}
-                            onChange={(e) => handleUpdateTask(task.id, { taskName: e.target.value })}
+                            value={getTaskValue(task, 'taskName')}
+                            onChange={(e) => handleTaskEdit(task.id, 'taskName', e.target.value)}
+                            onBlur={(e) => handleTaskBlur(task.id, 'taskName', e.target.value)}
                             placeholder="Task description (required)"
                             className="font-medium"
                             data-testid={`input-task-description-${index}`}
@@ -259,8 +342,9 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                value={task.cost || ''}
-                                onChange={(e) => handleUpdateTask(task.id, { cost: parseFloat(e.target.value) || 0 })}
+                                value={getTaskValue(task, 'cost') || ''}
+                                onChange={(e) => handleTaskEdit(task.id, 'cost', parseFloat(e.target.value) || 0)}
+                                onBlur={(e) => handleTaskBlur(task.id, 'cost', parseFloat(e.target.value) || 0)}
                                 placeholder="0.00"
                                 className="w-20 text-sm"
                                 data-testid={`input-task-cost-${index}`}
@@ -270,8 +354,9 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               <Calendar className="h-3 w-3" />
                               <Input
                                 type="date"
-                                value={task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''}
-                                onChange={(e) => handleUpdateTask(task.id, { dueDate: e.target.value || null })}
+                                value={getTaskValue(task, 'dueDate') ? new Date(getTaskValue(task, 'dueDate')).toISOString().split('T')[0] : ''}
+                                onChange={(e) => handleTaskEdit(task.id, 'dueDate', e.target.value || null)}
+                                onBlur={(e) => handleTaskBlur(task.id, 'dueDate', e.target.value || null)}
                                 className="w-32 text-sm"
                                 data-testid={`input-task-due-date-${index}`}
                               />
