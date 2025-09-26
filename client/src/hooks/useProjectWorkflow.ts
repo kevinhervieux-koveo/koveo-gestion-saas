@@ -292,6 +292,9 @@ export function useWorkflowTasks(projectId: string, phase?: 'pre_work' | 'in_pro
       }
       
       const data = await response.json();
+      console.log('🔍 [WORKFLOW TASKS] Raw response data:', data);
+      console.log('🔍 [WORKFLOW TASKS] Extracted tasks:', data.data);
+      console.log('🔍 [WORKFLOW TASKS] Tasks count:', data.data?.length || 0);
       return data.data || [];
     },
     enabled: !!projectId,

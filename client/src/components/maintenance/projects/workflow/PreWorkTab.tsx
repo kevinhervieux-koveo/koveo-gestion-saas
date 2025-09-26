@@ -90,6 +90,11 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     isLoading: isLoadingTasks 
   } = useWorkflowTasks(project.id, 'pre_work');
 
+  // Debug logging for task data
+  console.log('🔍 [PREWORK TAB] preWorkTasks:', preWorkTasks);
+  console.log('🔍 [PREWORK TAB] isLoadingTasks:', isLoadingTasks);
+  console.log('🔍 [PREWORK TAB] tasks length:', preWorkTasks.length);
+
   const { 
     data: notifications = [], 
     isLoading: isLoadingNotifications 
