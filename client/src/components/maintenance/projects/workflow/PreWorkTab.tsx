@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -399,68 +400,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
           </Card>
         </div>
 
-        {/* Right Column - Notifications */}
+        {/* Notification Settings */}
         <div className="space-y-4">
-          {/* Configured Notifications Display */}
-          {notifications.length > 0 && (
-            <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
-                  <Bell className="h-5 w-5" />
-                  Configured Notifications ({notifications.length})
-                </CardTitle>
-                <CardDescription className="text-blue-600 dark:text-blue-300">
-                  Active notification reminders for this project
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {notifications.map((notification) => (
-                    <div key={notification.id} className="p-3 bg-white dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg shadow-sm">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Bell className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            <span className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">
-                              {notification.timingType === 'custom' 
-                                ? `${notification.customDaysBefore} days before`
-                                : formatStatus(notification.timingType, 'Not specified').replace('_', ' ')
-                              }
-                            </span>
-                          </div>
-                          <p className="font-medium text-gray-900 dark:text-gray-100">{notification.messageText}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {notification.isSent ? (
-                            <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                              <Check className="h-4 w-4" />
-                              <span className="text-xs font-medium">Sent</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
-                              <Clock className="h-4 w-4" />
-                              <span className="text-xs font-medium">Pending</span>
-                            </div>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteNotification(notification.id)}
-                            disabled={deleteNotification.isPending}
-                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 h-6 w-6 p-0"
-                            data-testid={`button-delete-notification-${notification.id}`}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -468,7 +409,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                 Notification Settings
               </CardTitle>
               <CardDescription>
-                Set up automated reminders and notifications
+                Set up automated reminders that will be sent to all users linked to this building
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -552,6 +493,58 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                   </Button>
                 </form>
               </Form>
+
+              {/* Display Created Notifications */}
+              {notifications.length > 0 && (
+                <div className="mt-6 pt-6 border-t">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Bell className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-medium text-sm">Created Notifications ({notifications.length})</h4>
+                  </div>
+                  <div className="space-y-3">
+                    {notifications.map((notification) => (
+                      <div key={notification.id} className="border rounded-lg p-3 bg-muted/20">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                {notification.timingType === 'custom' 
+                                  ? `${notification.customDaysBefore} days before`
+                                  : formatStatus(notification.timingType, 'Not specified').replace('_', ' ')
+                                }
+                              </span>
+                              {notification.isSent ? (
+                                <Badge variant="secondary" className="text-green-600 bg-green-50">
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Sent
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-orange-600 bg-orange-50">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  Pending
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {notification.messageText}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteNotification(notification.id)}
+                            disabled={deleteNotification.isPending}
+                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 h-8 w-8 p-0"
+                            data-testid={`button-delete-notification-${notification.id}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             </CardContent>
           </Card>
