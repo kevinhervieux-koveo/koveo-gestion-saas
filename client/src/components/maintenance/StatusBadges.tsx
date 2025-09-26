@@ -227,6 +227,16 @@ interface StatusBadgeProps extends Omit<BadgeProps, 'variant'> {
 
 export function StatusBadge({ status, ...props }: StatusBadgeProps) {
   const config = projectStatusConfig[status];
+  
+  // If config is undefined, provide a fallback
+  if (!config) {
+    return (
+      <Badge variant="secondary" className="text-xs" {...props}>
+        {status || 'Unknown'}
+      </Badge>
+    );
+  }
+  
   return <BaseBadge config={config} {...props} />;
 }
 
@@ -239,6 +249,16 @@ interface ConditionBadgeProps extends Omit<BadgeProps, 'variant'> {
 
 export function ConditionBadge({ condition, ...props }: ConditionBadgeProps) {
   const config = conditionConfig[condition];
+  
+  // If config is undefined, provide a fallback
+  if (!config) {
+    return (
+      <Badge variant="outline" className="text-xs" {...props}>
+        {condition || 'Unknown'}
+      </Badge>
+    );
+  }
+  
   return <BaseBadge config={config} {...props} />;
 }
 
@@ -251,6 +271,16 @@ interface PriorityBadgeProps extends Omit<BadgeProps, 'variant'> {
 
 export function PriorityBadge({ priority, ...props }: PriorityBadgeProps) {
   const config = priorityConfig[priority];
+  
+  // If config is undefined, provide a fallback
+  if (!config) {
+    return (
+      <Badge variant="outline" className="text-xs" {...props}>
+        {priority || 'Unknown'}
+      </Badge>
+    );
+  }
+  
   return <BaseBadge config={config} {...props} />;
 }
 
@@ -263,6 +293,16 @@ interface EvaluationStatusBadgeProps extends Omit<BadgeProps, 'variant'> {
 
 export function EvaluationStatusBadge({ status, ...props }: EvaluationStatusBadgeProps) {
   const config = evaluationStatusConfig[status];
+  
+  // If config is undefined, provide a fallback
+  if (!config) {
+    return (
+      <Badge variant="secondary" className="text-xs" {...props}>
+        {status || 'Unknown'}
+      </Badge>
+    );
+  }
+  
   return <BaseBadge config={config} {...props} />;
 }
 
