@@ -33,6 +33,7 @@ interface ElementManagementTabProps {
   project: MaintenanceProject;
   workflowState: ProjectWorkflowState;
   onUpdate: () => void;
+  onNavigateToTab?: (tabId: string) => void;
 }
 
 interface ProjectElementWithDetails extends ProjectElement {
@@ -47,7 +48,7 @@ const PROJECT_TYPES = [
   { value: 'not_sure', label: 'Assessment Needed', icon: Target, description: 'Requires evaluation' },
 ];
 
-export function ElementManagementTab({ project, workflowState, onUpdate }: ElementManagementTabProps) {
+export function ElementManagementTab({ project, workflowState, onUpdate, onNavigateToTab }: ElementManagementTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
@@ -66,7 +67,12 @@ export function ElementManagementTab({ project, workflowState, onUpdate }: Eleme
       projectId: project.id,
       currentStatus: 'submission',
     }, {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        // Navigate to the next tab if provided and available
+        if (data.newStatus && onNavigateToTab) {
+          onNavigateToTab(data.newStatus);
+        }
+        // Update the workflow state
         onUpdate();
       },
     });

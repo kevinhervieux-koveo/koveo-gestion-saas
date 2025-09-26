@@ -288,6 +288,9 @@ export function ProjectWorkflowModal({
           setActiveTab(newStatus);
         }
       },
+      onNavigateToTab: (tabId: string) => {
+        setActiveTab(tabId);
+      },
     };
 
     switch (activeTab) {

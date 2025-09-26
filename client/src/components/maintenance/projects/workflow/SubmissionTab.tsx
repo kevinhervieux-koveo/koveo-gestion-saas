@@ -212,13 +212,14 @@ export interface SubmissionTabProps {
   project: MaintenanceProject;
   workflowState: ProjectWorkflowState;
   onUpdate: () => void;
+  onNavigateToTab?: (tabId: string) => void;
 }
 
 /**
  * Submission tab component for vendor management and selection
  * Displays vendor submissions, payment plans, and selection interface
  */
-export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTabProps) {
+export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTab }: SubmissionTabProps) {
   const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
   const [editingVendor, setEditingVendor] = useState<SubmissionVendor | null>(null);
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
@@ -2124,6 +2125,7 @@ export function SubmissionTab({ project, workflowState, onUpdate }: SubmissionTa
               project={project} 
               workflowState={workflowState}
               onUpdate={onUpdate}
+              onNavigateToTab={onNavigateToTab}
             />
           </TabsContent>
         )}
