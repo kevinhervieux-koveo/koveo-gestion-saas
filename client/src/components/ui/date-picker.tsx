@@ -61,16 +61,26 @@ export function DatePicker({
             data-testid={dataTestId || "date-picker-trigger"}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "PPP") : <span>{placeholder}</span>}
+            {date ? format(date, "MMMM d, yyyy") : <span>{placeholder}</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <CalendarPicker
-            selected={date}
-            onSelect={handleSelect}
-            disabled={isDateDisabled}
-            showActions={true}
-          />
+          <div className="space-y-3">
+            <CalendarPicker
+              selected={date}
+              onSelect={handleSelect}
+              disabled={isDateDisabled}
+              showActions={true}
+              className="min-w-[260px]"
+            />
+            {date && (
+              <div className="px-4 pb-3 pt-0 text-center">
+                <div className="text-sm font-medium text-muted-foreground">
+                  {format(date, "yyyy-MM-dd")}
+                </div>
+              </div>
+            )}
+          </div>
         </PopoverContent>
       </Popover>
     </div>

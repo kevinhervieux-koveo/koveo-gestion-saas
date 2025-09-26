@@ -49,12 +49,12 @@ function Calendar({
           nav_button_next: 'absolute right-0',
           table: 'w-full border-collapse space-y-0',
           head_row: 'grid grid-cols-7 w-full mb-2',
-          head_cell: 'text-muted-foreground w-10 h-10 font-normal text-xs text-center flex items-center justify-center flex-shrink-0',
+          head_cell: 'text-muted-foreground w-8 h-8 font-normal text-xs text-center flex items-center justify-center flex-shrink-0',
           row: 'grid grid-cols-7 w-full',
-          cell: 'relative h-10 w-10 text-center text-sm p-0 focus-within:relative focus-within:z-20 flex items-center justify-center flex-shrink-0',
+          cell: 'relative h-8 w-8 text-center text-sm p-0 focus-within:relative focus-within:z-20 flex items-center justify-center flex-shrink-0',
           day: cn(
             buttonVariants({ variant: 'ghost' }),
-            'h-10 w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground transition-colors'
+            'h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground transition-colors'
           ),
           day_range_end: 'day-range-end',
           day_selected:
@@ -127,7 +127,7 @@ export function CalendarPicker({
       mode="single"
       selected={selected}
       onSelect={onSelect}
-      className={cn('min-w-[280px]', className)}
+      className={cn('min-w-[240px]', className)}
       showActions={showActions}
       onClear={() => onSelect?.(undefined)}
       onToday={() => onSelect?.(new Date())}
