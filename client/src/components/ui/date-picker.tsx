@@ -1,14 +1,9 @@
 import * as React from "react";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "lucide-react";
+import { format, addMonths, subMonths } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CalendarPicker } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 interface DatePickerProps {
   date?: Date;
@@ -33,11 +28,10 @@ export function DatePicker({
   max,
   'data-testid': dataTestId,
 }: DatePickerProps) {
-  const [open, setOpen] = React.useState(false);
+  const [displayMonth, setDisplayMonth] = React.useState(date || new Date());
 
   const handleSelect = (selectedDate: Date | undefined) => {
     onSelect?.(selectedDate);
-    setOpen(false);
   };
 
   const isDateDisabled = (day: Date) => {
@@ -46,43 +40,84 @@ export function DatePicker({
     return false;
   };
 
+  const goToPreviousMonth = () => {
+    setDisplayMonth(subMonths(displayMonth, 1));
+  };
+
+  const goToNextMonth = () => {
+    setDisplayMonth(addMonths(displayMonth, 1));
+  };
+
   return (
-    <div className={className}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !date && "text-muted-foreground",
-              buttonClassName
-            )}
-            disabled={disabled}
-            data-testid={dataTestId || "date-picker-trigger"}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "MMMM d, yyyy") : <span>{placeholder}</span>}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <div className="space-y-3">
-            <CalendarPicker
-              selected={date}
-              onSelect={handleSelect}
-              disabled={isDateDisabled}
-              showActions={true}
-              className="min-w-[260px]"
-            />
-            {date && (
-              <div className="px-4 pb-3 pt-0 text-center">
-                <div className="text-sm font-medium text-muted-foreground">
-                  {format(date, "yyyy-MM-dd")}
-                </div>
-              </div>
-            )}
+    <div className={cn("space-y-3 border rounded-lg p-3 bg-background", className)} data-testid={dataTestId}>
+      {/* Month/Year Navigation */}
+      <div className="flex items-center justify-center relative">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={goToPreviousMonth}
+          className="absolute left-0 h-8 w-8 p-0"
+          disabled={disabled}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        <div className="flex items-center gap-1">
+          <span className="font-medium text-sm">
+            {format(displayMonth, "MMMM yyyy")}
+          </span>
+          <div className="flex flex-col ml-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={goToNextMonth}
+              className="h-3 w-4 p-0 hover:bg-muted"
+              disabled={disabled}
+            >
+              <ChevronUp className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost" 
+              size="sm"
+              onClick={goToPreviousMonth}
+              className="h-3 w-4 p-0 hover:bg-muted"
+              disabled={disabled}
+            >
+              <ChevronDown className="h-3 w-3" />
+            </Button>
           </div>
-        </PopoverContent>
-      </Popover>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={goToNextMonth}
+          className="absolute right-0 h-8 w-8 p-0"
+          disabled={disabled}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Calendar Grid */}
+      <CalendarPicker
+        selected={date}
+        onSelect={handleSelect}
+        disabled={isDateDisabled}
+        showActions={true}
+        className="w-full"
+        month={displayMonth}
+        onMonthChange={setDisplayMonth}
+      />
+
+      {/* Selected Date Display */}
+      {date && (
+        <div className="text-center pt-2 border-t">
+          <div className="text-sm font-medium">
+            {format(date, "yyyy-MM-dd")}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -102,6 +137,32 @@ export function FormDatePicker({
     <DatePicker
       date={value}
       onSelect={onChange}
+      {...props}
+    />
+  );
+}
+
+// Alternative prop names for consistency
+export interface DatePickerAltProps {
+  date?: Date;
+  onDateChange?: (date: Date | undefined) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+  min?: Date;
+  max?: Date;
+  'data-testid'?: string;
+}
+
+export function DatePickerAlt({
+  date,
+  onDateChange,
+  ...props
+}: DatePickerAltProps) {
+  return (
+    <DatePicker
+      date={date}
+      onSelect={onDateChange}
       {...props}
     />
   );
