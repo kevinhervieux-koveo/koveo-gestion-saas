@@ -122,6 +122,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
         taskName: 'New Task',
         description: '',
         cost: 0,
+        dueDate: undefined,
         isCompleted: false,
         orderIndex: newTaskIndex,
       },
@@ -255,16 +256,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                           <Input
                             value={task.taskName}
                             onChange={(e) => handleUpdateTask(task.id, { taskName: e.target.value })}
-                            placeholder="Task name"
+                            placeholder="Task description (required)"
                             className="font-medium"
-                            data-testid={`input-task-name-${index}`}
-                          />
-                          <Textarea
-                            value={task.description || ''}
-                            onChange={(e) => handleUpdateTask(task.id, { description: e.target.value })}
-                            placeholder="Task description (optional)"
-                            className="text-sm"
-                            rows={2}
                             data-testid={`input-task-description-${index}`}
                           />
                           <div className="flex items-center gap-2">
@@ -279,6 +272,16 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                 placeholder="0.00"
                                 className="w-20 text-sm"
                                 data-testid={`input-task-cost-${index}`}
+                              />
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <Input
+                                type="date"
+                                value={task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''}
+                                onChange={(e) => handleUpdateTask(task.id, { dueDate: e.target.value || null })}
+                                className="w-32 text-sm"
+                                data-testid={`input-task-due-date-${index}`}
                               />
                             </div>
                             <Button
