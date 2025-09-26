@@ -677,7 +677,50 @@ export function useProjectNotificationMutations() {
     },
   });
 
-  return { createNotification, updateNotification };
+  const deleteNotification = useMutation({
+    mutationFn: async ({ 
+      projectId, 
+      notificationId 
+    }: { 
+      projectId: string; 
+      notificationId: string; 
+    }) => {
+      const response = await apiRequest('DELETE', `/api/maintenance/notifications/${notificationId}`);
+      if (!response.ok) throw new Error('Failed to delete notification');
+      
+      // Handle 204 No Content responses (no body to parse)
+      if (response.status === 204) {
+        return undefined;
+      }
+      
+      // Only parse JSON if there's content
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+      }
+      
+      return undefined;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', variables.projectId, 'notifications'] 
+      });
+      toast({
+        title: 'Notification Deleted',
+        description: 'Project notification has been deleted successfully',
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to delete notification:', error);
+      toast({
+        title: 'Delete Failed',
+        description: error.message || 'Failed to delete notification',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  return { createNotification, updateNotification, deleteNotification };
 }
 
 // Utility functions for workflow logic

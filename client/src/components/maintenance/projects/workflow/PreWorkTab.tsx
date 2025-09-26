@@ -96,7 +96,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   } = useProjectNotifications(project.id);
 
   const { createTask, updateTask, deleteTask } = useWorkflowTaskMutations();
-  const { createNotification, updateNotification } = useProjectNotificationMutations();
+  const { createNotification, updateNotification, deleteNotification } = useProjectNotificationMutations();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
 
   const notificationForm = useForm<NotificationData>({
@@ -109,6 +109,14 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   });
 
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'pre_work';
+
+  // Handle notification deletion
+  const handleDeleteNotification = (notificationId: string) => {
+    deleteNotification.mutate({
+      projectId: project.id,
+      notificationId,
+    });
+  };
 
   // Handle new task creation
   const handleCreateTask = () => {
@@ -343,6 +351,16 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               <span className="text-xs font-medium">Pending</span>
                             </div>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteNotification(notification.id)}
+                            disabled={deleteNotification.isPending}
+                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 h-6 w-6 p-0"
+                            data-testid={`button-delete-notification-${notification.id}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     </div>
