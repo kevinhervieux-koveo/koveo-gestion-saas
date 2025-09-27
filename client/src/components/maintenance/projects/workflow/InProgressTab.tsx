@@ -303,6 +303,24 @@ export function InProgressTab({ project, workflowState, onUpdate }: InProgressTa
                                     data-testid={`input-work-task-cost-${index}`}
                                   />
                                 </div>
+                                <div className="flex items-center gap-1 w-40">
+                                  <Input
+                                    type="date"
+                                    min={format(new Date(), 'yyyy-MM-dd')}
+                                    value={getTaskValue(task, 'dueDate') || ''}
+                                    onChange={(e) => {
+                                      // Store the date string directly to avoid timezone issues
+                                      const dateValue = e.target.value || null;
+                                      handleTaskEdit(task.id, 'dueDate', dateValue);
+                                    }}
+                                    onBlur={(e) => {
+                                      const dateValue = e.target.value || null;
+                                      handleTaskBlur(task.id, 'dueDate', dateValue);
+                                    }}
+                                    className="flex-1"
+                                    data-testid={`input-work-task-due-date-${index}`}
+                                  />
+                                </div>
                                 <Button
                                   variant={task.isCompleted ? "default" : "outline"}
                                   size="sm"

@@ -526,6 +526,7 @@ export const workflowTasks = pgTable('workflow_tasks', {
   taskName: text('task_name').notNull(),
   description: text('description'),
   cost: decimal('cost', { precision: 10, scale: 2 }),
+  dueDate: date('due_date'),
   isCompleted: boolean('is_completed').notNull().default(false),
   orderIndex: integer('order_index').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
@@ -724,6 +725,7 @@ export const insertWorkflowTaskSchema = createInsertSchema(workflowTasks, {
   taskName: z.string().min(1),
   description: z.string().optional(),
   cost: z.number().positive().optional(),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   orderIndex: z.number().int().min(0),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 

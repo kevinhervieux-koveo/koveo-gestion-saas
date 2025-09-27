@@ -378,6 +378,7 @@ const workflowTaskUpdateSchema = z.object({
   taskName: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
   cost: z.number().positive().optional(),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
   orderIndex: z.number().int().min(0).optional(),
   isCompleted: z.boolean().optional(),
 });
