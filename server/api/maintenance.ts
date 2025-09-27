@@ -49,6 +49,7 @@ import {
   type InsertElementProjectUpdate,
 } from '@shared/schemas/maintenance';
 import { buildings, organizations, userOrganizations, residences } from '@shared/schema';
+import { workflowService } from '../services/workflow-service';
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
@@ -3618,6 +3619,120 @@ export function registerMaintenanceRoutes(app: Express): void {
     }
   });
   
+  /**
+   * POST /api/maintenance/projects/:id/reopen-step - Reopen workflow to a previous phase
+   */
+  app.post('/api/maintenance/projects/:id/reopen-step', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to reopen workflow steps'
+        });
+      }
+      
+      const { id: projectId } = req.params;
+      const { targetStatus, reason } = req.body;
+      
+      if (!targetStatus) {
+        return res.status(400).json({
+          error: 'targetStatus is required'
+        });
+      }
+      
+      // Validate targetStatus is a valid workflow status
+      const validStatuses = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
+      if (!validStatuses.includes(targetStatus)) {
+        return res.status(400).json({
+          error: `Invalid targetStatus. Must be one of: ${validStatuses.join(', ')}`
+        });
+      }
+      
+      // Check project exists and user has access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+      
+      // Use workflow service to reopen to the specified phase
+      const workflowState = await workflowService.reopenToPhase(projectId, targetStatus, reason);
+      
+      res.json({
+        success: true,
+        data: workflowState,
+        message: `Project reopened to ${targetStatus} phase`
+      });
+    } catch (error: any) {
+      console.error('Error reopening workflow step:', error);
+      res.status(500).json({
+        error: 'Failed to reopen workflow step',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/maintenance/projects/:id/reopen-targets - Get allowed reopen targets for a project
+   */
+  app.get('/api/maintenance/projects/:id/reopen-targets', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      const { id: projectId } = req.params;
+      
+      // Check project exists and user has access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+      
+      // Get allowed reopen targets from workflow service
+      const allowedTargets = await workflowService.getAllowedReopenTargets(projectId);
+      
+      res.json({
+        success: true,
+        data: allowedTargets
+      });
+    } catch (error: any) {
+      console.error('Error getting reopen targets:', error);
+      res.status(500).json({
+        error: 'Failed to get reopen targets',
+        details: error.message
+      });
+    }
+  });
+
   /**
    * PATCH /api/maintenance/projects/:id/sync-intervention-types - One-time sync to update work descriptions from intervention types  
    */
