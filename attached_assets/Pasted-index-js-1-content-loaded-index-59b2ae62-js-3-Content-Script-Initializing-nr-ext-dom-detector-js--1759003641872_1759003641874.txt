@@ -1,0 +1,954 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BaGnOVoX.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BaGnOVoX.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BaGnOVoX.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BaGnOVoX.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-CduJzsAk.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 4
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CZojiahj.js:185 [Violation] 'setTimeout' handler took 109ms
+index-CduJzsAk.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-CduJzsAk.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-CduJzsAk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-CduJzsAk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Response structure: (2) ['success', 'data']
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects found in data property: 4
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CZojiahj.js:185 [Violation] 'setTimeout' handler took 115ms
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Response structure: (2) ['success', 'data']
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects found in data property: 4
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CZojiahj.js:185 [Violation] 'setTimeout' handler took 109ms
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+index-CduJzsAk.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-CduJzsAk.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CZojiahj.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/tasks?phase=pre_work 502 (Bad Gateway)
+sR @ index-CZojiahj.js:240
+queryFn @ useProjectWorkflow-B6KZ9AN_.js:1
+r @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+fetch @ vendor-query-D7rmUEQz.js:1
+#l @ vendor-query-D7rmUEQz.js:1
+onSubscribe @ vendor-query-D7rmUEQz.js:1
+subscribe @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Np @ index-CZojiahj.js:120
+react_stack_bottom_frame @ index-CZojiahj.js:229
+q @ index-CZojiahj.js:45
+sl @ index-CZojiahj.js:150
+Ah @ index-CZojiahj.js:163
+Lh @ index-CZojiahj.js:163
+Bo @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+ig @ index-CZojiahj.js:163
+dl @ index-CZojiahj.js:163
+ag @ index-CZojiahj.js:163
+ed @ index-CZojiahj.js:163
+Xh @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+<...>
+du.jsxDEV @ index-CZojiahj.js:15
+Km @ index-CduJzsAk.js:48
+react_stack_bottom_frame @ index-CZojiahj.js:229
+oc @ index-CZojiahj.js:120
+kc @ index-CZojiahj.js:141
+Pc @ index-CZojiahj.js:150
+q @ index-CZojiahj.js:45
+Kh @ index-CZojiahj.js:163
+Jh @ index-CZojiahj.js:163
+Wc @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+<Km>
+du.jsxDEV @ index-CZojiahj.js:15
+S @ ProjectWorkflowModal-BZkaHHLe.js:1
+To @ ProjectWorkflowModal-BZkaHHLe.js:1
+react_stack_bottom_frame @ index-CZojiahj.js:229
+oc @ index-CZojiahj.js:120
+kc @ index-CZojiahj.js:141
+Pc @ index-CZojiahj.js:150
+q @ index-CZojiahj.js:45
+Kh @ index-CZojiahj.js:163
+Jh @ index-CZojiahj.js:163
+Wc @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+index-CZojiahj.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/notifications 502 (Bad Gateway)
+sR @ index-CZojiahj.js:240
+queryFn @ useProjectWorkflow-B6KZ9AN_.js:1
+r @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+fetch @ vendor-query-D7rmUEQz.js:1
+#l @ vendor-query-D7rmUEQz.js:1
+onSubscribe @ vendor-query-D7rmUEQz.js:1
+subscribe @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Np @ index-CZojiahj.js:120
+react_stack_bottom_frame @ index-CZojiahj.js:229
+q @ index-CZojiahj.js:45
+sl @ index-CZojiahj.js:150
+Ah @ index-CZojiahj.js:163
+Lh @ index-CZojiahj.js:163
+Bo @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+ig @ index-CZojiahj.js:163
+dl @ index-CZojiahj.js:163
+ag @ index-CZojiahj.js:163
+ed @ index-CZojiahj.js:163
+Xh @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+<...>
+du.jsxDEV @ index-CZojiahj.js:15
+Km @ index-CduJzsAk.js:48
+react_stack_bottom_frame @ index-CZojiahj.js:229
+oc @ index-CZojiahj.js:120
+kc @ index-CZojiahj.js:141
+Pc @ index-CZojiahj.js:150
+q @ index-CZojiahj.js:45
+Kh @ index-CZojiahj.js:163
+Jh @ index-CZojiahj.js:163
+Wc @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+<Km>
+du.jsxDEV @ index-CZojiahj.js:15
+S @ ProjectWorkflowModal-BZkaHHLe.js:1
+To @ ProjectWorkflowModal-BZkaHHLe.js:1
+react_stack_bottom_frame @ index-CZojiahj.js:229
+oc @ index-CZojiahj.js:120
+kc @ index-CZojiahj.js:141
+Pc @ index-CZojiahj.js:150
+q @ index-CZojiahj.js:45
+Kh @ index-CZojiahj.js:163
+Jh @ index-CZojiahj.js:163
+Wc @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CZojiahj.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/tasks?phase=pre_work 502 (Bad Gateway)
+sR @ index-CZojiahj.js:240
+queryFn @ useProjectWorkflow-B6KZ9AN_.js:1
+r @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Promise.then
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Promise.catch
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+fetch @ vendor-query-D7rmUEQz.js:1
+#l @ vendor-query-D7rmUEQz.js:1
+onSubscribe @ vendor-query-D7rmUEQz.js:1
+subscribe @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Np @ index-CZojiahj.js:120
+react_stack_bottom_frame @ index-CZojiahj.js:229
+q @ index-CZojiahj.js:45
+sl @ index-CZojiahj.js:150
+Ah @ index-CZojiahj.js:163
+Lh @ index-CZojiahj.js:163
+Bo @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+ig @ index-CZojiahj.js:163
+dl @ index-CZojiahj.js:163
+ag @ index-CZojiahj.js:163
+ed @ index-CZojiahj.js:163
+Xh @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+<...>
+du.jsxDEV @ index-CZojiahj.js:15
+Km @ index-CduJzsAk.js:48
+react_stack_bottom_frame @ index-CZojiahj.js:229
+oc @ index-CZojiahj.js:120
+kc @ index-CZojiahj.js:141
+Pc @ index-CZojiahj.js:150
+q @ index-CZojiahj.js:45
+Kh @ index-CZojiahj.js:163
+Jh @ index-CZojiahj.js:163
+Wc @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+<Km>
+du.jsxDEV @ index-CZojiahj.js:15
+S @ ProjectWorkflowModal-BZkaHHLe.js:1
+To @ ProjectWorkflowModal-BZkaHHLe.js:1
+react_stack_bottom_frame @ index-CZojiahj.js:229
+oc @ index-CZojiahj.js:120
+kc @ index-CZojiahj.js:141
+Pc @ index-CZojiahj.js:150
+q @ index-CZojiahj.js:45
+Kh @ index-CZojiahj.js:163
+Jh @ index-CZojiahj.js:163
+Wc @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+index-CZojiahj.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/notifications 502 (Bad Gateway)
+sR @ index-CZojiahj.js:240
+queryFn @ useProjectWorkflow-B6KZ9AN_.js:1
+r @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Promise.then
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Promise.catch
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+fetch @ vendor-query-D7rmUEQz.js:1
+#l @ vendor-query-D7rmUEQz.js:1
+onSubscribe @ vendor-query-D7rmUEQz.js:1
+subscribe @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Np @ index-CZojiahj.js:120
+react_stack_bottom_frame @ index-CZojiahj.js:229
+q @ index-CZojiahj.js:45
+sl @ index-CZojiahj.js:150
+Ah @ index-CZojiahj.js:163
+Lh @ index-CZojiahj.js:163
+Bo @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+En @ index-CZojiahj.js:163
+Bh @ index-CZojiahj.js:163
+ig @ index-CZojiahj.js:163
+dl @ index-CZojiahj.js:163
+ag @ index-CZojiahj.js:163
+ed @ index-CZojiahj.js:163
+Xh @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+<...>
+du.jsxDEV @ index-CZojiahj.js:15
+Km @ index-CduJzsAk.js:48
+react_stack_bottom_frame @ index-CZojiahj.js:229
+oc @ index-CZojiahj.js:120
+kc @ index-CZojiahj.js:141
+Pc @ index-CZojiahj.js:150
+q @ index-CZojiahj.js:45
+Kh @ index-CZojiahj.js:163
+Jh @ index-CZojiahj.js:163
+Wc @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+<Km>
+du.jsxDEV @ index-CZojiahj.js:15
+S @ ProjectWorkflowModal-BZkaHHLe.js:1
+To @ ProjectWorkflowModal-BZkaHHLe.js:1
+react_stack_bottom_frame @ index-CZojiahj.js:229
+oc @ index-CZojiahj.js:120
+kc @ index-CZojiahj.js:141
+Pc @ index-CZojiahj.js:150
+q @ index-CZojiahj.js:45
+Kh @ index-CZojiahj.js:163
+Jh @ index-CZojiahj.js:163
+Wc @ index-CZojiahj.js:163
+Ih @ index-CZojiahj.js:163
+mg @ index-CZojiahj.js:185
+ml @ index-CZojiahj.js:185
+ad @ index-CZojiahj.js:185
+(anonymous) @ index-CZojiahj.js:185
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CZojiahj.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/notifications 502 (Bad Gateway)
+sR @ index-CZojiahj.js:240
+queryFn @ useProjectWorkflow-B6KZ9AN_.js:1
+r @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Promise.then
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Promise.catch
+y @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+index-CZojiahj.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/tasks?phase=pre_work 502 (Bad Gateway)
+sR @ index-CZojiahj.js:240
+queryFn @ useProjectWorkflow-B6KZ9AN_.js:1
+r @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Promise.then
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+Promise.catch
+y @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1

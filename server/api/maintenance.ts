@@ -5975,43 +5975,9 @@ export function registerMaintenanceRoutes(app: Express): void {
    * Calculate accessible tabs based on current status and skip flags
    */
   function calculateAccessibleTabs(currentStatus: string, skipFlags: any): string[] {
-    const tabs = ['planned']; // planned is always accessible
-    
-    // Always include current status to ensure it's accessible
-    if (currentStatus && !tabs.includes(currentStatus)) {
-      tabs.push(currentStatus);
-    }
-    
-    // Add tabs based on progression through workflow
-    const statusOrder = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
-    const currentIndex = statusOrder.indexOf(currentStatus);
-    
-    // Add all accessible tabs up to and including current status
-    for (let i = 0; i <= currentIndex; i++) {
-      const status = statusOrder[i];
-      
-      // Skip if this step is marked to be skipped
-      switch (status) {
-        case 'submission':
-          if (skipFlags?.skipSubmission) continue;
-          break;
-        case 'pre_work':
-          if (skipFlags?.skipPreWork) continue;
-          break;
-        case 'in_progress':
-          if (skipFlags?.skipInProgress) continue;
-          break;
-        case 'post_work':
-          if (skipFlags?.skipPostWork) continue;
-          break;
-      }
-      
-      if (!tabs.includes(status)) {
-        tabs.push(status);
-      }
-    }
-    
-    return tabs;
+    // Return ALL tabs to allow unrestricted access for configuration regardless of current phase
+    // This enables users to configure future workflow steps even when not at that phase yet
+    return ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
   }
   
   /**

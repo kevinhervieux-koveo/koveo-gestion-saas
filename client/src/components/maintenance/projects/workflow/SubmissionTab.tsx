@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { StandardDocumentAttachments, type AttachedFile } from '@/components/common/StandardDocumentAttachments';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, useReopenWorkflowStep, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { ReopenStepDialog } from './ReopenStepDialog';
 import { useToast } from '@/hooks/use-toast';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
