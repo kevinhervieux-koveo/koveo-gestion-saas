@@ -358,12 +358,13 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                 min={format(new Date(), 'yyyy-MM-dd')}
                                 value={getTaskValue(task, 'dueDate') ? format(new Date(getTaskValue(task, 'dueDate')), 'yyyy-MM-dd') : ''}
                                 onChange={(e) => {
-                                  const date = e.target.value ? new Date(e.target.value) : null;
-                                  handleTaskEdit(task.id, 'dueDate', date);
-                                  if (!date) {
-                                    // Immediately save when clearing the date
-                                    handleTaskBlur(task.id, 'dueDate', null);
+                                  // Create date in local timezone to avoid day-before bug
+                                  let date = null;
+                                  if (e.target.value) {
+                                    const [year, month, day] = e.target.value.split('-').map(Number);
+                                    date = new Date(year, month - 1, day); // month is 0-indexed
                                   }
+                                  handleTaskEdit(task.id, 'dueDate', date);
                                 }}
                                 className="flex-1"
                                 data-testid={`input-task-due-date-${index}`}
