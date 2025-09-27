@@ -153,35 +153,38 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   // Auto-save timer reference
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Save all pending changes
+  // Save all pending changes - using ref to avoid dependency issues
   const handleSaveChanges = useCallback(() => {
-    if (Object.keys(localTaskEdits).length === 0) return;
-    
-    const editsToSave = { ...localTaskEdits };
-    setLocalTaskEdits({});
-    setHasChanges(false);
-    setIsSaving(true);
-    
-    let completedSaves = 0;
-    const totalSaves = Object.keys(editsToSave).length;
-    
-    Object.entries(editsToSave).forEach(([taskId, updates]) => {
-      updateTask.mutate({
-        projectId: project.id,
-        taskId,
-        updates,
-      }, {
-        onSettled: () => {
-          completedSaves++;
-          if (completedSaves === totalSaves) {
-            setIsSaving(false);
+    setLocalTaskEdits(currentEdits => {
+      if (Object.keys(currentEdits).length === 0) return currentEdits;
+      
+      const editsToSave = { ...currentEdits };
+      setHasChanges(false);
+      setIsSaving(true);
+      
+      let completedSaves = 0;
+      const totalSaves = Object.keys(editsToSave).length;
+      
+      Object.entries(editsToSave).forEach(([taskId, updates]) => {
+        updateTask.mutate({
+          projectId: project.id,
+          taskId,
+          updates,
+        }, {
+          onSettled: () => {
+            completedSaves++;
+            if (completedSaves === totalSaves) {
+              setIsSaving(false);
+            }
           }
-        }
+        });
       });
+      
+      return {}; // Clear the edits
     });
-  }, [localTaskEdits, project.id, updateTask]);
+  }, [project.id, updateTask]);
 
-  // Auto-save function with debounce
+  // Auto-save function with debounce - fixed dependencies
   const scheduleAutoSave = useCallback(() => {
     // Clear existing timer
     if (autoSaveTimerRef.current) {
@@ -190,11 +193,9 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     
     // Schedule new save after 2 seconds of inactivity
     autoSaveTimerRef.current = setTimeout(() => {
-      if (Object.keys(localTaskEdits).length > 0) {
-        handleSaveChanges();
-      }
+      handleSaveChanges();
     }, 2000);
-  }, [localTaskEdits, handleSaveChanges]);
+  }, [handleSaveChanges]);
 
   // Handle local task updates (for typing) with auto-save
   const handleTaskEdit = (taskId: string, field: string, value: any) => {
@@ -213,21 +214,24 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   useEffect(() => {
     return () => {
       // Save any pending changes when component unmounts
-      if (Object.keys(localTaskEdits).length > 0) {
-        Object.entries(localTaskEdits).forEach(([taskId, updates]) => {
-          updateTask.mutate({
-            projectId: project.id,
-            taskId,
-            updates,
+      setLocalTaskEdits(currentEdits => {
+        if (Object.keys(currentEdits).length > 0) {
+          Object.entries(currentEdits).forEach(([taskId, updates]) => {
+            updateTask.mutate({
+              projectId: project.id,
+              taskId,
+              updates,
+            });
           });
-        });
-      }
+        }
+        return currentEdits;
+      });
       // Clear auto-save timer
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [localTaskEdits, project.id, updateTask]);
+  }, [project.id, updateTask]);
 
   // Handle immediate task updates (for buttons like completion toggle)
   const handleUpdateTask = (taskId: string, updates: any) => {
