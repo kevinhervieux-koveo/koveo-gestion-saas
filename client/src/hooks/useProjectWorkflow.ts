@@ -837,8 +837,8 @@ export function getAccessibleTabs(currentStatus: string, skipFlags: SkipFlagsUpd
   
   const accessible: string[] = [];
   
-  // Add all tabs up to and including current status
-  for (let i = 0; i <= currentIndex; i++) {
+  // Add ALL tabs, allowing access to future steps for configuration
+  for (let i = 0; i < allTabs.length; i++) {
     const tab = allTabs[i];
     
     // Skip tabs that are marked as skipped (unless it's the current tab)

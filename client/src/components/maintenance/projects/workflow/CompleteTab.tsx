@@ -91,16 +91,6 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
     return () => subscription.unsubscribe();
   }, [form]);
 
-  // Auto-save when user stops typing
-  useEffect(() => {
-    if (!hasChanges) return;
-
-    const timer = setTimeout(() => {
-      handleSave();
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [hasChanges, form.getValues()]);
 
   const handleSave = async () => {
     const values = form.getValues();
@@ -171,7 +161,13 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
         </div>
         
         {hasChanges && (
-          <Button variant="outline" size="sm" onClick={handleSave} disabled={isUpdating}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSave} 
+            disabled={isUpdating || workflowState.currentStatus === 'completed'}
+            data-testid="button-save-changes"
+          >
             {isUpdating ? 'Saving...' : 'Save Changes'}
           </Button>
         )}
