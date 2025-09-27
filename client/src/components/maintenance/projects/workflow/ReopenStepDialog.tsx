@@ -113,7 +113,7 @@ export function ReopenStepDialog({
       <DialogTrigger asChild>
         <Button 
           variant="outline"
-          disabled={disabled || !hasTargets}
+          disabled={disabled}
           className="flex items-center gap-2"
           data-testid="button-reopen-step-trigger"
         >
