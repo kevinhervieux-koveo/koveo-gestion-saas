@@ -30,13 +30,14 @@ export interface InProgressTabProps {
   project: MaintenanceProject;
   workflowState: ProjectWorkflowState;
   onUpdate: () => void;
+  onMarkComplete?: () => void;
 }
 
 /**
  * In Progress tab component for active work execution
  * Handles task management and tracking progress
  */
-export function InProgressTab({ project, workflowState, onUpdate }: InProgressTabProps) {
+export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete }: InProgressTabProps) {
   const { toast } = useToast();
   
   // Local state for task editing to prevent API calls on every keystroke
@@ -180,14 +181,20 @@ export function InProgressTab({ project, workflowState, onUpdate }: InProgressTa
   };
 
   const handleMarkComplete = () => {
-    markComplete({
-      projectId: project.id,
-      currentStatus: 'in_progress',
-    }, {
-      onSuccess: () => {
-        onUpdate();
-      },
-    });
+    if (onMarkComplete) {
+      // Use parent modal's completion handler for navigation
+      onMarkComplete();
+    } else {
+      // Fallback to direct completion without navigation
+      markComplete({
+        projectId: project.id,
+        currentStatus: 'in_progress',
+      }, {
+        onSuccess: () => {
+          onUpdate();
+        },
+      });
+    }
   };
 
   // Check if auto-generated project

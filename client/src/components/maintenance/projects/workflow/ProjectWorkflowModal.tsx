@@ -283,6 +283,7 @@ export function ProjectWorkflowModal({
       project: workflowState.project,
       workflowState,
       onUpdate: handleWorkflowUpdate,
+      onMarkComplete: handleMarkCurrentStepComplete,
       onAdvanceToNext: (newStatus?: string) => {
         if (newStatus) {
           setActiveTab(newStatus);
