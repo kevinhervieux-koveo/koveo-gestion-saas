@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Form,
   FormControl,
@@ -236,8 +237,8 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                     <div>
                       <div className="text-sm font-medium text-muted-foreground">Planned Start</div>
                       <div className="text-base">
-                        {project.plannedStartDate 
-                          ? format(new Date(project.plannedStartDate), 'MMM d, yyyy')
+                        {project.planningStartDate 
+                          ? format(new Date(project.planningStartDate), 'MMM d, yyyy')
                           : 'Not specified'
                         }
                       </div>

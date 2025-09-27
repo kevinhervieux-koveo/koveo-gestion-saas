@@ -59,6 +59,7 @@ export interface InProgressTabUpdate {
 
 export interface CompleteTabUpdate {
   completionSummary?: string;
+  actualEndDate?: string;
 }
 
 export interface SkipFlagsUpdate {
