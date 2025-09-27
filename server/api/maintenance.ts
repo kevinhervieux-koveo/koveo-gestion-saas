@@ -3649,13 +3649,14 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       // Get linked elements with full element details
-      const linkedElements = await db
+      const linkedElementsRaw = await db
         .select({
           id: projectElements.id,
           elementId: projectElements.elementId,
           projectId: projectElements.projectId,
           workDescription: projectElements.workDescription,
           projectType: projectElements.projectType,
+          confirmed: projectElements.confirmed,
           // Element details
           elementName: buildingElements.name,
           uniformatCode: buildingElements.uniformatCode,
@@ -3666,6 +3667,22 @@ export function registerMaintenanceRoutes(app: Express): void {
         .innerJoin(buildingElements, eq(projectElements.elementId, buildingElements.id))
         .where(eq(projectElements.projectId, projectId))
         .orderBy(asc(buildingElements.uniformatCode), asc(buildingElements.name));
+      
+      // Transform data to match frontend expectations (nested element object)
+      const linkedElements = linkedElementsRaw.map(item => ({
+        id: item.id,
+        elementId: item.elementId,
+        projectId: item.projectId,
+        workDescription: item.workDescription,
+        projectType: item.projectType,
+        confirmed: item.confirmed,
+        element: {
+          name: item.elementName,
+          uniformatCode: item.uniformatCode,
+          description: item.description,
+          currentCondition: item.currentCondition,
+        }
+      }));
       
       res.json({
         success: true,
