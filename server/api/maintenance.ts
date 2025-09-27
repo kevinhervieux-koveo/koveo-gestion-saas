@@ -3767,7 +3767,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       const { id: projectElementId } = req.params;
-      const { projectType, workDescription, lifespanImpact, costAllocation } = req.body;
+      const { projectType, workDescription, lifespanImpact, costAllocation, confirmed } = req.body;
       
       // Validate inputs
       if (projectType && !['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure'].includes(projectType)) {
@@ -3785,6 +3785,12 @@ export function registerMaintenanceRoutes(app: Express): void {
       if (costAllocation !== undefined && costAllocation < 0) {
         return res.status(400).json({
           error: 'Cost allocation must be non-negative'
+        });
+      }
+
+      if (confirmed !== undefined && typeof confirmed !== 'boolean') {
+        return res.status(400).json({
+          error: 'Confirmed must be a boolean'
         });
       }
       
@@ -3828,6 +3834,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       if (workDescription !== undefined) updateData.workDescription = workDescription;
       if (lifespanImpact !== undefined) updateData.lifespanImpact = lifespanImpact;
       if (costAllocation !== undefined) updateData.costAllocation = costAllocation.toString();
+      if (confirmed !== undefined) updateData.confirmed = confirmed;
 
       // Update the project element
       await db
@@ -3843,6 +3850,68 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.error('Error updating project element:', error);
       res.status(500).json({
         error: 'Failed to update project element',
+        details: error.message
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/maintenance/projects/:projectId/elements/confirm-all - Bulk confirm all project elements
+   */
+  app.patch('/api/maintenance/projects/:projectId/elements/confirm-all', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to update project elements'
+        });
+      }
+      
+      const { projectId } = req.params;
+      const { confirmed = true } = req.body; // Default to confirming all
+      
+      if (typeof confirmed !== 'boolean') {
+        return res.status(400).json({
+          error: 'Confirmed must be a boolean'
+        });
+      }
+      
+      // Check project access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+
+      // Update all project elements for this project
+      await db
+        .update(projectElements)
+        .set({ confirmed })
+        .where(eq(projectElements.projectId, projectId));
+      
+      res.json({
+        success: true,
+        message: confirmed ? 'All elements confirmed successfully' : 'All elements unconfirmed successfully'
+      });
+    } catch (error: any) {
+      console.error('Error bulk updating element confirmations:', error);
+      res.status(500).json({
+        error: 'Failed to bulk update element confirmations',
         details: error.message
       });
     }

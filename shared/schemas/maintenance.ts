@@ -452,6 +452,7 @@ export const projectElements = pgTable('project_elements', {
   workDescription: text('work_description'),
   lifespanImpact: integer('lifespan_impact'), // years added to element's life
   costAllocation: decimal('cost_allocation', { precision: 10, scale: 2 }), // cost assigned to this element
+  confirmed: boolean('confirmed').notNull().default(false), // element lifespan effect confirmed by user
 }, (table) => ({
   // Validation constraints
   costAllocationCheck: check('project_elements_cost_allocation_check', sql`cost_allocation >= 0`),

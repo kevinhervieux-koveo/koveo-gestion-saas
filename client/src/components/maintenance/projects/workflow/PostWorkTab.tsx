@@ -52,6 +52,7 @@ interface ProjectElementWithDetails {
   workDescription?: string;
   costAllocation?: number;
   lifespanImpact?: number;
+  confirmed: boolean;
   element: BuildingElement;
 }
 
@@ -73,9 +74,8 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
   const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
   
-  // Local state for element lifespan updates
-  const [elementLifespanUpdates, setElementLifespanUpdates] = useState<Record<string, ElementLifespanUpdate>>({});
-  const [allElementsConfirmed, setAllElementsConfirmed] = useState(false);
+  // Local state for element lifespan updates (non-confirmation data)
+  const [elementLifespanUpdates, setElementLifespanUpdates] = useState<Record<string, Omit<ElementLifespanUpdate, 'confirmed'>>>({});
 
   // Defensive null check for project data
   if (!project) {
@@ -100,6 +100,54 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
   const { mutate: reopenStep, isPending: isReopening } = useReopenWorkflowStep();
 
+  // Element confirmation mutations
+  const elementConfirmationMutation = useMutation({
+    mutationFn: async ({ elementId, confirmed }: { elementId: string; confirmed: boolean }) => {
+      const element = projectElements.find(e => e.elementId === elementId);
+      if (!element) throw new Error('Element not found');
+      
+      const response = await apiRequest('PATCH', `/api/maintenance/project-elements/${element.id}`, {
+        confirmed
+      });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/projects', project.id, 'elements'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update element confirmation',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Bulk confirm all elements mutation
+  const confirmAllMutation = useMutation({
+    mutationFn: async (confirmed: boolean = true) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${project.id}/elements/confirm-all`, {
+        confirmed
+      });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/projects', project.id, 'elements'] });
+      toast({
+        title: 'Success',
+        description: 'All elements confirmed successfully',
+        variant: 'default',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to confirm all elements',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Fetch project elements
   const {
     data: projectElementsResponse,
@@ -119,6 +167,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   const totalTasks = postWorkTasks.length;
   const allTasksCompleted = totalTasks > 0 ? completedTasks.length === totalTasks : true;
 
+  const allElementsConfirmed = projectElements.length === 0 || projectElements.every(element => element.confirmed);
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'post_work' && allTasksCompleted && allElementsConfirmed;
 
   // Helper function to get default lifespan impact for intervention type
@@ -143,10 +192,10 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     }
   };
 
-  // Initialize element lifespan updates when elements load
+  // Initialize element lifespan updates when elements load (non-confirmation data)
   useEffect(() => {
     if (projectElements.length > 0) {
-      const initialUpdates: Record<string, ElementLifespanUpdate> = {};
+      const initialUpdates: Record<string, Omit<ElementLifespanUpdate, 'confirmed'>> = {};
       projectElements.forEach(element => {
         // Default to "nothing" intervention if not specified
         const defaultType: InterventionType = 'nothing';
@@ -154,21 +203,11 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
           elementId: element.elementId,
           interventionType: defaultType,
           lifespanImpactYears: getDefaultLifespanImpact(defaultType),
-          confirmed: false,
         };
       });
       setElementLifespanUpdates(initialUpdates);
     }
   }, [projectElements]);
-
-  // Check if all elements are confirmed
-  useEffect(() => {
-    // If no elements, consider all confirmed (nothing to confirm)
-    // If elements exist, check that all are confirmed
-    const allConfirmed = projectElements.length === 0 || 
-      projectElements.every(element => elementLifespanUpdates[element.elementId]?.confirmed);
-    setAllElementsConfirmed(allConfirmed);
-  }, [elementLifespanUpdates, projectElements]);
 
   // Handle element intervention type change
   const handleInterventionTypeChange = (elementId: string, interventionType: InterventionType) => {
@@ -178,7 +217,6 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         ...prev[elementId],
         interventionType,
         lifespanImpactYears: getDefaultLifespanImpact(interventionType),
-        confirmed: false, // Reset confirmation when type changes
       }
     }));
   };
@@ -190,20 +228,13 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
       [elementId]: {
         ...prev[elementId],
         lifespanImpactYears,
-        confirmed: false, // Reset confirmation when impact changes
       }
     }));
   };
 
-  // Handle element confirmation toggle
+  // Handle element confirmation toggle (now persisted to database)
   const handleElementConfirmation = (elementId: string, confirmed: boolean) => {
-    setElementLifespanUpdates(prev => ({
-      ...prev,
-      [elementId]: {
-        ...prev[elementId],
-        confirmed,
-      }
-    }));
+    elementConfirmationMutation.mutate({ elementId, confirmed });
   };
 
   // Debounced save function that only calls API after user stops typing
@@ -547,10 +578,25 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                         Review and confirm the lifespan impact of interventions on each project element
                       </CardDescription>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm text-muted-foreground">
-                        {projectElements.filter(el => elementLifespanUpdates[el.elementId]?.confirmed).length} / {projectElements.length} confirmed
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="text-sm text-muted-foreground">
+                          {projectElements.filter(el => el.confirmed).length} / {projectElements.length} confirmed
+                        </div>
                       </div>
+                      {projectElements.length > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => confirmAllMutation.mutate(true)}
+                          disabled={confirmAllMutation.isPending || allElementsConfirmed}
+                          className="whitespace-nowrap"
+                          data-testid="button-confirm-all-elements"
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          Confirm All
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardHeader>
@@ -632,10 +678,11 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                             <div className="flex items-center space-x-2 mt-3">
                               <Checkbox
                                 id={`confirm-${element.elementId}`}
-                                checked={update.confirmed}
+                                checked={element.confirmed}
                                 onCheckedChange={(checked) => 
                                   handleElementConfirmation(element.elementId, !!checked)
                                 }
+                                disabled={elementConfirmationMutation.isPending}
                                 data-testid={`checkbox-confirm-element-${element.elementId}`}
                               />
                               <label 
