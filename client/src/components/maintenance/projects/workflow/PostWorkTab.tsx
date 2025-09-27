@@ -30,7 +30,6 @@ import {
   Clock,
   AlertTriangle,
   Building2,
-  Percent,
   Save,
   ShieldCheck,
 } from 'lucide-react';
@@ -57,7 +56,7 @@ interface ProjectElementWithDetails {
 interface ElementLifespanUpdate {
   elementId: string;
   interventionType: InterventionType;
-  lifespanImpactPercent: number;
+  lifespanImpactYears: number;
   confirmed: boolean;
 }
 
@@ -123,9 +122,9 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   const getDefaultLifespanImpact = (interventionType: InterventionType): number => {
     switch (interventionType) {
       case 'repair': return 0;
-      case 'minor_rehab': return 20;
-      case 'major_rehab': return 50;
-      case 'replace': return 100;
+      case 'minor_rehab': return 5;
+      case 'major_rehab': return 15;
+      case 'replace': return 25;
       case 'nothing': return 0;
       default: return 0;
     }
@@ -151,7 +150,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         initialUpdates[element.elementId] = {
           elementId: element.elementId,
           interventionType: defaultType,
-          lifespanImpactPercent: getDefaultLifespanImpact(defaultType),
+          lifespanImpactYears: getDefaultLifespanImpact(defaultType),
           confirmed: false,
         };
       });
@@ -175,19 +174,19 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
       [elementId]: {
         ...prev[elementId],
         interventionType,
-        lifespanImpactPercent: getDefaultLifespanImpact(interventionType),
+        lifespanImpactYears: getDefaultLifespanImpact(interventionType),
         confirmed: false, // Reset confirmation when type changes
       }
     }));
   };
 
   // Handle element lifespan impact change
-  const handleLifespanImpactChange = (elementId: string, lifespanImpactPercent: number) => {
+  const handleLifespanImpactChange = (elementId: string, lifespanImpactYears: number) => {
     setElementLifespanUpdates(prev => ({
       ...prev,
       [elementId]: {
         ...prev[elementId],
-        lifespanImpactPercent,
+        lifespanImpactYears,
         confirmed: false, // Reset confirmation when impact changes
       }
     }));
@@ -551,73 +550,55 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <div>
-                                <label className="text-sm font-medium mb-1 block">Intervention Type</label>
-                                <Select
-                                  value={update.interventionType}
-                                  onValueChange={(value: InterventionType) => 
-                                    handleInterventionTypeChange(element.elementId, value)
-                                  }
-                                >
-                                  <SelectTrigger data-testid={`select-intervention-type-${element.elementId}`}>
-                                    <SelectValue placeholder="Select intervention" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="nothing">No Work Done</SelectItem>
-                                    <SelectItem value="repair">Repair</SelectItem>
-                                    <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
-                                    <SelectItem value="major_rehab">Major Rehab</SelectItem>
-                                    <SelectItem value="replace">Replacement</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <label className="text-sm font-medium mb-1 block">Work Done in Submission</label>
+                                <div className="p-2 bg-muted/50 rounded text-sm" data-testid={`work-description-${element.elementId}`}>
+                                  {element.workDescription || 'No work description provided'}
+                                </div>
                               </div>
 
                               <div>
-                                <label className="text-sm font-medium mb-1 block">Lifespan Impact (%)</label>
+                                <label className="text-sm font-medium mb-1 block">Lifespan Impact (Years)</label>
                                 <div className="flex items-center gap-1">
                                   <Input
                                     type="number"
                                     step="1"
                                     min="0"
-                                    max="100"
-                                    value={update.lifespanImpactPercent}
+                                    max="50"
+                                    value={update.lifespanImpactYears}
                                     onChange={(e) => 
                                       handleLifespanImpactChange(
                                         element.elementId, 
-                                        parseInt(e.target.value) || 0
+                                        Math.round(parseInt(e.target.value) || 0)
                                       )
                                     }
                                     data-testid={`input-lifespan-impact-${element.elementId}`}
                                   />
-                                  <Percent className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">years</span>
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  {update.interventionType === 'replace' ? 
-                                    'Resets remaining life to 100%' : 
-                                    'Added to remaining life'
-                                  }
+                                  Years added to remaining lifespan
                                 </p>
                               </div>
 
-                              <div className="flex items-end">
-                                <div className="flex items-center space-x-2 w-full">
-                                  <Checkbox
-                                    id={`confirm-${element.elementId}`}
-                                    checked={update.confirmed}
-                                    onCheckedChange={(checked) => 
-                                      handleElementConfirmation(element.elementId, !!checked)
-                                    }
-                                    data-testid={`checkbox-confirm-element-${element.elementId}`}
-                                  />
-                                  <label 
-                                    htmlFor={`confirm-${element.elementId}`}
-                                    className="text-sm font-medium cursor-pointer"
-                                  >
-                                    Confirmed
-                                  </label>
-                                </div>
-                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2 mt-3">
+                              <Checkbox
+                                id={`confirm-${element.elementId}`}
+                                checked={update.confirmed}
+                                onCheckedChange={(checked) => 
+                                  handleElementConfirmation(element.elementId, !!checked)
+                                }
+                                data-testid={`checkbox-confirm-element-${element.elementId}`}
+                              />
+                              <label 
+                                htmlFor={`confirm-${element.elementId}`}
+                                className="text-sm font-medium cursor-pointer"
+                              >
+                                Confirmed
+                              </label>
                             </div>
 
                             <div className="text-sm bg-muted/50 rounded p-2">
@@ -626,15 +607,13 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                 Impact Summary:
                               </div>
                               <p className="mt-1">
-                                {formatInterventionType(update.interventionType)} intervention will{' '}
-                                {update.interventionType === 'replace' ? (
-                                  <span className="font-medium text-green-600">reset the element to 100% remaining life</span>
-                                ) : update.lifespanImpactPercent > 0 ? (
+                                This work will{' '}
+                                {update.lifespanImpactYears > 0 ? (
                                   <span className="font-medium text-blue-600">
-                                    add {update.lifespanImpactPercent}% to the remaining life
+                                    add {update.lifespanImpactYears} year{update.lifespanImpactYears !== 1 ? 's' : ''} to the element's remaining lifespan
                                   </span>
                                 ) : (
-                                  <span className="font-medium text-gray-600">not change the remaining life</span>
+                                  <span className="font-medium text-gray-600">not change the remaining lifespan</span>
                                 )}
                               </p>
                             </div>
