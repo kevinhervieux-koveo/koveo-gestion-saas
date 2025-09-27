@@ -169,16 +169,39 @@ export function useMarkStatusComplete() {
 }
 
 /**
- * Mutation to reopen/revert workflow step to previous status
+ * Get allowed reopen targets for a project
+ */
+export function useReopenTargets(projectId: string) {
+  return useQuery({
+    queryKey: ['/api/maintenance/projects', projectId, 'reopen-targets'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/maintenance/projects/${projectId}/reopen-targets`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch reopen targets');
+      }
+      const result = await response.json();
+      return result.data || [];
+    },
+    enabled: !!projectId,
+  });
+}
+
+/**
+ * Mutation to reopen/revert workflow step to a specific target status
  */
 export function useReopenWorkflowStep() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ projectId, currentStatus }: { projectId: string; currentStatus: string }) => {
+    mutationFn: async ({ projectId, targetStatus, reason }: { 
+      projectId: string; 
+      targetStatus: string; 
+      reason?: string;
+    }) => {
       const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/reopen-step`, {
-        currentStatus,
+        targetStatus,
+        reason,
       });
       
       if (!response.ok) {
