@@ -147,10 +147,28 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   // Local state for task editing to prevent API calls on every keystroke
   const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   // State for notification editing
   const [editingNotification, setEditingNotification] = useState<string | null>(null);
+  // Auto-save timer reference
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle local task updates (for typing)
+  // Auto-save function with debounce
+  const scheduleAutoSave = useCallback(() => {
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    
+    // Schedule new save after 2 seconds of inactivity
+    autoSaveTimerRef.current = setTimeout(() => {
+      if (Object.keys(localTaskEdits).length > 0) {
+        handleSaveChanges();
+      }
+    }, 2000);
+  }, [localTaskEdits, handleSaveChanges]);
+
+  // Handle local task updates (for typing) with auto-save
   const handleTaskEdit = (taskId: string, field: string, value: any) => {
     setLocalTaskEdits(prev => ({
       ...prev,
@@ -160,7 +178,28 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
       }
     }));
     setHasChanges(true);
+    scheduleAutoSave();
   };
+
+  // Save changes when component unmounts to prevent data loss
+  useEffect(() => {
+    return () => {
+      // Save any pending changes when component unmounts
+      if (Object.keys(localTaskEdits).length > 0) {
+        Object.entries(localTaskEdits).forEach(([taskId, updates]) => {
+          updateTask.mutate({
+            projectId: project.id,
+            taskId,
+            updates,
+          });
+        });
+      }
+      // Clear auto-save timer
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [localTaskEdits, project.id, updateTask]);
 
   // Handle immediate task updates (for buttons like completion toggle)
   const handleUpdateTask = (taskId: string, updates: any) => {
@@ -177,20 +216,32 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   };
 
   // Save all pending changes
-  const handleSaveChanges = () => {
-    Object.entries(localTaskEdits).forEach(([taskId, updates]) => {
+  const handleSaveChanges = useCallback(() => {
+    if (Object.keys(localTaskEdits).length === 0) return;
+    
+    const editsToSave = { ...localTaskEdits };
+    setLocalTaskEdits({});
+    setHasChanges(false);
+    setIsSaving(true);
+    
+    let completedSaves = 0;
+    const totalSaves = Object.keys(editsToSave).length;
+    
+    Object.entries(editsToSave).forEach(([taskId, updates]) => {
       updateTask.mutate({
         projectId: project.id,
         taskId,
         updates,
       }, {
-        onSuccess: () => {
-          setLocalTaskEdits({});
-          setHasChanges(false);
+        onSettled: () => {
+          completedSaves++;
+          if (completedSaves === totalSaves) {
+            setIsSaving(false);
+          }
         }
       });
     });
-  };
+  }, [localTaskEdits, project.id, updateTask]);
 
   // Handle task deletion
   const handleDeleteTask = (taskId: string) => {
@@ -294,9 +345,26 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                   <CardTitle className="flex items-center gap-2">
                     <ListChecks className="h-5 w-5" />
                     Preparation Tasks
+                    {isSaving && (
+                      <Badge variant="secondary" className="ml-2 text-xs">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Auto-saving...
+                      </Badge>
+                    )}
+                    {hasChanges && !isSaving && (
+                      <Badge variant="outline" className="ml-2 text-xs">
+                        <Edit2 className="h-3 w-3 mr-1" />
+                        Unsaved changes
+                      </Badge>
+                    )}
                   </CardTitle>
                   <CardDescription>
                     Define tasks that need to be completed before work begins
+                    {hasChanges && !isSaving && (
+                      <span className="text-xs text-orange-600 ml-2">
+                        • Changes will auto-save in 2 seconds
+                      </span>
+                    )}
                   </CardDescription>
                 </div>
                 <Button
