@@ -6313,6 +6313,16 @@ export function registerMaintenanceRoutes(app: Express): void {
 
       const result = updatedSubmissionVendor[0];
 
+      // If vendor is marked as preferred, update project elements with work description
+      if (preferred && result.notes) {
+        await db
+          .update(projectElements)
+          .set({
+            workDescription: result.notes,
+          })
+          .where(eq(projectElements.projectId, projectId));
+      }
+
       res.json({
         success: true,
         data: result,
@@ -7385,7 +7395,7 @@ export function registerMaintenanceRoutes(app: Express): void {
 
       // Validate current status from request body
       const validation = z.object({
-        currentStatus: z.enum(['submission', 'pre_work', 'in_progress', 'post_work']), // Can't reopen from planned or completed
+        currentStatus: z.enum(['submission', 'pre_work', 'in_progress', 'post_work', 'completed']), // Added completed to allow reopening from complete
       }).safeParse(req.body);
 
       if (!validation.success) {
@@ -7421,11 +7431,6 @@ export function registerMaintenanceRoutes(app: Express): void {
 
       const currentStatus = validation.data.currentStatus;
       
-      // Prevent reopening from completed status
-      if (project[0].status === 'completed') {
-        return res.status(400).json({ error: 'Cannot reopen a completed project' });
-      }
-
       // Verify current status matches project status
       if (project[0].status !== currentStatus) {
         return res.status(400).json({ error: 'Current status does not match project status' });
@@ -7457,6 +7462,22 @@ export function registerMaintenanceRoutes(app: Express): void {
             }
           } else {
             previousStatus = 'in_progress';
+          }
+          break;
+        case 'completed':
+          // Reopen from completed back to post_work (unless post_work was skipped)
+          if (project[0].skipPostWork) {
+            if (project[0].skipInProgress) {
+              if (project[0].skipPreWork) {
+                previousStatus = project[0].skipSubmission ? 'planned' : 'submission';
+              } else {
+                previousStatus = 'pre_work';
+              }
+            } else {
+              previousStatus = 'in_progress';
+            }
+          } else {
+            previousStatus = 'post_work';
           }
           break;
         default:
@@ -7859,9 +7880,21 @@ export function registerMaintenanceRoutes(app: Express): void {
         .where(eq(submissionVendors.id, vendorId))
         .returning();
 
+      const result = updatedSubmissionVendor[0];
+
+      // If this vendor is preferred and has notes, update project elements with work description
+      if (result.preferred && result.notes) {
+        await db
+          .update(projectElements)
+          .set({
+            workDescription: result.notes,
+          })
+          .where(eq(projectElements.projectId, projectId));
+      }
+
       res.json({
         success: true,
-        vendor: updatedSubmissionVendor[0]
+        vendor: result
       });
 
     } catch (error: any) {

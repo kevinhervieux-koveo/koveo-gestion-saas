@@ -19,6 +19,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { 
   useUpdateProjectDetails,
+  useReopenWorkflowStep,
   type ProjectWorkflowState 
 } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
@@ -37,6 +38,7 @@ import {
   Award,
   AlertTriangle,
   Info,
+  RotateCcw,
 } from 'lucide-react';
 
 export interface CompleteTabProps {
@@ -75,6 +77,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
   }
 
   const { mutate: updateProject, isPending: isUpdating } = useUpdateProjectDetails();
+  const { mutate: reopenStep, isPending: isReopening } = useReopenWorkflowStep();
 
   const form = useForm<CompleteTabData>({
     resolver: zodResolver(completeTabSchema),
@@ -122,6 +125,48 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
         onUpdate();
       },
     });
+  };
+
+  const handleReopen = () => {
+    // Validate that we have the required data
+    if (!project.id || !workflowState.currentStatus) {
+      toast({
+        title: "Cannot Reopen Step",
+        description: "Workflow data is not available. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate that current status matches completed
+    if (workflowState.currentStatus !== 'completed') {
+      toast({
+        title: "Cannot Reopen Step",
+        description: "This step can only be reopened when the project is completed.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    reopenStep(
+      { projectId: project.id, currentStatus: workflowState.currentStatus },
+      { 
+        onSuccess: () => {
+          toast({
+            title: "Project Reopened",
+            description: "Successfully reopened the project to the Post-Work step.",
+          });
+          onUpdate();
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Failed to Reopen Project",
+            description: error.message || "An error occurred while trying to reopen the project.",
+            variant: "destructive",
+          });
+        }
+      }
+    );
   };
 
   // Calculate project metrics
@@ -415,6 +460,24 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center justify-between pt-6 border-t">
+        <div className="text-sm text-muted-foreground">
+          Project has been completed successfully
+        </div>
+        
+        <Button 
+          variant="outline"
+          onClick={handleReopen}
+          disabled={isReopening || !workflowState.currentStatus || workflowState.currentStatus !== 'completed'}
+          className="flex items-center gap-2"
+          data-testid="button-reopen-complete"
+        >
+          <RotateCcw className="h-4 w-4" />
+          {isReopening ? 'Reopening...' : 'Reopen Project'}
+        </Button>
       </div>
 
     </div>
