@@ -11,9 +11,9 @@ import {
   useWorkflowTasks, 
   useWorkflowTaskMutations,
   useMarkStatusComplete,
-  useReopenWorkflowStep, 
   type ProjectWorkflowState 
 } from '@/hooks/useProjectWorkflow';
+import { ReopenStepDialog } from './ReopenStepDialog';
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -33,7 +33,6 @@ import {
   Building2,
   Save,
   ShieldCheck,
-  RotateCcw,
 } from 'lucide-react';
 
 export interface PostWorkTabProps {
@@ -72,7 +71,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   
   // Local state for task editing to prevent API calls on every keystroke
   const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
-  const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
+  const [hasChanges, setHasChanges] = useState(false);
   
   // Local state for element lifespan updates (non-confirmation data)
   const [elementLifespanUpdates, setElementLifespanUpdates] = useState<Record<string, Omit<ElementLifespanUpdate, 'confirmed'>>>({});
@@ -98,7 +97,6 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
 
   const { createTask, updateTask, deleteTask } = useWorkflowTaskMutations();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
-  const { mutate: reopenStep, isPending: isReopening } = useReopenWorkflowStep();
 
   // Element confirmation mutations
   const elementConfirmationMutation = useMutation({
@@ -237,31 +235,21 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     elementConfirmationMutation.mutate({ elementId, confirmed });
   };
 
-  // Debounced save function that only calls API after user stops typing
-  const debouncedSaveTask = useCallback((taskId: string, updates: any) => {
-    // Clear existing timeout for this task
-    if (debounceTimeouts.current[taskId]) {
-      clearTimeout(debounceTimeouts.current[taskId]);
-    }
-
-    // Set new timeout to save after 500ms of inactivity
-    debounceTimeouts.current[taskId] = setTimeout(() => {
+  // Save all pending changes
+  const handleSaveChanges = () => {
+    Object.entries(localTaskEdits).forEach(([taskId, updates]) => {
       updateTask.mutate({
         projectId: project.id,
         taskId,
         updates,
       }, {
         onSuccess: () => {
-          // Clear local edits after successful save
-          setLocalTaskEdits(prev => {
-            const { [taskId]: removed, ...rest } = prev;
-            return rest;
-          });
+          setLocalTaskEdits({});
+          setHasChanges(false);
         }
       });
-      delete debounceTimeouts.current[taskId];
-    }, 500);
-  }, [project.id, updateTask]);
+    });
+  };
 
   // Handle local task updates (for typing)
   const handleTaskEdit = (taskId: string, field: string, value: any) => {
@@ -272,9 +260,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         [field]: value
       }
     }));
-    
-    // Trigger debounced save
-    debouncedSaveTask(taskId, { [field]: value });
+    setHasChanges(true);
   };
 
   // Handle immediate task updates (for buttons like completion toggle)
@@ -291,37 +277,6 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     return localTaskEdits[task.id]?.[field] ?? task[field];
   };
 
-  // Handle blur events to immediately save any pending changes
-  const handleTaskBlur = (taskId: string, field: string, value: any) => {
-    if (debounceTimeouts.current[taskId]) {
-      clearTimeout(debounceTimeouts.current[taskId]);
-      delete debounceTimeouts.current[taskId];
-      
-      // Immediately save on blur
-      updateTask.mutate({
-        projectId: project.id,
-        taskId,
-        updates: { [field]: value },
-      }, {
-        onSuccess: () => {
-          // Clear local edits after successful save
-          setLocalTaskEdits(prev => {
-            const { [taskId]: removed, ...rest } = prev;
-            return rest;
-          });
-        }
-      });
-    }
-  };
-
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(debounceTimeouts.current).forEach(timeout => {
-        clearTimeout(timeout);
-      });
-    };
-  }, []);
 
   const handleCreateTask = () => {
     const newTaskIndex = postWorkTasks.length;
@@ -498,7 +453,6 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               <Input
                                 value={getTaskValue(task, 'taskName')}
                                 onChange={(e) => handleTaskEdit(task.id, 'taskName', e.target.value)}
-                                onBlur={(e) => handleTaskBlur(task.id, 'taskName', e.target.value)}
                                 placeholder="Task description (required)"
                                 className="font-medium"
                                 data-testid={`input-postwork-task-name-${index}`}
@@ -512,7 +466,6 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                     min="0"
                                     value={getTaskValue(task, 'cost') || ''}
                                     onChange={(e) => handleTaskEdit(task.id, 'cost', parseFloat(e.target.value) || 0)}
-                                    onBlur={(e) => handleTaskBlur(task.id, 'cost', parseFloat(e.target.value) || 0)}
                                     placeholder="0.00"
                                     className="w-20 text-sm"
                                     data-testid={`input-postwork-task-cost-${index}`}
@@ -527,10 +480,6 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                       // Store the date string directly to avoid timezone issues
                                       const dateValue = e.target.value || null;
                                       handleTaskEdit(task.id, 'dueDate', dateValue);
-                                    }}
-                                    onBlur={(e) => {
-                                      const dateValue = e.target.value || null;
-                                      handleTaskBlur(task.id, 'dueDate', dateValue);
                                     }}
                                     className="flex-1"
                                     data-testid={`input-postwork-task-due-date-${index}`}
@@ -778,16 +727,23 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         {/* Action Buttons */}
         <div className="flex items-center justify-between pt-6 border-t">
           <div className="flex items-center gap-3">
-            <Button 
-              variant="outline"
-              onClick={handleReopen}
-              disabled={isReopening || !workflowState.currentStatus || workflowState.currentStatus !== 'post_work'}
-              className="flex items-center gap-2"
-              data-testid="button-reopen-postwork"
-            >
-              <RotateCcw className="h-4 w-4" />
-              {isReopening ? 'Reopening...' : 'Reopen Step'}
-            </Button>
+            <ReopenStepDialog
+              projectId={project.id}
+              currentStatus={workflowState.currentStatus}
+              onSuccess={onUpdate}
+              triggerText="Reopen Step"
+            />
+            
+            {hasChanges && (
+              <Button 
+                variant="outline" 
+                onClick={handleSaveChanges} 
+                disabled={updateTask.isPending || workflowState.currentStatus === 'post_work'}
+                data-testid="button-save-changes"
+              >
+                {updateTask.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            )}
             
             <div className="text-sm text-muted-foreground">
               {workflowState.nextStatus && (

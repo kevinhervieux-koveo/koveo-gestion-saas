@@ -43,7 +43,7 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
   
   // Local state for task editing to prevent API calls on every keystroke
   const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
-  const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
+  const [hasChanges, setHasChanges] = useState(false);
 
   // Defensive null check for project data
   if (!project) {
@@ -74,31 +74,21 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
 
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'in_progress' && allTasksCompleted;
 
-  // Debounced save function that only calls API after user stops typing
-  const debouncedSaveTask = useCallback((taskId: string, updates: any) => {
-    // Clear existing timeout for this task
-    if (debounceTimeouts.current[taskId]) {
-      clearTimeout(debounceTimeouts.current[taskId]);
-    }
-
-    // Set new timeout to save after 500ms of inactivity
-    debounceTimeouts.current[taskId] = setTimeout(() => {
+  // Save all pending changes
+  const handleSaveChanges = () => {
+    Object.entries(localTaskEdits).forEach(([taskId, updates]) => {
       updateTask.mutate({
         projectId: project.id,
         taskId,
         updates,
       }, {
         onSuccess: () => {
-          // Clear local edits after successful save
-          setLocalTaskEdits(prev => {
-            const { [taskId]: removed, ...rest } = prev;
-            return rest;
-          });
+          setLocalTaskEdits({});
+          setHasChanges(false);
         }
       });
-      delete debounceTimeouts.current[taskId];
-    }, 500);
-  }, [project.id, updateTask]);
+    });
+  };
 
   // Handle local task updates (for typing)
   const handleTaskEdit = (taskId: string, field: string, value: any) => {
@@ -109,9 +99,7 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
         [field]: value
       }
     }));
-    
-    // Trigger debounced save
-    debouncedSaveTask(taskId, { [field]: value });
+    setHasChanges(true);
   };
 
   // Handle immediate task updates (for buttons like completion toggle)
@@ -128,37 +116,6 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
     return localTaskEdits[task.id]?.[field] ?? task[field];
   };
 
-  // Handle blur events to immediately save any pending changes
-  const handleTaskBlur = (taskId: string, field: string, value: any) => {
-    if (debounceTimeouts.current[taskId]) {
-      clearTimeout(debounceTimeouts.current[taskId]);
-      delete debounceTimeouts.current[taskId];
-      
-      // Immediately save on blur
-      updateTask.mutate({
-        projectId: project.id,
-        taskId,
-        updates: { [field]: value },
-      }, {
-        onSuccess: () => {
-          // Clear local edits after successful save
-          setLocalTaskEdits(prev => {
-            const { [taskId]: removed, ...rest } = prev;
-            return rest;
-          });
-        }
-      });
-    }
-  };
-
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(debounceTimeouts.current).forEach(timeout => {
-        clearTimeout(timeout);
-      });
-    };
-  }, []);
 
   const handleCreateTask = () => {
     const newTaskIndex = inProgressTasks.length;
@@ -293,7 +250,6 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
                               <Input
                                 value={getTaskValue(task, 'taskName')}
                                 onChange={(e) => handleTaskEdit(task.id, 'taskName', e.target.value)}
-                                onBlur={(e) => handleTaskBlur(task.id, 'taskName', e.target.value)}
                                 placeholder="Task description (required)"
                                 className="font-medium"
                                 data-testid={`input-work-task-name-${index}`}
@@ -307,7 +263,6 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
                                     min="0"
                                     value={getTaskValue(task, 'cost') || ''}
                                     onChange={(e) => handleTaskEdit(task.id, 'cost', parseFloat(e.target.value) || 0)}
-                                    onBlur={(e) => handleTaskBlur(task.id, 'cost', parseFloat(e.target.value) || 0)}
                                     placeholder="0.00"
                                     className="w-20 text-sm"
                                     data-testid={`input-work-task-cost-${index}`}
@@ -322,10 +277,6 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
                                       // Store the date string directly to avoid timezone issues
                                       const dateValue = e.target.value || null;
                                       handleTaskEdit(task.id, 'dueDate', dateValue);
-                                    }}
-                                    onBlur={(e) => {
-                                      const dateValue = e.target.value || null;
-                                      handleTaskBlur(task.id, 'dueDate', dateValue);
                                     }}
                                     className="flex-1"
                                     data-testid={`input-work-task-due-date-${index}`}
@@ -398,8 +349,19 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
               projectId={project.id}
               currentStatus={workflowState.currentStatus}
               onSuccess={onUpdate}
-              disabled={!workflowState.currentStatus || workflowState.currentStatus !== 'in_progress'}
+              triggerText="Reopen Step"
             />
+            
+            {hasChanges && (
+              <Button 
+                variant="outline" 
+                onClick={handleSaveChanges} 
+                disabled={updateTask.isPending || workflowState.currentStatus === 'in_progress'}
+                data-testid="button-save-changes"
+              >
+                {updateTask.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            )}
             
             <div className="text-sm text-muted-foreground">
               {workflowState.nextStatus && (
