@@ -1,15 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   useWorkflowTasks, 
   useWorkflowTaskMutations,
   useMarkStatusComplete, 
   type ProjectWorkflowState 
 } from '@/hooks/useProjectWorkflow';
-import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { cn, formatStatus } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -24,6 +29,10 @@ import {
   Check,
   Clock,
   AlertTriangle,
+  Building2,
+  Percent,
+  Save,
+  ShieldCheck,
 } from 'lucide-react';
 
 export interface PostWorkTabProps {
@@ -33,9 +42,28 @@ export interface PostWorkTabProps {
   onMarkComplete?: () => void;
 }
 
+type InterventionType = 'repair' | 'minor_rehab' | 'major_rehab' | 'replace' | 'nothing';
+
+interface ProjectElementWithDetails {
+  id: string;
+  projectId: string;
+  elementId: string;
+  workDescription?: string;
+  costAllocation?: number;
+  lifespanImpact?: number;
+  element: BuildingElement;
+}
+
+interface ElementLifespanUpdate {
+  elementId: string;
+  interventionType: InterventionType;
+  lifespanImpactPercent: number;
+  confirmed: boolean;
+}
+
 /**
  * Post-Work tab component for cleanup and finalization tasks
- * Handles post-work task management and tracking progress
+ * Handles post-work task management, element lifespan tracking, and progress confirmation
  */
 export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }: PostWorkTabProps) {
   const { toast } = useToast();
@@ -43,6 +71,10 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   // Local state for task editing to prevent API calls on every keystroke
   const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
   const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
+  
+  // Local state for element lifespan updates
+  const [elementLifespanUpdates, setElementLifespanUpdates] = useState<Record<string, ElementLifespanUpdate>>({});
+  const [allElementsConfirmed, setAllElementsConfirmed] = useState(false);
 
   // Defensive null check for project data
   if (!project) {
@@ -66,12 +98,111 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   const { createTask, updateTask, deleteTask } = useWorkflowTaskMutations();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
 
+  // Fetch project elements
+  const {
+    data: projectElementsResponse,
+    isLoading: isLoadingElements,
+  } = useQuery({
+    queryKey: ['/api/maintenance/projects', project.id, 'elements'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/maintenance/projects/${project.id}/elements`);
+      return await response.json();
+    },
+  });
+
+  const projectElements: ProjectElementWithDetails[] = projectElementsResponse?.elements || [];
+
   // Calculate task completion status
   const completedTasks = postWorkTasks.filter(task => task.isCompleted);
   const totalTasks = postWorkTasks.length;
   const allTasksCompleted = totalTasks > 0 ? completedTasks.length === totalTasks : true;
 
-  const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'post_work' && allTasksCompleted;
+  const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'post_work' && allTasksCompleted && allElementsConfirmed;
+
+  // Helper function to get default lifespan impact for intervention type
+  const getDefaultLifespanImpact = (interventionType: InterventionType): number => {
+    switch (interventionType) {
+      case 'repair': return 0;
+      case 'minor_rehab': return 20;
+      case 'major_rehab': return 50;
+      case 'replace': return 100;
+      case 'nothing': return 0;
+      default: return 0;
+    }
+  };
+
+  // Helper function to format intervention type for display
+  const formatInterventionType = (type: InterventionType): string => {
+    switch (type) {
+      case 'minor_rehab': return 'Minor Rehab';
+      case 'major_rehab': return 'Major Rehab';
+      case 'nothing': return 'No Work';
+      default: return type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  };
+
+  // Initialize element lifespan updates when elements load
+  useEffect(() => {
+    if (projectElements.length > 0) {
+      const initialUpdates: Record<string, ElementLifespanUpdate> = {};
+      projectElements.forEach(element => {
+        // Default to "nothing" intervention if not specified
+        const defaultType: InterventionType = 'nothing';
+        initialUpdates[element.elementId] = {
+          elementId: element.elementId,
+          interventionType: defaultType,
+          lifespanImpactPercent: getDefaultLifespanImpact(defaultType),
+          confirmed: false,
+        };
+      });
+      setElementLifespanUpdates(initialUpdates);
+    }
+  }, [projectElements]);
+
+  // Check if all elements are confirmed
+  useEffect(() => {
+    // If no elements, consider all confirmed (nothing to confirm)
+    // If elements exist, check that all are confirmed
+    const allConfirmed = projectElements.length === 0 || 
+      projectElements.every(element => elementLifespanUpdates[element.elementId]?.confirmed);
+    setAllElementsConfirmed(allConfirmed);
+  }, [elementLifespanUpdates, projectElements]);
+
+  // Handle element intervention type change
+  const handleInterventionTypeChange = (elementId: string, interventionType: InterventionType) => {
+    setElementLifespanUpdates(prev => ({
+      ...prev,
+      [elementId]: {
+        ...prev[elementId],
+        interventionType,
+        lifespanImpactPercent: getDefaultLifespanImpact(interventionType),
+        confirmed: false, // Reset confirmation when type changes
+      }
+    }));
+  };
+
+  // Handle element lifespan impact change
+  const handleLifespanImpactChange = (elementId: string, lifespanImpactPercent: number) => {
+    setElementLifespanUpdates(prev => ({
+      ...prev,
+      [elementId]: {
+        ...prev[elementId],
+        lifespanImpactPercent,
+        confirmed: false, // Reset confirmation when impact changes
+      }
+    }));
+  };
+
+  // Handle element confirmation toggle
+  const handleElementConfirmation = (elementId: string, confirmed: boolean) => {
+    setElementLifespanUpdates(prev => ({
+      ...prev,
+      [elementId]: {
+        ...prev[elementId],
+        confirmed,
+      }
+    }));
+  };
 
   // Debounced save function that only calls API after user stops typing
   const debouncedSaveTask = useCallback((taskId: string, updates: any) => {
@@ -359,6 +490,189 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                 </CardContent>
               </Card>
 
+              {/* Element Lifespan Impact Card */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Building2 className="h-5 w-5" />
+                        Element Lifespan Impact
+                      </CardTitle>
+                      <CardDescription>
+                        Review and confirm the lifespan impact of interventions on each project element
+                      </CardDescription>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-muted-foreground">
+                        {projectElements.filter(el => elementLifespanUpdates[el.elementId]?.confirmed).length} / {projectElements.length} confirmed
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingElements ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className="h-24 bg-muted animate-pulse rounded" />
+                      ))}
+                    </div>
+                  ) : projectElements.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No elements linked to this project</p>
+                      <p className="text-sm mt-1">Elements must be added during the planning phase</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {projectElements.map((element) => {
+                        const update = elementLifespanUpdates[element.elementId];
+                        if (!update) return null;
+
+                        return (
+                          <div key={element.id} className="border rounded-lg p-4 space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h4 className="font-medium">{element.element?.name || 'Unknown Element'}</h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {element.element?.uniformatCode || 'No code'}
+                                </p>
+                                {element.workDescription && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    Planned work: {element.workDescription}
+                                  </p>
+                                )}
+                              </div>
+                              {update.confirmed && (
+                                <Badge className="bg-green-600">
+                                  <ShieldCheck className="h-3 w-3 mr-1" />
+                                  Confirmed
+                                </Badge>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                              <div>
+                                <label className="text-sm font-medium mb-1 block">Intervention Type</label>
+                                <Select
+                                  value={update.interventionType}
+                                  onValueChange={(value: InterventionType) => 
+                                    handleInterventionTypeChange(element.elementId, value)
+                                  }
+                                >
+                                  <SelectTrigger data-testid={`select-intervention-type-${element.elementId}`}>
+                                    <SelectValue placeholder="Select intervention" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="nothing">No Work Done</SelectItem>
+                                    <SelectItem value="repair">Repair</SelectItem>
+                                    <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
+                                    <SelectItem value="major_rehab">Major Rehab</SelectItem>
+                                    <SelectItem value="replace">Replacement</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium mb-1 block">Lifespan Impact (%)</label>
+                                <div className="flex items-center gap-1">
+                                  <Input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    max="100"
+                                    value={update.lifespanImpactPercent}
+                                    onChange={(e) => 
+                                      handleLifespanImpactChange(
+                                        element.elementId, 
+                                        parseInt(e.target.value) || 0
+                                      )
+                                    }
+                                    data-testid={`input-lifespan-impact-${element.elementId}`}
+                                  />
+                                  <Percent className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {update.interventionType === 'replace' ? 
+                                    'Resets remaining life to 100%' : 
+                                    'Added to remaining life'
+                                  }
+                                </p>
+                              </div>
+
+                              <div className="flex items-end">
+                                <div className="flex items-center space-x-2 w-full">
+                                  <Checkbox
+                                    id={`confirm-${element.elementId}`}
+                                    checked={update.confirmed}
+                                    onCheckedChange={(checked) => 
+                                      handleElementConfirmation(element.elementId, !!checked)
+                                    }
+                                    data-testid={`checkbox-confirm-element-${element.elementId}`}
+                                  />
+                                  <label 
+                                    htmlFor={`confirm-${element.elementId}`}
+                                    className="text-sm font-medium cursor-pointer"
+                                  >
+                                    Confirmed
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="text-sm bg-muted/50 rounded p-2">
+                              <div className="flex items-center gap-1 font-medium">
+                                <Info className="h-3 w-3" />
+                                Impact Summary:
+                              </div>
+                              <p className="mt-1">
+                                {formatInterventionType(update.interventionType)} intervention will{' '}
+                                {update.interventionType === 'replace' ? (
+                                  <span className="font-medium text-green-600">reset the element to 100% remaining life</span>
+                                ) : update.lifespanImpactPercent > 0 ? (
+                                  <span className="font-medium text-blue-600">
+                                    add {update.lifespanImpactPercent}% to the remaining life
+                                  </span>
+                                ) : (
+                                  <span className="font-medium text-gray-600">not change the remaining life</span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Confirmation Status */}
+                      {projectElements.length > 0 && (
+                        <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                          <div className="flex justify-between text-sm mb-2">
+                            <span>Element Confirmations</span>
+                            <span className="font-medium">
+                              {projectElements.filter(el => elementLifespanUpdates[el.elementId]?.confirmed).length} / {projectElements.length}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full transition-all" 
+                              style={{ 
+                                width: `${projectElements.length > 0 ? 
+                                  (projectElements.filter(el => elementLifespanUpdates[el.elementId]?.confirmed).length / projectElements.length) * 100 : 0}%` 
+                              }}
+                            />
+                          </div>
+                          {allElementsConfirmed && (
+                            <div className="flex items-center gap-2 text-green-600 text-sm font-medium mt-2">
+                              <CheckCircle2 className="h-4 w-4" />
+                              All elements confirmed!
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               {/* Progress Summary */}
               {totalTasks > 0 && (
                 <Card>
@@ -398,7 +712,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
             )}
           </div>
           
-          {canAdvance && (
+          {canAdvance ? (
             <Button 
               onClick={handleMarkComplete}
               disabled={isMarkingComplete}
@@ -408,6 +722,21 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
               <CheckCircle2 className="h-4 w-4" />
               {isMarkingComplete ? 'Completing...' : 'Mark Project Complete'}
             </Button>
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              {!allTasksCompleted && (
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  Complete all tasks to proceed
+                </div>
+              )}
+              {allTasksCompleted && !allElementsConfirmed && (
+                <div className="flex items-center gap-1">
+                  <ShieldCheck className="h-4 w-4" />
+                  Confirm all element lifespan impacts to proceed
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
