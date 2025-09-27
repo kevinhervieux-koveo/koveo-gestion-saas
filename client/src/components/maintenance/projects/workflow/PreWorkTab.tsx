@@ -50,7 +50,6 @@ import {
   GripVertical,
   Check,
   X,
-  Edit2,
   AlertTriangle,
   Calendar,
 } from 'lucide-react';
@@ -143,108 +142,16 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     });
   };
 
-  // Handle task update
-  // Local state for task editing to prevent API calls on every keystroke
-  const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   // State for notification editing
   const [editingNotification, setEditingNotification] = useState<string | null>(null);
-  // Auto-save timer reference
-  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Save all pending changes - using ref to avoid dependency issues
-  const handleSaveChanges = useCallback(() => {
-    setLocalTaskEdits(currentEdits => {
-      if (Object.keys(currentEdits).length === 0) return currentEdits;
-      
-      const editsToSave = { ...currentEdits };
-      setHasChanges(false);
-      setIsSaving(true);
-      
-      let completedSaves = 0;
-      const totalSaves = Object.keys(editsToSave).length;
-      
-      Object.entries(editsToSave).forEach(([taskId, updates]) => {
-        updateTask.mutate({
-          projectId: project.id,
-          taskId,
-          updates,
-        }, {
-          onSettled: () => {
-            completedSaves++;
-            if (completedSaves === totalSaves) {
-              setIsSaving(false);
-            }
-          }
-        });
-      });
-      
-      return {}; // Clear the edits
-    });
-  }, [project.id, updateTask]);
-
-  // Auto-save function with debounce - fixed dependencies
-  const scheduleAutoSave = useCallback(() => {
-    // Clear existing timer
-    if (autoSaveTimerRef.current) {
-      clearTimeout(autoSaveTimerRef.current);
-    }
-    
-    // Schedule new save after 2 seconds of inactivity
-    autoSaveTimerRef.current = setTimeout(() => {
-      handleSaveChanges();
-    }, 2000);
-  }, [handleSaveChanges]);
-
-  // Handle local task updates (for typing) with auto-save
-  const handleTaskEdit = (taskId: string, field: string, value: any) => {
-    setLocalTaskEdits(prev => ({
-      ...prev,
-      [taskId]: {
-        ...prev[taskId],
-        [field]: value
-      }
-    }));
-    setHasChanges(true);
-    scheduleAutoSave();
-  };
-
-  // Save changes when component unmounts to prevent data loss
-  useEffect(() => {
-    return () => {
-      // Save any pending changes when component unmounts
-      setLocalTaskEdits(currentEdits => {
-        if (Object.keys(currentEdits).length > 0) {
-          Object.entries(currentEdits).forEach(([taskId, updates]) => {
-            updateTask.mutate({
-              projectId: project.id,
-              taskId,
-              updates,
-            });
-          });
-        }
-        return currentEdits;
-      });
-      // Clear auto-save timer
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-      }
-    };
-  }, [project.id, updateTask]);
-
-  // Handle immediate task updates (for buttons like completion toggle)
+  // Handle task updates - direct API calls
   const handleUpdateTask = (taskId: string, updates: any) => {
     updateTask.mutate({
       projectId: project.id,
       taskId,
       updates,
     });
-  };
-
-  // Get the current value for a task field (local edit or original value)
-  const getTaskValue = (task: any, field: string) => {
-    return localTaskEdits[task.id]?.[field] ?? task[field];
   };
 
   // Handle task deletion
@@ -349,26 +256,9 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                   <CardTitle className="flex items-center gap-2">
                     <ListChecks className="h-5 w-5" />
                     Preparation Tasks
-                    {isSaving && (
-                      <Badge variant="secondary" className="ml-2 text-xs">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Auto-saving...
-                      </Badge>
-                    )}
-                    {hasChanges && !isSaving && (
-                      <Badge variant="outline" className="ml-2 text-xs">
-                        <Edit2 className="h-3 w-3 mr-1" />
-                        Unsaved changes
-                      </Badge>
-                    )}
                   </CardTitle>
                   <CardDescription>
                     Define tasks that need to be completed before work begins
-                    {hasChanges && !isSaving && (
-                      <span className="text-xs text-orange-600 ml-2">
-                        • Changes will auto-save in 2 seconds
-                      </span>
-                    )}
                   </CardDescription>
                 </div>
                 <Button
@@ -404,8 +294,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                         <GripVertical className="h-4 w-4 text-muted-foreground mt-1" />
                         <div className="flex-1 space-y-2">
                           <Input
-                            value={getTaskValue(task, 'taskName')}
-                            onChange={(e) => handleTaskEdit(task.id, 'taskName', e.target.value)}
+                            value={task.taskName || ''}
+                            onChange={(e) => handleUpdateTask(task.id, { taskName: e.target.value })}
                             placeholder="Task description (required)"
                             className="font-medium"
                             data-testid={`input-task-description-${index}`}
@@ -417,8 +307,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                value={getTaskValue(task, 'cost') || ''}
-                                onChange={(e) => handleTaskEdit(task.id, 'cost', parseFloat(e.target.value) || 0)}
+                                value={task.cost || ''}
+                                onChange={(e) => handleUpdateTask(task.id, { cost: parseFloat(e.target.value) || 0 })}
                                 placeholder="0.00"
                                 className="w-20 text-sm"
                                 data-testid={`input-task-cost-${index}`}
@@ -428,7 +318,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               <Input
                                 type="date"
                                 min={format(new Date(), 'yyyy-MM-dd')}
-                                value={getTaskValue(task, 'dueDate') ? format(new Date(getTaskValue(task, 'dueDate')), 'yyyy-MM-dd') : ''}
+                                value={task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
                                 onChange={(e) => {
                                   // Create date in local timezone to avoid day-before bug
                                   let date = null;
@@ -436,7 +326,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                     const [year, month, day] = e.target.value.split('-').map(Number);
                                     date = new Date(year, month - 1, day); // month is 0-indexed
                                   }
-                                  handleTaskEdit(task.id, 'dueDate', date);
+                                  handleUpdateTask(task.id, { dueDate: date });
                                 }}
                                 className="flex-1"
                                 data-testid={`input-task-due-date-${index}`}
@@ -633,7 +523,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 h-8 w-8 p-0"
                               data-testid={`button-edit-notification-${notification.id}`}
                             >
-                              <Edit2 className="h-4 w-4" />
+                              <MessageSquare className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -668,16 +558,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
             triggerText="Reopen Step"
           />
           
-          {hasChanges && (
-            <Button 
-              variant="outline" 
-              onClick={handleSaveChanges} 
-              disabled={updateTask.isPending || workflowState.currentStatus === 'pre_work'}
-              data-testid="button-save-changes"
-            >
-              {updateTask.isPending ? 'Saving...' : 'Save Changes'}
-            </Button>
-          )}
           
           <div className="text-sm text-muted-foreground">
             {workflowState.nextStatus && (
