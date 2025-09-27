@@ -144,8 +144,46 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
 
   // State for notification editing
   const [editingNotification, setEditingNotification] = useState<string | null>(null);
+  
+  // Local state for task editing
+  const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
+  const [hasChanges, setHasChanges] = useState(false);
 
-  // Handle task updates - direct API calls
+  // Handle task edit (local state only)
+  const handleTaskEdit = (taskId: string, field: string, value: any) => {
+    setLocalTaskEdits(prev => ({
+      ...prev,
+      [taskId]: {
+        ...prev[taskId],
+        [field]: value
+      }
+    }));
+    setHasChanges(true);
+  };
+
+  // Get the current value for a task field (local edit or original value)
+  const getTaskValue = (task: any, field: string) => {
+    return localTaskEdits[task.id]?.[field] ?? task[field];
+  };
+
+  // Save all pending changes
+  const handleSaveChanges = () => {
+    if (Object.keys(localTaskEdits).length === 0) return;
+    
+    const editsToSave = { ...localTaskEdits };
+    setLocalTaskEdits({});
+    setHasChanges(false);
+    
+    Object.entries(editsToSave).forEach(([taskId, updates]) => {
+      updateTask.mutate({
+        projectId: project.id,
+        taskId,
+        updates,
+      });
+    });
+  };
+
+  // Handle immediate task updates (for buttons like completion toggle)
   const handleUpdateTask = (taskId: string, updates: any) => {
     updateTask.mutate({
       projectId: project.id,
@@ -294,8 +332,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                         <GripVertical className="h-4 w-4 text-muted-foreground mt-1" />
                         <div className="flex-1 space-y-2">
                           <Input
-                            value={task.taskName || ''}
-                            onChange={(e) => handleUpdateTask(task.id, { taskName: e.target.value })}
+                            value={getTaskValue(task, 'taskName')}
+                            onChange={(e) => handleTaskEdit(task.id, 'taskName', e.target.value)}
                             placeholder="Task description (required)"
                             className="font-medium"
                             data-testid={`input-task-description-${index}`}
@@ -307,8 +345,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                value={task.cost || ''}
-                                onChange={(e) => handleUpdateTask(task.id, { cost: parseFloat(e.target.value) || 0 })}
+                                value={getTaskValue(task, 'cost') || ''}
+                                onChange={(e) => handleTaskEdit(task.id, 'cost', parseFloat(e.target.value) || 0)}
                                 placeholder="0.00"
                                 className="w-20 text-sm"
                                 data-testid={`input-task-cost-${index}`}
@@ -318,7 +356,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               <Input
                                 type="date"
                                 min={format(new Date(), 'yyyy-MM-dd')}
-                                value={task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
+                                value={getTaskValue(task, 'dueDate') ? format(new Date(getTaskValue(task, 'dueDate')), 'yyyy-MM-dd') : ''}
                                 onChange={(e) => {
                                   // Create date in local timezone to avoid day-before bug
                                   let date = null;
@@ -326,7 +364,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                     const [year, month, day] = e.target.value.split('-').map(Number);
                                     date = new Date(year, month - 1, day); // month is 0-indexed
                                   }
-                                  handleUpdateTask(task.id, { dueDate: date });
+                                  handleTaskEdit(task.id, 'dueDate', date);
                                 }}
                                 className="flex-1"
                                 data-testid={`input-task-due-date-${index}`}
@@ -558,6 +596,16 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
             triggerText="Reopen Step"
           />
           
+          {hasChanges && (
+            <Button 
+              variant="outline" 
+              onClick={handleSaveChanges} 
+              disabled={updateTask.isPending}
+              data-testid="button-save-changes"
+            >
+              {updateTask.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          )}
           
           <div className="text-sm text-muted-foreground">
             {workflowState.nextStatus && (
