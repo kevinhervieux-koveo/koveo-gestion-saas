@@ -153,6 +153,34 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   // Auto-save timer reference
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Save all pending changes
+  const handleSaveChanges = useCallback(() => {
+    if (Object.keys(localTaskEdits).length === 0) return;
+    
+    const editsToSave = { ...localTaskEdits };
+    setLocalTaskEdits({});
+    setHasChanges(false);
+    setIsSaving(true);
+    
+    let completedSaves = 0;
+    const totalSaves = Object.keys(editsToSave).length;
+    
+    Object.entries(editsToSave).forEach(([taskId, updates]) => {
+      updateTask.mutate({
+        projectId: project.id,
+        taskId,
+        updates,
+      }, {
+        onSettled: () => {
+          completedSaves++;
+          if (completedSaves === totalSaves) {
+            setIsSaving(false);
+          }
+        }
+      });
+    });
+  }, [localTaskEdits, project.id, updateTask]);
+
   // Auto-save function with debounce
   const scheduleAutoSave = useCallback(() => {
     // Clear existing timer
@@ -214,34 +242,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   const getTaskValue = (task: any, field: string) => {
     return localTaskEdits[task.id]?.[field] ?? task[field];
   };
-
-  // Save all pending changes
-  const handleSaveChanges = useCallback(() => {
-    if (Object.keys(localTaskEdits).length === 0) return;
-    
-    const editsToSave = { ...localTaskEdits };
-    setLocalTaskEdits({});
-    setHasChanges(false);
-    setIsSaving(true);
-    
-    let completedSaves = 0;
-    const totalSaves = Object.keys(editsToSave).length;
-    
-    Object.entries(editsToSave).forEach(([taskId, updates]) => {
-      updateTask.mutate({
-        projectId: project.id,
-        taskId,
-        updates,
-      }, {
-        onSettled: () => {
-          completedSaves++;
-          if (completedSaves === totalSaves) {
-            setIsSaving(false);
-          }
-        }
-      });
-    });
-  }, [localTaskEdits, project.id, updateTask]);
 
   // Handle task deletion
   const handleDeleteTask = (taskId: string) => {
