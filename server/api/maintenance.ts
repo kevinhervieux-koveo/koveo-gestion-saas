@@ -3619,6 +3619,81 @@ export function registerMaintenanceRoutes(app: Express): void {
   });
   
   /**
+   * PATCH /api/maintenance/projects/:id/sync-intervention-types - One-time sync to update work descriptions from intervention types  
+   */
+  app.patch('/api/maintenance/projects/:id/sync-intervention-types', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to sync project data'
+        });
+      }
+      
+      const { id: projectId } = req.params;
+      
+      // Check project exists and user has access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+      
+      // Get the preferred vendor's project type
+      const preferredVendor = await db
+        .select({ projectType: submissionVendors.projectType })
+        .from(submissionVendors)
+        .where(
+          and(
+            eq(submissionVendors.projectId, projectId),
+            eq(submissionVendors.preferred, true)
+          )
+        )
+        .limit(1);
+      
+      if (preferredVendor.length === 0) {
+        return res.status(404).json({ error: 'No preferred vendor found for this project' });
+      }
+      
+      // Update all project elements with the intervention type from preferred vendor
+      const result = await db
+        .update(projectElements)
+        .set({
+          workDescription: preferredVendor[0].projectType,
+        })
+        .where(eq(projectElements.projectId, projectId))
+        .returning({ id: projectElements.id });
+      
+      res.json({
+        success: true,
+        message: `Updated ${result.length} project elements with intervention type: ${preferredVendor[0].projectType}`,
+        updatedElements: result.length
+      });
+    } catch (error: any) {
+      console.error('Error syncing intervention types:', error);
+      res.status(500).json({
+        error: 'Failed to sync intervention types',
+        details: error.message
+      });
+    }
+  });
+
+  /**
    * GET /api/maintenance/projects/:id/elements - Get linked elements for project
    */
   app.get('/api/maintenance/projects/:id/elements', requireAuth, async (req: any, res) => {
@@ -6399,12 +6474,12 @@ export function registerMaintenanceRoutes(app: Express): void {
 
       const result = updatedSubmissionVendor[0];
 
-      // If vendor is marked as preferred, update project elements with work description
-      if (preferred && result.notes) {
+      // If vendor is marked as preferred, update project elements with work description from intervention type
+      if (preferred && result.projectType) {
         await db
           .update(projectElements)
           .set({
-            workDescription: result.notes,
+            workDescription: result.projectType,
           })
           .where(eq(projectElements.projectId, projectId));
       }
@@ -7968,12 +8043,12 @@ export function registerMaintenanceRoutes(app: Express): void {
 
       const result = updatedSubmissionVendor[0];
 
-      // If this vendor is preferred and has notes, update project elements with work description
-      if (result.preferred && result.notes) {
+      // If this vendor is preferred and has project type, update project elements with work description from intervention type
+      if (result.preferred && result.projectType) {
         await db
           .update(projectElements)
           .set({
-            workDescription: result.notes,
+            workDescription: result.projectType,
           })
           .where(eq(projectElements.projectId, projectId));
       }
