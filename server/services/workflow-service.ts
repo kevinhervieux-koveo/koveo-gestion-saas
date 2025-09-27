@@ -178,6 +178,97 @@ export class WorkflowService {
   }
 
   /**
+   * Get allowed reopen targets - statuses that can be reopened to from current status
+   */
+  async getAllowedReopenTargets(projectId: string): Promise<WorkflowStatus[]> {
+    try {
+      const workflowState = await this.getProjectWorkflowState(projectId);
+      if (!workflowState) {
+        throw new Error('Project not found');
+      }
+
+      const currentIndex = STATUS_PROGRESSION.indexOf(workflowState.currentStatus);
+      const allowedTargets: WorkflowStatus[] = [];
+
+      // Can only reopen to previous completed/skipped statuses, not the current or future ones
+      for (let i = 0; i < currentIndex; i++) {
+        const status = STATUS_PROGRESSION[i];
+        const wasCompleted = workflowState.completedStatuses.includes(status);
+        const isSkipped = this.shouldSkipStatus(status, workflowState.skipFlags);
+        
+        // Allow reopening to statuses that were completed or skipped
+        if (wasCompleted || isSkipped) {
+          allowedTargets.push(status);
+        }
+      }
+
+      return allowedTargets;
+    } catch (error) {
+      console.error('Error getting allowed reopen targets:', error);
+      throw new Error('Failed to get allowed reopen targets');
+    }
+  }
+
+  /**
+   * Reopen workflow to a previous phase
+   */
+  async reopenToPhase(projectId: string, targetStatus: WorkflowStatus, reason?: string): Promise<WorkflowState> {
+    try {
+      // Get current workflow state
+      const workflowState = await this.getProjectWorkflowState(projectId);
+      if (!workflowState) {
+        throw new Error('Project not found');
+      }
+
+      // Validate that target status is allowed
+      const allowedTargets = await this.getAllowedReopenTargets(projectId);
+      if (!allowedTargets.includes(targetStatus)) {
+        throw new Error(`Cannot reopen to ${targetStatus}. Allowed targets: ${allowedTargets.join(', ')}`);
+      }
+
+      // Prevent reopening to current status
+      if (workflowState.currentStatus === targetStatus) {
+        throw new Error(`Project is already at ${targetStatus} status`);
+      }
+
+      const targetIndex = STATUS_PROGRESSION.indexOf(targetStatus);
+      const currentIndex = STATUS_PROGRESSION.indexOf(workflowState.currentStatus);
+
+      // Validate backward transition
+      if (targetIndex >= currentIndex) {
+        throw new Error('Can only reopen to previous statuses');
+      }
+
+      // Reset downstream phase artifacts
+      await this.resetDownstreamArtifacts(projectId, targetIndex);
+
+      // Update project status in database
+      await db
+        .update(maintenanceProjects)
+        .set({
+          status: targetStatus,
+          updatedAt: new Date(),
+          // Reset date fields for reopened phases
+          ...(targetIndex < STATUS_PROGRESSION.indexOf('in_progress') && { 
+            actualStartDate: null 
+          }),
+          ...(targetIndex < STATUS_PROGRESSION.indexOf('completed') && { 
+            actualEndDate: null 
+          }),
+        })
+        .where(eq(maintenanceProjects.id, projectId));
+
+      console.log(`🔄 [WORKFLOW REOPEN] Project ${projectId} reopened from ${workflowState.currentStatus} to ${targetStatus}${reason ? ` (Reason: ${reason})` : ''}`);
+
+      // Return updated workflow state
+      return await this.getProjectWorkflowState(projectId) as WorkflowState;
+    } catch (error) {
+      console.error('Error reopening workflow phase:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Update skip flags for a project
    */
   async updateSkipFlags(projectId: string, skipFlags: SkipFlags): Promise<WorkflowState> {
@@ -268,6 +359,67 @@ export class WorkflowService {
   /**
    * Private helper methods
    */
+
+  /**
+   * Reset downstream phase artifacts when reopening to an earlier phase
+   */
+  private async resetDownstreamArtifacts(projectId: string, targetIndex: number): Promise<void> {
+    try {
+      const futurePhasesToReset = STATUS_PROGRESSION.slice(targetIndex + 1);
+      
+      for (const phase of futurePhasesToReset) {
+        // Reset workflow tasks for future phases to incomplete
+        if (['pre_work', 'in_progress', 'post_work'].includes(phase)) {
+          await db
+            .update(workflowTasks)
+            .set({
+              isCompleted: false,
+              updatedAt: new Date(),
+            })
+            .where(
+              and(
+                eq(workflowTasks.projectId, projectId),
+                eq(workflowTasks.phase, phase as any)
+              )
+            );
+        }
+
+        // Reset element confirmations for post_work phase
+        if (phase === 'post_work') {
+          await db
+            .update(projectElements)
+            .set({
+              confirmed: false,
+            })
+            .where(eq(projectElements.projectId, projectId));
+        }
+
+        // Reset vendor preferences for submission phase
+        if (phase === 'submission') {
+          await db
+            .update(submissionVendors)
+            .set({
+              preferred: false,
+              updatedAt: new Date(),
+            })
+            .where(eq(submissionVendors.projectId, projectId));
+        }
+      }
+
+      // Reset project notifications that are scheduled for future phases
+      await db
+        .update(projectNotifications)
+        .set({
+          isSent: false,
+        })
+        .where(eq(projectNotifications.projectId, projectId));
+
+      console.log(`🔄 [WORKFLOW RESET] Reset artifacts for phases: ${futurePhasesToReset.join(', ')}`);
+    } catch (error) {
+      console.error('Error resetting downstream artifacts:', error);
+      throw new Error('Failed to reset downstream artifacts');
+    }
+  }
 
   /**
    * Count the number of linked elements for a project
