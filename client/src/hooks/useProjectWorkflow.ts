@@ -848,7 +848,7 @@ export function getAccessibleTabs(currentStatus: string, skipFlags: SkipFlagsUpd
       (tab === 'in_progress' && skipFlags.skipInProgress) ||
       (tab === 'post_work' && skipFlags.skipPostWork);
     
-    if (!isSkipped || i === currentIndex) {
+    if (!isSkipped) {
       accessible.push(tab);
     }
   }

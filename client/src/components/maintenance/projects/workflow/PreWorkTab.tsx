@@ -31,12 +31,12 @@ import {
   useProjectNotifications,
   useProjectNotificationMutations,
   useMarkStatusComplete,
-  useReopenWorkflowStep,
   type ProjectWorkflowState 
 } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
 import { cn, formatStatus } from '@/lib/utils';
+import { ReopenStepDialog } from './ReopenStepDialog';
 import {
   CheckCircle2,
   Plus,
@@ -53,7 +53,6 @@ import {
   Edit2,
   AlertTriangle,
   Calendar,
-  RotateCcw,
 } from 'lucide-react';
 
 export interface PreWorkTabProps {
@@ -104,7 +103,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   const { createTask, updateTask, deleteTask } = useWorkflowTaskMutations();
   const { createNotification, updateNotification, deleteNotification } = useProjectNotificationMutations();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
-  const { mutate: reopenStep, isPending: isReopening } = useReopenWorkflowStep();
 
   const notificationForm = useForm<NotificationData>({
     resolver: zodResolver(notificationSchema),
@@ -148,35 +146,9 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   // Handle task update
   // Local state for task editing to prevent API calls on every keystroke
   const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
+  const [hasChanges, setHasChanges] = useState(false);
   // State for notification editing
   const [editingNotification, setEditingNotification] = useState<string | null>(null);
-  const debounceTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
-
-  // Debounced save function that only calls API after user stops typing
-  const debouncedSaveTask = useCallback((taskId: string, updates: any) => {
-    // Clear existing timeout for this task
-    if (debounceTimeouts.current[taskId]) {
-      clearTimeout(debounceTimeouts.current[taskId]);
-    }
-
-    // Set new timeout to save after 500ms of inactivity
-    debounceTimeouts.current[taskId] = setTimeout(() => {
-      updateTask.mutate({
-        projectId: project.id,
-        taskId,
-        updates,
-      }, {
-        onSuccess: () => {
-          // Clear local edits after successful save
-          setLocalTaskEdits(prev => {
-            const { [taskId]: removed, ...rest } = prev;
-            return rest;
-          });
-        }
-      });
-      delete debounceTimeouts.current[taskId];
-    }, 500);
-  }, [project.id, updateTask]);
 
   // Handle local task updates (for typing)
   const handleTaskEdit = (taskId: string, field: string, value: any) => {
@@ -187,9 +159,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
         [field]: value
       }
     }));
-    
-    // Trigger debounced save
-    debouncedSaveTask(taskId, { [field]: value });
+    setHasChanges(true);
   };
 
   // Handle immediate task updates (for buttons like completion toggle)
@@ -206,37 +176,21 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     return localTaskEdits[task.id]?.[field] ?? task[field];
   };
 
-  // Handle blur events to immediately save any pending changes
-  const handleTaskBlur = (taskId: string, field: string, value: any) => {
-    if (debounceTimeouts.current[taskId]) {
-      clearTimeout(debounceTimeouts.current[taskId]);
-      delete debounceTimeouts.current[taskId];
-      
-      // Immediately save on blur
+  // Save all pending changes
+  const handleSaveChanges = () => {
+    Object.entries(localTaskEdits).forEach(([taskId, updates]) => {
       updateTask.mutate({
         projectId: project.id,
         taskId,
-        updates: { [field]: value },
+        updates,
       }, {
         onSuccess: () => {
-          // Clear local edits after successful save
-          setLocalTaskEdits(prev => {
-            const { [taskId]: removed, ...rest } = prev;
-            return rest;
-          });
+          setLocalTaskEdits({});
+          setHasChanges(false);
         }
       });
-    }
+    });
   };
-
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(debounceTimeouts.current).forEach(timeout => {
-        clearTimeout(timeout);
-      });
-    };
-  }, []);
 
   // Handle task deletion
   const handleDeleteTask = (taskId: string) => {
@@ -304,47 +258,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     });
   };
 
-  const handleReopen = () => {
-    // Validate that we have the required data
-    if (!project.id || !workflowState.currentStatus) {
-      toast({
-        title: "Cannot Reopen Step",
-        description: "Workflow data is not available. Please refresh the page and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate that current status matches this tab's phase
-    if (workflowState.currentStatus !== 'pre_work') {
-      toast({
-        title: "Cannot Reopen Step",
-        description: "This step can only be reopened when the project is currently in the Pre-Work phase.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    reopenStep(
-      { projectId: project.id, currentStatus: workflowState.currentStatus },
-      { 
-        onSuccess: () => {
-          toast({
-            title: "Step Reopened",
-            description: "Successfully returned to the previous workflow step.",
-          });
-          onUpdate();
-        },
-        onError: (error: any) => {
-          toast({
-            title: "Failed to Reopen Step",
-            description: error.message || "An error occurred while trying to reopen the step.",
-            variant: "destructive",
-          });
-        }
-      }
-    );
-  };
 
 
   const timingOptions = [
@@ -421,7 +334,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                           <Input
                             value={getTaskValue(task, 'taskName')}
                             onChange={(e) => handleTaskEdit(task.id, 'taskName', e.target.value)}
-                            onBlur={(e) => handleTaskBlur(task.id, 'taskName', e.target.value)}
                             placeholder="Task description (required)"
                             className="font-medium"
                             data-testid={`input-task-description-${index}`}
@@ -435,7 +347,6 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                 min="0"
                                 value={getTaskValue(task, 'cost') || ''}
                                 onChange={(e) => handleTaskEdit(task.id, 'cost', parseFloat(e.target.value) || 0)}
-                                onBlur={(e) => handleTaskBlur(task.id, 'cost', parseFloat(e.target.value) || 0)}
                                 placeholder="0.00"
                                 className="w-20 text-sm"
                                 data-testid={`input-task-cost-${index}`}
@@ -677,16 +588,23 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
       {/* Action Buttons */}
       <div className="flex items-center justify-between pt-6 border-t">
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline"
-            onClick={handleReopen}
-            disabled={isReopening || !workflowState.currentStatus || workflowState.currentStatus !== 'pre_work'}
-            className="flex items-center gap-2"
-            data-testid="button-reopen-prework"
-          >
-            <RotateCcw className="h-4 w-4" />
-            {isReopening ? 'Reopening...' : 'Reopen Step'}
-          </Button>
+          <ReopenStepDialog
+            projectId={project.id}
+            currentStatus={workflowState.currentStatus}
+            onSuccess={onUpdate}
+            triggerText="Reopen Step"
+          />
+          
+          {hasChanges && (
+            <Button 
+              variant="outline" 
+              onClick={handleSaveChanges} 
+              disabled={updateTask.isPending || workflowState.currentStatus === 'pre_work'}
+              data-testid="button-save-changes"
+            >
+              {updateTask.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          )}
           
           <div className="text-sm text-muted-foreground">
             {workflowState.nextStatus && (
