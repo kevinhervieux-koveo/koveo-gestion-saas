@@ -169,6 +169,60 @@ export function useMarkStatusComplete() {
 }
 
 /**
+ * Mutation to reopen/revert workflow step to previous status
+ */
+export function useReopenWorkflowStep() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ projectId, currentStatus }: { projectId: string; currentStatus: string }) => {
+      const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/reopen-step`, {
+        currentStatus,
+      });
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to reopen workflow step' }));
+        throw new Error(error.message || 'Failed to reopen workflow step');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data, variables) => {
+      const { projectId } = variables;
+      
+      // Invalidate workflow state
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', projectId, 'workflow'] 
+      });
+      
+      // Invalidate main project data
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/projects', projectId] 
+      });
+      
+      // Invalidate projects list
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/buildings'] 
+      });
+
+      toast({
+        title: 'Step Reopened',
+        description: `Project has been reopened to ${data.newStatus} step`,
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to reopen workflow step:', error);
+      toast({
+        title: 'Reopen Failed',
+        description: error.message || 'Failed to reopen workflow step',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/**
  * Mutation to update skip flags for workflow steps
  */
 export function useUpdateSkipFlags() {

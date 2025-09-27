@@ -7369,6 +7369,133 @@ export function registerMaintenanceRoutes(app: Express): void {
   });
 
   /**
+   * POST /api/maintenance/projects/:id/reopen-step - Reopen/revert project to previous workflow step
+   */
+  app.post('/api/maintenance/projects/:id/reopen-step', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const id = req.params.id;
+      if (!id) {
+        return res.status(400).json({ error: 'Project ID is required' });
+      }
+
+      // Validate current status from request body
+      const validation = z.object({
+        currentStatus: z.enum(['submission', 'pre_work', 'in_progress', 'post_work']), // Can't reopen from planned or completed
+      }).safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validation.error.errors
+        });
+      }
+
+      // Get project and check access
+      const project = await db
+        .select({
+          id: maintenanceProjects.id,
+          buildingId: maintenanceProjects.buildingId,
+          status: maintenanceProjects.status,
+          skipSubmission: maintenanceProjects.skipSubmission,
+          skipPreWork: maintenanceProjects.skipPreWork,
+          skipInProgress: maintenanceProjects.skipInProgress,
+          skipPostWork: maintenanceProjects.skipPostWork,
+        })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, id))
+        .limit(1);
+
+      if (project.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this project' });
+      }
+
+      const currentStatus = validation.data.currentStatus;
+      
+      // Prevent reopening from completed status
+      if (project[0].status === 'completed') {
+        return res.status(400).json({ error: 'Cannot reopen a completed project' });
+      }
+
+      // Verify current status matches project status
+      if (project[0].status !== currentStatus) {
+        return res.status(400).json({ error: 'Current status does not match project status' });
+      }
+
+      // Determine previous status based on current status and skip flags
+      let previousStatus: string;
+      
+      switch (currentStatus) {
+        case 'submission':
+          previousStatus = 'planned';
+          break;
+        case 'pre_work':
+          previousStatus = project[0].skipSubmission ? 'planned' : 'submission';
+          break;
+        case 'in_progress':
+          if (project[0].skipPreWork) {
+            previousStatus = project[0].skipSubmission ? 'planned' : 'submission';
+          } else {
+            previousStatus = 'pre_work';
+          }
+          break;
+        case 'post_work':
+          if (project[0].skipInProgress) {
+            if (project[0].skipPreWork) {
+              previousStatus = project[0].skipSubmission ? 'planned' : 'submission';
+            } else {
+              previousStatus = 'pre_work';
+            }
+          } else {
+            previousStatus = 'in_progress';
+          }
+          break;
+        default:
+          return res.status(400).json({ error: 'Invalid status for reopening' });
+      }
+
+      // Update project status to previous step
+      const updatedProject = await db
+        .update(maintenanceProjects)
+        .set({
+          status: previousStatus,
+          updatedAt: new Date(),
+          // Clear future timestamps when reverting
+          ...(currentStatus === 'submission' && { submissionDate: null }),
+          ...(currentStatus === 'pre_work' && { preWorkStartDate: null }),
+          ...(currentStatus === 'in_progress' && { actualStartDate: null }),
+          ...(currentStatus === 'post_work' && { workEndDate: null }),
+        })
+        .where(eq(maintenanceProjects.id, id))
+        .returning();
+
+      res.json({
+        success: true,
+        project: updatedProject[0],
+        previousStatus: currentStatus,
+        newStatus: previousStatus,
+        message: `Project has been reopened to ${previousStatus} step`
+      });
+
+    } catch (error: any) {
+      console.error('Error reopening project step:', error);
+      res.status(500).json({
+        error: 'Failed to reopen project step',
+        details: error.message
+      });
+    }
+  });
+
+  /**
    * PATCH /api/maintenance/projects/:id/workflow-details - Update workflow-specific project details
    */
   app.patch('/api/maintenance/projects/:id/workflow-details', requireAuth, async (req: any, res) => {

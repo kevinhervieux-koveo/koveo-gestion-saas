@@ -10,7 +10,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { 
   useWorkflowTasks, 
   useWorkflowTaskMutations,
-  useMarkStatusComplete, 
+  useMarkStatusComplete,
+  useReopenWorkflowStep, 
   type ProjectWorkflowState 
 } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
@@ -32,6 +33,7 @@ import {
   Building2,
   Save,
   ShieldCheck,
+  RotateCcw,
 } from 'lucide-react';
 
 export interface PostWorkTabProps {
@@ -96,6 +98,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
 
   const { createTask, updateTask, deleteTask } = useWorkflowTaskMutations();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
+  const { mutate: reopenStep, isPending: isReopening } = useReopenWorkflowStep();
 
   // Fetch project elements
   const {
@@ -326,6 +329,13 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         },
       });
     }
+  };
+
+  const handleReopen = () => {
+    reopenStep(
+      { projectId: project.id, currentStatus: workflowState.currentStatus },
+      { onSuccess: onUpdate }
+    );
   };
 
   // Check if auto-generated project
@@ -685,10 +695,23 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between pt-6 border-t">
-          <div className="text-sm text-muted-foreground">
-            {workflowState.nextStatus && (
-              <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
-            )}
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline"
+              onClick={handleReopen}
+              disabled={isReopening}
+              className="flex items-center gap-2"
+              data-testid="button-reopen-postwork"
+            >
+              <RotateCcw className="h-4 w-4" />
+              {isReopening ? 'Reopening...' : 'Reopen Step'}
+            </Button>
+            
+            <div className="text-sm text-muted-foreground">
+              {workflowState.nextStatus && (
+                <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
+              )}
+            </div>
           </div>
           
           {canAdvance ? (
