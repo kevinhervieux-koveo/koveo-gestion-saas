@@ -169,6 +169,7 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
         description: undefined,
         cost: undefined,
         orderIndex: newTaskIndex,
+        isCompleted: false,
       },
     });
   };

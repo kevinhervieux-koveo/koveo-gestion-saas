@@ -3333,7 +3333,6 @@ export function registerMaintenanceRoutes(app: Express): void {
           id: maintenanceProjects.id,
           buildingId: maintenanceProjects.buildingId,
           title: maintenanceProjects.title,
-          description: maintenanceProjects.description,
           type: maintenanceProjects.type,
           status: maintenanceProjects.status,
           priority: maintenanceProjects.priority,
@@ -3372,7 +3371,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         .select()
         .from(projectSteps)
         .where(eq(projectSteps.projectId, id))
-        .orderBy(asc(projectSteps.stepOrder));
+        .orderBy(asc(projectSteps.stepType));
       
       // Get linked elements
       const linkedElements = await db
@@ -3440,7 +3439,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         .select()
         .from(projectSteps)
         .where(eq(projectSteps.projectId, projectId))
-        .orderBy(asc(projectSteps.stepOrder));
+        .orderBy(asc(projectSteps.stepType));
       
       res.json({
         success: true,
@@ -3986,14 +3985,14 @@ export function registerMaintenanceRoutes(app: Express): void {
           projectId,
           elementId,
           updateStatus,
-          actualCost,
+          actualCost: actualCost ? actualCost.toString() : undefined,
           notes,
         })
         .onConflictDoUpdate({
           target: [elementProjectUpdates.projectId, elementProjectUpdates.elementId],
           set: {
             updateStatus,
-            actualCost,
+            actualCost: actualCost ? actualCost.toString() : undefined,
             notes,
             updatedAt: new Date(),
           },
@@ -4344,8 +4343,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const suggestions = await db
         .select({
           id: evaluationSuggestions.id,
-          title: evaluationSuggestions.title,
-          suggestionType: evaluationSuggestions.suggestionType,
+          suggestedType: evaluationSuggestions.suggestedType,
           priority: evaluationSuggestions.priority,
           suggestedDate: evaluationSuggestions.suggestedDate,
           status: evaluationSuggestions.status,
@@ -4354,7 +4352,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         .from(evaluationSuggestions)
         .leftJoin(buildingElements, eq(evaluationSuggestions.elementId, buildingElements.id))
         .where(and(
-          eq(evaluationSuggestions.buildingId, buildingId),
+          eq(buildingElements.buildingId, buildingId),
           eq(evaluationSuggestions.status, 'pending')
         ));
       
@@ -4362,8 +4360,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         timelineEvents.push({
           id: suggestion.id,
           type: 'suggestion',
-          title: suggestion.title,
-          description: `${suggestion.suggestionType} suggestion for ${suggestion.elementName || 'building'}`,
+          title: `${suggestion.suggestedType} suggestion`,
+          description: `${suggestion.suggestedType} suggestion for ${suggestion.elementName || 'building'}`,
           date: suggestion.suggestedDate,
           priority: suggestion.priority,
           status: suggestion.status,
@@ -4395,25 +4393,25 @@ export function registerMaintenanceRoutes(app: Express): void {
         ));
       
       projects.forEach(project => {
-        if (project.startDate) {
+        if (project.plannedStartDate) {
           timelineEvents.push({
             id: project.id,
             type: 'project_start',
             title: `Project Start: ${project.title}`,
-            description: `${project.projectType} project begins`,
-            date: project.startDate,
+            description: `${project.type} project begins`,
+            date: project.plannedStartDate,
             priority: project.priority,
             status: project.status,
           });
         }
         
-        if (project.endDate) {
+        if (project.plannedEndDate) {
           timelineEvents.push({
             id: project.id,
             type: 'project_end',
             title: `Project End: ${project.title}`,
-            description: `${project.projectType} project completion`,
-            date: project.endDate,
+            description: `${project.type} project completion`,
+            date: project.plannedEndDate,
             priority: project.priority,
             status: project.status,
           });
@@ -4580,25 +4578,26 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const projectedFromSuggestions = await db
         .select({
-          estimatedCost: evaluationSuggestions.estimatedCost,
           priority: evaluationSuggestions.priority,
-          suggestionType: evaluationSuggestions.suggestionType,
+          suggestedType: evaluationSuggestions.suggestedType,
         })
         .from(evaluationSuggestions)
+        .leftJoin(buildingElements, eq(evaluationSuggestions.elementId, buildingElements.id))
         .where(and(
-          eq(evaluationSuggestions.buildingId, buildingId),
-          eq(evaluationSuggestions.status, 'pending'),
-          sql`${evaluationSuggestions.estimatedCost} IS NOT NULL AND ${evaluationSuggestions.estimatedCost} > 0`
+          eq(buildingElements.buildingId, buildingId),
+          eq(evaluationSuggestions.status, 'pending')
         ));
       
       let totalProjected = 0;
       const priorityCosts = {};
       
-      [...projectedFromProjects, ...projectedFromSuggestions].forEach(record => {
-        const cost = record.estimatedCost || 0;
+      projectedFromProjects.forEach(record => {
+        const cost = parseFloat(record.totalBudget) || 0;
         totalProjected += cost;
         priorityCosts[record.priority] = (priorityCosts[record.priority] || 0) + cost;
       });
+      
+      // Note: projectedFromSuggestions don't have estimatedCost in schema, so we skip them for cost calculation
       
       analysis.totalCosts.projected = totalProjected;
       analysis.costsByPriority = priorityCosts;
@@ -4685,8 +4684,9 @@ export function registerMaintenanceRoutes(app: Express): void {
         // Active suggestions
         db.select({ count: count() })
           .from(evaluationSuggestions)
+          .leftJoin(buildingElements, eq(evaluationSuggestions.elementId, buildingElements.id))
           .where(and(
-            inArray(evaluationSuggestions.buildingId, buildingIds),
+            inArray(buildingElements.buildingId, buildingIds),
             eq(evaluationSuggestions.status, 'pending')
           )),
         
