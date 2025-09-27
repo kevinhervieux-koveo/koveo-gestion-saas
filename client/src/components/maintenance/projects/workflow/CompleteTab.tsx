@@ -417,22 +417,6 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
         </div>
       </div>
 
-      {/* Final Notes */}
-      <Card className="border-green-200 bg-green-50">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <p className="font-medium text-green-900 mb-1">Project Successfully Completed</p>
-              <p className="text-green-800">
-                This project has been marked as complete. The completion summary and all project data 
-                have been archived for future reference. You can still view and edit the completion 
-                summary, but the project workflow is now finalized.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
