@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -45,6 +46,7 @@ export interface CompleteTabProps {
 
 const completeTabSchema = z.object({
   completionSummary: z.string().min(10, 'Please provide a meaningful summary of at least 10 characters'),
+  actualEndDate: z.string().optional(),
 });
 
 type CompleteTabData = z.infer<typeof completeTabSchema>;
@@ -77,6 +79,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
     resolver: zodResolver(completeTabSchema),
     defaultValues: {
       completionSummary: project.completionSummary || '',
+      actualEndDate: project.actualEndDate ? format(new Date(project.actualEndDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
     },
   });
 
@@ -109,6 +112,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
       projectId: project.id,
       updates: {
         completionSummary: values.completionSummary,
+        actualEndDate: values.actualEndDate,
       },
       status: 'completed',
     }, {
@@ -170,9 +174,9 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="space-y-6">
         {/* Main Content - Completion Summary */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -226,63 +230,57 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-sm font-medium text-muted-foreground">Planned Start</div>
-                    <div className="text-base">
-                      {project.plannedStartDate 
-                        ? format(new Date(project.plannedStartDate), 'MMM d, yyyy')
-                        : 'Not specified'
-                      }
+              <Form {...form}>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Planned Start</div>
+                      <div className="text-base">
+                        {project.plannedStartDate 
+                          ? format(new Date(project.plannedStartDate), 'MMM d, yyyy')
+                          : 'Not specified'
+                        }
+                      </div>
+                    </div>
+                    <div>
+                      <FormField
+                        control={form.control}
+                        name="actualEndDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium text-muted-foreground">Actual End</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...field}
+                                data-testid="input-actual-end-date"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
-                  <div>
-                    <div className="text-sm font-medium text-muted-foreground">Actual Start</div>
-                    <div className="text-base">
-                      {project.actualStartDate 
-                        ? format(new Date(project.actualStartDate), 'MMM d, yyyy')
-                        : 'Not recorded'
-                      }
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-muted-foreground">Planned End</div>
-                    <div className="text-base">
-                      {project.plannedEndDate 
-                        ? format(new Date(project.plannedEndDate), 'MMM d, yyyy')
-                        : 'Not specified'
-                      }
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-muted-foreground">Actual End</div>
-                    <div className="text-base">
-                      {project.actualEndDate 
-                        ? format(new Date(project.actualEndDate), 'MMM d, yyyy')
-                        : 'Not recorded'
-                      }
-                    </div>
-                  </div>
-                </div>
 
-                {projectMetrics.duration && (
-                  <div className="pt-2 border-t">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        Project duration: <span className="font-medium">{projectMetrics.duration} days</span>
-                      </span>
+                  {projectMetrics.duration && (
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          Project duration: <span className="font-medium">{projectMetrics.duration} days</span>
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </Form>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sidebar - Project Metrics */}
-        <div className="lg:col-span-1 space-y-4">
+        {/* Project Metrics */}
+        <div className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
