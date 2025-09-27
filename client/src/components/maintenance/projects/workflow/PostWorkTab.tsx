@@ -332,9 +332,44 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   };
 
   const handleReopen = () => {
+    // Validate that we have the required data
+    if (!project.id || !workflowState.currentStatus) {
+      toast({
+        title: "Cannot Reopen Step",
+        description: "Workflow data is not available. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate that current status matches this tab's phase
+    if (workflowState.currentStatus !== 'post_work') {
+      toast({
+        title: "Cannot Reopen Step",
+        description: "This step can only be reopened when the project is currently in the Post-Work phase.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     reopenStep(
       { projectId: project.id, currentStatus: workflowState.currentStatus },
-      { onSuccess: onUpdate }
+      { 
+        onSuccess: () => {
+          toast({
+            title: "Step Reopened",
+            description: "Successfully returned to the previous workflow step.",
+          });
+          onUpdate();
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Failed to Reopen Step",
+            description: error.message || "An error occurred while trying to reopen the step.",
+            variant: "destructive",
+          });
+        }
+      }
     );
   };
 
@@ -699,7 +734,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
             <Button 
               variant="outline"
               onClick={handleReopen}
-              disabled={isReopening}
+              disabled={isReopening || !workflowState.currentStatus || workflowState.currentStatus !== 'post_work'}
               className="flex items-center gap-2"
               data-testid="button-reopen-postwork"
             >

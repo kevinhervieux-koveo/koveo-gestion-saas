@@ -6,7 +6,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   useWorkflowTasks, 
   useWorkflowTaskMutations,
-  useMarkStatusComplete, 
+  useMarkStatusComplete,
+  useReopenWorkflowStep,
   type ProjectWorkflowState 
 } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
@@ -24,6 +25,7 @@ import {
   Check,
   Clock,
   AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 
 export interface InProgressTabProps {
@@ -65,6 +67,7 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
 
   const { createTask, updateTask, deleteTask } = useWorkflowTaskMutations();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
+  const { mutate: reopenStep, isPending: isReopening } = useReopenWorkflowStep();
 
   // Calculate task completion status
   const completedTasks = inProgressTasks.filter(task => task.isCompleted);
@@ -196,6 +199,48 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
         },
       });
     }
+  };
+
+  const handleReopen = () => {
+    // Validate that we have the required data
+    if (!project.id || !workflowState.currentStatus) {
+      toast({
+        title: "Cannot Reopen Step",
+        description: "Workflow data is not available. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate that current status matches this tab's phase
+    if (workflowState.currentStatus !== 'in_progress') {
+      toast({
+        title: "Cannot Reopen Step",
+        description: "This step can only be reopened when the project is currently in the In Progress phase.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    reopenStep(
+      { projectId: project.id, currentStatus: workflowState.currentStatus },
+      { 
+        onSuccess: () => {
+          toast({
+            title: "Step Reopened",
+            description: "Successfully returned to the previous workflow step.",
+          });
+          onUpdate();
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Failed to Reopen Step",
+            description: error.message || "An error occurred while trying to reopen the step.",
+            variant: "destructive",
+          });
+        }
+      }
+    );
   };
 
   // Check if auto-generated project
@@ -391,10 +436,23 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between pt-6 border-t">
-          <div className="text-sm text-muted-foreground">
-            {workflowState.nextStatus && (
-              <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
-            )}
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline"
+              onClick={handleReopen}
+              disabled={isReopening || !workflowState.currentStatus || workflowState.currentStatus !== 'in_progress'}
+              className="flex items-center gap-2"
+              data-testid="button-reopen-inprogress"
+            >
+              <RotateCcw className="h-4 w-4" />
+              {isReopening ? 'Reopening...' : 'Reopen Step'}
+            </Button>
+            
+            <div className="text-sm text-muted-foreground">
+              {workflowState.nextStatus && (
+                <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
+              )}
+            </div>
           </div>
           
           {canAdvance && (

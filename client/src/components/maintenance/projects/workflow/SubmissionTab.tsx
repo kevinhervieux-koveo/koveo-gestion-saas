@@ -13,10 +13,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { format } from 'date-fns';
 import { StandardDocumentAttachments, type AttachedFile } from '@/components/common/StandardDocumentAttachments';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, useReopenWorkflowStep, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { useToast } from '@/hooks/use-toast';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
 import { ElementManagementTab } from './ElementManagementTab';
@@ -37,6 +37,7 @@ import {
   Plus,
   Upload,
   X,
+  RotateCcw,
 } from 'lucide-react';
 
 // Form schema for new submission with payment plan (matching bills structure)
@@ -258,7 +259,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
     error: vendorsError 
   } = useSubmissionVendors(project.id);
 
+  const { toast } = useToast();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
+  const { mutate: reopenStep, isPending: isReopening } = useReopenWorkflowStep();
   const { createSubmissionVendor, updateSubmissionVendor, updatePreferredStatus, deleteSubmissionVendor } = useSubmissionVendorMutations();
 
   // Form for new submission
@@ -551,6 +554,48 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
         onUpdate();
       },
     });
+  };
+
+  const handleReopen = () => {
+    // Validate that we have the required data
+    if (!project.id || !workflowState.currentStatus) {
+      toast({
+        title: "Cannot Reopen Step",
+        description: "Workflow data is not available. Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate that current status matches this tab's phase
+    if (workflowState.currentStatus !== 'submission') {
+      toast({
+        title: "Cannot Reopen Step",
+        description: "This step can only be reopened when the project is currently in the Submission phase.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    reopenStep(
+      { projectId: project.id, currentStatus: workflowState.currentStatus },
+      { 
+        onSuccess: () => {
+          toast({
+            title: "Step Reopened",
+            description: "Successfully returned to the previous workflow step.",
+          });
+          onUpdate();
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Failed to Reopen Step",
+            description: error.message || "An error occurred while trying to reopen the step.",
+            variant: "destructive",
+          });
+        }
+      }
+    );
   };
 
   const formatCurrency = (amount?: string | number) => {
@@ -1494,10 +1539,23 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
 
       {/* Action Buttons */}
       <div className="flex items-center justify-between pt-6 border-t">
-        <div className="text-sm text-muted-foreground">
-          {workflowState.nextStatus && (
-            <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
-          )}
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline"
+            onClick={handleReopen}
+            disabled={isReopening || !workflowState.currentStatus || workflowState.currentStatus !== 'submission'}
+            className="flex items-center gap-2"
+            data-testid="button-reopen-submission"
+          >
+            <RotateCcw className="h-4 w-4" />
+            {isReopening ? 'Reopening...' : 'Reopen Step'}
+          </Button>
+          
+          <div className="text-sm text-muted-foreground">
+            {workflowState.nextStatus && (
+              <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
+            )}
+          </div>
         </div>
         
         {canAdvance && hasPreferredVendor && (
