@@ -15,7 +15,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { StandardDocumentAttachments, type AttachedFile } from '@/components/common/StandardDocumentAttachments';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, useReopenWorkflowStep, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { ReopenStepDialog } from './ReopenStepDialog';
 import { useToast } from '@/hooks/use-toast';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
@@ -2139,6 +2140,36 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Action Buttons */}
+      <div className="flex items-center justify-between pt-6 border-t">
+        <div className="flex items-center gap-3">
+          <ReopenStepDialog
+            projectId={project.id}
+            currentStatus={workflowState.currentStatus}
+            onSuccess={onUpdate}
+            triggerText="Reopen Step"
+          />
+          
+          <div className="text-sm text-muted-foreground">
+            {workflowState.nextStatus && (
+              <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
+            )}
+          </div>
+        </div>
+        
+        {canAdvance && hasPreferredVendor && (
+          <Button 
+            onClick={() => markStatusComplete({ projectId: project.id, completedStatus: 'submission' })}
+            disabled={markStatusComplete.isPending}
+            className="flex items-center gap-2"
+            data-testid="button-complete-submission"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {markStatusComplete.isPending ? 'Completing...' : 'Complete Submission Phase'}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

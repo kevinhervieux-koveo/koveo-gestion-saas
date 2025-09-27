@@ -125,7 +125,7 @@ export function ReopenStepDialog({
         <DialogHeader>
           <DialogTitle>Reopen Workflow Step</DialogTitle>
           <DialogDescription>
-            Select which previous phase you'd like to reopen to. This will reset any progress made after that phase.
+            Select which previous phase you'd like to reopen to. Your progress in future phases will be preserved.
           </DialogDescription>
         </DialogHeader>
         
@@ -183,7 +183,7 @@ export function ReopenStepDialog({
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Warning:</strong> Reopening to {STATUS_LABELS[selectedTarget] || selectedTarget} will reset all progress and data from later phases. This action cannot be undone.
+                    <strong>Note:</strong> Reopening to {STATUS_LABELS[selectedTarget] || selectedTarget} will preserve your progress in future phases. You can continue working where you left off.
                   </AlertDescription>
                 </Alert>
               )}

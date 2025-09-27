@@ -361,60 +361,29 @@ export class WorkflowService {
    */
 
   /**
-   * Reset downstream phase artifacts when reopening to an earlier phase
+   * Preserve downstream phase artifacts when reopening to an earlier phase
+   * This function intentionally does NOT reset progress from future phases
    */
   private async resetDownstreamArtifacts(projectId: string, targetIndex: number): Promise<void> {
     try {
-      const futurePhasesToReset = STATUS_PROGRESSION.slice(targetIndex + 1);
+      // Note: We intentionally preserve all downstream artifacts to maintain user progress
+      // The user can still access and modify future phases as needed
       
-      for (const phase of futurePhasesToReset) {
-        // Reset workflow tasks for future phases to incomplete
-        if (['pre_work', 'in_progress', 'post_work'].includes(phase)) {
-          await db
-            .update(workflowTasks)
-            .set({
-              isCompleted: false,
-              updatedAt: new Date(),
-            })
-            .where(
-              and(
-                eq(workflowTasks.projectId, projectId),
-                eq(workflowTasks.phase, phase as any)
-              )
-            );
-        }
-
-        // Reset element confirmations for post_work phase
-        if (phase === 'post_work') {
-          await db
-            .update(projectElements)
-            .set({
-              confirmed: false,
-            })
-            .where(eq(projectElements.projectId, projectId));
-        }
-
-        // Reset vendor preferences for submission phase
-        if (phase === 'submission') {
-          await db
-            .update(submissionVendors)
-            .set({
-              preferred: false,
-              updatedAt: new Date(),
-            })
-            .where(eq(submissionVendors.projectId, projectId));
-        }
-      }
-
-      // Reset project notifications that are scheduled for future phases
+      // Only reset project notifications that haven't been sent yet
+      // This prevents duplicate notifications but preserves actual work progress
       await db
         .update(projectNotifications)
         .set({
           isSent: false,
         })
-        .where(eq(projectNotifications.projectId, projectId));
+        .where(
+          and(
+            eq(projectNotifications.projectId, projectId),
+            eq(projectNotifications.isSent, true)
+          )
+        );
 
-      console.log(`🔄 [WORKFLOW RESET] Reset artifacts for phases: ${futurePhasesToReset.join(', ')}`);
+      console.log(`🔄 [WORKFLOW REOPEN] Preserved progress in future phases when reopening to index ${targetIndex}`);
     } catch (error) {
       console.error('Error resetting downstream artifacts:', error);
       throw new Error('Failed to reset downstream artifacts');

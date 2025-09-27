@@ -23,7 +23,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { BuildingElementsMultiSelect } from '@/components/ui/building-elements-multi-select';
-import { useUpdateProjectDetails, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { useUpdateProjectDetails, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { ReopenStepDialog } from './ReopenStepDialog';
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
 import { useBuildingContext } from '@/hooks/use-building-context';
@@ -80,6 +81,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
   }
 
   const { mutate: updateProject, isPending: isUpdating } = useUpdateProjectDetails();
+  const { mutate: markStatusComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
 
   // Fetch building elements for selection
   const {
@@ -404,21 +406,24 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
         </Form>
       </div>
 
-      {/* Save and Complete buttons at bottom */}
-      <div className="pt-4 border-t flex justify-between">
-        <div>
-          {isComplete && (
-            <Button 
-              onClick={handleMarkComplete} 
-              disabled={isUpdating} 
-              data-testid="button-mark-complete"
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isUpdating ? 'Completing...' : 'Mark as Complete'}
-            </Button>
-          )}
+      {/* Action Buttons */}
+      <div className="flex items-center justify-between pt-6 border-t">
+        <div className="flex items-center gap-3">
+          <ReopenStepDialog
+            projectId={project.id}
+            currentStatus={workflowState.currentStatus}
+            onSuccess={onUpdate}
+            triggerText="Reopen Step"
+          />
+          
+          <div className="text-sm text-muted-foreground">
+            {workflowState.nextStatus && (
+              <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
+            )}
+          </div>
         </div>
-        <div>
+        
+        <div className="flex items-center gap-3">
           {hasChanges && (
             <Button 
               variant="outline" 
@@ -427,6 +432,17 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
               data-testid="button-save-changes"
             >
               {isUpdating ? 'Saving...' : 'Save Changes'}
+            </Button>
+          )}
+          
+          {isComplete && (
+            <Button 
+              onClick={() => markStatusComplete({ projectId: project.id, completedStatus: 'planned' })}
+              disabled={isMarkingComplete} 
+              data-testid="button-complete-planning"
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+            >
+              {isMarkingComplete ? 'Completing...' : 'Complete Planning Phase'}
             </Button>
           )}
         </div>

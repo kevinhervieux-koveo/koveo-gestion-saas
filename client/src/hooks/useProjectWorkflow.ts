@@ -830,30 +830,9 @@ export function getNextStatus(currentStatus: string, skipFlags: SkipFlagsUpdate)
 }
 
 export function getAccessibleTabs(currentStatus: string, skipFlags: SkipFlagsUpdate): string[] {
-  const allTabs = ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
-  const currentIndex = allTabs.indexOf(currentStatus);
-  
-  if (currentIndex === -1) return ['planned']; // Invalid status, show planned
-  
-  const accessible: string[] = [];
-  
-  // Add ALL tabs, allowing access to future steps for configuration
-  for (let i = 0; i < allTabs.length; i++) {
-    const tab = allTabs[i];
-    
-    // Skip tabs that are marked as skipped (unless it's the current tab)
-    const isSkipped = 
-      (tab === 'submission' && skipFlags.skipSubmission) ||
-      (tab === 'pre_work' && skipFlags.skipPreWork) ||
-      (tab === 'in_progress' && skipFlags.skipInProgress) ||
-      (tab === 'post_work' && skipFlags.skipPostWork);
-    
-    if (!isSkipped) {
-      accessible.push(tab);
-    }
-  }
-  
-  return accessible;
+  // Return ALL tabs to allow unrestricted access for configuration regardless of current phase
+  // This enables users to configure future workflow steps even when not at that phase yet
+  return ['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
 }
 
 export function getFirstIncompleteTab(currentStatus: string, skipFlags: SkipFlagsUpdate): string {
