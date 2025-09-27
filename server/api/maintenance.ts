@@ -380,7 +380,6 @@ const workflowTaskUpdateSchema = z.object({
   cost: z.number().positive().optional(),
   orderIndex: z.number().int().min(0).optional(),
   isCompleted: z.boolean().optional(),
-  dueDate: z.date().optional(),
 });
 
 const projectNotificationCreateSchema = z.object({
