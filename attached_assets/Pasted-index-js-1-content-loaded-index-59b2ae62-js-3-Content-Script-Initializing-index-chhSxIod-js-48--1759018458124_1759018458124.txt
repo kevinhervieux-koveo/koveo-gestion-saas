@@ -1,0 +1,150 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-chhSxIod.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-B5bxSY3q.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-B5bxSY3q.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-B5bxSY3q.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-B5bxSY3q.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-chhSxIod.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-chhSxIod.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-chhSxIod.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-chhSxIod.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-chhSxIod.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-chhSxIod.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-chhSxIod.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-chhSxIod.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 4
+index-chhSxIod.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-chhSxIod.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-chhSxIod.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-chhSxIod.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-chhSxIod.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-chhSxIod.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CarfT3pv.js:185 [Violation] 'setTimeout' handler took 90ms
+index-chhSxIod.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-chhSxIod.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-B8x2gRp_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-B8x2gRp_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-B8x2gRp_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B8x2gRp_.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B8x2gRp_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}
+index-chhSxIod.js:48 📁 [PROJECTS MODAL] Project workflow visibility changed: {open: false, projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470'}
+index-chhSxIod.js:48 📁 [PROJECTS STATE] Project workflow visibility changed {open: false, projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470'}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-chhSxIod.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-chhSxIod.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-chhSxIod.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-CbrDnvw8.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-CarfT3pv.js:240  PATCH https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/tasks/d0249549-a9f5-4028-a672-1f721464a387 400 (Bad Request)
+sR @ index-CarfT3pv.js:240
+mutationFn @ useProjectWorkflow-B8x2gRp_.js:1
+fn @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+execute @ vendor-query-D7rmUEQz.js:1
+await in execute
+mutate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ PreWorkTab-cJnpDjxB.js:1
+ne @ PreWorkTab-cJnpDjxB.js:1
+lr @ index-CarfT3pv.js:185
+q @ index-CarfT3pv.js:45
+yg @ index-CarfT3pv.js:185
+(anonymous) @ index-CarfT3pv.js:185
+Gm @ index-CarfT3pv.js:83
+rd @ index-CarfT3pv.js:185
+Ad @ index-CarfT3pv.js:194
+L1 @ index-CarfT3pv.js:194
+<button>
+du.jsxDEV @ index-CarfT3pv.js:15
+Button @ index-CarfT3pv.js:380
+react_stack_bottom_frame @ index-CarfT3pv.js:229
+oc @ index-CarfT3pv.js:120
+sh @ index-CarfT3pv.js:141
+Pc @ index-CarfT3pv.js:150
+q @ index-CarfT3pv.js:45
+Kh @ index-CarfT3pv.js:163
+Jh @ index-CarfT3pv.js:163
+Wc @ index-CarfT3pv.js:163
+Ih @ index-CarfT3pv.js:163
+mg @ index-CarfT3pv.js:185
+ml @ index-CarfT3pv.js:185
+jo @ index-CarfT3pv.js:163
+Gm @ index-CarfT3pv.js:83
+rd @ index-CarfT3pv.js:185
+Ad @ index-CarfT3pv.js:194
+L1 @ index-CarfT3pv.js:194
+<Button>
+du.jsxDEV @ index-CarfT3pv.js:15
+xr @ PreWorkTab-cJnpDjxB.js:1
+react_stack_bottom_frame @ index-CarfT3pv.js:229
+oc @ index-CarfT3pv.js:120
+kc @ index-CarfT3pv.js:141
+Pc @ index-CarfT3pv.js:150
+q @ index-CarfT3pv.js:45
+Kh @ index-CarfT3pv.js:163
+Jh @ index-CarfT3pv.js:163
+Wc @ index-CarfT3pv.js:163
+Ih @ index-CarfT3pv.js:163
+mg @ index-CarfT3pv.js:185
+ml @ index-CarfT3pv.js:185
+jo @ index-CarfT3pv.js:163
+Gm @ index-CarfT3pv.js:83
+rd @ index-CarfT3pv.js:185
+Ad @ index-CarfT3pv.js:194
+L1 @ index-CarfT3pv.js:194
+<...>
+du.jsxDEV @ index-CarfT3pv.js:15
+Km @ index-chhSxIod.js:48
+react_stack_bottom_frame @ index-CarfT3pv.js:229
+oc @ index-CarfT3pv.js:120
+kc @ index-CarfT3pv.js:141
+Pc @ index-CarfT3pv.js:150
+q @ index-CarfT3pv.js:45
+Kh @ index-CarfT3pv.js:163
+Jh @ index-CarfT3pv.js:163
+Wc @ index-CarfT3pv.js:163
+Ih @ index-CarfT3pv.js:163
+mg @ index-CarfT3pv.js:185
+ml @ index-CarfT3pv.js:185
+ad @ index-CarfT3pv.js:185
+(anonymous) @ index-CarfT3pv.js:185
+<Km>
+du.jsxDEV @ index-CarfT3pv.js:15
+S @ ProjectWorkflowModal-CbrDnvw8.js:1
+To @ ProjectWorkflowModal-CbrDnvw8.js:1
+react_stack_bottom_frame @ index-CarfT3pv.js:229
+oc @ index-CarfT3pv.js:120
+kc @ index-CarfT3pv.js:141
+Pc @ index-CarfT3pv.js:150
+q @ index-CarfT3pv.js:45
+Kh @ index-CarfT3pv.js:163
+Jh @ index-CarfT3pv.js:163
+Wc @ index-CarfT3pv.js:163
+Ih @ index-CarfT3pv.js:163
+mg @ index-CarfT3pv.js:185
+ml @ index-CarfT3pv.js:185
+ad @ index-CarfT3pv.js:185
+(anonymous) @ index-CarfT3pv.js:185

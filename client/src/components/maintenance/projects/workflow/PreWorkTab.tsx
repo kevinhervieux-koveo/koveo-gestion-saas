@@ -175,10 +175,16 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     setHasChanges(false);
     
     Object.entries(editsToSave).forEach(([taskId, updates]) => {
+      // Convert Date objects to strings for the API
+      const processedUpdates = { ...updates };
+      if (processedUpdates.dueDate instanceof Date) {
+        processedUpdates.dueDate = format(processedUpdates.dueDate, 'yyyy-MM-dd');
+      }
+      
       updateTask.mutate({
         projectId: project.id,
         taskId,
-        updates,
+        updates: processedUpdates,
       });
     });
   };
