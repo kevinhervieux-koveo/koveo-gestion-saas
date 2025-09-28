@@ -469,7 +469,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
           
           {isComplete && (
             <Button 
-              onClick={() => markStatusComplete({ projectId: project.id, completedStatus: 'planned' })}
+              onClick={() => markStatusComplete({ projectId: project.id, currentStatus: 'planned' })}
               disabled={isMarkingComplete} 
               data-testid="button-complete-planning"
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
