@@ -40,7 +40,9 @@ import {
   Info,
   DollarSign,
   User,
+  Calendar,
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 export interface ProjectFormProps {
   isOpen: boolean;
@@ -59,6 +61,29 @@ const projectFormSchema = insertMaintenanceProjectSchema
     description: z.string().optional(),
     vendorId: z.string().uuid().optional(),
     buildingId: z.string().uuid('Building ID is required'),
+    // Ensure financialYear is included in schema validation
+    financialYear: z.number().int().min(2000).max(2100).optional(),
+    // Quick Project fields
+    isQuickProject: z.boolean().default(false),
+    quickProjectBudget: z.number().min(0).optional(),
+    quickProjectDate: z.date().optional(),
+  })
+  .refine((data) => {
+    // Conditional validation for Quick Projects
+    if (data.isQuickProject) {
+      return (
+        data.title?.trim().length > 0 &&
+        data.quickProjectBudget !== undefined &&
+        data.quickProjectBudget > 0 &&
+        data.quickProjectDate !== undefined &&
+        data.financialYear !== undefined &&
+        data.financialYear > 2000 &&
+        data.financialYear < 2100
+      );
+    }
+    return true;
+  }, {
+    message: "Quick Projects require Title, Budget (> 0), Financial Year (2000-2100), and Project Date",
   });
 
 type ProjectFormData = z.infer<typeof projectFormSchema>;
@@ -108,6 +133,19 @@ export function ProjectForm({
   const [isVendorFormOpen, setIsVendorFormOpen] = useState(false);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [initialVendorId, setInitialVendorId] = useState<string | undefined>(undefined);
+  
+  // Fetch building's financial year for Quick Project default date
+  const {
+    data: budgetResponse,
+  } = useQuery({
+    queryKey: ['/api/budgets/monthly', buildingId],
+    queryFn: async () => {
+      if (!buildingId) throw new Error('Building ID is required');
+      const response = await apiRequest('GET', `/api/budgets/monthly?buildingId=${buildingId}`);
+      return await response.json();
+    },
+    enabled: !!buildingId && mode === 'create',
+  });
 
   // Fetch vendors for selection (only needed for edit mode)
   const {
@@ -148,6 +186,21 @@ export function ProjectForm({
     return `${year}${month}-${random}`;
   };
 
+  // Get current or default financial year for Quick Projects
+  const getDefaultFinancialYear = () => {
+    if (budgetResponse?.budgets && budgetResponse.budgets.length > 0) {
+      // Get the most recent year from budget data
+      const years = budgetResponse.budgets.map((budget: any) => budget.year);
+      return Math.max(...years);
+    }
+    return new Date().getFullYear();
+  };
+
+  const getDefaultQuickProjectDate = () => {
+    const financialYear = getDefaultFinancialYear();
+    return new Date(financialYear, 0, 1); // January 1st of the financial year
+  };
+
   // Initialize form with default values
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectFormSchema),
@@ -163,6 +216,11 @@ export function ProjectForm({
       suggestionId: project?.suggestionId || evaluationSuggestion?.id,
       description: project?.planningDescription || '',
       vendorId: mode === 'create' ? undefined : undefined, // Automatically 'to be determined' for new projects, populated for editing
+      // Quick Project defaults
+      isQuickProject: false,
+      quickProjectBudget: undefined,
+      quickProjectDate: mode === 'create' ? getDefaultQuickProjectDate() : undefined,
+      financialYear: mode === 'create' ? getDefaultFinancialYear() : project?.financialYear,
       // createdBy removed - will be set by the backend based on current user
     },
   });
@@ -173,6 +231,17 @@ export function ProjectForm({
       form.setValue('buildingId', buildingId);
     }
   }, [buildingId, form]);
+
+  // Update Quick Project defaults when budget data becomes available
+  useEffect(() => {
+    if (budgetResponse && mode === 'create' && !project) {
+      const financialYear = getDefaultFinancialYear();
+      const defaultDate = new Date(financialYear, 0, 1);
+      
+      form.setValue('financialYear', financialYear);
+      form.setValue('quickProjectDate', defaultDate);
+    }
+  }, [budgetResponse, mode, project, form]);
 
   // Get organization ID from context first, then vendors response as fallback
   useEffect(() => {
@@ -233,8 +302,28 @@ export function ProjectForm({
       
       const method = project ? 'PUT' : 'POST';
       
+      // Handle Quick Project data mapping
+      let processedData = { ...data };
+      if (data.isQuickProject && mode === 'create') {
+        processedData = {
+          ...data,
+          // Map Quick Project fields to regular project fields
+          totalBudget: data.quickProjectBudget,
+          actualCost: data.quickProjectBudget, // Set actual cost equal to budget for completed projects
+          plannedStartDate: data.quickProjectDate,
+          estimatedCost: data.quickProjectBudget,
+          // Set default values for Quick Projects
+          type: 'not_sure',
+          priority: 'medium',
+          status: 'completed', // Quick Projects go directly to completed status
+          // Remove Quick Project specific fields before sending to API
+          quickProjectBudget: undefined,
+          quickProjectDate: undefined,
+        };
+      }
+      
       // Remove vendorId from payload since it's not stored on the project
-      const { vendorId, ...projectData } = data;
+      const { vendorId, ...projectData } = processedData;
       
       // Ensure required fields are properly set
       if (!projectData.buildingId) {
@@ -249,8 +338,9 @@ export function ProjectForm({
       };
       
       // Only set status to 'planned' for new projects, preserve existing status for edits
+      // Exception: Quick Projects go directly to completed status
       if (!project) {
-        payload.status = 'planned';
+        payload.status = data.isQuickProject ? 'completed' : 'planned';
       }
       
       // DEBUG: Log the exact payload being sent to backend
@@ -275,7 +365,7 @@ export function ProjectForm({
       const response = await apiRequest(method, endpoint, payload);
       const result = await response.json();
       
-      return { ...result, vendorId: data.vendorId };
+      return { ...result, vendorId: processedData.vendorId };
     },
     onSuccess: async (response) => {
       const projectId = response.project?.id || response.data?.id;
@@ -498,6 +588,175 @@ export function ProjectForm({
           </div>
         )}
 
+        {/* Quick Project Toggle - Only for creation mode */}
+        {mode === 'create' && !evaluationSuggestion && (
+          <div className="p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <FormField
+              control={form.control}
+              name="isQuickProject"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base font-medium">Quick Project</FormLabel>
+                    <FormDescription>
+                      Create a simplified project with essential fields only (Title, Description, Budget, Financial Year, Date)
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="toggle-quick-project"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+
+        {/* Quick Project Fields */}
+        {form.watch('isQuickProject') && mode === 'create' && (
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Roof Repair - Building A"
+                      {...field}
+                      data-testid="input-quick-project-title"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Clear, descriptive name for the project
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description <span className="text-muted-foreground">(Optional)</span></FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Brief description of the project..."
+                      className="min-h-[80px]"
+                      {...field}
+                      data-testid="textarea-quick-project-description"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Optional detailed description
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="quickProjectBudget"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Budget</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="number"
+                          placeholder="0.00"
+                          step="0.01"
+                          min="0"
+                          max="1000000"
+                          className="pl-9"
+                          data-testid="input-quick-project-budget"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                          value={field.value || ''}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Project budget in dollars
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="financialYear"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Financial Year</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="2024"
+                        min="2000"
+                        max="2100"
+                        data-testid="input-quick-project-financial-year"
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Budget assignment year
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="quickProjectDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Date</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="date"
+                        className="pl-9"
+                        value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            field.onChange(new Date(e.target.value));
+                          } else {
+                            field.onChange(undefined);
+                          }
+                        }}
+                        data-testid="input-quick-project-date"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Target completion date for the project
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+
+        {/* Standard Project Fields - Hidden when Quick Project is enabled */}
+        {(!form.watch('isQuickProject') || mode === 'edit') && (
+          <>
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
@@ -816,6 +1075,8 @@ export function ProjectForm({
               </FormItem>
             )}
           />
+        )}
+          </>
         )}
       </div>
     </FormModal>
