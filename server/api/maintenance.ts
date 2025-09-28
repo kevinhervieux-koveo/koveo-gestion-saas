@@ -5677,7 +5677,7 @@ export function registerMaintenanceRoutes(app: Express): void {
             origin: 'auto',
             status: 'planned',
             priority: acceptData.priority || autoProject.suggestedPriority,
-            totalBudget: acceptData.totalBudget ? acceptData.totalBudget.toString() : (autoProject.estimatedCost || undefined),
+            totalBudget: acceptData.totalBudget || autoProject.estimatedCost || undefined,
             plannedStartDate: acceptData.plannedStartDate || undefined,
             plannedEndDate: acceptData.plannedEndDate || undefined,
             // Map auto-project fields to new workflow schema
