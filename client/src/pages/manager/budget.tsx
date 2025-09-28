@@ -460,8 +460,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   });
 
   // Fetch maintenance projects for the building
-  const { data: maintenanceProjectsResponse, isLoading: projectsLoading, error: projectsError } = useQuery<{projects: any[]}>({
-    queryKey: [`/api/buildings/${buildingId}/maintenance/projects`],
+  const { data: maintenanceProjectsResponse, isLoading: projectsLoading, error: projectsError } = useQuery<{data: any[]}>({
+    queryKey: [`/api/maintenance/buildings/${buildingId}/projects`],
     enabled: !!buildingId,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -495,8 +495,8 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   // Debug logging for maintenance projects data
   React.useEffect(() => {
-    if (maintenanceProjectsResponse?.projects) {
-      debugLog('Maintenance projects data fetched', { buildingId, count: maintenanceProjectsResponse.projects.length });
+    if (maintenanceProjectsResponse?.data) {
+      debugLog('Maintenance projects data fetched', { buildingId, count: maintenanceProjectsResponse.data.length });
     }
   }, [maintenanceProjectsResponse, buildingId]);
 
@@ -511,9 +511,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
   // Process maintenance projects for current financial year and future
   React.useEffect(() => {
-    if (!maintenanceProjectsResponse?.projects) return;
+    if (!maintenanceProjectsResponse?.data) return;
 
-    const maintenanceProjects = maintenanceProjectsResponse.projects;
+    const maintenanceProjects = maintenanceProjectsResponse.data;
     const currentYear = new Date().getFullYear();
     const financialYearStart = parseFinancialYearStart(localSettings.financialYearStart);
     const currentFinancialYear = getFinancialYear(currentYear, new Date().getMonth() + 1, localSettings.financialYearStart);
