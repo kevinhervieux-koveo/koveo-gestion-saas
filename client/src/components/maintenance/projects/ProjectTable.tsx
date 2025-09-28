@@ -6,7 +6,6 @@ import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,8 +20,6 @@ import {
   Eye,
   Edit2,
   Play,
-  Calendar,
-  Users,
   Archive,
   Download,
   Building2,
@@ -401,25 +398,6 @@ export function ProjectTable({
           );
         },
       },
-      {
-        accessorKey: 'progress',
-        header: 'Progress',
-        cell: ({ row }) => {
-          const project = row.original;
-          
-          return (
-            <div className="space-y-2 min-w-[100px]" data-testid={`project-progress-${project.id}`}>
-              <Progress value={project.progress} className="h-2" />
-              <div className="flex items-center justify-between text-xs">
-                <span>{project.progress}%</span>
-                <span className="text-muted-foreground">
-                  {project.elementCount} elements
-                </span>
-              </div>
-            </div>
-          );
-        },
-      },
     ];
 
     // Add actions column if enabled
@@ -453,30 +431,6 @@ export function ProjectTable({
                 >
                   <Edit2 className="h-4 w-4 mr-1" />
                   <span className="text-xs">Edit</span>
-                </Button>
-              )}
-              
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="h-8 px-2"
-                onClick={() => onViewTimeline?.(project)}
-                data-testid={`button-timeline-${project.id}`}
-              >
-                <Calendar className="h-4 w-4 mr-1" />
-                <span className="text-xs">Timeline</span>
-              </Button>
-              
-              {hasPermission() && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="h-8 px-2"
-                  onClick={() => onAssignElements?.(project)}
-                  data-testid={`button-assign-elements-${project.id}`}
-                >
-                  <Users className="h-4 w-4 mr-1" />
-                  <span className="text-xs">Assign</span>
                 </Button>
               )}
             </div>
