@@ -590,11 +590,18 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                               <div>
-                                <label className="text-sm font-medium mb-1 block">Work Done in Submission</label>
-                                <div className="p-2 bg-muted/50 rounded text-sm" data-testid={`work-description-${element.elementId}`}>
-                                  {element.workDescription || 'No work description provided'}
+                                <label className="text-sm font-medium mb-1 block">Intervention Type</label>
+                                <div className="p-2 bg-muted/50 rounded text-sm font-medium" data-testid={`intervention-type-${element.elementId}`}>
+                                  {element.projectType ? formatInterventionType(element.projectType as InterventionType) : 'Not specified'}
+                                </div>
+                              </div>
+
+                              <div>
+                                <label className="text-sm font-medium mb-1 block">Remaining Lifespan Before</label>
+                                <div className="p-2 bg-muted/50 rounded text-sm" data-testid={`remaining-lifespan-${element.elementId}`}>
+                                  {element.element?.currentLifespan ? `${element.element.currentLifespan} years` : 'Not specified'}
                                 </div>
                               </div>
 
