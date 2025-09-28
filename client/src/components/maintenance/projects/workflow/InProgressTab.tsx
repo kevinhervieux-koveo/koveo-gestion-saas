@@ -140,19 +140,60 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
   };
 
   const handleMarkComplete = () => {
-    if (onMarkComplete) {
-      // Use parent modal's completion handler for navigation
-      onMarkComplete();
-    } else {
-      // Fallback to direct completion without navigation
-      markComplete({
-        projectId: project.id,
-        currentStatus: 'in_progress',
-      }, {
-        onSuccess: () => {
-          onUpdate();
-        },
+    // Save any pending changes first
+    if (hasChanges && Object.keys(localTaskEdits).length > 0) {
+      // Save changes first, then complete phase
+      const savePromises = Object.entries(localTaskEdits).map(([taskId, updates]) => 
+        new Promise((resolve, reject) => {
+          updateTask.mutate({
+            projectId: project.id,
+            taskId,
+            updates,
+          }, {
+            onSuccess: resolve,
+            onError: reject
+          });
+        })
+      );
+
+      Promise.all(savePromises).then(() => {
+        setLocalTaskEdits({});
+        setHasChanges(false);
+        
+        // Now complete the phase
+        if (onMarkComplete) {
+          onMarkComplete();
+        } else {
+          markComplete({
+            projectId: project.id,
+            currentStatus: 'in_progress',
+          }, {
+            onSuccess: () => {
+              onUpdate();
+            },
+          });
+        }
+      }).catch(() => {
+        toast({
+          title: "Error",
+          description: "Failed to save changes before completing phase",
+          variant: "destructive",
+        });
       });
+    } else {
+      // No pending changes, complete directly
+      if (onMarkComplete) {
+        onMarkComplete();
+      } else {
+        markComplete({
+          projectId: project.id,
+          currentStatus: 'in_progress',
+        }, {
+          onSuccess: () => {
+            onUpdate();
+          },
+        });
+      }
     }
   };
 

@@ -340,6 +340,26 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   // Handle confirmed completion with inventory updates
   const handleConfirmedCompletion = async () => {
     try {
+      // Save any pending changes first
+      if (hasChanges && Object.keys(localTaskEdits).length > 0) {
+        const savePromises = Object.entries(localTaskEdits).map(([taskId, updates]) => 
+          new Promise((resolve, reject) => {
+            updateTask.mutate({
+              projectId: project.id,
+              taskId,
+              updates,
+            }, {
+              onSuccess: resolve,
+              onError: reject
+            });
+          })
+        );
+
+        await Promise.all(savePromises);
+        setLocalTaskEdits({});
+        setHasChanges(false);
+      }
+
       // Apply inventory changes based on element lifespan updates
       await applyInventoryChanges();
       

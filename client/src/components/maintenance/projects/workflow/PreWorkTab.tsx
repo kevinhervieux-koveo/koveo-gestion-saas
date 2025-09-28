@@ -254,14 +254,53 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   };
 
   const handleMarkComplete = () => {
-    markComplete({
-      projectId: project.id,
-      currentStatus: 'pre_work',
-    }, {
-      onSuccess: () => {
-        onUpdate();
-      },
-    });
+    // Save any pending changes first
+    if (hasChanges && Object.keys(localTaskEdits).length > 0) {
+      // Save changes first, then complete phase
+      const savePromises = Object.entries(localTaskEdits).map(([taskId, updates]) => 
+        new Promise((resolve, reject) => {
+          updateTask.mutate({
+            projectId: project.id,
+            taskId,
+            updates,
+          }, {
+            onSuccess: resolve,
+            onError: reject
+          });
+        })
+      );
+
+      Promise.all(savePromises).then(() => {
+        setLocalTaskEdits({});
+        setHasChanges(false);
+        
+        // Now complete the phase
+        markComplete({
+          projectId: project.id,
+          currentStatus: 'pre_work',
+        }, {
+          onSuccess: () => {
+            onUpdate();
+          },
+        });
+      }).catch(() => {
+        toast({
+          title: "Error",
+          description: "Failed to save changes before completing phase",
+          variant: "destructive",
+        });
+      });
+    } else {
+      // No pending changes, complete directly
+      markComplete({
+        projectId: project.id,
+        currentStatus: 'pre_work',
+      }, {
+        onSuccess: () => {
+          onUpdate();
+        },
+      });
+    }
   };
 
 
