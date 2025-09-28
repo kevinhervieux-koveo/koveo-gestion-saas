@@ -238,10 +238,13 @@ export class WorkflowService {
         }
       }
 
-      // Only include completed task costs from completed phases
+      // Include completed task costs from:
+      // 1. All completed phases
+      // 2. The current phase (for individual completed tasks)
       const taskPhases = ['pre_work', 'in_progress', 'post_work'] as const;
       for (const phase of taskPhases) {
-        if (workflowState.completedStatuses.includes(phase)) {
+        // Include tasks from completed phases OR the current phase
+        if (workflowState.completedStatuses.includes(phase) || workflowState.currentStatus === phase) {
           const completedTaskCostResult = await db
             .select({
               totalCost: sum(workflowTasks.cost)
@@ -251,7 +254,7 @@ export class WorkflowService {
               and(
                 eq(workflowTasks.projectId, projectId),
                 eq(workflowTasks.phase, phase),
-                eq(workflowTasks.status, 'completed') // Only completed tasks
+                eq(workflowTasks.isCompleted, true) // Only completed tasks
               )
             );
 
