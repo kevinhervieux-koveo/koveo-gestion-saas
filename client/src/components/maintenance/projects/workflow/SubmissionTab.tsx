@@ -1538,38 +1538,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between pt-6 border-t">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="outline"
-            onClick={handleReopen}
-            disabled={isReopening || !workflowState.currentStatus || workflowState.currentStatus !== 'submission'}
-            className="flex items-center gap-2"
-            data-testid="button-reopen-submission"
-          >
-            <RotateCcw className="h-4 w-4" />
-            {isReopening ? 'Reopening...' : 'Reopen Step'}
-          </Button>
-          
-          <div className="text-sm text-muted-foreground">
-            {workflowState.nextStatus && (
-              <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
-            )}
-          </div>
-        </div>
-        
-        {canAdvance && hasPreferredVendor && (
-          <Button 
-            onClick={() => setActiveTab("elements")}
-            className="flex items-center gap-2"
-            data-testid="button-confirm-element"
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            Confirm Element
-          </Button>
-        )}
-      </div>
 
       {/* Payment Plan Edit Dialog */}
       <Dialog 
