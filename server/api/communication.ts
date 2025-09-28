@@ -28,7 +28,7 @@ import {
 import { and, eq, or, inArray, desc, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 import { z } from 'zod';
-import { emailService } from '../services/email-service';
+import { communicationService } from '../services/consolidated-communication-service';
 import { populateDefaultPreferences } from '../scripts/populate-default-notification-preferences';
 import { checkBuildingAccess } from './buildings/access-control';
 
@@ -1170,7 +1170,7 @@ export function registerCommunicationRoutes(app: Express): void {
               const fullName = `${recipient.firstName} ${recipient.lastName}`;
               const language = (recipient.language as 'fr' | 'en') || 'fr';
               
-              await emailService.sendNotificationEmail(
+              await communicationService.sendPasswordResetEmail(
                 recipient.email,
                 fullName,
                 completeComm.title,
@@ -1567,7 +1567,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
           // Send meeting invitations for each language group
           for (const [language, emailAddresses] of Object.entries(recipientsByLanguage)) {
-            await emailService.sendMeetingInvitation(
+            await communicationService.sendMeetingInvitation(
               {
                 title: completeMeeting.title,
                 description: completeMeeting.description || undefined,
@@ -2234,7 +2234,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // Send preview email using the notification configuration data
       const recipient = recipients[0];
-      const success = await emailService.sendNotificationEmail(
+      const success = await communicationService.sendPasswordResetEmail(
         recipient.email,
         recipient.name,
         config.title,
@@ -2355,7 +2355,7 @@ export function registerCommunicationRoutes(app: Express): void {
       }];
 
       // Send combined test email
-      const success = await emailService.sendCombinedNotifications(
+      const success = await communicationService.sendSystemNotification(
         notificationsData,
         userOrganization.name,
         recipients,
@@ -2448,7 +2448,7 @@ export function registerCommunicationRoutes(app: Express): void {
       const notificationContent = generateTestNotificationContent(notificationType, currentUser, userOrganization, language);
 
       // Send the test email using the email service
-      const success = await emailService.sendTestNotificationEmail(
+      const success = await communicationService.sendPasswordResetEmail(
         currentUser.email,
         `${currentUser.firstName} ${currentUser.lastName}`,
         notificationContent.subject,

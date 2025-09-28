@@ -1,7 +1,7 @@
 import { Express, Request, Response } from 'express';
 import { requireAuth } from '../auth/index';
 import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
-import { geminiService } from '../services/geminiService';
+import { aiService } from '../services/consolidated-ai-service';
 import { aiExtractionResponseSchema, insertInvoiceSchema } from '@shared/schema';
 import { storage } from '../storage';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
@@ -85,11 +85,11 @@ export function registerInvoiceRoutes(app: Express) {
           });
         }
 
-        // Extract invoice data using Gemini AI
-        const extractionData = await geminiService.extractInvoiceData(buffer, mimetype);
+        // Extract invoice data using AI service
+        const extractionData = await aiService.extractInvoiceData(buffer, mimetype);
         
         // Calculate confidence score
-        const confidenceScore = geminiService.calculateConfidenceScore(extractionData);
+        const confidenceScore = aiService.calculateConfidenceScore(extractionData);
         
         // Validate extracted data structure
         const validatedData = aiExtractionResponseSchema.parse(extractionData);
@@ -189,16 +189,16 @@ export function registerInvoiceRoutes(app: Express) {
    */
   app.get('/api/invoices/health', requireAuth, async (req: any, res: Response) => {
     try {
-      const checks = {
+      const checks: any = {
         apiKeyConfigured: !!process.env.GEMINI_API_KEY,
-        serviceInitialized: !!geminiService,
+        serviceInitialized: !!aiService,
         timestamp: new Date().toISOString()
       };
 
       // If API key is configured, test the connection
       if (checks.apiKeyConfigured && checks.serviceInitialized) {
         try {
-          checks.apiConnected = await geminiService.validateApiKey();
+          checks.apiConnected = await aiService.validateApiKey();
         } catch (error) {
           checks.apiConnected = false;
           checks.apiError = 'Connection test failed';
