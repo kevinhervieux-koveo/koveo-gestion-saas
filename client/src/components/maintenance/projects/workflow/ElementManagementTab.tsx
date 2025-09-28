@@ -428,7 +428,9 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                         
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-medium">{projectElement.elementName}</h4>
+                            <h4 className="font-medium">
+                              {projectElement.elementName || projectElement.element?.name || 'Unknown Element'}
+                            </h4>
                             <Badge variant="outline">
                               {projectElement.uniformatCode}
                             </Badge>
