@@ -286,10 +286,21 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     const totalEdits = editsToProcess.length;
 
     editsToProcess.forEach(([taskId, updates]) => {
+      // Convert field names to match backend schema before saving
+      const fieldMap: Record<string, string> = {
+        'due_date': 'dueDate'
+      };
+      
+      const backendUpdates = Object.keys(updates).reduce((acc, field) => {
+        const backendField = fieldMap[field] || field;
+        acc[backendField] = updates[field];
+        return acc;
+      }, {} as any);
+      
       updateTask.mutate({
         projectId: project.id,
         taskId,
-        updates,
+        updates: backendUpdates,
       }, {
         onSuccess: () => {
           completedEdits++;
@@ -316,17 +327,11 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
 
   // Handle local task updates (for typing)
   const handleTaskEdit = (taskId: string, field: string, value: any) => {
-    // Convert field names to match backend schema
-    const fieldMap: Record<string, string> = {
-      'due_date': 'dueDate'
-    };
-    const backendField = fieldMap[field] || field;
-    
     setLocalTaskEdits(prev => ({
       ...prev,
       [taskId]: {
         ...prev[taskId],
-        [backendField]: value
+        [field]: value
       }
     }));
     setHasChanges(true);
