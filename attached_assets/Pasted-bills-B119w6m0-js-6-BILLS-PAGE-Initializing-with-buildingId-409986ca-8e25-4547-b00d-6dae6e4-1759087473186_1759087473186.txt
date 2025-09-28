@@ -1,0 +1,161 @@
+bills-B119w6m0.js:6 🏠 [BILLS PAGE] Initializing with: {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1'}
+bills-B119w6m0.js:6 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=409986ca-8e25-4547-b00d-6dae6e4ac26b&year=2025
+bills-B119w6m0.js:6 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-B119w6m0.js:6 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-B119w6m0.js:6 🏗️ [BILLS PAGE] Building ID changed: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+bills-B119w6m0.js:6 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-B119w6m0.js:6 ⏳ [BILLS PAGE] Loading bills...
+bills-B119w6m0.js:6 🏠 [BILLS PAGE] Initializing with: {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1'}
+bills-B119w6m0.js:6 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-B119w6m0.js:6 📊 [BILLS PAGE] Bills API response status: 200
+bills-B119w6m0.js:6 ✅ [BILLS PAGE] Bills data received: [{…}]
+bills-B119w6m0.js:6 🏠 [BILLS PAGE] Initializing with: {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1'}
+bills-B119w6m0.js:6 🃏 [BILL CARD] Rendering bill: {id: '5fda56d4-6916-4ba0-93f9-5a7496ee3b70', title: 'Electricité', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-B119w6m0.js:6 📋 [BILLS PAGE] Bills data updated: {count: 1, billTypes: Array(1)}
+index-Fi3BghTj.js:26  GET https://koveo-gestion.com/api/maintenance/buildings/409986ca-8e25-4547-b00d-6dae6e4ac26b/projects 500 (Internal Server Error)
+(anonymous) @ index-Fi3BghTj.js:26
+r @ vendor-query-ESGkSWig.js:1
+y @ vendor-query-ESGkSWig.js:1
+start @ vendor-query-ESGkSWig.js:1
+fetch @ vendor-query-ESGkSWig.js:1
+#l @ vendor-query-ESGkSWig.js:1
+onSubscribe @ vendor-query-ESGkSWig.js:1
+subscribe @ vendor-query-ESGkSWig.js:1
+(anonymous) @ vendor-query-ESGkSWig.js:1
+Sc @ index-Fi3BghTj.js:25
+ri @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+lf @ index-Fi3BghTj.js:25
+Bl @ index-Fi3BghTj.js:25
+df @ index-Fi3BghTj.js:25
+hi @ index-Fi3BghTj.js:25
+af @ index-Fi3BghTj.js:25
+$d @ index-Fi3BghTj.js:25
+Xd @ index-Fi3BghTj.js:25
+setTimeout
+kd @ index-Fi3BghTj.js:25
+cf @ index-Fi3BghTj.js:25
+Na @ index-Fi3BghTj.js:10
+The specified value "2025-09-23T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-09-23T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-09-23T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-09-23T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-09-23T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-09-23T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-09-23T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+index-Fi3BghTj.js:170 Long task detected: 122
+index-Fi3BghTj.js:26  GET https://koveo-gestion.com/api/maintenance/buildings/409986ca-8e25-4547-b00d-6dae6e4ac26b/projects 500 (Internal Server Error)
+(anonymous) @ index-Fi3BghTj.js:26
+r @ vendor-query-ESGkSWig.js:1
+y @ vendor-query-ESGkSWig.js:1
+start @ vendor-query-ESGkSWig.js:1
+fetch @ vendor-query-ESGkSWig.js:1
+#l @ vendor-query-ESGkSWig.js:1
+onSubscribe @ vendor-query-ESGkSWig.js:1
+subscribe @ vendor-query-ESGkSWig.js:1
+(anonymous) @ vendor-query-ESGkSWig.js:1
+Sc @ index-Fi3BghTj.js:25
+ri @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+lf @ index-Fi3BghTj.js:25
+Bl @ index-Fi3BghTj.js:25
+af @ index-Fi3BghTj.js:25
+$d @ index-Fi3BghTj.js:25
+Xd @ index-Fi3BghTj.js:25
+kd @ index-Fi3BghTj.js:25
+df @ index-Fi3BghTj.js:25
+hi @ index-Fi3BghTj.js:25
+uf @ index-Fi3BghTj.js:25
+(anonymous) @ index-Fi3BghTj.js:25
