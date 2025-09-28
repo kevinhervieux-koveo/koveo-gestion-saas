@@ -23,7 +23,6 @@ export * from './schemas/invoices';
 export * from './schemas/development';
 export * from './schemas/monitoring';
 export * from './schemas/infrastructure';
-export * from './schemas/financial-views';
 export * from './schemas/maintenance';
 
 // For backward compatibility, we also export commonly used tables and types
@@ -74,6 +73,11 @@ export type {
   InsertMonthlyBudget,
   CapitalInvestment,
   InsertCapitalInvestment,
+  // Financial cache and views types (consolidated from financial-views)
+  FinancialPeriodData,
+  FinancialCacheEntry,
+  InsertFinancialCache,
+  FinancialCache,
 } from './schemas/financial';
 
 export type {
