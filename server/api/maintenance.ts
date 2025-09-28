@@ -59,7 +59,6 @@ import { secureFileStorage } from '../services/secure-file-storage';
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
 import { maintenanceSuggestionService } from '../services/maintenanceSuggestionService';
 import { maintenanceJobsScheduler } from '../jobs/maintenanceJobs';
-import { workflowService } from '../services/workflow-service';
 import { projectPaymentService } from '../services/project-payment-service';
 
 // Security: Secure filename sanitization function
@@ -3098,12 +3097,16 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const updateData = {
         ...validation.data,
-        plannedStartDate: validation.data.plannedStartDate ? new Date(validation.data.plannedStartDate) : undefined,
-        plannedEndDate: validation.data.plannedEndDate ? new Date(validation.data.plannedEndDate) : undefined,
-        actualStartDate: validation.data.actualStartDate ? new Date(validation.data.actualStartDate) : undefined,
-        actualEndDate: validation.data.actualEndDate ? new Date(validation.data.actualEndDate) : undefined,
-        planningStartDate: validation.data.planningStartDate ? new Date(validation.data.planningStartDate) : undefined,
-        workStartDate: validation.data.workStartDate ? new Date(validation.data.workStartDate) : undefined,
+        plannedStartDate: validation.data.plannedStartDate || undefined,
+        plannedEndDate: validation.data.plannedEndDate || undefined,
+        actualStartDate: validation.data.actualStartDate || undefined,
+        actualEndDate: validation.data.actualEndDate || undefined,
+        planningStartDate: validation.data.planningStartDate || undefined,
+        workStartDate: validation.data.workStartDate || undefined,
+        // Convert decimal fields to strings
+        totalBudget: validation.data.totalBudget ? validation.data.totalBudget.toString() : undefined,
+        actualCost: validation.data.actualCost ? validation.data.actualCost.toString() : undefined,
+        estimatedCost: validation.data.estimatedCost ? validation.data.estimatedCost.toString() : undefined,
         updatedAt: new Date(),
       };
       
@@ -4565,7 +4568,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         // Calculate age
         let age = 0;
         if (element.originalConstructionDate) {
-          age = currentDate.getFullYear() - element.originalConstructionDate.getFullYear();
+          const constructionYear = new Date(element.originalConstructionDate).getFullYear();
+          age = currentDate.getFullYear() - constructionYear;
         }
         
         // Generate suggestions based on condition and age
@@ -4611,7 +4615,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         }
         
         // Check inspection schedules
-        if (element.nextEvaluationDate && element.nextEvaluationDate <= currentDate) {
+        if (element.nextEvaluationDate && new Date(element.nextEvaluationDate) <= currentDate) {
           smartSuggestions.push({
             elementId: element.id,
             elementName: element.name,
@@ -4620,7 +4624,7 @@ export function registerMaintenanceRoutes(app: Express): void {
             priority: 'medium',
             title: `Scheduled inspection overdue: ${element.name}`,
             description: `The scheduled evaluation date has passed.`,
-            reasoning: `Next evaluation was due: ${element.nextEvaluationDate.toISOString().split('T')[0]}`,
+            reasoning: `Next evaluation was due: ${element.nextEvaluationDate}`,
             estimatedCost: null,
             suggestedDate: new Date(currentDate.getTime() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
           });
@@ -4956,7 +4960,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const elementCosts = {};
       
       historicalCosts.forEach(record => {
-        const cost = record.cost || 0;
+        const cost = parseFloat(record.cost || '0');
         totalHistorical += cost;
         
         // Group by UNIFORMAT category
@@ -5142,8 +5146,9 @@ export function registerMaintenanceRoutes(app: Express): void {
         // Overdue suggestions (past suggested date)
         db.select({ count: count() })
           .from(evaluationSuggestions)
+          .innerJoin(buildingElements, eq(evaluationSuggestions.elementId, buildingElements.id))
           .where(and(
-            inArray(evaluationSuggestions.buildingId, buildingIds),
+            inArray(buildingElements.buildingId, buildingIds),
             eq(evaluationSuggestions.status, 'pending'),
             sql`${evaluationSuggestions.suggestedDate} < CURRENT_DATE`
           )),
@@ -5672,7 +5677,7 @@ export function registerMaintenanceRoutes(app: Express): void {
             origin: 'auto',
             status: 'planned',
             priority: acceptData.priority || autoProject.suggestedPriority,
-            totalBudget: acceptData.totalBudget || autoProject.estimatedCost || undefined,
+            totalBudget: acceptData.totalBudget ? acceptData.totalBudget.toString() : (autoProject.estimatedCost || undefined),
             plannedStartDate: acceptData.plannedStartDate || undefined,
             plannedEndDate: acceptData.plannedEndDate || undefined,
             // Map auto-project fields to new workflow schema
