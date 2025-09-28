@@ -108,8 +108,7 @@ export function ProjectTableView({
         const searchLower = searchTerm.toLowerCase();
         const matchesSearch = 
           project.title.toLowerCase().includes(searchLower) ||
-          project.projectNumber.toLowerCase().includes(searchLower) ||
-          (project.type && project.type.toLowerCase().includes(searchLower));
+          project.projectNumber.toLowerCase().includes(searchLower);
         
         if (!matchesSearch) return false;
       }
@@ -124,10 +123,6 @@ export function ProjectTableView({
         return false;
       }
 
-      // Type filter
-      if (typeFilter && project.type !== typeFilter) {
-        return false;
-      }
 
       // Overdue filter
       if (showOverdueOnly) {
@@ -140,7 +135,7 @@ export function ProjectTableView({
 
       return true;
     });
-  }, [projects, searchTerm, statusFilter, priorityFilter, typeFilter, showOverdueOnly]);
+  }, [projects, searchTerm, statusFilter, priorityFilter, showOverdueOnly]);
 
   // Handle project actions
   const handleViewTimeline = (project: MaintenanceProject) => {
@@ -231,7 +226,7 @@ export function ProjectTableView({
   return (
     <div className={cn('space-y-4', className)} data-testid="project-table-view">
       {/* Results Summary */}
-      {(searchTerm || statusFilter || priorityFilter || typeFilter || showOverdueOnly) && (
+      {(searchTerm || statusFilter || priorityFilter || showOverdueOnly) && (
         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
           <div className="text-sm">
             <span className="font-medium">{filteredProjects.length}</span>
@@ -255,11 +250,6 @@ export function ProjectTableView({
             {priorityFilter && (
               <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                 Priority: {priorityFilter}
-              </span>
-            )}
-            {typeFilter && (
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                Type: {typeFilter}
               </span>
             )}
             {showOverdueOnly && (
@@ -287,12 +277,10 @@ export function ProjectTableView({
         searchTerm={searchTerm}
         statusFilter={statusFilter}
         priorityFilter={priorityFilter}
-        typeFilter={typeFilter}
         showOverdueOnly={showOverdueOnly}
         onSearchChange={onSearchChange}
         onStatusFilterChange={onStatusFilterChange}
         onPriorityFilterChange={onPriorityFilterChange}
-        onTypeFilterChange={onTypeFilterChange}
         onShowOverdueChange={onShowOverdueChange}
       />
 

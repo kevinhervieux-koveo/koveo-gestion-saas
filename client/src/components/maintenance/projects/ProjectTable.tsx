@@ -136,8 +136,7 @@ export function ProjectTable({
         const searchLower = searchTerm.toLowerCase();
         const matchesSearch = 
           project.title.toLowerCase().includes(searchLower) ||
-          project.projectNumber.toLowerCase().includes(searchLower) ||
-          (project.type && project.type.toLowerCase().includes(searchLower));
+          project.projectNumber.toLowerCase().includes(searchLower);
         
         if (!matchesSearch) return false;
       }
@@ -152,10 +151,6 @@ export function ProjectTable({
         return false;
       }
 
-      // Type filter
-      if (typeFilter && typeFilter !== 'all' && project.type !== typeFilter) {
-        return false;
-      }
 
       // Overdue filter
       if (showOverdueOnly) {
@@ -168,7 +163,7 @@ export function ProjectTable({
 
       return true;
     });
-  }, [allProjects, searchTerm, statusFilter, priorityFilter, typeFilter, showOverdueOnly]);
+  }, [allProjects, searchTerm, statusFilter, priorityFilter, showOverdueOnly]);
 
   // Bulk status update mutation
   const updateStatusMutation = useMutation({
@@ -284,32 +279,6 @@ export function ProjectTable({
         },
       },
       {
-        accessorKey: 'type',
-        header: 'Type',
-        cell: ({ row }) => {
-          const type = row.getValue('type') as string;
-          const typeConfig = {
-            evaluation: { label: 'Evaluation', icon: Search, color: 'text-purple-600' },
-            repair: { label: 'Repair', icon: Wrench, color: 'text-orange-600' },
-            minor_rehab: { label: 'Minor Rehab', icon: Building, color: 'text-blue-600' },
-            major_rehab: { label: 'Major Rehab', icon: Building2, color: 'text-indigo-600' },
-            replacement: { label: 'Replacement', icon: CheckCircle2, color: 'text-green-600' },
-          };
-          
-          const config = typeConfig[type as keyof typeof typeConfig];
-          if (!config) return <span className="text-xs">{type}</span>;
-          
-          const IconComponent = config.icon;
-          
-          return (
-            <div className="flex items-center gap-2" data-testid={`project-type-${row.original.id}`}>
-              <IconComponent className={cn("h-4 w-4", config.color)} />
-              <span className="text-sm font-medium">{config.label}</span>
-            </div>
-          );
-        },
-      },
-      {
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => (
@@ -339,36 +308,6 @@ export function ProjectTable({
           return (
             <div className="text-sm" data-testid={`project-start-date-${row.original.id}`}>
               {format(new Date(date), 'MMM dd, yyyy')}
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: 'plannedEndDate',
-        header: 'End Date',
-        cell: ({ row }) => {
-          const date = row.getValue('plannedEndDate') as string;
-          const project = row.original;
-          
-          if (!date) return <span className="text-muted-foreground text-sm">Not set</span>;
-          
-          return (
-            <div className="space-y-1" data-testid={`project-end-date-${project.id}`}>
-              <div className="text-sm">
-                {format(new Date(date), 'MMM dd, yyyy')}
-              </div>
-              {project.daysRemaining !== undefined && (
-                <div className={cn(
-                  "text-xs",
-                  project.daysRemaining < 0 ? "text-red-600" : 
-                  project.daysRemaining <= 7 ? "text-yellow-600" : "text-green-600"
-                )}>
-                  {project.daysRemaining < 0 
-                    ? `${Math.abs(project.daysRemaining)} days overdue`
-                    : `${project.daysRemaining} days left`
-                  }
-                </div>
-              )}
             </div>
           );
         },
@@ -492,7 +431,7 @@ export function ProjectTable({
   }
 
   // Search and filter card component
-  const hasActiveFilters = searchTerm || statusFilter || priorityFilter || typeFilter || showOverdueOnly;
+  const hasActiveFilters = searchTerm || statusFilter || priorityFilter || showOverdueOnly;
 
   const searchFilterCard = (
     <Card className="border bg-muted/30">
@@ -504,7 +443,7 @@ export function ProjectTable({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Search by name, number, or type..."
+                placeholder="Search by name or number..."
                 value={searchTerm}
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 className="pl-10"
@@ -549,23 +488,6 @@ export function ProjectTable({
             </Select>
           </div>
 
-          {/* Type Filter */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Type</label>
-            <Select value={typeFilter} onValueChange={(value) => onTypeFilterChange?.(value)}>
-              <SelectTrigger className="w-[140px]" data-testid="type-filter">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="repair">Repair</SelectItem>
-                <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
-                <SelectItem value="major_rehab">Major Rehab</SelectItem>
-                <SelectItem value="replacement">Replacement</SelectItem>
-                <SelectItem value="not_sure">Not Sure</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {/* Overdue Filter */}
           <div className="flex items-center space-x-2 pb-2">
@@ -607,11 +529,6 @@ export function ProjectTable({
               {priorityFilter && priorityFilter !== 'all' && (
                 <Badge variant="secondary" className="text-xs">
                   Priority: {priorityFilter}
-                </Badge>
-              )}
-              {typeFilter && typeFilter !== 'all' && (
-                <Badge variant="secondary" className="text-xs">
-                  Type: {typeFilter}
                 </Badge>
               )}
               {showOverdueOnly && (
