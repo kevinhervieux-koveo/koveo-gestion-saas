@@ -8,6 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from '@/components/ui/alert-dialog';
+import { 
   useWorkflowTasks, 
   useWorkflowTaskMutations,
   useMarkStatusComplete,
@@ -75,6 +85,9 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   
   // Local state for element lifespan updates (non-confirmation data)
   const [elementLifespanUpdates, setElementLifespanUpdates] = useState<Record<string, Omit<ElementLifespanUpdate, 'confirmed'>>>({});
+  
+  // State for completion confirmation dialog
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
 
   // Defensive null check for project data
   if (!project) {
@@ -320,19 +333,65 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   };
 
   const handleMarkComplete = () => {
-    if (onMarkComplete) {
-      // Use parent modal's completion handler for navigation
-      onMarkComplete();
-    } else {
-      // Fallback to direct completion without navigation
-      markComplete({
-        projectId: project.id,
-        currentStatus: 'post_work',
-      }, {
-        onSuccess: () => {
-          onUpdate();
-        },
+    // Open confirmation dialog before completing
+    setShowCompletionDialog(true);
+  };
+
+  // Handle confirmed completion with inventory updates
+  const handleConfirmedCompletion = async () => {
+    try {
+      // Apply inventory changes based on element lifespan updates
+      await applyInventoryChanges();
+      
+      // Close dialog
+      setShowCompletionDialog(false);
+      
+      // Complete the project
+      if (onMarkComplete) {
+        // Use parent modal's completion handler for navigation
+        onMarkComplete();
+      } else {
+        // Fallback to direct completion without navigation
+        markComplete({
+          projectId: project.id,
+          currentStatus: 'post_work',
+        }, {
+          onSuccess: () => {
+            onUpdate();
+          },
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to apply inventory changes. Please try again.',
+        variant: 'destructive',
       });
+    }
+  };
+
+  // Apply inventory changes to building elements
+  const applyInventoryChanges = async () => {
+    const elementsToUpdate = projectElements.map(element => {
+      const update = elementLifespanUpdates[element.elementId];
+      if (!update) return null;
+      
+      return {
+        elementId: element.elementId,
+        interventionType: update.interventionType,
+        lifespanImpactYears: update.lifespanImpactYears,
+      };
+    }).filter(Boolean);
+
+    if (elementsToUpdate.length > 0) {
+      const response = await apiRequest('POST', `/api/maintenance/projects/${project.id}/apply-inventory-changes`, {
+        elements: elementsToUpdate,
+        workCompletionDate: project.actualEndDate || new Date().toISOString().split('T')[0],
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to apply inventory changes');
+      }
     }
   };
 
@@ -807,6 +866,64 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
           )}
         </div>
       </div>
+
+      {/* Completion Confirmation Dialog */}
+      <AlertDialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Confirm Project Completion
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="space-y-3">
+                <p>
+                  Completing this project will apply the following changes to your building element inventory:
+                </p>
+                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                  {projectElements.map((element) => {
+                    const update = elementLifespanUpdates[element.elementId];
+                    if (!update) return null;
+
+                    return (
+                      <div key={element.id} className="text-sm">
+                        <strong>{element.element?.name || 'Unknown Element'}</strong>
+                        {update.interventionType === 'replace' ? (
+                          <div className="text-orange-700">
+                            • Will be marked as replaced with new construction date
+                            • New lifespan: {update.lifespanImpactYears} years
+                          </div>
+                        ) : update.interventionType === 'minor_rehab' || update.interventionType === 'major_rehab' ? (
+                          <div className="text-blue-700">
+                            • Current lifespan will be extended by {update.lifespanImpactYears} years
+                            • Intervention type: {formatInterventionType(update.interventionType)}
+                          </div>
+                        ) : (
+                          <div className="text-gray-600">
+                            • No changes will be applied (intervention type: {formatInterventionType(update.interventionType)})
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  These changes cannot be undone. Are you sure you want to complete this project?
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmedCompletion}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Confirm & Complete Project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
