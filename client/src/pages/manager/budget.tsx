@@ -2153,8 +2153,24 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     const currentFinancialYear = getFinancialYear(year, month, localSettings.financialYearStart);
     
     monthProjects.forEach(project => {
-      // Calculate monthly cost (spread evenly across the financial year)
-      const monthlyCost = (project.estimatedCost || project.totalBudget) / 12;
+      // Normalize all monetary fields to numbers to ensure consistent calculations
+      const actualCost = Number(project.actualCost) || 0;
+      const estimatedCost = Number(project.estimatedCost) || 0;
+      const totalBudget = Number(project.totalBudget) || 0;
+      
+      // Calculate monthly cost based on project completion status
+      let projectCost: number;
+      if (project.status === 'completed') {
+        // For completed projects, use actual cost
+        projectCost = actualCost;
+      } else {
+        // For incomplete projects, use maximum of actual cost and budget
+        const budgetCost = estimatedCost || totalBudget;
+        projectCost = Math.max(actualCost, budgetCost);
+      }
+      
+      // Spread the cost evenly across the financial year (12 months)
+      const monthlyCost = projectCost / 12;
       
       result.total += monthlyCost;
       result.projectCount++;
@@ -2179,14 +2195,33 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         maintenance: { count: result.maintenanceCount, amount: result.maintenance },
         quickProjects: { count: result.quickProjectCount, amount: result.quickProjects }
       },
-      projects: monthProjects.map(proj => ({ 
-        id: proj.id, 
-        amount: proj.estimatedCost || proj.totalBudget, 
-        monthlyAmount: (proj.estimatedCost || proj.totalBudget) / 12,
-        financialYear: proj.financialYear,
-        title: proj.title,
-        includeInBudget: proj.includeInBudget 
-      }))
+      projects: monthProjects.map(proj => {
+        // Normalize all monetary fields to numbers
+        const actualCost = Number(proj.actualCost) || 0;
+        const estimatedCost = Number(proj.estimatedCost) || 0;
+        const totalBudget = Number(proj.totalBudget) || 0;
+        
+        let projectCost: number;
+        if (proj.status === 'completed') {
+          projectCost = actualCost;
+        } else {
+          const budgetCost = estimatedCost || totalBudget;
+          projectCost = Math.max(actualCost, budgetCost);
+        }
+        
+        return {
+          id: proj.id, 
+          amount: projectCost, 
+          monthlyAmount: projectCost / 12,
+          financialYear: proj.financialYear,
+          title: proj.title,
+          includeInBudget: proj.includeInBudget,
+          status: proj.status,
+          actualCost: actualCost,
+          estimatedCost: estimatedCost,
+          totalBudget: totalBudget
+        };
+      })
     });
 
     return result;
