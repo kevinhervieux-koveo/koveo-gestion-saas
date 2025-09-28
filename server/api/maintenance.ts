@@ -3852,6 +3852,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           uniformatCode: buildingElements.uniformatCode,
           description: buildingElements.description,
           currentCondition: buildingElements.currentCondition,
+          currentLifespan: buildingElements.currentLifespan,
         })
         .from(projectElements)
         .innerJoin(buildingElements, eq(projectElements.elementId, buildingElements.id))
@@ -3871,6 +3872,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           uniformatCode: item.uniformatCode,
           description: item.description,
           currentCondition: item.currentCondition,
+          currentLifespan: item.currentLifespan,
         }
       }));
       
