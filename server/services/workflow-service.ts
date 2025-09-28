@@ -180,7 +180,8 @@ export class WorkflowService {
       if (currentStatus === 'submission') {
         const preferredVendorResult = await db
           .select({
-            price: submissionVendors.price
+            price: submissionVendors.price,
+            paymentPlanCosts: submissionVendors.paymentPlanCosts
           })
           .from(submissionVendors)
           .where(
@@ -191,8 +192,22 @@ export class WorkflowService {
           )
           .limit(1);
 
-        const preferredVendorCost = parseFloat(preferredVendorResult[0]?.price?.toString() || '0');
-        stepCost = preferredVendorCost;
+        if (preferredVendorResult.length > 0) {
+          const vendor = preferredVendorResult[0];
+          let totalVendorCost = 0;
+
+          // Use payment plan costs if available (sum of all payment amounts)
+          if (vendor.paymentPlanCosts && Array.isArray(vendor.paymentPlanCosts) && vendor.paymentPlanCosts.length > 0) {
+            totalVendorCost = vendor.paymentPlanCosts.reduce((sum, cost) => {
+              return sum + parseFloat(cost?.toString() || '0');
+            }, 0);
+          } else if (vendor.price) {
+            // Fall back to price field if no payment plan costs
+            totalVendorCost = parseFloat(vendor.price.toString() || '0');
+          }
+
+          stepCost = totalVendorCost;
+        }
       }
 
       // Get current project actual cost
