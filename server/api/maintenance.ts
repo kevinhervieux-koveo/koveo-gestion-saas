@@ -379,7 +379,7 @@ const workflowTaskUpdateSchema = z.object({
   taskName: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
   cost: z.number().positive().optional(),
-  due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
   orderIndex: z.number().int().min(0).optional(),
   isCompleted: z.boolean().optional(),
 });
@@ -7224,20 +7224,13 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(400).json({ error: 'Invalid task ID format' });
       }
 
-      console.log('🔍 [TASK UPDATE DEBUG] Request body:', req.body);
-      
       const validation = workflowTaskUpdateSchema.safeParse(req.body);
-      console.log('🔍 [TASK UPDATE DEBUG] Validation result:', validation);
-      
       if (!validation.success) {
-        console.log('🔍 [TASK UPDATE DEBUG] Validation failed:', validation.error.issues);
         return res.status(400).json({
           error: 'Invalid request data',
           details: validation.error.issues
         });
       }
-      
-      console.log('🔍 [TASK UPDATE DEBUG] Validated data:', validation.data);
 
       // Get task and project to check access, including current completion status
       const task = await db
@@ -7265,15 +7258,12 @@ export function registerMaintenanceRoutes(app: Express): void {
       const newCompletionStatus = validation.data.isCompleted;
 
       // Update task
-      const updateData = {
-        ...validation.data,
-        updatedAt: new Date(),
-      };
-      console.log('🔍 [TASK UPDATE DEBUG] Update data being sent to DB:', updateData);
-      
       const updatedTask = await db
         .update(workflowTasks)
-        .set(updateData)
+        .set({
+          ...validation.data,
+          updatedAt: new Date(),
+        })
         .where(eq(workflowTasks.id, taskId))
         .returning();
 
