@@ -51,6 +51,7 @@ const plannedTabSchema = z.object({
     message: 'Start planning date is required'
   }),
   estimatedCost: z.number().min(0, 'Cost must be non-negative').max(1000000, 'Cost must be less than $1,000,000'),
+  financialYear: z.number().min(2000, 'Financial year must be 2000 or later').max(2100, 'Financial year must be 2100 or earlier'),
   selectedElements: z.array(z.string()).default([]),
 });
 
@@ -120,6 +121,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
       planningDescription: project.planningDescription || '',
       planningStartDate: project.planningStartDate ? new Date(project.planningStartDate) : undefined,
       estimatedCost: project.estimatedCost ? parseFloat(project.estimatedCost) : undefined,
+      financialYear: project.financialYear || new Date().getFullYear(),
       selectedElements: currentElementIds,
     },
   });
@@ -159,6 +161,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
         planningDescription: values.planningDescription,
         planningStartDate: values.planningStartDate?.toISOString().split('T')[0],
         estimatedCost: values.estimatedCost,
+        financialYear: values.financialYear,
       },
       status: 'planned',
     }, {
@@ -184,6 +187,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
         planningDescription: values.planningDescription,
         planningStartDate: values.planningStartDate?.toISOString().split('T')[0],
         estimatedCost: values.estimatedCost,
+        financialYear: values.financialYear,
       },
       status: 'submission', // Advance to next stage
     }, {
@@ -210,6 +214,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
     values.planningDescription.trim().length > 0 &&
     values.planningStartDate &&
     values.estimatedCost !== undefined &&
+    values.financialYear !== undefined &&
     values.selectedElements &&
     values.selectedElements.length > 0
   );
@@ -354,6 +359,33 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
                   </FormControl>
                   <FormDescription>
                     Estimated total cost for this project in dollars
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Financial Year */}
+            <FormField
+              control={form.control}
+              name="financialYear"
+              render={({ field }) => (
+                <FormItem data-testid="form-item-financial-year">
+                  <FormLabel>Financial Year</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="2024"
+                      min="2000"
+                      max="2100"
+                      data-testid="input-financial-year"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    The financial year for budget assignment. Costs will be allocated to the closest month in this year.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

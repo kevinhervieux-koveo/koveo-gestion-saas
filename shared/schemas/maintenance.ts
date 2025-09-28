@@ -394,6 +394,7 @@ export const maintenanceProjects = pgTable('maintenance_projects', {
   planningDescription: text('planning_description'),
   planningStartDate: date('planning_start_date'),
   estimatedCost: decimal('estimated_cost', { precision: 12, scale: 2 }),
+  financialYear: integer('financial_year'),
   // Workflow control fields
   skipSubmission: boolean('skip_submission').notNull().default(false),
   skipPreWork: boolean('skip_pre_work').notNull().default(false),
