@@ -94,6 +94,7 @@ jest.mock('../../../server/auth', () => ({
   requireAuth: (req: Request, res: Response, next: NextFunction) => {
     // Add mock user to request - using AuthenticatedUser interface
     req.user = {
+      id: 'test-user-id',
       username: 'test-user',
       email: 'test@example.com',
       firstName: 'Test',

@@ -207,27 +207,27 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
         await waitFor(() => {
           // Page titles and headers
-          expect(screen.getByText('Projects - Maintenance Management')).toBeInTheDocument();
-          expect(screen.getByText('Manage maintenance projects, track progress, and coordinate work schedules')).toBeInTheDocument();
+          expect(screen.getByText('Projects - Maintenance Management')).toBeTruthy();
+          expect(screen.getByText('Manage maintenance projects, track progress, and coordinate work schedules')).toBeTruthy();
           
           // Section headers
-          expect(screen.getByText('Project Overview')).toBeInTheDocument();
-          expect(screen.getByText('Projects')).toBeInTheDocument();
+          expect(screen.getByText('Project Overview')).toBeTruthy();
+          expect(screen.getByText('Projects')).toBeTruthy();
           
           // Button labels
-          expect(screen.getByText('New Project')).toBeInTheDocument();
-          expect(screen.getByText('Clear Selection')).toBeInTheDocument();
+          expect(screen.getByText('New Project')).toBeTruthy();
+          expect(screen.getByText('Clear Selection')).toBeTruthy();
           
           // Table and view labels
-          expect(screen.getByText('Project Table')).toBeInTheDocument();
+          expect(screen.getByText('Project Table')).toBeTruthy();
           
           // Status and filter labels
-          expect(screen.getByLabelText('Toggle project overview')).toBeInTheDocument();
-          expect(screen.getByLabelText('Toggle projects table')).toBeInTheDocument();
+          expect(screen.getByLabelText('Toggle project overview')).toBeTruthy();
+          expect(screen.getByLabelText('Toggle projects table')).toBeTruthy();
           
           // Empty state
-          expect(screen.getByText('Select Building')).toBeInTheDocument();
-          expect(screen.getByText('Please select an organization and building to view its maintenance projects.')).toBeInTheDocument();
+          expect(screen.getByText('Select Building')).toBeTruthy();
+          expect(screen.getByText('Please select an organization and building to view its maintenance projects.')).toBeTruthy();
         });
       });
 
@@ -239,11 +239,11 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
         );
 
         await waitFor(() => {
-          expect(screen.getByTestId('projects-page')).toBeInTheDocument();
-          expect(screen.getByTestId('project-overview-section')).toBeInTheDocument();
-          expect(screen.getByTestId('projects-table-section')).toBeInTheDocument();
-          expect(screen.getByTestId('add-project-button')).toBeInTheDocument();
-          expect(screen.getByTestId('clear-selection')).toBeInTheDocument();
+          expect(screen.getByTestId('projects-page')).toBeTruthy();
+          expect(screen.getByTestId('project-overview-section')).toBeTruthy();
+          expect(screen.getByTestId('projects-table-section')).toBeTruthy();
+          expect(screen.getByTestId('add-project-button')).toBeTruthy();
+          expect(screen.getByTestId('clear-selection')).toBeTruthy();
         });
       });
     });
@@ -258,27 +258,27 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
         await waitFor(() => {
           // French translations for page titles and headers
-          expect(screen.getByText('Projets - Gestion de maintenance')).toBeInTheDocument();
-          expect(screen.getByText('Gérer les projets de maintenance, suivre les progrès et coordonner les horaires de travail')).toBeInTheDocument();
+          expect(screen.getByText('Projets - Gestion de maintenance')).toBeTruthy();
+          expect(screen.getByText('Gérer les projets de maintenance, suivre les progrès et coordonner les horaires de travail')).toBeTruthy();
           
           // French section headers
-          expect(screen.getByText('Aperçu des projets')).toBeInTheDocument();
-          expect(screen.getByText('Projets')).toBeInTheDocument();
+          expect(screen.getByText('Aperçu des projets')).toBeTruthy();
+          expect(screen.getByText('Projets')).toBeTruthy();
           
           // French button labels
-          expect(screen.getByText('Nouveau projet')).toBeInTheDocument();
-          expect(screen.getByText('Effacer la sélection')).toBeInTheDocument();
+          expect(screen.getByText('Nouveau projet')).toBeTruthy();
+          expect(screen.getByText('Effacer la sélection')).toBeTruthy();
           
           // French table and view labels
-          expect(screen.getByText('Tableau des projets')).toBeInTheDocument();
+          expect(screen.getByText('Tableau des projets')).toBeTruthy();
           
           // French accessibility labels
-          expect(screen.getByLabelText('Basculer l\'aperçu des projets')).toBeInTheDocument();
-          expect(screen.getByLabelText('Basculer le tableau des projets')).toBeInTheDocument();
+          expect(screen.getByLabelText('Basculer l\'aperçu des projets')).toBeTruthy();
+          expect(screen.getByLabelText('Basculer le tableau des projets')).toBeTruthy();
           
           // French empty state
-          expect(screen.getByText('Sélectionner un bâtiment')).toBeInTheDocument();
-          expect(screen.getByText('Veuillez sélectionner une organisation et un bâtiment pour voir ses projets de maintenance.')).toBeInTheDocument();
+          expect(screen.getByText('Sélectionner un bâtiment')).toBeTruthy();
+          expect(screen.getByText('Veuillez sélectionner une organisation et un bâtiment pour voir ses projets de maintenance.')).toBeTruthy();
         });
       });
 
@@ -290,11 +290,11 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
         );
 
         await waitFor(() => {
-          expect(screen.getByTestId('projects-page')).toBeInTheDocument();
-          expect(screen.getByTestId('project-overview-section')).toBeInTheDocument();
-          expect(screen.getByTestId('projects-table-section')).toBeInTheDocument();
-          expect(screen.getByTestId('add-project-button')).toBeInTheDocument();
-          expect(screen.getByTestId('clear-selection')).toBeInTheDocument();
+          expect(screen.getByTestId('projects-page')).toBeTruthy();
+          expect(screen.getByTestId('project-overview-section')).toBeTruthy();
+          expect(screen.getByTestId('projects-table-section')).toBeTruthy();
+          expect(screen.getByTestId('add-project-button')).toBeTruthy();
+          expect(screen.getByTestId('clear-selection')).toBeTruthy();
         });
       });
     });
@@ -311,27 +311,27 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
         await waitFor(() => {
           // Page titles and headers
-          expect(screen.getByText('Inventory Management')).toBeInTheDocument();
-          expect(screen.getByText('Manage building elements, maintenance records, and asset documentation across your property portfolio.')).toBeInTheDocument();
+          expect(screen.getByText('Inventory Management')).toBeTruthy();
+          expect(screen.getByText('Manage building elements, maintenance records, and asset documentation across your property portfolio.')).toBeTruthy();
           
           // Section headers
-          expect(screen.getByText('Building Elements')).toBeInTheDocument();
+          expect(screen.getByText('Building Elements')).toBeTruthy();
           
           // Button labels
-          expect(screen.getByText('Add Element')).toBeInTheDocument();
-          expect(screen.getByText('Clear Selection')).toBeInTheDocument();
-          expect(screen.getByText('Filters')).toBeInTheDocument();
-          expect(screen.getByText('Overdue Evaluations')).toBeInTheDocument();
+          expect(screen.getByText('Add Element')).toBeTruthy();
+          expect(screen.getByText('Clear Selection')).toBeTruthy();
+          expect(screen.getByText('Filters')).toBeTruthy();
+          expect(screen.getByText('Overdue Evaluations')).toBeTruthy();
           
           // Search and filter labels
-          expect(screen.getByPlaceholderText('Search elements by name, UNIFORMAT code, or description...')).toBeInTheDocument();
+          expect(screen.getByPlaceholderText('Search elements by name, UNIFORMAT code, or description...')).toBeTruthy();
           
           // Accessibility labels
-          expect(screen.getByLabelText('Toggle building elements table')).toBeInTheDocument();
+          expect(screen.getByLabelText('Toggle building elements table')).toBeTruthy();
           
           // Empty state
-          expect(screen.getByText('Select Building')).toBeInTheDocument();
-          expect(screen.getByText('Please select an organization and building to view its maintenance inventory.')).toBeInTheDocument();
+          expect(screen.getByText('Select Building')).toBeTruthy();
+          expect(screen.getByText('Please select an organization and building to view its maintenance inventory.')).toBeTruthy();
         });
       });
 
@@ -344,25 +344,25 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
         await waitFor(() => {
           // Filter labels
-          expect(screen.getByText('Condition')).toBeInTheDocument();
-          expect(screen.getByText('UNIFORMAT Category')).toBeInTheDocument();
+          expect(screen.getByText('Condition')).toBeTruthy();
+          expect(screen.getByText('UNIFORMAT Category')).toBeTruthy();
           
           // Condition options
-          expect(screen.getByText('All Conditions')).toBeInTheDocument();
-          expect(screen.getByText('Excellent')).toBeInTheDocument();
-          expect(screen.getByText('Good')).toBeInTheDocument();
-          expect(screen.getByText('Fair')).toBeInTheDocument();
-          expect(screen.getByText('Poor')).toBeInTheDocument();
+          expect(screen.getByText('All Conditions')).toBeTruthy();
+          expect(screen.getByText('Excellent')).toBeTruthy();
+          expect(screen.getByText('Good')).toBeTruthy();
+          expect(screen.getByText('Fair')).toBeTruthy();
+          expect(screen.getByText('Poor')).toBeTruthy();
           
           // UNIFORMAT categories
-          expect(screen.getByText('All Categories')).toBeInTheDocument();
-          expect(screen.getByText('A - Substructure')).toBeInTheDocument();
-          expect(screen.getByText('B - Shell')).toBeInTheDocument();
-          expect(screen.getByText('C - Interiors')).toBeInTheDocument();
-          expect(screen.getByText('D - Services')).toBeInTheDocument();
-          expect(screen.getByText('E - Equipment & Furnishings')).toBeInTheDocument();
-          expect(screen.getByText('F - Special Construction')).toBeInTheDocument();
-          expect(screen.getByText('G - Building Sitework')).toBeInTheDocument();
+          expect(screen.getByText('All Categories')).toBeTruthy();
+          expect(screen.getByText('A - Substructure')).toBeTruthy();
+          expect(screen.getByText('B - Shell')).toBeTruthy();
+          expect(screen.getByText('C - Interiors')).toBeTruthy();
+          expect(screen.getByText('D - Services')).toBeTruthy();
+          expect(screen.getByText('E - Equipment & Furnishings')).toBeTruthy();
+          expect(screen.getByText('F - Special Construction')).toBeTruthy();
+          expect(screen.getByText('G - Building Sitework')).toBeTruthy();
         });
       });
 
@@ -374,16 +374,16 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
         );
 
         await waitFor(() => {
-          expect(screen.getByTestId('inventory-page')).toBeInTheDocument();
-          expect(screen.getByTestId('building-elements-section')).toBeInTheDocument();
-          expect(screen.getByTestId('add-element-button')).toBeInTheDocument();
-          expect(screen.getByTestId('clear-selection')).toBeInTheDocument();
-          expect(screen.getByTestId('filters-toggle')).toBeInTheDocument();
-          expect(screen.getByTestId('overdue-filter-button')).toBeInTheDocument();
-          expect(screen.getByTestId('element-search-input')).toBeInTheDocument();
-          expect(screen.getByTestId('expanded-filters')).toBeInTheDocument();
-          expect(screen.getByTestId('condition-filter')).toBeInTheDocument();
-          expect(screen.getByTestId('uniformat-filter')).toBeInTheDocument();
+          expect(screen.getByTestId('inventory-page')).toBeTruthy();
+          expect(screen.getByTestId('building-elements-section')).toBeTruthy();
+          expect(screen.getByTestId('add-element-button')).toBeTruthy();
+          expect(screen.getByTestId('clear-selection')).toBeTruthy();
+          expect(screen.getByTestId('filters-toggle')).toBeTruthy();
+          expect(screen.getByTestId('overdue-filter-button')).toBeTruthy();
+          expect(screen.getByTestId('element-search-input')).toBeTruthy();
+          expect(screen.getByTestId('expanded-filters')).toBeTruthy();
+          expect(screen.getByTestId('condition-filter')).toBeTruthy();
+          expect(screen.getByTestId('uniformat-filter')).toBeTruthy();
         });
       });
     });
@@ -398,27 +398,27 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
         await waitFor(() => {
           // French page titles and headers
-          expect(screen.getByText('Gestion d\'inventaire')).toBeInTheDocument();
-          expect(screen.getByText('Gérer les éléments de bâtiment, les dossiers d\'entretien et la documentation des actifs à travers votre portefeuille immobilier.')).toBeInTheDocument();
+          expect(screen.getByText('Gestion d\'inventaire')).toBeTruthy();
+          expect(screen.getByText('Gérer les éléments de bâtiment, les dossiers d\'entretien et la documentation des actifs à travers votre portefeuille immobilier.')).toBeTruthy();
           
           // French section headers
-          expect(screen.getByText('Éléments de bâtiment')).toBeInTheDocument();
+          expect(screen.getByText('Éléments de bâtiment')).toBeTruthy();
           
           // French button labels
-          expect(screen.getByText('Ajouter un élément')).toBeInTheDocument();
-          expect(screen.getByText('Effacer la sélection')).toBeInTheDocument();
-          expect(screen.getByText('Filtres')).toBeInTheDocument();
-          expect(screen.getByText('Évaluations en retard')).toBeInTheDocument();
+          expect(screen.getByText('Ajouter un élément')).toBeTruthy();
+          expect(screen.getByText('Effacer la sélection')).toBeTruthy();
+          expect(screen.getByText('Filtres')).toBeTruthy();
+          expect(screen.getByText('Évaluations en retard')).toBeTruthy();
           
           // French search placeholder
-          expect(screen.getByPlaceholderText('Rechercher des éléments par nom, code UNIFORMAT ou description...')).toBeInTheDocument();
+          expect(screen.getByPlaceholderText('Rechercher des éléments par nom, code UNIFORMAT ou description...')).toBeTruthy();
           
           // French accessibility labels
-          expect(screen.getByLabelText('Basculer le tableau des éléments de bâtiment')).toBeInTheDocument();
+          expect(screen.getByLabelText('Basculer le tableau des éléments de bâtiment')).toBeTruthy();
           
           // French empty state
-          expect(screen.getByText('Sélectionner un bâtiment')).toBeInTheDocument();
-          expect(screen.getByText('Veuillez sélectionner une organisation et un bâtiment pour voir son inventaire de maintenance.')).toBeInTheDocument();
+          expect(screen.getByText('Sélectionner un bâtiment')).toBeTruthy();
+          expect(screen.getByText('Veuillez sélectionner une organisation et un bâtiment pour voir son inventaire de maintenance.')).toBeTruthy();
         });
       });
 
@@ -431,25 +431,25 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
         await waitFor(() => {
           // French filter labels
-          expect(screen.getByText('État')).toBeInTheDocument();
-          expect(screen.getByText('Catégorie UNIFORMAT')).toBeInTheDocument();
+          expect(screen.getByText('État')).toBeTruthy();
+          expect(screen.getByText('Catégorie UNIFORMAT')).toBeTruthy();
           
           // French condition options
-          expect(screen.getByText('Tous les états')).toBeInTheDocument();
-          expect(screen.getByText('Excellent')).toBeInTheDocument();
-          expect(screen.getByText('Bon')).toBeInTheDocument();
-          expect(screen.getByText('Acceptable')).toBeInTheDocument();
-          expect(screen.getByText('Pauvre')).toBeInTheDocument();
+          expect(screen.getByText('Tous les états')).toBeTruthy();
+          expect(screen.getByText('Excellent')).toBeTruthy();
+          expect(screen.getByText('Bon')).toBeTruthy();
+          expect(screen.getByText('Acceptable')).toBeTruthy();
+          expect(screen.getByText('Pauvre')).toBeTruthy();
           
           // French UNIFORMAT categories
-          expect(screen.getByText('Toutes les catégories')).toBeInTheDocument();
-          expect(screen.getByText('A - Infrastructures')).toBeInTheDocument();
-          expect(screen.getByText('B - Enveloppe')).toBeInTheDocument();
-          expect(screen.getByText('C - Aménagement intérieur')).toBeInTheDocument();
-          expect(screen.getByText('D - Services')).toBeInTheDocument();
-          expect(screen.getByText('E - Équipement et ameublement')).toBeInTheDocument();
-          expect(screen.getByText('F - Construction spécialisée')).toBeInTheDocument();
-          expect(screen.getByText('G - Aménagement du site')).toBeInTheDocument();
+          expect(screen.getByText('Toutes les catégories')).toBeTruthy();
+          expect(screen.getByText('A - Infrastructures')).toBeTruthy();
+          expect(screen.getByText('B - Enveloppe')).toBeTruthy();
+          expect(screen.getByText('C - Aménagement intérieur')).toBeTruthy();
+          expect(screen.getByText('D - Services')).toBeTruthy();
+          expect(screen.getByText('E - Équipement et ameublement')).toBeTruthy();
+          expect(screen.getByText('F - Construction spécialisée')).toBeTruthy();
+          expect(screen.getByText('G - Aménagement du site')).toBeTruthy();
         });
       });
 
@@ -461,16 +461,16 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
         );
 
         await waitFor(() => {
-          expect(screen.getByTestId('inventory-page')).toBeInTheDocument();
-          expect(screen.getByTestId('building-elements-section')).toBeInTheDocument();
-          expect(screen.getByTestId('add-element-button')).toBeInTheDocument();
-          expect(screen.getByTestId('clear-selection')).toBeInTheDocument();
-          expect(screen.getByTestId('filters-toggle')).toBeInTheDocument();
-          expect(screen.getByTestId('overdue-filter-button')).toBeInTheDocument();
-          expect(screen.getByTestId('element-search-input')).toBeInTheDocument();
-          expect(screen.getByTestId('expanded-filters')).toBeInTheDocument();
-          expect(screen.getByTestId('condition-filter')).toBeInTheDocument();
-          expect(screen.getByTestId('uniformat-filter')).toBeInTheDocument();
+          expect(screen.getByTestId('inventory-page')).toBeTruthy();
+          expect(screen.getByTestId('building-elements-section')).toBeTruthy();
+          expect(screen.getByTestId('add-element-button')).toBeTruthy();
+          expect(screen.getByTestId('clear-selection')).toBeTruthy();
+          expect(screen.getByTestId('filters-toggle')).toBeTruthy();
+          expect(screen.getByTestId('overdue-filter-button')).toBeTruthy();
+          expect(screen.getByTestId('element-search-input')).toBeTruthy();
+          expect(screen.getByTestId('expanded-filters')).toBeTruthy();
+          expect(screen.getByTestId('condition-filter')).toBeTruthy();
+          expect(screen.getByTestId('uniformat-filter')).toBeTruthy();
         });
       });
     });
@@ -494,7 +494,7 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
       // Verify English test IDs exist
       englishTestIds.forEach(testId => {
-        expect(screen.getByTestId(testId)).toBeInTheDocument();
+        expect(screen.getByTestId(testId)).toBeTruthy();
       });
 
       // Rerender with French
@@ -506,7 +506,7 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
       // Verify same test IDs exist in French
       englishTestIds.forEach(testId => {
-        expect(screen.getByTestId(testId)).toBeInTheDocument();
+        expect(screen.getByTestId(testId)).toBeTruthy();
       });
     });
 
@@ -531,7 +531,7 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
       // Verify English test IDs exist
       englishTestIds.forEach(testId => {
-        expect(screen.getByTestId(testId)).toBeInTheDocument();
+        expect(screen.getByTestId(testId)).toBeTruthy();
       });
 
       // Rerender with French
@@ -543,7 +543,7 @@ describe('Project and Inventory Pages Translation Coverage Tests', () => {
 
       // Verify same test IDs exist in French
       englishTestIds.forEach(testId => {
-        expect(screen.getByTestId(testId)).toBeInTheDocument();
+        expect(screen.getByTestId(testId)).toBeTruthy();
       });
     });
   });

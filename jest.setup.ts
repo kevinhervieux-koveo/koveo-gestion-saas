@@ -735,7 +735,7 @@ jest.mock('drizzle-orm/pg-core', () => {
   return {
     pgEnum: jest.fn().mockImplementation((name, values) => {
       // Return a function that can be called like userRoleEnum('role')
-      const enumFn = jest.fn().mockImplementation(() => createMockColumn('enum', { name, values }));
+      const enumFn = jest.fn().mockImplementation(() => createMockColumn('enum', { name, values })) as any;
       enumFn.enumName = name;
       enumFn.enumValues = values;
       return enumFn;
