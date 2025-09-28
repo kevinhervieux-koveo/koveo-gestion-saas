@@ -2121,6 +2121,74 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     return result;
   };
 
+  // Aggregate projects by month for chart data
+  const aggregateProjectsByMonth = (year: number, month: number) => {
+    // Find all projects that belong to this specific month/year and are included in budget
+    const monthProjects = projects.filter(project => {
+      if (!project.includeInBudget) return false;
+      
+      // For projects, we'll spread the cost across the financial year months
+      // Calculate which financial year this month belongs to
+      const monthFinancialYear = getFinancialYear(year, month, localSettings.financialYearStart);
+      
+      // Only include projects that match this financial year
+      return project.financialYear === monthFinancialYear;
+    });
+
+    const result = {
+      total: 0,
+      projectCount: 0,
+      // Track by project type for debugging
+      maintenance: 0,
+      quickProjects: 0,
+      maintenanceCount: 0,
+      quickProjectCount: 0
+    };
+
+    // Get the financial year start date for proper monthly distribution
+    const financialYearStart = parseFinancialYearStart(localSettings.financialYearStart);
+    const currentFinancialYear = getFinancialYear(year, month, localSettings.financialYearStart);
+    
+    monthProjects.forEach(project => {
+      // Calculate monthly cost (spread evenly across the financial year)
+      const monthlyCost = (project.estimatedCost || project.totalBudget) / 12;
+      
+      result.total += monthlyCost;
+      result.projectCount++;
+      
+      // Track by project type
+      if (project.isQuickProject) {
+        result.quickProjects += monthlyCost;
+        result.quickProjectCount++;
+      } else {
+        result.maintenance += monthlyCost;
+        result.maintenanceCount++;
+      }
+    });
+
+    debugLog('Project aggregation for month', {
+      year,
+      month,
+      monthProjects: monthProjects.length,
+      result,
+      currentFinancialYear,
+      projectBreakdown: {
+        maintenance: { count: result.maintenanceCount, amount: result.maintenance },
+        quickProjects: { count: result.quickProjectCount, amount: result.quickProjects }
+      },
+      projects: monthProjects.map(proj => ({ 
+        id: proj.id, 
+        amount: proj.estimatedCost || proj.totalBudget, 
+        monthlyAmount: (proj.estimatedCost || proj.totalBudget) / 12,
+        financialYear: proj.financialYear,
+        title: proj.title,
+        includeInBudget: proj.includeInBudget 
+      }))
+    });
+
+    return result;
+  };
+
   // Prepare chart data with filters applied
   const getChartData = () => {
     if (!forecastData?.forecast) return [];
@@ -2156,6 +2224,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         urgentInvestments: number;
         suggestedInvestments: number;
         notUrgentInvestments: number;
+        projects: number;
         count: number;
         monthsInYear: number;
       } } = {};
@@ -2165,7 +2234,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         const financialYear = getFinancialYear(item.year, item.month, localSettings.financialYearStart);
         
         if (!yearlyData[financialYear]) {
-          yearlyData[financialYear] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, urgentInvestments: 0, suggestedInvestments: 0, notUrgentInvestments: 0, count: 0, monthsInYear: 0 };
+          yearlyData[financialYear] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, urgentInvestments: 0, suggestedInvestments: 0, notUrgentInvestments: 0, projects: 0, count: 0, monthsInYear: 0 };
         }
         // Use actual inflated revenue from forecast data
         yearlyData[financialYear].revenue += item.revenue;
@@ -2182,6 +2251,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         yearlyData[financialYear].urgentInvestments += monthlyInvestments.urgent;
         yearlyData[financialYear].suggestedInvestments += monthlyInvestments.suggested;
         yearlyData[financialYear].notUrgentInvestments += monthlyInvestments.notUrgent;
+
+        // Aggregate all projects for this month
+        const monthlyProjects = aggregateProjectsByMonth(item.year, item.month);
+        if (!yearlyData[financialYear].projects) {
+          yearlyData[financialYear].projects = 0;
+        }
+        yearlyData[financialYear].projects += monthlyProjects.total;
         
         yearlyData[financialYear].count++;
         yearlyData[financialYear].monthsInYear++;
@@ -2215,6 +2291,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
           urgentInvestments: data.urgentInvestments,
           suggestedInvestments: data.suggestedInvestments,
           notUrgentInvestments: data.notUrgentInvestments,
+          projects: data.projects,
           status: 'green' as const, // TODO: Calculate status based on yearly data
         }));
     }
@@ -2237,6 +2314,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       // Aggregate all capital investments (custom + auto-generated) for this month
       const monthlyInvestments = aggregateInvestmentsByMonth(item.year, item.month);
       
+      // Aggregate all projects for this month
+      const monthlyProjects = aggregateProjectsByMonth(item.year, item.month);
+      
       return {
         month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
         balanceStart: balanceStart,
@@ -2249,6 +2329,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         urgentInvestments: monthlyInvestments.urgent,
         suggestedInvestments: monthlyInvestments.suggested,
         notUrgentInvestments: monthlyInvestments.notUrgent,
+        projects: monthlyProjects.total,
       };
     });
   };
