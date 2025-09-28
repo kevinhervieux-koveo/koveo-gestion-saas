@@ -7228,12 +7228,13 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
 
-      // Get task and project to check access
+      // Get task and project to check access, including current completion status
       const task = await db
         .select({
           id: workflowTasks.id,
           projectId: workflowTasks.projectId,
           buildingId: maintenanceProjects.buildingId,
+          isCompleted: workflowTasks.isCompleted,
         })
         .from(workflowTasks)
         .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, workflowTasks.projectId))
@@ -7249,6 +7250,9 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(403).json({ error: 'No access to this task' });
       }
 
+      const previousCompletionStatus = task[0].isCompleted;
+      const newCompletionStatus = validation.data.isCompleted;
+
       // Update task
       const updatedTask = await db
         .update(workflowTasks)
@@ -7258,6 +7262,27 @@ export function registerMaintenanceRoutes(app: Express): void {
         })
         .where(eq(workflowTasks.id, taskId))
         .returning();
+
+      // If task was just completed, recalculate project actual cost
+      if (!previousCompletionStatus && newCompletionStatus === true) {
+        try {
+          const actualCost = await workflowService.calculateActualCostFromCompletedPhases(task[0].projectId);
+          
+          // Update the project's actual cost
+          await db
+            .update(maintenanceProjects)
+            .set({
+              actualCost: actualCost.toString(),
+              updatedAt: new Date(),
+            })
+            .where(eq(maintenanceProjects.id, task[0].projectId));
+
+          console.log(`🔄 [TASK COMPLETION] Recalculated actual cost for project ${task[0].projectId}: $${actualCost}`);
+        } catch (error) {
+          console.error('Error recalculating actual cost after task completion:', error);
+          // Don't fail the task update, just log the error
+        }
+      }
 
       res.json({
         success: true,

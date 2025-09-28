@@ -1,0 +1,787 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-BBuened8.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-4taOJYY4.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-4taOJYY4.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-4taOJYY4.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-4taOJYY4.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-BBuened8.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-BBuened8.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 4
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CjleiAKF.js:185 [Violation] 'setTimeout' handler took 94ms
+index-BBuened8.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'submission', nextStatus: 'pre_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS MODAL] Project workflow visibility changed: {open: false, projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow visibility changed {open: false, projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+vendor-ui-B9Lwe8V-.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-B9Lwe8V-.js:58
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+q @ index-CjleiAKF.js:45
+sl @ index-CjleiAKF.js:150
+Ah @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+ig @ index-CjleiAKF.js:163
+<jd>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+sh @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+sh @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+DialogContent @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+sh @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+<DialogContent>
+du.jsxDEV @ index-CjleiAKF.js:15
+DialogContent @ dialog-DWhKbtmb.js:1
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+sh @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+<DialogContent>
+du.jsxDEV @ index-CjleiAKF.js:15
+Jo @ SubmissionTab-BkVn0feQ.js:6
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+kc @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+<...>
+du.jsxDEV @ index-CjleiAKF.js:15
+Hm @ index-BBuened8.js:48
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+kc @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+<Hm>
+du.jsxDEV @ index-CjleiAKF.js:15
+t @ ProjectWorkflowModal-Gatw0Zoo.js:1
+Go @ ProjectWorkflowModal-Gatw0Zoo.js:1
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+kc @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+<...>
+du.jsxDEV @ index-CjleiAKF.js:15
+Pl @ index-BBuened8.js:48
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+kc @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+<Pl>
+du.jsxDEV @ index-CjleiAKF.js:15
+Vl @ index-BBuened8.js:48
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+kc @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+SubmissionTab-BkVn0feQ.js:6 Creating new submission: {vendorName: 'vendeur 1', availableDate: '2025-10-07', price: undefined, description: 'description 1', preferred: true, …}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+index-BBuened8.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'submission', nextStatus: 'pre_work', canAdvance: true, skipFlags: {…}, …}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Response structure: (2) ['success', 'data']
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects found in data property: 4
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CjleiAKF.js:185 [Violation] 'setTimeout' handler took 63ms
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+index-BBuened8.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+index-BBuened8.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+index-BBuened8.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+index-BBuened8.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+index-BBuened8.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+index-BBuened8.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Response structure: (2) ['success', 'data']
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects found in data property: 4
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CjleiAKF.js:185 [Violation] 'setTimeout' handler took 74ms
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'completed', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'completed', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'completed', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS MODAL] Project workflow visibility changed: {open: false, projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow visibility changed {open: false, projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'completed', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS MODAL] Project workflow visibility changed: {open: false, projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow visibility changed {open: false, projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:48 📁 [PROJECTS ACTION] handleEditProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal opened for editing
+index-BBuened8.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'pre_work', nextStatus: 'in_progress', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-CZUX1DnL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Response structure: (2) ['success', 'data']
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects found in data property: 3
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-BBuened8.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-CjleiAKF.js:185 [Violation] 'setTimeout' handler took 71ms
+index-CjleiAKF.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow 404 (Not Found)
+sR @ index-CjleiAKF.js:240
+queryFn @ useProjectWorkflow-CZUX1DnL.js:1
+r @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+fetch @ vendor-query-D7rmUEQz.js:1
+#l @ vendor-query-D7rmUEQz.js:1
+setOptions @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+q @ index-CjleiAKF.js:45
+sl @ index-CjleiAKF.js:150
+Ah @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+En @ index-CjleiAKF.js:163
+Bh @ index-CjleiAKF.js:163
+ig @ index-CjleiAKF.js:163
+dl @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ag @ index-CjleiAKF.js:163
+ed @ index-CjleiAKF.js:163
+Xh @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+fg @ index-CjleiAKF.js:185
+d @ index-CjleiAKF.js:23
+<...>
+du.jsxDEV @ index-CjleiAKF.js:15
+Pl @ index-BBuened8.js:48
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+kc @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+<Pl>
+du.jsxDEV @ index-CjleiAKF.js:15
+Vl @ index-BBuened8.js:48
+react_stack_bottom_frame @ index-CjleiAKF.js:229
+oc @ index-CjleiAKF.js:120
+kc @ index-CjleiAKF.js:141
+Pc @ index-CjleiAKF.js:150
+q @ index-CjleiAKF.js:45
+Kh @ index-CjleiAKF.js:163
+Jh @ index-CjleiAKF.js:163
+Wc @ index-CjleiAKF.js:163
+Ih @ index-CjleiAKF.js:163
+mg @ index-CjleiAKF.js:185
+ml @ index-CjleiAKF.js:185
+ad @ index-CjleiAKF.js:185
+(anonymous) @ index-CjleiAKF.js:185
+index-BBuened8.js:48 📁 [PROJECTS MODAL] Project workflow visibility changed: {open: false, projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow visibility changed {open: false, projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-BBuened8.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BBuened8.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-BBuened8.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Gatw0Zoo.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'completed', hasWorkflowState: true, workflowData: {…}}
