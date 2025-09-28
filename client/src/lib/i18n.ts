@@ -2349,7 +2349,7 @@ export const translations: Record<Language, Translations> = {
     rejected: 'Rejeté',
     draft: 'Brouillon',
     maintenance: 'Entretien',
-    maintenanceJournal: 'Journal de maintenance',
+    maintenanceJournal: 'Carnet d\'entretien',
     inventory: 'Inventaire',
     projects: 'Projets',
     complaint: 'Plainte',

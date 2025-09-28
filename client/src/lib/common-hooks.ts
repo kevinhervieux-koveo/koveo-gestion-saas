@@ -264,3 +264,112 @@ export function useSearchFilter<T = Record<string, unknown>>(
     resetSearch,
   };
 }
+
+/**
+ * Enhanced dialog state hook that builds on useFormState.
+ * Provides standardized dialog management patterns across the application.
+ * @param options - Configuration options for the dialog.
+ * @returns Dialog state management with enhanced functionality.
+ */
+export function useDialogState<T = unknown>(options: {
+  initialOpen?: boolean;
+  onClose?: () => void;
+  onSuccess?: (data?: T) => void;
+} = {}) {
+  const { initialOpen = false, onClose, onSuccess } = options;
+  const formState = useFormState(initialOpen);
+
+  const openDialog = useCallback((item?: T) => {
+    formState.openForm(item);
+  }, [formState]);
+
+  const closeDialog = useCallback(() => {
+    formState.closeForm();
+    onClose?.();
+  }, [formState, onClose]);
+
+  const handleSuccess = useCallback((data?: T) => {
+    onSuccess?.(data);
+    closeDialog();
+  }, [onSuccess, closeDialog]);
+
+  return {
+    isOpen: formState.isOpen,
+    selectedItem: formState.selectedItem as T | null,
+    openDialog,
+    closeDialog,
+    handleSuccess,
+    // Expose original formState methods for backward compatibility
+    ...formState,
+  };
+}
+
+/**
+ * Common table/list state hook with pagination, sorting, and filtering.
+ * Consolidates repeated patterns in data table components.
+ * @param options - Configuration options for table state.
+ * @returns Complete table state management.
+ */
+export function useTableState<T = Record<string, unknown>>(options: {
+  initialPageSize?: number;
+  initialSortField?: string;
+  initialSortDirection?: 'asc' | 'desc';
+  initialFilters?: T;
+} = {}) {
+  const {
+    initialPageSize = 10,
+    initialSortField = '',
+    initialSortDirection = 'asc',
+    initialFilters = {} as T,
+  } = options;
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [sortField, setSortField] = useState(initialSortField);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection);
+  
+  const searchFilter = useSearchFilter('', initialFilters);
+
+  const handleSort = useCallback((field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  }, [sortField]);
+
+  const resetTable = useCallback(() => {
+    setCurrentPage(1);
+    setPageSize(initialPageSize);
+    setSortField(initialSortField);
+    setSortDirection(initialSortDirection);
+    searchFilter.clearFilters();
+  }, [initialPageSize, initialSortField, initialSortDirection, searchFilter]);
+
+  return {
+    // Pagination
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    
+    // Sorting
+    sortField,
+    sortDirection,
+    handleSort,
+    setSortField,
+    setSortDirection,
+    
+    // Search and filters
+    searchTerm: searchFilter.searchTerm,
+    filters: searchFilter.filters,
+    setSearchTerm: searchFilter.setSearchTerm,
+    updateFilter: searchFilter.updateFilter,
+    clearFilters: searchFilter.clearFilters,
+    
+    // Utilities
+    resetTable,
+  };
+}
