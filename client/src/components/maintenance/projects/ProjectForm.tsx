@@ -706,9 +706,8 @@ export function ProjectForm({
                         min="2000"
                         max="2100"
                         data-testid="input-quick-project-financial-year"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
                         value={field.value || ''}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
                       />
                     </FormControl>
                     <FormDescription>
