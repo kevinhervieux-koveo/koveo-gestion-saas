@@ -237,15 +237,34 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
 
   // Save all pending changes
   const handleSaveChanges = () => {
-    Object.entries(localTaskEdits).forEach(([taskId, updates]) => {
+    const editsToProcess = Object.entries(localTaskEdits);
+    let completedEdits = 0;
+    const totalEdits = editsToProcess.length;
+
+    editsToProcess.forEach(([taskId, updates]) => {
       updateTask.mutate({
         projectId: project.id,
         taskId,
         updates,
       }, {
         onSuccess: () => {
-          setLocalTaskEdits({});
-          setHasChanges(false);
+          completedEdits++;
+          // Only clear state when all edits are completed
+          if (completedEdits === totalEdits) {
+            setLocalTaskEdits({});
+            setHasChanges(false);
+            toast({
+              title: 'Success',
+              description: 'All changes saved successfully',
+            });
+          }
+        },
+        onError: (error: any) => {
+          toast({
+            title: 'Error',
+            description: 'Failed to save some changes',
+            variant: 'destructive',
+          });
         }
       });
     });
@@ -745,9 +764,10 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
               <Button 
                 variant="outline" 
                 onClick={handleSaveChanges} 
-                disabled={updateTask.isPending || workflowState.currentStatus === 'post_work'}
+                disabled={updateTask.isPending}
                 data-testid="button-save-changes"
               >
+                <Save className="h-4 w-4 mr-2" />
                 {updateTask.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
             )}
