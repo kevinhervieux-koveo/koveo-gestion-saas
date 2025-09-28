@@ -3838,7 +3838,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
-      // Get linked elements with full element details
+      // Get linked elements with full element details including UNIFORMAT typical lifespan
       const linkedElementsRaw = await db
         .select({
           id: projectElements.id,
@@ -3853,9 +3853,12 @@ export function registerMaintenanceRoutes(app: Express): void {
           description: buildingElements.description,
           currentCondition: buildingElements.currentCondition,
           currentLifespan: buildingElements.currentLifespan,
+          // UNIFORMAT typical lifespan for calculations
+          typicalLifespan: uniformatCodes.typicalLifespan,
         })
         .from(projectElements)
         .innerJoin(buildingElements, eq(projectElements.elementId, buildingElements.id))
+        .leftJoin(uniformatCodes, eq(buildingElements.uniformatCode, uniformatCodes.code))
         .where(eq(projectElements.projectId, projectId))
         .orderBy(asc(buildingElements.uniformatCode), asc(buildingElements.name));
       
@@ -3873,6 +3876,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           description: item.description,
           currentCondition: item.currentCondition,
           currentLifespan: item.currentLifespan,
+          typicalLifespan: item.typicalLifespan,
         }
       }));
       

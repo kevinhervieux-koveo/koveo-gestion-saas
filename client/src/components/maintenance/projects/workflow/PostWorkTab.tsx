@@ -181,15 +181,26 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   const allElementsConfirmed = projectElements.length === 0 || projectElements.every(element => element.confirmed);
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'post_work' && allTasksCompleted && allElementsConfirmed;
 
-  // Helper function to get default lifespan impact for intervention type
-  const getDefaultLifespanImpact = (interventionType: InterventionType): number => {
+  // Smart calculation for lifespan impact based on intervention type and UNIFORMAT data
+  const calculateLifespanSuggestion = (interventionType: InterventionType, element: BuildingElement): number => {
+    const typicalLifespan = element.typicalLifespan || 25; // Fallback to 25 years if no UNIFORMAT data
+    
     switch (interventionType) {
-      case 'repair': return 0;
-      case 'minor_rehab': return 5;
-      case 'major_rehab': return 15;
-      case 'replace': return 25;
-      case 'nothing': return 0;
-      default: return 0;
+      case 'repair': 
+        return 0;
+      case 'minor_rehab': 
+        // Add 20% of typical lifespan for minor rehab
+        return Math.round(typicalLifespan * 0.20);
+      case 'major_rehab': 
+        // Add 50% of typical lifespan for major rehab
+        return Math.round(typicalLifespan * 0.50);
+      case 'replace': 
+        // For replacement, suggest the full typical lifespan
+        return typicalLifespan;
+      case 'nothing': 
+        return 0;
+      default: 
+        return 0;
     }
   };
 
@@ -208,12 +219,12 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     if (projectElements.length > 0) {
       const initialUpdates: Record<string, Omit<ElementLifespanUpdate, 'confirmed'>> = {};
       projectElements.forEach(element => {
-        // Default to "nothing" intervention if not specified
-        const defaultType: InterventionType = 'nothing';
+        // Use the project type from element, or default to current intervention type
+        const interventionType: InterventionType = element.projectType as InterventionType || 'nothing';
         initialUpdates[element.elementId] = {
           elementId: element.elementId,
-          interventionType: defaultType,
-          lifespanImpactYears: getDefaultLifespanImpact(defaultType),
+          interventionType,
+          lifespanImpactYears: calculateLifespanSuggestion(interventionType, element.element),
         };
       });
       setElementLifespanUpdates(initialUpdates);
@@ -222,12 +233,15 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
 
   // Handle element intervention type change
   const handleInterventionTypeChange = (elementId: string, interventionType: InterventionType) => {
+    const element = projectElements.find(e => e.elementId === elementId)?.element;
+    if (!element) return;
+
     setElementLifespanUpdates(prev => ({
       ...prev,
       [elementId]: {
         ...prev[elementId],
         interventionType,
-        lifespanImpactYears: getDefaultLifespanImpact(interventionType),
+        lifespanImpactYears: calculateLifespanSuggestion(interventionType, element),
       }
     }));
   };
@@ -688,48 +702,62 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               )}
                             </div>
 
-                            {element.projectType === 'replace' ? (
-                              // Layout for replacement interventions
+                            {update.interventionType === 'replace' ? (
+                              // Layout for replacement interventions - show suggested standard lifespan
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
                                   <label className="text-sm font-medium mb-1 block">Intervention Type</label>
-                                  <div className="p-2 bg-muted/50 rounded text-sm font-medium" data-testid={`intervention-type-${element.elementId}`}>
-                                    {formatInterventionType(element.projectType as InterventionType)}
-                                  </div>
+                                  <Select
+                                    value={update.interventionType}
+                                    onValueChange={(value: InterventionType) => 
+                                      handleInterventionTypeChange(element.elementId, value)
+                                    }
+                                  >
+                                    <SelectTrigger data-testid={`select-intervention-type-${element.elementId}`}>
+                                      <SelectValue placeholder="Select intervention type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="nothing">No Work</SelectItem>
+                                      <SelectItem value="repair">Repair</SelectItem>
+                                      <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
+                                      <SelectItem value="major_rehab">Major Rehab</SelectItem>
+                                      <SelectItem value="replace">Replacement</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
 
                                 <div>
-                                  <label className="text-sm font-medium mb-1 block">Life Span Estimation</label>
-                                  <div className="flex items-center gap-1">
-                                    <Input
-                                      type="number"
-                                      step="1"
-                                      min="1"
-                                      max="100"
-                                      value={update.lifespanImpactYears}
-                                      onChange={(e) => 
-                                        handleLifespanImpactChange(
-                                          element.elementId, 
-                                          Math.round(parseInt(e.target.value) || 25)
-                                        )
-                                      }
-                                      data-testid={`input-lifespan-estimation-${element.elementId}`}
-                                    />
-                                    <span className="text-xs text-muted-foreground">years</span>
+                                  <label className="text-sm font-medium mb-1 block">Suggested Standard Lifespan</label>
+                                  <div className="p-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded text-sm font-medium" data-testid={`suggested-lifespan-${element.elementId}`}>
+                                    {element.element?.typicalLifespan || 25} years
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1">
-                                    Expected lifespan of the new element
+                                    UNIFORMAT standard lifespan for this element type
                                   </p>
                                 </div>
                               </div>
                             ) : (
-                              // Layout for repair/rehab interventions
+                              // Layout for repair/rehab interventions - enhanced with UNIFORMAT suggestions
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <div>
                                   <label className="text-sm font-medium mb-1 block">Intervention Type</label>
-                                  <div className="p-2 bg-muted/50 rounded text-sm font-medium" data-testid={`intervention-type-${element.elementId}`}>
-                                    {element.projectType ? formatInterventionType(element.projectType as InterventionType) : 'Not specified'}
-                                  </div>
+                                  <Select
+                                    value={update.interventionType}
+                                    onValueChange={(value: InterventionType) => 
+                                      handleInterventionTypeChange(element.elementId, value)
+                                    }
+                                  >
+                                    <SelectTrigger data-testid={`select-intervention-type-${element.elementId}`}>
+                                      <SelectValue placeholder="Select intervention type" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="nothing">No Work</SelectItem>
+                                      <SelectItem value="repair">Repair</SelectItem>
+                                      <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
+                                      <SelectItem value="major_rehab">Major Rehab</SelectItem>
+                                      <SelectItem value="replace">Replacement</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
 
                                 <div>
@@ -737,6 +765,15 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                   <div className="p-2 bg-muted/50 rounded text-sm" data-testid={`remaining-lifespan-${element.elementId}`}>
                                     {element.element?.currentLifespan ? `${element.element.currentLifespan} years` : 'Not specified'}
                                   </div>
+                                  {element.element?.typicalLifespan && ['minor_rehab', 'major_rehab'].includes(update.interventionType) && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      UNIFORMAT standard: {element.element.typicalLifespan} years • Suggested extension: {
+                                        update.interventionType === 'minor_rehab' 
+                                          ? Math.round(element.element.typicalLifespan * 0.20)
+                                          : Math.round(element.element.typicalLifespan * 0.50)
+                                      } years ({update.interventionType === 'minor_rehab' ? '20%' : '50%'})
+                                    </p>
+                                  )}
                                 </div>
 
                                 <div>
@@ -755,6 +792,10 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                         )
                                       }
                                       data-testid={`input-lifespan-impact-${element.elementId}`}
+                                      placeholder={element.element?.typicalLifespan && ['minor_rehab', 'major_rehab'].includes(update.interventionType) 
+                                        ? `Suggested: ${calculateLifespanSuggestion(update.interventionType, element.element)}`
+                                        : '0'
+                                      }
                                     />
                                     <span className="text-xs text-muted-foreground">years</span>
                                   </div>
