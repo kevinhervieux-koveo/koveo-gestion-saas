@@ -1,0 +1,21 @@
+6d87322f9e350b5e3a4c146a3b78975a
+// Simplified database configuration - always use DATABASE_URL
+const nodeEnv = process.env.NODE_ENV || 'development';
+
+// Use DATABASE_URL from environment (configured differently in workspace vs deployment)
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL must be set');
+}
+
+const config = {
+  database: {
+    url: databaseUrl
+  },
+  server: {
+    nodeEnv
+  }
+};
+
+module.exports = { config };

@@ -3,26 +3,45 @@
  * This ensures test isolation and prevents import errors during unit testing
  */
 
-// Mock enum objects that behave like drizzle enums
-export const userRoleEnum = {
-  enumName: 'user_role',
-  enumValues: ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']
+// Helper function to create callable enum mocks
+const createEnumMock = (name: string, values: string[]) => {
+  // Create a simple function that returns the passed value
+  const enumFunc = function(value: string) {
+    return value;
+  };
+  
+  // Attach enum properties to the function (avoid read-only 'name' property)
+  (enumFunc as any).enumName = name;
+  (enumFunc as any).enumValues = values;
+  (enumFunc as any).values = values;
+  
+  // Use Object.defineProperty to set the name property correctly
+  Object.defineProperty(enumFunc, 'name', {
+    value: name,
+    writable: false,
+    enumerable: false,
+    configurable: true
+  });
+  
+  return enumFunc as any;
 };
 
-export const invitationStatusEnum = {
-  enumName: 'invitation_status',
-  enumValues: ['pending', 'accepted', 'expired', 'cancelled']
-};
+// Mock enum functions that behave like drizzle enums
+export const userRoleEnum = createEnumMock('user_role', 
+  ['admin', 'manager', 'tenant', 'resident', 'demo_manager', 'demo_tenant', 'demo_resident']
+);
 
-export const resourceTypeEnum = {
-  enumName: 'resource_type',
-  enumValues: ['user', 'users', 'organization', 'building', 'residence', 'bill', 'budget', 'maintenance_request', 'document', 'audit_log', 'system_settings', 'development_pillar', 'quality_metric', 'feature', 'actionable_item', 'improvement_suggestion']
-};
+export const invitationStatusEnum = createEnumMock('invitation_status', 
+  ['pending', 'accepted', 'expired', 'cancelled']
+);
 
-export const actionEnum = {
-  enumName: 'action',
-  enumValues: ['read', 'create', 'update', 'delete', 'manage', 'approve', 'assign', 'share', 'export', 'backup', 'restore']
-};
+export const resourceTypeEnum = createEnumMock('resource_type', 
+  ['user', 'users', 'organization', 'building', 'residence', 'bill', 'budget', 'maintenance_request', 'document', 'audit_log', 'system_settings', 'development_pillar', 'quality_metric', 'feature', 'actionable_item', 'improvement_suggestion']
+);
+
+export const actionEnum = createEnumMock('action', 
+  ['read', 'create', 'update', 'delete', 'manage', 'approve', 'assign', 'share', 'export', 'backup', 'restore']
+);
 
 // Mock table objects
 const createMockTable = (tableName: string) => ({

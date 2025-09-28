@@ -1,9 +1,16 @@
 // Direct mock for drizzle-orm/pg-core to fix schema import issues
-const pgEnum = jest.fn().mockImplementation((name, values) => ({
-  name,
-  enumValues: values,
-  enumName: name
-}));
+const pgEnum = jest.fn().mockImplementation((name, values) => {
+  // Create a callable function that behaves like a drizzle enum
+  const enumFunc = jest.fn().mockImplementation((value) => value);
+  
+  // Attach enum properties to the function
+  enumFunc.name = name;
+  enumFunc.values = values;
+  enumFunc.enumValues = values;
+  enumFunc.enumName = name;
+  
+  return enumFunc;
+});
 
 const pgTable = jest.fn().mockImplementation((name, schema) => ({
   name,

@@ -93,9 +93,18 @@ const createChainableColumn = (type, name, options = {}) => {
   return column;
 };
 
-const pgEnum = jest.fn().mockImplementation((name, values) => ({
-  name, values, enumValues: values
-}));
+const pgEnum = jest.fn().mockImplementation((name, values) => {
+  // Create a callable function that behaves like a drizzle enum
+  const enumFunc = jest.fn().mockImplementation((value) => value);
+  
+  // Attach enum properties to the function
+  enumFunc.name = name;
+  enumFunc.values = values;
+  enumFunc.enumValues = values;
+  enumFunc.enumName = name;
+  
+  return enumFunc;
+});
 const pgTable = jest.fn().mockImplementation((name, schema) => ({
   name, schema, _: { name, columns: schema }
 }));
