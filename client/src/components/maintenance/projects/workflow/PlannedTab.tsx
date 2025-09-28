@@ -469,7 +469,21 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
           
           {isComplete && (
             <Button 
-              onClick={() => markStatusComplete({ projectId: project.id, currentStatus: 'planned' })}
+              onClick={() => markStatusComplete(
+                { projectId: project.id, currentStatus: 'planned' },
+                {
+                  onSuccess: (data) => {
+                    onUpdate();
+                    // Navigate to the next step after successful completion
+                    if (onAdvanceToNext && data?.newStatus) {
+                      onAdvanceToNext(data.newStatus);
+                    } else if (onAdvanceToNext) {
+                      // Default to submission if newStatus not available
+                      onAdvanceToNext('submission');
+                    }
+                  }
+                }
+              )}
               disabled={isMarkingComplete} 
               data-testid="button-complete-planning"
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
