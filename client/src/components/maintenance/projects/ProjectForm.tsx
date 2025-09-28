@@ -138,10 +138,10 @@ export function ProjectForm({
   const {
     data: budgetResponse,
   } = useQuery({
-    queryKey: ['/api/budgets/monthly', buildingId],
+    queryKey: ['/api/budgets', buildingId],
     queryFn: async () => {
       if (!buildingId) throw new Error('Building ID is required');
-      const response = await apiRequest('GET', `/api/budgets/monthly?buildingId=${buildingId}`);
+      const response = await apiRequest('GET', `/api/budgets/${buildingId}`);
       return await response.json();
     },
     enabled: !!buildingId && mode === 'create',
