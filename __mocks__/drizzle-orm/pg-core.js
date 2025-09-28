@@ -108,6 +108,7 @@ const uuid = jest.fn().mockImplementation((name, options = {}) => createChainabl
 const serial = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('serial', name, options));
 const date = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('date', name, options));
 const json = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('json', name, options));
+const jsonb = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('jsonb', name, options));
 
 // Special constraint constructors
 const primaryKey = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('primaryKey', name, options));
@@ -150,6 +151,7 @@ module.exports = {
   serial,
   date,
   json,
+  jsonb,
   decimal,
   numeric,
   real,

@@ -114,7 +114,7 @@ function isDangerousTarget(url: string): boolean {
 export function ssrfProtectionMiddleware(req: Request, res: Response, next: NextFunction): void {
   try {
     // Skip for safe routes
-    const safeRoutes = ['/api/health', '/api/auth/user', '/health'];
+    const safeRoutes = ['/api/health', '/api/auth/user', '/health', '/api/performance/web-vitals'];
     if (safeRoutes.includes(req.path)) {
       return next();
     }
@@ -141,11 +141,12 @@ export function ssrfProtectionMiddleware(req: Request, res: Response, next: Next
             }
           });
           
-          return res.status(400).json({
+          res.status(400).json({
             error: 'Invalid URL detected',
             message: 'The request contains a URL that is not allowed for security reasons',
             code: 'SSRF_BLOCKED'
           });
+          return;
         }
       }
     }
@@ -171,11 +172,12 @@ export function ssrfProtectionMiddleware(req: Request, res: Response, next: Next
                 }
               });
               
-              return res.status(400).json({
+              res.status(400).json({
                 error: 'Invalid URL parameter',
                 message: 'The URL parameter contains a value that is not allowed',
                 code: 'SSRF_BLOCKED'
               });
+              return;
             }
           }
         }
