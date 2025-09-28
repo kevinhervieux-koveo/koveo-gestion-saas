@@ -324,15 +324,6 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
       }
     }));
     setHasChanges(true);
-    
-    // Auto-save for date fields to improve UX
-    if (field === 'due_date') {
-      updateTask.mutate({
-        projectId: project.id,
-        taskId,
-        updates: { [field]: value },
-      });
-    }
   };
 
   // Handle immediate task updates (for buttons like completion toggle)
