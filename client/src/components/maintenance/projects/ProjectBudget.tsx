@@ -201,8 +201,8 @@ export function ProjectBudget({
 
   // Calculate budget summary from existing data
   const budgetSummary: BudgetSummary = useMemo(() => {
-    const totalBudget = project.totalBudget || 0;
-    const totalActual = project.actualCost || 0;
+    const totalBudget = parseFloat(project.totalBudget?.toString() || '0');
+    const totalActual = parseFloat(project.actualCost?.toString() || '0');
     
     // Calculate total allocated to elements
     const totalAllocated = projectElements.reduce((sum: number, element: any) => {
@@ -338,12 +338,12 @@ export function ProjectBudget({
                 <IconComponent className="h-4 w-4 text-muted-foreground" />
                 <span className="font-medium">{breakdown.category}</span>
                 {breakdown.elementCount && (
-                  <Badge variant="outline" size="sm">
+                  <Badge variant="outline">
                     {breakdown.elementCount} elements
                   </Badge>
                 )}
                 {breakdown.vendorCount && (
-                  <Badge variant="outline" size="sm">
+                  <Badge variant="outline">
                     {breakdown.vendorCount} vendors
                   </Badge>
                 )}
@@ -751,4 +751,3 @@ export function ProjectBudget({
   );
 }
 
-export type { ProjectBudgetProps };

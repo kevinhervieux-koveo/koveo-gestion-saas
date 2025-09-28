@@ -1,9 +1,9 @@
 import { db } from '../db';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
-import type { InsertMonthlyBudget, Building, MoneyFlow } from '@shared/schema';
+import type { InsertMonthlyBudget, Building } from '@shared/schema';
 import * as schema from '@shared/schema';
 
-const { monthlyBudgets, moneyFlow, buildings, users } = schema;
+const { monthlyBudgets, buildings, users } = schema;
 
 /**
  * Service for populating and managing monthly budget entries.
@@ -142,27 +142,18 @@ export class MonthlyBudgetService {
   }
 
   /**
-   * Get distinct income and expense categories from money_flow for a specific building.
+   * Get distinct income and expense categories for a specific building.
+   * Since moneyFlow table was deleted, we use default categories.
    * @param buildingId
    */
   private async getCategoriesForBuilding(buildingId: string): Promise<{
     incomeCategories: string[];
     expenseCategories: string[];
   }> {
-    // Get distinct income categories
-    const incomeResult = await db
-      .selectDistinct({ category: moneyFlow.category })
-      .from(moneyFlow)
-      .where(and(eq(moneyFlow.buildingId, buildingId), eq(moneyFlow.type, 'income')));
-
-    // Get distinct expense categories
-    const expenseResult = await db
-      .selectDistinct({ category: moneyFlow.category })
-      .from(moneyFlow)
-      .where(and(eq(moneyFlow.buildingId, buildingId), eq(moneyFlow.type, 'expense')));
-
-    const incomeCategories = incomeResult.map((r) => r.category);
-    const expenseCategories = expenseResult.map((r) => r.category);
+    // Since moneyFlow table no longer exists, we use default categories
+    // In the future, this could be enhanced to derive categories from bills or other sources
+    const incomeCategories: string[] = [];
+    const expenseCategories: string[] = [];
 
     // If no categories exist, provide defaults based on the enum definitions
     const defaultIncomeCategories = [
@@ -192,6 +183,8 @@ export class MonthlyBudgetService {
 
   /**
    * Get aggregated income and expense amounts for a specific month/year.
+   * Since moneyFlow table was deleted, this returns zero values.
+   * TODO: Implement alternative data source (e.g., from bills/payments tables)
    * @param buildingId
    * @param year
    * @param month
@@ -208,53 +201,10 @@ export class MonthlyBudgetService {
     incomes: number[];
     spendings: number[];
   }> {
-    const startDate = new Date(year, month - 1, 1); // First day of month
-    const endDate = new Date(year, month, 0); // Last day of month
-
-    const startDateStr = startDate.toISOString().split('T')[0];
-    const endDateStr = endDate.toISOString().split('T')[0];
-
-    // Get aggregated incomes by category
-    const incomes: number[] = [];
-    for (const category of incomeCategories) {
-      const result = await db
-        .select({
-          total: sql<string>`COALESCE(SUM(CAST(${moneyFlow.amount} AS DECIMAL)), 0)`,
-        })
-        .from(moneyFlow)
-        .where(
-          and(
-            eq(moneyFlow.buildingId, buildingId),
-            eq(moneyFlow.type, 'income'),
-            eq(moneyFlow.category, category),
-            gte(moneyFlow.transactionDate, startDateStr),
-            lte(moneyFlow.transactionDate, endDateStr)
-          )
-        );
-
-      incomes.push(parseFloat(result[0]?.total || '0'));
-    }
-
-    // Get aggregated expenses by category
-    const spendings: number[] = [];
-    for (const category of expenseCategories) {
-      const result = await db
-        .select({
-          total: sql<string>`COALESCE(SUM(CAST(${moneyFlow.amount} AS DECIMAL)), 0)`,
-        })
-        .from(moneyFlow)
-        .where(
-          and(
-            eq(moneyFlow.buildingId, buildingId),
-            eq(moneyFlow.type, 'expense'),
-            eq(moneyFlow.category, category),
-            gte(moneyFlow.transactionDate, startDateStr),
-            lte(moneyFlow.transactionDate, endDateStr)
-          )
-        );
-
-      spendings.push(parseFloat(result[0]?.total || '0'));
-    }
+    // Since moneyFlow table no longer exists, return zero arrays
+    // This maintains the expected structure while avoiding database errors
+    const incomes: number[] = incomeCategories.map(() => 0);
+    const spendings: number[] = expenseCategories.map(() => 0);
 
     return { incomes, spendings };
   }
