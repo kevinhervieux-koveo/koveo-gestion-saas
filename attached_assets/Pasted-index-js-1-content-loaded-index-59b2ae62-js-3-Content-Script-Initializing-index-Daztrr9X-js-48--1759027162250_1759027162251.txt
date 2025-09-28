@@ -1,0 +1,354 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-DMlsvXha.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DMlsvXha.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-DMlsvXha.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-DMlsvXha.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Daztrr9X.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-Daztrr9X.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Daztrr9X.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-Daztrr9X.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-Daztrr9X.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-Daztrr9X.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-Daztrr9X.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 3
+index-Daztrr9X.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-Daztrr9X.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-Daztrr9X.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-Daztrr9X.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-Daztrr9X.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-Daztrr9X.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-B2gBQRar.js:185 [Violation] 'setTimeout' handler took 69ms
+index-Daztrr9X.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-Daztrr9X.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Daztrr9X.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-B_lyI1rx.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-B_lyI1rx.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+useProjectWorkflow-B_lyI1rx.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B_lyI1rx.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B_lyI1rx.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-BPzQ13kv.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BPzQ13kv.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-BPzQ13kv.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}
+index-B2gBQRar.js:79 In HTML, <p> cannot be a descendant of <p>.
+This will cause a hydration error.
+
+  ...
+    <FocusScope asChild={true} loop={true} trapped={true} onMountAutoFocus={function} onUnmountAutoFocus={function}>
+      <Primitive.div tabIndex={-1} asChild={true} ref={function} onKeyDown={function}>
+        <Primitive.div.Slot tabIndex={-1} onKeyDown={function} ref={function}>
+          <Primitive.div.SlotClone tabIndex={-1} onKeyDown={function} ref={function}>
+            <DismissableLayer role="alertdialog" id="radix-«r12»" aria-describedby="radix-«r14»" ...>
+              <Primitive.div role="alertdialog" id="radix-«r12»" aria-describedby="radix-«r14»" ...>
+                <div role="alertdialog" id="radix-«r12»" aria-describedby="radix-«r14»" aria-labelledby="radix-«r13»" ...>
+                  <AlertDialogContent.Slottable>
+                    <AlertDialogHeader>
+                      <div className="flex flex-...">
+                        <AlertDialogTitle>
+                        <AlertDialogDescription>
+                          <AlertDialogDescription ref={null} className="text-sm te...">
+                            <DialogDescription __scopeDialog={{Dialog:[...]}} className="text-sm te..." ref={null}>
+                              <Primitive.p id="radix-«r14»" className="text-sm te..." ref={null}>
+>                               <p id="radix-«r14»" className="text-sm text-muted-foreground" ref={null}>
+                                  <div className="space-y-3">
+>                                   <p>
+                                    ...
+                    ...
+                  ...
+    ...
+
+overrideMethod @ hook.js:608
+zu @ index-B2gBQRar.js:79
+qS @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+ir @ index-B2gBQRar.js:163
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<p>
+du.jsxDEV @ index-B2gBQRar.js:15
+Tn @ PostWorkTab-BqjwKEg6.js:1
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+kc @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+index-B2gBQRar.js:80 <p> cannot contain a nested <p>.
+See this log for the ancestor stack trace.
+overrideMethod @ hook.js:608
+(anonymous) @ index-B2gBQRar.js:80
+q @ index-B2gBQRar.js:45
+zu @ index-B2gBQRar.js:80
+qS @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+ir @ index-B2gBQRar.js:163
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<p>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+Primitive.p @ vendor-ui-B9Lwe8V-.js:14
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+sh @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<Primitive.p>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+DialogDescription @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+sh @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<DialogDescription>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+AlertDialogDescription @ alert-dialog-af7xxdrP.js:1
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+sh @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<AlertDialogDescription>
+du.jsxDEV @ index-B2gBQRar.js:15
+AlertDialogDescription @ alert-dialog-af7xxdrP.js:7
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+sh @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<AlertDialogDescription>
+du.jsxDEV @ index-B2gBQRar.js:15
+Tn @ PostWorkTab-BqjwKEg6.js:1
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+kc @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+index-B2gBQRar.js:79 In HTML, <div> cannot be a descendant of <p>.
+This will cause a hydration error.
+
+  ...
+    <FocusScope asChild={true} loop={true} trapped={true} onMountAutoFocus={function} onUnmountAutoFocus={function}>
+      <Primitive.div tabIndex={-1} asChild={true} ref={function} onKeyDown={function}>
+        <Primitive.div.Slot tabIndex={-1} onKeyDown={function} ref={function}>
+          <Primitive.div.SlotClone tabIndex={-1} onKeyDown={function} ref={function}>
+            <DismissableLayer role="alertdialog" id="radix-«r12»" aria-describedby="radix-«r14»" ...>
+              <Primitive.div role="alertdialog" id="radix-«r12»" aria-describedby="radix-«r14»" ...>
+                <div role="alertdialog" id="radix-«r12»" aria-describedby="radix-«r14»" aria-labelledby="radix-«r13»" ...>
+                  <AlertDialogContent.Slottable>
+                    <AlertDialogHeader>
+                      <div className="flex flex-...">
+                        <AlertDialogTitle>
+                        <AlertDialogDescription>
+                          <AlertDialogDescription ref={null} className="text-sm te...">
+                            <DialogDescription __scopeDialog={{Dialog:[...]}} className="text-sm te..." ref={null}>
+                              <Primitive.p id="radix-«r14»" className="text-sm te..." ref={null}>
+>                               <p id="radix-«r14»" className="text-sm text-muted-foreground" ref={null}>
+                                  <div className="space-y-3">
+                                    <p>
+                                    <div className="bg-muted/5...">
+                                      <div className="text-sm">
+                                        <strong>
+>                                       <div className="text-orange-700">
+                                      ...
+                                    ...
+                    ...
+                  ...
+    ...
+
+overrideMethod @ hook.js:608
+zu @ index-B2gBQRar.js:79
+qS @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+ir @ index-B2gBQRar.js:163
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<div>
+du.jsxDEV @ index-B2gBQRar.js:15
+(anonymous) @ PostWorkTab-BqjwKEg6.js:1
+Tn @ PostWorkTab-BqjwKEg6.js:1
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+kc @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+index-B2gBQRar.js:80 <p> cannot contain a nested <div>.
+See this log for the ancestor stack trace.
+overrideMethod @ hook.js:608
+(anonymous) @ index-B2gBQRar.js:80
+q @ index-B2gBQRar.js:45
+zu @ index-B2gBQRar.js:80
+qS @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+ir @ index-B2gBQRar.js:163
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<p>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+Primitive.p @ vendor-ui-B9Lwe8V-.js:14
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+sh @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<Primitive.p>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+DialogDescription @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+sh @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<DialogDescription>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+AlertDialogDescription @ alert-dialog-af7xxdrP.js:1
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+sh @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<AlertDialogDescription>
+du.jsxDEV @ index-B2gBQRar.js:15
+AlertDialogDescription @ alert-dialog-af7xxdrP.js:7
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+sh @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185
+<AlertDialogDescription>
+du.jsxDEV @ index-B2gBQRar.js:15
+Tn @ PostWorkTab-BqjwKEg6.js:1
+react_stack_bottom_frame @ index-B2gBQRar.js:229
+oc @ index-B2gBQRar.js:120
+kc @ index-B2gBQRar.js:141
+Pc @ index-B2gBQRar.js:150
+q @ index-B2gBQRar.js:45
+Kh @ index-B2gBQRar.js:163
+Jh @ index-B2gBQRar.js:163
+Wc @ index-B2gBQRar.js:163
+Ih @ index-B2gBQRar.js:163
+mg @ index-B2gBQRar.js:185
+ml @ index-B2gBQRar.js:185
+ad @ index-B2gBQRar.js:185
+(anonymous) @ index-B2gBQRar.js:185

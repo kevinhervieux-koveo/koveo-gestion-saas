@@ -981,9 +981,9 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
             </AlertDialogTitle>
             <AlertDialogDescription>
               <div className="space-y-3">
-                <p>
+                <div>
                   Completing this project will apply the following changes to your building element inventory:
-                </p>
+                </div>
                 <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                   {projectElements.map((element) => {
                     const update = elementLifespanUpdates[element.elementId];
@@ -1011,9 +1011,9 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                     );
                   })}
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground">
                   These changes cannot be undone. Are you sure you want to complete this project?
-                </p>
+                </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
