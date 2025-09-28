@@ -1,24 +1,5 @@
 // Enhanced database mock for complete drizzle-orm isolation
-// Use global jest instead of importing it
-const jest = global.jest || {
-  fn: (impl) => {
-    const mockFn = impl || (() => {});
-    mockFn.mockResolvedValue = (value) => {
-      mockFn._mockResolvedValue = value;
-      return mockFn;
-    };
-    mockFn.mockReturnValue = (value) => {
-      mockFn._mockReturnValue = value;
-      return mockFn;
-    };
-    mockFn.mockImplementation = (impl) => {
-      mockFn._mockImplementation = impl;
-      return mockFn;
-    };
-    return mockFn;
-  },
-  clearAllMocks: () => {},
-};
+// Jest is already available globally in test environment - no need to redefine
 
 // Mock all drizzle-orm functions
 const mockQuery = jest.fn().mockResolvedValue([]);
@@ -175,7 +156,92 @@ const evaluatePredicate = (item, condition, context = {}) => {
 
 // Enhanced mock database with dynamic evaluation
 const mockDb = {
-  query: mockQuery,
+  query: {
+    organizations: {
+      findFirst: jest.fn().mockImplementation((options) => {
+        const conditions = options?.where;
+        if (conditions) {
+          const found = store.organizations.find(org => {
+            if (conditions.type === 'eq') {
+              return org[conditions.column.name] === conditions.value;
+            }
+            return true;
+          });
+          return Promise.resolve(found || null);
+        }
+        return Promise.resolve(store.organizations[0] || null);
+      }),
+      findMany: jest.fn().mockImplementation(() => {
+        return Promise.resolve([...store.organizations]);
+      }),
+    },
+    users: {
+      findFirst: jest.fn().mockImplementation((options) => {
+        const conditions = options?.where;
+        if (conditions) {
+          const found = store.users.find(user => {
+            if (conditions.type === 'eq') {
+              return user[conditions.column.name] === conditions.value;
+            }
+            return true;
+          });
+          return Promise.resolve(found || null);
+        }
+        return Promise.resolve(store.users[0] || null);
+      }),
+      findMany: jest.fn().mockImplementation(() => {
+        return Promise.resolve([...store.users]);
+      }),
+    },
+    invitations: {
+      findFirst: jest.fn().mockImplementation((options) => {
+        const conditions = options?.where;
+        if (conditions) {
+          const found = store.invitations.find(inv => {
+            if (conditions.type === 'eq') {
+              return inv[conditions.column.name] === conditions.value;
+            }
+            return true;
+          });
+          return Promise.resolve(found || null);
+        }
+        return Promise.resolve(store.invitations[0] || null);
+      }),
+      findMany: jest.fn().mockImplementation((options) => {
+        const conditions = options?.where;
+        let result = [...store.invitations];
+        
+        if (conditions) {
+          if (conditions.type === 'eq') {
+            result = result.filter(inv => inv[conditions.column.name] === conditions.value);
+          } else if (conditions.type === 'and') {
+            result = result.filter(inv => {
+              return conditions.conditions.every((cond) => {
+                if (cond.type === 'eq') {
+                  return inv[cond.column.name] === cond.value;
+                }
+                return true;
+              });
+            });
+          }
+        }
+        
+        return Promise.resolve(result);
+      }),
+    },
+    userOrganizations: {
+      findFirst: jest.fn().mockImplementation(() => Promise.resolve(store.userOrganizations[0] || null)),
+      findMany: jest.fn().mockImplementation(() => Promise.resolve([...store.userOrganizations])),
+    },
+    buildings: {
+      findFirst: jest.fn().mockImplementation(() => Promise.resolve(store.buildings[0] || null)),
+      findMany: jest.fn().mockImplementation(() => Promise.resolve([...store.buildings])),
+    },
+    residences: {
+      findFirst: jest.fn().mockImplementation(() => Promise.resolve(store.residences[0] || null)),
+      findMany: jest.fn().mockImplementation(() => Promise.resolve([...store.residences])),
+    }
+  },
   
   insert: jest.fn().mockImplementation((table) => ({
     values: jest.fn().mockImplementation((data) => {
@@ -289,28 +355,32 @@ const mockDb = {
   }))
 };
 
-// Mock schema with common tables and column references
+// Mock schema with proper table structure matching Drizzle-ORM format
 const mockSchema = {
   organizations: { 
     name: 'organizations',
+    _: { name: 'organizations' },
     id: { name: 'id' },
     name: { name: 'name' },
     type: { name: 'type' }
   },
   users: { 
     name: 'users',
+    _: { name: 'users' },
     id: { name: 'id' },
     username: { name: 'username' },
     email: { name: 'email' }
   },
   userOrganizations: { 
     name: 'userOrganizations',
+    _: { name: 'userOrganizations' },
     id: { name: 'id' },
     userId: { name: 'userId' },
     organizationId: { name: 'organizationId' }
   },
   invitations: { 
     name: 'invitations',
+    _: { name: 'invitations' },
     id: { name: 'id' },
     email: { name: 'email' },
     status: { name: 'status' },
@@ -323,11 +393,13 @@ const mockSchema = {
   },
   buildings: { 
     name: 'buildings',
+    _: { name: 'buildings' },
     id: { name: 'id' },
     name: { name: 'name' }
   },
   residences: { 
     name: 'residences',
+    _: { name: 'residences' },
     id: { name: 'id' },
     unitNumber: { name: 'unitNumber' }
   }

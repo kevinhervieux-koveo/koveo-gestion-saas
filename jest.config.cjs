@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.simple.ts'],
   
   // Custom resolver temporarily disabled - format issues
   // resolver: '<rootDir>/jest-resolver.js',
@@ -108,20 +108,20 @@ const config = {
     'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud|react-router-dom|drizzle-orm|drizzle-zod|@neondatabase))'
   ],
   
-  // Performance settings - optimized for large test suites with strict timeouts
-  testTimeout: 15000,
-  maxWorkers: 2,
-  cache: true,
+  // Performance settings - more aggressive timeouts to prevent hanging
+  testTimeout: 8000,
+  maxWorkers: 1,
+  cache: false,
   cacheDirectory: '<rootDir>/.jest-cache',
   detectOpenHandles: true,
   forceExit: true,
   clearMocks: true,
   restoreMocks: true,
   resetMocks: true,
-  resetModules: true,
-  verbose: false,
+  resetModules: false,  // Disable module reset to avoid import issues
+  verbose: true,
   passWithNoTests: false,
-  bail: false,
+  bail: true,  // Stop on first failure to identify issues quickly
   
   // Strict cleanup and isolation settings
   sandboxInjectedGlobals: [

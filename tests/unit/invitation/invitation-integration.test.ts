@@ -1,18 +1,21 @@
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, beforeAll } from '@jest/globals';
 import * as schema from '../../../shared/schema';
 import bcrypt from 'bcryptjs';
 
-// Import centralized enhanced database mock directly - fix destructuring issue
-const { 
-  mockDb, 
-  testUtils, 
-  mockSchema,
-  eq, and, or, sql 
-} = require('../../../__mocks__/enhanced-database-mock');
+// Import mocked database and utilities using direct require (working approach)
+const mockModule = require('../../../__mocks__/enhanced-database-mock.js');
+const { mockDb, testUtils, mockSchema, eq, and, or, sql } = mockModule;
 
 console.log('Enhanced mock loaded - mockDb available:', !!mockDb);
 console.log('Enhanced mock loaded - testUtils available:', !!testUtils);
 console.log('Enhanced mock loaded - mockSchema available:', !!mockSchema);
+
+// Verify mock is working
+if (!mockDb) {
+  console.error('CRITICAL: mockDb is not available');
+  console.error('Available mock exports:', Object.keys(mockModule));
+  throw new Error('Database mock is not available');
+}
 
 describe('Invitation Table Integration Tests', () => {
   let adminUser: any;
