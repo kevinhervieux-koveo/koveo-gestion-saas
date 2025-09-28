@@ -986,43 +986,44 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
               <Building2 className="h-5 w-5" />
               Confirm Project Completion
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              <div className="space-y-3">
-                <div>
-                  Completing this project will apply the following changes to your building element inventory:
-                </div>
-                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                  {projectElements.map((element) => {
-                    const update = elementLifespanUpdates[element.elementId];
-                    if (!update) return null;
-
-                    return (
-                      <div key={element.id} className="text-sm">
-                        <strong>{element.element?.name || 'Unknown Element'}</strong>
-                        {update.interventionType === 'replace' ? (
-                          <div className="text-orange-700">
-                            • Will be marked as replaced with new construction date
-                            • New lifespan: {update.lifespanImpactYears} years
-                          </div>
-                        ) : update.interventionType === 'minor_rehab' || update.interventionType === 'major_rehab' ? (
-                          <div className="text-blue-700">
-                            • Current lifespan will be extended by {update.lifespanImpactYears} years
-                            • Intervention type: {formatInterventionType(update.interventionType)}
-                          </div>
-                        ) : (
-                          <div className="text-gray-600">
-                            • No changes will be applied (intervention type: {formatInterventionType(update.interventionType)})
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  These changes cannot be undone. Are you sure you want to complete this project?
-                </div>
-              </div>
+            <AlertDialogDescription className="text-sm text-muted-foreground">
+              Completing this project will apply changes to your building element inventory.
             </AlertDialogDescription>
+            <div className="space-y-3 mt-4">
+              <div>
+                The following changes will be applied to your building element inventory:
+              </div>
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                {projectElements.map((element) => {
+                  const update = elementLifespanUpdates[element.elementId];
+                  if (!update) return null;
+
+                  return (
+                    <div key={element.id} className="text-sm">
+                      <strong>{element.element?.name || 'Unknown Element'}</strong>
+                      {update.interventionType === 'replace' ? (
+                        <div className="text-orange-700">
+                          • Will be marked as replaced with new construction date
+                          • New lifespan: {update.lifespanImpactYears} years
+                        </div>
+                      ) : update.interventionType === 'minor_rehab' || update.interventionType === 'major_rehab' ? (
+                        <div className="text-blue-700">
+                          • Current lifespan will be extended by {update.lifespanImpactYears} years
+                          • Intervention type: {formatInterventionType(update.interventionType)}
+                        </div>
+                      ) : (
+                        <div className="text-gray-600">
+                          • No changes will be applied (intervention type: {formatInterventionType(update.interventionType)})
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="text-sm text-muted-foreground font-medium">
+                These changes cannot be undone. Are you sure you want to complete this project?
+              </div>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
