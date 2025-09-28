@@ -204,6 +204,22 @@ interface InvestmentSummary {
   notUrgentCount: number;
 }
 
+interface Project {
+  id: string;
+  title: string;
+  totalBudget: number;
+  actualCost: number;
+  financialYear: number;
+  status: string;
+  type: string;
+  origin: string;
+  isQuickProject: boolean;
+  plannedStartDate?: string;
+  plannedEndDate?: string;
+  estimatedCost?: number;
+  includeInBudget: boolean; // Local state for budget inclusion
+}
+
 function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const { t } = useLanguage();
   const [, navigate] = useLocation();
@@ -404,6 +420,21 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const [addInvestmentDialogOpen, setAddInvestmentDialogOpen] = useState(false);
   const [editInvestmentDialogOpen, setEditInvestmentDialogOpen] = useState(false);
 
+  // Project state management
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [addQuickProjectDialogOpen, setAddQuickProjectDialogOpen] = useState(false);
+  const [newQuickProject, setNewQuickProject] = useState<{
+    title: string;
+    totalBudget: string;
+    financialYear: string;
+    description: string;
+  }>({
+    title: '',
+    totalBudget: '',
+    financialYear: '',
+    description: '',
+  });
+
   // Fetch bank account settings
   const { data: bankAccountData, isLoading: bankAccountLoading, error: bankAccountError } = useQuery({
     queryKey: [`/api/budgets/${buildingId}/bank-account`],
@@ -423,6 +454,14 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   // Fetch capital investments for the building
   const { data: serverInvestments, isLoading: investmentsLoading, error: investmentsError } = useQuery<CapitalInvestment[]>({
     queryKey: [`/api/budgets/${buildingId}/investments`],
+    enabled: !!buildingId,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  // Fetch maintenance projects for the building
+  const { data: maintenanceProjectsResponse, isLoading: projectsLoading, error: projectsError } = useQuery<{projects: any[]}>({
+    queryKey: [`/api/buildings/${buildingId}/maintenance/projects`],
     enabled: !!buildingId,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -453,6 +492,67 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       debugLog('Capital investments fetch error', { buildingId, error: investmentsError });
     }
   }, [investmentsError, buildingId]);
+
+  // Debug logging for maintenance projects data
+  React.useEffect(() => {
+    if (maintenanceProjectsResponse?.projects) {
+      debugLog('Maintenance projects data fetched', { buildingId, count: maintenanceProjectsResponse.projects.length });
+    }
+  }, [maintenanceProjectsResponse, buildingId]);
+
+  React.useEffect(() => {
+    if (projectsError) {
+      debugLog('Maintenance projects fetch error', { buildingId, error: projectsError });
+    }
+  }, [projectsError, buildingId]);
+
+  // Use ref to track current project states to avoid infinite loop
+  const projectStatesRef = React.useRef<Map<string, boolean>>(new Map());
+
+  // Process maintenance projects for current financial year and future
+  React.useEffect(() => {
+    if (!maintenanceProjectsResponse?.projects) return;
+
+    const maintenanceProjects = maintenanceProjectsResponse.projects;
+    const currentYear = new Date().getFullYear();
+    const financialYearStart = parseFinancialYearStart(localSettings.financialYearStart);
+    const currentFinancialYear = getFinancialYear(currentYear, new Date().getMonth() + 1, localSettings.financialYearStart);
+
+    // Filter projects for current financial year and future
+    const relevantProjects = maintenanceProjects.filter((project: any) => {
+      const projectFinancialYear = project.financialYear || currentFinancialYear;
+      return projectFinancialYear >= currentFinancialYear;
+    });
+
+    // Convert to Project interface while preserving existing includeInBudget state
+    const convertedProjects: Project[] = relevantProjects.map((project: any) => {
+      // Get preserved state from ref or default to true
+      const includeInBudget = projectStatesRef.current.get(project.id) ?? true;
+      
+      return {
+        id: project.id,
+        title: project.title || 'Untitled Project',
+        totalBudget: parseFloat(project.totalBudget || '0'),
+        actualCost: parseFloat(project.actualCost || '0'),
+        financialYear: project.financialYear || currentFinancialYear,
+        status: project.status || 'planned',
+        type: project.type || 'maintenance',
+        origin: project.origin || 'manual',
+        isQuickProject: project.isQuickProject || false,
+        plannedStartDate: project.plannedStartDate,
+        plannedEndDate: project.plannedEndDate,
+        estimatedCost: project.estimatedCost ? parseFloat(project.estimatedCost) : undefined,
+        includeInBudget,
+      };
+    });
+
+    setProjects(convertedProjects);
+    debugLog('Processed maintenance projects for budget', { 
+      total: maintenanceProjects.length, 
+      relevant: convertedProjects.length,
+      currentFinancialYear 
+    });
+  }, [maintenanceProjectsResponse, localSettings.financialYearStart]);
 
   // Initialize local settings when bank account data is loaded
   React.useEffect(() => {
@@ -2936,6 +3036,110 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                     </div>
                   </div>
                 </CardContent>
+              </Card>
+
+              {/* Project Card - First card under the graph */}
+              <Card data-testid="card-project-management">
+                <CardHeader 
+                  className="cursor-pointer"
+                  onClick={() => toggleCard('project')}
+                >
+                  <CardTitle className='flex items-center justify-between'>
+                    <div className='flex items-center gap-2'>
+                      <Building2 className='w-5 h-5' />
+                      Project Management
+                    </div>
+                    {cardsCollapsed.project ? (
+                      <ChevronDown className='w-5 h-5' />
+                    ) : (
+                      <ChevronUp className='w-5 h-5' />
+                    )}
+                  </CardTitle>
+                  <div className='text-sm text-muted-foreground'>
+                    Manage projects for current financial year and future periods
+                  </div>
+                </CardHeader>
+                {!cardsCollapsed.project && (
+                  <CardContent className='space-y-4'>
+                    {/* Add Quick Project Button */}
+                    <div className='flex justify-between items-center'>
+                      <div className='text-sm text-muted-foreground'>
+                        Projects affecting budget calculations
+                      </div>
+                      <Button 
+                        onClick={() => setAddQuickProjectDialogOpen(true)}
+                        size="sm"
+                        className="flex items-center gap-2"
+                        data-testid="button-add-quick-project"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Quick Project
+                      </Button>
+                    </div>
+
+                    {/* Project List */}
+                    <div className='space-y-3'>
+                      {projectsLoading ? (
+                        <div className='text-center py-8 text-muted-foreground'>
+                          <RefreshCw className='w-8 h-8 mx-auto mb-4 animate-spin text-gray-300' />
+                          <p>Loading projects...</p>
+                        </div>
+                      ) : projects.length > 0 ? (
+                        projects.map((project) => (
+                          <div key={project.id} className='border rounded-lg p-4 space-y-3'>
+                            <div className='flex items-center justify-between'>
+                              <div className='flex-1'>
+                                <div className='flex items-center gap-2'>
+                                  <h4 className='font-medium text-sm'>{project.title}</h4>
+                                  {project.isQuickProject && (
+                                    <Badge variant="secondary" className="text-xs">Quick Project</Badge>
+                                  )}
+                                  <Badge variant="outline" className="text-xs">{project.status}</Badge>
+                                </div>
+                                <div className='grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-xs text-muted-foreground'>
+                                  <div>
+                                    <span className='font-medium'>Budget:</span> ${project.totalBudget.toLocaleString()}
+                                  </div>
+                                  <div>
+                                    <span className='font-medium'>Actual:</span> ${project.actualCost.toLocaleString()}
+                                  </div>
+                                  <div>
+                                    <span className='font-medium'>Financial Year:</span> {project.financialYear}
+                                  </div>
+                                  <div>
+                                    <span className='font-medium'>Cost:</span> ${(project.estimatedCost || project.totalBudget).toLocaleString()}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Label htmlFor={`project-include-${project.id}`} className="text-xs">Include</Label>
+                                <Switch 
+                                  id={`project-include-${project.id}`}
+                                  checked={project.includeInBudget}
+                                  onCheckedChange={(checked) => {
+                                    // Update ref to persist state across refetches
+                                    projectStatesRef.current.set(project.id, checked);
+                                    // Update local state
+                                    setProjects(prev => prev.map(p => 
+                                      p.id === project.id ? { ...p, includeInBudget: checked } : p
+                                    ));
+                                  }}
+                                  data-testid={`switch-project-include-${project.id}`}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className='text-center py-8 text-muted-foreground'>
+                          <Building2 className='w-12 h-12 mx-auto mb-4 text-gray-300' />
+                          <p>No projects found for current financial year and future periods</p>
+                          <p className='text-sm'>Use "Add Quick Project" to create a new project</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                )}
               </Card>
 
               {/* Configuration Cards */}
