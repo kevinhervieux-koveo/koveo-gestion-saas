@@ -47,7 +47,19 @@ export interface BaselineBudgetData {
 export function calculateMonthlyRecurringCosts(bills: BillData[]): number {
   return bills.reduce((total, bill) => {
     if (bill.costs && bill.costs.length > 0) {
-      const billCost = bill.costs.reduce((sum, cost) => sum + parseFloat(cost), 0);
+      // For recurring bills, the costs array often contains individual payment amounts
+      // We should calculate the average cost per payment period, not sum all costs
+      let billCost: number;
+      
+      if (bill.costs.length === 1) {
+        // Single cost value - use it directly
+        billCost = parseFloat(bill.costs[0]);
+      } else {
+        // Multiple costs - this represents the payment schedule
+        // Calculate average cost per payment period
+        const totalCosts = bill.costs.reduce((sum, cost) => sum + parseFloat(cost), 0);
+        billCost = totalCosts / bill.costs.length;
+      }
       
       // Convert to monthly based on schedule
       switch (bill.schedulePayment) {
