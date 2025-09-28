@@ -21,6 +21,7 @@ import {
   useWorkflowTasks, 
   useWorkflowTaskMutations,
   useMarkStatusComplete,
+  useReopenWorkflowStep,
   type ProjectWorkflowState 
 } from '@/hooks/useProjectWorkflow';
 import { ReopenStepDialog } from './ReopenStepDialog';
@@ -62,7 +63,10 @@ interface ProjectElementWithDetails {
   costAllocation?: number;
   lifespanImpact?: number;
   confirmed: boolean;
-  element: BuildingElement;
+  projectType?: string;
+  element: BuildingElement & {
+    typicalLifespan?: number;
+  };
 }
 
 interface ElementLifespanUpdate {
@@ -110,6 +114,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
 
   const { createTask, updateTask, deleteTask } = useWorkflowTaskMutations();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
+  const reopenStepMutation = useReopenWorkflowStep();
 
   // Element confirmation mutations
   const elementConfirmationMutation = useMutation({
@@ -182,7 +187,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'post_work' && allTasksCompleted && allElementsConfirmed;
 
   // Smart calculation for lifespan impact based on intervention type and UNIFORMAT data
-  const calculateLifespanSuggestion = (interventionType: InterventionType, element: BuildingElement): number => {
+  const calculateLifespanSuggestion = (interventionType: InterventionType, element: BuildingElement & { typicalLifespan?: number }): number => {
     const typicalLifespan = element.typicalLifespan || 25; // Fallback to 25 years if no UNIFORMAT data
     
     switch (interventionType) {
@@ -224,7 +229,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         projectElements.forEach(element => {
           // Only initialize if this element doesn't already have local updates
           if (!newUpdates[element.elementId]) {
-            const interventionType: InterventionType = element.projectType as InterventionType || 'nothing';
+            const interventionType: InterventionType = (element.projectType as InterventionType) || 'nothing';
             newUpdates[element.elementId] = {
               elementId: element.elementId,
               interventionType,
@@ -457,25 +462,11 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
       return;
     }
 
-    reopenStep(
-      { projectId: project.id, currentStatus: workflowState.currentStatus },
-      { 
-        onSuccess: () => {
-          toast({
-            title: "Step Reopened",
-            description: "Successfully returned to the previous workflow step.",
-          });
-          onUpdate();
-        },
-        onError: (error: any) => {
-          toast({
-            title: "Failed to Reopen Step",
-            description: error.message || "An error occurred while trying to reopen the step.",
-            variant: "destructive",
-          });
-        }
-      }
-    );
+    reopenStepMutation.mutate({
+      projectId: project.id,
+      targetStatus: 'in_progress', // Reopen to previous step
+      reason: 'Manual reopening from post-work step'
+    });
   };
 
   // Check if auto-generated project
@@ -594,11 +585,11 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                   <Input
                                     type="date"
                                     min={format(new Date(), 'yyyy-MM-dd')}
-                                    value={getTaskValue(task, 'dueDate') || ''}
+                                    value={getTaskValue(task, 'due_date') || ''}
                                     onChange={(e) => {
                                       // Store the date string directly to avoid timezone issues
                                       const dateValue = e.target.value || null;
-                                      handleTaskEdit(task.id, 'dueDate', dateValue);
+                                      handleTaskEdit(task.id, 'due_date', dateValue);
                                     }}
                                     className="flex-1"
                                     data-testid={`input-postwork-task-due-date-${index}`}
@@ -701,7 +692,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                   </p>
                                 )}
                               </div>
-                              {update.confirmed && (
+                              {element.confirmed && (
                                 <Badge className="bg-green-600">
                                   <ShieldCheck className="h-3 w-3 mr-1" />
                                   Confirmed
@@ -857,7 +848,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                           <div className="flex justify-between text-sm mb-2">
                             <span>Element Confirmations</span>
                             <span className="font-medium">
-                              {projectElements.filter(el => elementLifespanUpdates[el.elementId]?.confirmed).length} / {projectElements.length}
+                              {projectElements.filter(el => el.confirmed).length} / {projectElements.length}
                             </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -865,7 +856,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               className="bg-blue-600 h-2 rounded-full transition-all" 
                               style={{ 
                                 width: `${projectElements.length > 0 ? 
-                                  (projectElements.filter(el => elementLifespanUpdates[el.elementId]?.confirmed).length / projectElements.length) * 100 : 0}%` 
+                                  (projectElements.filter(el => el.confirmed).length / projectElements.length) * 100 : 0}%` 
                               }}
                             />
                           </div>
