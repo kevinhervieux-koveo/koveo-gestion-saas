@@ -4588,6 +4588,142 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         </div>
       </div>
 
+      {/* Add Quick Project Dialog */}
+      <Dialog open={addQuickProjectDialogOpen} onOpenChange={setAddQuickProjectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Quick Project</DialogTitle>
+            <DialogDescription>
+              Create a quick project for budget planning. This will be added to your maintenance projects.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='space-y-4'>
+            <div className='space-y-2'>
+              <Label htmlFor="quick-project-title">Project Title *</Label>
+              <Input
+                id="quick-project-title"
+                value={newQuickProject.title}
+                onChange={(e) => setNewQuickProject(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter project title"
+                data-testid="input-quick-project-title"
+              />
+            </div>
+            
+            <div className='space-y-2'>
+              <Label htmlFor="quick-project-description">Description</Label>
+              <Input
+                id="quick-project-description"
+                value={newQuickProject.description}
+                onChange={(e) => setNewQuickProject(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Optional project description"
+                data-testid="input-quick-project-description"
+              />
+            </div>
+            
+            <div className='grid grid-cols-2 gap-4'>
+              <div className='space-y-2'>
+                <Label htmlFor="quick-project-budget">Total Budget *</Label>
+                <div className='relative'>
+                  <DollarSign className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
+                  <Input
+                    id="quick-project-budget"
+                    type="number"
+                    step="0.01"
+                    value={newQuickProject.totalBudget}
+                    onChange={(e) => setNewQuickProject(prev => ({ ...prev, totalBudget: e.target.value }))}
+                    className="pl-9"
+                    placeholder="0.00"
+                    data-testid="input-quick-project-budget"
+                  />
+                </div>
+              </div>
+              
+              <div className='space-y-2'>
+                <Label htmlFor="quick-project-financial-year">Financial Year *</Label>
+                <Input
+                  id="quick-project-financial-year"
+                  type="number"
+                  value={newQuickProject.financialYear}
+                  onChange={(e) => setNewQuickProject(prev => ({ ...prev, financialYear: e.target.value }))}
+                  placeholder={new Date().getFullYear().toString()}
+                  data-testid="input-quick-project-financial-year"
+                />
+              </div>
+            </div>
+            
+            <div className='flex gap-2 pt-4'>
+              <Button 
+                onClick={() => {
+                  // Validate required fields
+                  if (!newQuickProject.title.trim() || !newQuickProject.totalBudget || !newQuickProject.financialYear) {
+                    toast({
+                      title: 'Validation Error',
+                      description: 'Please fill in all required fields (Title, Budget, Financial Year)',
+                      variant: 'destructive',
+                    });
+                    return;
+                  }
+
+                  // Add the project to local state
+                  const newProject: Project = {
+                    id: Date.now().toString(), // Temporary ID until saved to server
+                    title: newQuickProject.title.trim(),
+                    totalBudget: parseFloat(newQuickProject.totalBudget),
+                    actualCost: 0,
+                    financialYear: parseInt(newQuickProject.financialYear),
+                    status: 'planned',
+                    type: 'maintenance',
+                    origin: 'manual',
+                    isQuickProject: true,
+                    includeInBudget: true,
+                    estimatedCost: parseFloat(newQuickProject.totalBudget),
+                  };
+
+                  setProjects(prev => [...prev, newProject]);
+                  projectStatesRef.current.set(newProject.id, true);
+
+                  // Reset form
+                  setNewQuickProject({
+                    title: '',
+                    totalBudget: '',
+                    financialYear: new Date().getFullYear().toString(),
+                    description: '',
+                  });
+
+                  // Close dialog
+                  setAddQuickProjectDialogOpen(false);
+
+                  toast({
+                    title: 'Quick Project Added',
+                    description: `"${newProject.title}" has been added to your projects list`,
+                  });
+                }}
+                className='flex-1' 
+                data-testid="button-save-quick-project"
+              >
+                Add Project
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setAddQuickProjectDialogOpen(false);
+                  // Reset form on cancel
+                  setNewQuickProject({
+                    title: '',
+                    totalBudget: '',
+                    financialYear: new Date().getFullYear().toString(),
+                    description: '',
+                  });
+                }}
+                data-testid="button-cancel-quick-project"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Floating Refresh Button */}
       <Button
         variant="default"
