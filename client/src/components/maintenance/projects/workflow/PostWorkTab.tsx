@@ -215,19 +215,26 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   };
 
   // Initialize element lifespan updates when elements load (non-confirmation data)
+  // Preserve existing local changes to prevent resetting intervention types on data refresh
   useEffect(() => {
     if (projectElements.length > 0) {
-      const initialUpdates: Record<string, Omit<ElementLifespanUpdate, 'confirmed'>> = {};
-      projectElements.forEach(element => {
-        // Use the project type from element, or default to current intervention type
-        const interventionType: InterventionType = element.projectType as InterventionType || 'nothing';
-        initialUpdates[element.elementId] = {
-          elementId: element.elementId,
-          interventionType,
-          lifespanImpactYears: calculateLifespanSuggestion(interventionType, element.element),
-        };
+      setElementLifespanUpdates(prev => {
+        const newUpdates = { ...prev };
+        
+        projectElements.forEach(element => {
+          // Only initialize if this element doesn't already have local updates
+          if (!newUpdates[element.elementId]) {
+            const interventionType: InterventionType = element.projectType as InterventionType || 'nothing';
+            newUpdates[element.elementId] = {
+              elementId: element.elementId,
+              interventionType,
+              lifespanImpactYears: calculateLifespanSuggestion(interventionType, element.element),
+            };
+          }
+        });
+        
+        return newUpdates;
       });
-      setElementLifespanUpdates(initialUpdates);
     }
   }, [projectElements]);
 
