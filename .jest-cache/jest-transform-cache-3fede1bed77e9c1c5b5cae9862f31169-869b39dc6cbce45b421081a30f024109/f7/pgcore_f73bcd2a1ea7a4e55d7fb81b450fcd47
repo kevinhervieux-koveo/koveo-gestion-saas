@@ -1,16 +1,10 @@
+8cf85b77dfcb9223864d2bc3a3d69b8b
 // Direct mock for drizzle-orm/pg-core to fix schema import issues
 const pgEnum = jest.fn().mockImplementation((name, values) => {
-  // Create a callable function that returns chainable column objects like other drizzle columns
-  const enumFunc = jest.fn().mockImplementation((value) => {
-    // Return a chainable column object using the same createChainableColumn function
-    return createChainableColumn('enum', name, { 
-      enumValue: value, 
-      enumName: name, 
-      enumValues: values 
-    });
-  });
+  // Create a callable function that behaves like a drizzle enum
+  const enumFunc = jest.fn().mockImplementation((value) => value);
   
-  // Attach enum properties to the function for static access
+  // Attach enum properties to the function
   enumFunc.name = name;
   enumFunc.values = values;
   enumFunc.enumValues = values;

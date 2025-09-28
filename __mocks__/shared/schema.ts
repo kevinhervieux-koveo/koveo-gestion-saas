@@ -3,14 +3,55 @@
  * This ensures test isolation and prevents import errors during unit testing
  */
 
-// Helper function to create callable enum mocks
-const createEnumMock = (name: string, values: string[]) => {
-  // Create a simple function that returns the passed value
-  const enumFunc = function(value: string) {
-    return value;
+// Helper function to create chainable column objects like regular drizzle columns
+const createChainableColumn = (type: string, name: string, options: any = {}) => {
+  const column: any = {
+    type,
+    name,
+    ...options,
+    // Add common column properties
+    isColumn: true,
+    columnType: type,
+    sqlName: name
   };
   
-  // Attach enum properties to the function (avoid read-only 'name' property)
+  // Create chainable methods that return new column instances
+  const chainableMethods = [
+    'primaryKey', 'notNull', 'unique', 'default', 'references', 
+    'onDelete', 'onUpdate', 'array', '$default', '$type',
+    'check', 'foreignKey', 'index'
+  ];
+  
+  chainableMethods.forEach(method => {
+    column[method] = jest.fn((...args: any[]) => {
+      const newOptions = { ...options, [method]: true };
+      if (args.length > 0) {
+        newOptions[`${method}Args`] = args;
+      }
+      return createChainableColumn(type, name, newOptions);
+    });
+  });
+  
+  // Add special methods
+  column.$inferSelect = jest.fn(() => ({}));
+  column.$inferInsert = jest.fn(() => ({}));
+  
+  return column;
+};
+
+// Helper function to create callable enum mocks that return chainable columns
+const createEnumMock = (name: string, values: string[]) => {
+  // Create a function that returns a chainable column when called
+  const enumFunc = function(value: string) {
+    // Return a chainable column object like other drizzle column types
+    return createChainableColumn('enum', name, { 
+      enumValue: value, 
+      enumName: name, 
+      enumValues: values 
+    });
+  };
+  
+  // Attach enum properties to the function for static access
   (enumFunc as any).enumName = name;
   (enumFunc as any).enumValues = values;
   (enumFunc as any).values = values;
