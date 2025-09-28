@@ -845,3 +845,48 @@ export function getFirstIncompleteTab(currentStatus: string, skipFlags: SkipFlag
   // Return current status as it's the first incomplete tab
   return currentStatus;
 }
+
+/**
+ * Mutation to delete a project
+ */
+export function useDeleteProject() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (projectId: string) => {
+      const response = await apiRequest('DELETE', `/api/maintenance/projects/${projectId}`);
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Failed to delete project' }));
+        throw new Error(error.message || 'Failed to delete project');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: (data, projectId) => {
+      // Invalidate projects list
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/maintenance/buildings'] 
+      });
+      
+      // Remove specific project from cache
+      queryClient.removeQueries({
+        queryKey: ['/api/maintenance/projects', projectId]
+      });
+
+      toast({
+        title: 'Project Deleted',
+        description: 'The project has been permanently deleted',
+      });
+    },
+    onError: (error: Error) => {
+      console.error('Failed to delete project:', error);
+      toast({
+        title: 'Delete Failed',
+        description: error.message || 'Failed to delete project',
+        variant: 'destructive',
+      });
+    },
+  });
+}

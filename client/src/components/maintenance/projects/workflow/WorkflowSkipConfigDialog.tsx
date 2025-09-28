@@ -8,17 +8,29 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUpdateSkipFlags, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
-import { Settings, CheckCircle2, Clock, Users, Building2, Wrench } from 'lucide-react';
+import { useUpdateSkipFlags, useDeleteProject, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { Settings, CheckCircle2, Clock, Users, Building2, Wrench, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface WorkflowSkipConfigDialogProps {
   projectId: string;
   workflowState: ProjectWorkflowState;
   onUpdate: () => void;
+  onDelete?: () => void; // Callback when project is deleted
 }
 
 const STEP_CONFIG = {
@@ -54,10 +66,12 @@ const STEP_CONFIG = {
 export function WorkflowSkipConfigDialog({ 
   projectId, 
   workflowState, 
-  onUpdate 
+  onUpdate,
+  onDelete 
 }: WorkflowSkipConfigDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { mutate: updateSkipFlags, isPending } = useUpdateSkipFlags();
+  const { mutate: deleteProject, isPending: isDeleting } = useDeleteProject();
 
   const handleSkipFlagChange = (stepKey: keyof typeof workflowState.skipFlags, enabled: boolean) => {
     const currentSkipFlags = workflowState.skipFlags || {};
@@ -81,6 +95,17 @@ export function WorkflowSkipConfigDialog({
         },
       }
     );
+  };
+
+  const handleDeleteProject = () => {
+    deleteProject(projectId, {
+      onSuccess: () => {
+        setIsOpen(false);
+        if (onDelete) {
+          onDelete();
+        }
+      },
+    });
   };
 
   const getStepStatus = (stepId: string) => {
@@ -208,9 +233,45 @@ export function WorkflowSkipConfigDialog({
         </div>
 
         <div className="flex items-center justify-between pt-4 border-t">
-          <div className="text-sm text-muted-foreground">
-            Changes are applied immediately
+          <div className="flex items-center gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  disabled={isDeleting}
+                  data-testid="button-delete-project"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {isDeleting ? 'Deleting...' : 'Delete Project'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to permanently delete this project? This action cannot be undone.
+                    All project data, tasks, vendor submissions, and workflow history will be permanently removed.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteProject}
+                    className="bg-red-600 hover:bg-red-700"
+                    data-testid="confirm-delete-project"
+                  >
+                    Delete Permanently
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            
+            <div className="text-sm text-muted-foreground">
+              Changes are applied immediately
+            </div>
           </div>
+          
           <Button onClick={() => setIsOpen(false)} data-testid="button-close-config">
             Close
           </Button>
