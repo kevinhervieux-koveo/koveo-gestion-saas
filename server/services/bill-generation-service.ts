@@ -551,9 +551,7 @@ export class BillAutoGenerationService {
     // Check if there are already auto-generated bills to avoid duplicates
     const existingBills = await this.getBillsByReference(parentBill.id);
     if (existingBills.length > 0) {
-      // console.log(
-        `⚠️ Found ${existingBills.length} existing auto-generated bills, skipping generation`
-      );
+      // console.log(`⚠️ Found ${existingBills.length} existing auto-generated bills, skipping generation`);
       return {
         billsCreated: 0,
         generatedUntil: endDate.toISOString().split('T')[0],
@@ -1086,9 +1084,7 @@ export class BillAutoGenerationService {
   ): Promise<{
     billsDeleted: number;
   }> {
-    // console.log(
-      `🗑️ Deleting generated bills for parent ${parentBillId}, deleteAllFuture: ${deleteAllFuture}`
-    );
+    // console.log(`🗑️ Deleting generated bills for parent ${parentBillId}, deleteAllFuture: ${deleteAllFuture}`);
 
     let whereCondition;
 

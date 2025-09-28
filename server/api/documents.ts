@@ -1330,14 +1330,14 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Debug logging
       // console.log('🔍 [DOCUMENTS API DEBUG]:', {
-        filters,
-        documentsFound: documents?.length || 0,
-        specificResidenceId,
-        attachedToType,
-        attachedToId,
-        userRole,
-        userId,
-      });
+      //   filters,
+      //   documentsFound: documents?.length || 0,
+      //   specificResidenceId,
+      //   attachedToType,
+      //   attachedToId,
+      //   userRole,
+      //   userId,
+      // });
 
       // Apply role-based filtering with tenant visibility rules
       const filteredDocumentRecords = documents.filter((doc) => {
@@ -1601,12 +1601,12 @@ export function registerDocumentRoutes(app: Express): void {
 
       if (req.file) {
         // console.log(`📄 [DOCUMENTS UPLOAD] File details:`, {
-          originalName: req.file.originalname,
-          mimeType: req.file.mimetype,
-          size: req.file.size,
-          tempPath: req.file.path,
-          encoding: req.file.encoding
-        });
+        //   originalName: req.file.originalname,
+        //   mimeType: req.file.mimetype,
+        //   size: req.file.size,
+        //   tempPath: req.file.path,
+        //   encoding: req.file.encoding
+        // });
       }
 
       // Enhanced rate limiting with detailed tracking
@@ -1887,12 +1887,12 @@ export function registerDocumentRoutes(app: Express): void {
           const permanentDir = path.join(process.cwd(), 'uploads', 'buildings', buildingId);
           
           // console.log(`🏢 [BUILDING UPLOAD] File paths:`, {
-            originalName: req.file.originalname,
-            newFileName: fileName,
-            tempPath: req.file.path,
-            permanentDir,
-            directoryExists: fs.existsSync(permanentDir)
-          });
+          //   originalName: req.file.originalname,
+          //   newFileName: fileName,
+          //   tempPath: req.file.path,
+          //   permanentDir,
+          //   directoryExists: fs.existsSync(permanentDir)
+          // });
           
           // Ensure directory exists
           if (!fs.existsSync(permanentDir)) {
@@ -1925,15 +1925,15 @@ export function registerDocumentRoutes(app: Express): void {
         };
         
         // console.log(`🏢 [BUILDING UPLOAD] Data to validate:`, {
-          buildingId,
-          uploadedById: userId,
-          filePath,
-          fileName,
-          fileSize: req.file?.size,
-          mimeType: req.file?.mimetype,
-          documentType: documentType || type || 'other',
-          otherDataKeys: Object.keys(otherData)
-        });
+        //   buildingId,
+        //   uploadedById: userId,
+        //   filePath,
+        //   fileName,
+        //   fileSize: req.file?.size,
+        //   mimeType: req.file?.mimetype,
+        //   documentType: documentType || type || 'other',
+        //   otherDataKeys: Object.keys(otherData)
+        // });
         
         let validatedData;
         try {
@@ -2007,12 +2007,12 @@ export function registerDocumentRoutes(app: Express): void {
         };
 
         // console.log(`🏢 [BUILDING UPLOAD] Creating document in database:`, {
-          name: unifiedDocument.name,
-          documentType: unifiedDocument.documentType,
-          filePath: unifiedDocument.filePath,
-          buildingId: unifiedDocument.buildingId,
-          uploadedById: unifiedDocument.uploadedById
-        });
+        //   name: unifiedDocument.name,
+        //   documentType: unifiedDocument.documentType,
+        //   filePath: unifiedDocument.filePath,
+        //   buildingId: unifiedDocument.buildingId,
+        //   uploadedById: unifiedDocument.uploadedById
+        // });
 
         const document = await storage.createDocument(unifiedDocument);
         // console.log(`✅ [BUILDING UPLOAD] Document created successfully with ID: ${document.id}`);
@@ -2048,12 +2048,12 @@ export function registerDocumentRoutes(app: Express): void {
           const permanentDir = path.join(process.cwd(), 'uploads', 'residences', residenceId);
           
           // console.log(`🏠 [RESIDENCE UPLOAD] File paths:`, {
-            originalName: req.file.originalname,
-            newFileName: fileName,
-            tempPath: req.file.path,
-            permanentDir,
-            directoryExists: fs.existsSync(permanentDir)
-          });
+          //   originalName: req.file.originalname,
+          //   newFileName: fileName,
+          //   tempPath: req.file.path,
+          //   permanentDir,
+          //   directoryExists: fs.existsSync(permanentDir)
+          // });
           
           // Ensure directory exists
           if (!fs.existsSync(permanentDir)) {
@@ -2086,11 +2086,11 @@ export function registerDocumentRoutes(app: Express): void {
         };
         
         // console.log('🔍 Residence document validation debug:', {
-          dataToValidate,
-          documentType,
-          otherDataKeys: Object.keys(otherData),
-          hasFile: !!req.file
-        });
+        //   dataToValidate,
+        //   documentType,
+        //   otherDataKeys: Object.keys(otherData),
+        //   hasFile: !!req.file
+        // });
         
         let validatedData;
         try {
@@ -2211,12 +2211,12 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // console.log(`📝 [DOCUMENT UPDATE] Existing document:`, {
-        id: existingDocument.id,
-        name: existingDocument.name,
-        filePath: existingDocument.filePath,
-        buildingId: existingDocument.buildingId,
-        residenceId: existingDocument.residenceId
-      });
+      //   id: existingDocument.id,
+      //   name: existingDocument.name,
+      //   filePath: existingDocument.filePath,
+      //   buildingId: existingDocument.buildingId,
+      //   residenceId: existingDocument.residenceId
+      // });
 
       // Check permissions (similar to view permissions)
       let hasAccess = false;
@@ -2259,11 +2259,11 @@ export function registerDocumentRoutes(app: Express): void {
       // Handle file replacement if provided
       if (req.file) {
         // console.log(`📝 [DOCUMENT UPDATE] Processing file replacement:`, {
-          originalname: req.file.originalname,
-          size: req.file.size,
-          mimetype: req.file.mimetype,
-          tempPath: req.file.path
-        });
+        //   originalname: req.file.originalname,
+        //   size: req.file.size,
+        //   mimetype: req.file.mimetype,
+        //   tempPath: req.file.path
+        // });
 
         // Validate the file
         const fileValidation = validateFile(req.file);
@@ -2331,9 +2331,9 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // console.log(`✅ [DOCUMENT UPDATE] Document updated successfully:`, {
-        id: (updatedDocument as any).id,
-        name: (updatedDocument as any).name
-      });
+      //   id: (updatedDocument as any).id,
+      //   name: (updatedDocument as any).name
+      // });
 
       // Add compatibility fields for frontend
       (updatedDocument as any).documentCategory = (updatedDocument as any).buildingId ? 'building' : 'resident';
@@ -2665,23 +2665,23 @@ export function registerDocumentRoutes(app: Express): void {
         const { documentType = 'resident', residenceId, ...otherData } = req.body;
 
         // console.log('📤 Upload request received:', {
-          documentId,
-          userId,
-          userRole,
-          hasFile: !!req.file,
-          fileInfo: req.file
-            ? {
-                fieldname: req.file.fieldname,
-                originalname: req.file.originalname,
-                encoding: req.file.encoding,
-                mimetype: req.file.mimetype,
-                size: req.file.size,
-                path: req.file.path,
-              }
-            : null,
-          bodyKeys: Object.keys(req.body),
-          contentType: req.headers['content-type'],
-        });
+        //   documentId,
+        //   userId,
+        //   userRole,
+        //   hasFile: !!req.file,
+        //   fileInfo: req.file
+        //     ? {
+        //         fieldname: req.file.fieldname,
+        //         originalname: req.file.originalname,
+        //         encoding: req.file.encoding,
+        //         mimetype: req.file.mimetype,
+        //         size: req.file.size,
+        //         path: req.file.path,
+        //       }
+        //     : null,
+        //   bodyKeys: Object.keys(req.body),
+        //   contentType: req.headers['content-type'],
+        // });
 
         // Validate permissions - only admin, manager, and resident can create documents
         if (!['admin', 'manager', 'resident'].includes(userRole)) {
@@ -2791,17 +2791,17 @@ export function registerDocumentRoutes(app: Express): void {
       const { textContent, name, description, documentType, attachedToType, attachedToId, buildingId, residenceId, isVisibleToTenants, effectiveDate } = req.body;
       
       // console.log(`[${timestamp}] 🔍 Text document data:`, {
-        textContentLength: textContent?.length,
-        name,
-        description,
-        documentType,
-        attachedToType,
-        attachedToId,
-        buildingId,
-        residenceId,
-        isVisibleToTenants,
-        userId
-      });
+      //   textContentLength: textContent?.length,
+      //   name,
+      //   description,
+      //   documentType,
+      //   attachedToType,
+      //   attachedToId,
+      //   buildingId,
+      //   residenceId,
+      //   isVisibleToTenants,
+      //   userId
+      // });
       
       // Validate required fields
       if (!textContent || !name) {
@@ -2865,20 +2865,20 @@ export function registerDocumentRoutes(app: Express): void {
       };
       
       // console.log(`[${timestamp}] 💾 Creating document record in database:`, {
-        ...documentData,
-        textContentLength: textContent.length
-      });
+      //   ...documentData,
+      //   textContentLength: textContent.length
+      // });
       
       // Create document record in database
       const document = await storage.createDocument(documentData);
       
       // console.log(`[${timestamp}] ✅ Text document created successfully:`, {
-        documentId: document.id,
-        name: document.name,
-        filePath: document.filePath,
-        attachedToType: document.attachedToType,
-        attachedToId: document.attachedToId
-      });
+      //   documentId: document.id,
+      //   name: document.name,
+      //   filePath: document.filePath,
+      //   attachedToType: document.attachedToType,
+      //   attachedToId: document.attachedToId
+      // });
       
       return res.status(201).json({
         message: 'Text document created successfully',
@@ -2916,12 +2916,12 @@ export function registerDocumentRoutes(app: Express): void {
   app.post('/api/documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     const timestamp = new Date().toISOString();
     // console.log(`[${timestamp}] 📋 POST /api/documents/upload - Starting upload`, {
-      hasFile: !!req.file,
-      fileName: req.file?.originalname,
-      fileSize: req.file?.size,
-      body: req.body,
-      userId: req.user?.id
-    });
+    //   hasFile: !!req.file,
+    //   fileName: req.file?.originalname,
+    //   fileSize: req.file?.size,
+    //   body: req.body,
+    //   userId: req.user?.id
+    // });
     
     try {
       // Check if we have either a file or text content
@@ -2963,10 +2963,10 @@ export function registerDocumentRoutes(app: Express): void {
       // DEBUG: Log validated data to see what's being passed
       // console.log(`[${timestamp}] 🔍 VALIDATION DEBUG: Form data before validation:`, formData);
       // console.log(`[${timestamp}] 🔍 VALIDATION DEBUG: Validated data:`, {
-        ...validatedData,
-        hasAttachedToType: !!validatedData.attachedToType,
-        hasAttachedToId: !!validatedData.attachedToId
-      });
+      //   ...validatedData,
+      //   hasAttachedToType: !!validatedData.attachedToType,
+      //   hasAttachedToId: !!validatedData.attachedToId
+      // });
       
       // Production debugging: Log after validation
       if (process.env.NODE_ENV === 'production') {

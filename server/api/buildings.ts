@@ -78,24 +78,17 @@ async function handleResidenceChanges(
             //   residence.id
             // );
           } catch (storageError) {
-            // console.error(
-              `⚠️ Error creating storage hierarchy for residence ${residence.id}:`,
-              storageError
-            );
+            // console.error(`⚠️ Error creating storage hierarchy for residence ${residence.id}:`, storageError);
             // Don't fail the whole operation for storage errors
           }
         }
 
-        // console.log(
-          `✅ Created ${createdResidences.length} new residences for building ${buildingId}`
-        );
+        // console.log(`✅ Created ${createdResidences.length} new residences for building ${buildingId}`);
       }
     } else if (newTotalUnits < currentResidenceCount) {
       // Need to delete some residences
       const residencesToDelete = currentResidenceCount - newTotalUnits;
-      // console.log(
-        `📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`
-      );
+      // console.log(`📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`);
 
       // Get residences that can be safely deleted (no active user relationships)
       const deletableResidences = await db
@@ -127,23 +120,17 @@ async function handleResidenceChanges(
           })
           .where(inArray(residences.id, residenceIdsToDelete));
 
-        // console.log(
-          `✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`
-        );
+        // console.log(`✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`);
 
         // Log which residences couldn't be deleted due to user relationships
         const protectedCount = residencesToDelete - deletableResidences.length;
         if (protectedCount > 0) {
-          // console.log(
-            `⚠️ Could not delete ${protectedCount} residences - they have active user relationships`
-          );
+          // console.log(`⚠️ Could not delete ${protectedCount} residences - they have active user relationships`);
         }
       } else {
       }
     } else {
-      // console.log(
-        `✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`
-      );
+      // console.log(`✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`);
     }
     // Don't throw the error to avoid breaking the building update
   } catch (error: any) {
@@ -230,14 +217,9 @@ export function registerBuildingRoutes(app: Express): void {
           .orderBy(organizations.name, buildings.name);
       } else {
         // Managers and other roles: only buildings from their organizations
-        // console.log(
-          `🔍 [BUILDINGS DEBUG] Non-admin user (${user.role}) - checking organization access. User ${user.id} organizations:`,
-          user.organizations
-        );
+        // console.log(`🔍 [BUILDINGS DEBUG] Non-admin user (${user.role}) - checking organization access. User ${user.id} organizations:`, user.organizations);
         if (!user.organizations || user.organizations.length === 0) {
-          // console.log(
-            `🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`
-          );
+          // console.log(`🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`);
 
           // For tenant/resident roles: Get buildings through their residences
           if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
@@ -249,9 +231,7 @@ export function registerBuildingRoutes(app: Express): void {
               .innerJoin(residences, eq(userResidences.residenceId, residences.id))
               .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
 
-            // console.log(
-              `🔍 [BUILDINGS DEBUG] Found ${userResidencesList.length} residences for user ${user.id}`
-            );
+            // console.log(`🔍 [BUILDINGS DEBUG] Found ${userResidencesList.length} residences for user ${user.id}`);
 
             if (userResidencesList.length === 0) {
               return res.json([]); // No residences = no buildings
@@ -649,9 +629,7 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
-      // console.log(
-        `📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`
-      );
+      // console.log(`📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`);
 
       let hasAccess = false;
       let accessType = '';
@@ -943,9 +921,7 @@ export function registerBuildingRoutes(app: Express): void {
             .values(residencesToCreate)
             .returning();
 
-          // console.log(
-            `✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`
-          );
+          // console.log(`✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`);
 
           // TODO: Object storage service integration
           // Create object storage hierarchy for each residence
@@ -1101,9 +1077,7 @@ export function registerBuildingRoutes(app: Express): void {
       const newTotalUnits = buildingData.totalUnits || 0;
       const previousTotalUnits = existingBuilding[0].totalUnits || 0;
 
-      // console.log(
-        `🔄 Building ${buildingId}: ${previousTotalUnits} → ${newTotalUnits} units (currently has ${currentResidenceCount} active residences)`
-      );
+      // console.log(`🔄 Building ${buildingId}: ${previousTotalUnits} → ${newTotalUnits} units (currently has ${currentResidenceCount} active residences)`);
 
       // Update building
       const updatedBuilding = await db
@@ -1472,9 +1446,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       const { buildingId } = req.params;
 
-      // console.log(
-        `📊 Fetching residences for building ${buildingId} by user ${currentUser.id} with role ${currentUser.role}`
-      );
+      // console.log(`📊 Fetching residences for building ${buildingId} by user ${currentUser.id} with role ${currentUser.role}`);
 
       // First, verify the user has access to this building
       const userBuildingAccess = await db

@@ -1538,9 +1538,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        // console.log(
-          `✅ Set time limit for user ${targetUser[0].firstName} ${targetUser[0].lastName}: ${limit_hours}h per ${limit_type}`
-        );
+        // console.log(`✅ Set time limit for user ${targetUser[0].firstName} ${targetUser[0].lastName}: ${limit_hours}h per ${limit_type}`);
 
         res.json({
           message: 'Time limit set successfully',

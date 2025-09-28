@@ -153,11 +153,11 @@ export function registerBugRoutes(app: Express): void {
         // Fix filename encoding issues
         const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
         // console.log(`📎 Processing attachment for new bug:`, {
-          originalname: originalname,
-          filename: req.file.filename,
-          size: req.file.size,
-          mimetype: req.file.mimetype
-        });
+        //   originalname: originalname,
+        //   filename: req.file.filename,
+        //   size: req.file.size,
+        //   mimetype: req.file.mimetype
+        // });
         bugData = {
           ...bugData,
           filePath: `general/${req.file.filename}`,
@@ -196,12 +196,12 @@ export function registerBugRoutes(app: Express): void {
 
       // Log the final bugData before saving
       // console.log(`🐛 Creating bug with data:`, {
-        title: bugData.title,
-        hasFile: !!bugData.filePath,
-        filePath: bugData.filePath,
-        fileName: bugData.fileName,
-        fileSize: bugData.fileSize
-      });
+      //   title: bugData.title,
+      //   hasFile: !!bugData.filePath,
+      //   filePath: bugData.filePath,
+      //   fileName: bugData.fileName,
+      //   fileSize: bugData.fileSize
+      // });
 
       const bug = await storage.createBug(bugData);
 

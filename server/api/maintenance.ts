@@ -2915,20 +2915,21 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       // DEBUG: Log incoming request data
-      console.group(`📝 [BACKEND] POST /api/maintenance/projects - User: ${user.email || user.id}`);
-        buildingId: typeof req.body.buildingId,
-        projectNumber: typeof req.body.projectNumber,
-        title: typeof req.body.title,
-        type: typeof req.body.type,
-        priority: typeof req.body.priority,
-        totalBudget: typeof req.body.totalBudget,
-        actualCost: typeof req.body.actualCost,
-        plannedStartDate: typeof req.body.plannedStartDate,
-        planningDescription: typeof req.body.planningDescription,
-        suggestionId: typeof req.body.suggestionId,
-        status: typeof req.body.status
-      });
-      console.groupEnd();
+      // console.group(`📝 [BACKEND] POST /api/maintenance/projects - User: ${user.email || user.id}`);
+      // console.log({
+      //   buildingId: typeof req.body.buildingId,
+      //   projectNumber: typeof req.body.projectNumber,
+      //   title: typeof req.body.title,
+      //   type: typeof req.body.type,
+      //   priority: typeof req.body.priority,
+      //   totalBudget: typeof req.body.totalBudget,
+      //   actualCost: typeof req.body.actualCost,
+      //   plannedStartDate: typeof req.body.plannedStartDate,
+      //   planningDescription: typeof req.body.planningDescription,
+      //   suggestionId: typeof req.body.suggestionId,
+      //   status: typeof req.body.status
+      // });
+      // console.groupEnd();
       
       const validation = maintenanceProjectCreateSchema.safeParse(req.body);
       if (!validation.success) {

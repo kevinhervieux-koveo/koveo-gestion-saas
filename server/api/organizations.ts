@@ -42,9 +42,7 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      // console.log(
-        `📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`
-      );
+      // console.log(`📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`);
 
       // Get organizations based on user role
       let organizationsQuery;
@@ -101,9 +99,7 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const accessibleOrganizations = await organizationsQuery;
-      // console.log(
-        `✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`
-      );
+      // console.log(`✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`);
 
       // Return array directly (not wrapped in object)
       res.json(accessibleOrganizations);
@@ -366,9 +362,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
 
       // Organization storage hierarchy will be created automatically when documents are uploaded
-      // console.log(
-        'Organization created - storage hierarchy will be created on first document upload'
-      );
+      // console.log('Organization created - storage hierarchy will be created on first document upload');
 
       res.status(201).json(newOrganization);
     } catch (error: any) {
@@ -660,9 +654,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .where(inArray(residences.buildingId, orgBuildingIds))
           .returning({ id: residences.id, unitNumber: residences.unitNumber });
 
-        // console.log(
-          `🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`
-        );
+        // console.log(`🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`);
 
         // 3. Soft delete buildings
         const affectedBuildings = await db
@@ -671,9 +663,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .where(inArray(buildings.id, orgBuildingIds))
           .returning({ id: buildings.id, name: buildings.name });
 
-        // console.log(
-          `🗑️ Soft deleted ${affectedBuildings.length} buildings: ${affectedBuildings.map((b) => b.name).join(', ')}`
-        );
+        // console.log(`🗑️ Soft deleted ${affectedBuildings.length} buildings: ${affectedBuildings.map((b) => b.name).join(', ')}`);
       }
 
       // 4. Delete user-organization relationships
@@ -702,8 +692,7 @@ export function registerOrganizationRoutes(app: Express): void {
         .where(and(eq(users.isActive, true), isNull(userOrganizations.userId)));
       
       if (affectedUsers.length > 0) {
-        // console.log(`⚠️  ${affectedUsers.length} users are now without organization assignments but have been preserved:`, 
-          affectedUsers.map(u => u.email));
+        // console.log(`⚠️  ${affectedUsers.length} users are now without organization assignments but have been preserved:`, affectedUsers.map(u => u.email));
 
         // DISABLED: Users are no longer deleted - they are preserved for data safety
       }
@@ -719,10 +708,7 @@ export function registerOrganizationRoutes(app: Express): void {
       try {
         // console.log('Organization deleted - storage cleanup will be handled automatically');
       } catch (storageError) {
-        // console.error(
-          '⚠️ Object storage cleanup failed, but organization deletion succeeded:',
-          storageError
-        );
+        // console.error('⚠️ Object storage cleanup failed, but organization deletion succeeded:', storageError);
       }
 
       res.json({
@@ -755,9 +741,7 @@ export function registerOrganizationRoutes(app: Express): void {
       const { organizationId } = req.params;
       const { has_common_spaces } = req.query;
 
-      // console.log(
-        `📊 Fetching buildings for organization ${organizationId} by user ${currentUser.id} with role ${currentUser.role}${has_common_spaces === 'true' ? ' (with common spaces filter)' : ''}`
-      );
+      // console.log(`📊 Fetching buildings for organization ${organizationId} by user ${currentUser.id} with role ${currentUser.role}${has_common_spaces === 'true' ? ' (with common spaces filter)' : ''}`);
 
       // First, verify the user has access to this organization
       const userOrgAccess = await db

@@ -448,11 +448,11 @@ export function registerDemandRoutes(app: Express) {
       }
       
       // console.log('✅ Final demand data before insertion:', {
-        buildingId: validatedData.buildingId,
-        residenceId: validatedData.residenceId,
-        type: validatedData.type,
-        description: validatedData.description
-      });
+      //   buildingId: validatedData.buildingId,
+      //   residenceId: validatedData.residenceId,
+      //   type: validatedData.type,
+      //   description: validatedData.description
+      // });
 
       const demandInsertData = {
         ...validatedData,

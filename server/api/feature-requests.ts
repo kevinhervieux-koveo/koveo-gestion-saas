@@ -53,9 +53,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
         });
       }
 
-      // console.log(
-        `📋 Fetching feature requests for user ${currentUser.id} with role ${currentUser.role}`
-      );
+      // console.log(`📋 Fetching feature requests for user ${currentUser.id} with role ${currentUser.role}`);
 
       const featureRequests = await storage.getFeatureRequestsForUser(
         currentUser.id,

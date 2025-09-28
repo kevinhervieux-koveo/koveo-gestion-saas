@@ -980,11 +980,11 @@ export function registerBillRoutes(app: Express) {
         }
 
         // console.log(`📄 [BILLS UPLOAD] File received:`, {
-          originalName: req.file.originalname,
-          mimeType: req.file.mimetype,
-          size: req.file.size,
-          tempPath: req.file.path
-        });
+        //   originalName: req.file.originalname,
+        //   mimeType: req.file.mimetype,
+        //   size: req.file.size,
+        //   tempPath: req.file.path
+        // });
         
         // SECURITY: Validate file content using magic numbers
         try {
@@ -1041,11 +1041,11 @@ export function registerBillRoutes(app: Express) {
         }
         
         // console.log(`📄 [BILLS UPLOAD] Directory paths:`, {
-          uploadsDir,
-          orgDir,
-          uploadsExists: fs.existsSync(uploadsDir),
-          orgDirExists: fs.existsSync(orgDir)
-        });
+        //   uploadsDir,
+        //   orgDir,
+        //   uploadsExists: fs.existsSync(uploadsDir),
+        //   orgDirExists: fs.existsSync(orgDir)
+        // });
         
         if (!fs.existsSync(uploadsDir)) {
           fs.mkdirSync(uploadsDir, { recursive: true });
@@ -1069,9 +1069,9 @@ export function registerBillRoutes(app: Express) {
           try {
             analysisResult = await aiService.analyzeBillDocument(req.file.path, req.file.mimetype);
             // console.log(`🤖 [BILLS UPLOAD] AI analysis successful:`, {
-              hasResult: !!analysisResult,
-              analysisKeys: analysisResult ? Object.keys(analysisResult) : []
-            });
+            //   hasResult: !!analysisResult,
+            //   analysisKeys: analysisResult ? Object.keys(analysisResult) : []
+            // });
           } catch (aiError) {
             // console.warn('🤖 [BILLS UPLOAD] AI analysis failed, continuing without analysis:', aiError);
             // Continue without AI analysis
@@ -1091,11 +1091,11 @@ export function registerBillRoutes(app: Express) {
         };
 
         // console.log(`📄 [BILLS UPLOAD] Updating bill ${id} in database with:`, {
-          filePath,
-          fileName: req.file.originalname,
-          fileSize: req.file.size,
-          hasAiAnalysis: !!analysisResult
-        });
+        //   filePath,
+        //   fileName: req.file.originalname,
+        //   fileSize: req.file.size,
+        //   hasAiAnalysis: !!analysisResult
+        // });
 
         const updatedBill = await db
           .update(bills)
@@ -1184,12 +1184,12 @@ export function registerBillRoutes(app: Express) {
 
       const billData = bill[0];
       // console.log(`📥 [BILLS DOWNLOAD] Bill found:`, {
-        id: billData.id,
-        hasFilePath: !!billData.filePath,
-        hasFileName: !!billData.fileName,
-        filePath: billData.filePath,
-        fileName: billData.fileName
-      });
+      //   id: billData.id,
+      //   hasFilePath: !!billData.filePath,
+      //   hasFileName: !!billData.fileName,
+      //   filePath: billData.filePath,
+      //   fileName: billData.fileName
+      // });
 
       if (!billData.filePath || !billData.fileName) {
         // console.log(`❌ [BILLS DOWNLOAD] No document associated with bill ${id}`);
@@ -1206,12 +1206,12 @@ export function registerBillRoutes(app: Express) {
       const fileFullPath = path.join(uploadsDir, billData.filePath);
 
       // console.log(`📥 [BILLS DOWNLOAD] File paths:`, {
-        uploadsDir,
-        filePath: billData.filePath,
-        fullFilePath: fileFullPath,
-        fileName: billData.fileName,
-        organizationId
-      });
+      //   uploadsDir,
+      //   filePath: billData.filePath,
+      //   fullFilePath: fileFullPath,
+      //   fileName: billData.fileName,
+      //   organizationId
+      // });
 
       // Check if file exists
       if (!fs.existsSync(fileFullPath)) {

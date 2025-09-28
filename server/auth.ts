@@ -599,12 +599,12 @@ export function setupAuthRoutes(app: any) {
       });
     } catch (_error: any) {
       // console.error('Login error:', {
-        error: _error,
-        email: req.body?.email,
-        hasPassword: !!req.body?.password,
-        databaseUrl: !!process.env.DATABASE_URL,
-        sessionSecret: !!process.env.SESSION_SECRET,
-      });
+      //   error: _error,
+      //   email: req.body?.email,
+      //   hasPassword: !!req.body?.password,
+      //   databaseUrl: !!process.env.DATABASE_URL,
+      //   sessionSecret: !!process.env.SESSION_SECRET,
+      // });
       res.status(500).json({
         message: 'Login failed',
         code: 'LOGIN_ERROR',

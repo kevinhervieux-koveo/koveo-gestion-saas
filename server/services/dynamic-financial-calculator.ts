@@ -387,9 +387,7 @@ export class DynamicFinancialCalculator {
    * @param reason
    */
   async invalidateCache(buildingId: string, reason?: string): Promise<void> {
-    // console.log(
-      `🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`
-    );
+    // console.log(`🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`);
 
     await db.execute(sql`
       DELETE FROM financial_cache WHERE building_id = ${buildingId}
