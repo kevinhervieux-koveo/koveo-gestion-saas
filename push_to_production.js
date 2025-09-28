@@ -4,7 +4,7 @@
  * This script automatically handles interactive prompts from drizzle-kit push
  */
 
-const { spawn } = require('child_process');
+import { spawn } from 'child_process';
 
 console.log('🚀 Starting production database migration...');
 console.log('📋 This will sync your production database with the current schema');
