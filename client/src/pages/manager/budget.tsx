@@ -2238,10 +2238,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         }
         // Use actual inflated revenue from forecast data
         yearlyData[financialYear].revenue += item.revenue;
-        // Use bills-only spending data from API
-        const totalSpending = item.spending;
+        // Use bills-only spending data from API plus project costs
+        const yearlyMonthlyProjects = aggregateProjectsByMonth(item.year, item.month);
+        const totalSpending = item.spending + yearlyMonthlyProjects.total;
         yearlyData[financialYear].spending += totalSpending;
-        // Recalculate net cash flow with inflated revenue and total spending
+        // Recalculate net cash flow with inflated revenue and total spending (including projects)
         yearlyData[financialYear].netCashFlow += (item.revenue - totalSpending);
         
         // Aggregate all capital investments (custom + auto-generated) for this month
@@ -2252,12 +2253,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         yearlyData[financialYear].suggestedInvestments += monthlyInvestments.suggested;
         yearlyData[financialYear].notUrgentInvestments += monthlyInvestments.notUrgent;
 
-        // Aggregate all projects for this month
-        const monthlyProjects = aggregateProjectsByMonth(item.year, item.month);
+        // Aggregate all projects for this month (for debugging only, included in spending now)
         if (!yearlyData[financialYear].projects) {
           yearlyData[financialYear].projects = 0;
         }
-        yearlyData[financialYear].projects += monthlyProjects.total;
+        yearlyData[financialYear].projects += yearlyMonthlyProjects.total;
         
         yearlyData[financialYear].count++;
         yearlyData[financialYear].monthsInYear++;
@@ -2298,9 +2298,6 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
 
     // Monthly view with individual months
     return filteredData.map((item, index) => {
-      // Use bills-only spending data from API
-      const totalSpending = item.spending;
-      
       // Calculate start of period balance (previous period's ending balance)
       let balanceStart: number;
       const prevIndex = startIndex + index - 1;
@@ -2314,8 +2311,9 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       // Aggregate all capital investments (custom + auto-generated) for this month
       const monthlyInvestments = aggregateInvestmentsByMonth(item.year, item.month);
       
-      // Aggregate all projects for this month
+      // Aggregate all projects for this month and include in spending
       const monthlyProjects = aggregateProjectsByMonth(item.year, item.month);
+      const totalSpending = item.spending + monthlyProjects.total;
       
       return {
         month: `${item.year}-${item.month.toString().padStart(2, '0')}`,
@@ -2323,13 +2321,13 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         balanceEnd: item.balance, // Current period's ending balance
         status: item.status,
         revenue: item.revenue, // Use actual inflated revenue from forecast data
-        spending: totalSpending, // Include unplanned bills
-        netCashFlow: item.revenue - totalSpending, // Recalculate with inflated revenue and total spending
+        spending: totalSpending, // Include unplanned bills and project costs
+        netCashFlow: item.revenue - totalSpending, // Recalculate with inflated revenue and total spending (including projects)
         capitalInvestments: monthlyInvestments.total,
         urgentInvestments: monthlyInvestments.urgent,
         suggestedInvestments: monthlyInvestments.suggested,
         notUrgentInvestments: monthlyInvestments.notUrgent,
-        projects: monthlyProjects.total,
+        projects: monthlyProjects.total, // Keep for debugging but this won't be shown as separate line
       };
     });
   };
@@ -2799,23 +2797,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       data-testid="switch-minimum-requirement-visibility"
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="toggle-project" className="text-sm cursor-pointer flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-purple-600" />
-                      Project
-                    </Label>
-                    <Switch 
-                      id="toggle-project"
-                      checked={filters.dataVisibility.project}
-                      onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          dataVisibility: { ...prev.dataVisibility, project: checked },
-                        }));
-                      }}
-                      data-testid="switch-project-visibility"
-                    />
-                  </div>
+                  {/* Project costs are now included in spending calculations, no separate line needed */}
                 </div>
               </div>
             </Card>
@@ -2967,12 +2949,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                         <span className="text-sm font-medium">Minimum Requirement</span>
                       </div>
                     )}
-                    {filters.dataVisibility.project && (
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-purple-600"></div>
-                        <span className="text-sm font-medium">Project</span>
-                      </div>
-                    )}
+                    {/* Projects are now included in spending, no separate legend item needed */}
                   </div>
 
                   <div className='h-80'>
