@@ -1,4 +1,5 @@
-import { moneyFlowAutomationService } from './money-flow-automation';
+// Note: money-flow-automation was consolidated into consolidated-financial-service
+// but since MoneyFlow table was removed from schema, these operations are disabled
 import { monthlyBudgetService } from './monthly-budget-service';
 
 /**
@@ -49,8 +50,9 @@ class DelayedUpdateService {
     setTimeout(async () => {
       try {
 
-        // Generate money flow entries for the bill
-        const moneyFlowEntries = await moneyFlowAutomationService.generateForBill(billId);
+        // Note: MoneyFlow functionality was removed during schema consolidation
+        // This was previously generating money flow entries for the bill
+        console.log(`📋 Bill ${billId} update scheduled - MoneyFlow generation disabled`);
 
         // Get the building ID from the bill to update budgets
         const buildingId = await this.getBuildingIdFromBill(billId);
@@ -81,10 +83,10 @@ class DelayedUpdateService {
     setTimeout(async () => {
       try {
 
-        // Generate money flow entries for the residence
-        const moneyFlowEntries = await moneyFlowAutomationService.generateForResidence(residenceId);
+        // Note: MoneyFlow functionality was removed during schema consolidation
+        // This was previously generating money flow entries for the residence
         console.log(
-          `💰 Generated ${moneyFlowEntries} money flow entries for residence ${residenceId}`
+          `🏠 Residence ${residenceId} update scheduled - MoneyFlow generation disabled`
         );
 
         // Get the building ID from the residence to update budgets
@@ -180,8 +182,8 @@ class DelayedUpdateService {
    */
   async forceImmediateBillUpdate(billId: string): Promise<void> {
 
-    // Generate money flow entries for the bill
-    const moneyFlowEntries = await moneyFlowAutomationService.generateForBill(billId);
+    // Note: MoneyFlow functionality was removed during schema consolidation
+    console.log(`📋 Forcing immediate bill ${billId} update - MoneyFlow generation disabled`);
 
     // Update budget immediately
     const buildingId = await this.getBuildingIdFromBill(billId);
@@ -196,10 +198,9 @@ class DelayedUpdateService {
    */
   async forceImmediateResidenceUpdate(residenceId: string): Promise<void> {
 
-    // Generate money flow entries for the residence
-    const moneyFlowEntries = await moneyFlowAutomationService.generateForResidence(residenceId);
+    // Note: MoneyFlow functionality was removed during schema consolidation
     console.log(
-      `💰 Generated ${moneyFlowEntries} money flow entries for residence ${residenceId}`
+      `🏠 Forcing immediate residence ${residenceId} update - MoneyFlow generation disabled`
     );
 
     // Update budget immediately
