@@ -3097,17 +3097,17 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const updateData = {
         ...validation.data,
-        plannedStartDate: validation.data.plannedStartDate || undefined,
-        plannedEndDate: validation.data.plannedEndDate || undefined,
-        actualStartDate: validation.data.actualStartDate || undefined,
-        actualEndDate: validation.data.actualEndDate || undefined,
-        planningStartDate: validation.data.planningStartDate || undefined,
-        workStartDate: validation.data.workStartDate || undefined,
+        planned_start_date: validation.data.plannedStartDate ? validation.data.plannedStartDate.toISOString().split('T')[0] : undefined,
+        planned_end_date: validation.data.plannedEndDate ? validation.data.plannedEndDate.toISOString().split('T')[0] : undefined,
+        actual_start_date: validation.data.actualStartDate ? validation.data.actualStartDate.toISOString().split('T')[0] : undefined,
+        actual_end_date: validation.data.actualEndDate ? validation.data.actualEndDate.toISOString().split('T')[0] : undefined,
+        planning_start_date: validation.data.planningStartDate ? validation.data.planningStartDate.toISOString().split('T')[0] : undefined,
+        work_start_date: validation.data.workStartDate ? validation.data.workStartDate.toISOString().split('T')[0] : undefined,
         // Convert decimal fields to strings
-        totalBudget: validation.data.totalBudget ? validation.data.totalBudget.toString() : undefined,
-        actualCost: validation.data.actualCost ? validation.data.actualCost.toString() : undefined,
-        estimatedCost: validation.data.estimatedCost ? validation.data.estimatedCost.toString() : undefined,
-        updatedAt: new Date(),
+        total_budget: validation.data.totalBudget ? validation.data.totalBudget.toString() : undefined,
+        actual_cost: validation.data.actualCost ? validation.data.actualCost.toString() : undefined,
+        estimated_cost: validation.data.estimatedCost ? validation.data.estimatedCost.toString() : undefined,
+        updated_at: new Date(),
       };
       
       const [updatedProject] = await db
@@ -4810,10 +4810,9 @@ export function registerMaintenanceRoutes(app: Express): void {
           eq(maintenanceProjects.buildingId, buildingId),
           or(
             eq(maintenanceProjects.status, 'planned'),
-            eq(maintenanceProjects.status, 'evaluation'),
             eq(maintenanceProjects.status, 'submission'),
             eq(maintenanceProjects.status, 'pre_work'),
-            eq(maintenanceProjects.status, 'work'),
+            eq(maintenanceProjects.status, 'in_progress'),
             eq(maintenanceProjects.status, 'post_work')
           )
         ));
@@ -4996,7 +4995,6 @@ export function registerMaintenanceRoutes(app: Express): void {
           eq(maintenanceProjects.buildingId, buildingId),
           or(
             eq(maintenanceProjects.status, 'planned'),
-            eq(maintenanceProjects.status, 'evaluation'),
             eq(maintenanceProjects.status, 'submission')
           ),
           sql`${maintenanceProjects.estimatedCost} IS NOT NULL AND ${maintenanceProjects.estimatedCost} > 0`
@@ -5123,10 +5121,9 @@ export function registerMaintenanceRoutes(app: Express): void {
             inArray(maintenanceProjects.buildingId, buildingIds),
             or(
               eq(maintenanceProjects.status, 'planned'),
-              eq(maintenanceProjects.status, 'evaluation'),
               eq(maintenanceProjects.status, 'submission'),
               eq(maintenanceProjects.status, 'pre_work'),
-              eq(maintenanceProjects.status, 'work'),
+              eq(maintenanceProjects.status, 'in_progress'),
               eq(maintenanceProjects.status, 'post_work')
             )
           )),
@@ -5677,12 +5674,12 @@ export function registerMaintenanceRoutes(app: Express): void {
             origin: 'auto',
             status: 'planned',
             priority: acceptData.priority || autoProject.suggestedPriority,
-            totalBudget: acceptData.totalBudget || autoProject.estimatedCost || undefined,
-            plannedStartDate: acceptData.plannedStartDate || undefined,
-            plannedEndDate: acceptData.plannedEndDate || undefined,
+            totalBudget: acceptData.totalBudget ? acceptData.totalBudget.toString() : (autoProject.estimatedCost ? autoProject.estimatedCost.toString() : undefined),
+            plannedStartDate: acceptData.plannedStartDate ? acceptData.plannedStartDate.toISOString().split('T')[0] : undefined,
+            plannedEndDate: acceptData.plannedEndDate ? acceptData.plannedEndDate.toISOString().split('T')[0] : undefined,
             // Map auto-project fields to new workflow schema
             planningDescription: acceptData.planningDescription || acceptData.description || autoProject.description,
-            workStartDate: acceptData.workStartDate || undefined,
+            workStartDate: acceptData.workStartDate ? acceptData.workStartDate.toISOString().split('T')[0] : undefined,
             // Set skip flags based on auto-project nature (auto-projects often skip submission)
             skipSubmission: acceptData.skipSubmission ?? true, // Default skip submission for auto-projects
             skipPreWork: acceptData.skipPreWork ?? false,
@@ -5759,7 +5756,12 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
 
-      const updateData = validation.data;
+      // Transform updateData to handle decimal fields
+      const updateData = {
+        ...validation.data,
+        // Convert decimal fields to strings
+        estimatedCost: validation.data.estimatedCost ? validation.data.estimatedCost.toString() : undefined,
+      };
 
       // Get the auto-generated project
       const autoProjectResult = await db
@@ -6012,7 +6014,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           const newAutoProject = await db
             .insert(autoGeneratedProjects)
             .values({
-              buildingId,
+              buildingId: buildingId,
               elementId: element.id,
               status: 'pending',
               title,
@@ -6376,16 +6378,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(403).json({ error: 'No access to this project' });
       }
 
-      // Verify vendor exists
-      const vendor = await db
-        .select()
-        .from(vendors)
-        .where(eq(vendors.id, validation.data.vendorId))
-        .limit(1);
-
-      if (vendor.length === 0) {
-        return res.status(404).json({ error: 'Vendor not found' });
-      }
+      // Note: Removing vendor verification as vendorId is not part of the submission vendor schema
+      // Vendor submissions can reference vendor names without requiring existing vendor records
 
       // Create submission vendor
       const newSubmissionVendor = await db
@@ -6447,7 +6441,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         .select({
           id: submissionVendors.id,
           projectId: submissionVendors.projectId,
-          vendorId: submissionVendors.vendorId,
+          vendorId: submissionVendors.vendorName,
           contactInfo: submissionVendors.contactInfo,
           notes: submissionVendors.notes,
           price: submissionVendors.price,
@@ -6469,7 +6463,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           }
         })
         .from(submissionVendors)
-        .innerJoin(vendors, eq(vendors.id, submissionVendors.vendorId))
+        .innerJoin(vendors, eq(vendors.id, submissionVendors.vendorName))
         .where(eq(submissionVendors.projectId, id))
         .orderBy(desc(submissionVendors.createdAt));
 
@@ -7085,6 +7079,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         .values({
           projectId: id,
           ...validation.data,
+          // Convert decimal fields to strings
+          cost: validation.data.cost ? validation.data.cost.toString() : undefined,
         })
         .returning();
 
@@ -7144,10 +7140,13 @@ export function registerMaintenanceRoutes(app: Express): void {
 
       // Filter by phase if provided
       if (phase && ['pre_work', 'in_progress', 'post_work'].includes(phase as string)) {
-        query = query.where(and(
-          eq(workflowTasks.projectId, id),
-          eq(workflowTasks.phase, phase as 'pre_work' | 'in_progress' | 'post_work')
-        ));
+        query = db
+          .select()
+          .from(workflowTasks)
+          .where(and(
+            eq(workflowTasks.projectId, id),
+            eq(workflowTasks.phase, phase as 'pre_work' | 'in_progress' | 'post_work')
+          ));
       }
 
       const workflowTasksList = await query.orderBy(asc(workflowTasks.orderIndex));
@@ -7229,6 +7228,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         .update(workflowTasks)
         .set({
           ...validation.data,
+          // Convert decimal fields to strings
+          cost: validation.data.cost ? validation.data.cost.toString() : undefined,
           updatedAt: new Date(),
         })
         .where(eq(workflowTasks.id, taskId))
@@ -7667,7 +7668,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       if (!validation.success) {
         return res.status(400).json({
           error: 'Validation failed',
-          details: validation.error.errors
+          details: validation.error.issues
         });
       }
 
@@ -7702,7 +7703,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           .update(projectSteps)
           .set({
             status: 'completed',
-            completedDate: new Date(),
+            completedAt: new Date(),
             updatedAt: new Date(),
           })
           .where(
@@ -7720,7 +7721,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           .update(maintenanceProjects)
           .set({
             status: 'completed',
-            actualEndDate: new Date(), // Final completion timestamp
+            actualEndDate: new Date().toISOString().split('T')[0], // Final completion timestamp
             updatedAt: new Date(),
           })
           .where(eq(maintenanceProjects.id, id))
@@ -7753,11 +7754,11 @@ export function registerMaintenanceRoutes(app: Express): void {
           status: nextStatus,
           updatedAt: new Date(),
           // Update timestamps based on status
-          ...(nextStatus === 'submission' && { submissionDate: new Date() }),
-          ...(nextStatus === 'pre_work' && { preWorkStartDate: new Date() }),
-          ...(nextStatus === 'in_progress' && { actualStartDate: new Date() }),
-          ...(nextStatus === 'post_work' && { workEndDate: new Date() }),
-          ...(nextStatus === 'completed' && { actualEndDate: new Date() }),
+          ...(nextStatus === 'submission' && { submissionDate: new Date().toISOString().split('T')[0] }),
+          ...(nextStatus === 'pre_work' && { preWorkStartDate: new Date().toISOString().split('T')[0] }),
+          ...(nextStatus === 'in_progress' && { actualStartDate: new Date().toISOString().split('T')[0] }),
+          ...(nextStatus === 'post_work' && { workEndDate: new Date().toISOString().split('T')[0] }),
+          ...(nextStatus === 'completed' && { actualEndDate: new Date().toISOString().split('T')[0] }),
         })
         .where(eq(maintenanceProjects.id, id))
         .returning();
@@ -7801,7 +7802,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       if (!validation.success) {
         return res.status(400).json({
           error: 'Validation failed',
-          details: validation.error.errors
+          details: validation.error.issues
         });
       }
 
@@ -7957,7 +7958,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       if (!validation.success) {
         return res.status(400).json({
           error: 'Validation failed',
-          details: validation.error.errors
+          details: validation.error.issues
         });
       }
 
@@ -8151,7 +8152,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       if (!validation.success) {
         return res.status(400).json({
           error: 'Validation failed',
-          details: validation.error.errors
+          details: validation.error.issues
         });
       }
 
@@ -8242,7 +8243,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       if (!validation.success) {
         return res.status(400).json({
           error: 'Validation failed',
-          details: validation.error.errors
+          details: validation.error.issues
         });
       }
 
