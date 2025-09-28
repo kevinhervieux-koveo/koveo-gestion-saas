@@ -3,12 +3,12 @@
  * Tracks Core Web Vitals and provides real-time performance insights
  */
 
-import { getCLS, getFID, getFCP, getLCP, getTTFB, Metric } from 'web-vitals';
+import { onCLS, onINP, onFCP, onLCP, onTTFB, type Metric } from 'web-vitals';
 
 export interface WebVitalsMetrics {
   // Core Web Vitals
   LCP?: number; // Largest Contentful Paint
-  FID?: number; // First Input Delay
+  INP?: number; // Interaction to Next Paint (replaces FID)
   CLS?: number; // Cumulative Layout Shift
   
   // Additional Important Metrics
@@ -22,7 +22,7 @@ export interface WebVitalsMetrics {
 
 export interface VitalsThresholds {
   LCP: { good: number; needsImprovement: number };
-  FID: { good: number; needsImprovement: number };
+  INP: { good: number; needsImprovement: number };
   CLS: { good: number; needsImprovement: number };
   FCP: { good: number; needsImprovement: number };
   TTFB: { good: number; needsImprovement: number };
@@ -33,7 +33,7 @@ export interface VitalsThresholds {
  */
 const WEB_VITALS_THRESHOLDS: VitalsThresholds = {
   LCP: { good: 2500, needsImprovement: 4000 },
-  FID: { good: 100, needsImprovement: 300 },
+  INP: { good: 200, needsImprovement: 500 },
   CLS: { good: 0.1, needsImprovement: 0.25 },
   FCP: { good: 1800, needsImprovement: 3000 },
   TTFB: { good: 800, needsImprovement: 1800 },
@@ -55,13 +55,13 @@ class WebVitalsMonitor {
     this.isInitialized = true;
 
     // Track Core Web Vitals
-    getCLS(this.onMetric.bind(this, 'CLS'));
-    getFID(this.onMetric.bind(this, 'FID'));
-    getLCP(this.onMetric.bind(this, 'LCP'));
+    onCLS(this.onMetric.bind(this, 'CLS'));
+    onINP(this.onMetric.bind(this, 'INP'));
+    onLCP(this.onMetric.bind(this, 'LCP'));
     
     // Track Additional Metrics
-    getFCP(this.onMetric.bind(this, 'FCP'));
-    getTTFB(this.onMetric.bind(this, 'TTFB'));
+    onFCP(this.onMetric.bind(this, 'FCP'));
+    onTTFB(this.onMetric.bind(this, 'TTFB'));
 
     console.log('🔍 Web Vitals monitoring initialized');
   }
@@ -97,9 +97,9 @@ class WebVitalsMonitor {
       scores.push(this.calculateMetricScore('LCP', this.metrics.LCP));
     }
 
-    // FID Score (0-100)
-    if (this.metrics.FID !== undefined) {
-      scores.push(this.calculateMetricScore('FID', this.metrics.FID));
+    // INP Score (0-100)
+    if (this.metrics.INP !== undefined) {
+      scores.push(this.calculateMetricScore('INP', this.metrics.INP));
     }
 
     // CLS Score (0-100)
@@ -145,21 +145,21 @@ class WebVitalsMonitor {
    * Updates user experience rating
    */
   private updateUserExperienceRating(): void {
-    const { LCP, FID, CLS } = this.metrics;
+    const { LCP, INP, CLS } = this.metrics;
     
-    if (LCP === undefined || FID === undefined || CLS === undefined) {
+    if (LCP === undefined || INP === undefined || CLS === undefined) {
       return; // Need all Core Web Vitals for rating
     }
 
     const lcpGood = LCP <= WEB_VITALS_THRESHOLDS.LCP.good;
-    const fidGood = FID <= WEB_VITALS_THRESHOLDS.FID.good;
+    const inpGood = INP <= WEB_VITALS_THRESHOLDS.INP.good;
     const clsGood = CLS <= WEB_VITALS_THRESHOLDS.CLS.good;
 
-    if (lcpGood && fidGood && clsGood) {
+    if (lcpGood && inpGood && clsGood) {
       this.metrics.userExperienceRating = 'good';
     } else if (
       LCP <= WEB_VITALS_THRESHOLDS.LCP.needsImprovement &&
-      FID <= WEB_VITALS_THRESHOLDS.FID.needsImprovement &&
+      INP <= WEB_VITALS_THRESHOLDS.INP.needsImprovement &&
       CLS <= WEB_VITALS_THRESHOLDS.CLS.needsImprovement
     ) {
       this.metrics.userExperienceRating = 'needs-improvement';
@@ -283,11 +283,11 @@ class WebVitalsMonitor {
       });
     }
 
-    // FID Recommendations
-    if (this.metrics.FID && this.metrics.FID > WEB_VITALS_THRESHOLDS.FID.needsImprovement) {
+    // INP Recommendations
+    if (this.metrics.INP && this.metrics.INP > WEB_VITALS_THRESHOLDS.INP.needsImprovement) {
       recommendations.push({
-        metric: 'FID',
-        issue: `First Input Delay is ${this.metrics.FID}ms (target: <${WEB_VITALS_THRESHOLDS.FID.good}ms)`,
+        metric: 'INP',
+        issue: `Interaction to Next Paint is ${this.metrics.INP}ms (target: <${WEB_VITALS_THRESHOLDS.INP.good}ms)`,
         recommendation: 'Reduce JavaScript execution time, break up long tasks, or use web workers',
         priority: 'high',
       });

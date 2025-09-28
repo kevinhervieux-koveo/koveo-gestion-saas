@@ -74,10 +74,19 @@ export function safeCapitalize(str: string | null | undefined, fallback: string 
 }
 
 /**
- * Safely formats a date to ISO date string (YYYY-MM-DD)
- * @param date - The date to format (can be null/undefined)
- * @param fallback - Fallback text if date is null/undefined
- * @returns ISO date string or fallback
+ * Safely formats a date to ISO date string (YYYY-MM-DD) with comprehensive error handling.
+ * Handles various date input formats and provides graceful fallbacks for invalid dates.
+ * 
+ * @param date - The date to format (Date object, string, or null/undefined)
+ * @param fallback - Fallback text if date is null/undefined or invalid (default: '')
+ * @returns ISO date string (YYYY-MM-DD) or fallback value
+ * @example
+ * ```typescript
+ * safeFormatDateISO(new Date('2024-01-15')); // '2024-01-15'
+ * safeFormatDateISO('2024-01-15T10:30:00Z'); // '2024-01-15'
+ * safeFormatDateISO(null, 'No date'); // 'No date'
+ * safeFormatDateISO('invalid', 'Invalid date'); // 'Invalid date'
+ * ```
  */
 export function safeFormatDateISO(date: Date | string | null | undefined, fallback: string = ''): string {
   if (!date) {
@@ -96,10 +105,19 @@ export function safeFormatDateISO(date: Date | string | null | undefined, fallba
 }
 
 /**
- * Safely performs string operations with null/undefined checking
- * @param str - The string to operate on
- * @param fallback - Fallback value if string is null/undefined
- * @returns Safe string operations object
+ * Creates a safe string operations object that handles null/undefined values gracefully.
+ * Provides common string methods with built-in null checking and fallback handling.
+ * 
+ * @param str - The string to operate on (can be null/undefined)
+ * @param fallback - Fallback value if string is null/undefined (default: '')
+ * @returns Object with safe string operations and the processed value
+ * @example
+ * ```typescript
+ * const safe = safeString(user?.name, 'Unknown');
+ * console.log(safe.toUpperCase()); // 'UNKNOWN' or processed name
+ * console.log(safe.includes('John')); // false or true based on content
+ * console.log(safe.length); // Length of the safe string
+ * ```
  */
 export function safeString(str: string | null | undefined, fallback: string = '') {
   const safeStr = str && typeof str === 'string' ? str : fallback;
@@ -118,11 +136,21 @@ export function safeString(str: string | null | undefined, fallback: string = ''
 }
 
 /**
- * Safely accesses nested object properties with optional fallback
- * @param obj - The object to access properties from
- * @param path - Dot notation path to the property
- * @param fallback - Fallback value if property is null/undefined
+ * Safely accesses nested object properties using dot notation with comprehensive error handling.
+ * Prevents runtime errors when accessing deep object properties that may not exist.
+ * 
+ * @param obj - The object to access properties from (can be null/undefined)
+ * @param path - Dot notation path to the property (e.g., 'user.profile.name')
+ * @param fallback - Fallback value if property is null/undefined or path is invalid
  * @returns Property value or fallback
+ * @example
+ * ```typescript
+ * const user = { profile: { name: 'John', settings: { theme: 'dark' } } };
+ * safeGet(user, 'profile.name', 'Unknown'); // 'John'
+ * safeGet(user, 'profile.settings.theme', 'light'); // 'dark'
+ * safeGet(user, 'profile.nonexistent.prop', 'default'); // 'default'
+ * safeGet(null, 'any.path', 'fallback'); // 'fallback'
+ * ```
  */
 export function safeGet<T>(obj: any, path: string, fallback: T): T {
   if (!obj || typeof obj !== 'object') {

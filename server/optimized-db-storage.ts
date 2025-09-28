@@ -151,6 +151,122 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   /**
+   * OPTIMIZATION: Batch fetch user associations to reduce N+1 queries
+   */
+  private async batchFetchUserAssociations(userIds: string[]): Promise<Map<string, { organizations: any[]; buildings: any[]; residences: any[] }>> {
+    if (userIds.length === 0) return new Map();
+
+    const cacheKey = `batch_user_associations:${userIds.sort().join(',')}`;
+    return this.withOptimizations('batchFetchUserAssociations', cacheKey, 'users', async () => {
+      // Single query to get all user organizations
+      const userOrganizations = await db
+        .select({
+          userId: schema.userOrganizations.userId,
+          id: schema.organizations.id,
+          name: schema.organizations.name,
+          type: schema.organizations.type
+        })
+        .from(schema.userOrganizations)
+        .innerJoin(schema.organizations, eq(schema.userOrganizations.organizationId, schema.organizations.id))
+        .where(
+          and(
+            inArray(schema.userOrganizations.userId, userIds),
+            eq(schema.userOrganizations.isActive, true),
+            eq(schema.organizations.isActive, true)
+          )
+        );
+
+      // Single query to get all user buildings (through residence assignments)
+      const userBuildings = await db
+        .selectDistinct({
+          userId: schema.userResidences.userId,
+          id: schema.buildings.id,
+          name: schema.buildings.name
+        })
+        .from(schema.userResidences)
+        .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+        .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+        .where(
+          and(
+            inArray(schema.userResidences.userId, userIds),
+            eq(schema.userResidences.isActive, true),
+            eq(schema.residences.isActive, true),
+            eq(schema.buildings.isActive, true)
+          )
+        );
+
+      // Single query to get all user residences
+      const userResidences = await db
+        .select({
+          userId: schema.userResidences.userId,
+          id: schema.residences.id,
+          unitNumber: schema.residences.unitNumber,
+          buildingId: schema.residences.buildingId,
+          buildingName: schema.buildings.name
+        })
+        .from(schema.userResidences)
+        .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+        .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+        .where(
+          and(
+            inArray(schema.userResidences.userId, userIds),
+            eq(schema.userResidences.isActive, true),
+            eq(schema.residences.isActive, true)
+          )
+        );
+
+      // Group results by userId
+      const associations = new Map();
+      userIds.forEach(userId => {
+        associations.set(userId, {
+          organizations: [],
+          buildings: [],
+          residences: []
+        });
+      });
+
+      userOrganizations.forEach(org => {
+        const userAssoc = associations.get(org.userId);
+        if (userAssoc) {
+          userAssoc.organizations.push({
+            id: org.id,
+            name: org.name,
+            type: org.type
+          });
+        }
+      });
+
+      userBuildings.forEach(building => {
+        const userAssoc = associations.get(building.userId);
+        if (userAssoc) {
+          // Avoid duplicates
+          const exists = userAssoc.buildings.some((b: any) => b.id === building.id);
+          if (!exists) {
+            userAssoc.buildings.push({
+              id: building.id,
+              name: building.name
+            });
+          }
+        }
+      });
+
+      userResidences.forEach(res => {
+        const userAssoc = associations.get(res.userId);
+        if (userAssoc) {
+          userAssoc.residences.push({
+            id: res.id,
+            unitNumber: res.unitNumber,
+            buildingId: res.buildingId,
+            buildingName: res.buildingName
+          });
+        }
+      });
+
+      return associations;
+    });
+  }
+
+  /**
    * SECURITY: Sanitizes and validates filter inputs to prevent SQL injection
    */
   private sanitizeFilters(filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string }) {
@@ -324,15 +440,31 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   /**
    * Retrieves all active users with caching and performance tracking.
+   * OPTIMIZED: Select only frequently used fields to reduce data transfer.
    */
   async getUsers(): Promise<User[]> {
-    return this.withOptimizations('getUsers', 'all_users', 'users', () =>
+    return this.withOptimizations('getUsers', 'all_users_optimized_v2', 'users', () =>
       db
-        .select()
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          password: schema.users.password,
+          email: schema.users.email,
+          firstName: schema.users.firstName,
+          lastName: schema.users.lastName,
+          phone: schema.users.phone,
+          profileImage: schema.users.profileImage,
+          language: schema.users.language,
+          role: schema.users.role,
+          isActive: schema.users.isActive,
+          lastLoginAt: schema.users.lastLoginAt,
+          createdAt: schema.users.createdAt,
+          updatedAt: schema.users.updatedAt
+        })
         .from(schema.users)
         .where(eq(schema.users.isActive, true))
-        .limit(100) // Always use LIMIT for large result sets
         .orderBy(desc(schema.users.createdAt))
+        .limit(100) // Always use LIMIT for large result sets
     );
   }
 
@@ -717,102 +849,56 @@ export class OptimizedDatabaseStorage implements IStorage {
   }
 
   /**
-   * Fallback implementation for getUsersWithAssignments if optimized version fails.
-   * This is the original N+1 query implementation kept for reliability.
+   * OPTIMIZED Fallback implementation for getUsersWithAssignments using batch fetch to eliminate N+1 queries.
    */
   private async getUsersWithAssignmentsFallback(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
     try {
-      // Get all users first
+      // Get all users first with selected fields only
       const users = await db
-        .select()
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          password: schema.users.password,
+          email: schema.users.email,
+          firstName: schema.users.firstName,
+          lastName: schema.users.lastName,
+          phone: schema.users.phone,
+          profileImage: schema.users.profileImage,
+          language: schema.users.language,
+          role: schema.users.role,
+          isActive: schema.users.isActive,
+          lastLoginAt: schema.users.lastLoginAt,
+          createdAt: schema.users.createdAt,
+          updatedAt: schema.users.updatedAt
+        })
         .from(schema.users)
         .where(eq(schema.users.isActive, true))
-        .orderBy(desc(schema.users.createdAt));
+        .orderBy(desc(schema.users.createdAt))
+        .limit(100); // Always limit for performance
 
-      // For each user, fetch their assignments with limited concurrency to prevent connection issues
-      const batchSize = 5; // Process 5 users at a time to avoid connection pool exhaustion
-      const usersWithAssignments = [];
-      
-      for (let i = 0; i < users.length; i += batchSize) {
-        const batch = users.slice(i, i + batchSize);
-        const batchResults = await Promise.all(
-          batch.map(async (user) => {
-          try {
-            // Get user organizations
-            const userOrgs = await db
-              .select({
-                id: schema.organizations.id,
-                name: schema.organizations.name,
-                type: schema.organizations.type,
-              })
-              .from(schema.userOrganizations)
-              .innerJoin(schema.organizations, eq(schema.userOrganizations.organizationId, schema.organizations.id))
-              .where(
-                and(
-                  eq(schema.userOrganizations.userId, user.id),
-                  eq(schema.userOrganizations.isActive, true),
-                  eq(schema.organizations.isActive, true)
-                )
-              );
-
-            // Get user buildings (through residence assignments only)
-            const userBuildings = await db
-              .selectDistinct({
-                id: schema.buildings.id,
-                name: schema.buildings.name,
-              })
-              .from(schema.userResidences)
-              .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
-              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
-              .where(
-                and(
-                  eq(schema.userResidences.userId, user.id),
-                  eq(schema.userResidences.isActive, true),
-                  eq(schema.residences.isActive, true),
-                  eq(schema.buildings.isActive, true)
-                )
-              );
-
-            // Get user residences
-            const userResidences = await db
-              .select({
-                id: schema.residences.id,
-                unitNumber: schema.residences.unitNumber,
-                buildingId: schema.residences.buildingId,
-                buildingName: schema.buildings.name,
-              })
-              .from(schema.userResidences)
-              .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
-              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
-              .where(
-                and(
-                  eq(schema.userResidences.userId, user.id),
-                  eq(schema.userResidences.isActive, true),
-                  eq(schema.residences.isActive, true)
-                )
-              );
-
-            return {
-              ...user,
-              organizations: userOrgs || [],
-              buildings: userBuildings || [],
-              residences: userResidences || [],
-            };
-          } catch (error: any) {
-            console.error('❌ Error getting user assignments:', error);
-            // Return user with empty assignments if there's an error
-            return {
-              ...user,
-              organizations: [],
-              buildings: [],
-              residences: [],
-            };
-          }
-        })
-      );
-      
-      usersWithAssignments.push(...batchResults);
+      if (users.length === 0) {
+        return [];
       }
+
+      // OPTIMIZATION: Use batch fetch to get all associations in 3 queries instead of N*3 queries
+      const userIds = users.map(user => user.id);
+      const userAssociations = await this.batchFetchUserAssociations(userIds);
+
+      // Combine users with their associations
+      const usersWithAssignments = users.map(user => {
+        const associations = userAssociations.get(user.id) || {
+          organizations: [],
+          buildings: [],
+          residences: []
+        };
+
+        return {
+          ...user,
+          organizations: associations.organizations,
+          buildings: associations.buildings,
+          residences: associations.residences,
+        };
+      });
 
       return usersWithAssignments;
     } catch (error: any) {

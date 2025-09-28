@@ -30,18 +30,31 @@ export class MonthlyBudgetService {
       const activeBuildings = await db.select().from(buildings).where(eq(buildings.isActive, true));
 
 
-      for (const building of activeBuildings) {
-        try {
-          const buildingBudgets = await this.populateBudgetsForBuilding(building);
-          budgetsCreated += buildingBudgets;
-          buildingsProcessed++;
-          console.log(
-            `✅ Created ${buildingBudgets} budget entries for building: ${building.name}`
-          );
-        } catch (error: any) {
-          console.error(`❌ Error processing building ${building.name}:`, error);
-          // Continue with other buildings
-        }
+      // OPTIMIZATION: Process buildings in parallel batches to improve performance
+      const batchSize = 3; // Process 3 buildings concurrently
+      for (let i = 0; i < activeBuildings.length; i += batchSize) {
+        const batch = activeBuildings.slice(i, i + batchSize);
+        
+        const batchResults = await Promise.allSettled(
+          batch.map(async (building) => {
+            try {
+              const buildingBudgets = await this.populateBudgetsForBuilding(building);
+              console.log(`✅ Created ${buildingBudgets} budget entries for building: ${building.name}`);
+              return { buildingBudgets, buildingName: building.name };
+            } catch (error: any) {
+              console.error(`❌ Error processing building ${building.name}:`, error);
+              throw error;
+            }
+          })
+        );
+        
+        // Aggregate results from successful operations
+        batchResults.forEach((result) => {
+          if (result.status === 'fulfilled') {
+            budgetsCreated += result.value.buildingBudgets;
+            buildingsProcessed++;
+          }
+        });
       }
 
       console.log(`📊 Monthly budget population completed:
@@ -98,10 +111,24 @@ export class MonthlyBudgetService {
 
     const currentDate = new Date(constructionDate);
 
-    while (currentDate <= endDate) {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth() + 1; // 1-12
+    // OPTIMIZATION: Generate budget entries more efficiently
+    const monthsToGenerate = this.calculateMonthsInRange(constructionDate, endDate);
+    const maxMonths = Math.min(monthsToGenerate.length, 5000); // Safety limit
+    
+    // Pre-generate base budget entry template to avoid object recreation
+    const baseBudgetEntry = {
+      buildingId: building.id,
+      incomeTypes: incomeCategories,
+      spendingTypes: expenseCategories,
+      approved: false,
+      approvedBy: undefined,
+      originalBudgetId: undefined,
+    };
 
+    // Generate all budget entries in batches to reduce memory pressure
+    for (let i = 0; i < maxMonths; i++) {
+      const { year, month } = monthsToGenerate[i];
+      
       // Get aggregated amounts for this month/year
       const { incomes, spendings } = await this.getAggregatedAmountsForMonth(
         building.id,
@@ -112,25 +139,12 @@ export class MonthlyBudgetService {
       );
 
       budgetEntries.push({
-        buildingId: building.id,
+        ...baseBudgetEntry,
         year,
         month,
-        incomeTypes: incomeCategories,
-        incomes: incomes, // Keep as number array
-        spendingTypes: expenseCategories,
-        spendings: spendings, // Keep as number array
-        approved: false,
-        approvedBy: undefined,
-        originalBudgetId: undefined,
+        incomes,
+        spendings,
       });
-
-      // Move to next month
-      currentDate.setMonth(currentDate.getMonth() + 1);
-
-      // Safety check to avoid infinite loops
-      if (budgetEntries.length > 5000) {
-        break;
-      }
     }
 
     // Insert entries in batches
@@ -284,6 +298,24 @@ export class MonthlyBudgetService {
     }
 
     throw new Error('No active users found for system operations');
+  }
+
+  /**
+   * OPTIMIZATION: Helper function to calculate months in date range more efficiently
+   */
+  private calculateMonthsInRange(startDate: Date, endDate: Date): Array<{ year: number; month: number }> {
+    const months: Array<{ year: number; month: number }> = [];
+    const currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate && months.length < 5000) {
+      months.push({
+        year: currentDate.getFullYear(),
+        month: currentDate.getMonth() + 1
+      });
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    
+    return months;
   }
 
   /**

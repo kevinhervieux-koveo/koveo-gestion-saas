@@ -16,6 +16,7 @@ export interface LogContext {
   metadata?: Record<string, any>;
   requestId?: string;
   ip?: string;
+  errorId?: string;
 }
 
 // Sensitive fields that should never be logged

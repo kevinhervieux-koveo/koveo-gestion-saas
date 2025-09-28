@@ -207,50 +207,60 @@ export class ConsolidatedFinancialService extends BaseService {
 
   /**
    * Generate recurrent payments based on bill schedule
+   * OPTIMIZED: Simplified logic and extracted helper functions
    */
   private generateRecurrentPayments(bill: Bill): InsertPayment[] {
-    const paymentsToInsert: InsertPayment[] = [];
+    const paymentDates = this.calculatePaymentDates(bill);
+    
+    return paymentDates.map((date, index) => ({
+      billId: bill.id,
+      paymentNumber: index + 1,
+      scheduledDate: date.toISOString().split('T')[0],
+      amount: bill.totalAmount.toString(),
+      status: 'pending',
+    }));
+  }
+
+  /**
+   * OPTIMIZATION: Extracted payment date calculation logic
+   */
+  private calculatePaymentDates(bill: Bill): Date[] {
     const startDate = new Date(bill.startDate);
     const endDate = bill.endDate ? new Date(bill.endDate) : new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate());
+    const dates: Date[] = [];
     
-    let paymentNumber = 1;
+    const incrementMonths = this.getScheduleIncrement(bill.schedulePayment);
+    if (incrementMonths === 0) return [startDate]; // Invalid schedule, return single payment
+    
     let currentDate = new Date(startDate);
-
-    while (currentDate <= endDate) {
-      paymentsToInsert.push({
-        billId: bill.id,
-        paymentNumber,
-        scheduledDate: currentDate.toISOString().split('T')[0],
-        amount: bill.totalAmount.toString(),
-        status: 'pending',
-      });
-
-      // Increment date based on schedule
-      switch (bill.schedulePayment) {
-        case 'monthly':
-          currentDate.setMonth(currentDate.getMonth() + 1);
-          break;
-        case 'quarterly':
-          currentDate.setMonth(currentDate.getMonth() + 3);
-          break;
-        case 'yearly':
-          currentDate.setFullYear(currentDate.getFullYear() + 1);
-          break;
-        default:
-          // If no valid schedule, break to avoid infinite loop
-          break;
-      }
-
-      paymentNumber++;
+    let paymentCount = 0;
+    const maxPayments = 1000; // Safety limit
+    
+    while (currentDate <= endDate && paymentCount < maxPayments) {
+      dates.push(new Date(currentDate));
       
-      // Safety check to prevent infinite loops
-      if (paymentNumber > 1000) {
-        console.warn(`⚠️ Payment generation stopped at 1000 payments for bill ${bill.id}`);
-        break;
+      if (incrementMonths > 0) {
+        currentDate.setMonth(currentDate.getMonth() + incrementMonths);
+      } else {
+        currentDate.setFullYear(currentDate.getFullYear() + 1);
       }
+      
+      paymentCount++;
     }
+    
+    return dates;
+  }
 
-    return paymentsToInsert;
+  /**
+   * OPTIMIZATION: Extracted schedule increment calculation
+   */
+  private getScheduleIncrement(schedule: string): number {
+    switch (schedule) {
+      case 'monthly': return 1;
+      case 'quarterly': return 3;
+      case 'yearly': return -1; // Special case handled in calculatePaymentDates
+      default: return 0; // Invalid schedule
+    }
   }
 
   /**

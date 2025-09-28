@@ -178,6 +178,8 @@
     "react-hook-form": "^7.62.0",
     "react-resizable-panels": "^3.0.5",
     "react-router-dom": "^7.9.1",
+    "react-window": "^2.1.2",
+    "react-window-infinite-loader": "^2.0.0",
     "recharts": "^3.1.2",
     "rollup-plugin-analyzer": "^4.0.0",
     "simple-git": "^3.28.0",

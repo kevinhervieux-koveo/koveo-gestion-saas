@@ -75,6 +75,16 @@ interface BatchScopeResult<T> {
 export class OptimizedScopeQueryManager {
   private readonly cachePrefix = 'scope_query';
   private readonly cacheTtl = 15 * 60 * 1000; // 15 minutes TTL
+  
+  // ENHANCEMENT: Different TTLs for different data types to optimize cache effectiveness
+  private readonly cacheTtls = {
+    userContext: 20 * 60 * 1000,     // 20 minutes - user associations change infrequently
+    scopedQueries: 10 * 60 * 1000,   // 10 minutes - query results can change more often
+    batchOperations: 5 * 60 * 1000,  // 5 minutes - batch results need more frequent updates
+    organizationData: 30 * 60 * 1000, // 30 minutes - organization data is very stable
+    buildingData: 25 * 60 * 1000,    // 25 minutes - building data changes rarely
+    residenceData: 15 * 60 * 1000    // 15 minutes - residence data changes moderately
+  };
 
   /**
    * Generate deterministic cache key based on user's current associations
@@ -130,7 +140,7 @@ export class OptimizedScopeQueryManager {
         }
         
         const result = await contextBuilder();
-        queryCache.set('users', cacheKey, result, this.cacheTtl);
+        queryCache.set('users', cacheKey, result, this.cacheTtls.userContext);
         return result;
       }
       
@@ -224,7 +234,7 @@ export class OptimizedScopeQueryManager {
         
         // Build context and cache it
         const result = await contextBuilder();
-        queryCache.set('users', cacheKey, result, this.cacheTtl);
+        queryCache.set('users', cacheKey, result, this.cacheTtls.userContext);
         return result;
         
       } catch (error) {
