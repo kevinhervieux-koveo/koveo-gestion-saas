@@ -157,27 +157,55 @@ export class WorkflowService {
         throw new Error('No next status available');
       }
 
-      let stepCost = 0;
+      // Calculate actual cost from all completed phases (including the one we're about to complete)
+      // First update the status, then recalculate the cost based on completed phases
 
-      // Calculate workflow task costs for phases that have tasks (pre_work, in_progress, post_work)
-      if (currentStatus === 'pre_work' || currentStatus === 'in_progress' || currentStatus === 'post_work') {
-        const stepCostResult = await db
-          .select({
-            totalCost: sum(workflowTasks.cost)
-          })
-          .from(workflowTasks)
-          .where(
-            and(
-              eq(workflowTasks.projectId, projectId),
-              eq(workflowTasks.phase, currentStatus)
-            )
-          );
+      // Update project status in database first
+      await db
+        .update(maintenanceProjects)
+        .set({
+          status: nextStatus,
+          updatedAt: new Date(),
+          // Set specific date fields based on status
+          ...(nextStatus === 'in_progress' && { actualStartDate: new Date().toISOString().split('T')[0] }),
+          ...(nextStatus === 'completed' && { actualEndDate: new Date().toISOString().split('T')[0] }),
+        })
+        .where(eq(maintenanceProjects.id, projectId));
 
-        stepCost = parseFloat(stepCostResult[0]?.totalCost?.toString() || '0');
+      // Now recalculate actual cost based on all completed phases
+      const actualCost = await this.calculateActualCostFromCompletedPhases(projectId);
+      
+      // Update the actual cost
+      await db
+        .update(maintenanceProjects)
+        .set({
+          actualCost: actualCost.toFixed(2),
+          updatedAt: new Date(),
+        })
+        .where(eq(maintenanceProjects.id, projectId));
+
+      // Return updated workflow state
+      return await this.getProjectWorkflowState(projectId) as WorkflowState;
+    } catch (error) {
+      console.error('Error marking status complete:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate actual cost based only on completed workflow phases and completed tasks
+   */
+  async calculateActualCostFromCompletedPhases(projectId: string): Promise<number> {
+    try {
+      const workflowState = await this.getProjectWorkflowState(projectId);
+      if (!workflowState) {
+        throw new Error('Project not found');
       }
 
-      // Special handling for submission phase completion - add preferred vendor cost
-      if (currentStatus === 'submission') {
+      let totalActualCost = 0;
+
+      // Only include submission costs if submission phase is completed
+      if (workflowState.completedStatuses.includes('submission')) {
         const preferredVendorResult = await db
           .select({
             price: submissionVendors.price,
@@ -194,51 +222,47 @@ export class WorkflowService {
 
         if (preferredVendorResult.length > 0) {
           const vendor = preferredVendorResult[0];
-          let totalVendorCost = 0;
+          let vendorCost = 0;
 
           // Use payment plan costs if available (sum of all payment amounts)
           if (vendor.paymentPlanCosts && Array.isArray(vendor.paymentPlanCosts) && vendor.paymentPlanCosts.length > 0) {
-            totalVendorCost = vendor.paymentPlanCosts.reduce((sum, cost) => {
+            vendorCost = vendor.paymentPlanCosts.reduce((sum, cost) => {
               return sum + parseFloat(cost?.toString() || '0');
             }, 0);
           } else if (vendor.price) {
             // Fall back to price field if no payment plan costs
-            totalVendorCost = parseFloat(vendor.price.toString() || '0');
+            vendorCost = parseFloat(vendor.price.toString() || '0');
           }
 
-          stepCost = totalVendorCost;
+          totalActualCost += vendorCost;
         }
       }
 
-      // Get current project actual cost
-      const currentProjectResult = await db
-        .select({
-          actualCost: maintenanceProjects.actualCost
-        })
-        .from(maintenanceProjects)
-        .where(eq(maintenanceProjects.id, projectId))
-        .limit(1);
+      // Only include completed task costs from completed phases
+      const taskPhases = ['pre_work', 'in_progress', 'post_work'] as const;
+      for (const phase of taskPhases) {
+        if (workflowState.completedStatuses.includes(phase)) {
+          const completedTaskCostResult = await db
+            .select({
+              totalCost: sum(workflowTasks.cost)
+            })
+            .from(workflowTasks)
+            .where(
+              and(
+                eq(workflowTasks.projectId, projectId),
+                eq(workflowTasks.phase, phase),
+                eq(workflowTasks.status, 'completed') // Only completed tasks
+              )
+            );
 
-      const currentActualCost = parseFloat(currentProjectResult[0]?.actualCost || '0');
-      const newActualCost = currentActualCost + parseFloat(stepCost.toString() || '0');
+          const phaseCost = parseFloat(completedTaskCostResult[0]?.totalCost?.toString() || '0');
+          totalActualCost += phaseCost;
+        }
+      }
 
-      // Update project status and actual cost in database
-      await db
-        .update(maintenanceProjects)
-        .set({
-          status: nextStatus,
-          actualCost: newActualCost.toFixed(2),
-          updatedAt: new Date(),
-          // Set specific date fields based on status
-          ...(nextStatus === 'in_progress' && { actualStartDate: new Date().toISOString().split('T')[0] }),
-          ...(nextStatus === 'completed' && { actualEndDate: new Date().toISOString().split('T')[0] }),
-        })
-        .where(eq(maintenanceProjects.id, projectId));
-
-      // Return updated workflow state
-      return await this.getProjectWorkflowState(projectId) as WorkflowState;
+      return totalActualCost;
     } catch (error) {
-      console.error('Error marking status complete:', error);
+      console.error('Error calculating actual cost from completed phases:', error);
       throw error;
     }
   }
@@ -321,6 +345,18 @@ export class WorkflowService {
           ...(targetIndex < STATUS_PROGRESSION.indexOf('completed') && { 
             actualEndDate: null 
           }),
+        })
+        .where(eq(maintenanceProjects.id, projectId));
+
+      // Recalculate actual cost based on remaining completed phases
+      const actualCost = await this.calculateActualCostFromCompletedPhases(projectId);
+      
+      // Update the actual cost
+      await db
+        .update(maintenanceProjects)
+        .set({
+          actualCost: actualCost.toFixed(2),
+          updatedAt: new Date(),
         })
         .where(eq(maintenanceProjects.id, projectId));
 
