@@ -1969,8 +1969,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       priorYearBalance = forecastData.startingBalance;
     }
 
-    // Calculate average spending across all periods in the time window
-    const totalSpending = filteredData.reduce((sum, period) => sum + period.spending, 0);
+    // Calculate average spending across all periods in the time window, including project costs
+    const totalSpending = filteredData.reduce((sum, period) => {
+      const monthlyProjects = aggregateProjectsByMonth(period.year, period.month);
+      return sum + period.spending + monthlyProjects.total;
+    }, 0);
     const averageSpending = filteredData.length > 0 ? totalSpending / filteredData.length : 0;
 
     return {
