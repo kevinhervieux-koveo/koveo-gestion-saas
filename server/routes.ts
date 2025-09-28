@@ -32,6 +32,8 @@ import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
 import { registerMaintenanceRoutes } from './api/maintenance';
 import law25ComplianceRouter from './routes/law25-compliance';
+import { performanceRouter } from './performance-api';
+import { webVitalsRouter } from './web-vitals-api';
 import { db } from './db';
 import * as schema from '@shared/schema';
 
@@ -118,6 +120,10 @@ export async function registerRoutes(app: Express) {
   registerQualityMetricsRoutes(app);
   registerFeatureManagementRoutes(app);
   registerMaintenanceRoutes(app);
+  
+  // Performance monitoring routes
+  app.use(performanceRouter);
+  app.use(webVitalsRouter);
   
   // Law 25 compliance routes
   app.use('/api/law25-compliance', requireAuth, law25ComplianceRouter);

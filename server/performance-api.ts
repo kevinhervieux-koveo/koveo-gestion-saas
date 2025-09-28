@@ -26,7 +26,9 @@ router.get('/api/performance/stats', async (req, res) => {
       optimization: optimizationStatus,
       timestamp: new Date().toISOString(),
     });
-    res.status(500).json({ _error: 'Failed to get performance statistics' });
+  } catch (error) {
+    console.error('Failed to get performance statistics:', error);
+    res.status(500).json({ error: 'Failed to get performance statistics' });
   }
 });
 
@@ -46,7 +48,9 @@ router.get('/api/performance/recommendations', async (req, res) => {
         priority: dbRecommendations.length > 0 ? 'high' : 'low',
       },
     });
-    res.status(500).json({ _error: 'Failed to get performance recommendations' });
+  } catch (error) {
+    console.error('Failed to get performance recommendations:', error);
+    res.status(500).json({ error: 'Failed to get performance recommendations' });
   }
 });
 
@@ -61,7 +65,9 @@ router.post('/api/performance/clear-cache', async (req, res) => {
       message: 'All caches cleared successfully',
       timestamp: new Date().toISOString(),
     });
-    res.status(500).json({ _error: 'Failed to clear caches' });
+  } catch (error) {
+    console.error('Failed to clear caches:', error);
+    res.status(500).json({ error: 'Failed to clear caches' });
   }
 });
 
@@ -76,7 +82,9 @@ router.post('/api/performance/maintenance', async (req, res) => {
       message: 'Database maintenance completed successfully',
       timestamp: new Date().toISOString(),
     });
-    res.status(500).json({ _error: 'Database maintenance failed' });
+  } catch (error) {
+    console.error('Database maintenance failed:', error);
+    res.status(500).json({ error: 'Database maintenance failed' });
   }
 });
 
@@ -94,7 +102,9 @@ router.get('/api/performance/memory', async (req, res) => {
       recommendations: CacheMonitor.analyzePerformance(),
       timestamp: new Date().toISOString(),
     });
-    res.status(500).json({ _error: 'Failed to get memory statistics' });
+  } catch (error) {
+    console.error('Failed to get memory statistics:', error);
+    res.status(500).json({ error: 'Failed to get memory statistics' });
   }
 });
 
@@ -127,7 +137,9 @@ router.get('/api/performance/trends', async (req, res) => {
       },
       status: avgTime <= 50 ? 'optimal' : avgTime <= 100 ? 'good' : 'needs_optimization',
     });
-    res.status(500).json({ _error: 'Failed to get performance trends' });
+  } catch (error) {
+    console.error('Failed to get performance trends:', error);
+    res.status(500).json({ error: 'Failed to get performance trends' });
   }
 });
 

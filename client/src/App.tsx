@@ -12,13 +12,22 @@ import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
 import { useSmoothNavigation } from '@/hooks/use-smooth-navigation';
+import { webVitalsMonitor } from '@/utils/web-vitals-monitor';
+import { performanceMonitor } from '@/utils/performance-monitor';
 
 // Start memory monitoring for better performance
 memoryOptimizer.start();
 
-// Make queryClient available globally for memory cleanup
+// Initialize performance monitoring
 if (typeof window !== 'undefined') {
+  // Make queryClient available globally for memory cleanup
   (window as unknown as Record<string, unknown>).queryClient = queryClient;
+  
+  // Initialize Web Vitals and performance monitoring
+  webVitalsMonitor.initialize();
+  performanceMonitor.start();
+  
+  console.log('🚀 Performance monitoring systems initialized');
 }
 
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
@@ -242,6 +251,13 @@ const InvitationAcceptancePage = createOptimizedLoader(
   { preloadDelay: 500, enableMemoryCleanup: true }
 );
 
+// Performance Dashboard page (admin route)
+const PerformanceDashboardPage = createOptimizedLoader(
+  () => import('@/components/dashboard/PerformanceDashboard'),
+  'performance-dashboard-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
+
 /**
  * Protected router component that handles authentication-based routing.
  * Shows login page for unauthenticated users, main app for authenticated users.
@@ -350,6 +366,7 @@ function Router() {
             <Route path='/admin/compliance' component={AdminCompliance} />
             <Route path='/admin/suggestions' component={AdminSuggestions} />
             <Route path='/admin/permissions' component={AdminPermissions} />
+            <Route path='/admin/performance' component={PerformanceDashboardPage} />
 
             {/* Owner routes removed - documentation consolidated under admin section */}
 
