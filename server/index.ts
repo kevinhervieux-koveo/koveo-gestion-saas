@@ -579,6 +579,37 @@ async function initializeDatabaseInBackground(): Promise<void> {
           log('✅ Database optimizations complete');
         }
       }
+
+      // Initialize advanced query optimization system
+      try {
+        log('🚀 Initializing advanced query optimization system...');
+        const { initializeQueryOptimizations, scheduleOptimizationMaintenance } = await import('./init-query-optimizations');
+        
+        const optimizationStatus = await initializeQueryOptimizations();
+        
+        if (optimizationStatus.optimizationServicesReady) {
+          log('✅ Advanced query optimization system initialized successfully');
+          log(`⚡ Optimization features active: caching, batch operations, performance monitoring`);
+          
+          // Schedule maintenance for continuous optimization
+          scheduleOptimizationMaintenance();
+          log('⏰ Optimization maintenance scheduled');
+          
+          // Log performance baseline
+          if (optimizationStatus.initializationTime) {
+            log(`📊 Optimization system initialized in ${optimizationStatus.initializationTime}ms`);
+          }
+        } else {
+          log('⚠️ Query optimization system partially initialized - some features may be limited');
+        }
+        
+        if (optimizationStatus.errors.length > 0) {
+          log(`⚠️ Optimization warnings: ${optimizationStatus.errors.join(', ')}`);
+        }
+      } catch (optimizationError: any) {
+        log(`⚠️ Advanced optimization system failed: ${optimizationError.message}`, 'error');
+        // Don't fail startup for optimization issues
+      }
     }
 
     log('🔄 Background work complete - all routes already loaded');

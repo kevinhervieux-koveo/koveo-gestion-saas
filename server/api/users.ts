@@ -19,6 +19,7 @@ import {
 import { logUserCreation } from '../utils/user-creation-logger';
 import { queryCache } from '../query-cache';
 import { emailService } from '../services/email-service';
+import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
 
 /**
  * Registers all user-related API endpoints.
@@ -490,7 +491,13 @@ export function registerUserRoutes(app: Express): void {
   /**
    * PUT /api/users/:id - Updates an existing user.
    */
-  app.put('/api/users/:id', requireAuth, async (req: any, res) => {
+  app.put('/api/users/:id', requireAuth,
+    createInvalidationMiddleware('user', {
+      extractEntityId: (req) => req.params.id,
+      extractAffectedUsers: async (req) => [req.params.id],
+      operation: 'update'
+    }),
+    async (req: any, res) => {
     try {
       const { id } = req.params;
       const currentUser = req.user || req.session?.user;
@@ -1333,7 +1340,13 @@ export function registerUserRoutes(app: Express): void {
    * Admin: can assign/remove any organization
    * Manager: can only assign/remove organizations within their scope, preserves out-of-scope assignments
    */
-  app.put('/api/users/:id/organizations', requireAuth, async (req: any, res) => {
+  app.put('/api/users/:id/organizations', requireAuth, 
+    createInvalidationMiddleware('userOrganization', {
+      extractEntityId: (req) => req.params.id,
+      extractAffectedUsers: async (req) => [req.params.id],
+      operation: 'update'
+    }),
+    async (req: any, res) => {
     try {
       const currentUser = req.user || req.session?.user;
       const { id: userId } = req.params;
@@ -1988,7 +2001,13 @@ export function registerUserRoutes(app: Express): void {
    * Admin: can assign/remove any residence
    * Manager: can assign/remove residences within their organizations only.
    */
-  app.put('/api/users/:id/residences', requireAuth, async (req: any, res) => {
+  app.put('/api/users/:id/residences', requireAuth,
+    createInvalidationMiddleware('userResidence', {
+      extractEntityId: (req) => req.params.id,
+      extractAffectedUsers: async (req) => [req.params.id],
+      operation: 'update'
+    }),
+    async (req: any, res) => {
     try {
       const currentUser = req.user || req.session?.user;
       const { id: userId } = req.params;
