@@ -154,6 +154,7 @@ interface BudgetFilters {
     netCashFlow: boolean;
     capitalInvestments: boolean;
     minimumRequirement: boolean;
+    project: boolean;
   };
 }
 
@@ -324,6 +325,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         netCashFlow: false,
         capitalInvestments: true,
         minimumRequirement: true,
+        project: true,
       },
     };
   };
@@ -345,6 +347,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const [cardsCollapsed, setCardsCollapsed] = useState(() => {
     const saved = localStorage.getItem('budget-cards-collapsed');
     return saved ? JSON.parse(saved) : {
+      project: true,
       bankAccount: true,
       minimumRequirement: true,
       revenue: true,
@@ -2615,6 +2618,23 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       data-testid="switch-minimum-requirement-visibility"
                     />
                   </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="toggle-project" className="text-sm cursor-pointer flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-purple-600" />
+                      Project
+                    </Label>
+                    <Switch 
+                      id="toggle-project"
+                      checked={filters.dataVisibility.project}
+                      onCheckedChange={(checked) => {
+                        setFilters(prev => ({
+                          ...prev,
+                          dataVisibility: { ...prev.dataVisibility, project: checked },
+                        }));
+                      }}
+                      data-testid="switch-project-visibility"
+                    />
+                  </div>
                 </div>
               </div>
             </Card>
@@ -2627,7 +2647,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                 </span>
                 <Separator orientation="vertical" className="h-4" />
                 <span>
-                  Data: {Object.entries(filters.dataVisibility).filter(([_, visible]) => visible).length} of 5 categories visible
+                  Data: {Object.entries(filters.dataVisibility).filter(([_, visible]) => visible).length} of 6 categories visible
                 </span>
               </div>
             </>
@@ -2764,6 +2784,12 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 border-2 border-amber-600 border-dashed"></div>
                         <span className="text-sm font-medium">Minimum Requirement</span>
+                      </div>
+                    )}
+                    {filters.dataVisibility.project && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-purple-600"></div>
+                        <span className="text-sm font-medium">Project</span>
                       </div>
                     )}
                   </div>
