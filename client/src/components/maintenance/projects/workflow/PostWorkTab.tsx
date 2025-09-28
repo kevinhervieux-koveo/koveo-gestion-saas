@@ -229,7 +229,12 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         projectElements.forEach(element => {
           // Only initialize if this element doesn't already have local updates
           if (!newUpdates[element.elementId]) {
-            const interventionType: InterventionType = (element.projectType as InterventionType) || 'nothing';
+            // Map database 'replacement' to frontend 'replace'
+            let interventionType: InterventionType = (element.projectType as InterventionType) || 'nothing';
+            if (interventionType === 'replacement' as any) {
+              interventionType = 'replace';
+            }
+            
             newUpdates[element.elementId] = {
               elementId: element.elementId,
               interventionType,
