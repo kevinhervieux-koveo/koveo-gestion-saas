@@ -4126,6 +4126,166 @@ export function registerMaintenanceRoutes(app: Express): void {
     }
   });
 
+  /**
+   * POST /api/maintenance/projects/:id/apply-inventory-changes - Apply lifespan changes to building elements
+   */
+  app.post('/api/maintenance/projects/:id/apply-inventory-changes', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to update building elements'
+        });
+      }
+      
+      const { id: projectId } = req.params;
+      const { elements, workCompletionDate } = req.body;
+      
+      if (!Array.isArray(elements)) {
+        return res.status(400).json({
+          error: 'Elements must be an array'
+        });
+      }
+      
+      // Validate workCompletionDate format
+      if (!workCompletionDate || !/^\d{4}-\d{2}-\d{2}$/.test(workCompletionDate)) {
+        return res.status(400).json({
+          error: 'workCompletionDate must be in YYYY-MM-DD format'
+        });
+      }
+      
+      // Check project exists and user has access
+      const projectResult = await db
+        .select({ buildingId: maintenanceProjects.buildingId })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+      
+      if (projectResult.length === 0) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+      
+      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      if (!hasAccess) {
+        return res.status(403).json({
+          error: 'No access to this project'
+        });
+      }
+
+      // First, validate all elements belong to this project and validate input data
+      const validationErrors = [];
+      const validatedElements = [];
+      
+      for (let i = 0; i < elements.length; i++) {
+        const elementUpdate = elements[i];
+        const { elementId, interventionType, lifespanImpactYears } = elementUpdate;
+        
+        // Validate element data
+        if (!elementId) {
+          validationErrors.push(`Element ${i}: elementId is required`);
+          continue;
+        }
+        
+        if (!interventionType || !['replace', 'minor_rehab', 'major_rehab', 'repair', 'nothing'].includes(interventionType)) {
+          validationErrors.push(`Element ${i}: interventionType must be one of: replace, minor_rehab, major_rehab, repair, nothing`);
+          continue;
+        }
+        
+        if (typeof lifespanImpactYears !== 'number' || lifespanImpactYears < 0 || lifespanImpactYears > 100) {
+          validationErrors.push(`Element ${i}: lifespanImpactYears must be a number between 0 and 100`);
+          continue;
+        }
+        
+        // CRITICAL: Verify element belongs to this project
+        const projectElementCheck = await db
+          .select({
+            projectElementId: projectElements.id,
+            elementId: buildingElements.id,
+            currentLifespan: buildingElements.currentLifespan,
+            originalConstructionDate: buildingElements.originalConstructionDate,
+            originalLifespan: buildingElements.originalLifespan,
+          })
+          .from(projectElements)
+          .innerJoin(buildingElements, eq(projectElements.elementId, buildingElements.id))
+          .where(
+            and(
+              eq(projectElements.projectId, projectId),
+              eq(projectElements.elementId, elementId)
+            )
+          )
+          .limit(1);
+        
+        if (projectElementCheck.length === 0) {
+          validationErrors.push(`Element ${i}: Element ${elementId} does not belong to project ${projectId}`);
+          continue;
+        }
+        
+        validatedElements.push({
+          ...elementUpdate,
+          elementData: projectElementCheck[0]
+        });
+      }
+      
+      // Return validation errors if any
+      if (validationErrors.length > 0) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          validationErrors
+        });
+      }
+      
+      let updatedElements = 0;
+      
+      // Process validated elements
+      for (const elementUpdate of validatedElements) {
+        const { elementId, interventionType, lifespanImpactYears, elementData } = elementUpdate;
+        
+        let updateData: any = {};
+        
+        if (interventionType === 'replace') {
+          // For replacement: reset construction date and set new lifespan
+          updateData = {
+            originalConstructionDate: workCompletionDate,
+            currentLifespan: lifespanImpactYears, // This becomes the new total lifespan
+            originalLifespan: lifespanImpactYears, // Reset original lifespan too
+          };
+        } else if (interventionType === 'minor_rehab' || interventionType === 'major_rehab') {
+          // For rehab: add years to current lifespan
+          const newCurrentLifespan = (elementData.currentLifespan || 0) + lifespanImpactYears;
+          updateData = {
+            currentLifespan: newCurrentLifespan,
+          };
+        }
+        // For 'repair' or 'nothing', no changes to lifespan
+        
+        if (Object.keys(updateData).length > 0) {
+          await db
+            .update(buildingElements)
+            .set(updateData)
+            .where(eq(buildingElements.id, elementId));
+          
+          updatedElements++;
+        }
+      }
+      
+      res.json({
+        success: true,
+        message: `Successfully updated ${updatedElements} building elements`,
+        updatedElements
+      });
+    } catch (error: any) {
+      console.error('Error applying inventory changes:', error);
+      res.status(500).json({
+        error: 'Failed to apply inventory changes',
+        details: error.message
+      });
+    }
+  });
+
   // ===========================================
   // ELEMENT PROJECT UPDATES (POST-WORK TRACKING)
   // ===========================================
