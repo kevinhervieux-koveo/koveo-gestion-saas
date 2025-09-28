@@ -85,6 +85,10 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
         onSuccess: () => {
           setLocalTaskEdits({});
           setHasChanges(false);
+          // Invalidate tasks query to refresh data from server
+          queryClient.invalidateQueries({ 
+            queryKey: ['/api/maintenance/projects', project.id, 'tasks', 'in_progress'] 
+          });
         }
       });
     });

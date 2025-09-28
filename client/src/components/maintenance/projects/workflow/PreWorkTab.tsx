@@ -187,6 +187,11 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
         updates: processedUpdates,
       });
     });
+    
+    // Invalidate tasks query to refresh data from server
+    queryClient.invalidateQueries({ 
+      queryKey: ['/api/maintenance/projects', project.id, 'tasks', 'pre_work'] 
+    });
   };
 
   // Handle immediate task updates (for buttons like completion toggle)

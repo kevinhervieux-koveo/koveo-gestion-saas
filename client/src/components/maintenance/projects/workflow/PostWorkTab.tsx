@@ -308,6 +308,10 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
           if (completedEdits === totalEdits) {
             setLocalTaskEdits({});
             setHasChanges(false);
+            // Invalidate tasks query to refresh data from server
+            queryClient.invalidateQueries({ 
+              queryKey: ['/api/maintenance/projects', project.id, 'tasks', 'post_work'] 
+            });
             toast({
               title: 'Success',
               description: 'All changes saved successfully',
