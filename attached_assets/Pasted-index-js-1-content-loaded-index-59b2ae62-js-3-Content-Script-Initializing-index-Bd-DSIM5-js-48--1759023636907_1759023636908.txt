@@ -1,0 +1,153 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-owe9j7wA.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-owe9j7wA.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-owe9j7wA.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-owe9j7wA.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bd-DSIM5.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-Bd-DSIM5.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bd-DSIM5.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-Bd-DSIM5.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-Bd-DSIM5.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-Bd-DSIM5.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-Bd-DSIM5.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 4
+index-Bd-DSIM5.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-Bd-DSIM5.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-BR72u6IZ.js:185 [Violation] 'setTimeout' handler took 109ms
+index-Bd-DSIM5.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-Bd-DSIM5.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-BTmEy4sB.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BTmEy4sB.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-BTmEy4sB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BTmEy4sB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Response structure: (2) ['success', 'data']
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Projects found in data property: 4
+index-Bd-DSIM5.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-Bd-DSIM5.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-BR72u6IZ.js:185 [Violation] 'setTimeout' handler took 63ms
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'submission', nextStatus: 'pre_work', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-Dafw8cTJ.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'submission', nextStatus: 'pre_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-BTmEy4sB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bd-DSIM5.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-Bd-DSIM5.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BTmEy4sB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BTmEy4sB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-BR72u6IZ.js:136 ReferenceError: markStatusComplete is not defined
+    at eo (SubmissionTab-C07Ya7r_.js:6:170948)
+    at Object.react_stack_bottom_frame (index-BR72u6IZ.js:229:12448)
+    at oc (index-BR72u6IZ.js:120:804)
+    at kc (index-BR72u6IZ.js:141:5839)
+    at Pc (index-BR72u6IZ.js:150:10147)
+    at q (index-BR72u6IZ.js:45:108)
+    at Kh (index-BR72u6IZ.js:163:29810)
+    at Jh (index-BR72u6IZ.js:163:28479)
+    at Wc (index-BR72u6IZ.js:163:28312)
+    at Ih (index-BR72u6IZ.js:163:24807)
+
+The above error occurred in the <eo> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gx.
+
+overrideMethod @ hook.js:608
+oh @ index-BR72u6IZ.js:136
+lh @ index-BR72u6IZ.js:141
+q @ index-BR72u6IZ.js:45
+l.componentDidCatch.e.callback @ index-BR72u6IZ.js:141
+Dp @ index-BR72u6IZ.js:107
+Ep @ index-BR72u6IZ.js:107
+q @ index-BR72u6IZ.js:45
+Dh @ index-BR72u6IZ.js:163
+Nh @ index-BR72u6IZ.js:163
+Qn @ index-BR72u6IZ.js:163
+Nh @ index-BR72u6IZ.js:163
+Qn @ index-BR72u6IZ.js:163
+Nh @ index-BR72u6IZ.js:163
+Qn @ index-BR72u6IZ.js:163
+Nh @ index-BR72u6IZ.js:163
+Qn @ index-BR72u6IZ.js:163
+Nh @ index-BR72u6IZ.js:163
+Qn @ index-BR72u6IZ.js:163
+Nh @ index-BR72u6IZ.js:163
+Qn @ index-BR72u6IZ.js:163
+Nh @ index-BR72u6IZ.js:163
+ng @ index-BR72u6IZ.js:163
+ed @ index-BR72u6IZ.js:163
+Xh @ index-BR72u6IZ.js:163
+Ih @ index-BR72u6IZ.js:163
+mg @ index-BR72u6IZ.js:185
+ml @ index-BR72u6IZ.js:185
+ad @ index-BR72u6IZ.js:185
+(anonymous) @ index-BR72u6IZ.js:185
+<...>
+du.jsxDEV @ index-BR72u6IZ.js:15
+Hm @ index-Bd-DSIM5.js:48
+react_stack_bottom_frame @ index-BR72u6IZ.js:229
+oc @ index-BR72u6IZ.js:120
+kc @ index-BR72u6IZ.js:141
+Pc @ index-BR72u6IZ.js:150
+q @ index-BR72u6IZ.js:45
+Kh @ index-BR72u6IZ.js:163
+Jh @ index-BR72u6IZ.js:163
+Wc @ index-BR72u6IZ.js:163
+Ih @ index-BR72u6IZ.js:163
+mg @ index-BR72u6IZ.js:185
+ml @ index-BR72u6IZ.js:185
+ad @ index-BR72u6IZ.js:185
+(anonymous) @ index-BR72u6IZ.js:185
+<Hm>
+du.jsxDEV @ index-BR72u6IZ.js:15
+S @ ProjectWorkflowModal-BTmEy4sB.js:1
+To @ ProjectWorkflowModal-BTmEy4sB.js:1
+react_stack_bottom_frame @ index-BR72u6IZ.js:229
+oc @ index-BR72u6IZ.js:120
+kc @ index-BR72u6IZ.js:141
+Pc @ index-BR72u6IZ.js:150
+q @ index-BR72u6IZ.js:45
+Kh @ index-BR72u6IZ.js:163
+Jh @ index-BR72u6IZ.js:163
+Wc @ index-BR72u6IZ.js:163
+Ih @ index-BR72u6IZ.js:163
+mg @ index-BR72u6IZ.js:185
+ml @ index-BR72u6IZ.js:185
+ad @ index-BR72u6IZ.js:185
+(anonymous) @ index-BR72u6IZ.js:185

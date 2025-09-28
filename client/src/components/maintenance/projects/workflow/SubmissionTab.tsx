@@ -2160,13 +2160,13 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
         
         {canAdvance && hasPreferredVendor && (
           <Button 
-            onClick={() => markStatusComplete({ projectId: project.id, completedStatus: 'submission' })}
-            disabled={markStatusComplete.isPending}
+            onClick={() => markComplete({ projectId: project.id, currentStatus: 'submission' })}
+            disabled={isMarkingComplete}
             className="flex items-center gap-2"
             data-testid="button-complete-submission"
           >
             <CheckCircle2 className="h-4 w-4" />
-            {markStatusComplete.isPending ? 'Completing...' : 'Complete Submission Phase'}
+            {isMarkingComplete ? 'Completing...' : 'Complete Submission Phase'}
           </Button>
         )}
       </div>
