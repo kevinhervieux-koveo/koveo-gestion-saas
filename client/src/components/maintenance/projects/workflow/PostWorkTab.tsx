@@ -668,46 +668,82 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                              <div>
-                                <label className="text-sm font-medium mb-1 block">Intervention Type</label>
-                                <div className="p-2 bg-muted/50 rounded text-sm font-medium" data-testid={`intervention-type-${element.elementId}`}>
-                                  {element.projectType ? formatInterventionType(element.projectType as InterventionType) : 'Not specified'}
+                            {element.projectType === 'replace' ? (
+                              // Layout for replacement interventions
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-sm font-medium mb-1 block">Intervention Type</label>
+                                  <div className="p-2 bg-muted/50 rounded text-sm font-medium" data-testid={`intervention-type-${element.elementId}`}>
+                                    {formatInterventionType(element.projectType as InterventionType)}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="text-sm font-medium mb-1 block">Life Span Estimation</label>
+                                  <div className="flex items-center gap-1">
+                                    <Input
+                                      type="number"
+                                      step="1"
+                                      min="1"
+                                      max="100"
+                                      value={update.lifespanImpactYears}
+                                      onChange={(e) => 
+                                        handleLifespanImpactChange(
+                                          element.elementId, 
+                                          Math.round(parseInt(e.target.value) || 25)
+                                        )
+                                      }
+                                      data-testid={`input-lifespan-estimation-${element.elementId}`}
+                                    />
+                                    <span className="text-xs text-muted-foreground">years</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Expected lifespan of the new element
+                                  </p>
                                 </div>
                               </div>
+                            ) : (
+                              // Layout for repair/rehab interventions
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="text-sm font-medium mb-1 block">Intervention Type</label>
+                                  <div className="p-2 bg-muted/50 rounded text-sm font-medium" data-testid={`intervention-type-${element.elementId}`}>
+                                    {element.projectType ? formatInterventionType(element.projectType as InterventionType) : 'Not specified'}
+                                  </div>
+                                </div>
 
-                              <div>
-                                <label className="text-sm font-medium mb-1 block">Remaining Lifespan Before</label>
-                                <div className="p-2 bg-muted/50 rounded text-sm" data-testid={`remaining-lifespan-${element.elementId}`}>
-                                  {element.element?.currentLifespan ? `${element.element.currentLifespan} years` : 'Not specified'}
+                                <div>
+                                  <label className="text-sm font-medium mb-1 block">Remaining Lifespan Before</label>
+                                  <div className="p-2 bg-muted/50 rounded text-sm" data-testid={`remaining-lifespan-${element.elementId}`}>
+                                    {element.element?.currentLifespan ? `${element.element.currentLifespan} years` : 'Not specified'}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="text-sm font-medium mb-1 block">Lifespan Impact (Years)</label>
+                                  <div className="flex items-center gap-1">
+                                    <Input
+                                      type="number"
+                                      step="1"
+                                      min="0"
+                                      max="50"
+                                      value={update.lifespanImpactYears}
+                                      onChange={(e) => 
+                                        handleLifespanImpactChange(
+                                          element.elementId, 
+                                          Math.round(parseInt(e.target.value) || 0)
+                                        )
+                                      }
+                                      data-testid={`input-lifespan-impact-${element.elementId}`}
+                                    />
+                                    <span className="text-xs text-muted-foreground">years</span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Years added to remaining lifespan
+                                  </p>
                                 </div>
                               </div>
-
-                              <div>
-                                <label className="text-sm font-medium mb-1 block">Lifespan Impact (Years)</label>
-                                <div className="flex items-center gap-1">
-                                  <Input
-                                    type="number"
-                                    step="1"
-                                    min="0"
-                                    max="50"
-                                    value={update.lifespanImpactYears}
-                                    onChange={(e) => 
-                                      handleLifespanImpactChange(
-                                        element.elementId, 
-                                        Math.round(parseInt(e.target.value) || 0)
-                                      )
-                                    }
-                                    data-testid={`input-lifespan-impact-${element.elementId}`}
-                                  />
-                                  <span className="text-xs text-muted-foreground">years</span>
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Years added to remaining lifespan
-                                </p>
-                              </div>
-
-                            </div>
+                            )}
                             
                             <div className="flex items-center space-x-2 mt-3">
                               <Checkbox
