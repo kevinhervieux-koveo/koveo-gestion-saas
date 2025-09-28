@@ -92,10 +92,14 @@ jest.mock('@shared/schema', () => ({
 
 jest.mock('../../../server/auth', () => ({
   requireAuth: (req: Request, res: Response, next: NextFunction) => {
-    // Add mock user to request
+    // Add mock user to request - using AuthenticatedUser interface
     req.user = {
-      id: 'test-user-id',
+      username: 'test-user',
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
       role: 'manager' as const,
+      isActive: true,
       organizations: ['test-org-id']
     };
     next();
