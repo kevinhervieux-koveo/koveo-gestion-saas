@@ -79,13 +79,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     buildingName
   } = props;
   
-  console.log('📁 [PROJECTS PAGE] Initializing with:', { 
-    organizationId, 
-    buildingId, 
-    residenceId,
-    showBackButton,
-    backButtonLabel
-  });
   
   const { toast } = useToast();
 
@@ -101,14 +94,12 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   // Sync HOC props with building context
   useEffect(() => {
     if (organizationId && organizationId !== contextOrganizationId) {
-      console.log('📁 [PROJECTS PAGE] Syncing organization ID with context:', organizationId);
       setOrganizationId(organizationId);
     }
   }, [organizationId, contextOrganizationId, setOrganizationId]);
 
   useEffect(() => {
     if (buildingId && buildingId !== contextBuildingId) {
-      console.log('📁 [PROJECTS PAGE] Syncing building ID with context:', buildingId);
       setBuildingId(buildingId);
     }
   }, [buildingId, contextBuildingId, setBuildingId]);
@@ -120,16 +111,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   const [projectOverviewExpanded, setProjectOverviewExpanded] = useState(false);
   const [projectsTableExpanded, setProjectsTableExpanded] = useState(false);
   
-  // Debug log for state changes
-  const [lastStateChange, setLastStateChange] = useState<string>('');
-  
-  // Log state changes
-  const logStateChange = useCallback((action: string, details?: any) => {
-    const timestamp = new Date().toISOString();
-    const message = `📁 [PROJECTS STATE] ${action}`;
-    console.log(message, details ? details : '');
-    setLastStateChange(`${timestamp}: ${action}`);
-  }, []);
 
   // State for modals and panels
   const [selectedProject, setSelectedProject] = useState<MaintenanceProject | null>(null);
@@ -166,51 +147,39 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Project handlers
   const handleViewProject = useCallback((project: MaintenanceProject) => {
-    console.log('📁 [PROJECTS ACTION] handleViewProject called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setWorkflowInitialTab(undefined); // Let workflow determine the appropriate tab
     setShowProjectWorkflow(true);
-    console.log('📁 [PROJECTS STATE] Project workflow modal opened');
   }, []);
 
   const handleEditProject = useCallback((project: MaintenanceProject) => {
-    console.log('📁 [PROJECTS ACTION] handleEditProject called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setWorkflowInitialTab(undefined); // Let workflow determine the appropriate tab
     setShowProjectWorkflow(true);
-    console.log('📁 [PROJECTS STATE] Project workflow modal opened for editing');
   }, []);
 
   const handleAddProject = useCallback(() => {
-    console.log('📁 [PROJECTS ACTION] handleAddProject called');
     setSelectedProject(null);
     setProjectFormMode('create');
     setShowProjectForm(true); // Still use ProjectForm for creating new projects
-    console.log('📁 [PROJECTS STATE] Project form opened for new project creation');
   }, []);
 
   // Handler to open workflow modal at specific tab
   const handleOpenWorkflowTab = useCallback((project: MaintenanceProject, tabId?: string) => {
-    console.log('📁 [PROJECTS ACTION] handleOpenWorkflowTab called:', { projectId: project.id, projectTitle: project.title, tabId });
     setSelectedProject(project);
     setWorkflowInitialTab(tabId);
     setShowProjectWorkflow(true);
-    console.log('📁 [PROJECTS STATE] Project workflow modal opened at specific tab:', tabId);
   }, []);
 
 
   const handleManageElements = useCallback((project: MaintenanceProject) => {
-    console.log('📁 [PROJECTS ACTION] handleManageElements called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setShowProjectElements(true);
-    console.log('📁 [PROJECTS STATE] Project elements modal opened');
   }, []);
 
   const handleManageTimeline = useCallback((project: MaintenanceProject) => {
-    console.log('📁 [PROJECTS ACTION] handleManageTimeline called:', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setShowProjectTimeline(true);
-    console.log('📁 [PROJECTS STATE] Project timeline modal opened');
   }, []);
 
   const handleManageNotes = useCallback((project: MaintenanceProject) => {
@@ -224,12 +193,10 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   }, []);
 
   const handleUpdateStatus = useCallback((project: MaintenanceProject) => {
-    console.log('📁 [PROJECTS ACTION] handleUpdateStatus called:', { projectId: project.id, projectTitle: project.title, currentStatus: project.status });
     // Open workflow modal at the current status tab for status management
     setSelectedProject(project);
     setWorkflowInitialTab(project.status);
     setShowProjectWorkflow(true);
-    console.log('📁 [PROJECTS STATE] Project workflow modal opened for status update');
   }, []);
 
 
@@ -237,7 +204,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Form success handlers
   const handleProjectFormSuccess = useCallback((project: MaintenanceProject) => {
-    console.log('📁 [PROJECTS SUCCESS] Project form success:', { projectId: project.id, projectTitle: project.title, mode: projectFormMode });
     setShowProjectForm(false);
     setSelectedProject(null);
     
@@ -246,17 +212,14 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       title: projectFormMode === 'create' ? 'Project Created' : 'Project Updated',
       description: `${project.title} has been ${projectFormMode === 'create' ? 'created' : 'updated'} successfully.`,
     });
-    console.log('📁 [PROJECTS STATE] Project form closed after success');
   }, [projectFormMode, toast]);
 
   const handleWorkflowModalUpdate = useCallback((project: MaintenanceProject) => {
-    console.log('📁 [PROJECTS SUCCESS] Project workflow updated:', { projectId: project.id, projectTitle: project.title });
     // Update selected project with latest data
     setSelectedProject(project);
     
     // Note: We don't close the modal here as user might want to continue working with different tabs
     // The modal will handle its own state and navigation between tabs
-    console.log('📁 [PROJECTS STATE] Project workflow modal updated with latest project data');
   }, []);
 
   const handleSuggestionsIntegrationSuccess = useCallback((projects: MaintenanceProject[]) => {
@@ -271,7 +234,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Handle auto-project acceptance success
   const handleAutoProjectAccepted = useCallback((project: MaintenanceProject) => {
-    console.log('📁 [PROJECTS SUCCESS] Auto-project accepted:', { projectId: project.id, projectTitle: project.title });
     toast({
       title: "Project Created Successfully",
       description: `Auto-generated project "${project.title}" has been converted to a maintenance project.`,
@@ -290,33 +252,27 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Filter handlers
   const handleSearchChange = useCallback((term: string) => {
-    console.log('📁 [PROJECTS FILTER] Search term changed:', term);
     setSearchTerm(term);
   }, []);
 
   const handleStatusFilterChange = useCallback((status: string) => {
-    console.log('📁 [PROJECTS FILTER] Status filter changed:', status);
     setStatusFilter(status);
   }, []);
 
   const handlePriorityFilterChange = useCallback((priority: string) => {
-    console.log('📁 [PROJECTS FILTER] Priority filter changed:', priority);
     setPriorityFilter(priority);
   }, []);
 
   const handleTypeFilterChange = useCallback((type: string) => {
-    console.log('📁 [PROJECTS FILTER] Type filter changed:', type);
     setTypeFilter(type);
   }, []);
 
   const handleShowOverdueChange = useCallback((overdue: boolean) => {
-    console.log('📁 [PROJECTS FILTER] Show overdue changed:', overdue);
     setShowOverdueOnly(overdue);
   }, []);
 
   // Selection handlers
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
-    console.log('📁 [PROJECTS SELECTION] Selection changed:', { count: selectedIds.length, selectedIds });
     setSelectedProjects(selectedIds);
   }, []);
 
@@ -368,7 +324,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // No building selected state
   if (!buildingId) {
-    console.log('📁 [PROJECTS PAGE] No building selected, showing selection prompt');
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <Folder className="h-16 w-16 text-muted-foreground mb-4" />
@@ -379,8 +334,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       </div>
     );
   }
-  
-  console.log('📁 [PROJECTS PAGE] Building selected, rendering projects content for building:', buildingId);
 
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
@@ -414,9 +367,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
             <Collapsible 
               open={projectOverviewExpanded} 
               onOpenChange={(expanded) => {
-                console.log('📁 [PROJECTS UI] Project overview collapsible toggled:', expanded);
                 setProjectOverviewExpanded(expanded);
-                logStateChange('Project overview section toggled', { expanded });
               }} 
               className="space-y-4" 
               data-testid="project-overview-section"
@@ -450,9 +401,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
             <Collapsible 
               open={projectsTableExpanded} 
               onOpenChange={(expanded) => {
-                console.log('📁 [PROJECTS UI] Projects table collapsible toggled:', expanded);
                 setProjectsTableExpanded(expanded);
-                logStateChange('Projects table section toggled', { expanded });
               }} 
               className="space-y-4" 
               data-testid="projects-table-section"
@@ -520,10 +469,8 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         project={selectedProject}
         isOpen={showProjectDetails}
         onClose={() => {
-          console.log('📁 [PROJECTS ACTION] Project details panel closed');
           setShowProjectDetails(false);
           setSelectedProject(null);
-          console.log('📁 [PROJECTS STATE] Selected project cleared');
         }}
         onEdit={canEdit ? handleEditProject : undefined}
         onManageElements={canEdit ? handleManageElements : undefined}
@@ -541,12 +488,10 @@ function ProjectsPageContent(props: ProjectsPageProps) {
       <ProjectForm
         isOpen={showProjectForm}
         onOpenChange={(open) => {
-          console.log('📁 [PROJECTS MODAL] Project form visibility changed:', { open, mode: projectFormMode, hasProject: !!selectedProject });
           setShowProjectForm(open);
           if (!open) {
             setSelectedProject(null);
           }
-          logStateChange('Project form visibility changed', { open, mode: projectFormMode });
         }}
         project={projectFormMode === 'edit' ? selectedProject : null}
         onSuccess={handleProjectFormSuccess}
@@ -558,13 +503,11 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         <ProjectWorkflowModal
           isOpen={showProjectWorkflow}
           onOpenChange={(open) => {
-            console.log('📁 [PROJECTS MODAL] Project workflow visibility changed:', { open, projectId: selectedProject?.id });
             setShowProjectWorkflow(open);
             if (!open) {
               setSelectedProject(null);
               setWorkflowInitialTab(undefined);
             }
-            logStateChange('Project workflow visibility changed', { open, projectId: selectedProject?.id });
           }}
           project={selectedProject}
           initialTab={workflowInitialTab}
@@ -678,12 +621,6 @@ function ProjectsPageContent(props: ProjectsPageProps) {
  * Provides comprehensive maintenance project management
  */
 function ProjectsPageInner(props: ProjectsPageProps) {
-  console.log('📁 [PROJECTS PAGE INNER] Rendering with props:', {
-    organizationId: props.organizationId,
-    buildingId: props.buildingId,
-    residenceId: props.residenceId
-  });
-  
   return (
     <BuildingContextProvider 
       initialOrganizationId={props.organizationId}

@@ -94,7 +94,7 @@ export default function ModularBuildingDocuments() {
   };
 
   const handleDocumentSuccess = (documentId: string, action: 'created' | 'updated' | 'deleted') => {
-    console.log(`Document ${action}:`, documentId);
+    // Document action completed - UI state updated
     setIsEditModalOpen(false);
     setIsViewModalOpen(false);
     setIsCreating(false);

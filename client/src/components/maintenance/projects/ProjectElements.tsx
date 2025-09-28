@@ -510,7 +510,7 @@ export function ProjectElements({
         icon: Download,
         onClick: (selectedRows: Row<ProjectElementWithDetails>[]) => {
           // Export logic would be implemented here
-          console.log('Exporting elements:', selectedRows.map(r => r.original));
+          // Exporting elements - export logic handled in download function
         },
         disabled: (selectedRows: Row<ProjectElementWithDetails>[]) => selectedRows.length === 0,
       },

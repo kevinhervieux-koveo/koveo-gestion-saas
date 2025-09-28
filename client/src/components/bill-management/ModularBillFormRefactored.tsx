@@ -406,7 +406,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   const handleFileUpload = (file: File | null, text: string | null) => {
     // Implementation details for file upload handling
     // Keeping the original logic but simplified
-    console.log('File upload:', file, text);
+    // File upload processing - file content handled
   };
 
   const handleAiExtractionComplete = (data: any) => {

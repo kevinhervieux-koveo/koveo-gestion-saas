@@ -358,7 +358,7 @@ export function registerDemandRoutes(app: Express) {
       // Validate input
       const validatedData = demandInputSchema.parse(demandData);
       
-      console.log('✅ Demand validation passed:', validatedData);
+      // console.log('✅ Demand validation passed:', validatedData);
 
       // Implement role-based residence assignment validation
       if (user.role === 'admin') {
@@ -447,7 +447,7 @@ export function registerDemandRoutes(app: Express) {
         }
       }
       
-      console.log('✅ Final demand data before insertion:', {
+      // console.log('✅ Final demand data before insertion:', {
         buildingId: validatedData.buildingId,
         residenceId: validatedData.residenceId,
         type: validatedData.type,

@@ -83,24 +83,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   // State for Building Elements section collapsible
   const [buildingElementsExpanded, setBuildingElementsExpanded] = useState(false);
   
-  // Debug log for state changes
-  const [lastStateChange, setLastStateChange] = useState<string>('');
-  
-  // Log state changes
-  const logStateChange = useCallback((action: string, details?: any) => {
-    const timestamp = new Date().toISOString();
-    const message = `🏠 [INVENTORY STATE] ${action}`;
-    console.log(message, details ? details : '');
-    setLastStateChange(`${timestamp}: ${action}`);
-  }, []);
-  
-  console.log('🏠 [INVENTORY PAGE] Initializing with:', { 
-    organizationId, 
-    buildingId, 
-    residenceId,
-    showBackButton,
-    backButtonLabel
-  });
   
   const { toast } = useToast();
 
@@ -140,35 +122,27 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // Element handlers
   const handleViewElement = useCallback((element: BuildingElement) => {
-    console.log('🏠 [INVENTORY ACTION] handleViewElement called:', { elementId: element.id, elementName: element.name });
     setSelectedElement(element);
     setElementFormMode('view');
     setShowElementForm(true);
-    console.log('🏠 [INVENTORY STATE] Element form opened in view mode');
   }, []);
 
   const handleEditElement = useCallback((element: BuildingElement) => {
-    console.log('🏠 [INVENTORY ACTION] handleEditElement called:', { elementId: element.id, elementName: element.name });
     setSelectedElement(element);
     setElementFormMode('edit');
     setShowElementForm(true);
-    console.log('🏠 [INVENTORY STATE] Element form opened in edit mode');
   }, []);
 
   const handleAddElement = useCallback(() => {
-    console.log('🏠 [INVENTORY ACTION] handleAddElement called');
     setSelectedElement(null); // null for create mode
     setElementFormMode('create');
     setShowElementForm(true);
-    console.log('🏠 [INVENTORY STATE] Element form opened in create mode');
   }, []);
 
 
   const handleViewDocuments = useCallback((element: BuildingElement) => {
-    console.log('🏠 [INVENTORY ACTION] handleViewDocuments called:', { elementId: element.id, elementName: element.name });
     setSelectedElement(element);
     setShowDocumentManager(true);
-    console.log('🏠 [INVENTORY STATE] Document manager opened');
   }, []);
 
   const handleScheduleEvaluation = useCallback((element: BuildingElement) => {
@@ -180,7 +154,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   }, [toast]);
 
   const handleDeleteElement = useCallback((element: BuildingElement) => {
-    console.log('🏠 [INVENTORY ACTION] handleDeleteElement called:', { elementId: element.id, elementName: element.name });
     // Close the element form first
     setShowElementForm(false);
     setSelectedElement(null);
@@ -190,7 +163,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
       title: 'Element Deleted',
       description: `${element.name} has been successfully deleted from the inventory.`,
     });
-    console.log('🏠 [INVENTORY STATE] Element deleted and form closed');
   }, [toast]);
 
   // Import/Export handlers
@@ -214,28 +186,23 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // Filter and search handlers
   const handleSearchChange = useCallback((term: string) => {
-    console.log('🏠 [INVENTORY FILTER] Search term changed:', term);
     setSearchTerm(term);
   }, []);
 
   const handleConditionFilterChange = useCallback((condition: string) => {
-    console.log('🏠 [INVENTORY FILTER] Condition filter changed:', condition);
     setConditionFilter(condition);
   }, []);
 
   const handleUniformatFilterChange = useCallback((uniformat: string) => {
-    console.log('🏠 [INVENTORY FILTER] UNIFORMAT filter changed:', uniformat);
     setUniformatFilter(uniformat);
   }, []);
 
   const handleShowOverdueChange = useCallback((overdue: boolean) => {
-    console.log('🏠 [INVENTORY FILTER] Show overdue changed:', overdue);
     setShowOverdueOnly(overdue);
   }, []);
 
   // Selection handlers
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
-    console.log('🏠 [INVENTORY SELECTION] Selection changed:', { count: selectedIds.length, selectedIds });
     setSelectedElements(selectedIds);
   }, []);
 
@@ -247,7 +214,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // No building selected state
   if (!buildingId) {
-    console.log('🏠 [INVENTORY PAGE] No building selected, showing selection prompt');
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <Package className="h-16 w-16 text-muted-foreground mb-4" />
@@ -259,8 +225,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     );
   }
   
-  console.log('🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building:', buildingId);
-
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
       {/* Header */}
@@ -302,9 +266,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
             <Collapsible 
               open={buildingElementsExpanded} 
               onOpenChange={(expanded) => {
-                console.log('🏠 [INVENTORY UI] Building elements collapsible toggled:', expanded);
                 setBuildingElementsExpanded(expanded);
-                logStateChange('Building elements section toggled', { expanded });
               }} 
               className="space-y-4" 
               data-testid="building-elements-section"
@@ -486,22 +448,17 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         element={selectedElement}
         isOpen={showElementForm}
         onOpenChange={(open) => {
-          console.log('🏠 [INVENTORY MODAL] Element form visibility changed:', { open, hasElement: !!selectedElement });
           setShowElementForm(open);
           if (!open) {
-            console.log('🏠 [INVENTORY STATE] Clearing selected element');
             setSelectedElement(null);
           }
-          logStateChange('Element form visibility changed', { open });
         }}
         mode={elementFormMode}
         buildingId={buildingId}
         organizationId={organizationId}
         onSuccess={(element) => {
-          console.log('🏠 [INVENTORY SUCCESS] Element form success:', { elementId: element.id, elementName: element.name });
           setShowElementForm(false);
           setSelectedElement(null);
-          console.log('🏠 [INVENTORY STATE] Element form closed after success');
         }}
       />
 
@@ -558,12 +515,6 @@ function InventoryPageContent(props: InventoryPageContentProps) {
  * Provides comprehensive building element inventory management
  */
 function InventoryPageInner(props: InventoryPageContentProps) {
-  console.log('🏠 [INVENTORY PAGE INNER] Rendering with props:', {
-    organizationId: props.organizationId,
-    buildingId: props.buildingId,
-    residenceId: props.residenceId
-  });
-  
   return (
     <div className={cn('flex-1 flex flex-col overflow-hidden bg-background', props.className)} data-testid="inventory-page">
       <InventoryPageContent {...props} />

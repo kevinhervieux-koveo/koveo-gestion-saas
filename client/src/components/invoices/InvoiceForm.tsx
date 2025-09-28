@@ -102,11 +102,11 @@ export function InvoiceForm({
   // Handle file upload from SharedUploader
   const handleDocumentChange = useCallback((file: File | null, textContent?: string) => {
     if (file) {
-      console.log('[INVOICE FORM] File uploaded:', file.name);
+      // File uploaded for invoice processing
       setUploadedFile(file);
       setExtractionStatus({ loading: true, success: false });
     } else if (textContent) {
-      console.log('[INVOICE FORM] Text content provided - no AI extraction needed');
+      // Text content provided - no AI extraction needed
       toast({
         title: "Text Content Added",
         description: "You can now fill in the invoice details manually.",
@@ -129,7 +129,7 @@ export function InvoiceForm({
     });
 
     if (result.success && result.formData) {
-      console.log('[INVOICE FORM] AI extraction successful:', result.formData);
+      // AI extraction successful - populating form data
       
       // Populate form with extracted data using reset
       form.reset({
@@ -167,7 +167,7 @@ export function InvoiceForm({
   // Form submission
   const onSubmit = async (data: InvoiceFormData) => {
     try {
-      console.log('[INVOICE FORM] Submitting invoice:', data);
+      // Submitting invoice data
       
       // TODO: Implement API call to create/update invoice
       // This will be implemented in the next task

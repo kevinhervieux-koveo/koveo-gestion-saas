@@ -96,13 +96,13 @@ export class BillAutoGenerationService {
           .limit(1);
         
         if (existingBill.length === 0) {
-          console.log(`✅ Generated unique bill number: ${billNumber}`);
+          // console.log(`✅ Generated unique bill number: ${billNumber}`);
           return billNumber;
         }
         
         // Extremely rare case - regenerate with new timestamp/UUID
         attempt++;
-        console.warn(`🔄 Bill number ${billNumber} conflict (attempt ${attempt}/${maxRetries}) - regenerating`);
+        // console.warn(`🔄 Bill number ${billNumber} conflict (attempt ${attempt}/${maxRetries}) - regenerating`);
         
         // Wait a bit and regenerate with fresh timestamp
         await new Promise(resolve => setTimeout(resolve, 10));
@@ -118,18 +118,18 @@ export class BillAutoGenerationService {
         if (attempt >= maxRetries) {
           // Fallback to simple timestamp + random if all else fails
           const fallbackNumber = `AUTO-${year}-${month}-${categoryCode}-${timestamp}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
-          console.error(`❌ Failed to generate bill number after ${maxRetries} attempts, using fallback: ${fallbackNumber}`);
+          // console.error(`❌ Failed to generate bill number after ${maxRetries} attempts, using fallback: ${fallbackNumber}`);
           return fallbackNumber;
         }
         
-        console.warn(`⚠️ Error during bill number generation (attempt ${attempt}/${maxRetries}):`, error);
+        // console.warn(`⚠️ Error during bill number generation (attempt ${attempt}/${maxRetries}):`, error);
         await new Promise(resolve => setTimeout(resolve, 50 * attempt));
       }
     }
     
     // This should never be reached, but provide ultimate fallback
     const ultimateFallback = `AUTO-${year}-${month}-${categoryCode}-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
-    console.error(`❌ Using ultimate fallback bill number: ${ultimateFallback}`);
+    // console.error(`❌ Using ultimate fallback bill number: ${ultimateFallback}`);
     return ultimateFallback;
   }
 
@@ -214,15 +214,15 @@ export class BillAutoGenerationService {
         try {
           const { paymentGenerationService } = await import('./payment-generation-service');
           await paymentGenerationService.generatePaymentsForBill(newBill.id);
-          console.log(`✅ Generated payments for auto-bill ${newBill.billNumber}`);
+          // console.log(`✅ Generated payments for auto-bill ${newBill.billNumber}`);
         } catch (paymentError) {
-          console.warn(`⚠️ Failed to generate payments for auto-bill ${newBill.id}:`, paymentError);
+          // console.warn(`⚠️ Failed to generate payments for auto-bill ${newBill.id}:`, paymentError);
         }
       }
       
       return generatedBills;
     } catch (error: any) {
-      console.error('❌ Failed to generate bills with payments:', error);
+      // console.error('❌ Failed to generate bills with payments:', error);
       return [];
     }
   }
@@ -497,7 +497,7 @@ export class BillAutoGenerationService {
 
       return existingBills as Bill[];
     } catch (error: any) {
-      console.error('❌ Error getting bills by reference:', error);
+      // console.error('❌ Error getting bills by reference:', error);
       return [];
     }
   }
@@ -517,7 +517,7 @@ export class BillAutoGenerationService {
         })
         .where(eq(bills.id, billId));
     } catch (error: any) {
-      console.error('❌ Error setting recurrence end date:', error);
+      // console.error('❌ Error setting recurrence end date:', error);
       throw error;
     }
   }
@@ -551,7 +551,7 @@ export class BillAutoGenerationService {
     // Check if there are already auto-generated bills to avoid duplicates
     const existingBills = await this.getBillsByReference(parentBill.id);
     if (existingBills.length > 0) {
-      console.log(
+      // console.log(
         `⚠️ Found ${existingBills.length} existing auto-generated bills, skipping generation`
       );
       return {
@@ -999,9 +999,9 @@ export class BillAutoGenerationService {
             or(eq(bills.status, 'draft'), eq(bills.status, 'sent'))
           )
         );
-      console.log(`🗑️ Cleaned up auto-generated bills for parent bill ${parentBillId}`);
+      // console.log(`🗑️ Cleaned up auto-generated bills for parent bill ${parentBillId}`);
     } catch (error: any) {
-      console.error('❌ Error cleaning up generated bills:', error);
+      // console.error('❌ Error cleaning up generated bills:', error);
       throw error;
     }
   }
@@ -1013,9 +1013,9 @@ export class BillAutoGenerationService {
   private async insertBillsBatch(billBatch: any[]): Promise<void> {
     try {
       await db.insert(bills).values(billBatch);
-      console.log(`✅ Batch inserted ${billBatch.length} bills`);
+      // console.log(`✅ Batch inserted ${billBatch.length} bills`);
     } catch (error: any) {
-      console.error('❌ Error inserting bill batch:', error);
+      // console.error('❌ Error inserting bill batch:', error);
       throw error;
     }
   }
@@ -1086,7 +1086,7 @@ export class BillAutoGenerationService {
   ): Promise<{
     billsDeleted: number;
   }> {
-    console.log(
+    // console.log(
       `🗑️ Deleting generated bills for parent ${parentBillId}, deleteAllFuture: ${deleteAllFuture}`
     );
 
@@ -1210,7 +1210,7 @@ export class BillAutoGenerationService {
     generatedBills: number;
     errors: string[];
   }> {
-    console.log('🚀 Starting bulk bill generation process...');
+    // console.log('🚀 Starting bulk bill generation process...');
     
     let processedBuildings = 0;
     let generatedBills = 0;
@@ -1232,7 +1232,7 @@ export class BillAutoGenerationService {
         .select()
         .from(buildings)
         .where(whereConditions.length > 0 ? and(...whereConditions) : undefined);
-      console.log(`📊 Found ${buildingsToProcess.length} buildings to process`);
+      // console.log(`📊 Found ${buildingsToProcess.length} buildings to process`);
 
       for (const building of buildingsToProcess) {
         try {
@@ -1240,15 +1240,15 @@ export class BillAutoGenerationService {
           processedBuildings++;
           generatedBills += result.billsGenerated;
           
-          console.log(`✅ Building ${building.name}: Generated ${result.billsGenerated} bills`);
+          // console.log(`✅ Building ${building.name}: Generated ${result.billsGenerated} bills`);
         } catch (error: any) {
           const errorMsg = `Building ${building.name} (${building.id}): ${error.message}`;
           errors.push(errorMsg);
-          console.error('❌', errorMsg);
+          // console.error('❌', errorMsg);
         }
       }
 
-      console.log(`🎉 Bulk generation complete: ${processedBuildings} buildings, ${generatedBills} bills generated`);
+      // console.log(`🎉 Bulk generation complete: ${processedBuildings} buildings, ${generatedBills} bills generated`);
       
       return {
         processedBuildings,
@@ -1257,7 +1257,7 @@ export class BillAutoGenerationService {
       };
       
     } catch (error: any) {
-      console.error('❌ Bulk generation failed:', error);
+      // console.error('❌ Bulk generation failed:', error);
       throw new Error(`Bulk generation failed: ${error.message}`);
     }
   }
@@ -1301,7 +1301,7 @@ export class BillAutoGenerationService {
           );
 
         if (existingBills.length > 0) {
-          console.log(`⏭️ Bills for ${recurrentBill.title} already exist for ${nextYear}`);
+          // console.log(`⏭️ Bills for ${recurrentBill.title} already exist for ${nextYear}`);
           continue;
         }
 
@@ -1319,7 +1319,7 @@ export class BillAutoGenerationService {
           }
         }
       } catch (error: any) {
-        console.error(`❌ Error generating bills for template ${recurrentBill.title}:`, error);
+        // console.error(`❌ Error generating bills for template ${recurrentBill.title}:`, error);
       }
     }
 
@@ -1336,7 +1336,7 @@ export class BillAutoGenerationService {
     details: any;
   }> {
     try {
-      console.log('⏰ Running scheduled bill generation job...');
+      // console.log('⏰ Running scheduled bill generation job...');
       
       const startTime = Date.now();
       const result = await this.bulkGenerateForAllBuildings();
@@ -1346,7 +1346,7 @@ export class BillAutoGenerationService {
       const summary = `Generated ${result.generatedBills} bills for ${result.processedBuildings} buildings in ${Math.round(duration / 1000)}s`;
       
       if (result.errors.length > 0) {
-        console.warn(`⚠️ Job completed with ${result.errors.length} errors`);
+        // console.warn(`⚠️ Job completed with ${result.errors.length} errors`);
       }
 
       return {
@@ -1360,7 +1360,7 @@ export class BillAutoGenerationService {
       };
       
     } catch (error: any) {
-      console.error('❌ Scheduled generation job failed:', error);
+      // console.error('❌ Scheduled generation job failed:', error);
       
       return {
         success: false,
@@ -1389,7 +1389,7 @@ export class BillAutoGenerationService {
     const jobId = `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     try {
-      console.log(`🔄 Manual generation triggered (Job ID: ${jobId})`);
+      // console.log(`🔄 Manual generation triggered (Job ID: ${jobId})`);
       
       if (options.forceRegenerate) {
         // Clean up existing auto-generated bills if force regenerate
@@ -1401,7 +1401,7 @@ export class BillAutoGenerationService {
         options.buildingIds
       );
       
-      console.log(`✅ Manual generation completed (Job ID: ${jobId})`);
+      // console.log(`✅ Manual generation completed (Job ID: ${jobId})`);
       
       return {
         jobId,
@@ -1410,7 +1410,7 @@ export class BillAutoGenerationService {
       };
       
     } catch (error: any) {
-      console.error(`❌ Manual generation failed (Job ID: ${jobId}):`, error);
+      // console.error(`❌ Manual generation failed (Job ID: ${jobId}):`, error);
       
       return {
         jobId,
@@ -1452,7 +1452,7 @@ export class BillAutoGenerationService {
       .delete(bills)
       .where(and(...whereConditions));
       
-    console.log('🗑️ Cleaned up existing auto-generated bills for regeneration');
+    // console.log('🗑️ Cleaned up existing auto-generated bills for regeneration');
   }
   /**
    * Generate auto-bill for next year based on source bill's date
@@ -1462,7 +1462,7 @@ export class BillAutoGenerationService {
   async generateNextYearBill(sourceBill: Bill): Promise<Bill | null> {
     try {
       if (sourceBill.paymentType !== 'recurrent') {
-        console.log(`⚠️ Bill ${sourceBill.id} is not recurrent, skipping auto-generation`);
+        // console.log(`⚠️ Bill ${sourceBill.id} is not recurrent, skipping auto-generation`);
         return null;
       }
 
@@ -1487,7 +1487,7 @@ export class BillAutoGenerationService {
         .limit(1);
 
       if (existingBill.length > 0) {
-        console.log(`✅ Auto-bill already exists for ${billNumber}`);
+        // console.log(`✅ Auto-bill already exists for ${billNumber}`);
         return existingBill[0] as Bill;
       }
 
@@ -1529,7 +1529,7 @@ export class BillAutoGenerationService {
         .limit(1);
 
       if (existingByNumber.length > 0) {
-        console.log(`✅ Auto-bill ${billNumber} already exists, skipping duplicate creation`);
+        // console.log(`✅ Auto-bill ${billNumber} already exists, skipping duplicate creation`);
         return existingByNumber[0] as Bill;
       }
 
@@ -1540,17 +1540,17 @@ export class BillAutoGenerationService {
       try {
         const { paymentGenerationService } = await import('./payment-generation-service');
         await paymentGenerationService.generatePaymentsForBill(newBill.id);
-        console.log(`✅ Generated payments for auto-bill ${billNumber}`);
+        // console.log(`✅ Generated payments for auto-bill ${billNumber}`);
       } catch (paymentError) {
-        console.warn('⚠️ Failed to generate payments for auto-generated bill:', paymentError);
+        // console.warn('⚠️ Failed to generate payments for auto-generated bill:', paymentError);
         // Don't fail the generation if payment creation fails
       }
 
-      console.log(`✅ Generated auto-bill ${billNumber} for ${targetDate.getFullYear()}`);
+      // console.log(`✅ Generated auto-bill ${billNumber} for ${targetDate.getFullYear()}`);
       return newBill;
 
     } catch (error: any) {
-      console.error(`❌ Failed to generate next year bill for ${sourceBill.id}:`, error);
+      // console.error(`❌ Failed to generate next year bill for ${sourceBill.id}:`, error);
       return null;
     }
   }
@@ -1587,7 +1587,7 @@ export class BillAutoGenerationService {
           const { paymentGenerationService } = await import('./payment-generation-service');
           await paymentGenerationService.deletePaymentsForBill(bill.id);
         } catch (paymentError) {
-          console.warn(`⚠️ Failed to delete payments for bill ${bill.id}:`, paymentError);
+          // console.warn(`⚠️ Failed to delete payments for bill ${bill.id}:`, paymentError);
         }
       }
 
@@ -1599,12 +1599,12 @@ export class BillAutoGenerationService {
 
       const deletedCount = deletedBills.length;
       if (deletedCount > 0) {
-        console.log(`🗑️ Cleaned up ${deletedCount} past auto-generated bills (older than ${cutoffDateString})`);
+        // console.log(`🗑️ Cleaned up ${deletedCount} past auto-generated bills (older than ${cutoffDateString})`);
       }
       return deletedCount;
 
     } catch (error: any) {
-      console.error('❌ Failed to cleanup past auto-generated bills:', error);
+      // console.error('❌ Failed to cleanup past auto-generated bills:', error);
       return 0;
     }
   }
@@ -1639,7 +1639,7 @@ export class BillAutoGenerationService {
           )
         );
 
-      console.log(`🗑️ Deleted existing auto-generated bills for template ${sourceBillId}`);
+      // console.log(`🗑️ Deleted existing auto-generated bills for template ${sourceBillId}`);
 
       // Generate new auto-bill for next year
       const newBill = await this.generateNextYearBill(sourceTemplate as Bill);
@@ -1647,7 +1647,7 @@ export class BillAutoGenerationService {
       return newBill ? [newBill] : [];
 
     } catch (error: any) {
-      console.error(`❌ Failed to regenerate auto-bills for ${sourceBillId}:`, error);
+      // console.error(`❌ Failed to regenerate auto-bills for ${sourceBillId}:`, error);
       return [];
     }
   }

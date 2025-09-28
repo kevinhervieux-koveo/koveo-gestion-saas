@@ -63,7 +63,6 @@ class WebVitalsMonitor {
     onFCP(this.onMetric.bind(this, 'FCP'));
     onTTFB(this.onMetric.bind(this, 'TTFB'));
 
-    console.log('🔍 Web Vitals monitoring initialized');
   }
 
   /**
@@ -186,7 +185,6 @@ class WebVitalsMonitor {
       status = 'Needs Improvement';
     }
 
-    console.log(`${color} ${metricName}: ${value}ms (${status})`);
   }
 
   /**
@@ -209,8 +207,8 @@ class WebVitalsMonitor {
           url: window.location.href,
           userAgent: navigator.userAgent,
         }),
-      }).catch(error => {
-        console.warn('Failed to send Web Vitals to analytics:', error);
+      }).catch(() => {
+        // Failed to send Web Vitals to analytics - silent fail
       });
     }
   }

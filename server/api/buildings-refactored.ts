@@ -68,9 +68,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
         });
       }
 
-      console.log(
-        `📊 Fetching buildings for user ${currentUser.id} with role ${currentUser.role}`
-      );
 
       // Get user access information
       const userAccess = await getUserBuildingAccess(currentUser.id);
@@ -117,9 +114,6 @@ export function registerBuildingRoutesRefactored(app: Express): void {
       // Sort buildings by name
       buildingsWithStats.sort((a, b) => a.name.localeCompare(b.name));
 
-      console.log(
-        `✅ Found ${buildingsWithStats.length} accessible buildings for user ${currentUser.id}`
-      );
 
       return res.json({
         buildings: buildingsWithStats,

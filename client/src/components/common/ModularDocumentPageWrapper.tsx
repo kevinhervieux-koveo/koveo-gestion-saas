@@ -46,7 +46,7 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
   });
 
   const handleDownload = async () => {
-    console.log('[DOWNLOAD] Starting download for document:', documentId);
+    // Starting download for document
     try {
       // Use fetch with credentials to ensure authentication
       const response = await fetch(`/api/documents/${documentId}/file?download=true`, {
@@ -83,7 +83,7 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
       window.document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      console.log('[DOWNLOAD] Download completed successfully');
+      // Download completed successfully
     } catch (error) {
       console.error('[DOWNLOAD] Download failed:', error);
       alert(`Download failed: ${error.message || 'Unknown error'}`);
@@ -93,7 +93,7 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
   const handleView = async () => {
     if (document?.filePath) {
       try {
-        console.log('[VIEW] Starting view for document:', documentId);
+        // Starting view for document
         
         // Open a new tab immediately to avoid popup blocking
         const newTab = window.open('about:blank', '_blank');
@@ -124,7 +124,7 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
           window.URL.revokeObjectURL(url);
         }, 3000);
         
-        console.log('[VIEW] View completed successfully');
+        // View completed successfully
         
       } catch (error) {
         console.error('[VIEW] View failed:', error);
@@ -497,7 +497,7 @@ export default function ModularDocumentPageWrapper({
   };
 
   const handleDocumentSuccess = (documentId: string) => {
-    console.log(`Document created:`, documentId);
+    // Document created successfully
     // Refresh documents list will be handled by the DocumentCreateForm's cache invalidation
   };
 

@@ -87,7 +87,7 @@ export class ConsolidatedCommunicationService extends BaseService {
         .where(eq(users.role, 'admin'));
 
       if (adminUsers.length === 0) {
-        console.log('⚠️ No admin users found for SSL expiry notification');
+        // console.log('⚠️ No admin users found for SSL expiry notification');
         return;
       }
 
@@ -112,7 +112,7 @@ export class ConsolidatedCommunicationService extends BaseService {
 
       await db.insert(notifications).values(notificationInserts);
 
-      console.log(`SSL expiry notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
+      // console.log(`SSL expiry notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
     });
   }
 
@@ -156,7 +156,7 @@ export class ConsolidatedCommunicationService extends BaseService {
 
       await db.insert(notifications).values(notificationInserts);
 
-      console.log(`SSL renewal failure notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
+      // console.log(`SSL renewal failure notification sent to ${adminUsers.length} administrators for domain: ${domain}`);
     });
   }
 
@@ -182,7 +182,7 @@ export class ConsolidatedCommunicationService extends BaseService {
 
       await db.insert(notifications).values(notificationInserts);
 
-      console.log(`System notification sent to ${userIds.length} users: ${title}`);
+      // console.log(`System notification sent to ${userIds.length} users: ${title}`);
     });
   }
 
@@ -236,10 +236,10 @@ export class ConsolidatedCommunicationService extends BaseService {
           },
         });
 
-        console.log(`✅ Password reset email sent successfully to ${to} (${language})`);
+        // console.log(`✅ Password reset email sent successfully to ${to} (${language})`);
         return true;
       } catch (error: any) {
-        console.error(`❌ Failed to send password reset email to ${to}:`, error);
+        // console.error(`❌ Failed to send password reset email to ${to}:`, error);
         return false;
       }
     });
@@ -301,10 +301,10 @@ export class ConsolidatedCommunicationService extends BaseService {
           },
         });
 
-        console.log(`✅ Invitation email sent successfully to ${to} (${language})`);
+        // console.log(`✅ Invitation email sent successfully to ${to} (${language})`);
         return true;
       } catch (error: any) {
-        console.error(`❌ Failed to send invitation email to ${to}:`, error);
+        // console.error(`❌ Failed to send invitation email to ${to}:`, error);
         return false;
       }
     });
@@ -363,10 +363,10 @@ export class ConsolidatedCommunicationService extends BaseService {
           },
         });
 
-        console.log(`✅ Reminder email sent successfully to ${to} (${language})`);
+        // console.log(`✅ Reminder email sent successfully to ${to} (${language})`);
         return true;
       } catch (error: any) {
-        console.error(`❌ Failed to send reminder email to ${to}:`, error);
+        // console.error(`❌ Failed to send reminder email to ${to}:`, error);
         return false;
       }
     });
@@ -435,9 +435,9 @@ export class ConsolidatedCommunicationService extends BaseService {
             },
           });
 
-          console.log(`✅ Meeting invitation sent successfully to ${email}`);
+          // console.log(`✅ Meeting invitation sent successfully to ${email}`);
         } catch (error: any) {
-          console.error(`❌ Failed to send meeting invitation to ${email}:`, error);
+          // console.error(`❌ Failed to send meeting invitation to ${email}:`, error);
         }
       }
 
@@ -490,7 +490,7 @@ export class ConsolidatedCommunicationService extends BaseService {
 
     const fullUrl = `${baseUrls[accountType]}?${params.toString()}`;
     
-    console.log(`📅 Generated ${accountType} Outlook web link for: ${meetingData.title}`);
+    // console.log(`📅 Generated ${accountType} Outlook web link for: ${meetingData.title}`);
     return fullUrl;
   }
 
@@ -572,7 +572,7 @@ export class ConsolidatedCommunicationService extends BaseService {
       'END:VCALENDAR'
     ].join('\r\n');
 
-    console.log(`📅 Generated enhanced .ics with Outlook optimizations for: ${meetingData.title}`);
+    // console.log(`📅 Generated enhanced .ics with Outlook optimizations for: ${meetingData.title}`);
     return icsContent;
   }
 
@@ -681,7 +681,7 @@ ${isFrench
         metadata: metadata ? JSON.stringify(metadata) : null,
       });
     } catch (error: any) {
-      console.error('❌ Error creating invitation audit log:', error);
+      // console.error('❌ Error creating invitation audit log:', error);
     }
   }
 

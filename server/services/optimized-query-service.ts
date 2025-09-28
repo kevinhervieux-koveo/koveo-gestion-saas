@@ -646,9 +646,9 @@ export class OptimizedQueryService {
         return result.map(r => r.id);
       });
 
-      console.log('✅ Cache warmup completed');
+      // console.log('✅ Cache warmup completed');
     } catch (error) {
-      console.error('❌ Error during cache warmup:', error);
+      // console.error('❌ Error during cache warmup:', error);
     }
   }
 }

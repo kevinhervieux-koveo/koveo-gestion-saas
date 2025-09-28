@@ -115,7 +115,7 @@ export class ConsolidatedFinancialService extends BaseService {
       }
 
       const insertedBill = insertedBills[0];
-      console.log(`✅ Created and persisted auto-generated bill: ${insertedBill.id} (${insertedBill.billNumber})`);
+      // console.log(`✅ Created and persisted auto-generated bill: ${insertedBill.id} (${insertedBill.billNumber})`);
 
       // Generate payments for the newly created bill
       await this.generatePaymentsForBill(insertedBill.id);
@@ -200,7 +200,7 @@ export class ConsolidatedFinancialService extends BaseService {
 
       if (paymentsToInsert.length > 0) {
         await dbContext.insert(payments).values(paymentsToInsert);
-        console.log(`✅ Generated ${paymentsToInsert.length} payments for bill ${billId}`);
+        // console.log(`✅ Generated ${paymentsToInsert.length} payments for bill ${billId}`);
       }
     });
   }
@@ -298,7 +298,7 @@ export class ConsolidatedFinancialService extends BaseService {
         )
       );
 
-      console.log(`🗑️ Cleared unpaid payments for bill ${billId} to prevent duplicates`);
+      // console.log(`🗑️ Cleared unpaid payments for bill ${billId} to prevent duplicates`);
 
       // Regenerate payments starting from where paid payments left off
       if (billData.paymentType === 'unique') {
@@ -329,7 +329,7 @@ export class ConsolidatedFinancialService extends BaseService {
         }
       }
       
-      console.log(`✅ Updated payments for bill ${billId} without duplicates`);
+      // console.log(`✅ Updated payments for bill ${billId} without duplicates`);
     });
   }
 
@@ -355,7 +355,7 @@ export class ConsolidatedFinancialService extends BaseService {
 
       // Delete ALL existing payments (including paid ones)
       await dbContext.delete(payments).where(eq(payments.billId, billId));
-      console.log(`🗑️ Deleted ${deletedCount} existing payments for bill ${billId} (including paid payments)`);
+      // console.log(`🗑️ Deleted ${deletedCount} existing payments for bill ${billId} (including paid payments)`);
 
       // Regenerate the complete payment schedule from scratch
       const paymentsToInsert: InsertPayment[] = [];
@@ -386,7 +386,7 @@ export class ConsolidatedFinancialService extends BaseService {
       // Insert all new payments
       if (paymentsToInsert.length > 0) {
         await dbContext.insert(payments).values(paymentsToInsert);
-        console.log(`✅ Generated ${paymentsToInsert.length} new payments for bill ${billId} (complete regeneration)`);
+        // console.log(`✅ Generated ${paymentsToInsert.length} new payments for bill ${billId} (complete regeneration)`);
       }
 
       return {
@@ -406,7 +406,7 @@ export class ConsolidatedFinancialService extends BaseService {
       const billPayments = await dbContext.select().from(payments).where(eq(payments.billId, billId));
       
       if (billPayments.length === 0) {
-        console.log(`⚠️ No payments found for bill ${billId}`);
+        // console.log(`⚠️ No payments found for bill ${billId}`);
         return;
       }
 
@@ -416,7 +416,7 @@ export class ConsolidatedFinancialService extends BaseService {
           await dbContext.update(payments)
             .set({ status: 'pending', paidDate: null })
             .where(eq(payments.billId, billId));
-          console.log(`✅ Set all payments for bill ${billId} to pending (draft status)`);
+          // console.log(`✅ Set all payments for bill ${billId} to pending (draft status)`);
           break;
 
         case 'sent':
@@ -430,7 +430,7 @@ export class ConsolidatedFinancialService extends BaseService {
                 not(eq(payments.status, 'cancelled'))
               )
             );
-          console.log(`✅ Activated payments for bill ${billId} (sent status)`);
+          // console.log(`✅ Activated payments for bill ${billId} (sent status)`);
           break;
 
         case 'paid':
@@ -439,7 +439,7 @@ export class ConsolidatedFinancialService extends BaseService {
           await dbContext.update(payments)
             .set({ status: 'paid', paidDate: currentDate })
             .where(eq(payments.billId, billId));
-          console.log(`✅ Marked all payments for bill ${billId} as paid`);
+          // console.log(`✅ Marked all payments for bill ${billId} as paid`);
           break;
 
         case 'cancelled':
@@ -452,7 +452,7 @@ export class ConsolidatedFinancialService extends BaseService {
                 sql`${payments.status} IN ('pending', 'overdue')`
               )
             );
-          console.log(`✅ Cancelled pending payments for bill ${billId}`);
+          // console.log(`✅ Cancelled pending payments for bill ${billId}`);
           break;
 
         case 'overdue':
@@ -467,11 +467,11 @@ export class ConsolidatedFinancialService extends BaseService {
                 sql`${payments.scheduledDate} < ${today}`
               )
             );
-          console.log(`✅ Updated overdue payments for bill ${billId}`);
+          // console.log(`✅ Updated overdue payments for bill ${billId}`);
           break;
 
         default:
-          console.log(`⚠️ Unknown bill status: ${billStatus}`);
+          // console.log(`⚠️ Unknown bill status: ${billStatus}`);
       }
     });
   }
@@ -674,13 +674,13 @@ export class ConsolidatedFinancialService extends BaseService {
           const buildingBudgets = await this.populateBudgetsForBuilding(building);
           budgetsCreated += buildingBudgets;
           buildingsProcessed++;
-          console.log(`✅ Created ${buildingBudgets} budget entries for building: ${building.name}`);
+          // console.log(`✅ Created ${buildingBudgets} budget entries for building: ${building.name}`);
         } catch (error: any) {
-          console.error(`❌ Error processing building ${building.name}:`, error);
+          // console.error(`❌ Error processing building ${building.name}:`, error);
         }
       }
 
-      console.log(`📊 Monthly budget population completed: ${buildingsProcessed} buildings, ${budgetsCreated} budgets`);
+      // console.log(`📊 Monthly budget population completed: ${buildingsProcessed} buildings, ${budgetsCreated} budgets`);
 
       return { budgetsCreated, buildingsProcessed };
     });
@@ -920,14 +920,14 @@ export class ConsolidatedFinancialService extends BaseService {
     data: FinancialPeriodData
   ): Promise<void> {
     // Simplified cache implementation
-    console.log(`💾 Cached financial data for building ${buildingId}: ${cacheKey}`);
+    // console.log(`💾 Cached financial data for building ${buildingId}: ${cacheKey}`);
   }
 
   /**
    * Invalidate cache when source data changes
    */
   async invalidateCache(buildingId: string, reason: string): Promise<void> {
-    console.log(`🗑️ Cache invalidated for building ${buildingId}: ${reason}`);
+    // console.log(`🗑️ Cache invalidated for building ${buildingId}: ${reason}`);
   }
 
   // ====================
@@ -943,7 +943,7 @@ export class ConsolidatedFinancialService extends BaseService {
     }
 
     this.pendingBillUpdates.add(billId);
-    console.log(`⏰ Scheduling financial update for bill ${billId} in ${this.DELAY_MINUTES} minutes`);
+    // console.log(`⏰ Scheduling financial update for bill ${billId} in ${this.DELAY_MINUTES} minutes`);
 
     setTimeout(async () => {
       try {
@@ -963,7 +963,7 @@ export class ConsolidatedFinancialService extends BaseService {
     }
 
     this.pendingResidenceUpdates.add(residenceId);
-    console.log(`⏰ Scheduling financial update for residence ${residenceId} in ${this.DELAY_MINUTES} minutes`);
+    // console.log(`⏰ Scheduling financial update for residence ${residenceId} in ${this.DELAY_MINUTES} minutes`);
 
     setTimeout(async () => {
       try {
@@ -1018,7 +1018,7 @@ export class ConsolidatedFinancialService extends BaseService {
 
       return result.length > 0 ? result[0].buildingId : null;
     } catch (error: any) {
-      console.error('❌ Error getting building ID from bill:', error);
+      // console.error('❌ Error getting building ID from bill:', error);
       return null;
     }
   }
@@ -1033,7 +1033,7 @@ export class ConsolidatedFinancialService extends BaseService {
 
       return result.length > 0 ? result[0].buildingId : null;
     } catch (error: any) {
-      console.error('❌ Error getting building ID from residence:', error);
+      // console.error('❌ Error getting building ID from residence:', error);
       return null;
     }
   }

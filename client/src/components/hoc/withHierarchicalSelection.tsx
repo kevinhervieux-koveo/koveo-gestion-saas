@@ -128,8 +128,6 @@ export function withHierarchicalSelection<T extends object>(
       retry: 2,
       retryDelay: 1000,
       queryFn: async () => {
-        console.log('🔍 [withHierarchicalSelection] Fetching building counts for organizations...');
-        
         // Use explicit config flag instead of pathname detection
         const params = new URLSearchParams();
         
@@ -138,7 +136,6 @@ export function withHierarchicalSelection<T extends object>(
         }
         
         const url = `/api/organizations/accessible-building-counts${params.toString() ? `?${params.toString()}` : ''}`;
-        console.log(`🌐 [withHierarchicalSelection] Requesting: ${url}`);
         
         const response = await fetch(url, {
           credentials: 'include'
@@ -146,22 +143,14 @@ export function withHierarchicalSelection<T extends object>(
         
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`❌ [withHierarchicalSelection] Failed to fetch building counts: ${response.status} ${errorText}`);
           throw new Error(`Failed to fetch building counts: ${response.status}`);
         }
         
         const counts = await response.json();
-        console.log('✅ [withHierarchicalSelection] Building counts received:', counts);
         return counts;
       }
     });
 
-    // Log any building counts errors
-    React.useEffect(() => {
-      if (buildingCountsError) {
-        console.error('❌ [withHierarchicalSelection] Building counts query error:', buildingCountsError);
-      }
-    }, [buildingCountsError]);
 
     // Fetch buildings with proper filtering (bottom up logic)
     const {
@@ -171,8 +160,6 @@ export function withHierarchicalSelection<T extends object>(
     } = useQuery<Building[]>({
       queryKey: organizationId ? ['/api/users/me/buildings', organizationId, config.checkResidenceAccess || false] : ['/api/users/me/buildings', config.checkResidenceAccess || false],
       queryFn: async () => {
-        console.log('🏢 [withHierarchicalSelection] Fetching buildings...');
-        
         // Always use the user-specific endpoint for residents/tenants to ensure proper access control
         const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
         
@@ -195,7 +182,6 @@ export function withHierarchicalSelection<T extends object>(
         }
         
         const fullUrl = `${url}${params.toString() ? `?${params.toString()}` : ''}`;
-        console.log(`🌐 [withHierarchicalSelection] Requesting buildings: ${fullUrl}`);
         
         const response = await fetch(fullUrl, {
           credentials: 'include'
@@ -203,17 +189,14 @@ export function withHierarchicalSelection<T extends object>(
         
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`❌ [withHierarchicalSelection] Failed to fetch buildings: ${response.status} ${errorText}`);
           throw new Error(`Failed to fetch buildings: ${response.status}`);
         }
         
         let allBuildings = await response.json();
-        console.log(`📊 [withHierarchicalSelection] Received ${allBuildings.length} buildings from API`);
         
         // For residence access mode, filter buildings that have accessible residences
         // This is the key bottom-up filtering logic
         if (config.checkResidenceAccess) {
-          console.log('🏠 [withHierarchicalSelection] Filtering buildings with accessible residences...');
           const buildingsWithResidences = [];
           
           for (const building of allBuildings) {
@@ -229,24 +212,17 @@ export function withHierarchicalSelection<T extends object>(
               if (residenceResponse.ok) {
                 const residences = await residenceResponse.json();
                 if (residences.length > 0) {
-                  console.log(`   ✅ Building ${building.name} has ${residences.length} accessible residences`);
                   buildingsWithResidences.push(building);
-                } else {
-                  console.log(`   ❌ Building ${building.name} has no accessible residences`);
                 }
-              } else {
-                console.warn(`   ⚠️ Failed to check residences for building ${building.name}: ${residenceResponse.status}`);
               }
             } catch (error) {
-              console.error(`   💥 Error checking residences for building ${building.id}:`, error);
+              // Continue with next building if error occurs
             }
           }
           
-          console.log(`🎯 [withHierarchicalSelection] Filtered to ${buildingsWithResidences.length} buildings with accessible residences`);
           return buildingsWithResidences;
         }
         
-        console.log(`✅ [withHierarchicalSelection] Returning all ${allBuildings.length} buildings (non-residence page)`);
         return allBuildings;
       },
       enabled: Boolean(
@@ -259,12 +235,6 @@ export function withHierarchicalSelection<T extends object>(
       retryDelay: 1000
     });
 
-    // Log any buildings errors
-    React.useEffect(() => {
-      if (buildingsError) {
-        console.error('❌ [withHierarchicalSelection] Buildings query error:', buildingsError);
-      }
-    }, [buildingsError]);
 
     // Fetch residences using secure user-specific endpoint for residents
     const {
@@ -274,15 +244,11 @@ export function withHierarchicalSelection<T extends object>(
     } = useQuery<Residence[]>({
       queryKey: ['residences', buildingId, user?.role],
       queryFn: async () => {
-        console.log('🏠 [withHierarchicalSelection] Fetching residences for building:', buildingId);
-        
         const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
         
         const url = isResidentOrTenant 
           ? `/api/users/me/residences?building_id=${buildingId}`
           : `/api/buildings/${buildingId}/residences`;
-        
-        console.log(`🌐 [withHierarchicalSelection] Requesting residences: ${url}`);
           
         const response = await fetch(url, {
           credentials: 'include'
@@ -290,12 +256,10 @@ export function withHierarchicalSelection<T extends object>(
         
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`❌ [withHierarchicalSelection] Failed to fetch residences: ${response.status} ${errorText}`);
           throw new Error(`Failed to fetch residences: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log(`✅ [withHierarchicalSelection] Received ${data.length} residences`);
         return data;
       },
       enabled: Boolean(currentLevel === 'residence' && !!buildingId),
@@ -305,12 +269,6 @@ export function withHierarchicalSelection<T extends object>(
       retryDelay: 1000
     });
 
-    // Log any residences errors
-    React.useEffect(() => {
-      if (residencesError) {
-        console.error('❌ [withHierarchicalSelection] Residences query error:', residencesError);
-      }
-    }, [residencesError]);
 
     // Auto-forwarding logic
     React.useEffect(() => {
@@ -357,19 +315,12 @@ export function withHierarchicalSelection<T extends object>(
 
     // Render selection screens
     if (currentLevel === 'organization') {
-      console.log('🏢 [withHierarchicalSelection] Rendering organization selection...');
-      console.log(`   → Organizations from API: ${organizations.length}`);
-      console.log(`   → Building counts:`, buildingCounts);
-      
       // Filter out organizations with no accessible buildings (bottom up logic)
       const accessibleOrganizations = organizations.filter(org => {
         const buildingCount = buildingCounts[org.id] ?? 0;
         const hasAccess = buildingCount > 0;
-        console.log(`   → Org "${org.name}" (${org.id}): ${buildingCount} buildings, access: ${hasAccess}`);
         return hasAccess;
       });
-
-      console.log(`🎯 [withHierarchicalSelection] Filtered to ${accessibleOrganizations.length} accessible organizations`);
 
       const items: SelectionGridItem[] = accessibleOrganizations.map(org => {
         const buildingCount = buildingCounts[org.id] ?? 0;
@@ -404,11 +355,7 @@ export function withHierarchicalSelection<T extends object>(
     }
 
     if (currentLevel === 'building') {
-      console.log('🏗️ [withHierarchicalSelection] Rendering building selection...');
-      console.log(`   → Buildings from filtering: ${buildings.length}`);
-      
       const items: SelectionGridItem[] = buildings.map(building => {
-        console.log(`   → Building "${building.name}" (${building.id}): ${building.address}`);
         return {
           id: building.id,
           name: building.name,
@@ -450,11 +397,7 @@ export function withHierarchicalSelection<T extends object>(
     }
 
     if (currentLevel === 'residence') {
-      console.log('🏠 [withHierarchicalSelection] Rendering residence selection...');
-      console.log(`   → Residences from API: ${residences.length}`);
-      
       const items: SelectionGridItem[] = residences.map(residence => {
-        console.log(`   → Residence "${residence.unitNumber}" (${residence.id}): ${residence.buildingName}`);
         return {
           id: residence.id,
           name: `${t('unit' as any)} ${residence.unitNumber}`,

@@ -83,11 +83,7 @@ export function ProjectTableView({
       if (!buildingId) throw new Error('Building ID is required');
       const response = await apiRequest('GET', `/api/maintenance/buildings/${buildingId}/projects`);
       const data = await response.json();
-      console.log('🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend:', data);
-      console.log('🔍 [PROJECT TABLE VIEW DEBUG] Response structure:', Object.keys(data || {}));
-      if (data?.data) {
-        console.log('🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property:', data.data.length);
-      }
+      // Processing projects response from backend
       return data;
     },
     enabled: !!buildingId,
@@ -97,8 +93,7 @@ export function ProjectTableView({
   // Fix: Backend returns { success: true, data: projects }, but frontend expects { projects: [...] }
   const projects: MaintenanceProject[] = projectsResponse?.data || [];
   
-  console.log('🔍 [PROJECT TABLE VIEW DEBUG] Final projects array:', projects);
-  console.log('🔍 [PROJECT TABLE VIEW DEBUG] Projects count:', projects.length);
+  // Final projects array processed
 
   // Apply filters to projects
   const filteredProjects = useMemo(() => {

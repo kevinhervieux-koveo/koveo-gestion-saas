@@ -39,10 +39,8 @@ export class MonthlyBudgetService {
           batch.map(async (building) => {
             try {
               const buildingBudgets = await this.populateBudgetsForBuilding(building);
-              console.log(`✅ Created ${buildingBudgets} budget entries for building: ${building.name}`);
               return { buildingBudgets, buildingName: building.name };
             } catch (error: any) {
-              console.error(`❌ Error processing building ${building.name}:`, error);
               throw error;
             }
           })
@@ -57,16 +55,12 @@ export class MonthlyBudgetService {
         });
       }
 
-      console.log(`📊 Monthly budget population completed:
-        - Buildings processed: ${buildingsProcessed}
-        - Budget entries created: ${budgetsCreated}`);
 
       return {
         budgetsCreated,
         buildingsProcessed,
       };
     } catch (error: any) {
-      console.error('❌ Error populating monthly budgets:', error);
       throw error;
     }
   }
@@ -89,18 +83,12 @@ export class MonthlyBudgetService {
     const endDate = new Date();
     endDate.setFullYear(endDate.getFullYear() + this.YEARS_TO_PROJECT, 11, 31); // December 31st, 25 years from now
 
-    console.log(
-      `📅 Processing building ${building.name} from ${constructionDate.toISOString().slice(0, 10)} to ${endDate.toISOString().slice(0, 10)}`
-    );
 
     // Get distinct income and expense categories for this building
     const { incomeCategories, expenseCategories } = await this.getCategoriesForBuilding(
       building.id
     );
 
-    console.log(
-      `📊 Found ${incomeCategories.length} income categories and ${expenseCategories.length} expense categories`
-    );
 
     // Remove existing budget entries for this building to avoid duplicates
     await this.cleanupExistingBudgets(building.id);
@@ -332,9 +320,6 @@ export class MonthlyBudgetService {
 
     const budgetsCreated = await this.populateBudgetsForBuilding(building[0]);
 
-    console.log(
-      `✅ Repopulated ${budgetsCreated} budget entries for building ${building[0].name}`
-    );
     return budgetsCreated;
   }
 

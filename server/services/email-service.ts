@@ -240,10 +240,10 @@ Quebec Law 25 compliant.
         },
       });
 
-      console.log(`✅ Password reset email sent to ${to} in ${language}`);
+      // console.log(`✅ Password reset email sent to ${to} in ${language}`);
       return true;
     } catch (error: any) {
-      console.error('❌ Error sending password reset email:', error);
+      // console.error('❌ Error sending password reset email:', error);
       return false;
     }
   }
@@ -483,10 +483,10 @@ Quebec Law 25 compliant.
         },
       });
 
-      console.log(`✅ Notification email sent to ${to} (${notificationType}) in ${language}`);
+      // console.log(`✅ Notification email sent to ${to} (${notificationType}) in ${language}`);
       return true;
     } catch (error: any) {
-      console.error('❌ Error sending notification email:', error);
+      // console.error('❌ Error sending notification email:', error);
       return false;
     }
   }
@@ -726,10 +726,10 @@ Quebec Law 25 compliant.
         },
       });
 
-      console.log(`✅ Invitation email sent to ${to} for ${organizationName} in ${language}`);
+      // console.log(`✅ Invitation email sent to ${to} for ${organizationName} in ${language}`);
       return true;
     } catch (error: any) {
-      console.error('❌ Error sending invitation email:', error);
+      // console.error('❌ Error sending invitation email:', error);
       return false;
     }
   }
@@ -927,10 +927,10 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
         },
       });
 
-      console.log(`📅 Sent meeting invitation "${meetingData.title}" to ${recipients.length} recipients with calendar attachment`);
+      // console.log(`📅 Sent meeting invitation "${meetingData.title}" to ${recipients.length} recipients with calendar attachment`);
       return true;
     } catch (error: any) {
-      console.error('❌ Error sending meeting invitation:', error);
+      // console.error('❌ Error sending meeting invitation:', error);
       return false;
     }
   }
@@ -977,12 +977,12 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
           );
 
       if (validNotifications.length === 0) {
-        console.log('📧 No valid notifications to send');
+        // console.log('📧 No valid notifications to send');
         return true;
       }
 
       if (recipients.length === 0) {
-        console.log('📧 No recipients for combined notifications');
+        // console.log('📧 No recipients for combined notifications');
         return true;
       }
 
@@ -994,7 +994,7 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
         return acc;
       }, {} as Record<string, typeof recipients>);
 
-      console.log(`📧 Sending combined notifications to ${Object.keys(recipientsByBuilding).length} building(s)`);
+      // console.log(`📧 Sending combined notifications to ${Object.keys(recipientsByBuilding).length} building(s)`);
 
       // Smart environment detection for URLs
       const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -1013,7 +1013,7 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
 
       // Process each building separately
       for (const [buildingName, buildingRecipients] of Object.entries(recipientsByBuilding)) {
-        console.log(`📧 Processing building: ${buildingName} (${buildingRecipients.length} recipients)`);
+        // console.log(`📧 Processing building: ${buildingName} (${buildingRecipients.length} recipients)`);
 
         // Group building recipients by language
         const recipientsByLanguage = buildingRecipients.reduce((acc, recipient) => {
@@ -1161,14 +1161,14 @@ ${isFrench
 
           // Wait for all emails in this group to be sent
           await Promise.all(emailPromises);
-          console.log(`📧 Combined notifications sent to ${langRecipients.length} recipients in ${language} for building ${buildingName}`);
+          // console.log(`📧 Combined notifications sent to ${langRecipients.length} recipients in ${language} for building ${buildingName}`);
         }
       }
 
-      console.log('📧 All combined notifications sent successfully');
+      // console.log('📧 All combined notifications sent successfully');
       return true;
     } catch (error) {
-      console.error('❌ Error sending combined notifications:', error);
+      // console.error('❌ Error sending combined notifications:', error);
       return false;
     }
   }
@@ -1214,7 +1214,7 @@ ${isFrench
     try {
       // Check if notification is empty and skip sending (except for test emails)
       if (!isTestEmail && (!notificationData.message || notificationData.message.trim() === '')) {
-        console.log(`📧 Skipping empty notification for type: ${notificationData.type}`);
+        // console.log(`📧 Skipping empty notification for type: ${notificationData.type}`);
         return true;
       }
 
@@ -1222,7 +1222,7 @@ ${isFrench
       const enabledRecipients = recipients.filter(recipient => recipient.isEnabled);
       
       if (enabledRecipients.length === 0) {
-        console.log(`📧 No enabled recipients for notification type: ${notificationData.type}`);
+        // console.log(`📧 No enabled recipients for notification type: ${notificationData.type}`);
         return true;
       }
 
@@ -1234,7 +1234,7 @@ ${isFrench
         return acc;
       }, {} as Record<string, typeof enabledRecipients>);
 
-      console.log(`📧 Sending notifications to ${Object.keys(recipientsByBuilding).length} building(s)`);
+      // console.log(`📧 Sending notifications to ${Object.keys(recipientsByBuilding).length} building(s)`);
 
       // Smart environment detection for demand center URLs
       const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -1253,7 +1253,7 @@ ${isFrench
 
       // Process each building separately
       for (const [buildingName, buildingRecipients] of Object.entries(recipientsByBuilding)) {
-        console.log(`📧 Processing building: ${buildingName} (${buildingRecipients.length} recipients)`);
+        // console.log(`📧 Processing building: ${buildingName} (${buildingRecipients.length} recipients)`);
 
         // Group building recipients by language for efficient batch sending
         const recipientsByLanguage = buildingRecipients.reduce((acc, recipient) => {
@@ -1388,14 +1388,14 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
             },
           });
 
-          console.log(`📧 Sent notification "${notificationData.title}" to ${emailAddresses.length} recipients in ${language} for building: ${buildingName}`);
+          // console.log(`📧 Sent notification "${notificationData.title}" to ${emailAddresses.length} recipients in ${language} for building: ${buildingName}`);
         }
       }
 
-      console.log(`✅ Sent scheduled notifications for type "${notificationData.type}" to ${enabledRecipients.length} total recipients across ${Object.keys(recipientsByBuilding).length} building(s)`);
+      // console.log(`✅ Sent scheduled notifications for type "${notificationData.type}" to ${enabledRecipients.length} total recipients across ${Object.keys(recipientsByBuilding).length} building(s)`);
       return true;
     } catch (error: any) {
-      console.error('❌ Error sending scheduled notifications:', error);
+      // console.error('❌ Error sending scheduled notifications:', error);
       return false;
     }
   }
@@ -1516,10 +1516,10 @@ ${language === 'fr' ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compl
         },
       });
 
-      console.log(`✅ Test notification email sent to ${to}`);
+      // console.log(`✅ Test notification email sent to ${to}`);
       return true;
     } catch (error: any) {
-      console.error('❌ Error sending test notification email:', error);
+      // console.error('❌ Error sending test notification email:', error);
       return false;
     }
   }

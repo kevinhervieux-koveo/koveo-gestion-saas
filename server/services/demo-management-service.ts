@@ -42,7 +42,6 @@ export class DemoManagementService {
     openDemoOrgId?: string;
   }> {
     // Demo organizations functionality disabled per user request - no database operations
-    console.log('✅ Demo organizations functionality disabled (skipped)');
 
     return {
       success: true,
@@ -60,7 +59,6 @@ export class DemoManagementService {
     demoOrgId?: string;
     openDemoOrgId?: string;
   }> {
-    console.log('✅ Demo organizations recreation skipped (disabled)');
 
     return {
       success: true,
@@ -82,7 +80,6 @@ export class DemoManagementService {
       openDemoUsers: number;
     };
   }> {
-    console.log('✅ Demo organizations info retrieval skipped (disabled)');
 
     return {
       stats: {
@@ -99,7 +96,6 @@ export class DemoManagementService {
    * DISABLED: Demo organization functionality has been disabled per user request.
    */
   public static async initializeDemoOrganizations(): Promise<void> {
-    console.log('✅ Demo organizations initialization skipped (disabled)');
     // Demo organizations functionality disabled per user request
     return;
   }
@@ -126,7 +122,6 @@ export class DemoManagementService {
         .limit(1);
 
       if (existingDemo.length === 0) {
-        console.log('📝 Creating Demo organization...');
         await db.insert(schema.organizations).values({
           name: 'Demo',
           type: 'demo',
@@ -146,7 +141,6 @@ export class DemoManagementService {
         .limit(1);
 
       if (existingOpenDemo.length === 0) {
-        console.log('📝 Creating Open Demo organization...');
         await db.insert(schema.organizations).values({
           name: 'Open Demo',
           type: 'demo',
@@ -158,10 +152,8 @@ export class DemoManagementService {
         });
       }
 
-      console.log('✅ Demo organizations are properly configured');
     } catch (error) {
       // Continue anyway - this is not critical for production functionality
-      console.log('⚠️ Demo organizations setup failed, but continuing...');
     }
   }
 
@@ -177,7 +169,6 @@ export class DemoManagementService {
     const actions: string[] = [];
 
     try {
-      console.log('🔧 Running scheduled demo maintenance...');
 
       // Check current health
       const health = await this.checkDemoHealth();
@@ -192,7 +183,6 @@ export class DemoManagementService {
         actions.push(`Post-sync health: ${newHealth.healthy ? 'HEALTHY' : 'STILL_UNHEALTHY'}`);
       }
 
-      console.log('✅ Scheduled demo maintenance completed');
 
       return {
         success: true,

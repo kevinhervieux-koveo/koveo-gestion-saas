@@ -499,7 +499,6 @@ function calculateFirstIncompleteTab(currentStatus: string, skipFlags: any): str
  * Register maintenance API routes
  */
 export function registerMaintenanceRoutes(app: Express): void {
-  console.log('🔧 [MAINTENANCE ROUTES] Starting registerMaintenanceRoutes function...');
   
   // ===========================================
   // UNIFORMAT CATALOG MANAGEMENT
@@ -511,7 +510,6 @@ export function registerMaintenanceRoutes(app: Express): void {
    */
   app.get('/api/maintenance/uniformat', requireAuth, async (req: any, res) => {
     try {
-      console.log('📋 [UNIFORMAT API] Called with query:', req.query);
       
       const { level, category, parentCode } = req.query;
       let filteredCatalog = UNIFORMAT_CATALOG;
@@ -538,7 +536,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         selectable: item.level === 3
       }));
       
-      console.log('📋 [UNIFORMAT API] Returning', codesWithSelectableFlag.length, 'codes');
       
       res.json({
         success: true,
@@ -1930,7 +1927,6 @@ export function registerMaintenanceRoutes(app: Express): void {
   /**
    * POST /api/maintenance/elements/:elementId/documents - Upload element document
    */
-  console.log('🔧 [MAINTENANCE ROUTES] Registering POST /api/maintenance/elements/:elementId/documents');
   app.post('/api/maintenance/elements/:elementId/documents', requireAuth, uploadRateLimit, upload.single('file'), async (req: any, res: any) => {
     try {
       const user = req.user;
@@ -2065,7 +2061,6 @@ export function registerMaintenanceRoutes(app: Express): void {
   /**
    * GET /api/maintenance/elements/:elementId/documents - List element documents
    */
-  console.log('🔧 [MAINTENANCE ROUTES] Registering GET /api/maintenance/elements/:elementId/documents');
   app.get('/api/maintenance/elements/:elementId/documents', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -2160,7 +2155,6 @@ export function registerMaintenanceRoutes(app: Express): void {
   /**
    * GET /api/maintenance/documents/:id - View/download document
    */
-  console.log('🔧 [MAINTENANCE ROUTES] Registering GET /api/maintenance/documents/:id');
   app.get('/api/maintenance/documents/:id', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -2241,7 +2235,6 @@ export function registerMaintenanceRoutes(app: Express): void {
   /**
    * DELETE /api/maintenance/documents/:id - Delete document
    */
-  console.log('🔧 [MAINTENANCE ROUTES] Registering DELETE /api/maintenance/documents/:id');
   app.delete('/api/maintenance/documents/:id', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -2313,7 +2306,6 @@ export function registerMaintenanceRoutes(app: Express): void {
   /**
    * GET /api/maintenance/documents/:id/file - View/download vendor submission document
    */
-  console.log('🔧 [MAINTENANCE ROUTES] Registering GET /api/maintenance/documents/:id/file');
   app.get('/api/maintenance/documents/:id/file', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
@@ -2390,7 +2382,6 @@ export function registerMaintenanceRoutes(app: Express): void {
             } else if (entry.isFile()) {
               // Check if filename contains the document ID directly
               if (entry.name.includes(targetId)) {
-                console.log(`🔍 Found matching file for document ID ${targetId}: ${fullPath}`);
                 return fullPath;
               }
               
@@ -2406,7 +2397,6 @@ export function registerMaintenanceRoutes(app: Express): void {
                   if (await fs.promises.access(actualFilePath).then(() => true).catch(() => false)) {
                     // For now, we'll use a simple heuristic based on timing and filename matching
                     // This is not perfect but should work for most cases
-                    console.log(`🔍 Checking metadata file for document ${targetId}: ${fullPath}`);
                     return actualFilePath;
                   }
                 } catch (metadataError) {
@@ -2416,25 +2406,20 @@ export function registerMaintenanceRoutes(app: Express): void {
             }
           }
         } catch (error: any) {
-          console.log(`⚠️ Error reading directory ${dir}:`, error?.message || error);
         }
         return null;
       };
       
-      console.log(`🔍 Searching for document ID: ${id} in directory: ${UPLOADS_ROOT}`);
       const filePath = await findFileRecursively(UPLOADS_ROOT, id);
       
       if (!filePath) {
-        console.log(`❌ File not found for document ID: ${id}`);
         return res.status(404).json({ error: 'File not found on disk' });
       }
       
       if (!fs.existsSync(filePath)) {
-        console.log(`❌ File path exists but file not accessible: ${filePath}`);
         return res.status(404).json({ error: 'File not found on disk' });
       }
       
-      console.log(`✅ Found file for document ID ${id}: ${filePath}`);
       
       // Security: ensure the resolved path is within uploads root
       const resolvedPath = path.resolve(filePath);
@@ -2452,7 +2437,6 @@ export function registerMaintenanceRoutes(app: Express): void {
       // Stream the file
       const fileStream = fs.createReadStream(filePath);
       fileStream.on('error', (streamError) => {
-        console.error('Error streaming file:', streamError);
         if (!res.headersSent) {
           res.status(500).json({ error: 'Failed to stream file' });
         }
@@ -2932,8 +2916,6 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       // DEBUG: Log incoming request data
       console.group(`📝 [BACKEND] POST /api/maintenance/projects - User: ${user.email || user.id}`);
-      console.log('📋 Raw request body:', req.body);
-      console.log('🔍 Request body types:', {
         buildingId: typeof req.body.buildingId,
         projectNumber: typeof req.body.projectNumber,
         title: typeof req.body.title,
@@ -2946,7 +2928,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         suggestionId: typeof req.body.suggestionId,
         status: typeof req.body.status
       });
-      console.log('📋 Request headers (content-type):', req.headers['content-type']);
       console.groupEnd();
       
       const validation = maintenanceProjectCreateSchema.safeParse(req.body);
@@ -3007,7 +2988,6 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       // DEBUG: Log the data being inserted
       console.group(`✅ [DATABASE] Inserting project data`);
-      console.log('Validated project data:', projectData);
       console.groupEnd();
       
       const [project] = await db
@@ -3016,7 +2996,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         .returning();
       
       // DEBUG: Log successful creation
-      console.log(`✅ [SUCCESS] Project created with ID: ${project.id}`);
       
       res.status(201).json({
         success: true,
@@ -5275,8 +5254,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
 
-      console.log(`🔧 Starting suggestion generation for building ${buildingId} (${building[0].name})`);
-      console.log(`📊 Options: dryRun=${dryRun}, limit=${limit}, forceRegeneration=${forceRegeneration}`);
 
       // Generate suggestions using the service
       const result = await maintenanceSuggestionService.generateForBuilding(buildingId, {
@@ -5286,9 +5263,6 @@ export function registerMaintenanceRoutes(app: Express): void {
       });
 
       // Log results for monitoring
-      console.log(`✅ Suggestion generation completed for building ${buildingId}:`);
-      console.log(`   Created: ${result.created}, Updated: ${result.updated}, Skipped: ${result.skipped}`);
-      console.log(`   Errors: ${result.errors.length}`);
 
       // Response with comprehensive statistics
       const response = {
@@ -5442,8 +5416,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         }
       }
 
-      console.log(`🔄 Manual trigger requested by user ${user.id} (${user.role})`);
-      console.log(`📊 Options: buildingIds=${buildingIds?.length || 'all'}, dryRun=${dryRun}, limit=${limit}`);
 
       // Trigger the job
       const result = await maintenanceJobsScheduler.triggerManual({
@@ -5729,7 +5701,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         return createdProject;
       });
 
-      console.log(`✅ Auto-generated project ${id} accepted and converted to project ${result.id}`);
 
       res.json({
         success: true,
@@ -5823,7 +5794,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         .where(eq(autoGeneratedProjects.id, id))
         .returning();
 
-      console.log(`✅ Auto-generated project ${id} updated successfully`);
 
       res.json({
         success: true,
@@ -5894,7 +5864,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         })
         .where(eq(autoGeneratedProjects.id, id));
 
-      console.log(`✅ Auto-generated project ${id} dismissed successfully`);
 
       res.json({
         success: true,
@@ -6070,7 +6039,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         }
       }
 
-      console.log(`✅ Generated ${generatedProjects.length} auto-projects for building ${buildingId}`);
 
       res.json({
         success: true,
@@ -6095,13 +6063,11 @@ export function registerMaintenanceRoutes(app: Express): void {
   // SIMPLIFIED ELEMENT DOCUMENT ENDPOINTS FOR DEBUGGING
   // ===========================================
   
-  console.log('🔧 [MAINTENANCE ROUTES] Adding simplified element document endpoints...');
   
   /**
    * GET /api/maintenance/elements/:elementId/documents - Simple version
    */
   app.get('/api/maintenance/elements/:elementId/documents', requireAuth, async (req: any, res) => {
-    console.log('🔧 [MAINTENANCE ROUTES] GET element documents endpoint called for elementId:', req.params.elementId);
     try {
       res.json({
         success: true,
@@ -6120,7 +6086,6 @@ export function registerMaintenanceRoutes(app: Express): void {
    * DELETE /api/maintenance/documents/:id - Simple version
    */
   app.delete('/api/maintenance/documents/:id', requireAuth, async (req: any, res) => {
-    console.log('🔧 [MAINTENANCE ROUTES] DELETE document endpoint called for id:', req.params.id);
     try {
       res.json({
         success: true,
@@ -6164,7 +6129,6 @@ export function registerMaintenanceRoutes(app: Express): void {
   // PROJECT WORKFLOW ENDPOINTS
   // ===========================================
   
-  console.log('🔧 [MAINTENANCE ROUTES] Adding project workflow endpoints...');
   
   /**
    * GET /api/maintenance/projects/:id/workflow - Get workflow state
@@ -6198,12 +6162,9 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
 
       // Get workflow state
-      console.log('🔍 [WORKFLOW API] Getting workflow state for project:', id);
       const workflowState = await workflowService.getProjectWorkflowState(id);
-      console.log('🔍 [WORKFLOW API] Raw workflow state from service:', workflowState);
       
       if (!workflowState) {
-        console.log('🔍 [WORKFLOW API] No workflow state found');
         return res.status(404).json({ error: 'Workflow state not found' });
       }
 

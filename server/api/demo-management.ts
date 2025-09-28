@@ -210,5 +210,4 @@ export function registerDemoManagementRoutes(app: Express): void {
     }
   );
 
-  console.log('✅ Demo management API routes registered');
 }

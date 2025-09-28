@@ -22,7 +22,6 @@ const router = express.Router();
 const isDev = process.env.NODE_ENV === 'development';
 const debugLog = (endpoint: string, data: any) => {
   if (isDev) {
-    console.log(`🏦 [BUDGET API DEBUG] ${endpoint}:`, JSON.stringify(data, null, 2));
   }
 };
 

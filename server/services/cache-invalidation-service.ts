@@ -50,7 +50,6 @@ export class CacheInvalidationService {
   async invalidateUserAssociations(context: InvalidationContext): Promise<void> {
     const { entityType, entityId, operation, affectedUserIds = [], triggeredBy } = context;
     
-    console.log(`${this.logPrefix} Invalidating caches for ${entityType}:${entityId} (${operation}) affecting ${affectedUserIds.length} users`);
 
     const startTime = Date.now();
     const invalidationPromises: Promise<void>[] = [];
@@ -95,7 +94,6 @@ export class CacheInvalidationService {
     await Promise.allSettled(invalidationPromises);
 
     const duration = Date.now() - startTime;
-    console.log(`${this.logPrefix} Completed invalidation in ${duration}ms for ${entityType}:${entityId}`);
 
     // 5. Log invalidation for audit trail
     this.logInvalidation(context, duration);
@@ -112,7 +110,6 @@ export class CacheInvalidationService {
     // Invalidate building statistics that might include this residence
     queryCache.invalidate('search', `building_stats:*`);
     
-    console.log(`${this.logPrefix} Invalidated residence assignment caches for residence ${residenceId}`);
   }
 
   /**
@@ -123,7 +120,6 @@ export class CacheInvalidationService {
     queryCache.invalidate('search', `optimized_query:*organization*${organizationId}*`);
     queryCache.invalidate('users', `*organization*${organizationId}*`);
     
-    console.log(`${this.logPrefix} Invalidated organization assignment caches for org ${organizationId}`);
   }
 
   /**
@@ -134,7 +130,6 @@ export class CacheInvalidationService {
     queryCache.invalidate('users', `*${userId}*`);
     queryCache.invalidate('search', `*${userId}*`);
     
-    console.log(`${this.logPrefix} Invalidated all caches for user ${userId}`);
   }
 
   /**
@@ -144,7 +139,6 @@ export class CacheInvalidationService {
     queryCache.invalidate('search', `*residence*${residenceId}*`);
     queryCache.invalidate('residences', `*${residenceId}*`);
     
-    console.log(`${this.logPrefix} Invalidated caches for residence ${residenceId}`);
   }
 
   /**
@@ -155,7 +149,6 @@ export class CacheInvalidationService {
     queryCache.invalidate('buildings', `*${buildingId}*`);
     queryCache.invalidate('search', `building_stats:*${buildingId}*`);
     
-    console.log(`${this.logPrefix} Invalidated caches for building ${buildingId}`);
   }
 
   /**
@@ -165,7 +158,6 @@ export class CacheInvalidationService {
     queryCache.invalidate('search', `*organization*${organizationId}*`);
     queryCache.invalidate('organizations', `*${organizationId}*`);
     
-    console.log(`${this.logPrefix} Invalidated caches for organization ${organizationId}`);
   }
 
   /**
@@ -174,7 +166,6 @@ export class CacheInvalidationService {
   async bulkInvalidateUsers(userIds: string[], context: Partial<InvalidationContext> = {}): Promise<void> {
     if (userIds.length === 0) return;
 
-    console.log(`${this.logPrefix} Bulk invalidating caches for ${userIds.length} users`);
 
     const fullContext: InvalidationContext = {
       entityType: 'user',
@@ -280,7 +271,6 @@ export class CacheInvalidationService {
     };
 
     // In production, this could be sent to a logging service
-    console.log(`${this.logPrefix} AUDIT:`, JSON.stringify(logEntry));
   }
 
   /**
@@ -289,7 +279,6 @@ export class CacheInvalidationService {
   async warmupAfterInvalidation(userIds: string[]): Promise<void> {
     if (userIds.length === 0) return;
 
-    console.log(`${this.logPrefix} Warming up caches for ${userIds.length} users after invalidation`);
 
     // Warm up user contexts for affected users (in batches to avoid overwhelming the DB)
     const batchSize = 5;
@@ -306,14 +295,12 @@ export class CacheInvalidationService {
             await optimizedScopeManager.buildOptimizedUserContext(userId, user.role, { cache: true });
           }
         } catch (error) {
-          console.warn(`${this.logPrefix} Failed to warm up cache for user ${userId}:`, error);
         }
       });
 
       await Promise.allSettled(warmupPromises);
     }
 
-    console.log(`${this.logPrefix} Cache warmup completed for ${userIds.length} users`);
   }
 }
 

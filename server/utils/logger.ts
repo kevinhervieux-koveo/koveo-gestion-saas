@@ -107,7 +107,7 @@ export function logInfo(message: string, context?: LogContext): void {
   if (currentLogLevel < LogLevel.INFO) return;
   
   const formatted = formatLogMessage('INFO', message, context);
-  console.log(formatted);
+
 }
 
 /**
@@ -198,7 +198,7 @@ export function logAudit(action: string, context: LogContext): void {
   };
   
   const formatted = formatLogMessage('AUDIT', `Audit: ${action}`, auditContext);
-  console.log(formatted);
+
   
   // In production, this should go to a tamper-proof audit log
   if (process.env.NODE_ENV === 'production') {

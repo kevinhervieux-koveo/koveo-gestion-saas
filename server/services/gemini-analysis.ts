@@ -205,7 +205,7 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
         );
       }
 
-      console.log(
+      // console.log(
         `✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`
       );
       return analysis;

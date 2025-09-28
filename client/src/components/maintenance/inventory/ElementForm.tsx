@@ -478,74 +478,10 @@ export function ElementForm({
     },
   });
 
-  // Debug form state
-  useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => {
-      console.log('🔍 [ELEMENT FORM DEBUG] Form field changed:', {
-        field: name,
-        type,
-        value: value[name as string],
-        isValid: form.formState.isValid,
-        errors: form.formState.errors,
-        hasErrors: Object.keys(form.formState.errors).length > 0
-      });
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
 
   // Determine if form should be disabled
   const isFormDisabled = currentMode === 'view';
 
-  // Debug form state on mode/element changes
-  useEffect(() => {
-    const errorDetails = Object.keys(form.formState.errors).length > 0 ? 
-      Object.entries(form.formState.errors).map(([field, error]) => ({
-        field,
-        message: typeof error === 'string' ? error : error?.message,
-        type: error?.type
-      })) : [];
-
-    console.log('🔍 [ELEMENT FORM DEBUG] Form state:', {
-      mode: currentMode,
-      elementId: element?.id,
-      isValid: form.formState.isValid,
-      isDirty: form.formState.isDirty,
-      errorCount: Object.keys(form.formState.errors).length,
-      errorDetails,
-      isFormDisabled,
-      submitDisabled: currentMode === 'view' || !form.formState.isValid
-    });
-
-    // Additional logging when form is invalid
-    if (!form.formState.isValid) {
-      const nextEvalDate = form.getValues('nextEvaluationDate');
-      const reconstructionCost = form.getValues('reconstructionCost');
-      console.log('❌ [VALIDATION STATE] Form is invalid:', {
-        isValid: form.formState.isValid,
-        errorCount: Object.keys(form.formState.errors).length,
-        errorDetails,
-        allFormValues: form.getValues(),
-        nextEvaluationDate: {
-          value: nextEvalDate,
-          type: typeof nextEvalDate,
-          isDate: nextEvalDate instanceof Date,
-          isNull: nextEvalDate === null,
-          isUndefined: nextEvalDate === undefined
-        },
-        reconstructionCost: {
-          value: reconstructionCost,
-          type: typeof reconstructionCost,
-          isNumber: typeof reconstructionCost === 'number',
-          isPositive: typeof reconstructionCost === 'number' && reconstructionCost > 0
-        },
-        isSubmitted: form.formState.isSubmitted,
-        isDirty: form.formState.isDirty,
-        isValidating: form.formState.isValidating,
-        touchedFields: form.formState.touchedFields,
-        dirtyFields: form.formState.dirtyFields
-      });
-    }
-  }, [currentMode, element?.id, form.formState.isValid, form.formState.isDirty, form.formState.errors, isFormDisabled]);
 
   // Reset current mode when modal opens or element changes
   useEffect(() => {
@@ -1144,7 +1080,7 @@ export function ElementForm({
                               field.onChange(dateValue);
                             }
                           } catch (error) {
-                            console.warn('Date parsing error:', error);
+                            // Date parsing error silently handled
                           }
                         }
                       }
@@ -1365,10 +1301,10 @@ export function ElementForm({
           buildingId={buildingId || ''}
           organizationId={organizationId || ''}
           onDocumentUploaded={(document) => {
-            console.log('Document uploaded:', document);
+            // Document uploaded successfully
           }}
           onDocumentDeleted={(documentId) => {
-            console.log('Document deleted:', documentId);
+            // Document deleted successfully
           }}
         />
 

@@ -77,20 +77,15 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express) {
-  console.log('🔄 Setting up session middleware...');
   
   // CRITICAL: Apply session middleware BEFORE authentication routes
   app.use(sessionConfig);
-  console.log('✅ Session middleware configured');
   
-  console.log('🔄 Loading authentication routes...');
   
   // Setup authentication routes - session middleware must be applied first
   setupAuthRoutes(app);
-  console.log('✅ Authentication routes loaded on /api/auth/');
   
   // Register all API routes
-  console.log('🔄 Loading API routes...');
   registerOrganizationRoutes(app);
   registerUserRoutes(app);
   registerBuildingRoutes(app);
@@ -100,9 +95,7 @@ export async function registerRoutes(app: Express) {
   registerBillRoutes(app);
   
   // Budget routes
-  console.log('🏦 [BUDGET DEBUG] Registering budget router at /api/budgets');
   app.use('/api/budgets', requireAuth, budgetRouter);
-  console.log('✅ Budget routes registered successfully');
   
   registerResidenceRoutes(app);
   registerDemandRoutes(app);
@@ -128,7 +121,6 @@ export async function registerRoutes(app: Express) {
   // Law 25 compliance routes
   app.use('/api/law25-compliance', requireAuth, law25ComplianceRouter);
   
-  console.log('✅ All API routes registered');
   
   // Features API for roadmap
   app.get('/api/features', requireAuth, async (req: any, res) => {
@@ -171,7 +163,6 @@ export async function registerRoutes(app: Express) {
         return res.json(transformedFeatures);
       }
     } catch (error) {
-      console.error('Error fetching features:', error);
       res.status(500).json({ 
         message: 'Failed to fetch features',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -200,7 +191,6 @@ export async function registerRoutes(app: Express) {
         syncedCount: 0 // Would be actual count in real implementation
       });
     } catch (error) {
-      console.error('Error during sync:', error);
       res.status(500).json({
         message: 'Failed to sync to production',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -233,7 +223,6 @@ export async function registerRoutes(app: Express) {
         return `/uploads/demands/${file.filename}`;
       });
 
-      console.log(`✅ Successfully uploaded ${files.length} files for user ${req.user.id}`);
 
       return res.json({ 
         message: 'Files uploaded successfully',
@@ -241,7 +230,6 @@ export async function registerRoutes(app: Express) {
         fileCount: files.length
       });
     } catch (error: any) {
-      console.error('❌ File upload error:', error.message);
       res.status(500).json({ 
         error: 'File upload failed',
         message: 'Unable to process the uploaded files',

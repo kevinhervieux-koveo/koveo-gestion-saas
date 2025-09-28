@@ -20,11 +20,9 @@ import { secureErrorHandler, notFoundHandler } from './middleware/error-security
 //   port: process.env.PORT || 5000,
 //   timestamp: new Date().toISOString()
 // });
-console.log('🚀 Server starting with enhanced debugging...');
 
 // Add global error handlers to prevent crashes
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
   // Don't exit in development to avoid interrupting work
   if (process.env.NODE_ENV !== 'development') {
     setTimeout(() => process.exit(1), 1000);
@@ -32,7 +30,6 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
   // Don't exit in development to maintain stability
   if (process.env.NODE_ENV !== 'development') {
     setTimeout(() => process.exit(1), 1000);
@@ -41,20 +38,16 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Handle SIGTERM and SIGINT gracefully
 process.on('SIGTERM', () => {
-  console.log('🔄 SIGTERM received, gracefully shutting down...');
   if (server) {
     server.close(() => {
-      console.log('✅ Server closed gracefully');
       process.exit(0);
     });
   }
 });
 
 process.on('SIGINT', () => {
-  console.log('🔄 SIGINT received, gracefully shutting down...');
   if (server) {
     server.close(() => {
-      console.log('✅ Server closed gracefully');
       process.exit(0);
     });
   }
@@ -68,7 +61,6 @@ const host = '0.0.0.0'; // Always bind to all interfaces for deployments
 // Ensure port is valid
 if (isNaN(port) || port < 1 || port > 65535) {
   const fallback = process.env.NODE_ENV === 'production' ? '5000' : '5000';
-  console.error(`Invalid port configuration. Using default ${fallback}.`);
   // Never exit during tests - let tests continue with fallback
   if (process.env.NODE_ENV === 'production' && process.env.TEST_ENV !== 'integration') {
     process.exit(1);
@@ -158,7 +150,7 @@ app.use((req, res, next) => {
   
   // Log domain detection for production debugging
   if (req.isKoveoProduction) {
-    console.log(`🌐 Koveo production request detected: ${req.domain} (${req.method} ${req.path})`);
+    // Koveo production request detected
   }
   
   next();
@@ -186,7 +178,7 @@ app.use((req, res, next) => {
   
   // Add error handling for response
   res.on('error', (err) => {
-    console.error('❌ Response error:', err);
+    // Response error handling
   });
   
   next();
@@ -198,7 +190,6 @@ const healthCheckErrorHandler = (handler: any) => {
     try {
       await handler(req, res, next);
     } catch (error: any) {
-      console.error('Health check error:', error);
       // Always return 200 for health checks to prevent deployment failures
       if (!res.headersSent) {
         res.status(200).send('OK');

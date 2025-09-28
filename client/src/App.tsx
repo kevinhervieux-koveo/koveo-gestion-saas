@@ -27,7 +27,6 @@ if (typeof window !== 'undefined') {
   webVitalsMonitor.initialize();
   performanceMonitor.start();
   
-  console.log('🚀 Performance monitoring systems initialized');
 }
 
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';

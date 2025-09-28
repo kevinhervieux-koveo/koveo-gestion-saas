@@ -63,7 +63,7 @@ export function registerDocumentationRoutes(app: Express) {
   // Get comprehensive documentation data
   app.get('/api/documentation/comprehensive', requireAuth, async (req, res) => {
     try {
-      console.log('📚 Generating comprehensive documentation data...');
+      // console.log('📚 Generating comprehensive documentation data...');
 
       // Read package.json for project info
       const packageJsonPath = path.join(process.cwd(), 'package.json');
@@ -100,7 +100,7 @@ export function registerDocumentationRoutes(app: Express) {
         documentationFiles,
       };
 
-      console.log(`✅ Documentation generated with ${documentation.documentationFiles.length} files, ${documentation.apis.length} APIs, ${documentation.components.length} components`);
+      // console.log(`✅ Documentation generated with ${documentation.documentationFiles.length} files, ${documentation.apis.length} APIs, ${documentation.components.length} components`);
       res.json(documentation);
     } catch (error) {
       console.error('❌ Error generating documentation:', error);
@@ -169,7 +169,7 @@ export function registerDocumentationRoutes(app: Express) {
   // Generate comprehensive LLM documentation with detailed schema and business logic
   app.post('/api/documentation/llm-generate', requireAuth, async (req, res) => {
     try {
-      console.log('🤖 Generating comprehensive LLM documentation...');
+      // console.log('🤖 Generating comprehensive LLM documentation...');
       
       const documentationData = await generateLLMDocumentation();
       
@@ -181,7 +181,7 @@ export function registerDocumentationRoutes(app: Express) {
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.send(documentationData);
       
-      console.log(`✅ LLM documentation generated: ${filename}`);
+      // console.log(`✅ LLM documentation generated: ${filename}`);
     } catch (error) {
       console.error('❌ Error generating LLM documentation:', error);
       res.status(500).json({ 

@@ -531,10 +531,10 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       }
 
-      console.log('🔍 Booking request body:', req.body);
+      // console.log('🔍 Booking request body:', req.body);
       const bodyValidation = createBookingSchema.safeParse(req.body);
       if (!bodyValidation.success) {
-        console.log('❌ Validation failed:', bodyValidation.error.issues);
+        // console.log('❌ Validation failed:', bodyValidation.error.issues);
         return res.status(400).json({
           message: 'Invalid booking data',
           errors: bodyValidation.error.issues,
@@ -1277,7 +1277,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           })
           .returning();
 
-        console.log(`✅ Created new common space: ${name} in building ${building[0].name}`);
+        // console.log(`✅ Created new common space: ${name} in building ${building[0].name}`);
 
         res.status(201).json({
           message: 'Common space created successfully',
@@ -1392,7 +1392,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           .where(eq(commonSpaces.id, spaceId))
           .returning();
 
-        console.log(`✅ Updated common space: ${name}`);
+        // console.log(`✅ Updated common space: ${name}`);
 
         res.json({
           message: 'Common space updated successfully',
@@ -1538,7 +1538,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        console.log(
+        // console.log(
           `✅ Set time limit for user ${targetUser[0].firstName} ${targetUser[0].lastName}: ${limit_hours}h per ${limit_type}`
         );
 

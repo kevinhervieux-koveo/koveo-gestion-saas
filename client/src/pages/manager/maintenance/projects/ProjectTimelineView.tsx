@@ -552,7 +552,7 @@ export function ProjectTimelineView({
                   className="w-full justify-start"
                   onClick={() => {
                     // Handle bulk status update for selected date
-                    console.log('Bulk update for selected date');
+                    // Handle bulk status update for selected date
                   }}
                 >
                   <Target className="h-4 w-4 mr-2" />
@@ -565,7 +565,7 @@ export function ProjectTimelineView({
                   className="w-full justify-start"
                   onClick={() => {
                     // Handle resource planning
-                    console.log('Resource planning');
+                    // Handle resource planning
                   }}
                 >
                   <Users className="h-4 w-4 mr-2" />
@@ -578,7 +578,7 @@ export function ProjectTimelineView({
                   className="w-full justify-start"
                   onClick={() => {
                     // Handle timeline export
-                    console.log('Export timeline');
+                    // Handle timeline export
                   }}
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />

@@ -119,7 +119,7 @@ export function FormModal<T extends FieldValues>({
       await onSubmit(data);
     } catch (submitError) {
       // Error is handled by parent component
-      console.error('Form submission error:', submitError);
+      // Error logging removed for production
     }
   };
 
@@ -135,10 +135,10 @@ export function FormModal<T extends FieldValues>({
   const { isValid, errors, isDirty } = form.formState;
   const hasValidationErrors = validationErrors && Object.keys(validationErrors).length > 0;
   
-  // Debug form validation state (minimal logging)
+  // Form validation state tracking (production optimized)
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
-      console.log('Form validation errors:', errors);
+      // Validation errors are displayed in UI, no need for console logging
     }
   }, [errors]);
 

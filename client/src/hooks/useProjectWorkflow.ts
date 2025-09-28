@@ -78,15 +78,15 @@ export function useProjectWorkflowState(projectId: string) {
   return useQuery({
     queryKey: ['/api/maintenance/projects', projectId, 'workflow'],
     queryFn: async (): Promise<ProjectWorkflowState> => {
-      console.log('🔍 [WORKFLOW HOOK] Fetching workflow state for project:', projectId);
+      // Fetching workflow state for project
       
       if (!projectId) throw new Error('Project ID is required');
       
       const url = `/api/maintenance/projects/${projectId}/workflow`;
-      console.log('🔍 [WORKFLOW HOOK] Making request to:', url);
+      // Making workflow state request
       
       const response = await apiRequest('GET', url);
-      console.log('🔍 [WORKFLOW HOOK] Response status:', response.status, response.ok);
+      // Processing workflow response
       
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Failed to fetch workflow state' }));
@@ -95,11 +95,11 @@ export function useProjectWorkflowState(projectId: string) {
       }
       
       const data = await response.json();
-      console.log('🔍 [WORKFLOW HOOK] Success response:', data);
+      // Workflow state received successfully
       
       // Check if we need to extract data from {success: true, data: {...}} format
       if (data.success && data.data) {
-        console.log('🔍 [WORKFLOW HOOK] Extracting data from success wrapper:', data.data);
+        // Extracting workflow data from response wrapper
         return data.data;
       }
       

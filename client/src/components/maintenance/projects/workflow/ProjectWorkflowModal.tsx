@@ -253,17 +253,10 @@ export function ProjectWorkflowModal({
 
   // Render tab content based on active tab
   const renderTabContent = () => {
-    console.log('🔍 [MODAL] renderTabContent:', { 
-      activeTab, 
-      hasWorkflowState: !!workflowState,
-      workflowData: workflowState
-    });
+    // Rendering tab content for active tab
     
     if (!workflowState || !activeTab) {
-      console.log('🔍 [MODAL] No content because:', { 
-        hasWorkflowState: !!workflowState,
-        activeTab
-      });
+      // No content available - checking workflow state
       return null;
     }
 

@@ -189,7 +189,6 @@ export async function addResidencesAutomatically(
 
   if (residencesToCreate.length > 0) {
     await db.insert(residences).values(residencesToCreate);
-    console.log(`✅ Auto-created ${residencesToCreate.length} residences for building ${buildingId}`);
   }
 }
 
@@ -281,7 +280,6 @@ export async function deleteSelectedResidences(
     .set({ isActive: false, updatedAt: new Date() })
     .where(and(inArray(residences.id, residenceIds), eq(residences.buildingId, buildingId)));
 
-  console.log(`🗑️ Deleted ${residenceIds.length} residences and ${documentsToDelete.length} documents for building ${buildingId}`);
   
   return {
     deletedCount: residenceIds.length,
@@ -404,7 +402,6 @@ export async function cascadeDeleteBuilding(buildingId: string) {
       // 4. DISABLED: User deletion is now prohibited for data safety
       // Users are never deleted during cascade operations to prevent data loss
       // This ensures user accounts and their data are preserved even when buildings are removed
-      console.log('⚠️  User deletion disabled for data safety - users will be preserved');
 
       // 5. Soft delete residences
       await tx

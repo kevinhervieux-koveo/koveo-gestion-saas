@@ -46,7 +46,7 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      console.log(`📋 Fetching bugs for user ${currentUser.id} with role ${currentUser.role}`);
+      // console.log(`📋 Fetching bugs for user ${currentUser.id} with role ${currentUser.role}`);
 
       const bugs = await storage.getBugsForUser(
         currentUser.id,
@@ -54,18 +54,18 @@ export function registerBugRoutes(app: Express): void {
         currentUser.organizationId
       );
 
-      console.log(`✅ Found ${bugs.length} bugs for user ${currentUser.id}`);
+      // console.log(`✅ Found ${bugs.length} bugs for user ${currentUser.id}`);
       
       // Debug: Log file attachment info for each bug
       bugs.forEach(bug => {
         if (bug.filePath) {
-          console.log(`🔗 Bug ${bug.id} has file: ${bug.fileName} at ${bug.filePath}`);
+          // console.log(`🔗 Bug ${bug.id} has file: ${bug.fileName} at ${bug.filePath}`);
         }
       });
       
       res.json(bugs);
     } catch (error: any) {
-      console.error('❌ Error fetching bugs:', error);
+      // console.error('❌ Error fetching bugs:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch bugs',
@@ -111,7 +111,7 @@ export function registerBugRoutes(app: Express): void {
 
       res.json(bug);
     } catch (error: any) {
-      console.error('❌ Error fetching bug:', error);
+      // console.error('❌ Error fetching bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch bug',
@@ -152,7 +152,7 @@ export function registerBugRoutes(app: Express): void {
       if (req.file) {
         // Fix filename encoding issues
         const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
-        console.log(`📎 Processing attachment for new bug:`, {
+        // console.log(`📎 Processing attachment for new bug:`, {
           originalname: originalname,
           filename: req.file.filename,
           size: req.file.size,
@@ -186,7 +186,7 @@ export function registerBugRoutes(app: Express): void {
             fileSize: Buffer.byteLength(req.body.file_content, 'utf8'),
           };
         } catch (fsError) {
-          console.error('Error saving bug text content:', fsError);
+          // console.error('Error saving bug text content:', fsError);
           return res.status(500).json({ 
             error: 'Internal server error',
             message: 'Failed to save text content as file' 
@@ -195,7 +195,7 @@ export function registerBugRoutes(app: Express): void {
       }
 
       // Log the final bugData before saving
-      console.log(`🐛 Creating bug with data:`, {
+      // console.log(`🐛 Creating bug with data:`, {
         title: bugData.title,
         hasFile: !!bugData.filePath,
         filePath: bugData.filePath,
@@ -205,10 +205,10 @@ export function registerBugRoutes(app: Express): void {
 
       const bug = await storage.createBug(bugData);
 
-      console.log(`✅ Created new bug ${bug.id} by user ${currentUser.id}`);
+      // console.log(`✅ Created new bug ${bug.id} by user ${currentUser.id}`);
       res.status(201).json(bug);
     } catch (error: any) {
-      console.error('❌ Error creating bug:', error);
+      // console.error('❌ Error creating bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create bug',
@@ -292,10 +292,10 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      console.log(`📝 Updated bug ${id} by user ${currentUser.id}`);
+      // console.log(`📝 Updated bug ${id} by user ${currentUser.id}`);
       res.json(bug);
     } catch (error: any) {
-      console.error('❌ Error updating bug:', error);
+      // console.error('❌ Error updating bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update bug',
@@ -327,7 +327,7 @@ export function registerBugRoutes(app: Express): void {
         currentUser.organizationId
       );
 
-      console.log('🐛 getBug result:', bug ? { id: bug.id, filePath: bug.filePath, fileName: bug.fileName } : 'undefined');
+      // console.log('🐛 getBug result:', bug ? { id: bug.id, filePath: bug.filePath, fileName: bug.fileName } : 'undefined');
 
       if (!bug) {
         return res.status(404).json({
@@ -394,13 +394,13 @@ export function registerBugRoutes(app: Express): void {
       fileStream.pipe(res);
       
       fileStream.on('error', (error) => {
-        console.error(`❌ Error streaming file for bug ${id}:`, error);
+        // console.error(`❌ Error streaming file for bug ${id}:`, error);
         if (!res.headersSent) {
           res.status(500).json({ error: 'Failed to stream file' });
         }
       });
     } catch (error: any) {
-      console.error('❌ Error serving bug file:', error);
+      // console.error('❌ Error serving bug file:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to serve file',
@@ -440,10 +440,10 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      console.log(`🗑️ Deleted bug ${id} by user ${currentUser.id}`);
+      // console.log(`🗑️ Deleted bug ${id} by user ${currentUser.id}`);
       res.status(204).send();
     } catch (error: any) {
-      console.error('❌ Error deleting bug:', error);
+      // console.error('❌ Error deleting bug:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete bug',

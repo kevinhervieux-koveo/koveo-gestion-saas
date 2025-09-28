@@ -42,7 +42,7 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      console.log(
+      // console.log(
         `📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`
       );
 
@@ -101,14 +101,14 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const accessibleOrganizations = await organizationsQuery;
-      console.log(
+      // console.log(
         `✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`
       );
 
       // Return array directly (not wrapped in object)
       res.json(accessibleOrganizations);
     } catch (error: any) {
-      console.error('❌ Error fetching organizations:', error);
+      // console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -131,7 +131,7 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const { checkResidenceAccess } = req.query;
-      console.log(`🏗️ Fetching accessible building counts for user ${currentUser.id}, checkResidenceAccess: ${checkResidenceAccess}`);
+      // console.log(`🏗️ Fetching accessible building counts for user ${currentUser.id}, checkResidenceAccess: ${checkResidenceAccess}`);
 
       // Get user's accessible organizations first
       let accessibleOrgs;
@@ -234,17 +234,17 @@ export function registerOrganizationRoutes(app: Express): void {
           }
 
           counts[org.id] = accessibleBuildingCount;
-          console.log(`   → Org ${org.id}: ${accessibleBuildingCount} accessible buildings`);
+          // console.log(`   → Org ${org.id}: ${accessibleBuildingCount} accessible buildings`);
         } catch (error) {
-          console.error(`❌ Error counting buildings for org ${org.id}:`, error);
+          // console.error(`❌ Error counting buildings for org ${org.id}:`, error);
           counts[org.id] = 0;
         }
       }
 
-      console.log(`✅ Building counts calculated:`, counts);
+      // console.log(`✅ Building counts calculated:`, counts);
       res.json(counts);
     } catch (error: any) {
-      console.error('❌ Error fetching accessible building counts:', error);
+      // console.error('❌ Error fetching accessible building counts:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch accessible building counts',
@@ -301,7 +301,7 @@ export function registerOrganizationRoutes(app: Express): void {
         organizations: allOrganizations,
       });
     } catch (error: any) {
-      console.error('❌ Error fetching organizations:', error);
+      // console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -366,13 +366,13 @@ export function registerOrganizationRoutes(app: Express): void {
 
 
       // Organization storage hierarchy will be created automatically when documents are uploaded
-      console.log(
+      // console.log(
         'Organization created - storage hierarchy will be created on first document upload'
       );
 
       res.status(201).json(newOrganization);
     } catch (error: any) {
-      console.error('❌ Error creating organization:', error);
+      // console.error('❌ Error creating organization:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to create organization',
@@ -410,7 +410,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
       res.json(organization);
     } catch (error: any) {
-      console.error('❌ Error fetching organization:', error);
+      // console.error('❌ Error fetching organization:', error);
       res.status(500).json({
         message: 'Failed to fetch organization',
         code: 'SERVER_ERROR',
@@ -494,7 +494,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
       res.json(updatedOrganization);
     } catch (error: any) {
-      console.error('❌ Error updating organization:', error);
+      // console.error('❌ Error updating organization:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update organization',
@@ -594,7 +594,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
       res.json(impact);
     } catch (error: any) {
-      console.error('❌ Error analyzing deletion impact:', error);
+      // console.error('❌ Error analyzing deletion impact:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to analyze deletion impact',
@@ -639,7 +639,7 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      console.log(`🗑️ Deleting organization ${organizationId} with cascade delete...`);
+      // console.log(`🗑️ Deleting organization ${organizationId} with cascade delete...`);
 
       // Since Neon HTTP driver doesn't support transactions, we'll do cascading delete manually
       // in the correct order to maintain referential integrity
@@ -660,7 +660,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .where(inArray(residences.buildingId, orgBuildingIds))
           .returning({ id: residences.id, unitNumber: residences.unitNumber });
 
-        console.log(
+        // console.log(
           `🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`
         );
 
@@ -671,7 +671,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .where(inArray(buildings.id, orgBuildingIds))
           .returning({ id: buildings.id, name: buildings.name });
 
-        console.log(
+        // console.log(
           `🗑️ Soft deleted ${affectedBuildings.length} buildings: ${affectedBuildings.map((b) => b.name).join(', ')}`
         );
       }
@@ -684,7 +684,7 @@ export function registerOrganizationRoutes(app: Express): void {
       // 5. DISABLED: User deletion is now prohibited for data safety
       // Users are never deleted during cascade operations to prevent permanent data loss
       // This protects against accidental deletion of user accounts and their historical data
-      console.log('⚠️  User deletion disabled for data safety - users will be preserved');
+      // console.log('⚠️  User deletion disabled for data safety - users will be preserved');
       
       // Optional: Log users who would have been affected for admin review
       const affectedUsers = await db
@@ -702,7 +702,7 @@ export function registerOrganizationRoutes(app: Express): void {
         .where(and(eq(users.isActive, true), isNull(userOrganizations.userId)));
       
       if (affectedUsers.length > 0) {
-        console.log(`⚠️  ${affectedUsers.length} users are now without organization assignments but have been preserved:`, 
+        // console.log(`⚠️  ${affectedUsers.length} users are now without organization assignments but have been preserved:`, 
           affectedUsers.map(u => u.email));
 
         // DISABLED: Users are no longer deleted - they are preserved for data safety
@@ -717,9 +717,9 @@ export function registerOrganizationRoutes(app: Express): void {
 
       // Object storage cleanup will be handled automatically
       try {
-        console.log('Organization deleted - storage cleanup will be handled automatically');
+        // console.log('Organization deleted - storage cleanup will be handled automatically');
       } catch (storageError) {
-        console.error(
+        // console.error(
           '⚠️ Object storage cleanup failed, but organization deletion succeeded:',
           storageError
         );
@@ -730,7 +730,7 @@ export function registerOrganizationRoutes(app: Express): void {
         deletedOrganization: organization[0].name,
       });
     } catch (error: any) {
-      console.error('❌ Error deleting organization:', error);
+      // console.error('❌ Error deleting organization:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete organization and related entities',
@@ -755,7 +755,7 @@ export function registerOrganizationRoutes(app: Express): void {
       const { organizationId } = req.params;
       const { has_common_spaces } = req.query;
 
-      console.log(
+      // console.log(
         `📊 Fetching buildings for organization ${organizationId} by user ${currentUser.id} with role ${currentUser.role}${has_common_spaces === 'true' ? ' (with common spaces filter)' : ''}`
       );
 
@@ -933,11 +933,11 @@ export function registerOrganizationRoutes(app: Express): void {
 
       const buildingsList = await buildingsQuery;
 
-      console.log(`✅ Found ${buildingsList.length} buildings for user ${currentUser.id} in organization ${organizationId}`);
+      // console.log(`✅ Found ${buildingsList.length} buildings for user ${currentUser.id} in organization ${organizationId}`);
 
       res.json(buildingsList);
     } catch (error: any) {
-      console.error('❌ Error fetching organization buildings:', error);
+      // console.error('❌ Error fetching organization buildings:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch buildings for organization',

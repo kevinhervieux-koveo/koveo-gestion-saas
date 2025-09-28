@@ -113,7 +113,7 @@ export default function OwnerDocumentation() {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
     queryFn: async () => {
-      console.log('📚 Fetching real documentation data...');
+      // Fetching real documentation data
       const response = await fetch('/api/documentation/comprehensive', {
         credentials: 'include',
       });
@@ -124,12 +124,7 @@ export default function OwnerDocumentation() {
       
       const data = await response.json();
       setLastRefresh(new Date());
-      console.log('✅ Documentation data fetched successfully:', {
-        components: data.components?.length || 0,
-        apis: data.apis?.length || 0,
-        tables: data.database?.tables?.length || 0,
-        files: data.documentationFiles?.length || 0,
-      });
+      // Documentation data fetched successfully
       
       return data;
     },
@@ -199,7 +194,7 @@ export default function OwnerDocumentation() {
         description: 'Documentation data has been updated with the latest information.',
       });
     } catch (error) {
-      console.error('Refresh error:', error);
+      // Refresh error handled by toast notification
       toast({
         variant: 'destructive',
         title: 'Refresh Failed',
@@ -234,7 +229,7 @@ export default function OwnerDocumentation() {
         description: 'Google Suite documentation package has been downloaded successfully.',
       });
     } catch (error) {
-      console.error('Export error:', error);
+      // Export error handled by toast notification
       toast({
         variant: 'destructive',
         title: 'Export Failed',
@@ -262,7 +257,7 @@ export default function OwnerDocumentation() {
           'Comprehensive documentation for AI processing has been downloaded as a text file.',
       });
     } catch (error) {
-      console.error('LLM documentation generation error:', error);
+      // LLM documentation generation error handled by toast notification
       toast({
         variant: 'destructive',
         title: 'Export Failed',

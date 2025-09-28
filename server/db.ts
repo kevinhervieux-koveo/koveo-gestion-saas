@@ -50,14 +50,11 @@ export const sql = neon(databaseUrl, {
   while (retries > 0) {
     try {
       const result = await sql`SELECT version()`;
-      console.log('✅ Database connection verified');
       break;
     } catch (error: any) {
       retries--;
       if (retries === 0) {
-        console.error('❌ Database connection failed after retries:', error.message);
       } else {
-        console.warn(`⚠️ Database connection retry ${4 - retries}/3...`);
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }

@@ -488,7 +488,6 @@ if (typeof window !== 'undefined') {
   // Start performance monitoring
   performanceMonitor.start();
   
-  console.log('🚀 Performance optimization initialized');
 }
 
 // Import React

@@ -49,7 +49,7 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
           error.message?.includes('504:');
         
         if (isRetryableError) {
-          console.log(`[GEMINI BILL EXTRACTOR] Retrying extraction (attempt ${failureCount + 1}/${maxRetries})`);
+          // Retrying extraction - retry logic handled silently
           return true;
         }
       }
@@ -69,7 +69,7 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
       return jsonResponse;
     },
     onSuccess: (data) => {
-      console.log('[GEMINI BILL EXTRACTOR] Extraction successful:', data);
+      // Extraction successful - data processing continues
       
       // Convert AI response to form data format for bills
       const formData = convertBillResponseToFormData(data.data);
@@ -83,7 +83,7 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
       });
     },
     onError: (error: any, variables, context) => {
-      console.error('[GEMINI BILL EXTRACTOR] Extraction failed:', error);
+      // Extraction failed - error handling continues
       const failureCount = (error as any)?.failureCount || 0;
       setRetryCount(failureCount);
       
@@ -131,7 +131,7 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
   // Trigger extraction when file changes
   useEffect(() => {
     if (file) {
-      console.log('[GEMINI BILL EXTRACTOR] Starting extraction for file:', file.name);
+      // Starting extraction for file - processing begins
       
       // Notify parent that extraction is starting
       onExtractionComplete({
@@ -153,11 +153,11 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
  */
 function convertBillResponseToFormData(aiData: any) {
   try {
-    console.log('[GEMINI BILL EXTRACTOR] Raw AI data for conversion:', aiData);
+    // Raw AI data conversion - processing data structure
     
     // Handle null or undefined data gracefully
     if (!aiData || typeof aiData !== 'object') {
-      console.warn('[GEMINI BILL EXTRACTOR] AI data is null or invalid:', aiData);
+      // AI data is null or invalid - returning empty object
       return {};
     }
     
@@ -179,10 +179,10 @@ function convertBillResponseToFormData(aiData: any) {
       })) || []
     };
 
-    console.log('[GEMINI BILL EXTRACTOR] Converted form data:', formData);
+    // Form data conversion completed
     return formData;
   } catch (error) {
-    console.error('[GEMINI BILL EXTRACTOR] Error converting AI response:', error);
+    // Error converting AI response - returning empty object
     return {};
   }
 }

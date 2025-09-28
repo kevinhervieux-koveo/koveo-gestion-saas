@@ -394,7 +394,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     queryFn: async () => {
       if (!bill?.id) return [];
       
-      console.log('[MODULAR BILL FORM] Fetching attached documents for bill:', bill.id);
+      // Fetching attached documents for bill
       
       const response = await fetch(`/api/documents?attachedToType=bill&attachedToId=${bill.id}`, {
         credentials: 'include'
@@ -406,7 +406,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       }
       
       const data = await response.json();
-      console.log('[MODULAR BILL FORM] Attached documents received:', data);
+      // Attached documents received
       return Array.isArray(data.documents) ? data.documents : [];
     },
     enabled: !!bill?.id
@@ -558,7 +558,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       }
     } else if (text) {
       // Handle text content - create a virtual file for text document
-      console.log('Text content received:', text);
+      // Text content received from file
       
       // Create a Blob from the text content
       const textBlob = new Blob([text], { type: 'text/plain' });
@@ -707,7 +707,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
         try {
           if (fileToUpload) {
             // Handle file upload
-            console.log('[BILL FORM] Uploading document:', fileToUpload.name, 'for bill:', billResponse.id);
+            // Uploading document for bill
             const formData = new FormData();
             formData.append('document', fileToUpload);
             
@@ -724,7 +724,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
             }
             
             const uploadResult = await uploadResponse.json();
-            console.log('[BILL FORM] Document upload successful:', uploadResult);
+            // Document upload successful
             
             // Update the bill response with the document information from the upload
             if (uploadResult.bill) {
@@ -744,7 +744,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
             // Handle text document from attached files
             const textFile = attachedFiles.find(f => f.file.type === 'text/plain');
             if (textFile) {
-              console.log('[BILL FORM] Creating text document for bill:', billResponse.id);
+              // Creating text document for bill
               const formData = new FormData();
               formData.append('file', textFile.file);
             formData.append('name', `${billResponse.billNumber || billResponse.title} - Notes`);
@@ -766,7 +766,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
             }
             
             const uploadResult = await uploadResponse.json();
-            console.log('[BILL FORM] Text document creation successful:', uploadResult);
+            // Text document creation successful
             
             // Show success toast for text document creation
             toast({

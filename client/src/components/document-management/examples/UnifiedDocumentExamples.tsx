@@ -41,8 +41,8 @@ export function BuildingDocuments({ buildingId, buildingName, organizationId }: 
         onSearchChange={setSearchTerm}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
-        onDocumentCreate={() => console.log('Create building document')}
-        onDocumentEdit={(id) => console.log('Edit document:', id)}
+        onDocumentCreate={() => {/* Create building document handler */}}
+        onDocumentEdit={(id) => {/* Edit document handler */}}
       />
     </DocumentProvider>
   );
@@ -79,8 +79,8 @@ export function ResidenceDocuments({ residenceId, residenceName, buildingId }: {
         config={config}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        onDocumentCreate={() => console.log('Create residence document')}
-        onDocumentEdit={(id) => console.log('Edit document:', id)}
+        onDocumentCreate={() => {/* Create residence document handler */}}
+        onDocumentEdit={(id) => {/* Edit document handler */}}
       />
     </DocumentProvider>
   );
@@ -113,8 +113,8 @@ export function ProjectDocuments({ projectId, projectName, organizationId }: {
     <DocumentProvider user={user} organizationId={organizationId}>
       <UnifiedDocumentViewer
         config={config}
-        onDocumentCreate={() => console.log('Create project document')}
-        onDocumentEdit={(id) => console.log('Edit document:', id)}
+        onDocumentCreate={() => {/* Create project document handler */}}
+        onDocumentEdit={(id) => {/* Edit document handler */}}
       />
     </DocumentProvider>
   );
@@ -183,8 +183,8 @@ export function OrganizationDocuments({ organizationId, organizationName }: {
         onSearchChange={setSearchTerm}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
-        onDocumentCreate={() => console.log('Create organization document')}
-        onDocumentEdit={(id) => console.log('Edit document:', id)}
+        onDocumentCreate={() => {/* Create organization document handler */}}
+        onDocumentEdit={(id) => {/* Edit document handler */}}
       />
     </DocumentProvider>
   );

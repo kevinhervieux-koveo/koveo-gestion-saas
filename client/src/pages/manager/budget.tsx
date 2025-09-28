@@ -229,7 +229,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const isDev = import.meta.env.MODE === 'development';
   const debugLog = (action: string, data: any) => {
     if (isDev) {
-      console.log(`💰 [BUDGET PAGE DEBUG] ${action}:`, data);
+      // Budget debug logging removed for production
     }
   };
 

@@ -120,7 +120,6 @@ async function authorizeBuildingAccess(
     const buildingAccess = await checkBuildingAccess(userId, buildingId, userRole);
     return buildingAccess.hasAccess;
   } catch (error) {
-    console.error('❌ Error checking building access:', error);
     return false;
   }
 }
@@ -192,7 +191,6 @@ export function registerCommunicationRoutes(app: Express): void {
         canAccessAll: userOrgs.some(org => org.canAccessAll),
       });
     } catch (error: any) {
-      console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -258,7 +256,6 @@ export function registerCommunicationRoutes(app: Express): void {
 
       res.json({ buildings: buildingList });
     } catch (error: any) {
-      console.error('❌ Error fetching buildings:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch buildings',
@@ -272,22 +269,18 @@ export function registerCommunicationRoutes(app: Express): void {
    */
   app.get('/api/communication/organization-context', requireAuth, async (req: any, res) => {
     try {
-      console.log('🔍 [DEBUG] GET /api/communication/organization-context endpoint called');
       
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
-        console.log('❌ [DEBUG] No valid session found for organization-context');
         return res.status(401).json({
           message: 'Authentication required',
           code: 'AUTH_REQUIRED',
         });
       }
 
-      console.log(`🔍 [DEBUG] User ${currentUser.id} (${currentUser.role}) requesting organization context`);
 
       // Check if user can send communications (managers and admins only)
       if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
-        console.log(`❌ [DEBUG] User ${currentUser.id} with role '${currentUser.role}' not authorized for organization context`);
         return res.status(403).json({
           message: 'Only managers and administrators can send general communications',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -308,14 +301,12 @@ export function registerCommunicationRoutes(app: Express): void {
         .limit(1);
 
       if (!userOrgResult) {
-        console.log(`❌ [DEBUG] No active organization found for user ${currentUser.id}`);
         return res.status(404).json({
           message: 'No organization found for user',
           code: 'NO_ORGANIZATION',
         });
       }
 
-      console.log(`🔍 [DEBUG] Found organization ${userOrgResult.organizationId} for user ${currentUser.id}`);
 
       // Get organization details
       const [organization] = await db
@@ -328,14 +319,14 @@ export function registerCommunicationRoutes(app: Express): void {
         .limit(1);
 
       if (!organization) {
-        console.log(`❌ [DEBUG] Organization ${userOrgResult.organizationId} not found in database`);
+        // console.log(`❌ [DEBUG] Organization ${userOrgResult.organizationId} not found in database`);
         return res.status(404).json({
           message: 'Organization not found',
           code: 'ORGANIZATION_NOT_FOUND',
         });
       }
 
-      console.log(`✅ [DEBUG] Returning organization context for ${organization.name} (${organization.id})`);
+      // console.log(`✅ [DEBUG] Returning organization context for ${organization.name} (${organization.id})`);
 
       res.json({
         id: organization.id,
@@ -344,7 +335,7 @@ export function registerCommunicationRoutes(app: Express): void {
         userRole: currentUser.role,
       });
     } catch (error: any) {
-      console.error('❌ [DEBUG] Error in organization-context endpoint:', error);
+      // console.error('❌ [DEBUG] Error in organization-context endpoint:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organization context',
@@ -363,18 +354,18 @@ export function registerCommunicationRoutes(app: Express): void {
    */
   app.get('/api/communication/settings', requireAuth, async (req: any, res) => {
     try {
-      console.log('🔍 [DEBUG] GET /api/communication/settings endpoint called');
+      // console.log('🔍 [DEBUG] GET /api/communication/settings endpoint called');
       
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
-        console.log('❌ [DEBUG] No valid session found for settings');
+        // console.log('❌ [DEBUG] No valid session found for settings');
         return res.status(401).json({
           message: 'Authentication required',
           code: 'AUTH_REQUIRED',
         });
       }
 
-      console.log(`🔍 [DEBUG] User ${currentUser.id} requesting notification settings`);
+      // console.log(`🔍 [DEBUG] User ${currentUser.id} requesting notification settings`);
 
       // Get user with notification settings
       const [user] = await db
@@ -387,7 +378,7 @@ export function registerCommunicationRoutes(app: Express): void {
         .limit(1);
 
       if (!user) {
-        console.log(`❌ [DEBUG] User ${currentUser.id} not found`);
+        // console.log(`❌ [DEBUG] User ${currentUser.id} not found`);
         return res.status(404).json({
           message: 'User not found',
           code: 'USER_NOT_FOUND',
@@ -396,13 +387,13 @@ export function registerCommunicationRoutes(app: Express): void {
 
       const startingDate = user.notificationsStartingDate || new Date().toISOString().split('T')[0];
       
-      console.log(`✅ [DEBUG] Returning notification settings for user ${currentUser.id}, starting date: ${startingDate}`);
+      // console.log(`✅ [DEBUG] Returning notification settings for user ${currentUser.id}, starting date: ${startingDate}`);
 
       res.json({
         startingDate,
       });
     } catch (error: any) {
-      console.error('❌ [DEBUG] Error in settings endpoint:', error);
+      // console.error('❌ [DEBUG] Error in settings endpoint:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch notification settings',
@@ -417,11 +408,11 @@ export function registerCommunicationRoutes(app: Express): void {
    */
   app.put('/api/communication/settings', requireAuth, async (req: any, res) => {
     try {
-      console.log('🔍 [DEBUG] PUT /api/communication/settings endpoint called');
+      // console.log('🔍 [DEBUG] PUT /api/communication/settings endpoint called');
       
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
-        console.log('❌ [DEBUG] No valid session found for settings update');
+        // console.log('❌ [DEBUG] No valid session found for settings update');
         return res.status(401).json({
           message: 'Authentication required',
           code: 'AUTH_REQUIRED',
@@ -435,7 +426,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       const { startingDate } = settingsSchema.parse(req.body);
 
-      console.log(`🔍 [DEBUG] User ${currentUser.id} updating notification settings, starting date: ${startingDate}`);
+      // console.log(`🔍 [DEBUG] User ${currentUser.id} updating notification settings, starting date: ${startingDate}`);
 
       // Update user's notification starting date
       const [updatedUser] = await db
@@ -451,20 +442,20 @@ export function registerCommunicationRoutes(app: Express): void {
         });
 
       if (!updatedUser) {
-        console.log(`❌ [DEBUG] Failed to update settings for user ${currentUser.id}`);
+        // console.log(`❌ [DEBUG] Failed to update settings for user ${currentUser.id}`);
         return res.status(404).json({
           message: 'User not found',
           code: 'USER_NOT_FOUND',
         });
       }
 
-      console.log(`✅ [DEBUG] Updated notification settings for user ${currentUser.id}`);
+      // console.log(`✅ [DEBUG] Updated notification settings for user ${currentUser.id}`);
 
       res.json({
         startingDate: updatedUser.notificationsStartingDate,
       });
     } catch (error: any) {
-      console.error('❌ [DEBUG] Error updating settings:', error);
+      // console.error('❌ [DEBUG] Error updating settings:', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -500,7 +491,7 @@ export function registerCommunicationRoutes(app: Express): void {
         });
       }
 
-      console.log(`📋 Fetching notification preferences for user ${currentUser.id}`);
+      // console.log(`📋 Fetching notification preferences for user ${currentUser.id}`);
 
       // Get existing preferences
       const existingPreferences = await db
@@ -549,7 +540,7 @@ export function registerCommunicationRoutes(app: Express): void {
       // If some preferences don't exist, create them with defaults
       const missingTypes = allNotificationTypes.filter(type => !existingMap.has(type as any));
       if (missingTypes.length > 0) {
-        console.log(`📝 Creating default preferences for ${missingTypes.length} notification types`);
+        // console.log(`📝 Creating default preferences for ${missingTypes.length} notification types`);
         
         const defaultPreferences = missingTypes.map(type => ({
           userId: currentUser.id,
@@ -573,14 +564,14 @@ export function registerCommunicationRoutes(app: Express): void {
 
         const finalPreferences = allNotificationTypes.map(type => finalMap.get(type as any)!);
         
-        console.log(`✅ Returning ${finalPreferences.length} notification preferences`);
+        // console.log(`✅ Returning ${finalPreferences.length} notification preferences`);
         return res.json(finalPreferences);
       }
 
-      console.log(`✅ Returning ${preferences.length} notification preferences`);
+      // console.log(`✅ Returning ${preferences.length} notification preferences`);
       res.json(preferences);
     } catch (error: any) {
-      console.error('❌ Error fetching notification preferences:', error);
+      // console.error('❌ Error fetching notification preferences:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch notification preferences',
@@ -628,7 +619,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       const validatedUpdates = updateSchema.parse(req.body);
 
-      console.log(`📝 Updating ${validatedUpdates.length} notification preferences for user ${currentUser.id}`);
+      // console.log(`📝 Updating ${validatedUpdates.length} notification preferences for user ${currentUser.id}`);
 
       // Update each preference
       for (const update of validatedUpdates) {
@@ -658,10 +649,10 @@ export function registerCommunicationRoutes(app: Express): void {
         .from(userNotificationPreferences)
         .where(eq(userNotificationPreferences.userId, currentUser.id));
 
-      console.log(`✅ Updated notification preferences successfully`);
+      // console.log(`✅ Updated notification preferences successfully`);
       res.json(updatedPreferences);
     } catch (error: any) {
-      console.error('❌ Error updating notification preferences:', error);
+      // console.error('❌ Error updating notification preferences:', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -701,19 +692,19 @@ export function registerCommunicationRoutes(app: Express): void {
         });
       }
 
-      console.log(`🔧 Admin ${currentUser.email} requesting default preferences population`);
+      // console.log(`🔧 Admin ${currentUser.email} requesting default preferences population`);
 
       const result = await populateDefaultPreferences();
 
       if (result.success) {
-        console.log(`✅ Default preferences populated: ${result.statistics.preferencesCreated} preferences created`);
+        // console.log(`✅ Default preferences populated: ${result.statistics.preferencesCreated} preferences created`);
         res.json(result);
       } else {
-        console.error(`❌ Failed to populate default preferences: ${result.message}`);
+        // console.error(`❌ Failed to populate default preferences: ${result.message}`);
         res.status(500).json(result);
       }
     } catch (error: any) {
-      console.error('❌ Error in populate defaults endpoint:', error);
+      // console.error('❌ Error in populate defaults endpoint:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error',
@@ -741,7 +732,7 @@ export function registerCommunicationRoutes(app: Express): void {
         });
       }
 
-      console.log(`🔄 Resetting notification preferences to defaults for user ${currentUser.id}`);
+      // console.log(`🔄 Resetting notification preferences to defaults for user ${currentUser.id}`);
 
       // Delete existing preferences
       await db
@@ -782,10 +773,10 @@ export function registerCommunicationRoutes(app: Express): void {
         .from(userNotificationPreferences)
         .where(eq(userNotificationPreferences.userId, currentUser.id));
 
-      console.log(`✅ Reset notification preferences to defaults`);
+      // console.log(`✅ Reset notification preferences to defaults`);
       res.json(newPreferences);
     } catch (error: any) {
-      console.error('❌ Error resetting notification preferences:', error);
+      // console.error('❌ Error resetting notification preferences:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to reset notification preferences',
@@ -865,11 +856,11 @@ export function registerCommunicationRoutes(app: Express): void {
       const total = memberCounts.reduce((sum, item) => sum + Number(item.count), 0);
       counts.all = total;
 
-      console.log(`📊 Organization ${organizationId} member counts:`, counts);
+      // console.log(`📊 Organization ${organizationId} member counts:`, counts);
 
       res.json(counts);
     } catch (error: any) {
-      console.error('❌ Error fetching organization member counts:', error);
+      // console.error('❌ Error fetching organization member counts:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organization member counts',
@@ -887,13 +878,13 @@ export function registerCommunicationRoutes(app: Express): void {
         });
       }
 
-      console.log(`📧 Fetching general communications for user ${currentUser.id} with role ${currentUser.role}`);
+      // console.log(`📧 Fetching general communications for user ${currentUser.id} with role ${currentUser.role}`);
 
       // Apply role-based filtering and build complete query
       let communications;
       if (currentUser.role === 'admin') {
         // Admin can see all communications - no additional filtering
-        console.log('🔓 [ADMIN] No filtering applied - admin can see all communications');
+        // console.log('🔓 [ADMIN] No filtering applied - admin can see all communications');
         communications = await db
           .select({
             id: generalCommunications.id,
@@ -934,7 +925,7 @@ export function registerCommunicationRoutes(app: Express): void {
           );
 
         if (userOrgs.length === 0) {
-          console.log('📭 User has no accessible organizations');
+          // console.log('📭 User has no accessible organizations');
           return res.json([]);
         }
 
@@ -968,13 +959,13 @@ export function registerCommunicationRoutes(app: Express): void {
           .where(inArray(generalCommunications.organizationId, orgIds))
           .orderBy(desc(generalCommunications.createdAt));
 
-        console.log(`🔒 Filtering communications for organizations: [${orgIds.join(', ')}]`);
+        // console.log(`🔒 Filtering communications for organizations: [${orgIds.join(', ')}]`);
       }
 
-      console.log(`✅ Found ${communications.length} general communications`);
+      // console.log(`✅ Found ${communications.length} general communications`);
       res.json(communications);
     } catch (error: any) {
-      console.error('❌ Error fetching general communications:', error);
+      // console.error('❌ Error fetching general communications:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch general communications',
@@ -1009,7 +1000,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // Additional authorization check for urgent communications
       if (validatedData.isUrgent && !['admin', 'manager'].includes(currentUser.role)) {
-        console.error(`❌ User ${currentUser.email} with role ${currentUser.role} attempted to send urgent communication`);
+        // console.error(`❌ User ${currentUser.email} with role ${currentUser.role} attempted to send urgent communication`);
         return res.status(403).json({
           message: 'Only administrators and managers can send urgent communications',
           code: 'URGENT_PERMISSION_DENIED',
@@ -1029,7 +1020,7 @@ export function registerCommunicationRoutes(app: Express): void {
         }
       }
 
-      console.log(`📧 Creating ${validatedData.isUrgent ? 'URGENT' : 'regular'} general communication for organization ${validatedData.organizationId} by user ${currentUser.id}`);
+      // console.log(`📧 Creating ${validatedData.isUrgent ? 'URGENT' : 'regular'} general communication for organization ${validatedData.organizationId} by user ${currentUser.id}`);
 
       // If not admin, verify user has access to the organization
       if (currentUser.role !== 'admin') {
@@ -1097,7 +1088,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // Send email notification to organization members
       try {
-        console.log(`📧 Sending general communication emails for: ${completeComm.title}`);
+        // console.log(`📧 Sending general communication emails for: ${completeComm.title}`);
         
         // Get recipients based on organization and recipient roles
         const recipientsQuery = await db
@@ -1127,7 +1118,7 @@ export function registerCommunicationRoutes(app: Express): void {
           arr.findIndex(r => r.email === recipient.email) === index
         );
 
-        console.log(`📧 Found ${recipientsQuery.length} recipient records, deduplicated to ${recipients.length} unique recipients`);
+        // console.log(`📧 Found ${recipientsQuery.length} recipient records, deduplicated to ${recipients.length} unique recipients`);
 
         if (recipients.length > 0) {
           // For urgent communications, send to all recipients immediately
@@ -1159,9 +1150,9 @@ export function registerCommunicationRoutes(app: Express): void {
               return !hasPreference || isEnabled;
             });
             
-            console.log(`📧 Filtered ${recipients.length} recipients to ${finalRecipients.length} based on notification preferences`);
+            // console.log(`📧 Filtered ${recipients.length} recipients to ${finalRecipients.length} based on notification preferences`);
           } else {
-            console.log(`🚨 Urgent communication - bypassing notification preferences for all ${recipients.length} recipients`);
+            // console.log(`🚨 Urgent communication - bypassing notification preferences for all ${recipients.length} recipients`);
           }
 
           if (finalRecipients.length > 0) {
@@ -1180,7 +1171,7 @@ export function registerCommunicationRoutes(app: Express): void {
               );
             }
 
-            console.log(`✅ Sent general communication emails to ${finalRecipients.length} recipients`);
+            // console.log(`✅ Sent general communication emails to ${finalRecipients.length} recipients`);
             
             // Enhanced audit logging for urgent communications
             if (completeComm.isUrgent) {
@@ -1200,26 +1191,26 @@ export function registerCommunicationRoutes(app: Express): void {
               };
               
               // Persistent audit log (console until database audit table is available)
-              console.log(`🚨 URGENT COMMUNICATION AUDIT:`, JSON.stringify(auditEntry, null, 2));
+              // console.log(`🚨 URGENT COMMUNICATION AUDIT:`, JSON.stringify(auditEntry, null, 2));
               
               // Traditional log
-              console.log(`🔍 AUDIT: Urgent communication "${completeComm.title}" sent to ${finalRecipients.length} recipients by ${completeComm.creator.email}, bypassing user preferences`);
+              // console.log(`🔍 AUDIT: Urgent communication "${completeComm.title}" sent to ${finalRecipients.length} recipients by ${completeComm.creator.email}, bypassing user preferences`);
             }
           } else {
-            console.log(`📭 No eligible recipients found for general communication after filtering`);
+            // console.log(`📭 No eligible recipients found for general communication after filtering`);
           }
         } else {
-          console.log(`📭 No recipients found for general communication`);
+          // console.log(`📭 No recipients found for general communication`);
         }
       } catch (emailError: any) {
         // Log email error but don't fail the API call
-        console.error('❌ Error sending general communication emails:', emailError);
+        // console.error('❌ Error sending general communication emails:', emailError);
       }
 
-      console.log(`✅ Created general communication ${newCommunication.id}`);
+      // console.log(`✅ Created general communication ${newCommunication.id}`);
       res.status(201).json(completeComm);
     } catch (error: any) {
-      console.error('❌ Error creating general communication:', error);
+      // console.error('❌ Error creating general communication:', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -1252,7 +1243,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       const communicationId = req.params.id;
 
-      console.log(`📧 Fetching communication ${communicationId} for user ${currentUser.id}`);
+      // console.log(`📧 Fetching communication ${communicationId} for user ${currentUser.id}`);
 
       // Fetch the communication with related data
       const [communication] = await db
@@ -1313,10 +1304,10 @@ export function registerCommunicationRoutes(app: Express): void {
         }
       }
 
-      console.log(`✅ Returning communication ${communicationId}`);
+      // console.log(`✅ Returning communication ${communicationId}`);
       res.json(communication);
     } catch (error: any) {
-      console.error('❌ Error fetching communication:', error);
+      // console.error('❌ Error fetching communication:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch communication',
@@ -1342,13 +1333,13 @@ export function registerCommunicationRoutes(app: Express): void {
         });
       }
 
-      console.log(`🗓️ Fetching meetings for user ${currentUser.id} with role ${currentUser.role}`);
+      // console.log(`🗓️ Fetching meetings for user ${currentUser.id} with role ${currentUser.role}`);
 
       // Apply role-based filtering and build complete query
       let meetingList;
       if (currentUser.role === 'admin') {
         // Admin can see all meetings - no additional filtering
-        console.log('🔓 [ADMIN] No filtering applied - admin can see all meetings');
+        // console.log('🔓 [ADMIN] No filtering applied - admin can see all meetings');
         meetingList = await db
           .select({
             id: meetings.id,
@@ -1390,7 +1381,7 @@ export function registerCommunicationRoutes(app: Express): void {
           );
 
         if (userOrgs.length === 0) {
-          console.log('📭 User has no accessible organizations');
+          // console.log('📭 User has no accessible organizations');
           return res.json([]);
         }
 
@@ -1425,13 +1416,13 @@ export function registerCommunicationRoutes(app: Express): void {
           .where(inArray(meetings.organizationId, orgIds))
           .orderBy(meetings.scheduledDate);
 
-        console.log(`🔒 Filtering meetings for organizations: [${orgIds.join(', ')}]`);
+        // console.log(`🔒 Filtering meetings for organizations: [${orgIds.join(', ')}]`);
       }
 
-      console.log(`✅ Found ${meetingList.length} meetings`);
+      // console.log(`✅ Found ${meetingList.length} meetings`);
       res.json(meetingList);
     } catch (error: any) {
-      console.error('❌ Error fetching meetings:', error);
+      // console.error('❌ Error fetching meetings:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch meetings',
@@ -1464,7 +1455,7 @@ export function registerCommunicationRoutes(app: Express): void {
       // Validate request body
       const validatedData = insertMeetingSchema.parse(req.body);
 
-      console.log(`🗓️ Creating meeting for organization ${validatedData.organizationId} by user ${currentUser.id}`);
+      // console.log(`🗓️ Creating meeting for organization ${validatedData.organizationId} by user ${currentUser.id}`);
 
       // If not admin, verify user has access to the organization
       if (currentUser.role !== 'admin') {
@@ -1533,7 +1524,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // Send meeting invitation emails to invited roles
       try {
-        console.log(`📧 Sending meeting invitations for: ${completeMeeting.title}`);
+        // console.log(`📧 Sending meeting invitations for: ${completeMeeting.title}`);
         
         // Get recipients based on organization and invited roles
         const recipients = await db
@@ -1583,19 +1574,19 @@ export function registerCommunicationRoutes(app: Express): void {
             );
           }
 
-          console.log(`✅ Sent meeting invitations to ${recipients.length} recipients`);
+          // console.log(`✅ Sent meeting invitations to ${recipients.length} recipients`);
         } else {
-          console.log(`📭 No recipients found for meeting invitation`);
+          // console.log(`📭 No recipients found for meeting invitation`);
         }
       } catch (emailError: any) {
         // Log email error but don't fail the API call
-        console.error('❌ Error sending meeting invitation emails:', emailError);
+        // console.error('❌ Error sending meeting invitation emails:', emailError);
       }
 
-      console.log(`✅ Created meeting ${newMeeting.id}`);
+      // console.log(`✅ Created meeting ${newMeeting.id}`);
       res.status(201).json(completeMeeting);
     } catch (error: any) {
-      console.error('❌ Error creating meeting:', error);
+      // console.error('❌ Error creating meeting:', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -1654,7 +1645,7 @@ export function registerCommunicationRoutes(app: Express): void {
       const updateSchema = insertMeetingSchema.omit({ organizationId: true, createdBy: true }).partial();
       const validatedUpdates = updateSchema.parse(req.body);
 
-      console.log(`🗓️ Updating meeting ${meetingId} by user ${currentUser.id}`);
+      // console.log(`🗓️ Updating meeting ${meetingId} by user ${currentUser.id}`);
 
       // Update the meeting
       const [updatedMeeting] = await db
@@ -1693,10 +1684,10 @@ export function registerCommunicationRoutes(app: Express): void {
         .innerJoin(users, eq(meetings.createdBy, users.id))
         .where(eq(meetings.id, meetingId));
 
-      console.log(`✅ Updated meeting ${meetingId}`);
+      // console.log(`✅ Updated meeting ${meetingId}`);
       res.json(completeMeeting);
     } catch (error: any) {
-      console.error('❌ Error updating meeting:', error);
+      // console.error('❌ Error updating meeting:', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -1751,17 +1742,17 @@ export function registerCommunicationRoutes(app: Express): void {
         });
       }
 
-      console.log(`🗓️ Cancelling meeting ${meetingId} by user ${currentUser.id}`);
+      // console.log(`🗓️ Cancelling meeting ${meetingId} by user ${currentUser.id}`);
 
       // Delete the meeting
       await db
         .delete(meetings)
         .where(eq(meetings.id, meetingId));
 
-      console.log(`✅ Cancelled meeting ${meetingId}`);
+      // console.log(`✅ Cancelled meeting ${meetingId}`);
       res.status(204).send();
     } catch (error: any) {
-      console.error('❌ Error cancelling meeting:', error);
+      // console.error('❌ Error cancelling meeting:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to cancel meeting',
@@ -1867,7 +1858,7 @@ export function registerCommunicationRoutes(app: Express): void {
         total: configurations.length,
       });
     } catch (error: any) {
-      console.error('❌ Error fetching notification configurations:', error);
+      // console.error('❌ Error fetching notification configurations:', error);
       if (error.issues) {
         return res.status(400).json({
           message: 'Invalid query parameters',
@@ -1931,14 +1922,14 @@ export function registerCommunicationRoutes(app: Express): void {
         .values(validatedData)
         .returning();
 
-      console.log(`✅ Created notification configuration ${newConfig.id} by user ${currentUser.id}`);
+      // console.log(`✅ Created notification configuration ${newConfig.id} by user ${currentUser.id}`);
 
       res.status(201).json({
         configuration: newConfig,
         message: 'Notification configuration created successfully',
       });
     } catch (error: any) {
-      console.error('❌ Error creating notification configuration:', error);
+      // console.error('❌ Error creating notification configuration:', error);
       if (error.issues) {
         return res.status(400).json({
           message: 'Validation failed',
@@ -2034,14 +2025,14 @@ export function registerCommunicationRoutes(app: Express): void {
         .where(eq(notificationConfigurations.id, id))
         .returning();
 
-      console.log(`✅ Updated notification configuration ${id} by user ${currentUser.id}`);
+      // console.log(`✅ Updated notification configuration ${id} by user ${currentUser.id}`);
 
       res.json({
         configuration: updatedConfig,
         message: 'Notification configuration updated successfully',
       });
     } catch (error: any) {
-      console.error('❌ Error updating notification configuration:', error);
+      // console.error('❌ Error updating notification configuration:', error);
       if (error.issues) {
         return res.status(400).json({
           message: 'Validation failed',
@@ -2126,11 +2117,11 @@ export function registerCommunicationRoutes(app: Express): void {
         })
         .where(eq(notificationConfigurations.id, id));
 
-      console.log(`✅ Soft deleted notification configuration ${id} by user ${currentUser.id}`);
+      // console.log(`✅ Soft deleted notification configuration ${id} by user ${currentUser.id}`);
 
       res.status(204).send();
     } catch (error: any) {
-      console.error('❌ Error deleting notification configuration:', error);
+      // console.error('❌ Error deleting notification configuration:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete notification configuration',
@@ -2223,7 +2214,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       const { language } = previewSchema.parse(req.body);
 
-      console.log(`📧 Sending preview notification for config ${id} to user ${currentUser.email}`);
+      // console.log(`📧 Sending preview notification for config ${id} to user ${currentUser.email}`);
 
       // Create recipient object
       const recipients = [{
@@ -2244,14 +2235,14 @@ export function registerCommunicationRoutes(app: Express): void {
       );
 
       if (!success) {
-        console.error(`❌ Failed to send preview notification for config ${id}`);
+        // console.error(`❌ Failed to send preview notification for config ${id}`);
         return res.status(500).json({
           message: 'Failed to send preview email',
           code: 'EMAIL_SEND_FAILED',
         });
       }
 
-      console.log(`✅ Preview notification sent successfully for config ${id}`);
+      // console.log(`✅ Preview notification sent successfully for config ${id}`);
 
       res.json({
         message: 'Preview notification sent successfully',
@@ -2264,7 +2255,7 @@ export function registerCommunicationRoutes(app: Express): void {
         },
       });
     } catch (error: any) {
-      console.error('❌ Error sending preview notification:', error);
+      // console.error('❌ Error sending preview notification:', error);
       if (error.issues) {
         return res.status(400).json({
           message: 'Validation failed',
@@ -2299,7 +2290,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       const { language } = testEmailSchema.parse(req.body);
 
-      console.log(`📧 Sending combined test email to user ${currentUser.email} in ${language}`);
+      // console.log(`📧 Sending combined test email to user ${currentUser.email} in ${language}`);
 
       // Get user's organization for context
       const [userOrganization] = await db
@@ -2363,20 +2354,20 @@ export function registerCommunicationRoutes(app: Express): void {
       );
 
       if (success) {
-        console.log(`✅ Combined test email sent successfully to ${currentUser.email}`);
+        // console.log(`✅ Combined test email sent successfully to ${currentUser.email}`);
         res.json({
           success: true,
           message: `Combined test email sent to ${currentUser.email}`,
         });
       } else {
-        console.error(`❌ Failed to send combined test email to ${currentUser.email}`);
+        // console.error(`❌ Failed to send combined test email to ${currentUser.email}`);
         res.status(500).json({
           success: false,
           message: 'Failed to send combined test email',
         });
       }
     } catch (error: any) {
-      console.error('❌ Error sending combined test email:', error);
+      // console.error('❌ Error sending combined test email:', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -2431,7 +2422,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       const { notificationType, language } = testEmailSchema.parse(req.body);
 
-      console.log(`📧 Sending test email for ${notificationType} to user ${currentUser.email} in ${language}`);
+      // console.log(`📧 Sending test email for ${notificationType} to user ${currentUser.email} in ${language}`);
 
       // Get user's organization for context
       const [userOrganization] = await db
@@ -2458,7 +2449,7 @@ export function registerCommunicationRoutes(app: Express): void {
       );
 
       if (success) {
-        console.log(`✅ Test email sent successfully to ${currentUser.email}`);
+        // console.log(`✅ Test email sent successfully to ${currentUser.email}`);
         res.json({
           success: true,
           message: `Test email sent to ${currentUser.email}`,
@@ -2466,14 +2457,14 @@ export function registerCommunicationRoutes(app: Express): void {
           language,
         });
       } else {
-        console.error(`❌ Failed to send test email to ${currentUser.email}`);
+        // console.error(`❌ Failed to send test email to ${currentUser.email}`);
         res.status(500).json({
           success: false,
           message: 'Failed to send test email',
         });
       }
     } catch (error: any) {
-      console.error('❌ Error sending test email:', error);
+      // console.error('❌ Error sending test email:', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({

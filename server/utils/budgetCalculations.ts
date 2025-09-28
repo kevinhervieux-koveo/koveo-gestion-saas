@@ -200,7 +200,6 @@ export function generateBudgetForecast(params: {
     
     // Debug logging for the first few months to verify inflation logic
     if (monthIndex < 3 || (monthIndex < 60 && monthIndex % 12 === 0)) {
-      console.log(`📊 [BUDGET FORECAST] Month ${monthIndex}: ${currentYear}-${String(currentMonth).padStart(2, '0')}, FY Years: ${yearsElapsed}, Base income: ${monthlyBaselineIncome.toFixed(2)}`);
     }
     
     const inflatedIncome = applyInflation(monthlyBaselineIncome, revenueInflation, yearsElapsed);
@@ -208,7 +207,6 @@ export function generateBudgetForecast(params: {
     
     // Additional debug logging for inflation application
     if (monthIndex < 3 || (monthIndex < 60 && monthIndex % 12 === 0)) {
-      console.log(`📊 [BUDGET FORECAST] Inflated income: ${inflatedIncome.toFixed(2)} (${revenueInflation > 0 ? `${(revenueInflation * 100).toFixed(1)}% over ${yearsElapsed} FY` : 'no inflation'})`);
     }
 
     // Add unplanned spending from unique bills (distributed monthly for the year)

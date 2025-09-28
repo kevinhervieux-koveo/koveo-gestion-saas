@@ -387,7 +387,7 @@ export class DynamicFinancialCalculator {
    * @param reason
    */
   async invalidateCache(buildingId: string, reason?: string): Promise<void> {
-    console.log(
+    // console.log(
       `🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`
     );
 

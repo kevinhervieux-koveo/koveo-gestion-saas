@@ -1110,8 +1110,7 @@ export default function UserManagement() {
 
   // Handle delete orphan users
   const handleDeleteOrphanUsers = () => {
-    console.log('🖱️ [FRONTEND] Delete orphans button clicked');
-    console.log('👤 [FRONTEND] Triggering delete for user:', currentUser?.email);
+    // Delete orphans button clicked - triggering delete for user
     deleteOrphanUsersMutation.mutate();
   };
 

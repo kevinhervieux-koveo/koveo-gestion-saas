@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ) {
       // Add longer delay to prevent flash redirects and allow for network issues
       const redirectTimer = setTimeout(() => {
-        console.log('🔄 Redirecting to login due to authentication failure');
+        // Redirecting to login due to authentication failure
         setLocation('/login');
       }, 1000); // Increased delay
       

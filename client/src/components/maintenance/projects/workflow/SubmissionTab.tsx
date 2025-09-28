@@ -679,7 +679,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
       paymentPlanStartDate,
     };
 
-    console.log('Creating new submission:', vendorData);
+    // Creating new submission - submission data processed
 
     createSubmissionVendor.mutate(
       { projectId: project.id, vendorData },
