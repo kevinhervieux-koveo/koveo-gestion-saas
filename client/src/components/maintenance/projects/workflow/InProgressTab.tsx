@@ -356,7 +356,7 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
               <Button 
                 variant="outline" 
                 onClick={handleSaveChanges} 
-                disabled={updateTask.isPending || workflowState.currentStatus === 'in_progress'}
+                disabled={updateTask.isPending}
                 data-testid="button-save-changes"
               >
                 {updateTask.isPending ? 'Saving...' : 'Save Changes'}
