@@ -7265,12 +7265,15 @@ export function registerMaintenanceRoutes(app: Express): void {
       const newCompletionStatus = validation.data.isCompleted;
 
       // Update task
+      const updateData = {
+        ...validation.data,
+        updatedAt: new Date(),
+      };
+      console.log('🔍 [TASK UPDATE DEBUG] Update data being sent to DB:', updateData);
+      
       const updatedTask = await db
         .update(workflowTasks)
-        .set({
-          ...validation.data,
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(workflowTasks.id, taskId))
         .returning();
 
