@@ -25,6 +25,7 @@ import {
   type ProjectWorkflowState 
 } from '@/hooks/useProjectWorkflow';
 import { ReopenStepDialog } from './ReopenStepDialog';
+import { TaskDateInput } from './TaskDateInput';
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -288,7 +289,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     editsToProcess.forEach(([taskId, updates]) => {
       // Convert field names to match backend schema before saving
       const fieldMap: Record<string, string> = {
-        'due_date': 'dueDate'
+        'dueDate': 'dueDate'
       };
       
       const backendUpdates = Object.keys(updates).reduce((acc, field) => {
@@ -602,17 +603,12 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                   />
                                 </div>
                                 <div className="flex items-center gap-1 w-40">
-                                  <Input
-                                    type="date"
-                                    min={format(new Date(), 'yyyy-MM-dd')}
-                                    value={getTaskValue(task, 'due_date') || ''}
-                                    onChange={(e) => {
-                                      // Store the date string directly to avoid timezone issues
-                                      const dateValue = e.target.value || null;
-                                      handleTaskEdit(task.id, 'due_date', dateValue);
-                                    }}
-                                    className="flex-1"
-                                    data-testid={`input-postwork-task-due-date-${index}`}
+                                  <TaskDateInput
+                                    taskId={task.id}
+                                    currentValue={getTaskValue(task, 'dueDate')}
+                                    onDateChange={handleTaskEdit}
+                                    index={index}
+                                    testIdPrefix="postwork-task"
                                   />
                                 </div>
                                 <Button

@@ -37,6 +37,8 @@ import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
 import { cn, formatStatus } from '@/lib/utils';
 import { ReopenStepDialog } from './ReopenStepDialog';
+import { TaskDateInput } from './TaskDateInput';
+import { queryClient } from '@/lib/queryClient';
 import {
   CheckCircle2,
   Plus,
@@ -175,16 +177,10 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     setHasChanges(false);
     
     Object.entries(editsToSave).forEach(([taskId, updates]) => {
-      // Convert Date objects to strings for the API
-      const processedUpdates = { ...updates };
-      if (processedUpdates.dueDate instanceof Date) {
-        processedUpdates.dueDate = format(processedUpdates.dueDate, 'yyyy-MM-dd');
-      }
-      
       updateTask.mutate({
         projectId: project.id,
         taskId,
-        updates: processedUpdates,
+        updates,
       });
     });
     
@@ -403,21 +399,12 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               />
                             </div>
                             <div className="flex items-center gap-1 w-40">
-                              <Input
-                                type="date"
-                                min={format(new Date(), 'yyyy-MM-dd')}
-                                value={getTaskValue(task, 'dueDate') ? format(new Date(getTaskValue(task, 'dueDate')), 'yyyy-MM-dd') : ''}
-                                onChange={(e) => {
-                                  // Create date in local timezone to avoid day-before bug
-                                  let date = null;
-                                  if (e.target.value) {
-                                    const [year, month, day] = e.target.value.split('-').map(Number);
-                                    date = new Date(year, month - 1, day); // month is 0-indexed
-                                  }
-                                  handleTaskEdit(task.id, 'dueDate', date);
-                                }}
-                                className="flex-1"
-                                data-testid={`input-task-due-date-${index}`}
+                              <TaskDateInput
+                                taskId={task.id}
+                                currentValue={getTaskValue(task, 'dueDate')}
+                                onDateChange={handleTaskEdit}
+                                index={index}
+                                testIdPrefix="task"
                               />
                             </div>
                             <Button

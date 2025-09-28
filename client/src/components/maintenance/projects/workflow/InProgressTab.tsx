@@ -14,6 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import { cn, formatStatus } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ReopenStepDialog } from './ReopenStepDialog';
+import { TaskDateInput } from './TaskDateInput';
+import { queryClient } from '@/lib/queryClient';
 import {
   CheckCircle2,
   Plus,
@@ -314,17 +316,12 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
                                   />
                                 </div>
                                 <div className="flex items-center gap-1 w-40">
-                                  <Input
-                                    type="date"
-                                    min={format(new Date(), 'yyyy-MM-dd')}
-                                    value={getTaskValue(task, 'dueDate') || ''}
-                                    onChange={(e) => {
-                                      // Store the date string directly to avoid timezone issues
-                                      const dateValue = e.target.value || null;
-                                      handleTaskEdit(task.id, 'dueDate', dateValue);
-                                    }}
-                                    className="flex-1"
-                                    data-testid={`input-work-task-due-date-${index}`}
+                                  <TaskDateInput
+                                    taskId={task.id}
+                                    currentValue={getTaskValue(task, 'dueDate')}
+                                    onDateChange={handleTaskEdit}
+                                    index={index}
+                                    testIdPrefix="work-task"
                                   />
                                 </div>
                                 <Button
