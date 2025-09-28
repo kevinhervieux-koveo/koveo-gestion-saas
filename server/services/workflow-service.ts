@@ -157,20 +157,43 @@ export class WorkflowService {
         throw new Error('No next status available');
       }
 
-      // Calculate total cost of tasks for the current step being completed
-      const stepCostResult = await db
-        .select({
-          totalCost: sum(workflowTasks.cost)
-        })
-        .from(workflowTasks)
-        .where(
-          and(
-            eq(workflowTasks.projectId, projectId),
-            eq(workflowTasks.phase, currentStatus)
-          )
-        );
+      let stepCost = 0;
 
-      const stepCost = stepCostResult[0]?.totalCost || 0;
+      // Calculate workflow task costs for phases that have tasks (pre_work, in_progress, post_work)
+      if (currentStatus === 'pre_work' || currentStatus === 'in_progress' || currentStatus === 'post_work') {
+        const stepCostResult = await db
+          .select({
+            totalCost: sum(workflowTasks.cost)
+          })
+          .from(workflowTasks)
+          .where(
+            and(
+              eq(workflowTasks.projectId, projectId),
+              eq(workflowTasks.phase, currentStatus)
+            )
+          );
+
+        stepCost = parseFloat(stepCostResult[0]?.totalCost?.toString() || '0');
+      }
+
+      // Special handling for submission phase completion - add preferred vendor cost
+      if (currentStatus === 'submission') {
+        const preferredVendorResult = await db
+          .select({
+            price: submissionVendors.price
+          })
+          .from(submissionVendors)
+          .where(
+            and(
+              eq(submissionVendors.projectId, projectId),
+              eq(submissionVendors.preferred, true)
+            )
+          )
+          .limit(1);
+
+        const preferredVendorCost = parseFloat(preferredVendorResult[0]?.price?.toString() || '0');
+        stepCost = preferredVendorCost;
+      }
 
       // Get current project actual cost
       const currentProjectResult = await db
