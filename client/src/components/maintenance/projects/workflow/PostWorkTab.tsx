@@ -285,7 +285,10 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     let completedEdits = 0;
     const totalEdits = editsToProcess.length;
 
+    console.log('🔍 [SAVE DEBUG] localTaskEdits:', localTaskEdits);
+
     editsToProcess.forEach(([taskId, updates]) => {
+      console.log('🔍 [SAVE DEBUG] Sending updates for task', taskId, ':', updates);
       updateTask.mutate({
         projectId: project.id,
         taskId,

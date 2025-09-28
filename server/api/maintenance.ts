@@ -7224,13 +7224,20 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(400).json({ error: 'Invalid task ID format' });
       }
 
+      console.log('🔍 [TASK UPDATE DEBUG] Request body:', req.body);
+      
       const validation = workflowTaskUpdateSchema.safeParse(req.body);
+      console.log('🔍 [TASK UPDATE DEBUG] Validation result:', validation);
+      
       if (!validation.success) {
+        console.log('🔍 [TASK UPDATE DEBUG] Validation failed:', validation.error.issues);
         return res.status(400).json({
           error: 'Invalid request data',
           details: validation.error.issues
         });
       }
+      
+      console.log('🔍 [TASK UPDATE DEBUG] Validated data:', validation.data);
 
       // Get task and project to check access, including current completion status
       const task = await db
