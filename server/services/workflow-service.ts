@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { eq, and, count } from 'drizzle-orm';
+import { eq, and, count, sum } from 'drizzle-orm';
 import {
   maintenanceProjects,
   submissionVendors,
