@@ -157,11 +157,39 @@ export class WorkflowService {
         throw new Error('No next status available');
       }
 
-      // Update project status in database
+      // Calculate total cost of tasks for the current step being completed
+      const stepCostResult = await db
+        .select({
+          totalCost: sum(workflowTasks.cost)
+        })
+        .from(workflowTasks)
+        .where(
+          and(
+            eq(workflowTasks.projectId, projectId),
+            eq(workflowTasks.phase, currentStatus)
+          )
+        );
+
+      const stepCost = stepCostResult[0]?.totalCost || 0;
+
+      // Get current project actual cost
+      const currentProjectResult = await db
+        .select({
+          actualCost: maintenanceProjects.actualCost
+        })
+        .from(maintenanceProjects)
+        .where(eq(maintenanceProjects.id, projectId))
+        .limit(1);
+
+      const currentActualCost = parseFloat(currentProjectResult[0]?.actualCost || '0');
+      const newActualCost = currentActualCost + parseFloat(stepCost.toString() || '0');
+
+      // Update project status and actual cost in database
       await db
         .update(maintenanceProjects)
         .set({
           status: nextStatus,
+          actualCost: newActualCost.toFixed(2),
           updatedAt: new Date(),
           // Set specific date fields based on status
           ...(nextStatus === 'in_progress' && { actualStartDate: new Date().toISOString().split('T')[0] }),
