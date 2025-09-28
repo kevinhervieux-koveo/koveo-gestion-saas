@@ -1,0 +1,62 @@
+ba39744842ac1f99d366f211b266a0c9
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LanguageProvider = LanguageProvider;
+exports.useLanguage = useLanguage;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = require("react");
+const i18n_1 = require("@/lib/i18n");
+const LanguageContext = (0, react_1.createContext)(undefined);
+/**
+ * Language provider component that manages application language state.
+ * Provides translation functionality and language switching for the entire app.
+ * Defaults to French ('fr') for Quebec property management context.
+ *
+ * @param {LanguageProviderProps} props - Component props.
+ * @param {ReactNode} props.children - Child components that will have access to language context.
+ * @returns {JSX.Element} Language context provider wrapper.
+ */
+function LanguageProvider({ children }) {
+    // Initialize language from localStorage or default to French for Quebec
+    const [language, setLanguage] = (0, react_1.useState)(() => {
+        if (typeof window !== 'undefined') {
+            const savedLanguage = localStorage.getItem('koveo-language');
+            return savedLanguage || 'fr'; // Default to French for Quebec
+        }
+        return 'fr';
+    });
+    // Save language preference to localStorage whenever it changes
+    (0, react_1.useEffect)(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('koveo-language', language);
+        }
+    }, [language]);
+    const toggleLanguage = () => {
+        setLanguage((current) => (current === 'en' ? 'fr' : 'en'));
+    };
+    const t = (_key) => {
+        return i18n_1.translations[language][_key] || _key;
+    };
+    return ((0, jsx_runtime_1.jsx)(LanguageContext.Provider, { value: { language, setLanguage, toggleLanguage, t }, children: children }));
+}
+/**
+ * Custom hook to access language context and translation functionality.
+ * Must be used within a LanguageProvider component tree.
+ *
+ * @returns {LanguageContextType} Language context with current language, setter, and translation function.
+ * @throws {Error} If used outside of LanguageProvider.
+ * @example
+ * ```typescript
+ * const { language, setLanguage, t } = useLanguage();
+ * const title = t('welcome'); // Gets translated text
+ * setLanguage('fr'); // Switch to French
+ * ```
+ */
+function useLanguage() {
+    const context = (0, react_1.useContext)(LanguageContext);
+    if (context === undefined) {
+        throw new Error('useLanguage must be used within a LanguageProvider');
+    }
+    return context;
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2hvb2tzL3VzZS1sYW5ndWFnZS50c3giLCJtYXBwaW5ncyI6Ijs7QUFnQ0EsNENBOEJDO0FBZUQsa0NBT0M7O0FBcEZELGlDQUFrRjtBQUNsRixxQ0FBb0Q7QUFhcEQsTUFBTSxlQUFlLEdBQUcsSUFBQSxxQkFBYSxFQUFrQyxTQUFTLENBQUMsQ0FBQztBQVNsRjs7Ozs7Ozs7R0FRRztBQUNILFNBQWdCLGdCQUFnQixDQUFDLEVBQUUsUUFBUSxFQUF5QjtJQUNsRSx3RUFBd0U7SUFDeEUsTUFBTSxDQUFDLFFBQVEsRUFBRSxXQUFXLENBQUMsR0FBRyxJQUFBLGdCQUFRLEVBQVcsR0FBRyxFQUFFO1FBQ3RELElBQUksT0FBTyxNQUFNLEtBQUssV0FBVyxFQUFFLENBQUM7WUFDbEMsTUFBTSxhQUFhLEdBQUcsWUFBWSxDQUFDLE9BQU8sQ0FBQyxnQkFBZ0IsQ0FBYSxDQUFDO1lBQ3pFLE9BQU8sYUFBYSxJQUFJLElBQUksQ0FBQyxDQUFDLCtCQUErQjtRQUMvRCxDQUFDO1FBQ0QsT0FBTyxJQUFJLENBQUM7SUFDZCxDQUFDLENBQUMsQ0FBQztJQUVILCtEQUErRDtJQUMvRCxJQUFBLGlCQUFTLEVBQUMsR0FBRyxFQUFFO1FBQ2IsSUFBSSxPQUFPLE1BQU0sS0FBSyxXQUFXLEVBQUUsQ0FBQztZQUNsQyxZQUFZLENBQUMsT0FBTyxDQUFDLGdCQUFnQixFQUFFLFFBQVEsQ0FBQyxDQUFDO1FBQ25ELENBQUM7SUFDSCxDQUFDLEVBQUUsQ0FBQyxRQUFRLENBQUMsQ0FBQyxDQUFDO0lBRWYsTUFBTSxjQUFjLEdBQUcsR0FBRyxFQUFFO1FBQzFCLFdBQVcsQ0FBQyxDQUFDLE9BQU8sRUFBRSxFQUFFLENBQUMsQ0FBQyxPQUFPLEtBQUssSUFBSSxDQUFDLENBQUMsQ0FBQyxJQUFJLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUFDLENBQUM7SUFDN0QsQ0FBQyxDQUFDO0lBRUYsTUFBTSxDQUFDLEdBQUcsQ0FBQyxJQUFrQyxFQUFVLEVBQUU7UUFDdkQsT0FBTyxtQkFBWSxDQUFDLFFBQVEsQ0FBQyxDQUFDLElBQUksQ0FBQyxJQUFJLElBQUksQ0FBQztJQUM5QyxDQUFDLENBQUM7SUFFRixPQUFPLENBQ0wsdUJBQUMsZUFBZSxDQUFDLFFBQVEsSUFBQyxLQUFLLEVBQUUsRUFBRSxRQUFRLEVBQUUsV0FBVyxFQUFFLGNBQWMsRUFBRSxDQUFDLEVBQUUsWUFDMUUsUUFBUSxHQUNnQixDQUM1QixDQUFDO0FBQ0osQ0FBQztBQUVEOzs7Ozs7Ozs7Ozs7R0FZRztBQUNILFNBQWdCLFdBQVc7SUFDekIsTUFBTSxPQUFPLEdBQUcsSUFBQSxrQkFBVSxFQUFDLGVBQWUsQ0FBQyxDQUFDO0lBRTVDLElBQUksT0FBTyxLQUFLLFNBQVMsRUFBRSxDQUFDO1FBQzFCLE1BQU0sSUFBSSxLQUFLLENBQUMsb0RBQW9ELENBQUMsQ0FBQztJQUN4RSxDQUFDO0lBQ0QsT0FBTyxPQUFPLENBQUM7QUFDakIsQ0FBQyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL2NsaWVudC9zcmMvaG9va3MvdXNlLWxhbmd1YWdlLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBjcmVhdGVDb250ZXh0LCB1c2VDb250ZXh0LCB1c2VTdGF0ZSwgdXNlRWZmZWN0LCBSZWFjdE5vZGUgfSBmcm9tICdyZWFjdCc7XG5pbXBvcnQgeyBMYW5ndWFnZSwgdHJhbnNsYXRpb25zIH0gZnJvbSAnQC9saWIvaTE4bic7XG5cbi8qKlxuICogQ29udGV4dCB0eXBlIGRlZmluaXRpb24gZm9yIHRoZSBsYW5ndWFnZSBwcm92aWRlci5cbiAqIFByb3ZpZGVzIGxhbmd1YWdlIHN0YXRlIG1hbmFnZW1lbnQgYW5kIHRyYW5zbGF0aW9uIGZ1bmN0aW9uLlxuICovXG5pbnRlcmZhY2UgTGFuZ3VhZ2VDb250ZXh0VHlwZSB7XG4gIGxhbmd1YWdlOiBMYW5ndWFnZTtcbiAgc2V0TGFuZ3VhZ2U6IChsYW5nOiBMYW5ndWFnZSkgPT4gdm9pZDtcbiAgdG9nZ2xlTGFuZ3VhZ2U6ICgpID0+IHZvaWQ7XG4gIHQ6IChfa2V5OiBrZXlvZiB0eXBlb2YgdHJhbnNsYXRpb25zLmVuKSA9PiBzdHJpbmc7XG59XG5cbmNvbnN0IExhbmd1YWdlQ29udGV4dCA9IGNyZWF0ZUNvbnRleHQ8TGFuZ3VhZ2VDb250ZXh0VHlwZSB8IHVuZGVmaW5lZD4odW5kZWZpbmVkKTtcblxuLyoqXG4gKiBQcm9wcyBpbnRlcmZhY2UgZm9yIHRoZSBMYW5ndWFnZVByb3ZpZGVyIGNvbXBvbmVudC5cbiAqL1xuaW50ZXJmYWNlIExhbmd1YWdlUHJvdmlkZXJQcm9wcyB7XG4gIGNoaWxkcmVuOiBSZWFjdE5vZGU7XG59XG5cbi8qKlxuICogTGFuZ3VhZ2UgcHJvdmlkZXIgY29tcG9uZW50IHRoYXQgbWFuYWdlcyBhcHBsaWNhdGlvbiBsYW5ndWFnZSBzdGF0ZS5cbiAqIFByb3ZpZGVzIHRyYW5zbGF0aW9uIGZ1bmN0aW9uYWxpdHkgYW5kIGxhbmd1YWdlIHN3aXRjaGluZyBmb3IgdGhlIGVudGlyZSBhcHAuXG4gKiBEZWZhdWx0cyB0byBGcmVuY2ggKCdmcicpIGZvciBRdWViZWMgcHJvcGVydHkgbWFuYWdlbWVudCBjb250ZXh0LlxuICpcbiAqIEBwYXJhbSB7TGFuZ3VhZ2VQcm92aWRlclByb3BzfSBwcm9wcyAtIENvbXBvbmVudCBwcm9wcy5cbiAqIEBwYXJhbSB7UmVhY3ROb2RlfSBwcm9wcy5jaGlsZHJlbiAtIENoaWxkIGNvbXBvbmVudHMgdGhhdCB3aWxsIGhhdmUgYWNjZXNzIHRvIGxhbmd1YWdlIGNvbnRleHQuXG4gKiBAcmV0dXJucyB7SlNYLkVsZW1lbnR9IExhbmd1YWdlIGNvbnRleHQgcHJvdmlkZXIgd3JhcHBlci5cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIExhbmd1YWdlUHJvdmlkZXIoeyBjaGlsZHJlbiB9OiBMYW5ndWFnZVByb3ZpZGVyUHJvcHMpIHtcbiAgLy8gSW5pdGlhbGl6ZSBsYW5ndWFnZSBmcm9tIGxvY2FsU3RvcmFnZSBvciBkZWZhdWx0IHRvIEZyZW5jaCBmb3IgUXVlYmVjXG4gIGNvbnN0IFtsYW5ndWFnZSwgc2V0TGFuZ3VhZ2VdID0gdXNlU3RhdGU8TGFuZ3VhZ2U+KCgpID0+IHtcbiAgICBpZiAodHlwZW9mIHdpbmRvdyAhPT0gJ3VuZGVmaW5lZCcpIHtcbiAgICAgIGNvbnN0IHNhdmVkTGFuZ3VhZ2UgPSBsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgna292ZW8tbGFuZ3VhZ2UnKSBhcyBMYW5ndWFnZTtcbiAgICAgIHJldHVybiBzYXZlZExhbmd1YWdlIHx8ICdmcic7IC8vIERlZmF1bHQgdG8gRnJlbmNoIGZvciBRdWViZWNcbiAgICB9XG4gICAgcmV0dXJuICdmcic7XG4gIH0pO1xuXG4gIC8vIFNhdmUgbGFuZ3VhZ2UgcHJlZmVyZW5jZSB0byBsb2NhbFN0b3JhZ2Ugd2hlbmV2ZXIgaXQgY2hhbmdlc1xuICB1c2VFZmZlY3QoKCkgPT4ge1xuICAgIGlmICh0eXBlb2Ygd2luZG93ICE9PSAndW5kZWZpbmVkJykge1xuICAgICAgbG9jYWxTdG9yYWdlLnNldEl0ZW0oJ2tvdmVvLWxhbmd1YWdlJywgbGFuZ3VhZ2UpO1xuICAgIH1cbiAgfSwgW2xhbmd1YWdlXSk7XG5cbiAgY29uc3QgdG9nZ2xlTGFuZ3VhZ2UgPSAoKSA9PiB7XG4gICAgc2V0TGFuZ3VhZ2UoKGN1cnJlbnQpID0+IChjdXJyZW50ID09PSAnZW4nID8gJ2ZyJyA6ICdlbicpKTtcbiAgfTtcblxuICBjb25zdCB0ID0gKF9rZXk6IGtleW9mIHR5cGVvZiB0cmFuc2xhdGlvbnMuZW4pOiBzdHJpbmcgPT4ge1xuICAgIHJldHVybiB0cmFuc2xhdGlvbnNbbGFuZ3VhZ2VdW19rZXldIHx8IF9rZXk7XG4gIH07XG5cbiAgcmV0dXJuIChcbiAgICA8TGFuZ3VhZ2VDb250ZXh0LlByb3ZpZGVyIHZhbHVlPXt7IGxhbmd1YWdlLCBzZXRMYW5ndWFnZSwgdG9nZ2xlTGFuZ3VhZ2UsIHQgfX0+XG4gICAgICB7Y2hpbGRyZW59XG4gICAgPC9MYW5ndWFnZUNvbnRleHQuUHJvdmlkZXI+XG4gICk7XG59XG5cbi8qKlxuICogQ3VzdG9tIGhvb2sgdG8gYWNjZXNzIGxhbmd1YWdlIGNvbnRleHQgYW5kIHRyYW5zbGF0aW9uIGZ1bmN0aW9uYWxpdHkuXG4gKiBNdXN0IGJlIHVzZWQgd2l0aGluIGEgTGFuZ3VhZ2VQcm92aWRlciBjb21wb25lbnQgdHJlZS5cbiAqXG4gKiBAcmV0dXJucyB7TGFuZ3VhZ2VDb250ZXh0VHlwZX0gTGFuZ3VhZ2UgY29udGV4dCB3aXRoIGN1cnJlbnQgbGFuZ3VhZ2UsIHNldHRlciwgYW5kIHRyYW5zbGF0aW9uIGZ1bmN0aW9uLlxuICogQHRocm93cyB7RXJyb3J9IElmIHVzZWQgb3V0c2lkZSBvZiBMYW5ndWFnZVByb3ZpZGVyLlxuICogQGV4YW1wbGVcbiAqIGBgYHR5cGVzY3JpcHRcbiAqIGNvbnN0IHsgbGFuZ3VhZ2UsIHNldExhbmd1YWdlLCB0IH0gPSB1c2VMYW5ndWFnZSgpO1xuICogY29uc3QgdGl0bGUgPSB0KCd3ZWxjb21lJyk7IC8vIEdldHMgdHJhbnNsYXRlZCB0ZXh0XG4gKiBzZXRMYW5ndWFnZSgnZnInKTsgLy8gU3dpdGNoIHRvIEZyZW5jaFxuICogYGBgXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiB1c2VMYW5ndWFnZSgpIHtcbiAgY29uc3QgY29udGV4dCA9IHVzZUNvbnRleHQoTGFuZ3VhZ2VDb250ZXh0KTtcblxuICBpZiAoY29udGV4dCA9PT0gdW5kZWZpbmVkKSB7XG4gICAgdGhyb3cgbmV3IEVycm9yKCd1c2VMYW5ndWFnZSBtdXN0IGJlIHVzZWQgd2l0aGluIGEgTGFuZ3VhZ2VQcm92aWRlcicpO1xuICB9XG4gIHJldHVybiBjb250ZXh0O1xufVxuIl0sInZlcnNpb24iOjN9
