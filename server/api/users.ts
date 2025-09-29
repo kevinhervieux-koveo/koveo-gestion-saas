@@ -17,7 +17,7 @@ import {
   generateUsernameFromEmail,
 } from '../utils/input-sanitization';
 import { logUserCreation } from '../utils/user-creation-logger';
-import { queryCache } from '../query-cache';
+import { queryCache, CacheInvalidator } from '../query-cache';
 import { emailService } from '../services/email-service';
 import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
 
@@ -989,7 +989,7 @@ export function registerUserRoutes(app: Express): void {
 
       // Clear any cached data related to this user
       try {
-        queryCache.invalidateUserCache(userId);
+        CacheInvalidator.invalidateUserCaches(userId);
         deletionSummary.manualCleanupPerformed.push('Query cache cleared');
         console.log(`🧹 [HARD DELETE] ${operationId}: User cache invalidated`);
       } catch (cacheError) {
@@ -2847,19 +2847,16 @@ export function registerUserRoutes(app: Express): void {
         .limit(1);
 
       // Send invitation email
-      const recipientName = email.split('@')[0]; // Use email prefix as name
       const organizationName = organization?.name || 'Koveo Gestion';
       const inviterName = `${currentUser.firstName || currentUser.email} ${currentUser.lastName || ''}`.trim();
+      const invitationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`;
       
       const emailSent = await emailService.sendInvitationEmail(
         email,
-        recipientName,
-        token, // Use the unhashed token for the email URL
-        organizationName,
         inviterName,
-        new Date(expiresAt),
-        'fr', // Default to French for Quebec
-        personalMessage
+        invitationUrl,
+        organizationName,
+        'fr'
       );
 
       // Log invitation creation
@@ -3275,19 +3272,16 @@ export function registerUserRoutes(app: Express): void {
         .limit(1);
 
       // Send invitation email again
-      const recipientName = invitation.email.split('@')[0]; // Use email prefix as name
       const organizationName = organization?.name || 'Koveo Gestion';
       const inviterName = `${currentUser.firstName || currentUser.email} ${currentUser.lastName || ''}`.trim();
+      const invitationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/accept-invitation?token=${invitation.token}`;
       
       const emailSent = await emailService.sendInvitationEmail(
         invitation.email,
-        recipientName,
-        invitation.token, // Use the existing token
-        organizationName,
         inviterName,
-        newExpiresAt,
-        'fr', // Default to French for Quebec
-        invitation.personalMessage
+        invitationUrl,
+        organizationName,
+        'fr'
       );
 
       console.log('✅ Invitation resent:', {
