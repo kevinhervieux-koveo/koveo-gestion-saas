@@ -3324,15 +3324,12 @@ export function registerMaintenanceRoutes(app: Express): void {
           actualCost: maintenanceProjects.actualCost,
           plannedStartDate: maintenanceProjects.plannedStartDate,
           plannedEndDate: maintenanceProjects.plannedEndDate,
-          // assignedVendorId: maintenanceProjects.assignedVendorId, // Property doesn't exist in schema,
           suggestionId: maintenanceProjects.suggestionId,
           createdAt: maintenanceProjects.createdAt,
           updatedAt: maintenanceProjects.updatedAt,
-          vendorName: vendors.name,
           buildingName: buildings.name,
         })
         .from(maintenanceProjects)
-        // .leftJoin(vendors, eq(maintenanceProjects.assignedVendorId, vendors.id)) // Property doesn't exist
         .leftJoin(buildings, eq(maintenanceProjects.buildingId, buildings.id))
         .where(eq(maintenanceProjects.id, id))
         .limit(1);
