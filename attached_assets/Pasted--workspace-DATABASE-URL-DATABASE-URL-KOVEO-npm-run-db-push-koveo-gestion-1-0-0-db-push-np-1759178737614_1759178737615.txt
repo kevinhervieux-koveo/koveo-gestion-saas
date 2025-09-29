@@ -1,0 +1,156 @@
+~/workspace$ DATABASE_URL=$DATABASE_URL_KOVEO npm run db:push
+
+> koveo-gestion@1.0.0 db:push
+> npx drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/runner/workspace/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+
++ event_type column will be created
+
++ event_date column will be created
+
++ vendor_id column will be created
+
++ vendor_name column will be created
+
++ warranty column will be created
+
++ work_description column will be created
+--- all columns conflicts in element_history table resolved ---
+
+
++ project_type column will be created
+
++ work_description column will be created
+
++ lifespan_impact column will be created
+
++ confirmed column will be created
+--- all columns conflicts in project_elements table resolved ---
+
+
++ history_id column will be created
+
++ file_name column will be created
+
++ uploaded_at column will be created
+--- all columns conflicts in element_documents table resolved ---
+
+
++ suggestion_id column will be created
+
++ auto_generated_id column will be created
+
++ planning_description column will be created
+
++ planning_start_date column will be created
+
++ estimated_cost column will be created
+
++ financial_year column will be created
+
++ skip_submission column will be created
+
++ skip_pre_work column will be created
+
++ skip_in_progress column will be created
+
++ skip_post_work column will be created
+
++ completion_summary column will be created
+
++ work_start_date column will be created
+
++ is_quick_project column will be created
+--- all columns conflicts in maintenance_projects table resolved ---
+
+
++ building_id column will be created
+
++ element_id column will be created
+
++ suggestion_id column will be created
+
++ suggested_type column will be created
+
++ suggested_priority column will be created
+
++ estimated_cost column will be created
+
++ created_at column will be created
+
++ updated_at column will be created
+--- all columns conflicts in auto_generated_projects table resolved ---
+
+
++ project_id column will be created
+
++ created_at column will be created
+
++ updated_at column will be created
+--- all columns conflicts in workflow_tasks table resolved ---
+
+
++ project_id column will be created
+
++ vendor_name column will be created
+
++ available_date column will be created
+
++ contact_info column will be created
+
++ project_type column will be created
+
++ added_lifespan column will be created
+
++ payment_plan_costs column will be created
+
++ is_selected column will be created
+
++ created_at column will be created
+
++ updated_at column will be created
+--- all columns conflicts in submission_vendors table resolved ---
+
+
+ Warning  Found data-loss statements:
+· You're about to delete year_built column in buildings table with 11 items
+· You're about to delete element_name column in building_elements table with 1 items
+· You're about to delete location_description column in building_elements table with 1 items
+· You're about to delete replacementCost column in building_elements table with 1 items
+· You're about to delete installationDate column in building_elements table with 1 items
+· You're about to delete expected_life column in building_elements table with 1 items
+· You're about to delete condition_rating column in building_elements table with 1 items
+
+THIS ACTION WILL CAUSE DATA LOSS AND CANNOT BE REVERTED
+
+Do you still want to push changes?
+error: cannot drop type evaluation_status because other objects depend on it
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.query (/home/runner/workspace/node_modules/drizzle-kit/bin.cjs:80601:26)
+    at async pgPush (/home/runner/workspace/node_modules/drizzle-kit/bin.cjs:84411:13)
+    at async Object.handler (/home/runner/workspace/node_modules/drizzle-kit/bin.cjs:93813:9)
+    at async run (/home/runner/workspace/node_modules/drizzle-kit/bin.cjs:93059:7) {
+  length: 280,
+  severity: 'ERROR',
+  code: '2BP01',
+  detail: 'column status of table auto_generated_projects depends on type evaluation_status',
+  hint: 'Use DROP ... CASCADE to drop the dependent objects too.',
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'dependency.c',
+  line: '1148',
+  routine: 'reportDependentObjects'
+}
+~/workspace$ 
