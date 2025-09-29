@@ -2907,7 +2907,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (!['admin', 'manager', 'demo_manager', 'demo_tenant'].includes(user.role)) {
         return res.status(403).json({
           error: 'Insufficient permissions to create projects'
         });
