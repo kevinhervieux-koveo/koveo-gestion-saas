@@ -1037,7 +1037,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       // Check building access
       console.log('🔍 [INVENTORY DEBUG] Checking building access for user:', user.id, 'role:', user.role);
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       console.log('🔍 [INVENTORY DEBUG] Building access result:', hasAccess);
       if (!hasAccess) {
         console.log('❌ [INVENTORY DEBUG] No building access');
@@ -1163,7 +1163,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const { buildingId } = req.params;
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -1265,7 +1265,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Element not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, existingElement[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, existingElement[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this element'
@@ -1354,7 +1354,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Element not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, existingElement[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, existingElement[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this element'
@@ -1419,7 +1419,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
 
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -1511,7 +1511,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
 
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -1628,7 +1628,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const element = elementResult[0];
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, element.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, element.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this element'
@@ -1689,7 +1689,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Element not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, elementResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, elementResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this element'
@@ -1763,7 +1763,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Element not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, elementResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, elementResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this element'
@@ -1856,7 +1856,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'History entry not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, historyResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, historyResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this history entry'
@@ -1932,7 +1932,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'History entry not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, historyResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, historyResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this history entry'
@@ -1997,7 +1997,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Element not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, elementResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, elementResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this element'
@@ -2119,7 +2119,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Element not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, elementResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, elementResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this element'
@@ -2221,7 +2221,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       const document = documentResult[0];
-      const hasAccess = await checkBuildingAccess(user.id, user.role, document.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, document.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this document'
@@ -2303,7 +2303,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Document not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, documentResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, documentResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this document'
@@ -2375,7 +2375,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const vendorSubmission = vendorSubmissionResult[0];
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, vendorSubmission.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, vendorSubmission.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this document' });
       }
@@ -2505,7 +2505,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const { buildingId } = req.params;
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -2581,7 +2581,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, validation.data.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, validation.data.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -2652,7 +2652,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Suggestion not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, suggestionResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, suggestionResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this suggestion'
@@ -2723,7 +2723,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const { suggestion, element } = suggestionResult[0];
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, element.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, element.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this suggestion'
@@ -2796,7 +2796,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       // Check building access
       console.log('🔍 [PROJECTS DEBUG] Checking building access for user:', user.id, 'role:', user.role);
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       console.log('🔍 [PROJECTS DEBUG] Building access result:', hasAccess);
       if (!hasAccess) {
         console.log('❌ [PROJECTS DEBUG] No building access');
@@ -2884,7 +2884,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const { buildingId } = req.params;
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -3032,7 +3032,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, validation.data.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, validation.data.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -3134,7 +3134,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3246,7 +3246,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3341,7 +3341,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3406,7 +3406,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const project = projectResult[0];
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3475,7 +3475,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3537,7 +3537,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3612,7 +3612,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3709,7 +3709,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3756,7 +3756,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3808,7 +3808,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3877,7 +3877,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -3984,7 +3984,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -4080,7 +4080,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -4150,7 +4150,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -4219,7 +4219,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -4364,7 +4364,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -4443,7 +4443,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, projectResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, projectResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this project'
@@ -4558,7 +4558,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Element update not found' });
       }
       
-      const hasAccess = await checkBuildingAccess(user.id, user.role, updateResult[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, updateResult[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this element update'
@@ -4605,7 +4605,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const { buildingId } = req.params;
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -4734,7 +4734,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -4819,7 +4819,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const { startDate, endDate, limit = '100' } = req.query;
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -4981,7 +4981,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const { period = 'year', category } = req.query;
       
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -5274,7 +5274,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
 
       // RBAC: Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'Insufficient permissions to generate suggestions for this building',
@@ -5471,7 +5471,7 @@ export function registerMaintenanceRoutes(app: Express): void {
             });
           }
 
-          const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+          const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
           if (!hasAccess) {
             return res.status(403).json({
               error: 'Insufficient permissions for specified building',
@@ -5571,7 +5571,7 @@ export function registerMaintenanceRoutes(app: Express): void {
 
       // Check building access
       console.log('🔍 [AUTO-PROJECTS] Checking building access...');
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       console.log('🔍 [AUTO-PROJECTS] Building access result:', hasAccess);
       
       if (!hasAccess) {
@@ -5712,7 +5712,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const { autoProject, element } = autoProjectResult[0];
 
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, autoProject.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, autoProject.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -5874,7 +5874,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const autoProject = autoProjectResult[0];
 
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, autoProject.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, autoProject.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -5945,7 +5945,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       const autoProject = autoProjectResult[0];
 
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, autoProject.buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, autoProject.buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -6001,7 +6001,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
 
       // Check building access
-      const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({
           error: 'No access to this building'
@@ -6261,7 +6261,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -6352,7 +6352,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -6409,7 +6409,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -6470,7 +6470,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -6528,7 +6528,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -6617,7 +6617,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Vendor submission not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this vendor submission' });
       }
@@ -6678,7 +6678,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Vendor submission not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this vendor submission' });
       }
@@ -6747,7 +6747,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Submission vendor not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this submission vendor' });
       }
@@ -6837,7 +6837,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Vendor submission not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this vendor submission' });
       }
@@ -6898,7 +6898,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -6974,7 +6974,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Vendor submission not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this vendor submission' });
       }
@@ -7047,7 +7047,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Vendor submission not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this vendor submission' });
       }
@@ -7104,7 +7104,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Vendor submission not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this vendor submission' });
       }
@@ -7165,7 +7165,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -7224,7 +7224,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -7312,7 +7312,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Task not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, task[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, task[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this task' });
       }
@@ -7399,7 +7399,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Task not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, task[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, task[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this task' });
       }
@@ -7455,7 +7455,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Task not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, task[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, task[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this task' });
       }
@@ -7523,7 +7523,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -7586,7 +7586,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -7788,7 +7788,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -7922,7 +7922,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -8073,7 +8073,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -8162,7 +8162,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -8267,7 +8267,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, project[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, project[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this project' });
       }
@@ -8363,7 +8363,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'Submission vendor not found' });
       }
 
-      const hasAccess = await checkBuildingAccess(user.id, user.role, submissionVendor[0].buildingId);
+      const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this submission vendor' });
       }
