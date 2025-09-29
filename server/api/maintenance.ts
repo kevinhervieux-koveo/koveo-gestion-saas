@@ -1050,64 +1050,59 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.log('🔍 [INVENTORY DEBUG] Starting database query...');
       console.log('🔍 [INVENTORY DEBUG] Query params:', { buildingId, limit, offset, order });
       
-      try {
-        const [elements, totalCount] = await Promise.all([
-          db
-            .select({
-              id: buildingElements.id,
-              buildingId: buildingElements.buildingId,
-              residenceId: buildingElements.residenceId,
-              uniformatCode: buildingElements.uniformatCode,
-              name: buildingElements.name,
-              description: buildingElements.description,
-              originalConstructionDate: buildingElements.originalConstructionDate,
-              originalLifespan: buildingElements.originalLifespan,
-              currentLifespan: buildingElements.currentLifespan,
-              currentCondition: buildingElements.currentCondition,
-              lastInspectionDate: buildingElements.lastInspectionDate,
-              nextEvaluationDate: buildingElements.nextEvaluationDate,
-              unit: buildingElements.unit,
-              unitValue: buildingElements.unitValue,
-              notes: buildingElements.notes,
-              reconstructionCost: buildingElements.reconstructionCost,
-              costEstimationDate: buildingElements.costEstimationDate,
-              access: buildingElements.access,
-              charge: buildingElements.charge,
-              isActive: buildingElements.isActive,
-              createdAt: buildingElements.createdAt,
-              updatedAt: buildingElements.updatedAt,
-            })
-            .from(buildingElements)
-            .where(and(
-              eq(buildingElements.buildingId, buildingId),
-              eq(buildingElements.isActive, true)
-            ))
-            .limit(limit)
-            .offset(offset)
-            .orderBy(
-              order === 'asc' 
-                ? asc(buildingElements.uniformatCode)
-                : desc(buildingElements.uniformatCode),
-              order === 'asc' 
-                ? asc(buildingElements.name)
-                : desc(buildingElements.name)
-            ),
-          db
-            .select({ count: count() })
-            .from(buildingElements)
-            .where(and(
-              eq(buildingElements.buildingId, buildingId),
-              eq(buildingElements.isActive, true)
-            ))
-        ]);
-        
-        console.log('✅ [INVENTORY DEBUG] Database query successful');
-        console.log('🔍 [INVENTORY DEBUG] Elements found:', elements.length);
-        console.log('🔍 [INVENTORY DEBUG] Total count:', totalCount[0]?.count || 0);
-      } catch (dbError: any) {
-        console.error('❌ [INVENTORY DEBUG] Database query failed:', dbError);
-        throw dbError;
-      }
+      const [elements, totalCount] = await Promise.all([
+        db
+          .select({
+            id: buildingElements.id,
+            buildingId: buildingElements.buildingId,
+            residenceId: buildingElements.residenceId,
+            uniformatCode: buildingElements.uniformatCode,
+            name: buildingElements.name,
+            description: buildingElements.description,
+            originalConstructionDate: buildingElements.originalConstructionDate,
+            originalLifespan: buildingElements.originalLifespan,
+            currentLifespan: buildingElements.currentLifespan,
+            currentCondition: buildingElements.currentCondition,
+            lastInspectionDate: buildingElements.lastInspectionDate,
+            nextEvaluationDate: buildingElements.nextEvaluationDate,
+            unit: buildingElements.unit,
+            unitValue: buildingElements.unitValue,
+            notes: buildingElements.notes,
+            reconstructionCost: buildingElements.reconstructionCost,
+            costEstimationDate: buildingElements.costEstimationDate,
+            access: buildingElements.access,
+            charge: buildingElements.charge,
+            isActive: buildingElements.isActive,
+            createdAt: buildingElements.createdAt,
+            updatedAt: buildingElements.updatedAt,
+          })
+          .from(buildingElements)
+          .where(and(
+            eq(buildingElements.buildingId, buildingId),
+            eq(buildingElements.isActive, true)
+          ))
+          .limit(limit)
+          .offset(offset)
+          .orderBy(
+            order === 'asc' 
+              ? asc(buildingElements.uniformatCode)
+              : desc(buildingElements.uniformatCode),
+            order === 'asc' 
+              ? asc(buildingElements.name)
+              : desc(buildingElements.name)
+          ),
+        db
+          .select({ count: count() })
+          .from(buildingElements)
+          .where(and(
+            eq(buildingElements.buildingId, buildingId),
+            eq(buildingElements.isActive, true)
+          ))
+      ]);
+      
+      console.log('✅ [INVENTORY DEBUG] Database query successful');
+      console.log('🔍 [INVENTORY DEBUG] Elements found:', elements.length);
+      console.log('🔍 [INVENTORY DEBUG] Total count:', totalCount[0]?.count || 0);
       
       const total = totalCount[0]?.count || 0;
       const totalPages = Math.ceil(total / limit);
