@@ -1001,17 +1001,17 @@ export function registerMaintenanceRoutes(app: Express): void {
    * GET /api/maintenance/buildings/:buildingId/elements - List elements for building with pagination
    */
   app.get('/api/maintenance/buildings/:buildingId/elements', requireAuth, async (req: any, res) => {
+    const user = req.user;
+    const { buildingId } = req.params;
+    
     try {
       console.log('🔍 [INVENTORY DEBUG] Starting inventory request...');
-      const user = req.user;
       console.log('🔍 [INVENTORY DEBUG] User:', user ? { id: user.id, role: user.role, email: user.email } : 'NO USER');
       
       if (!user) {
         console.log('❌ [INVENTORY DEBUG] No user authentication');
         return res.status(401).json({ error: 'Authentication required' });
       }
-      
-      const { buildingId } = req.params;
       console.log('🔍 [INVENTORY DEBUG] Building ID:', buildingId);
       
       // Security: Validate UUID format
@@ -2781,17 +2781,17 @@ export function registerMaintenanceRoutes(app: Express): void {
    * GET /api/maintenance/buildings/:buildingId/projects - List projects for building
    */
   app.get('/api/maintenance/buildings/:buildingId/projects', requireAuth, async (req: any, res) => {
+    const user = req.user;
+    const { buildingId } = req.params;
+    
     try {
       console.log('🔍 [PROJECTS DEBUG] Starting projects request...');
-      const user = req.user;
       console.log('🔍 [PROJECTS DEBUG] User:', user ? { id: user.id, role: user.role, email: user.email } : 'NO USER');
       
       if (!user) {
         console.log('❌ [PROJECTS DEBUG] No user authentication');
         return res.status(401).json({ error: 'Authentication required' });
       }
-      
-      const { buildingId } = req.params;
       console.log('🔍 [PROJECTS DEBUG] Building ID:', buildingId);
       
       // Check building access
