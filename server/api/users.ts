@@ -1740,7 +1740,37 @@ export function registerUserRoutes(app: Express): void {
         return res.json(buildingDetails);
       }
 
-      // For managers and admins, get all buildings they manage/admin
+      // For admins, get ALL buildings
+      if (req.user.role === 'admin') {
+        const buildingDetails = await db
+          .select({
+            id: schema.buildings.id,
+            name: schema.buildings.name,
+            address: schema.buildings.address,
+            city: schema.buildings.city,
+            state: schema.buildings.province,
+            postal_code: schema.buildings.postalCode,
+            organization_id: schema.buildings.organizationId,
+            residence_count: count(schema.residences.id),
+          })
+          .from(schema.buildings)
+          .leftJoin(schema.residences, eq(schema.buildings.id, schema.residences.buildingId))
+          .where(eq(schema.buildings.isActive, true))
+          .groupBy(
+            schema.buildings.id,
+            schema.buildings.name,
+            schema.buildings.address,
+            schema.buildings.city,
+            schema.buildings.province,
+            schema.buildings.postalCode,
+            schema.buildings.organizationId
+          )
+          .orderBy(schema.buildings.name);
+
+        return res.json(buildingDetails);
+      }
+
+      // For managers, get buildings in their organizations
       const userOrgs = await db
         .select({ organizationId: schema.userOrganizations.organizationId })
         .from(schema.userOrganizations)
