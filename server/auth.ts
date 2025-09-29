@@ -96,6 +96,12 @@ function getDatabaseUrl(requestDomain?: string): string {
   const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
   const isProduction = config.server.isProduction || isKoveoRequest;
   
+  // Debug logging for session store database selection
+  console.log('🔍 [SESSION STORE DB] Domain:', requestDomain || 'none');
+  console.log('🔍 [SESSION STORE DB] Is Production:', isProduction);
+  console.log('🔍 [SESSION STORE DB] Has DATABASE_URL_KOVEO:', !!process.env.DATABASE_URL_KOVEO);
+  console.log('🔍 [SESSION STORE DB] Using:', isProduction ? 'DATABASE_URL_KOVEO' : 'DATABASE_URL');
+  
   // Mask the database URL for security - only show connection type and domain
   const maskedUrl = finalUrl ? `${finalUrl.split('://')[0]}://***@[masked-host]/[masked-db]` : '[no-url]';
   
@@ -182,12 +188,22 @@ function createSessionStore(requestDomain?: string) {
   }
 }
 
-// Create session store with better database detection  
+// Create session store with production database detection
 let sessionStore: any;
 try {
-  // Try to create session store with automatic database detection
-  sessionStore = createSessionStore();
+  // CRITICAL: For production deployments, explicitly detect koveo-gestion.com environment
+  const isProductionDeployment = process.env.REPLIT_DEPLOYMENT === '1' || 
+                                config.server.isProduction ||
+                                process.env.DATABASE_URL_KOVEO;
+  
+  // Force koveo-gestion.com domain detection for session store
+  const productionDomain = isProductionDeployment ? 'koveo-gestion.com' : undefined;
+  
+  sessionStore = createSessionStore(productionDomain);
+  
+  console.log('✅ Session store created for:', isProductionDeployment ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)');
 } catch (error) {
+  console.error('❌ Session store creation failed:', error);
   sessionStore = undefined; // Will fall back to memory store
 }
 
