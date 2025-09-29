@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Building, Edit, Trash2, MapPin } from 'lucide-react';
 import { Link } from 'wouter';
+import { StandardCard } from '@/components/common/StandardCard';
 
 export interface BuildingData {
   id: string;
@@ -14,7 +14,7 @@ export interface BuildingData {
   buildingType: string;
   totalUnits: number;
   organizationId: string;
-  organization_id?: string; // Handle API response field naming variation
+  organization_id?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -30,6 +30,7 @@ export interface BuildingCardProps {
   showResidencesButton?: boolean;
   documentsPath?: string;
   residencesPath?: string;
+  compact?: boolean;
 }
 
 export function BuildingCard({ 
@@ -41,102 +42,101 @@ export function BuildingCard({
   showEditButtons = true,
   showResidencesButton = true,
   documentsPath,
-  residencesPath
+  residencesPath,
+  compact = false,
 }: BuildingCardProps) {
   const isAdmin = userRole === 'admin';
   const canEdit = ['admin', 'manager'].includes(userRole || '') && showEditButtons;
   
-  // Default paths if not provided
   const defaultDocumentsPath = userRole === 'admin' || userRole === 'manager' 
     ? `/manager/buildings/${building.id}/documents`
     : `/residents/building/documents?buildingId=${building.id}`;
     
-  // Handle both organizationId and organization_id field naming conventions
   const orgId = building.organizationId || building.organization_id;
   const defaultResidencesPath = `/manager/residences?organization=${orgId}&building=${building.id}`;
 
+  const actions = [];
+  
+  if (canEdit && onEdit) {
+    actions.push({
+      icon: <Edit className='h-3 w-3' />,
+      label: 'Edit building',
+      onClick: () => onEdit(building),
+      variant: 'ghost' as const,
+      testId: `button-edit-${building.id}`,
+    });
+  }
+  
+  if (canEdit && onDelete && isAdmin) {
+    actions.push({
+      icon: <Trash2 className='h-3 w-3' />,
+      label: 'Delete building',
+      onClick: () => onDelete(building),
+      variant: 'ghost' as const,
+      className: 'text-red-600 hover:text-red-700',
+      testId: `button-delete-${building.id}`,
+    });
+  }
+
+  const badges = compact ? [] : [
+    {
+      text: `${building.totalUnits} ${t('unitsCount')}`,
+      variant: 'outline' as const,
+    },
+    {
+      text: building.buildingType,
+      variant: 'secondary' as const,
+    },
+  ];
+
+  const metadata = compact ? [] : [
+    {
+      icon: <MapPin className='h-4 w-4' />,
+      value: building.address,
+    },
+    {
+      value: `${building.city}, ${building.province} ${building.postalCode}`,
+    },
+  ];
+
+  const footer = (
+    <div className='flex gap-2 w-full'>
+      <Link href={documentsPath || defaultDocumentsPath} className="flex-1">
+        <Button 
+          size='sm' 
+          variant='outline' 
+          className='w-full'
+          data-testid={`button-documents-${building.id}`}
+        >
+          Documents
+        </Button>
+      </Link>
+      {showResidencesButton && (
+        <Link href={residencesPath || defaultResidencesPath} className="flex-1">
+          <Button 
+            size='sm' 
+            variant='outline' 
+            className='w-full'
+            data-testid={`button-residences-${building.id}`}
+          >
+            Residences
+          </Button>
+        </Link>
+      )}
+    </div>
+  );
+
   return (
-    <Card className='h-full' data-testid={`card-building-${building.id}`}>
-      <CardHeader>
-        <div className='flex items-start justify-between'>
-          <div className='flex items-center space-x-2'>
-            <Building className='h-5 w-5 text-blue-600' />
-            <CardTitle className='text-lg line-clamp-2 break-words' data-testid={`text-building-name-${building.id}`}>
-              {building.name}
-            </CardTitle>
-          </div>
-          {canEdit && onEdit && onDelete && (
-            <div className='flex gap-1'>
-              <Button 
-                size='sm' 
-                variant='ghost' 
-                onClick={() => onEdit(building)}
-                data-testid={`button-edit-${building.id}`}
-              >
-                <Edit className='h-3 w-3' />
-              </Button>
-              {isAdmin && (
-                <Button
-                  size='sm'
-                  variant='ghost'
-                  onClick={() => onDelete(building)}
-                  className='text-red-600 hover:text-red-700'
-                  data-testid={`button-delete-${building.id}`}
-                >
-                  <Trash2 className='h-3 w-3' />
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className='space-y-2'>
-          <div className='flex items-center text-sm text-gray-600'>
-            <MapPin className='h-4 w-4 mr-2' />
-            <span className='line-clamp-2 break-words flex-1' data-testid={`text-building-address-${building.id}`}>
-              {building.address}
-            </span>
-          </div>
-          <div className='flex items-center text-sm text-gray-600'>
-            <span data-testid={`text-building-location-${building.id}`}>
-              {building.city}, {building.province} {building.postalCode}
-            </span>
-          </div>
-          <div className='flex items-center justify-between pt-2'>
-            <Badge variant='outline' data-testid={`badge-units-${building.id}`}>
-              {building.totalUnits} {t('unitsCount')}
-            </Badge>
-            <Badge variant='secondary' data-testid={`badge-type-${building.id}`}>
-              {building.buildingType}
-            </Badge>
-          </div>
-          <div className='pt-2 flex gap-2'>
-            <Link href={documentsPath || defaultDocumentsPath}>
-              <Button 
-                size='sm' 
-                variant='outline' 
-                className='flex-1'
-                data-testid={`button-documents-${building.id}`}
-              >
-                Documents
-              </Button>
-            </Link>
-            {showResidencesButton && (
-              <Link href={residencesPath || defaultResidencesPath}>
-                <Button 
-                  size='sm' 
-                  variant='outline' 
-                  className='flex-1'
-                  data-testid={`button-residences-${building.id}`}
-                >
-                  Residences
-                </Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <StandardCard
+      icon={<Building className='h-5 w-5 text-blue-600' />}
+      title={building.name}
+      badges={badges}
+      metadata={metadata}
+      actions={actions}
+      footer={footer}
+      compact={compact}
+      testId={`card-building-${building.id}`}
+      className='h-full'
+    />
   );
 }
