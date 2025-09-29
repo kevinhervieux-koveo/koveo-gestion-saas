@@ -396,7 +396,7 @@ const projectNotificationUpdateSchema = z.object({
 });
 
 // Helper function to check user access to building
-async function checkBuildingAccess(userId: string, userRole: string, buildingId: string): Promise<boolean> {
+async function checkBuildingAccess(userId: string, buildingId: string, userRole: string): Promise<boolean> {
   if (userRole === 'admin') {
     return true;
   }
