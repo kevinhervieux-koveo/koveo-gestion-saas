@@ -1005,26 +1005,18 @@ export function registerMaintenanceRoutes(app: Express): void {
     const { buildingId } = req.params;
     
     try {
-      console.log('🔍 [INVENTORY DEBUG] Starting inventory request...');
-      console.log('🔍 [INVENTORY DEBUG] User:', user ? { id: user.id, role: user.role, email: user.email } : 'NO USER');
-      
       if (!user) {
-        console.log('❌ [INVENTORY DEBUG] No user authentication');
         return res.status(401).json({ error: 'Authentication required' });
       }
-      console.log('🔍 [INVENTORY DEBUG] Building ID:', buildingId);
       
       // Security: Validate UUID format
       if (!isValidUUID(buildingId)) {
-        console.log('❌ [INVENTORY DEBUG] Invalid UUID format');
         return res.status(400).json({ error: 'Invalid building ID format' });
       }
       
       // Security: Validate pagination parameters
-      console.log('🔍 [INVENTORY DEBUG] Query parameters:', req.query);
       const paginationValidation = paginationSchema.safeParse(req.query);
       if (!paginationValidation.success) {
-        console.log('❌ [INVENTORY DEBUG] Invalid pagination parameters:', paginationValidation.error.issues);
         return res.status(400).json({
           error: 'Invalid pagination parameters',
           details: paginationValidation.error.issues
@@ -1033,22 +1025,16 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const { page, limit, order } = paginationValidation.data;
       const offset = (page - 1) * limit;
-      console.log('🔍 [INVENTORY DEBUG] Pagination:', { page, limit, order, offset });
       
       // Check building access
-      console.log('🔍 [INVENTORY DEBUG] Checking building access for user:', user.id, 'role:', user.role);
       const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
-      console.log('🔍 [INVENTORY DEBUG] Building access result:', hasAccess);
       if (!hasAccess) {
-        console.log('❌ [INVENTORY DEBUG] No building access');
         return res.status(403).json({
           error: 'No access to this building'
         });
       }
       
       // Security: Get elements with pagination and count
-      console.log('🔍 [INVENTORY DEBUG] Starting database query...');
-      console.log('🔍 [INVENTORY DEBUG] Query params:', { buildingId, limit, offset, order });
       
       const [elements, totalCount] = await Promise.all([
         db
@@ -1100,14 +1086,8 @@ export function registerMaintenanceRoutes(app: Express): void {
           ))
       ]);
       
-      console.log('✅ [INVENTORY DEBUG] Database query successful');
-      console.log('🔍 [INVENTORY DEBUG] Elements found:', elements.length);
-      console.log('🔍 [INVENTORY DEBUG] Total count:', totalCount[0]?.count || 0);
-      
       const total = totalCount[0]?.count || 0;
       const totalPages = Math.ceil(total / limit);
-      
-      console.log('🔍 [INVENTORY DEBUG] Preparing response with pagination:', { total, totalPages });
       
       res.json({
         success: true,
@@ -1121,24 +1101,11 @@ export function registerMaintenanceRoutes(app: Express): void {
           hasPrev: page > 1
         }
       });
-      
-      console.log('✅ [INVENTORY DEBUG] Response sent successfully');
     } catch (error: any) {
-      console.error('❌ [INVENTORY DEBUG] Error in inventory endpoint:', error);
-      console.error('❌ [INVENTORY DEBUG] Error stack:', error.stack);
-      console.error('❌ [INVENTORY DEBUG] Error details:', {
-        message: error.message,
-        code: error.code,
-        name: error.name
-      });
+      console.error('Error fetching building elements:', error);
       res.status(500).json({
         error: 'Failed to fetch building elements',
-        details: error.message,
-        debugInfo: {
-          buildingId,
-          user: user ? { id: user.id, role: user.role } : null,
-          timestamp: new Date().toISOString()
-        }
+        details: error.message
       });
     }
   });
@@ -2785,28 +2752,17 @@ export function registerMaintenanceRoutes(app: Express): void {
     const { buildingId } = req.params;
     
     try {
-      console.log('🔍 [PROJECTS DEBUG] Starting projects request...');
-      console.log('🔍 [PROJECTS DEBUG] User:', user ? { id: user.id, role: user.role, email: user.email } : 'NO USER');
-      
       if (!user) {
-        console.log('❌ [PROJECTS DEBUG] No user authentication');
         return res.status(401).json({ error: 'Authentication required' });
       }
-      console.log('🔍 [PROJECTS DEBUG] Building ID:', buildingId);
       
       // Check building access
-      console.log('🔍 [PROJECTS DEBUG] Checking building access for user:', user.id, 'role:', user.role);
       const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
-      console.log('🔍 [PROJECTS DEBUG] Building access result:', hasAccess);
       if (!hasAccess) {
-        console.log('❌ [PROJECTS DEBUG] No building access');
         return res.status(403).json({
           error: 'No access to this building'
         });
       }
-      
-      console.log('🔍 [PROJECTS DEBUG] Starting database query...');
-      console.log('🔍 [PROJECTS DEBUG] Query params:', { buildingId });
       
       try {
         const projects = await db
@@ -2838,35 +2794,19 @@ export function registerMaintenanceRoutes(app: Express): void {
             desc(maintenanceProjects.createdAt)
           );
         
-        console.log('✅ [PROJECTS DEBUG] Database query successful');
-        console.log('🔍 [PROJECTS DEBUG] Projects found:', projects.length);
-        
         res.json({
           success: true,
           data: projects
         });
-        
-        console.log('✅ [PROJECTS DEBUG] Response sent successfully');
       } catch (dbError: any) {
-        console.error('❌ [PROJECTS DEBUG] Database query failed:', dbError);
+        console.error('Database query failed:', dbError);
         throw dbError;
       }
     } catch (error: any) {
-      console.error('❌ [PROJECTS DEBUG] Error in projects endpoint:', error);
-      console.error('❌ [PROJECTS DEBUG] Error stack:', error.stack);
-      console.error('❌ [PROJECTS DEBUG] Error details:', {
-        message: error.message,
-        code: error.code,
-        name: error.name
-      });
+      console.error('Error fetching maintenance projects:', error);
       res.status(500).json({
         error: 'Failed to fetch maintenance projects',
-        details: error.message,
-        debugInfo: {
-          buildingId,
-          user: user ? { id: user.id, role: user.role } : null,
-          timestamp: new Date().toISOString()
-        }
+        details: error.message
       });
     }
   });
@@ -5535,24 +5475,13 @@ export function registerMaintenanceRoutes(app: Express): void {
    */
   app.get('/api/maintenance/buildings/:buildingId/auto-projects', requireAuth, async (req: any, res) => {
     try {
-      console.log('🔍 [AUTO-PROJECTS] Endpoint called');
-      console.log('🔍 [AUTO-PROJECTS] Request params:', { buildingId: req.params.buildingId });
-      console.log('🔍 [AUTO-PROJECTS] Request query:', req.query);
-      
       const user = req.user;
-      console.log('🔍 [AUTO-PROJECTS] User check:', { 
-        hasUser: !!user, 
-        userId: user?.id, 
-        userRole: user?.role 
-      });
       
       if (!user) {
-        console.log('❌ [AUTO-PROJECTS] No user found - returning 401');
         return res.status(401).json({ error: 'Authentication required' });
       }
 
       const { buildingId } = req.params;
-      console.log('🔍 [AUTO-PROJECTS] Building ID extracted:', buildingId);
       if (!isValidUUID(buildingId)) {
         return res.status(400).json({ error: 'Invalid building ID format' });
       }
@@ -5567,33 +5496,25 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
 
       const { status, page, limit } = validation.data;
-      console.log('🔍 [AUTO-PROJECTS] Validated query params:', { status, page, limit });
 
       // Check building access
-      console.log('🔍 [AUTO-PROJECTS] Checking building access...');
       const hasAccess = await checkBuildingAccess(user.id, buildingId, user.role);
-      console.log('🔍 [AUTO-PROJECTS] Building access result:', hasAccess);
       
       if (!hasAccess) {
-        console.log('❌ [AUTO-PROJECTS] Access denied - returning 403');
         return res.status(403).json({
           error: 'No access to this building'
         });
       }
 
       // Build query conditions
-      console.log('🔍 [AUTO-PROJECTS] Building query conditions...');
       const conditions = [eq(autoGeneratedProjects.buildingId, buildingId)];
       if (status) {
         conditions.push(eq(autoGeneratedProjects.status, status));
       }
-      console.log('🔍 [AUTO-PROJECTS] Query conditions:', { buildingId, status, page, limit });
 
       const offset = (page - 1) * limit;
-      console.log('🔍 [AUTO-PROJECTS] Pagination:', { page, limit, offset });
 
       // Get auto-generated projects with element details
-      console.log('🔍 [AUTO-PROJECTS] Executing database query...');
       const projects = await db
         .select({
           id: autoGeneratedProjects.id,
@@ -5631,12 +5552,6 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const totalCount = totalCountResult[0]?.count || 0;
       const totalPages = Math.ceil(totalCount / limit);
-      
-      console.log('✅ [AUTO-PROJECTS] Query successful:', { 
-        projectsCount: projects.length, 
-        totalCount, 
-        totalPages 
-      });
 
       res.json({
         success: true,
@@ -5652,17 +5567,11 @@ export function registerMaintenanceRoutes(app: Express): void {
       });
 
     } catch (error: any) {
-      console.error('❌ [AUTO-PROJECTS] ERROR CAUGHT:');
-      console.error('❌ [AUTO-PROJECTS] Error message:', error.message);
-      console.error('❌ [AUTO-PROJECTS] Error stack:', error.stack);
-      console.error('❌ [AUTO-PROJECTS] Error name:', error.name);
-      console.error('❌ [AUTO-PROJECTS] Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+      console.error('Error fetching auto-generated projects:', error);
       
       res.status(500).json({
         error: 'Failed to fetch auto-generated projects',
-        details: error.message,
-        errorName: error.name,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        details: error.message
       });
     }
   });
@@ -6276,13 +6185,6 @@ export function registerMaintenanceRoutes(app: Express): void {
       // Calculate UI properties for the frontend
       const accessibleTabs = calculateAccessibleTabs(workflowState.currentStatus, workflowState.skipFlags);
       const firstIncompleteTab = calculateFirstIncompleteTab(workflowState.currentStatus, workflowState.skipFlags);
-      
-      console.log('🔍 [WORKFLOW API] Calculated values:', {
-        currentStatus: workflowState.currentStatus,
-        skipFlags: workflowState.skipFlags,
-        accessibleTabs,
-        firstIncompleteTab
-      });
 
       // Create response matching frontend interface expectations
       const projectWorkflowState = {
@@ -6299,8 +6201,6 @@ export function registerMaintenanceRoutes(app: Express): void {
         accessibleTabs,
         firstIncompleteTab,
       };
-
-      console.log('🔍 [WORKFLOW API] Final response data:', projectWorkflowState);
 
       res.json({
         success: true,

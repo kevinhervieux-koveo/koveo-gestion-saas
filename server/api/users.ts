@@ -75,10 +75,6 @@ export function registerUserRoutes(app: Express): void {
         search: req.query.search
       });
       
-      // Special debug for orphan filter
-      if (req.query.orphan) {
-        console.log('👻 [API DEBUG] Orphan filter detected:', req.query.orphan, typeof req.query.orphan);
-      }
 
       // Apply role-based prefiltering at database level
       let roleBasedFilters = { ...filters };
@@ -658,37 +654,19 @@ export function registerUserRoutes(app: Express): void {
 
   // Admin-only endpoint to delete orphan users
   app.delete('/api/users/orphans', requireAuth, async (req: any, res) => {
-    console.log('🔥 [DELETE ORPHANS API] ===== DELETE ORPHAN USERS REQUEST STARTED =====');
-    console.log('⏰ [DELETE ORPHANS API] Request timestamp:', new Date().toISOString());
-    console.log('🛡️ [DELETE ORPHANS API] Request authentication info:', {
-      userId: req.user?.id,
-      userEmail: req.user?.email,
-      userRole: req.user?.role,
-      sessionExists: !!req.session,
-      sessionId: req.session?.id
-    });
-
     try {
-      console.log('🗑️ [DELETE ORPHANS API] Processing request from user:', req.user?.id, 'role:', req.user?.role);
-      
       // Check if user is admin
       if (req.user?.role !== 'admin') {
-        console.log('❌ [DELETE ORPHANS API] Access denied - user role is:', req.user?.role, '(expected: admin)');
         return res.status(403).json({ 
           error: 'Access denied. Admin role required.',
           userRole: req.user?.role 
         });
       }
 
-      console.log('✅ [DELETE ORPHANS API] Admin authorization confirmed');
-      console.log('🔍 [DELETE ORPHANS API] Calling storage.countOrphanUsers()...');
-
       // Get count of orphan users before deletion
       const orphanCount = await storage.countOrphanUsers();
-      console.log('📊 [DELETE ORPHANS API] Storage returned orphan count:', orphanCount);
 
       if (orphanCount === 0) {
-        console.log('ℹ️ [DELETE ORPHANS API] No orphan users found, returning success with 0 count');
         return res.json({ 
           success: true, 
           message: 'No orphan users found to delete',
@@ -696,25 +674,8 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      console.log('🚀 [DELETE ORPHANS API] Proceeding with deletion of', orphanCount, 'orphan users');
-      console.log('🔒 [DELETE ORPHANS API] Excluding current admin user:', req.user.id);
-      console.log('🔍 [DELETE ORPHANS API] Calling storage.deleteOrphanUsers()...');
-
       // Delete orphan users (excluding current admin)
-      const startTime = Date.now();
       const deletedCount = await storage.deleteOrphanUsers(req.user.id);
-      const endTime = Date.now();
-      
-      console.log('⏱️ [DELETE ORPHANS API] Storage operation completed in:', (endTime - startTime), 'ms');
-      console.log('📈 [DELETE ORPHANS API] Storage returned deleted count:', deletedCount);
-
-      if (deletedCount !== orphanCount) {
-        console.log('⚠️ [DELETE ORPHANS API] Warning: Deleted count differs from initial count:', {
-          initialCount: orphanCount,
-          deletedCount: deletedCount,
-          difference: orphanCount - deletedCount
-        });
-      }
 
       const responseData = { 
         success: true, 
@@ -722,9 +683,6 @@ export function registerUserRoutes(app: Express): void {
         deletedCount,
         initialCount: orphanCount
       };
-
-      console.log('✅ [DELETE ORPHANS API] Operation completed successfully:', responseData);
-      console.log('🔥 [DELETE ORPHANS API] ===== DELETE ORPHAN USERS REQUEST COMPLETED =====');
       
       res.json(responseData);
 
