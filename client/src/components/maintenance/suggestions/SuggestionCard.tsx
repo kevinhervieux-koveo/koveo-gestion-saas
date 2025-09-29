@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { format, formatDistanceToNow, isAfter, isBefore, addMonths } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { format, formatDistanceToNow, addMonths } from 'date-fns';
+import { StandardCard } from '@/components/common/StandardCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import {
   DropdownMenu,
@@ -212,224 +211,235 @@ export function SuggestionCard({
 
   const UrgencyIcon = urgencyMetrics.icon;
 
-  return (
-    <>
-      <Card 
-        className={cn(
-          "transition-shadow hover:shadow-md",
-          compact && "p-2",
-          className
-        )}
-        data-testid={`suggestion-card-${suggestion.id}`}
-      >
-        <CardHeader className={cn("pb-3", compact && "pb-2 px-3 pt-3")}>
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <CardTitle className={cn(
-                "text-base leading-tight",
-                compact && "text-sm"
-              )}>
-                {suggestion.element?.name || 'Unknown Element'}
-              </CardTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className="text-xs">
-                  {suggestion.suggestedType.replace('_', ' ')}
-                </Badge>
-                <PriorityBadge priority={suggestion.priority} size="sm" />
-                <EvaluationStatusBadge status={suggestion.status} size="sm" />
-              </div>
-            </div>
+  // Get urgency/priority based icon
+  const getSuggestionIcon = () => {
+    return <UrgencyIcon className="w-5 h-5" style={{ color: urgencyMetrics.color.split(' ')[0].replace('text-', '') }} />;
+  };
 
-            {/* Urgency Indicator */}
-            <div className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded-md border text-xs font-medium",
-              urgencyMetrics.color
-            )}>
-              <UrgencyIcon className="h-3 w-3" />
-              {urgencyMetrics.isOverdue ? 'Overdue' : `${urgencyMetrics.daysUntilDue}d`}
+  // Build badges array for StandardCard - only show in non-compact mode
+  const badges = !compact ? [
+    {
+      text: suggestion.suggestedType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      variant: 'outline' as const,
+      className: 'text-xs'
+    },
+    // Priority badge
+    suggestion.priority && {
+      text: suggestion.priority.charAt(0).toUpperCase() + suggestion.priority.slice(1),
+      variant: suggestion.priority === 'critical' ? 'destructive' as const : 
+               suggestion.priority === 'high' ? 'outline' as const : 'secondary' as const,
+      className: 'text-xs'
+    },
+    // Status badge
+    suggestion.status && {
+      text: suggestion.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      variant: suggestion.status === 'completed' ? 'default' as const : 'secondary' as const,
+      className: 'text-xs'
+    },
+    // Urgency indicator as badge
+    {
+      text: urgencyMetrics.isOverdue ? 'Overdue' : `${urgencyMetrics.daysUntilDue}d`,
+      variant: urgencyMetrics.level === 'critical' ? 'destructive' as const : 'outline' as const,
+      className: cn('text-xs font-medium', urgencyMetrics.color)
+    }
+  ].filter(Boolean) : [
+    // In compact mode, only show urgency
+    {
+      text: urgencyMetrics.isOverdue ? 'Overdue' : `${urgencyMetrics.daysUntilDue}d`,
+      variant: urgencyMetrics.level === 'critical' ? 'destructive' as const : 'outline' as const,
+      className: cn('text-xs font-medium', urgencyMetrics.color)
+    }
+  ];
+
+  // Build actions array for StandardCard
+  const actions = showActions ? [
+    hasPermission('canEditMaintenance') && suggestion.status === 'pending' && {
+      icon: <CheckCircle className="w-4 h-4" />,
+      label: 'Accept suggestion',
+      text: !compact ? 'Accept' : undefined,
+      onClick: handleAccept,
+      variant: 'default' as const,
+      testId: `accept-suggestion-${suggestion.id}`
+    },
+    hasPermission('canEditMaintenance') && suggestion.status === 'pending' && !compact && {
+      icon: <Wrench className="w-4 h-4" />,
+      label: 'Create project',
+      text: 'Project',
+      onClick: handleCreateProject,
+      variant: 'outline' as const,
+      testId: `create-project-${suggestion.id}`
+    },
+    {
+      icon: <Eye className="w-4 h-4" />,
+      label: 'View details',
+      text: !compact ? 'Details' : undefined,
+      onClick: () => onViewDetails?.(suggestion),
+      variant: 'ghost' as const,
+      testId: `view-details-${suggestion.id}`
+    }
+  ].filter(Boolean) : [];
+
+  // Build metadata array for StandardCard
+  const metadata = !compact ? [
+    suggestion.costEstimate && {
+      icon: <DollarSign className="w-3 h-3" />,
+      label: 'Est',
+      value: `$${suggestion.costEstimate.toLocaleString()}`
+    },
+    {
+      icon: <Calendar className="w-3 h-3" />,
+      label: 'Due',
+      value: format(new Date(suggestion.suggestedDate), 'MMM d')
+    },
+    suggestion.element && {
+      icon: <Building className="w-3 h-3" />,
+      label: 'Condition',
+      value: suggestion.element.currentCondition.charAt(0).toUpperCase() + suggestion.element.currentCondition.slice(1)
+    }
+  ].filter(Boolean) : [];
+
+  // Children content (detailed metrics and actions)
+  const childrenContent = (
+    <div className="space-y-3">
+      {/* Key Metrics Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        {suggestion.costEstimate && (
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-green-600" />
+            <div>
+              <div className="text-sm font-medium">
+                ${suggestion.costEstimate.toLocaleString()}
+              </div>
+              <div className="text-xs text-muted-foreground">Estimate</div>
             </div>
           </div>
-        </CardHeader>
+        )}
 
-        <CardContent className={cn("pt-0", compact && "px-3 pb-3")}>
-          {/* Suggestion Reason */}
-          <p className={cn(
-            "text-sm text-muted-foreground mb-3 line-clamp-2",
-            compact && "text-xs mb-2"
-          )}>
-            {suggestion.reason}
-          </p>
-
-          {/* Key Metrics */}
-          {!compact && (
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              {/* Cost Estimate */}
-              {suggestion.costEstimate && (
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-green-600" />
-                  <div>
-                    <div className="text-sm font-medium">
-                      ${suggestion.costEstimate.toLocaleString()}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Estimate</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Due Date */}
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-blue-600" />
-                <div>
-                  <div className="text-sm font-medium">
-                    {format(new Date(suggestion.suggestedDate), 'MMM d')}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(suggestion.suggestedDate))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Element Condition */}
-              {suggestion.element && (
-                <div className="flex items-center gap-2">
-                  <Building className="h-4 w-4 text-purple-600" />
-                  <div>
-                    <div className="text-sm font-medium capitalize">
-                      {suggestion.element.currentCondition}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Condition</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Seasonal Factor */}
-              {suggestion.seasonalFactor && (
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-orange-600" />
-                  <div>
-                    <div className={cn("text-sm font-medium px-2 py-0.5 rounded", seasonalStyling)}>
-                      {suggestion.seasonalFactor}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Timing</div>
-                  </div>
-                </div>
-              )}
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-blue-600" />
+          <div>
+            <div className="text-sm font-medium">
+              {format(new Date(suggestion.suggestedDate), 'MMM d')}
             </div>
-          )}
-
-          {/* Lifespan Progress */}
-          {lifespanProgress && !compact && (
-            <div className="mb-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                <span>Element Lifespan</span>
-                <span>{lifespanProgress.current}/{lifespanProgress.total} years ({lifespanProgress.percentage.toFixed(0)}%)</span>
-              </div>
-              <Progress 
-                value={lifespanProgress.percentage} 
-                className="h-2"
-                data-testid={`lifespan-progress-${suggestion.id}`}
-              />
+            <div className="text-xs text-muted-foreground">
+              {formatDistanceToNow(new Date(suggestion.suggestedDate))}
             </div>
-          )}
+          </div>
+        </div>
 
-          {/* Actions */}
-          {showActions && (
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-1">
-                {hasPermission('canEditMaintenance') && suggestion.status === 'pending' && (
-                  <>
-                    <Button
-                      size="sm"
-                      onClick={handleAccept}
-                      disabled={acceptMutation.isPending}
-                      className="text-xs"
-                      data-testid={`accept-suggestion-${suggestion.id}`}
-                    >
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Accept
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleCreateProject}
-                      className="text-xs"
-                      data-testid={`create-project-${suggestion.id}`}
-                    >
-                      <Wrench className="h-3 w-3 mr-1" />
-                      Project
-                    </Button>
-                  </>
-                )}
-
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onViewDetails?.(suggestion)}
-                  className="text-xs"
-                  data-testid={`view-details-${suggestion.id}`}
-                >
-                  <Eye className="h-3 w-3 mr-1" />
-                  Details
-                </Button>
+        {suggestion.element && (
+          <div className="flex items-center gap-2">
+            <Building className="h-4 w-4 text-purple-600" />
+            <div>
+              <div className="text-sm font-medium capitalize">
+                {suggestion.element.currentCondition}
               </div>
-
-              {/* More Actions Menu */}
-              {hasPermission('canEditMaintenance') && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      data-testid={`more-actions-${suggestion.id}`}
-                    >
-                      <MoreHorizontal className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleSchedule}>
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Schedule
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDefer?.(suggestion, addMonths(new Date(), 3))}>
-                      <Clock className="h-4 w-4 mr-2" />
-                      Defer 3 Months
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Edit2 className="h-4 w-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Duplicate
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      className="text-red-600"
-                      onClick={handleDismiss}
-                      disabled={dismissMutation.isPending}
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Dismiss
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+              <div className="text-xs text-muted-foreground">Condition</div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Project Link */}
-          {suggestion.project && (
-            <div className="mt-2 pt-2 border-t">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <FileText className="h-3 w-3" />
-                <span>Linked to project: {suggestion.project.projectNumber}</span>
+        {suggestion.seasonalFactor && (
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-orange-600" />
+            <div>
+              <div className={cn("text-sm font-medium px-2 py-0.5 rounded", seasonalStyling)}>
+                {suggestion.seasonalFactor}
               </div>
+              <div className="text-xs text-muted-foreground">Timing</div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </div>
+
+      {/* Lifespan Progress */}
+      {lifespanProgress && (
+        <div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+            <span>Element Lifespan</span>
+            <span>{lifespanProgress.current}/{lifespanProgress.total} years ({lifespanProgress.percentage.toFixed(0)}%)</span>
+          </div>
+          <Progress 
+            value={lifespanProgress.percentage} 
+            className="h-2"
+            data-testid={`lifespan-progress-${suggestion.id}`}
+          />
+        </div>
+      )}
+
+      {/* More Actions Menu */}
+      {hasPermission('canEditMaintenance') && (
+        <div className="flex justify-end pt-2 border-t">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                data-testid={`more-actions-${suggestion.id}`}
+              >
+                <MoreHorizontal className="h-3 w-3 mr-1" />
+                More Actions
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleSchedule}>
+                <Calendar className="h-4 w-4 mr-2" />
+                Schedule
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onDefer?.(suggestion, addMonths(new Date(), 3))}>
+                <Clock className="h-4 w-4 mr-2" />
+                Defer 3 Months
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-red-600"
+                onClick={handleDismiss}
+                disabled={dismissMutation.isPending}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Dismiss
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+
+      {/* Project Link */}
+      {suggestion.project && (
+        <div className="pt-2 border-t">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <FileText className="h-3 w-3" />
+            <span>Linked to project: {suggestion.project.projectNumber}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      <StandardCard
+        title={suggestion.element?.name || 'Unknown Element'}
+        description={!compact ? suggestion.reason : undefined}
+        icon={getSuggestionIcon()}
+        badges={badges}
+        actions={actions}
+        metadata={metadata}
+        spacing={compact ? 'compact' : 'normal'}
+        className={className}
+        testId={`suggestion-card-${suggestion.id}`}
+      >
+        {!compact && childrenContent}
+      </StandardCard>
 
       {/* Dismiss Confirmation Dialog */}
       <AlertDialog open={showDismissDialog} onOpenChange={setShowDismissDialog}>

@@ -1,26 +1,21 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format, differenceInYears, parseISO } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StandardCard } from '@/components/common/StandardCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
-// import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import {
   Edit2,
   Clock,
-  Camera,
-  AlertTriangle,
   Calendar,
   DollarSign,
-  Building,
   FileText,
-  TrendingUp,
-  Info,
+  Package,
 } from 'lucide-react';
 
 interface ElementCardProps {
@@ -124,240 +119,244 @@ export function ElementCard({
 
   const canEdit = hasPermission();
 
-  return (
-    <Card 
-      className={cn(
-        'hover:shadow-md transition-shadow duration-200',
-        compact ? 'p-3' : '',
-        className
-      )} 
-      data-testid={`element-card-${element.id}`}
-    >
-      <CardHeader className={cn('space-y-3', compact ? 'pb-3' : 'pb-4')}>
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0 space-y-2">
-            <CardTitle className={cn('text-lg leading-tight', compact ? 'text-base' : '')}>
-              <div className="flex items-center gap-2">
-                <span className="truncate" data-testid={`element-name-${element.id}`}>
-                  {element.name}
-                </span>
-                <Badge variant="outline" className="text-xs flex-shrink-0">
-                  {element.uniformatCode}
-                </Badge>
-              </div>
-            </CardTitle>
-            
-            {element.description && !compact && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {element.description}
-              </p>
-            )}
-            
-            <div className="flex items-center gap-2">
-              <ConditionBadge 
-                condition={element.currentCondition} 
-                size="sm"
-                data-testid={`condition-badge-${element.id}`}
-              />
-              
-              {evaluationUrgency && (
-                <Badge 
-                  variant={evaluationUrgency.variant} 
-                  className="text-xs"
-                  data-testid={`evaluation-urgency-${element.id}`}
-                >
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {evaluationUrgency.label}
-                </Badge>
-              )}
-            </div>
-          </div>
+  // Get element icon based on uniformat code or type
+  const getElementIcon = () => {
+    return <Package className="w-5 h-5 text-blue-500" />;
+  };
 
-          {showActions && (
-            <div className="flex items-center gap-1 ml-2">
-              {canEdit && onEdit && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(element)}
-                  data-testid={`edit-element-${element.id}`}
-                >
-                  <Edit2 className="h-4 w-4" />
-                  {!compact && <span className="ml-1">Edit</span>}
-                </Button>
-              )}
-            </div>
-          )}
+  // Build badges array for StandardCard - only show in non-compact mode
+  const badges = !compact ? [
+    {
+      text: element.uniformatCode,
+      variant: 'outline' as const,
+      className: 'text-xs'
+    },
+    // Use ConditionBadge component for condition display - but need to map to badge format
+    element.currentCondition && {
+      text: element.currentCondition.charAt(0).toUpperCase() + element.currentCondition.slice(1),
+      variant: element.currentCondition === 'critical' ? 'destructive' as const : 
+               element.currentCondition === 'poor' ? 'outline' as const : 'secondary' as const,
+      className: 'text-xs'
+    },
+    evaluationUrgency && {
+      text: evaluationUrgency.label,
+      variant: evaluationUrgency.variant,
+      className: 'text-xs'
+    }
+  ].filter(Boolean) : [];
+
+  // Build actions array for StandardCard
+  const actions = showActions ? [
+    canEdit && onEdit && {
+      icon: <Edit2 className="w-4 h-4" />,
+      label: 'Edit element',
+      text: !compact ? 'Edit' : undefined,
+      onClick: () => onEdit(element),
+      variant: 'ghost' as const,
+      testId: `edit-element-${element.id}`
+    }
+  ].filter(Boolean) : [];
+
+  // Build metadata array for StandardCard - only show in non-compact mode
+  const metadata = !compact ? [
+    element.originalConstructionDate && {
+      icon: <Calendar className="w-3 h-3" />,
+      label: 'Built',
+      value: format(parseISO(element.originalConstructionDate), 'MMM yyyy')
+    },
+    element.lastInspectionDate && {
+      icon: <Clock className="w-3 h-3" />,
+      label: 'Last Inspection',
+      value: format(parseISO(element.lastInspectionDate), 'MMM yyyy')
+    }
+  ].filter(Boolean) : [];
+
+  // Photo preview component
+  const photoPreview = showPhotos && !compact && photos.length > 0 && (
+    <div className="flex gap-2 overflow-x-auto mb-3">
+      {photos.slice(0, 3).map((photo: any, index: number) => (
+        <div
+          key={photo.id}
+          className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-muted"
+          data-testid={`photo-preview-${index}`}
+        >
+          <img
+            src={photo.url}
+            alt={`${element.name} photo ${index + 1}`}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
         </div>
+      ))}
+      {photos.length > 3 && (
+        <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
+          +{photos.length - 3}
+        </div>
+      )}
+      {isLoadingPhotos && (
+        <Skeleton className="w-16 h-16 rounded-md" />
+      )}
+    </div>
+  );
 
-        {/* Photo preview */}
-        {showPhotos && !compact && photos.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto">
-            {photos.slice(0, 3).map((photo: any, index: number) => (
+  // Children content (detailed info - only shown in non-compact mode)
+  const childrenContent = (
+    <div className="space-y-4">
+      {/* Photo preview */}
+      {photoPreview}
+
+      {/* Age and Lifespan */}
+      <div className="space-y-2" data-testid={`lifespan-info-${element.id}`}>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Age / Lifespan</span>
+          <span className="font-medium">
+            {elementAge} / {element.currentLifespan || element.originalLifespan || '—'} years
+          </span>
+        </div>
+        
+        {element.originalLifespan && (
+          <div className="space-y-1">
+            <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
               <div
-                key={photo.id}
-                className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0 bg-muted"
-                data-testid={`photo-preview-${index}`}
-              >
-                <img
-                  src={photo.url}
-                  alt={`${element.name} photo ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-            {photos.length > 3 && (
-              <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
-                +{photos.length - 3}
-              </div>
-            )}
-            {isLoadingPhotos && (
-              <Skeleton className="w-16 h-16 rounded-md" />
-            )}
+                className={cn(
+                  "h-2 rounded-full transition-all",
+                  lifespanProgress > 80 ? "bg-red-500" : 
+                  lifespanProgress > 60 ? "bg-yellow-500" : "bg-green-500"
+                )}
+                style={{ width: `${Math.min(lifespanProgress, 100)}%` }}
+              />
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {lifespanProgress.toFixed(0)}% of expected lifespan
+            </div>
           </div>
         )}
-      </CardHeader>
+      </div>
 
-      <CardContent className={cn('space-y-4', compact ? 'pt-0' : '')}>
-        {/* Age and Lifespan */}
-        <div className="space-y-2" data-testid={`lifespan-info-${element.id}`}>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Age / Lifespan</span>
-            <span className="font-medium">
-              {elementAge} / {element.currentLifespan || element.originalLifespan || '—'} years
-            </span>
+      {/* Key Dates */}
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <div className="text-muted-foreground mb-1">Construction</div>
+          <div className="font-medium">
+            {element.originalConstructionDate 
+              ? format(parseISO(element.originalConstructionDate), 'MMM yyyy')
+              : 'Unknown'
+            }
           </div>
-          
-          {element.originalLifespan && (
-            <div className="space-y-1">
-              <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                <div
-                  className={cn(
-                    "h-2 rounded-full transition-all",
-                    lifespanProgress > 80 ? "bg-red-500" : 
-                    lifespanProgress > 60 ? "bg-yellow-500" : "bg-green-500"
-                  )}
-                  style={{ width: `${Math.min(lifespanProgress, 100)}%` }}
-                />
+        </div>
+        
+        <div>
+          <div className="text-muted-foreground mb-1">Last Inspection</div>
+          <div className="font-medium">
+            {element.lastInspectionDate 
+              ? format(parseISO(element.lastInspectionDate), 'MMM yyyy')
+              : 'Never'
+            }
+          </div>
+        </div>
+      </div>
+
+      {/* Next Evaluation */}
+      {element.nextEvaluationDate && (
+        <div className="space-y-2">
+          <div className="text-sm text-muted-foreground">Next Evaluation</div>
+          <div className="flex items-center justify-between">
+            <span className="font-medium">
+              {format(parseISO(element.nextEvaluationDate), 'MMM d, yyyy')}
+            </span>
+            {evaluationUrgency && (
+              <Badge variant={evaluationUrgency.variant} className="text-xs">
+                {evaluationUrgency.label}
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Metrics */}
+      {showMetrics && (
+        <div className="pt-2 border-t">
+          {isLoadingMetrics ? (
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-12" />
+              <Skeleton className="h-12" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="space-y-1" data-testid={`cost-metrics-${element.id}`}>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <DollarSign className="h-3 w-3" />
+                  Total Cost
+                </div>
+                <div className="font-medium">
+                  ${metrics.totalCost.toLocaleString()}
+                </div>
+                {metrics.averageCostPerYear > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    ${metrics.averageCostPerYear.toLocaleString()}/year avg
+                  </div>
+                )}
               </div>
-              <div className="text-xs text-muted-foreground">
-                {lifespanProgress.toFixed(0)}% of expected lifespan
+              
+              <div className="space-y-1" data-testid={`activity-metrics-${element.id}`}>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <FileText className="h-3 w-3" />
+                  Activity
+                </div>
+                <div className="font-medium">
+                  {metrics.historyCount} entries
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {metrics.documentCount} documents
+                </div>
               </div>
             </div>
           )}
         </div>
+      )}
 
-        {/* Key Dates */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <div className="text-muted-foreground mb-1">Construction</div>
-            <div className="font-medium">
-              {element.originalConstructionDate 
-                ? format(parseISO(element.originalConstructionDate), 'MMM yyyy')
-                : 'Unknown'
-              }
-            </div>
-          </div>
-          
-          <div>
-            <div className="text-muted-foreground mb-1">Last Inspection</div>
-            <div className="font-medium">
-              {element.lastInspectionDate 
-                ? format(parseISO(element.lastInspectionDate), 'MMM yyyy')
-                : 'Never'
-              }
-            </div>
-          </div>
-        </div>
-
-        {/* Next Evaluation */}
-        {element.nextEvaluationDate && (
-          <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">Next Evaluation</div>
-            <div className="flex items-center justify-between">
-              <span className="font-medium">
-                {format(parseISO(element.nextEvaluationDate), 'MMM d, yyyy')}
-              </span>
-              {evaluationUrgency && (
-                <Badge variant={evaluationUrgency.variant} className="text-xs">
-                  {evaluationUrgency.label}
-                </Badge>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Metrics */}
-        {showMetrics && !compact && (
-          <div className="pt-2 border-t">
-            {isLoadingMetrics ? (
-              <div className="grid grid-cols-2 gap-4">
-                <Skeleton className="h-12" />
-                <Skeleton className="h-12" />
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="space-y-1" data-testid={`cost-metrics-${element.id}`}>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <DollarSign className="h-3 w-3" />
-                    Total Cost
-                  </div>
-                  <div className="font-medium">
-                    ${metrics.totalCost.toLocaleString()}
-                  </div>
-                  {metrics.averageCostPerYear > 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      ${metrics.averageCostPerYear.toLocaleString()}/year avg
-                    </div>
-                  )}
-                </div>
-                
-                <div className="space-y-1" data-testid={`activity-metrics-${element.id}`}>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <FileText className="h-3 w-3" />
-                    Activity
-                  </div>
-                  <div className="font-medium">
-                    {metrics.historyCount} entries
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {metrics.documentCount} documents
-                  </div>
-                </div>
-              </div>
+      {/* Quick Actions */}
+      {showActions && (
+        <div className="pt-2 border-t">
+          <div className="flex items-center gap-2">
+            {onViewTimeline && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onViewTimeline(element)}
+                data-testid={`view-timeline-${element.id}`}
+              >
+                <Clock className="h-4 w-4 mr-1" />
+                Timeline
+              </Button>
             )}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Quick Actions */}
-        {showActions && !compact && (
-          <div className="pt-2 border-t">
-            <div className="flex items-center gap-2">
-              
-              {onViewTimeline && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onViewTimeline(element)}
-                  data-testid={`view-timeline-${element.id}`}
-                >
-                  <Clock className="h-4 w-4 mr-1" />
-                  Timeline
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
+      {/* Unit and Value */}
+      {(element.unit || element.unitValue) && (
+        <div className="text-sm text-muted-foreground" data-testid={`unit-value-${element.id}`}>
+          {element.unitValue} {element.unit}
+        </div>
+      )}
+    </div>
+  );
 
-        {/* Unit and Value */}
-        {(element.unit || element.unitValue) && (
-          <div className="text-sm text-muted-foreground" data-testid={`unit-value-${element.id}`}>
-            {element.unitValue} {element.unit}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+  return (
+    <StandardCard
+      title={element.name}
+      description={!compact ? element.description : undefined}
+      icon={getElementIcon()}
+      badges={badges}
+      actions={actions}
+      metadata={metadata}
+      spacing={compact ? 'compact' : 'normal'}
+      className={className}
+      testId={`element-card-${element.id}`}
+    >
+      {!compact && childrenContent}
+    </StandardCard>
   );
 }
 
