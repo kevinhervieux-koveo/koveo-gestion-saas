@@ -153,7 +153,7 @@ export function DocumentCreateForm({
 
       if (!response.ok) {
         const errorText = await response.text();
-        let errorData = {};
+        let errorData: { error?: string; message?: string } = {};
         try {
           errorData = JSON.parse(errorText);
         } catch (e) {

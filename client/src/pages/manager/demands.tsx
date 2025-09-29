@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, AlertCircle, Clock, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,6 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { Header } from '@/components/layout/header';
+import { useFilterSort, FilterSortConfig } from '@/lib/filter-sort';
 import type { Demand as DemandType } from '@/../../shared/schema';
 
 // Types - extending the base Demand type with populated relations
@@ -126,9 +127,6 @@ export default function ManagerDemandsPage() {
     }
   };
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedDemand, setSelectedDemand] = useState<Demand | null>(null);
   const [isNewDemandOpen, setIsNewDemandOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -218,20 +216,79 @@ export default function ManagerDemandsPage() {
     },
   });
 
-  // Filter demands - ensure demands is an array
-  const demandsArray = Array.isArray(demands) ? demands : [];
-  const filteredDemands = demandsArray.filter((demand: Demand) => {
-    const matchesSearch =
-      demand.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getTypeLabel(demand.type)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      demand.submitter?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      demand.submitter?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      demand.building?.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || demand.status === statusFilter;
-    const matchesType = typeFilter === 'all' || demand.type === typeFilter;
+  // Configure filter/sort for demands
+  const filterSortConfig: FilterSortConfig = useMemo(() => ({
+    filters: [
+      {
+        id: 'status',
+        field: 'status',
+        label: t('status'),
+        type: 'select',
+        icon: Clock,
+        options: [
+          { label: t('submitted'), value: 'submitted' },
+          { label: t('underReview'), value: 'under_review' },
+          { label: t('approved'), value: 'approved' },
+          { label: t('inProgress'), value: 'in_progress' },
+          { label: t('completed'), value: 'completed' },
+          { label: t('rejected'), value: 'rejected' },
+          { label: t('cancelled'), value: 'cancelled' },
+          { label: t('draft'), value: 'draft' },
+        ],
+        defaultOperator: 'equals',
+      },
+      {
+        id: 'type',
+        field: 'type',
+        label: t('type'),
+        type: 'select',
+        icon: FileText,
+        options: [
+          { label: t('maintenanceType'), value: 'maintenance' },
+          { label: t('complaintType'), value: 'complaint' },
+          { label: t('informationType'), value: 'information' },
+          { label: t('otherType'), value: 'other' },
+        ],
+        defaultOperator: 'equals',
+      },
+    ],
+    sortOptions: [
+      { field: 'createdAt', label: t('created'), defaultDirection: 'desc' },
+      { field: 'updatedAt', label: 'Updated', defaultDirection: 'desc' },
+      { field: 'status', label: t('status') },
+      { field: 'type', label: t('type') },
+    ],
+    searchable: true,
+    searchPlaceholder: t('searchDemands'),
+    searchFields: ['description', 'type', 'submitter.firstName', 'submitter.lastName', 'building.name'],
+    allowMultipleFilters: false,
+    persistState: true,
+    storageKey: 'manager-demands-filters',
+  }), [t]);
 
-    return matchesSearch && matchesStatus && matchesType;
+  // Ensure demands is an array
+  const demandsArray = Array.isArray(demands) ? demands : [];
+
+  // Use filter/sort hook
+  const {
+    filteredData: filteredDemands,
+    filters,
+    setSearch,
+    search,
+    addFilter,
+    removeFilter,
+    clearFilters,
+  } = useFilterSort({
+    data: demandsArray,
+    config: filterSortConfig,
+    initialState: {
+      sort: { field: 'createdAt', direction: 'desc' },
+    },
   });
+
+  // Get current filter values for backward compatibility with existing UI
+  const statusFilter = filters.find(f => f.field === 'status')?.value || 'all';
+  const typeFilter = filters.find(f => f.field === 'type')?.value || 'all';
 
   // Group demands by status for manager view
   const pendingDemands = filteredDemands.filter((d: Demand) =>
@@ -433,12 +490,22 @@ export default function ManagerDemandsPage() {
               <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
               <Input
                 placeholder={t('searchDemands')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className='pl-10'
+                data-testid='input-search-demands'
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select
+              value={String(statusFilter)}
+              onValueChange={(value) => {
+                if (value === 'all') {
+                  removeFilter('status');
+                } else {
+                  addFilter({ field: 'status', operator: 'equals', value });
+                }
+              }}
+            >
               <SelectTrigger className='w-40'>
                 <SelectValue placeholder={t('status')} />
               </SelectTrigger>
@@ -454,7 +521,16 @@ export default function ManagerDemandsPage() {
                 <SelectItem value='cancelled'>{t('cancelled')}</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <Select
+              value={String(typeFilter)}
+              onValueChange={(value) => {
+                if (value === 'all') {
+                  removeFilter('type');
+                } else {
+                  addFilter({ field: 'type', operator: 'equals', value });
+                }
+              }}
+            >
               <SelectTrigger className='w-40'>
                 <SelectValue placeholder={t('type')} />
               </SelectTrigger>

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useLocation } from 'wouter';
-import { Grid, List, ArrowLeft, Plus } from 'lucide-react';
+import { Grid, List, ArrowLeft, Plus, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import {
   DocumentViewModal,
   DocumentEditModal
 } from '@/components/document-management';
+import { useFilterSort, FilterSortConfig } from '@/lib/filter-sort';
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
 
 /**
@@ -31,7 +32,6 @@ export default function ModularBuildingDocuments() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Fetch building info
@@ -68,11 +68,54 @@ export default function ModularBuildingDocuments() {
     canCreate: user?.role === 'manager' || user?.role === 'admin',
   };
 
-  // Filter documents based on search
-  const filteredDocuments = Array.isArray(documents) ? documents.filter(doc =>
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) : [];
+  // Configure filter/sort for documents
+  const filterSortConfig: FilterSortConfig = useMemo(() => ({
+    filters: [
+      {
+        id: 'documentType',
+        field: 'documentType',
+        label: 'Category',
+        type: 'select',
+        icon: FileText,
+        options: [
+          { label: 'Bylaws', value: 'bylaw' },
+          { label: 'Financial', value: 'financial' },
+          { label: 'Maintenance', value: 'maintenance' },
+          { label: 'Legal', value: 'legal' },
+          { label: 'Meeting Minutes', value: 'meeting_minutes' },
+          { label: 'Insurance', value: 'insurance' },
+          { label: 'Contracts', value: 'contracts' },
+          { label: 'Other', value: 'other' },
+        ],
+        defaultOperator: 'equals',
+      },
+    ],
+    sortOptions: [
+      { field: 'createdAt', label: 'Date Created', defaultDirection: 'desc' },
+      { field: 'updatedAt', label: 'Date Updated', defaultDirection: 'desc' },
+      { field: 'name', label: 'Name' },
+      { field: 'documentType', label: 'Category' },
+    ],
+    searchable: true,
+    searchPlaceholder: 'Search documents...',
+    searchFields: ['name', 'description'],
+    allowMultipleFilters: false,
+    persistState: true,
+    storageKey: `building-${buildingId}-documents-filters`,
+  }), [buildingId]);
+
+  // Use filter/sort hook
+  const {
+    filteredData: filteredDocuments,
+    search,
+    setSearch,
+  } = useFilterSort({
+    data: documents,
+    config: filterSortConfig,
+    initialState: {
+      sort: { field: 'createdAt', direction: 'desc' },
+    },
+  });
 
 
   // Handle document interactions
@@ -162,8 +205,8 @@ export default function ModularBuildingDocuments() {
         <div className="flex-1">
           <Input
             placeholder="Search documents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             data-testid="input-search-documents"
           />
         </div>
@@ -209,9 +252,9 @@ export default function ModularBuildingDocuments() {
               <div className="text-center">
                 <h3 className="text-lg font-medium mb-2">No documents found</h3>
                 <p className="text-gray-500 mb-4">
-                  {searchTerm ? 'No documents match your search.' : 'No documents have been uploaded yet.'}
+                  {search ? 'No documents match your search.' : 'No documents have been uploaded yet.'}
                 </p>
-                {userPermissions.canCreate && !searchTerm && (
+                {userPermissions.canCreate && !search && (
                   <Button onClick={handleCreateDocument}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add First Document

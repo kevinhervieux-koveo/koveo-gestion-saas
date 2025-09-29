@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Grid, List, Plus, Search, Building, Home, Filter } from 'lucide-react';
+import { Grid, List, Plus, Search, Building, Home, Filter, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,10 @@ import {
   SharedUploader,
   DocumentCard
 } from '@/components/document-management';
+import { useFilterSort, FilterSortConfig } from '@/lib/filter-sort';
 // Note: DocumentViewModal and DocumentEditModal imports removed - may need restoration
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
+import type { User } from '@shared/schema';
 
 // Document categories for filtering
 const DOCUMENT_CATEGORIES = [
@@ -51,18 +53,11 @@ export default function ModularDocuments() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  
-  // State for filtering and search
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedBuildingId, setSelectedBuildingId] = useState<string>('all');
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Fetch current user for permissions
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<User>({
     queryKey: ['/api/auth/user'],
-    queryFn: () => apiRequest('GET', '/api/auth/user'),
   });
 
   // Fetch all documents
@@ -70,19 +65,16 @@ export default function ModularDocuments() {
     documents: DocumentWithMetadata[];
   }>({
     queryKey: ['/api/documents'],
-    queryFn: () => apiRequest('GET', '/api/documents'),
   });
 
   // Fetch buildings for filtering
   const { data: buildingsResponse } = useQuery<{ buildings: Building[] }>({
     queryKey: ['/api/manager/buildings'],
-    queryFn: () => apiRequest('GET', '/api/manager/buildings'),
   });
 
   // Fetch organizations for filtering (if admin)
   const { data: organizationsResponse } = useQuery<{ organizations: Organization[] }>({
     queryKey: ['/api/admin/organizations'],
-    queryFn: () => apiRequest('GET', '/api/admin/organizations'),
     enabled: user?.role === 'admin',
   });
 
@@ -99,23 +91,73 @@ export default function ModularDocuments() {
     canCreate: user?.role === 'manager' || user?.role === 'admin',
   };
 
-  // Filter and search documents
-  const filteredDocuments = Array.isArray(documents) ? documents.filter(doc => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
-    
-    const matchesBuilding = selectedBuildingId === 'all' || doc.buildingId === selectedBuildingId;
-    
-    const matchesOrganization = selectedOrganizationId === 'all' || doc.organizationId === selectedOrganizationId;
+  // Configure filter/sort for documents
+  const filterSortConfig: FilterSortConfig = useMemo(() => ({
+    filters: [
+      {
+        id: 'documentType',
+        field: 'documentType',
+        label: 'Category',
+        type: 'select',
+        icon: FileText,
+        options: DOCUMENT_CATEGORIES.filter(c => c.value !== 'all').map(c => ({
+          label: c.label,
+          value: c.value,
+        })),
+        defaultOperator: 'equals',
+      },
+      {
+        id: 'buildingId',
+        field: 'buildingId',
+        label: 'Building',
+        type: 'select',
+        icon: Building,
+        options: buildings.map(b => ({
+          label: b.name,
+          value: b.id,
+        })),
+        defaultOperator: 'equals',
+      },
+    ],
+    sortOptions: [
+      { field: 'createdAt', label: 'Date Created', defaultDirection: 'desc' },
+      { field: 'updatedAt', label: 'Date Updated', defaultDirection: 'desc' },
+      { field: 'name', label: 'Name' },
+      { field: 'documentType', label: 'Category' },
+    ],
+    searchable: true,
+    searchPlaceholder: 'Search documents...',
+    searchFields: ['name', 'description'],
+    allowMultipleFilters: false,
+    persistState: true,
+    storageKey: 'modular-documents-filters',
+  }), [buildings]);
 
-    return matchesSearch && matchesCategory && matchesBuilding && matchesOrganization;
-  }) : [];
+  // Use filter/sort hook
+  const {
+    filteredData: filteredDocuments,
+    filters,
+    search,
+    setSearch,
+    addFilter,
+    removeFilter,
+    clearFilters: clearAllFilters,
+  } = useFilterSort({
+    data: documents,
+    config: filterSortConfig,
+    initialState: {
+      sort: { field: 'createdAt', direction: 'desc' },
+    },
+  });
+
+  // Get current filter values for UI compatibility
+  const selectedCategory = filters.find(f => f.field === 'documentType')?.value || 'all';
+  const selectedBuildingId = filters.find(f => f.field === 'buildingId')?.value || 'all';
+  const selectedOrganizationId = 'all'; // Not implemented yet
 
   // Group documents by category for better organization
   const documentsByCategory = filteredDocuments.reduce((acc, doc) => {
-    const category = doc.category || 'other';
+    const category = doc.documentType || 'other';
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -150,10 +192,8 @@ export default function ModularDocuments() {
   };
 
   const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('all');
-    setSelectedBuildingId('all');
-    setSelectedOrganizationId('all');
+    clearAllFilters();
+    setSearch('');
   };
 
   return (
@@ -179,8 +219,8 @@ export default function ModularDocuments() {
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input
                       placeholder="Search documents..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
                       className="pl-10"
                       data-testid="input-search-documents"
                     />
@@ -190,7 +230,16 @@ export default function ModularDocuments() {
                 {/* Category Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <Select
+                    value={String(selectedCategory)}
+                    onValueChange={(value) => {
+                      if (value === 'all') {
+                        removeFilter('documentType');
+                      } else {
+                        addFilter({ field: 'documentType', operator: 'equals', value });
+                      }
+                    }}
+                  >
                     <SelectTrigger data-testid="select-category-filter">
                       <SelectValue />
                     </SelectTrigger>
@@ -210,7 +259,16 @@ export default function ModularDocuments() {
                     <Building className="w-4 h-4" />
                     Building
                   </label>
-                  <Select value={selectedBuildingId} onValueChange={setSelectedBuildingId}>
+                  <Select
+                    value={String(selectedBuildingId)}
+                    onValueChange={(value) => {
+                      if (value === 'all') {
+                        removeFilter('buildingId');
+                      } else {
+                        addFilter({ field: 'buildingId', operator: 'equals', value });
+                      }
+                    }}
+                  >
                     <SelectTrigger data-testid="select-building-filter">
                       <SelectValue />
                     </SelectTrigger>
@@ -225,14 +283,14 @@ export default function ModularDocuments() {
                   </Select>
                 </div>
 
-                {/* Organization Filter (Admin only) */}
+                {/* Organization Filter (Admin only) - TODO: Implement organization filtering */}
                 {user?.role === 'admin' && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium flex items-center gap-1">
                       <Home className="w-4 h-4" />
                       Organization
                     </label>
-                    <Select value={selectedOrganizationId} onValueChange={setSelectedOrganizationId}>
+                    <Select value={selectedOrganizationId} onValueChange={() => {}}>
                       <SelectTrigger data-testid="select-organization-filter">
                         <SelectValue />
                       </SelectTrigger>
@@ -281,7 +339,7 @@ export default function ModularDocuments() {
               <span className="text-sm text-muted-foreground">
                 {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''} found
               </span>
-              {(searchTerm || selectedCategory !== 'all' || selectedBuildingId !== 'all' || selectedOrganizationId !== 'all') && (
+              {(search || selectedCategory !== 'all' || selectedBuildingId !== 'all' || selectedOrganizationId !== 'all') && (
                 <Badge variant="secondary">Filtered</Badge>
               )}
             </div>
@@ -322,13 +380,13 @@ export default function ModularDocuments() {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-600 mb-2">No Documents Found</h3>
                   <p className="text-gray-500 mb-4">
-                    {searchTerm || selectedCategory !== 'all' || selectedBuildingId !== 'all' || selectedOrganizationId !== 'all'
+                    {search || selectedCategory !== 'all' || selectedBuildingId !== 'all' || selectedOrganizationId !== 'all'
                       ? "No documents match your current filters. Try adjusting your search criteria."
                       : "No documents have been uploaded yet. Create your first document to get started."
                     }
                   </p>
                   <div className="flex gap-2 justify-center">
-                    {(searchTerm || selectedCategory !== 'all' || selectedBuildingId !== 'all' || selectedOrganizationId !== 'all') && (
+                    {(search || selectedCategory !== 'all' || selectedBuildingId !== 'all' || selectedOrganizationId !== 'all') && (
                       <Button variant="outline" onClick={clearFilters}>
                         Clear Filters
                       </Button>
@@ -347,7 +405,7 @@ export default function ModularDocuments() {
             <div className="space-y-6">
               {Object.keys(documentsByCategory).length > 1 ? (
                 // Group by category when multiple categories are present
-                Object.entries(documentsByCategory).map(([category, categoryDocs]) => {
+                Object.entries(documentsByCategory).map(([category, categoryDocs]: [string, DocumentWithMetadata[]]) => {
                   const categoryInfo = DOCUMENT_CATEGORIES.find(c => c.value === category);
                   return (
                     <Card key={category}>
@@ -370,10 +428,9 @@ export default function ModularDocuments() {
                               key={document.id}
                               documentId={document.id}
                               title={document.name}
-                              documentType={document.category}
-                              createdAt={document.createdAt}
+                              documentType={document.documentType}
+                              createdAt={document.createdAt.toISOString()}
                               onViewClick={handleDocumentView}
-                              onEditClick={userPermissions.canEdit ? handleDocumentEdit : undefined}
                               compact={viewMode === 'list'}
                             />
                           ))}
@@ -396,10 +453,9 @@ export default function ModularDocuments() {
                           key={document.id}
                           documentId={document.id}
                           title={document.name}
-                          documentType={document.category}
-                          createdAt={document.createdAt}
+                          documentType={document.documentType}
+                          createdAt={document.createdAt.toISOString()}
                           onViewClick={handleDocumentView}
-                          onEditClick={userPermissions.canEdit ? handleDocumentEdit : undefined}
                           compact={viewMode === 'list'}
                         />
                       ))}
@@ -410,24 +466,24 @@ export default function ModularDocuments() {
             </div>
           )}
 
-          {/* Document View Modal */}
-          <DocumentViewModal
+          {/* Document View Modal - TODO: Implement DocumentViewModal component */}
+          {/* <DocumentViewModal
             documentId={selectedDocumentId}
             userPermissions={userPermissions}
             onEditClick={handleDocumentEdit}
             isOpen={isViewModalOpen}
             onOpenChange={setIsViewModalOpen}
-          />
+          /> */}
 
-          {/* Document Edit/Create Modal */}
-          <DocumentEditModal
+          {/* Document Edit/Create Modal - TODO: Implement DocumentEditModal component */}
+          {/* <DocumentEditModal
             documentId={isCreating ? undefined : selectedDocumentId}
             entityType="general"
             entityId={undefined}
             isOpen={isEditModalOpen}
             onOpenChange={setIsEditModalOpen}
             onSuccess={handleDocumentSuccess}
-          />
+          /> */}
         </div>
       </div>
     </div>
