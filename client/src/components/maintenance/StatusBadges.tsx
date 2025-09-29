@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 // Types from maintenance schema
-type ProjectStatus = 'planned' | 'evaluation' | 'submission' | 'pre_work' | 'work' | 'post_work' | 'completed';
+type ProjectStatus = 'planned' | 'submission' | 'pre_work' | 'in_progress' | 'post_work' | 'completed';
 type ElementCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'critical';
 type Priority = 'low' | 'medium' | 'high' | 'critical';
 type EvaluationStatus = 'pending' | 'scheduled' | 'postponed' | 'completed' | 'dismissed';
@@ -37,12 +37,6 @@ const projectStatusConfig: Record<ProjectStatus, StatusBadgeConfig> = {
     label: 'Planned',
     className: 'border-blue-300 text-blue-700 bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:bg-blue-950',
   },
-  evaluation: {
-    variant: 'secondary',
-    icon: Settings,
-    label: 'Evaluation',
-    className: 'border-purple-300 text-purple-700 bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:bg-purple-950',
-  },
   submission: {
     variant: 'outline',
     icon: Clock,
@@ -55,7 +49,7 @@ const projectStatusConfig: Record<ProjectStatus, StatusBadgeConfig> = {
     label: 'Pre-Work',
     className: 'border-yellow-300 text-yellow-700 bg-yellow-50 dark:border-yellow-700 dark:text-yellow-300 dark:bg-yellow-950',
   },
-  work: {
+  in_progress: {
     variant: 'default',
     icon: Wrench,
     label: 'In Progress',

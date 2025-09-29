@@ -59,7 +59,7 @@ interface ProjectMetrics {
   daysRemaining?: number;
   isOverdue: boolean;
   isOverBudget: boolean;
-  lastActivity?: string;
+  lastActivity?: Date;
   nextMilestone?: string;
 }
 
@@ -106,7 +106,7 @@ export function ProjectCard({
       evaluation: 15,
       submission: 30,
       pre_work: 45,
-      work: 75,
+      in_progress: 75,
       post_work: 90,
       completed: 100,
     };
@@ -313,9 +313,9 @@ export function ProjectCard({
 
                   <DropdownMenuSeparator />
                   
-                  {project.status !== 'work' && (
+                  {project.status !== 'in_progress' && (
                     <DropdownMenuItem 
-                      onClick={() => handleStatusUpdate('work')}
+                      onClick={() => handleStatusUpdate('in_progress')}
                       data-testid={`project-card-start-work-${project.id}`}
                     >
                       <Play className="mr-2 h-4 w-4" />
@@ -323,7 +323,7 @@ export function ProjectCard({
                     </DropdownMenuItem>
                   )}
                   
-                  {project.status === 'work' && (
+                  {project.status === 'in_progress' && (
                     <DropdownMenuItem 
                       onClick={() => handleStatusUpdate('post_work')}
                       data-testid={`project-card-complete-work-${project.id}`}
@@ -440,19 +440,19 @@ export function ProjectCard({
         {(metrics.isOverdue || metrics.isOverBudget || project.priority === 'critical') && (
           <div className="flex flex-wrap gap-2 pt-2" data-testid={`project-urgency-${project.id}`}>
             {metrics.isOverdue && (
-              <Badge variant="destructive" size="sm">
+              <Badge variant="destructive">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 Overdue
               </Badge>
             )}
             {metrics.isOverBudget && (
-              <Badge variant="destructive" size="sm">
+              <Badge variant="destructive">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 Over Budget
               </Badge>
             )}
             {project.priority === 'critical' && (
-              <Badge variant="destructive" size="sm">
+              <Badge variant="destructive">
                 <Zap className="h-3 w-3 mr-1" />
                 Critical Priority
               </Badge>
@@ -463,5 +463,3 @@ export function ProjectCard({
     </Card>
   );
 }
-
-export type { ProjectCardProps };
