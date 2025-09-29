@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { format, differenceInDays, parseISO, isPast } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StandardCard } from '@/components/common/StandardCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -29,7 +29,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Play,
-  Pause,
   FileText,
   Users,
   TrendingUp,
@@ -63,10 +62,82 @@ interface ProjectMetrics {
   nextMilestone?: string;
 }
 
-/**
- * ProjectCard component for displaying individual project information
- * Shows project summary, status, progress, metrics, and quick actions
- */
+const getTypeConfig = (type: string) => {
+  const typeConfigs = {
+    evaluation: { 
+      label: 'Evaluation', 
+      icon: Target, 
+      color: 'text-purple-600 bg-purple-50 border-purple-200',
+      darkColor: 'dark:text-purple-300 dark:bg-purple-950 dark:border-purple-800'
+    },
+    repair: { 
+      label: 'Repair', 
+      icon: Building2, 
+      color: 'text-orange-600 bg-orange-50 border-orange-200',
+      darkColor: 'dark:text-orange-300 dark:bg-orange-950 dark:border-orange-800'
+    },
+    minor_rehab: { 
+      label: 'Minor Rehab', 
+      icon: Building2, 
+      color: 'text-blue-600 bg-blue-50 border-blue-200',
+      darkColor: 'dark:text-blue-300 dark:bg-blue-950 dark:border-blue-800'
+    },
+    major_rehab: { 
+      label: 'Major Rehab', 
+      icon: Building2, 
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+      darkColor: 'dark:text-indigo-300 dark:bg-indigo-950 dark:border-indigo-800'
+    },
+    replacement: { 
+      label: 'Replacement', 
+      icon: CheckCircle2, 
+      color: 'text-green-600 bg-green-50 border-green-200',
+      darkColor: 'dark:text-green-300 dark:bg-green-950 dark:border-green-800'
+    },
+  };
+
+  return typeConfigs[type as keyof typeof typeConfigs] || typeConfigs.repair;
+};
+
+const calculateMetrics = (project: MaintenanceProject): ProjectMetrics => {
+  const totalBudget = project.totalBudget ? parseFloat(project.totalBudget) : 0;
+  const actualCost = project.actualCost ? parseFloat(project.actualCost) : 0;
+  const budgetUtilization = totalBudget > 0 ? Math.round((actualCost / totalBudget) * 100) : 0;
+  
+  let daysRemaining: number | undefined;
+  let isOverdue = false;
+  
+  if (project.plannedEndDate) {
+    const endDate = parseISO(project.plannedEndDate);
+    const today = new Date();
+    daysRemaining = differenceInDays(endDate, today);
+    isOverdue = isPast(endDate) && project.status !== 'completed';
+  }
+
+  const statusProgress = {
+    planned: 5,
+    evaluation: 15,
+    submission: 30,
+    pre_work: 45,
+    in_progress: 75,
+    post_work: 90,
+    completed: 100,
+  };
+
+  const progress = statusProgress[project.status as keyof typeof statusProgress] || 0;
+
+  return {
+    progress,
+    elementCount: project.projectElements?.length || 0,
+    budgetUtilization,
+    daysRemaining,
+    isOverdue,
+    isOverBudget: budgetUtilization > 100,
+    lastActivity: project.updatedAt,
+    nextMilestone: undefined,
+  };
+};
+
 export function ProjectCard({
   project,
   className,
@@ -83,49 +154,8 @@ export function ProjectCard({
   const { hasPermission, buildingId } = useBuildingContext();
   const { toast } = useToast();
 
-  // Calculate project metrics
-  const metrics: ProjectMetrics = useMemo(() => {
-    const totalBudget = project.totalBudget ? parseFloat(project.totalBudget) : 0;
-    const actualCost = project.actualCost ? parseFloat(project.actualCost) : 0;
-    const budgetUtilization = totalBudget > 0 ? Math.round((actualCost / totalBudget) * 100) : 0;
-    
-    // Calculate days remaining
-    let daysRemaining: number | undefined;
-    let isOverdue = false;
-    
-    if (project.plannedEndDate) {
-      const endDate = parseISO(project.plannedEndDate);
-      const today = new Date();
-      daysRemaining = differenceInDays(endDate, today);
-      isOverdue = isPast(endDate) && project.status !== 'completed';
-    }
+  const metrics = useMemo(() => calculateMetrics(project), [project]);
 
-    // Estimate progress based on status
-    const statusProgress = {
-      planned: 5,
-      evaluation: 15,
-      submission: 30,
-      pre_work: 45,
-      in_progress: 75,
-      post_work: 90,
-      completed: 100,
-    };
-
-    const progress = statusProgress[project.status as keyof typeof statusProgress] || 0;
-
-    return {
-      progress,
-      elementCount: 0, // This would come from API in real implementation
-      budgetUtilization,
-      daysRemaining,
-      isOverdue,
-      isOverBudget: budgetUtilization > 100,
-      lastActivity: project.updatedAt,
-      nextMilestone: undefined, // This would be calculated based on project steps
-    };
-  }, [project]);
-
-  // Quick status update mutation
   const updateStatusMutation = useMutation({
     mutationFn: async (newStatus: string) => {
       const response = await apiRequest('PATCH', `/api/maintenance/projects/${project.id}`, {
@@ -158,308 +188,287 @@ export function ProjectCard({
     }
   };
 
-  const getTypeConfig = (type: string) => {
-    const typeConfigs = {
-      evaluation: { 
-        label: 'Evaluation', 
-        icon: Target, 
-        color: 'text-purple-600 bg-purple-50 border-purple-200',
-        darkColor: 'dark:text-purple-300 dark:bg-purple-950 dark:border-purple-800'
-      },
-      repair: { 
-        label: 'Repair', 
-        icon: Building2, 
-        color: 'text-orange-600 bg-orange-50 border-orange-200',
-        darkColor: 'dark:text-orange-300 dark:bg-orange-950 dark:border-orange-800'
-      },
-      minor_rehab: { 
-        label: 'Minor Rehab', 
-        icon: Building2, 
-        color: 'text-blue-600 bg-blue-50 border-blue-200',
-        darkColor: 'dark:text-blue-300 dark:bg-blue-950 dark:border-blue-800'
-      },
-      major_rehab: { 
-        label: 'Major Rehab', 
-        icon: Building2, 
-        color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
-        darkColor: 'dark:text-indigo-300 dark:bg-indigo-950 dark:border-indigo-800'
-      },
-      replacement: { 
-        label: 'Replacement', 
-        icon: CheckCircle2, 
-        color: 'text-green-600 bg-green-50 border-green-200',
-        darkColor: 'dark:text-green-300 dark:bg-green-950 dark:border-green-800'
-      },
-    };
-
-    return typeConfigs[type as keyof typeof typeConfigs] || typeConfigs.repair;
-  };
-
   const typeConfig = getTypeConfig(project.type);
   const TypeIcon = typeConfig.icon;
+  const compact = variant === 'compact';
 
-  const getVariantStyles = () => {
-    switch (variant) {
-      case 'compact':
-        return 'p-4';
-      case 'detailed':
-        return 'p-6';
-      default:
-        return 'p-5';
-    }
-  };
+  const badges = compact 
+    ? []
+    : [
+        {
+          text: (
+            <span className="flex items-center gap-1">
+              <TypeIcon className="h-3 w-3" />
+              {typeConfig.label}
+            </span>
+          ),
+          variant: 'outline' as const,
+          className: cn(typeConfig.color, typeConfig.darkColor),
+        },
+        ...(metrics.isOverdue ? [{
+          text: (
+            <span className="flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              Overdue
+            </span>
+          ),
+          variant: 'destructive' as const,
+        }] : []),
+        ...(metrics.isOverBudget ? [{
+          text: (
+            <span className="flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              Over Budget
+            </span>
+          ),
+          variant: 'destructive' as const,
+        }] : []),
+        ...(project.priority === 'critical' ? [{
+          text: (
+            <span className="flex items-center gap-1">
+              <Zap className="h-3 w-3" />
+              Critical Priority
+            </span>
+          ),
+          variant: 'destructive' as const,
+        }] : []),
+      ];
+
+  const metadata = compact
+    ? [
+        {
+          value: `#${project.projectNumber}`,
+        },
+      ]
+    : [
+        {
+          value: `#${project.projectNumber}`,
+        },
+        ...(metrics.lastActivity ? [{
+          value: `Updated ${format(new Date(metrics.lastActivity), 'MMM dd')}`,
+        }] : []),
+        ...(project.totalBudget ? [{
+          icon: <DollarSign className="w-3 h-3" />,
+          value: `$${parseFloat(project.totalBudget).toLocaleString()}`,
+        }] : []),
+        ...(metrics.daysRemaining !== undefined ? [{
+          icon: <Clock className="w-3 h-3" />,
+          value: metrics.isOverdue 
+            ? `${Math.abs(metrics.daysRemaining)} days overdue`
+            : `${metrics.daysRemaining} days remaining`,
+        }] : []),
+      ];
 
   const shouldShowQuickActions = showActions && hasPermission('canEditMaintenance');
 
+  const ActionsDropdown = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-8 w-8 p-0"
+          data-testid={`project-card-actions-${project.id}`}
+        >
+          <span className="sr-only">Open menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuItem 
+          onClick={() => onEdit?.(project)}
+          data-testid={`project-card-edit-${project.id}`}
+        >
+          <Edit2 className="mr-2 h-4 w-4" />
+          Edit Project
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem 
+          onClick={() => onViewTimeline?.(project)}
+          data-testid={`project-card-timeline-${project.id}`}
+        >
+          <Calendar className="mr-2 h-4 w-4" />
+          View Timeline
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem 
+          onClick={() => onAddNotes?.(project)}
+          data-testid={`project-card-notes-${project.id}`}
+        >
+          <FileText className="mr-2 h-4 w-4" />
+          Add Notes
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+        
+        {project.status !== 'in_progress' && (
+          <DropdownMenuItem 
+            onClick={() => handleStatusUpdate('in_progress')}
+            data-testid={`project-card-start-work-${project.id}`}
+          >
+            <Play className="mr-2 h-4 w-4" />
+            Start Work
+          </DropdownMenuItem>
+        )}
+        
+        {project.status === 'in_progress' && (
+          <DropdownMenuItem 
+            onClick={() => handleStatusUpdate('post_work')}
+            data-testid={`project-card-complete-work-${project.id}`}
+          >
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            Complete Work
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const cardIcon = (
+    <div className="relative">
+      <TypeIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+      {project.priority === 'critical' && (
+        <Zap className="absolute -top-1 -right-1 h-3 w-3 text-red-500" />
+      )}
+    </div>
+  );
+
   return (
-    <Card 
+    <StandardCard
+      title={project.title}
+      description={`#${project.projectNumber}`}
+      icon={cardIcon}
+      badges={badges}
+      metadata={metadata}
+      compact={compact}
       className={cn(
-        "relative transition-all duration-200",
-        interactive && "hover:shadow-md cursor-pointer",
         metrics.isOverdue && "border-red-200 dark:border-red-800",
         className
       )}
-      data-testid={`project-card-${project.id}`}
+      hover={interactive}
+      actions={shouldShowQuickActions ? [
+        {
+          icon: <ActionsDropdown />,
+          label: 'Actions',
+          onClick: () => {},
+        },
+      ] : []}
+      testId={`project-card-${project.id}`}
     >
-      {/* Priority indicator */}
-      {project.priority === 'critical' && (
-        <div className="absolute top-0 right-0 w-0 h-0 border-l-[20px] border-l-transparent border-t-[20px] border-t-red-500">
-          <Zap className="absolute -top-4 -right-3 h-3 w-3 text-white" />
-        </div>
-      )}
-
-      <CardHeader className={cn("pb-3", getVariantStyles())}>
-        <div className="flex items-start justify-between">
-          <div className="space-y-2 flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge 
-                variant="outline" 
-                className={cn(typeConfig.color, typeConfig.darkColor)}
-                data-testid={`project-type-badge-${project.id}`}
-              >
-                <TypeIcon className="h-3 w-3 mr-1" />
-                {typeConfig.label}
-              </Badge>
-              <PriorityBadge 
-                priority={project.priority} 
-                size="sm"
-                data-testid={`project-priority-badge-${project.id}`}
-              />
-            </div>
-            
-            <CardTitle className="text-lg leading-tight truncate" data-testid={`project-title-${project.id}`}>
-              {project.title}
-            </CardTitle>
-            
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span data-testid={`project-number-${project.id}`}>
-                #{project.projectNumber}
-              </span>
-              {metrics.lastActivity && (
-                <span data-testid={`project-last-activity-${project.id}`}>
-                  Updated {format(new Date(metrics.lastActivity), 'MMM dd')}
-                </span>
-              )}
-            </div>
-          </div>
-
+      {!compact && (
+        <div className="space-y-4">
+          {/* Priority and Status Badges */}
           <div className="flex items-center gap-2">
+            <PriorityBadge 
+              priority={project.priority} 
+              size="sm"
+              data-testid={`project-priority-badge-${project.id}`}
+            />
             <StatusBadge 
               status={project.status} 
               size="sm"
               data-testid={`project-status-badge-${project.id}`}
             />
-            
-            {shouldShowQuickActions && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 w-8 p-0"
-                    data-testid={`project-card-actions-${project.id}`}
-                  >
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem 
-                    onClick={() => onEdit?.(project)}
-                    data-testid={`project-card-edit-${project.id}`}
-                  >
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Edit Project
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem 
-                    onClick={() => onViewTimeline?.(project)}
-                    data-testid={`project-card-timeline-${project.id}`}
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    View Timeline
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem 
-                    onClick={() => onAddNotes?.(project)}
-                    data-testid={`project-card-notes-${project.id}`}
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Add Notes
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator />
-                  
-                  {project.status !== 'in_progress' && (
-                    <DropdownMenuItem 
-                      onClick={() => handleStatusUpdate('in_progress')}
-                      data-testid={`project-card-start-work-${project.id}`}
-                    >
-                      <Play className="mr-2 h-4 w-4" />
-                      Start Work
-                    </DropdownMenuItem>
-                  )}
-                  
-                  {project.status === 'in_progress' && (
-                    <DropdownMenuItem 
-                      onClick={() => handleStatusUpdate('post_work')}
-                      data-testid={`project-card-complete-work-${project.id}`}
-                    >
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Complete Work
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
-        </div>
-      </CardHeader>
 
-      <CardContent className="space-y-4">
-        {/* Progress Section */}
-        {showProgress && (
-          <div className="space-y-2" data-testid={`project-progress-${project.id}`}>
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">Progress</span>
-              <span className="text-muted-foreground">{metrics.progress}%</span>
-            </div>
-            <Progress value={metrics.progress} className="h-2" />
-          </div>
-        )}
-
-        {/* Timeline Section */}
-        {(project.plannedStartDate || project.plannedEndDate) && (
-          <div className="grid grid-cols-2 gap-4" data-testid={`project-timeline-${project.id}`}>
-            {project.plannedStartDate && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  Start Date
-                </div>
-                <div className="text-sm font-medium">
-                  {format(new Date(project.plannedStartDate), 'MMM dd, yyyy')}
-                </div>
+          {/* Progress Section */}
+          {showProgress && (
+            <div className="space-y-2" data-testid={`project-progress-${project.id}`}>
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Progress</span>
+                <span className="text-muted-foreground">{metrics.progress}%</span>
               </div>
-            )}
-            
-            {project.plannedEndDate && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  End Date
-                </div>
-                <div className="text-sm font-medium">
-                  {format(new Date(project.plannedEndDate), 'MMM dd, yyyy')}
-                </div>
-                {metrics.daysRemaining !== undefined && (
-                  <div className={cn(
-                    "text-xs",
-                    metrics.isOverdue ? "text-red-600" :
-                    metrics.daysRemaining <= 7 ? "text-yellow-600" : "text-green-600"
-                  )}>
-                    {metrics.isOverdue 
-                      ? `${Math.abs(metrics.daysRemaining)} days overdue`
-                      : `${metrics.daysRemaining} days remaining`
-                    }
+              <Progress value={metrics.progress} className="h-2" />
+            </div>
+          )}
+
+          {/* Timeline Section */}
+          {(project.plannedStartDate || project.plannedEndDate) && (
+            <div className="grid grid-cols-2 gap-4" data-testid={`project-timeline-${project.id}`}>
+              {project.plannedStartDate && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    Start Date
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Metrics Section */}
-        {showMetrics && variant !== 'compact' && (
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t" data-testid={`project-metrics-${project.id}`}>
-            {/* Budget Metrics */}
-            {project.totalBudget && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <DollarSign className="h-3 w-3" />
-                  Budget
+                  <div className="text-sm font-medium">
+                    {format(new Date(project.plannedStartDate), 'MMM dd, yyyy')}
+                  </div>
                 </div>
-                <div className="text-sm font-medium">
-                  ${parseFloat(project.totalBudget).toLocaleString()}
-                </div>
-                <div className="flex items-center gap-1 text-xs">
-                  <span className={cn(
-                    metrics.isOverBudget ? "text-red-600" : "text-green-600"
-                  )}>
-                    {metrics.budgetUtilization}% used
-                  </span>
-                  {metrics.isOverBudget ? (
-                    <TrendingUp className="h-3 w-3 text-red-600" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-green-600" />
+              )}
+              
+              {project.plannedEndDate && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    End Date
+                  </div>
+                  <div className="text-sm font-medium">
+                    {format(new Date(project.plannedEndDate), 'MMM dd, yyyy')}
+                  </div>
+                  {metrics.daysRemaining !== undefined && (
+                    <div className={cn(
+                      "text-xs",
+                      metrics.isOverdue ? "text-red-600" :
+                      metrics.daysRemaining <= 7 ? "text-yellow-600" : "text-green-600"
+                    )}>
+                      {metrics.isOverdue 
+                        ? `${Math.abs(metrics.daysRemaining)} days overdue`
+                        : `${metrics.daysRemaining} days remaining`
+                      }
+                    </div>
                   )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+          )}
 
-            {/* Element Count */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Users className="h-3 w-3" />
-                Elements
-              </div>
-              <div className="text-sm font-medium">
-                {metrics.elementCount} assigned
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Building components
+          {/* Metrics Section */}
+          {showMetrics && variant !== 'compact' && (
+            <div className="grid grid-cols-2 gap-4 pt-2 border-t" data-testid={`project-metrics-${project.id}`}>
+              {project.totalBudget && (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <DollarSign className="h-3 w-3" />
+                    Budget
+                  </div>
+                  <div className="text-sm font-medium">
+                    ${parseFloat(project.totalBudget).toLocaleString()}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs">
+                    <span className={cn(
+                      metrics.isOverBudget ? "text-red-600" : "text-green-600"
+                    )}>
+                      {metrics.budgetUtilization}% used
+                    </span>
+                    {metrics.isOverBudget ? (
+                      <TrendingUp className="h-3 w-3 text-red-600" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3 text-green-600" />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Users className="h-3 w-3" />
+                  Elements
+                </div>
+                <div className="text-sm font-medium">
+                  {metrics.elementCount} assigned
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Building components
+                </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Urgency Indicators */}
-        {(metrics.isOverdue || metrics.isOverBudget || project.priority === 'critical') && (
-          <div className="flex flex-wrap gap-2 pt-2" data-testid={`project-urgency-${project.id}`}>
-            {metrics.isOverdue && (
-              <Badge variant="destructive">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                Overdue
-              </Badge>
-            )}
-            {metrics.isOverBudget && (
-              <Badge variant="destructive">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                Over Budget
-              </Badge>
-            )}
-            {project.priority === 'critical' && (
-              <Badge variant="destructive">
-                <Zap className="h-3 w-3 mr-1" />
-                Critical Priority
-              </Badge>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </div>
+      )}
+    </StandardCard>
   );
 }

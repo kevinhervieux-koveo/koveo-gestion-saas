@@ -1,14 +1,5 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StandardCard } from '@/components/ui/standard-card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { useState } from 'react';
+import { StandardCard } from '@/components/common/StandardCard';
 import {
   Dialog,
   DialogContent,
@@ -16,14 +7,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { 
-  MoreHorizontal, 
   Edit2, 
   Trash2, 
   FileText, 
   Calendar,
   DollarSign,
   Building,
-  Eye
+  Eye,
+  MoreHorizontal,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -32,13 +23,29 @@ import { apiRequest } from '@/lib/queryClient';
 import type { Invoice } from '@shared/schemas/invoices';
 import { InvoiceForm } from './InvoiceForm';
 import { DocumentCard } from '@/components/document-management/DocumentCard';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 interface InvoiceCardProps {
   invoice: Invoice;
   onUpdate?: () => void;
+  compact?: boolean;
 }
 
-export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
+const getPaymentTypeVariant = (paymentType: string): 'default' | 'secondary' => {
+  return paymentType === 'recurring' ? 'default' : 'secondary';
+};
+
+const formatAmount = (amount: string | number): string => {
+  return parseFloat(amount.toString()).toFixed(2);
+};
+
+export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const queryClient = useQueryClient();
@@ -81,106 +88,98 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
     onUpdate?.();
   };
 
-  const getPaymentTypeVariant = (paymentType: string) => {
-    return paymentType === 'recurring' ? 'default' : 'secondary';
-  };
+  const badges = compact ? [] : [
+    {
+      text: invoice.paymentType === 'recurring' ? 'Recurring' : 'One-Time Bill',
+      variant: getPaymentTypeVariant(invoice.paymentType),
+    },
+    ...(invoice.isAiExtracted ? [{
+      text: 'AI Processed',
+      variant: 'outline' as const,
+    }] : []),
+  ];
+
+  const metadata = compact 
+    ? [
+        {
+          icon: <DollarSign className="w-3 h-3" />,
+          value: `$${formatAmount(invoice.totalAmount)}`,
+        },
+      ]
+    : [
+        {
+          icon: <DollarSign className="w-3 h-3" />,
+          value: `$${formatAmount(invoice.totalAmount)}`,
+        },
+        {
+          icon: <Calendar className="w-3 h-3" />,
+          label: 'Due',
+          value: format(new Date(invoice.dueDate), 'MMM dd, yyyy'),
+        },
+        ...(invoice.frequency ? [{
+          value: invoice.frequency.charAt(0).toUpperCase() + invoice.frequency.slice(1),
+        }] : []),
+        ...(invoice.buildingId ? [{
+          icon: <Building className="w-3 h-3" />,
+          value: `Bldg ${invoice.buildingId.slice(0, 8)}...`,
+        }] : []),
+        ...(invoice.documentId ? [{
+          icon: <FileText className="w-3 h-3" />,
+          value: 'Document attached',
+        }] : []),
+      ];
+
+  const ActionsDropdown = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          data-testid={`button-actions-${invoice.id}`}
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setShowViewDialog(true)}>
+          <Eye className="w-4 h-4 mr-2" />
+          View Details
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+          <Edit2 className="w-4 h-4 mr-2" />
+          Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={handleDelete}
+          className="text-destructive focus:text-destructive"
+          disabled={deleteMutation.isPending}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <>
-      <StandardCard 
+      <StandardCard
         title={invoice.vendorName}
-        className="hover:shadow-md transition-shadow" 
-        headerClassName="pb-3"
-        data-testid={`invoice-card-${invoice.id}`}
-      >
-        <div className="flex items-start justify-between mb-3">
-          <p className="text-sm text-muted-foreground">
-            #{invoice.invoiceNumber}
-          </p>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  data-testid={`button-actions-${invoice.id}`}
-                >
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setShowViewDialog(true)}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Details
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={handleDelete}
-                  className="text-destructive focus:text-destructive"
-                  disabled={deleteMutation.isPending}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-muted-foreground" />
-              <span className="font-semibold text-lg">
-                ${parseFloat(invoice.totalAmount.toString()).toFixed(2)}
-              </span>
-            </div>
-            <Badge variant={getPaymentTypeVariant(invoice.paymentType)}>
-              {invoice.paymentType === 'recurring' ? 'Recurring' : 'One-Time Bill'}
-            </Badge>
-          </div>
-
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
-              <span>Due: {format(new Date(invoice.dueDate), 'MMM dd, yyyy')}</span>
-            </div>
-            
-            {invoice.frequency && (
-              <div className="flex items-center gap-2">
-                <span className="w-4 h-4" />
-                <span className="text-muted-foreground">
-                  {invoice.frequency.charAt(0).toUpperCase() + invoice.frequency.slice(1)}
-                </span>
-              </div>
-            )}
-
-            {invoice.buildingId && (
-              <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground truncate">
-                  Building ID: {invoice.buildingId.slice(0, 8)}...
-                </span>
-              </div>
-            )}
-          </div>
-
-          {invoice.documentId && (
-            <div className="pt-2 border-t">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <FileText className="w-4 h-4" />
-                <span>Document attached</span>
-                {invoice.isAiExtracted && (
-                  <Badge variant="outline" className="text-xs">
-                    AI Processed
-                  </Badge>
-                )}
-              </div>
-            </div>
-          )}
-          </div>
-      </StandardCard>
+        description={`#${invoice.invoiceNumber}`}
+        icon={<FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+        badges={badges}
+        metadata={metadata}
+        compact={compact}
+        actions={[
+          {
+            icon: <ActionsDropdown />,
+            label: 'Actions',
+            onClick: () => {},
+            testId: `invoice-actions-wrapper-${invoice.id}`,
+          },
+        ]}
+        testId={`invoice-card-${invoice.id}`}
+      />
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
@@ -212,7 +211,7 @@ export function InvoiceCard({ invoice, onUpdate }: InvoiceCardProps) {
               <div>
                 <h4 className="font-medium mb-2">Payment Information</h4>
                 <p className="text-sm text-muted-foreground">
-                  Amount: ${parseFloat(invoice.totalAmount.toString()).toFixed(2)}
+                  Amount: ${formatAmount(invoice.totalAmount)}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Due: {format(new Date(invoice.dueDate), 'PPP')}
