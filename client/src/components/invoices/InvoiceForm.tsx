@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, type UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarIcon, Plus, X, Upload, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -71,12 +71,12 @@ export function InvoiceForm({
   }>({ loading: false, success: false });
 
   // Form setup with validation
-  const form = useForm<InvoiceFormData>({
-    resolver: zodResolver(invoiceFormSchema),
+  const form: UseFormReturn<InvoiceFormData> = useForm<InvoiceFormData>({
+    resolver: zodResolver(invoiceFormSchema) as any,
     defaultValues: {
       vendorName: initialData?.vendorName || '',
       invoiceNumber: initialData?.invoiceNumber || '',
-      totalAmount: initialData?.totalAmount || 0,
+      totalAmount: initialData?.totalAmount?.toString() || '',
       dueDate: initialData?.dueDate || new Date(),
       paymentType: initialData?.paymentType || 'one-time',
       frequency: initialData?.frequency || undefined,
@@ -90,10 +90,11 @@ export function InvoiceForm({
   });
 
   // Field array for custom payment dates
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'customPaymentDates'
-  });
+  const fieldArray = useFieldArray({
+    control: form.control as any,
+    name: 'customPaymentDates',
+  }) as any;
+  const { fields, append, remove } = fieldArray;
 
   // Watch payment type and frequency for conditional rendering
   const paymentType = form.watch('paymentType');
@@ -156,7 +157,7 @@ export function InvoiceForm({
 
   // Add custom payment date
   const addCustomDate = () => {
-    append(new Date());
+    append(new Date() as any);
   };
 
   // Remove custom payment date
@@ -319,7 +320,7 @@ export function InvoiceForm({
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) => field.onChange(e.target.value)}
                           data-testid="input-total-amount"
                         />
                       </FormControl>
