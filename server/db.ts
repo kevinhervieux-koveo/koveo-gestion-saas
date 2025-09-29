@@ -42,11 +42,19 @@ import {
 // Use correct database URL based on environment (production uses DATABASE_URL_KOVEO)
 const databaseUrl = config.database.url;
 
+console.log('🔍 [DB DEBUG] Environment:', config.server.nodeEnv);
+console.log('🔍 [DB DEBUG] Is Production:', config.server.isProduction);
+console.log('🔍 [DB DEBUG] Database URL (masked):', databaseUrl ? databaseUrl.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'UNDEFINED');
+console.log('🔍 [DB DEBUG] DATABASE_URL_KOVEO available:', !!process.env.DATABASE_URL_KOVEO);
+console.log('🔍 [DB DEBUG] DATABASE_URL available:', !!process.env.DATABASE_URL);
+
 if (!databaseUrl) {
+  console.error('❌ [DB DEBUG] No database URL found!');
   throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
 }
 
 const isUsingKoveoDb = databaseUrl.includes('DATABASE_URL_KOVEO') || (config.server.isProduction && process.env.DATABASE_URL_KOVEO);
+console.log('🔍 [DB DEBUG] Using Koveo DB:', isUsingKoveoDb);
 // Database connection established
 
 /**

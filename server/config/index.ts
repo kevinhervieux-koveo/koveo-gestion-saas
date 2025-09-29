@@ -174,10 +174,10 @@ export const config = {
     law25Compliance: true,
   },
 
-  // Debug logging configuration
+  // Debug logging configuration - TEMPORARILY ENABLED FOR DEBUGGING
   logging: {
-    enabled: envConfig.isDevelopment, // Only log in development (not DATABASE_URL_KOVEO)
-    level: envConfig.isDevelopment ? 'DEBUG' : 'ERROR',
+    enabled: true, // TEMPORARILY ENABLED to debug production 500 errors
+    level: 'DEBUG', // TEMPORARILY SET to DEBUG for error diagnosis
     categories: {
       auth: true,
       api: true,
