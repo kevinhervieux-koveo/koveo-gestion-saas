@@ -1002,21 +1002,29 @@ export function registerMaintenanceRoutes(app: Express): void {
    */
   app.get('/api/maintenance/buildings/:buildingId/elements', requireAuth, async (req: any, res) => {
     try {
+      console.log('🔍 [INVENTORY DEBUG] Starting inventory request...');
       const user = req.user;
+      console.log('🔍 [INVENTORY DEBUG] User:', user ? { id: user.id, role: user.role, email: user.email } : 'NO USER');
+      
       if (!user) {
+        console.log('❌ [INVENTORY DEBUG] No user authentication');
         return res.status(401).json({ error: 'Authentication required' });
       }
       
       const { buildingId } = req.params;
+      console.log('🔍 [INVENTORY DEBUG] Building ID:', buildingId);
       
       // Security: Validate UUID format
       if (!isValidUUID(buildingId)) {
+        console.log('❌ [INVENTORY DEBUG] Invalid UUID format');
         return res.status(400).json({ error: 'Invalid building ID format' });
       }
       
       // Security: Validate pagination parameters
+      console.log('🔍 [INVENTORY DEBUG] Query parameters:', req.query);
       const paginationValidation = paginationSchema.safeParse(req.query);
       if (!paginationValidation.success) {
+        console.log('❌ [INVENTORY DEBUG] Invalid pagination parameters:', paginationValidation.error.issues);
         return res.status(400).json({
           error: 'Invalid pagination parameters',
           details: paginationValidation.error.issues
@@ -1025,68 +1033,86 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const { page, limit, order } = paginationValidation.data;
       const offset = (page - 1) * limit;
+      console.log('🔍 [INVENTORY DEBUG] Pagination:', { page, limit, order, offset });
       
       // Check building access
+      console.log('🔍 [INVENTORY DEBUG] Checking building access for user:', user.id, 'role:', user.role);
       const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      console.log('🔍 [INVENTORY DEBUG] Building access result:', hasAccess);
       if (!hasAccess) {
+        console.log('❌ [INVENTORY DEBUG] No building access');
         return res.status(403).json({
           error: 'No access to this building'
         });
       }
       
       // Security: Get elements with pagination and count
-      const [elements, totalCount] = await Promise.all([
-        db
-          .select({
-            id: buildingElements.id,
-            buildingId: buildingElements.buildingId,
-            residenceId: buildingElements.residenceId,
-            uniformatCode: buildingElements.uniformatCode,
-            name: buildingElements.name,
-            description: buildingElements.description,
-            originalConstructionDate: buildingElements.originalConstructionDate,
-            originalLifespan: buildingElements.originalLifespan,
-            currentLifespan: buildingElements.currentLifespan,
-            currentCondition: buildingElements.currentCondition,
-            lastInspectionDate: buildingElements.lastInspectionDate,
-            nextEvaluationDate: buildingElements.nextEvaluationDate,
-            unit: buildingElements.unit,
-            unitValue: buildingElements.unitValue,
-            notes: buildingElements.notes,
-            reconstructionCost: buildingElements.reconstructionCost,
-            costEstimationDate: buildingElements.costEstimationDate,
-            access: buildingElements.access,
-            charge: buildingElements.charge,
-            isActive: buildingElements.isActive,
-            createdAt: buildingElements.createdAt,
-            updatedAt: buildingElements.updatedAt,
-          })
-          .from(buildingElements)
-          .where(and(
-            eq(buildingElements.buildingId, buildingId),
-            eq(buildingElements.isActive, true)
-          ))
-          .limit(limit)
-          .offset(offset)
-          .orderBy(
-            order === 'asc' 
-              ? asc(buildingElements.uniformatCode)
-              : desc(buildingElements.uniformatCode),
-            order === 'asc' 
-              ? asc(buildingElements.name)
-              : desc(buildingElements.name)
-          ),
-        db
-          .select({ count: count() })
-          .from(buildingElements)
-          .where(and(
-            eq(buildingElements.buildingId, buildingId),
-            eq(buildingElements.isActive, true)
-          ))
-      ]);
+      console.log('🔍 [INVENTORY DEBUG] Starting database query...');
+      console.log('🔍 [INVENTORY DEBUG] Query params:', { buildingId, limit, offset, order });
+      
+      try {
+        const [elements, totalCount] = await Promise.all([
+          db
+            .select({
+              id: buildingElements.id,
+              buildingId: buildingElements.buildingId,
+              residenceId: buildingElements.residenceId,
+              uniformatCode: buildingElements.uniformatCode,
+              name: buildingElements.name,
+              description: buildingElements.description,
+              originalConstructionDate: buildingElements.originalConstructionDate,
+              originalLifespan: buildingElements.originalLifespan,
+              currentLifespan: buildingElements.currentLifespan,
+              currentCondition: buildingElements.currentCondition,
+              lastInspectionDate: buildingElements.lastInspectionDate,
+              nextEvaluationDate: buildingElements.nextEvaluationDate,
+              unit: buildingElements.unit,
+              unitValue: buildingElements.unitValue,
+              notes: buildingElements.notes,
+              reconstructionCost: buildingElements.reconstructionCost,
+              costEstimationDate: buildingElements.costEstimationDate,
+              access: buildingElements.access,
+              charge: buildingElements.charge,
+              isActive: buildingElements.isActive,
+              createdAt: buildingElements.createdAt,
+              updatedAt: buildingElements.updatedAt,
+            })
+            .from(buildingElements)
+            .where(and(
+              eq(buildingElements.buildingId, buildingId),
+              eq(buildingElements.isActive, true)
+            ))
+            .limit(limit)
+            .offset(offset)
+            .orderBy(
+              order === 'asc' 
+                ? asc(buildingElements.uniformatCode)
+                : desc(buildingElements.uniformatCode),
+              order === 'asc' 
+                ? asc(buildingElements.name)
+                : desc(buildingElements.name)
+            ),
+          db
+            .select({ count: count() })
+            .from(buildingElements)
+            .where(and(
+              eq(buildingElements.buildingId, buildingId),
+              eq(buildingElements.isActive, true)
+            ))
+        ]);
+        
+        console.log('✅ [INVENTORY DEBUG] Database query successful');
+        console.log('🔍 [INVENTORY DEBUG] Elements found:', elements.length);
+        console.log('🔍 [INVENTORY DEBUG] Total count:', totalCount[0]?.count || 0);
+      } catch (dbError: any) {
+        console.error('❌ [INVENTORY DEBUG] Database query failed:', dbError);
+        throw dbError;
+      }
       
       const total = totalCount[0]?.count || 0;
       const totalPages = Math.ceil(total / limit);
+      
+      console.log('🔍 [INVENTORY DEBUG] Preparing response with pagination:', { total, totalPages });
       
       res.json({
         success: true,
@@ -1100,11 +1126,24 @@ export function registerMaintenanceRoutes(app: Express): void {
           hasPrev: page > 1
         }
       });
+      
+      console.log('✅ [INVENTORY DEBUG] Response sent successfully');
     } catch (error: any) {
-      console.error('Error fetching building elements:', error);
+      console.error('❌ [INVENTORY DEBUG] Error in inventory endpoint:', error);
+      console.error('❌ [INVENTORY DEBUG] Error stack:', error.stack);
+      console.error('❌ [INVENTORY DEBUG] Error details:', {
+        message: error.message,
+        code: error.code,
+        name: error.name
+      });
       res.status(500).json({
         error: 'Failed to fetch building elements',
-        details: error.message
+        details: error.message,
+        debugInfo: {
+          buildingId,
+          user: user ? { id: user.id, role: user.role } : null,
+          timestamp: new Date().toISOString()
+        }
       });
     }
   });
@@ -2748,59 +2787,91 @@ export function registerMaintenanceRoutes(app: Express): void {
    */
   app.get('/api/maintenance/buildings/:buildingId/projects', requireAuth, async (req: any, res) => {
     try {
+      console.log('🔍 [PROJECTS DEBUG] Starting projects request...');
       const user = req.user;
+      console.log('🔍 [PROJECTS DEBUG] User:', user ? { id: user.id, role: user.role, email: user.email } : 'NO USER');
+      
       if (!user) {
+        console.log('❌ [PROJECTS DEBUG] No user authentication');
         return res.status(401).json({ error: 'Authentication required' });
       }
       
       const { buildingId } = req.params;
+      console.log('🔍 [PROJECTS DEBUG] Building ID:', buildingId);
       
       // Check building access
+      console.log('🔍 [PROJECTS DEBUG] Checking building access for user:', user.id, 'role:', user.role);
       const hasAccess = await checkBuildingAccess(user.id, user.role, buildingId);
+      console.log('🔍 [PROJECTS DEBUG] Building access result:', hasAccess);
       if (!hasAccess) {
+        console.log('❌ [PROJECTS DEBUG] No building access');
         return res.status(403).json({
           error: 'No access to this building'
         });
       }
       
-      const projects = await db
-        .select({
-          id: maintenanceProjects.id,
-          title: maintenanceProjects.title,
-          type: maintenanceProjects.type,
-          status: maintenanceProjects.status,
-          priority: maintenanceProjects.priority,
-          totalBudget: maintenanceProjects.totalBudget,
-          actualCost: maintenanceProjects.actualCost,
-          plannedStartDate: maintenanceProjects.plannedStartDate,
-          plannedEndDate: maintenanceProjects.plannedEndDate,
-          suggestionId: maintenanceProjects.suggestionId,
-          createdAt: maintenanceProjects.createdAt,
-          updatedAt: maintenanceProjects.updatedAt,
-        })
-        .from(maintenanceProjects)
-        .where(eq(maintenanceProjects.buildingId, buildingId))
-        .orderBy(
-          sql`
-            CASE ${maintenanceProjects.priority}
-              WHEN 'critical' THEN 1
-              WHEN 'high' THEN 2
-              WHEN 'medium' THEN 3
-              WHEN 'low' THEN 4
-            END
-          `,
-          desc(maintenanceProjects.createdAt)
-        );
+      console.log('🔍 [PROJECTS DEBUG] Starting database query...');
+      console.log('🔍 [PROJECTS DEBUG] Query params:', { buildingId });
       
-      res.json({
-        success: true,
-        data: projects
-      });
+      try {
+        const projects = await db
+          .select({
+            id: maintenanceProjects.id,
+            title: maintenanceProjects.title,
+            type: maintenanceProjects.type,
+            status: maintenanceProjects.status,
+            priority: maintenanceProjects.priority,
+            totalBudget: maintenanceProjects.totalBudget,
+            actualCost: maintenanceProjects.actualCost,
+            plannedStartDate: maintenanceProjects.plannedStartDate,
+            plannedEndDate: maintenanceProjects.plannedEndDate,
+            suggestionId: maintenanceProjects.suggestionId,
+            createdAt: maintenanceProjects.createdAt,
+            updatedAt: maintenanceProjects.updatedAt,
+          })
+          .from(maintenanceProjects)
+          .where(eq(maintenanceProjects.buildingId, buildingId))
+          .orderBy(
+            sql`
+              CASE ${maintenanceProjects.priority}
+                WHEN 'critical' THEN 1
+                WHEN 'high' THEN 2
+                WHEN 'medium' THEN 3
+                WHEN 'low' THEN 4
+              END
+            `,
+            desc(maintenanceProjects.createdAt)
+          );
+        
+        console.log('✅ [PROJECTS DEBUG] Database query successful');
+        console.log('🔍 [PROJECTS DEBUG] Projects found:', projects.length);
+        
+        res.json({
+          success: true,
+          data: projects
+        });
+        
+        console.log('✅ [PROJECTS DEBUG] Response sent successfully');
+      } catch (dbError: any) {
+        console.error('❌ [PROJECTS DEBUG] Database query failed:', dbError);
+        throw dbError;
+      }
     } catch (error: any) {
-      console.error('Error fetching maintenance projects:', error);
+      console.error('❌ [PROJECTS DEBUG] Error in projects endpoint:', error);
+      console.error('❌ [PROJECTS DEBUG] Error stack:', error.stack);
+      console.error('❌ [PROJECTS DEBUG] Error details:', {
+        message: error.message,
+        code: error.code,
+        name: error.name
+      });
       res.status(500).json({
         error: 'Failed to fetch maintenance projects',
-        details: error.message
+        details: error.message,
+        debugInfo: {
+          buildingId,
+          user: user ? { id: user.id, role: user.role } : null,
+          timestamp: new Date().toISOString()
+        }
       });
     }
   });
