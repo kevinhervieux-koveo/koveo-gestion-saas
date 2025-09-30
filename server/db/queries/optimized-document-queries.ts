@@ -264,17 +264,24 @@ export async function getDocumentsForUser(
   if (userRole === 'manager') {
     // Manager sees documents in their organization's buildings
     filters.buildingIds = scope.buildingIds;
-  } else if (userRole === 'resident' || userRole === 'tenant') {
-    // Residents/tenants see only their residence documents or visible building documents
+  } else if (userRole === 'resident' || userRole === 'tenant' || userRole === 'demo_resident' || userRole === 'demo_tenant') {
+    // Get residence documents (both residents and tenants can see their residence docs)
     const residenceDocuments = await getDocumentsWithRelations({
       ...additionalFilters,
       residenceIds: scope.residenceIds,
     });
 
-    const visibleBuildingDocuments = await getDocumentsWithRelations({
+    // Get building documents based on role:
+    // - Residents see ALL building documents
+    // - Tenants see only documents marked as visible to tenants
+    const buildingDocuments = await getDocumentsWithRelations({
       ...additionalFilters,
       buildingIds: scope.buildingIds,
-    }).then(docs => docs.filter(doc => doc.isVisibleToTenants));
+    });
+    
+    const visibleBuildingDocuments = (userRole === 'tenant' || userRole === 'demo_tenant')
+      ? buildingDocuments.filter(doc => doc.isVisibleToTenants)
+      : buildingDocuments; // Residents see all building documents
 
     // Combine and deduplicate
     const allDocs = [...residenceDocuments, ...visibleBuildingDocuments];
