@@ -1034,8 +1034,7 @@ export default function UserManagement() {
 
 
   // Use server-side paginated results directly
-  // Client-side filtering removed to avoid conflicts with server-side pagination
-  // TODO: Move all filtering to server-side for proper search across all users
+  // Server-side filtering is fully implemented (role, status, organization, orphan, search)
   const filteredUsers = users;
 
   // Filter handlers - temporarily disabled

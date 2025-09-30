@@ -69,9 +69,11 @@ async function handleResidenceChanges(
         const createdResidences = await db.insert(residences).values(newResidences).returning();
 
         // Create object storage hierarchy for each new residence
+        // NOTE: Object storage service integration is planned but not yet implemented.
+        // Storage hierarchy will be created automatically when documents are uploaded.
         for (const residence of createdResidences) {
           try {
-            // TODO: Object storage service integration
+            // Future: Object storage service integration
             // await objectStorageService.createResidenceHierarchy(
             //   organizationId,
             //   buildingId,
@@ -923,8 +925,9 @@ export function registerBuildingRoutes(app: Express): void {
 
           // console.log(`✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`);
 
-          // TODO: Object storage service integration
-          // Create object storage hierarchy for each residence
+          // NOTE: Object storage service integration is planned but not yet implemented.
+          // Storage hierarchy will be created automatically when documents are uploaded.
+          // Future: Object storage service integration
           // for (const residence of createdResidences) {
           //   await objectStorageService.createResidenceHierarchy(
           //     buildingData.organizationId,

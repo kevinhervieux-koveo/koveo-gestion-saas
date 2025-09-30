@@ -2265,6 +2265,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         projects: number;
         count: number;
         monthsInYear: number;
+        statuses: ('red' | 'yellow' | 'green')[];
       } } = {};
 
       filteredData.forEach((item, index) => {
@@ -2272,7 +2273,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         const financialYear = getFinancialYear(item.year, item.month, localSettings.financialYearStart);
         
         if (!yearlyData[financialYear]) {
-          yearlyData[financialYear] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, urgentInvestments: 0, suggestedInvestments: 0, notUrgentInvestments: 0, projects: 0, count: 0, monthsInYear: 0 };
+          yearlyData[financialYear] = { revenue: 0, spending: 0, balanceStart: 0, balanceEnd: 0, netCashFlow: 0, capitalInvestments: 0, urgentInvestments: 0, suggestedInvestments: 0, notUrgentInvestments: 0, projects: 0, count: 0, monthsInYear: 0, statuses: [] };
         }
         // Use actual inflated revenue from forecast data
         yearlyData[financialYear].revenue += item.revenue;
@@ -2299,6 +2300,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
         
         yearlyData[financialYear].count++;
         yearlyData[financialYear].monthsInYear++;
+        yearlyData[financialYear].statuses.push(item.status);
         
         // For yearly view: Use first month's balance as start, last month's balance as end
         if (yearlyData[financialYear].count === 1) {
@@ -2318,20 +2320,30 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       // Sort yearly data chronologically after Object.entries
       return Object.entries(yearlyData)
         .sort(([yearA], [yearB]) => parseInt(yearA) - parseInt(yearB))
-        .map(([year, data]) => ({
-          month: year,
-          balanceStart: data.balanceStart,
-          balanceEnd: data.balanceEnd,
-          revenue: data.revenue,
-          spending: data.spending,
-          netCashFlow: data.netCashFlow,
-          capitalInvestments: data.capitalInvestments,
-          urgentInvestments: data.urgentInvestments,
-          suggestedInvestments: data.suggestedInvestments,
-          notUrgentInvestments: data.notUrgentInvestments,
-          projects: data.projects,
-          status: 'green' as const, // TODO: Calculate status based on yearly data
-        }));
+        .map(([year, data]) => {
+          // Calculate yearly status: red if any month is red, yellow if any is yellow, else green
+          let yearStatus: 'red' | 'yellow' | 'green' = 'green';
+          if (data.statuses.includes('red')) {
+            yearStatus = 'red';
+          } else if (data.statuses.includes('yellow')) {
+            yearStatus = 'yellow';
+          }
+          
+          return {
+            month: year,
+            balanceStart: data.balanceStart,
+            balanceEnd: data.balanceEnd,
+            revenue: data.revenue,
+            spending: data.spending,
+            netCashFlow: data.netCashFlow,
+            capitalInvestments: data.capitalInvestments,
+            urgentInvestments: data.urgentInvestments,
+            suggestedInvestments: data.suggestedInvestments,
+            notUrgentInvestments: data.notUrgentInvestments,
+            projects: data.projects,
+            status: yearStatus,
+          };
+        });
     }
 
     // Monthly view with individual months
