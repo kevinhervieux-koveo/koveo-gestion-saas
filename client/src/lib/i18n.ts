@@ -1091,7 +1091,6 @@ export interface Translations {
   fair: string;
   poor: string;
   uniformatCategory: string;
-  allCategories: string;
   uniformatSubstructure: string;
   uniformatShell: string;
   uniformatInteriors: string;
@@ -1111,7 +1110,6 @@ export interface Translations {
   selectBuildingProjectsMessage: string;
   projectsMaintenanceManagement: string;
   projectsManagementSubtitle: string;
-  projectOverview: string;
   toggleProjectOverview: string;
   projectsSelected: string;
   newProject: string;
@@ -2259,7 +2257,6 @@ export const translations: Record<Language, Translations> = {
     fair: 'Fair',
     poor: 'Poor',
     uniformatCategory: 'UNIFORMAT Category',
-    allCategories: 'All Categories',
     uniformatSubstructure: 'A - Substructure',
     uniformatShell: 'B - Shell',
     uniformatInteriors: 'C - Interiors',
@@ -2279,7 +2276,6 @@ export const translations: Record<Language, Translations> = {
     selectBuildingProjectsMessage: 'Please select an organization and building to view its maintenance projects.',
     projectsMaintenanceManagement: 'Projects - Maintenance Management',
     projectsManagementSubtitle: 'Manage maintenance projects, track progress, and coordinate work schedules',
-    projectOverview: 'Project Overview',
     toggleProjectOverview: 'Toggle project overview',
     projectsSelected: 'project(s) selected',
     newProject: 'New Project',
@@ -3422,7 +3418,6 @@ export const translations: Record<Language, Translations> = {
     fair: 'Acceptable',
     poor: 'Mauvais',
     uniformatCategory: 'Catégorie UNIFORMAT',
-    allCategories: 'Toutes les catégories',
     uniformatSubstructure: 'A - Infrastructure',
     uniformatShell: 'B - Enveloppe',
     uniformatInteriors: 'C - Aménagements intérieurs',
@@ -3442,7 +3437,6 @@ export const translations: Record<Language, Translations> = {
     selectBuildingProjectsMessage: 'Veuillez sélectionner une organisation et un bâtiment pour voir ses projets de maintenance.',
     projectsMaintenanceManagement: 'Projets - Gestion de la maintenance',
     projectsManagementSubtitle: 'Gérez les projets de maintenance, suivez les progrès et coordonnez les horaires de travail',
-    projectOverview: 'Aperçu des projets',
     toggleProjectOverview: 'Basculer l\'aperçu des projets',
     projectsSelected: 'projet(s) sélectionné(s)',
     newProject: 'Nouveau projet',
