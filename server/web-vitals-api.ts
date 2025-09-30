@@ -27,7 +27,7 @@ const MAX_METRICS = 10000; // Keep last 10k metrics
 // Web Vitals submission schema
 const webVitalSchema = z.object({
   name: z.enum(['CLS', 'FID', 'LCP', 'FCP', 'TTFB']),
-  value: z.number().positive(),
+  value: z.number().nonnegative(),
   id: z.string(),
   rating: z.enum(['good', 'needs-improvement', 'poor']),
   timestamp: z.number(),
@@ -71,7 +71,7 @@ router.post('/api/performance/web-vitals', async (req, res) => {
     console.error('Failed to record Web Vital:', error);
     res.status(400).json({ 
       error: 'Invalid Web Vital data',
-      details: error instanceof z.ZodError ? error.errors : error.message
+      details: error instanceof z.ZodError ? error.issues : (error as Error).message
     });
   }
 });
