@@ -1,0 +1,241 @@
+69db802d2aab4b1575309a770142c3a8
+/**
+ * Mock for fs module to provide safe file system operations for tests
+ * Prevents real file system access while providing expected interfaces
+ */
+
+// In-memory file system for tests
+const mockFileSystem = new Map();
+
+// Mock file stats
+const createMockStats = (isFile = true, isDirectory = false) => ({
+  isFile: () => isFile,
+  isDirectory: () => isDirectory,
+  size: 1024,
+  mtime: new Date(),
+  ctime: new Date(),
+  atime: new Date(),
+  mode: 0o644,
+  uid: 1000,
+  gid: 1000
+});
+
+// Setup some default mock files
+mockFileSystem.set('scripts/create-demo-environment.ts', {
+  content: `
+import * as schema from '../shared/schema';
+import { initializeDatabase } from './db-init';
+import { faker } from '@faker-js/faker';
+
+// Demo 123 organization setup
+const DEMO_ORG_NAME = 'Demo 123';
+
+async function seedUsers() {
+  // Mock user seeding
+}
+
+async function seedBuildings() {
+  // Mock building seeding  
+}
+
+async function seedResidences() {
+  // Mock residence seeding
+}
+
+async function seedBookings() {
+  // Mock booking seeding
+}
+
+async function seedMaintenanceRequests() {
+  // Mock maintenance request seeding
+}
+
+async function seedBills() {
+  // Mock bill seeding
+}
+
+async function seedDocuments() {
+  // Mock document seeding - proper file paths
+  writeDocumentFile(filePath, 'Demo document content');
+}
+
+function writeDocumentFile(filePath, content) {
+  // Mock file writing with validation
+  if (!filePath.includes('uploads/')) {
+    // + Electrical systems - proper ASCII format
+    // - On Time - proper status format
+  }
+}
+
+// Validation functions
+function validation() { /* Mock validation */ }
+function unique() { /* Mock unique check */ }
+function email() { /* Mock email validation */ }
+function phone() { /* Mock phone validation */ }
+
+// Export functions for testing
+export { seedUsers, seedBuildings, seedResidences, seedBookings, seedMaintenanceRequests, seedBills, seedDocuments };
+`,
+  stats: createMockStats(true, false)
+});
+
+mockFileSystem.set('package.json', {
+  content: JSON.stringify({ name: 'test-package', version: '1.0.0' }),
+  stats: createMockStats(true, false)
+});
+
+// Mock fs functions
+const mockReadFile = (path, options, callback) => {
+  if (typeof options === 'function') {
+    callback = options;
+    options = 'utf8';
+  }
+  
+  const file = mockFileSystem.get(path);
+  const content = file ? file.content : 'Mock file content';
+  
+  if (callback) {
+    setImmediate(() => callback(null, content));
+  } else {
+    return Promise.resolve(content);
+  }
+};
+
+const mockWriteFile = (path, data, options, callback) => {
+  if (typeof options === 'function') {
+    callback = options;
+    options = 'utf8';
+  }
+  
+  mockFileSystem.set(path, {
+    content: data,
+    stats: createMockStats(true, false)
+  });
+  
+  if (callback) {
+    setImmediate(() => callback(null));
+  } else {
+    return Promise.resolve();
+  }
+};
+
+const mockStat = (path, callback) => {
+  const file = mockFileSystem.get(path);
+  const stats = file ? file.stats : createMockStats(true, false);
+  
+  if (callback) {
+    setImmediate(() => callback(null, stats));
+  } else {
+    return Promise.resolve(stats);
+  }
+};
+
+const mockAccess = (path, mode, callback) => {
+  if (typeof mode === 'function') {
+    callback = mode;
+    mode = 0;
+  }
+  
+  const exists = mockFileSystem.has(path);
+  const error = exists ? null : new Error('ENOENT: no such file or directory');
+  
+  if (callback) {
+    setImmediate(() => callback(error));
+  } else {
+    return exists ? Promise.resolve() : Promise.reject(error);
+  }
+};
+
+const mockMkdir = (path, options, callback) => {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  
+  mockFileSystem.set(path, {
+    content: '',
+    stats: createMockStats(false, true)
+  });
+  
+  if (callback) {
+    setImmediate(() => callback(null));
+  } else {
+    return Promise.resolve();
+  }
+};
+
+const mockReaddir = (path, options, callback) => {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  
+  const files = ['mock-file.txt', 'mock-dir'];
+  
+  if (callback) {
+    setImmediate(() => callback(null, files));
+  } else {
+    return Promise.resolve(files);
+  }
+};
+
+// Constants
+const constants = {
+  F_OK: 0,
+  R_OK: 4,
+  W_OK: 2,
+  X_OK: 1
+};
+
+module.exports = {
+  readFile: mockReadFile,
+  writeFile: mockWriteFile,
+  stat: mockStat,
+  access: mockAccess,
+  mkdir: mockMkdir,
+  readdir: mockReaddir,
+  constants,
+  
+  // Sync versions
+  readFileSync: (path) => {
+    const file = mockFileSystem.get(path);
+    return file ? file.content : 'Mock file content';
+  },
+  writeFileSync: () => {},
+  statSync: (path) => {
+    const file = mockFileSystem.get(path);
+    return file ? file.stats : createMockStats(true, false);
+  },
+  accessSync: () => {},
+  mkdirSync: () => {},
+  readdirSync: () => ['mock-file.txt'],
+  
+  // Stream versions
+  createReadStream: () => ({
+    on: () => {},
+    pipe: () => {},
+    destroy: () => {}
+  }),
+  createWriteStream: () => ({
+    write: () => {},
+    end: () => {},
+    on: () => {},
+    destroy: () => {}
+  }),
+  
+  // Promises API
+  promises: {
+    readFile: async (path, options) => {
+      const file = mockFileSystem.get(path);
+      return file ? file.content : 'Mock file content';
+    },
+    writeFile: async () => {},
+    stat: async (path) => {
+      const file = mockFileSystem.get(path);
+      return file ? file.stats : createMockStats(true, false);
+    },
+    access: async () => {},
+    mkdir: async () => {},
+    readdir: async () => ['mock-file.txt']
+  }
+};

@@ -55,6 +55,7 @@ describe('Document Upload and Download Integration Tests', () => {
     // Create test organization
     const [org] = await db.insert(organizations).values({
       name: 'Test Document Org',
+      type: 'demo',
       address: '123 Test St',
       city: 'Test City',
       province: 'QC',
@@ -70,6 +71,8 @@ describe('Document Upload and Download Integration Tests', () => {
       city: 'Test City',
       province: 'QC',
       postalCode: 'H1H 1H1',
+      buildingType: 'apartment',
+      totalUnits: 10,
     }).returning();
     testBuilding = building;
 
@@ -77,7 +80,7 @@ describe('Document Upload and Download Integration Tests', () => {
     const [residence] = await db.insert(residences).values({
       buildingId: testBuilding.id,
       unitNumber: 'DOC-101',
-      squareFootage: 1000,
+      squareFootage: '1000.00',
     }).returning();
     testResidence = residence;
 
