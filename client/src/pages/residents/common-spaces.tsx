@@ -978,7 +978,20 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                       const hasBooking = bookingsForDate.some((booking: Booking) => {
                                         const bookingStart = parseISO(booking.startTime);
                                         const bookingEnd = parseISO(booking.endTime);
-                                        const timeSlot = parse(time, 'HH:mm', form.watch('date'));
+                                        
+                                        // Create timeSlot in local time matching the selected date
+                                        const selectedDate = form.watch('date');
+                                        const [hour, minute] = time.split(':').map(Number);
+                                        const timeSlot = new Date(
+                                          selectedDate.getFullYear(),
+                                          selectedDate.getMonth(),
+                                          selectedDate.getDate(),
+                                          hour,
+                                          minute,
+                                          0,
+                                          0
+                                        );
+                                        
                                         return timeSlot >= bookingStart && timeSlot < bookingEnd;
                                       });
                                       
