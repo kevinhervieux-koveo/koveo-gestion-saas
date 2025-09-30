@@ -324,8 +324,8 @@ function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any[
     return false; // No hours defined for this day
   }
 
-  const startTimeStr = startTime.toTimeString().slice(0, 5); // HH:MM format
-  const endTimeStr = endTime.toTimeString().slice(0, 5);
+  const startTimeStr = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`;
+  const endTimeStr = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
 
   return startTimeStr >= dayHours.open && endTimeStr <= dayHours.close;
 }

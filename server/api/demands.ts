@@ -107,30 +107,8 @@ export function registerDemandRoutes(app: Express) {
           conditions.push(eq(demands.id, 'never-match'));
         }
       } else {
-        // Residents and tenants can see demands they created OR demands addressed to their residence
-        
-        // Get user's residences
-        const userResidenceData = await db
-          .select({ residenceId: userResidences.residenceId })
-          .from(userResidences)
-          .where(eq(userResidences.userId, user.id));
-          
-        const userResidenceIds = userResidenceData.map(ur => ur.residenceId);
-        
-        // Create conditions: demands they created OR demands addressed to their residences
-        if (userResidenceIds.length > 0) {
-          // User has residences - check both created and addressed conditions
-          conditions.push(
-            or(
-              eq(demands.submitterId, user.id), // Demands they created
-              inArray(demands.residenceId, userResidenceIds), // Addressed via residenceId
-              inArray(demands.assignationResidenceId, userResidenceIds) // Addressed via assignationResidenceId
-            )
-          );
-        } else {
-          // User has no residences - only see demands they created
-          conditions.push(eq(demands.submitterId, user.id));
-        }
+        // Residents and tenants can only see demands they personally created
+        conditions.push(eq(demands.submitterId, user.id));
       }
 
       // Add filter conditions
@@ -298,24 +276,8 @@ export function registerDemandRoutes(app: Express) {
           }
         }
       } else {
-        // Residents and tenants can view demands they created OR demands addressed to their residence
-        if (demandData.submitterId === user.id) {
-          hasAccess = true;
-        } else {
-          // Check if the demand is addressed to one of the user's residences (check both fields)
-          const userResidenceData = await db
-            .select({ residenceId: userResidences.residenceId })
-            .from(userResidences)
-            .where(eq(userResidences.userId, user.id));
-            
-          const userResidenceIds = userResidenceData.map(ur => ur.residenceId);
-          
-          if (demandData.residenceId && userResidenceIds.includes(demandData.residenceId)) {
-            hasAccess = true;
-          } else if (demandData.assignationResidenceId && userResidenceIds.includes(demandData.assignationResidenceId)) {
-            hasAccess = true;
-          }
-        }
+        // Residents and tenants can only view demands they personally created
+        hasAccess = demandData.submitterId === user.id;
       }
       
       if (!hasAccess) {
