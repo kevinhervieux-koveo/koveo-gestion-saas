@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 // Environment schema validation
 const envSchema = z.object({
-  PORT: z.string().transform(Number).default(5000),
+  PORT: z.coerce.number().default(5000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DATABASE_URL_KOVEO: z.string().optional(), // Production database
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters for security'),
@@ -18,26 +18,20 @@ const envSchema = z.object({
   FROM_EMAIL: z.string().email().optional(),
 
   // SSL configuration
-  SSL_ENABLED: z
-    .string()
-    .transform((v) => v === 'true')
-    .default(false),
-  SSL_STAGING: z
-    .string()
-    .transform((v) => v === 'true')
-    .default(true),
+  SSL_ENABLED: z.coerce.boolean().default(false),
+  SSL_STAGING: z.coerce.boolean().default(true),
 
   // Performance configuration
-  CACHE_TTL: z.string().transform(Number).default(300), // 5 minutes
-  MAX_CACHE_SIZE: z.string().transform(Number).default(100),
+  CACHE_TTL: z.coerce.number().default(300), // 5 minutes
+  MAX_CACHE_SIZE: z.coerce.number().default(100),
 
   // Security configuration
-  RATE_LIMIT_WINDOW: z.string().transform(Number).default(900000), // 15 minutes
-  RATE_LIMIT_MAX: z.string().transform(Number).default(100),
+  RATE_LIMIT_WINDOW: z.coerce.number().default(900000), // 15 minutes
+  RATE_LIMIT_MAX: z.coerce.number().default(100),
 
   // Database optimization
-  DB_POOL_SIZE: z.string().transform(Number).default(10),
-  QUERY_TIMEOUT: z.string().transform(Number).default(30000), // 30 seconds
+  DB_POOL_SIZE: z.coerce.number().default(10),
+  QUERY_TIMEOUT: z.coerce.number().default(30000), // 30 seconds
 });
 
 // Parse and validate environment variables with production checks
