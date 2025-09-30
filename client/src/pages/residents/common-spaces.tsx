@@ -992,18 +992,6 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                           0
                                         );
                                         
-                                        // Debug logging - will remove after testing
-                                        if (time === '13:00' && bookingsForDate.length > 0) {
-                                          console.log('DEBUG 13:00 slot:', {
-                                            time,
-                                            timeSlot: timeSlot.toISOString(),
-                                            bookingStart: bookingStart.toISOString(),
-                                            bookingEnd: bookingEnd.toISOString(),
-                                            comparison: `${timeSlot.toISOString()} >= ${bookingStart.toISOString()} && ${timeSlot.toISOString()} < ${bookingEnd.toISOString()}`,
-                                            result: timeSlot >= bookingStart && timeSlot < bookingEnd
-                                          });
-                                        }
-                                        
                                         return timeSlot >= bookingStart && timeSlot < bookingEnd;
                                       });
                                       

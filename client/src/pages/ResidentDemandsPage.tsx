@@ -288,24 +288,18 @@ ResidentDemandsPage() {
   // Fetch residences - filter based on selected building and user role
   const selectedBuildingId = newDemandForm.watch('buildingId');
   const { data: residences = [] } = useQuery<Residence[]>({
-    queryKey: defaultUser?.role === 'admin' 
-      ? ['/api/residences', selectedBuildingId]
-      : defaultUser?.role === 'manager'
-        ? ['/api/residences', selectedBuildingId] // Use admin endpoint for managers too
-        : ['/api/users/me/residences', { building_id: selectedBuildingId }],
+    queryKey: ['/api/residences', selectedBuildingId],
     enabled: !!selectedBuildingId && !!defaultUser?.role,
     queryFn: async () => {
-      if (defaultUser?.role === 'admin' || defaultUser?.role === 'manager') {
-        const response = await fetch(`/api/residences?buildingId=${selectedBuildingId}`, {
-          credentials: 'include',
-        });
-        return response.json();
-      } else {
-        const response = await fetch(`/api/users/me/residences?building_id=${selectedBuildingId}`, {
-          credentials: 'include',
-        });
-        return response.json();
+      // All users (including residents) can see all residences in their buildings
+      // This allows residents to file complaints about other residents
+      const response = await fetch(`/api/residences?buildingId=${selectedBuildingId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch residences');
       }
+      return response.json();
     },
     select: (data: any) => {
       if (!data) return [];
