@@ -2414,21 +2414,21 @@ export function registerDocumentRoutes(app: Express): void {
         timestamp: new Date().toISOString()
       }, 'INFO');
 
-      // SECURITY CHECK 1: Role-based access control - only admin and manager can delete documents
-      if (!['admin', 'manager'].includes(userRole)) {
+      // SECURITY CHECK 1: Role-based access control - admin, manager, and resident can delete documents
+      if (!['admin', 'manager', 'resident'].includes(userRole)) {
         logSecurityEvent('UNAUTHORIZED_DELETE_ATTEMPT', user, false, documentId, { 
           operationId,
-          requiredRoles: ['admin', 'manager'],
+          requiredRoles: ['admin', 'manager', 'resident'],
           attemptedRole: userRole
         });
         logDocumentOperation('DELETE_DENIED_INSUFFICIENT_ROLE', {
           operationId,
           documentId,
           userRole,
-          requiredRoles: ['admin', 'manager']
+          requiredRoles: ['admin', 'manager', 'resident']
         }, 'WARN');
         return res.status(403).json({ 
-          message: 'Insufficient permissions. Only administrators and managers can delete documents.' 
+          message: 'Insufficient permissions. Only administrators, managers, and residents can delete documents.' 
         });
       }
 
@@ -2590,6 +2590,55 @@ export function registerDocumentRoutes(app: Express): void {
             userId,
             organizationId: userOrganizationId
           }, 'DEBUG');
+        }
+      }
+
+      // SECURITY CHECK 7: Resident-specific residence access verification
+      if (userRole === 'resident') {
+        if (document.residenceId) {
+          // Resident can only delete documents from residences they have access to
+          const userResidences = await storage.getUserResidences(userId);
+          const userResidenceIds = userResidences.map(ur => ur.residenceId);
+          
+          if (!userResidenceIds.includes(document.residenceId)) {
+            logSecurityEvent('DELETE_DENIED_RESIDENCE_ACCESS', user, false, documentId, { 
+              operationId,
+              residenceId: document.residenceId,
+              userResidenceIds
+            });
+            logDocumentOperation('DELETE_DENIED_RESIDENT_RESIDENCE_ACCESS', {
+              operationId,
+              documentId,
+              residenceId: document.residenceId,
+              userId,
+              userResidenceIds
+            }, 'WARN');
+            return res.status(403).json({ 
+              message: 'Cannot delete documents from residences you do not have access to' 
+            });
+          }
+          
+          logDocumentOperation('DELETE_AUTHORIZED_RESIDENT_RESIDENCE', {
+            operationId,
+            documentId,
+            residenceId: document.residenceId,
+            userId
+          }, 'DEBUG');
+        } else if (document.buildingId) {
+          // Residents cannot delete building-level documents
+          logSecurityEvent('DELETE_DENIED_RESIDENT_BUILDING_DOCUMENT', user, false, documentId, { 
+            operationId,
+            buildingId: document.buildingId
+          });
+          logDocumentOperation('DELETE_DENIED_RESIDENT_CANNOT_DELETE_BUILDING_DOCS', {
+            operationId,
+            documentId,
+            buildingId: document.buildingId,
+            userId
+          }, 'WARN');
+          return res.status(403).json({ 
+            message: 'Residents can only delete documents from their own residences, not building-level documents' 
+          });
         }
       }
 
