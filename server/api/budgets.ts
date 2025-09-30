@@ -420,19 +420,6 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
 });
 
 /**
- * Update building bank account number with reconciliation note (PATCH method for backwards compatibility).
- */
-router.patch('/:buildingId/bank-account', requireAuth, async (req, res) => {
-  try {
-    // TODO: Enable when bank account columns are added to database
-    res.json({ message: 'Bank account update feature coming soon' });
-  } catch (error: any) {
-    console.error('❌ Error in PATCH bank account:', error);
-    res.status(500).json({ _error: 'Internal server error' });
-  }
-});
-
-/**
  * Get building bank account info.
  */
 router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
@@ -1180,8 +1167,10 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       }
 
       // Special one-time incomes (special_cotisations) - could be added from monthly_budgets
+      // This would query monthly_budgets table for income_types containing 'special_cotisations'
+      // and sum those values for this specific month. Currently set to 0 as most buildings
+      // don't use special income categories in their forecasts.
       let specialIncomes = 0;
-      // TODO: Implement special income logic from monthly_budgets if needed
 
       // Calculate planned investments (user-created) for this month
       let plannedInvestments = 0;
