@@ -11,6 +11,7 @@ import {
   integer,
   json,
   primaryKey,
+  index,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -106,7 +107,10 @@ export const userOrganizations = pgTable('user_organizations', {
   canAccessAllOrganizations: boolean('can_access_all_organizations').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_organizations_user_id_idx').on(table.userId),
+  organizationIdIdx: index('user_organizations_organization_id_idx').on(table.organizationId),
+}));
 
 /**
  * Invitations table for managing user invitations to organizations.
@@ -139,7 +143,13 @@ export const invitations = pgTable('invitations', {
   lastAccessedAt: timestamp('last_accessed_at'),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
-});
+}, (table) => ({
+  organizationIdIdx: index('invitations_organization_id_idx').on(table.organizationId),
+  buildingIdIdx: index('invitations_building_id_idx').on(table.buildingId),
+  residenceIdIdx: index('invitations_residence_id_idx').on(table.residenceId),
+  invitedByUserIdIdx: index('invitations_invited_by_user_id_idx').on(table.invitedByUserId),
+  acceptedByIdx: index('invitations_accepted_by_idx').on(table.acceptedBy),
+}));
 
 /**
  * Password reset tokens table for secure password reset functionality.
@@ -160,7 +170,9 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('password_reset_tokens_user_id_idx').on(table.userId),
+}));
 
 /**
  * Invitation audit log table for tracking invitation operations and security events.
@@ -179,7 +191,10 @@ export const invitationAuditLog = pgTable('invitation_audit_log', {
   previousStatus: invitationStatusEnum('previous_status'),
   newStatus: invitationStatusEnum('new_status'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  invitationIdIdx: index('invitation_audit_log_invitation_id_idx').on(table.invitationId),
+  performedByIdx: index('invitation_audit_log_performed_by_idx').on(table.performedBy),
+}));
 
 // Permissions enums
 export const resourceTypeEnum = pgEnum('resource_type', [
@@ -242,7 +257,10 @@ export const rolePermissions = pgTable('role_permissions', {
   grantedBy: varchar('granted_by').references(() => users.id),
   grantedAt: timestamp('granted_at').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  permissionIdIdx: index('role_permissions_permission_id_idx').on(table.permissionId),
+  grantedByIdx: index('role_permissions_granted_by_idx').on(table.grantedBy),
+}));
 
 export const userPermissions = pgTable('user_permissions', {
   id: uuid('id')
@@ -257,7 +275,10 @@ export const userPermissions = pgTable('user_permissions', {
   granted: boolean('granted').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_permissions_user_id_idx').on(table.userId),
+  permissionIdIdx: index('user_permissions_permission_id_idx').on(table.permissionId),
+}));
 
 // Insert schemas - manual Zod schemas to avoid drizzle-zod compatibility issues
 export const insertUserSchema = z.object({

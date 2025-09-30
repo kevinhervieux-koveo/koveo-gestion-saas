@@ -139,7 +139,11 @@ export const bills = pgTable('bills', {
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('bills_building_id_idx').on(table.buildingId),
+  createdByIdx: index('bills_created_by_idx').on(table.createdBy),
+  sourceTemplateIdIdx: index('bills_source_template_id_idx').on(table.sourceTemplateId),
+}));
 
 /**
  * Payments table for tracking individual payment instances for each bill.
@@ -160,7 +164,9 @@ export const payments = pgTable('payments', {
   notes: text('notes'), // Optional notes for this specific payment
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  billIdIdx: index('payments_bill_id_idx').on(table.billId),
+}));
 
 
 /**
@@ -189,7 +195,11 @@ export const budgets = pgTable('budgets', {
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('budgets_building_id_idx').on(table.buildingId),
+  approvedByIdx: index('budgets_approved_by_idx').on(table.approvedBy),
+  createdByIdx: index('budgets_created_by_idx').on(table.createdBy),
+}));
 
 /**
  * Monthly budgets table for detailed monthly tracking of income and spending by building.
@@ -215,7 +225,11 @@ export const monthlyBudgets = pgTable('monthly_budgets', {
   originalBudgetId: varchar('original_budget_id').references(() => monthlyBudgets.id), // References the original budget if this is an approved copy
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('monthly_budgets_building_id_idx').on(table.buildingId),
+  approvedByIdx: index('monthly_budgets_approved_by_idx').on(table.approvedBy),
+  originalBudgetIdIdx: index('monthly_budgets_original_budget_id_idx').on(table.originalBudgetId),
+}));
 
 /**
  * Capital investments table for tracking building infrastructure investments and improvements.
@@ -238,7 +252,9 @@ export const capitalInvestments = pgTable('capital_investments', {
   category: text('category'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('capital_investments_building_id_idx').on(table.buildingId),
+}));
 
 /**
  * Real-time financial calculator that replaces the money_flow table

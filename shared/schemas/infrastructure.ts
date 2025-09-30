@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, pgEnum, boolean, integer, varchar, json } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, pgEnum, boolean, integer, varchar, json, index } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { relations } from 'drizzle-orm';
@@ -49,7 +49,9 @@ export const sslCertificates = pgTable('ssl_certificates', {
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  createdByIdx: index('ssl_certificates_created_by_idx').on(table.createdBy),
+}));
 
 /**
  * Session table for PostgreSQL session store.

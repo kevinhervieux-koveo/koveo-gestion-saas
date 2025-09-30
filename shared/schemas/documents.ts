@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, boolean, varchar, uuid, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, varchar, uuid, integer, index } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings, residences } from './property';
@@ -33,7 +33,12 @@ export const documents = pgTable('documents', {
   effectiveDate: timestamp('effective_date'), // Date the document becomes effective
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  residenceIdIdx: index('documents_residence_id_idx').on(table.residenceId),
+  buildingIdIdx: index('documents_building_id_idx').on(table.buildingId),
+  uploadedByIdIdx: index('documents_uploaded_by_id_idx').on(table.uploadedById),
+  attachedToIdIdx: index('documents_attached_to_id_idx').on(table.attachedToId),
+}));
 
 // Enhanced document schema with file metadata
 export const insertDocumentSchema = z.object({

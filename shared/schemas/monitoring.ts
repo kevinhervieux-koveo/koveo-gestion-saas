@@ -11,6 +11,7 @@ import {
   integer,
   decimal,
   date,
+  index,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -120,7 +121,10 @@ export const predictionValidations = pgTable('prediction_validations', {
   costImpact: decimal('cost_impact', { precision: 10, scale: 2 }),
   validatedAt: timestamp('validated_at').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  predictionIdIdx: index('prediction_validations_prediction_id_idx').on(table.predictionId),
+  validatorIdIdx: index('prediction_validations_validator_id_idx').on(table.validatorId),
+}));
 
 /**
  * Stores calibration data for improving metric accuracy.
@@ -179,7 +183,10 @@ export const qualityIssues = pgTable('quality_issues', {
   resolvedAt: timestamp('resolved_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  detectedByIdx: index('quality_issues_detected_by_idx').on(table.detectedBy),
+  predictionIdIdx: index('quality_issues_prediction_id_idx').on(table.predictionId),
+}));
 
 // Insert schemas
 export const insertMetricEffectivenessTrackingSchema = z.object({

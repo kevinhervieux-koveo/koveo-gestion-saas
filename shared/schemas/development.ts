@@ -11,6 +11,7 @@ import {
   integer,
   decimal,
   date,
+  index,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -102,7 +103,10 @@ export const improvementSuggestions = pgTable('improvement_suggestions', {
   updatedAt: timestamp('updated_at').defaultNow(),
   acknowledgedAt: timestamp('acknowledged_at'),
   completedAt: timestamp('completed_at'),
-});
+}, (table) => ({
+  suggestedByIdx: index('improvement_suggestions_suggested_by_idx').on(table.suggestedBy),
+  assignedToIdx: index('improvement_suggestions_assigned_to_idx').on(table.assignedTo),
+}));
 
 /**
  * Features table for tracking development roadmap items and functionality.
@@ -171,7 +175,10 @@ export const actionableItems = pgTable('actionable_items', {
   updatedAt: timestamp('updated_at').defaultNow(),
   startedAt: timestamp('started_at'),
   completedAt: timestamp('completed_at'),
-});
+}, (table) => ({
+  featureIdIdx: index('actionable_items_feature_id_idx').on(table.featureId),
+  assignedToIdx: index('actionable_items_assigned_to_idx').on(table.assignedTo),
+}));
 
 /**
  * Development pillars table for the Pillar Methodology framework.

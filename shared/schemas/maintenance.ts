@@ -210,7 +210,9 @@ export const uniformatCodes = pgTable('uniformat_codes', {
   descriptionEn: text('description_en'),
   typicalLifespan: integer('typical_lifespan'), // baseline years
   category: varchar('category', { length: 100 }), // major system group
-});
+}, (table) => ({
+  parentCodeIdx: index('uniformat_codes_parent_code_idx').on(table.parentCode),
+}));
 
 /**
  * Vendors table for managing contractors and service providers.
@@ -435,7 +437,9 @@ export const projectSteps = pgTable('project_steps', {
   completedAt: timestamp('completed_at'),
   notes: text('notes'),
   documents: jsonb('documents'), // array of document IDs
-});
+}, (table) => ({
+  projectIdIdx: index('project_steps_project_id_idx').on(table.projectId),
+}));
 
 /**
  * Project elements junction table linking projects to affected building elements.
@@ -455,6 +459,8 @@ export const projectElements = pgTable('project_elements', {
   costAllocation: decimal('cost_allocation', { precision: 10, scale: 2 }), // cost assigned to this element
   confirmed: boolean('confirmed').notNull().default(false), // element lifespan effect confirmed by user
 }, (table) => ({
+  projectIdIdx: index('project_elements_project_id_idx').on(table.projectId),
+  elementIdIdx: index('project_elements_element_id_idx').on(table.elementId),
   // Validation constraints
   costAllocationCheck: check('project_elements_cost_allocation_check', sql`cost_allocation >= 0`),
 }));
@@ -478,7 +484,11 @@ export const elementDocuments = pgTable('element_documents', {
     .notNull()
     .references(() => users.id),
   uploadedAt: timestamp('uploaded_at').defaultNow(),
-});
+}, (table) => ({
+  elementIdIdx: index('element_documents_element_id_idx').on(table.elementId),
+  historyIdIdx: index('element_documents_history_id_idx').on(table.historyId),
+  uploadedByIdx: index('element_documents_uploaded_by_idx').on(table.uploadedBy),
+}));
 
 /**
  * Submission vendors table for managing vendor submissions during project submission phase.

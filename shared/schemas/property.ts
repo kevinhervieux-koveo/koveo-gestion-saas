@@ -12,6 +12,7 @@ import {
   numeric,
   date,
   varchar,
+  index,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -76,7 +77,9 @@ export const buildings = pgTable('buildings', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  organizationIdIdx: index('buildings_organization_id_idx').on(table.organizationId),
+}));
 
 /**
  * Residences table storing individual housing units within buildings.
@@ -100,7 +103,9 @@ export const residences = pgTable('residences', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('residences_building_id_idx').on(table.buildingId),
+}));
 
 /**
  * User-Residence relationship table to track user assignments to residences.
@@ -122,7 +127,10 @@ export const userResidences = pgTable('user_residences', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_residences_user_id_idx').on(table.userId),
+  residenceIdIdx: index('user_residences_residence_id_idx').on(table.residenceId),
+}));
 
 /**
  * Contacts table storing contact information for organizations, buildings, and residences.
@@ -141,7 +149,9 @@ export const contacts = pgTable('contacts', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  entityIdIdx: index('contacts_entity_id_idx').on(table.entityId),
+}));
 
 /**
  * Common spaces table storing shared facilities within buildings.
@@ -165,7 +175,10 @@ export const commonSpaces = pgTable('common_spaces', {
   bookingRules: text('booking_rules'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('common_spaces_building_id_idx').on(table.buildingId),
+  contactPersonIdIdx: index('common_spaces_contact_person_id_idx').on(table.contactPersonId),
+}));
 
 /**
  * Bookings table for common space reservations.
@@ -186,7 +199,10 @@ export const bookings = pgTable('bookings', {
   status: bookingStatusEnum('status').notNull().default('confirmed'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  commonSpaceIdIdx: index('bookings_common_space_id_idx').on(table.commonSpaceId),
+  userIdIdx: index('bookings_user_id_idx').on(table.userId),
+}));
 
 /**
  * User booking restrictions table to manage blocked users.
@@ -206,7 +222,10 @@ export const userBookingRestrictions = pgTable('user_booking_restrictions', {
   reason: text('reason'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_booking_restrictions_user_id_idx').on(table.userId),
+  commonSpaceIdIdx: index('user_booking_restrictions_common_space_id_idx').on(table.commonSpaceId),
+}));
 
 /**
  * User time limits table to manage booking time quotas.
@@ -224,7 +243,10 @@ export const userTimeLimits = pgTable('user_time_limits', {
   limitHours: integer('limit_hours').notNull(), // Maximum hours allowed
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_time_limits_user_id_idx').on(table.userId),
+  commonSpaceIdIdx: index('user_time_limits_common_space_id_idx').on(table.commonSpaceId),
+}));
 
 // Insert schemas
 export const insertBuildingSchema = z.object({

@@ -9,6 +9,7 @@ import {
   jsonb,
   boolean,
   pgEnum,
+  index,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -72,7 +73,12 @@ export const invoices = pgTable('invoices', {
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  documentIdIdx: index('invoices_document_id_idx').on(table.documentId),
+  buildingIdIdx: index('invoices_building_id_idx').on(table.buildingId),
+  residenceIdIdx: index('invoices_residence_id_idx').on(table.residenceId),
+  createdByIdx: index('invoices_created_by_idx').on(table.createdBy),
+}));
 
 // Zod validation schemas with conditional logic for recurring payments
 export const insertInvoiceSchema = createInsertSchema(invoices, {

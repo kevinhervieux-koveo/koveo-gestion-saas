@@ -11,6 +11,7 @@ import {
   integer,
   varchar,
   unique,
+  index,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -155,7 +156,11 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
   images: jsonb('images'), // Array of image URLs
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  residenceIdIdx: index('maintenance_requests_residence_id_idx').on(table.residenceId),
+  submittedByIdx: index('maintenance_requests_submitted_by_idx').on(table.submittedBy),
+  assignedToIdx: index('maintenance_requests_assigned_to_idx').on(table.assignedTo),
+}));
 
 /**
  * Notifications table for system-wide user communication.
@@ -176,7 +181,9 @@ export const notifications = pgTable('notifications', {
   isRead: boolean('is_read').notNull().default(false),
   readAt: timestamp('read_at'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('notifications_user_id_idx').on(table.userId),
+}));
 
 /**
  * Demands table for tracking resident requests and complaints.
@@ -207,7 +214,14 @@ export const demands = pgTable('demands', {
   reviewNotes: text('review_notes'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  submitterIdIdx: index('demands_submitter_id_idx').on(table.submitterId),
+  assignationResidenceIdIdx: index('demands_assignation_residence_id_idx').on(table.assignationResidenceId),
+  assignationBuildingIdIdx: index('demands_assignation_building_id_idx').on(table.assignationBuildingId),
+  residenceIdIdx: index('demands_residence_id_idx').on(table.residenceId),
+  buildingIdIdx: index('demands_building_id_idx').on(table.buildingId),
+  reviewedByIdx: index('demands_reviewed_by_idx').on(table.reviewedBy),
+}));
 
 /**
  * Demand comments table for tracking communication on demands.
@@ -228,7 +242,10 @@ export const demandComments = pgTable('demands_comments', {
   isInternal: boolean('is_internal').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  demandIdIdx: index('demand_comments_demand_id_idx').on(table.demandId),
+  commenterIdIdx: index('demand_comments_commenter_id_idx').on(table.commenterId),
+}));
 
 /**
  * Bugs table for tracking application issues and bug reports.
@@ -260,7 +277,11 @@ export const bugs = pgTable('bugs', {
   fileSize: integer('file_size'), // File size in bytes
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  createdByIdx: index('bugs_created_by_idx').on(table.createdBy),
+  assignedToIdx: index('bugs_assigned_to_idx').on(table.assignedTo),
+  resolvedByIdx: index('bugs_resolved_by_idx').on(table.resolvedBy),
+}));
 
 /**
  * Feature requests table for collecting user suggestions and ideas.
@@ -292,7 +313,11 @@ export const featureRequests = pgTable('feature_requests', {
   fileSize: integer('file_size'), // File size in bytes
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  createdByIdx: index('feature_requests_created_by_idx').on(table.createdBy),
+  assignedToIdx: index('feature_requests_assigned_to_idx').on(table.assignedTo),
+  reviewedByIdx: index('feature_requests_reviewed_by_idx').on(table.reviewedBy),
+}));
 
 /**
  * Feature request upvotes table for tracking user votes on feature requests.
@@ -309,7 +334,10 @@ export const featureRequestUpvotes = pgTable('feature_request_upvotes', {
     .notNull()
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  featureRequestIdIdx: index('feature_request_upvotes_feature_request_id_idx').on(table.featureRequestId),
+  userIdIdx: index('feature_request_upvotes_user_id_idx').on(table.userId),
+}));
 
 /**
  * User notification preferences table for storing user's notification frequency preferences.
@@ -328,7 +356,9 @@ export const userNotificationPreferences = pgTable('user_notification_preference
   startingDate: timestamp('starting_date').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_notification_preferences_user_id_idx').on(table.userId),
+}));
 
 /**
  * General communications table for storing manager communications to organization.
@@ -351,7 +381,10 @@ export const generalCommunications = pgTable('general_communications', {
   sentAt: timestamp('sent_at'),
   recipientRoles: text('recipient_roles').array(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  organizationIdIdx: index('general_communications_organization_id_idx').on(table.organizationId),
+  createdByIdx: index('general_communications_created_by_idx').on(table.createdBy),
+}));
 
 /**
  * Meetings table for storing meeting invitations.
@@ -375,7 +408,10 @@ export const meetings = pgTable('meetings', {
   invitedRoles: text('invited_roles').array(),
   sentAt: timestamp('sent_at'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  organizationIdIdx: index('meetings_organization_id_idx').on(table.organizationId),
+  createdByIdx: index('meetings_created_by_idx').on(table.createdBy),
+}));
 
 /**
  * Notification configurations table for storing building-specific automated notifications.
@@ -404,7 +440,11 @@ export const notificationConfigurations = pgTable('notification_configurations',
   timezone: text('timezone'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  organizationIdIdx: index('notification_configurations_organization_id_idx').on(table.organizationId),
+  buildingIdIdx: index('notification_configurations_building_id_idx').on(table.buildingId),
+  createdByIdx: index('notification_configurations_created_by_idx').on(table.createdBy),
+}));
 
 /**
  * Notification dispatch log table for tracking sent notifications.
@@ -423,6 +463,8 @@ export const notificationDispatchLog = pgTable('notification_dispatch_log', {
   periodKey: text('period_key').notNull(),
   sentAt: timestamp('sent_at').notNull().defaultNow(),
 }, (table) => ({
+  configurationIdIdx: index('notification_dispatch_log_configuration_id_idx').on(table.configurationId),
+  userIdIdx: index('notification_dispatch_log_user_id_idx').on(table.userId),
   // Unique constraint to prevent duplicate dispatch records
   uniqueDispatchRecord: unique().on(table.configurationId, table.userId, table.periodKey),
 }));
