@@ -80,6 +80,11 @@ export const invoices = pgTable('invoices', {
   createdByIdx: index('invoices_created_by_idx').on(table.createdBy),
   paymentTypeIdx: index('invoices_payment_type_idx').on(table.paymentType),
   frequencyIdx: index('invoices_frequency_idx').on(table.frequency),
+  // Date indexes for range queries
+  dueDateIdx: index('invoices_due_date_idx').on(table.dueDate),
+  startDateIdx: index('invoices_start_date_idx').on(table.startDate),
+  createdAtIdx: index('invoices_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('invoices_updated_at_idx').on(table.updatedAt),
 }));
 
 // Zod validation schemas with conditional logic for recurring payments

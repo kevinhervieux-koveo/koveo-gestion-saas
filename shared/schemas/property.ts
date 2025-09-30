@@ -80,6 +80,14 @@ export const buildings = pgTable('buildings', {
 }, (table) => ({
   organizationIdIdx: index('buildings_organization_id_idx').on(table.organizationId),
   buildingTypeIdx: index('buildings_building_type_idx').on(table.buildingType),
+  // Date indexes for range queries
+  constructionDateIdx: index('buildings_construction_date_idx').on(table.constructionDate),
+  bankAccountUpdatedAtIdx: index('buildings_bank_account_updated_at_idx').on(table.bankAccountUpdatedAt),
+  bankAccountStartDateIdx: index('buildings_bank_account_start_date_idx').on(table.bankAccountStartDate),
+  unplannedBillsStartDateIdx: index('buildings_unplanned_bills_start_date_idx').on(table.unplannedBillsStartDate),
+  financialYearStartIdx: index('buildings_financial_year_start_idx').on(table.financialYearStart),
+  createdAtIdx: index('buildings_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('buildings_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -106,6 +114,9 @@ export const residences = pgTable('residences', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   buildingIdIdx: index('residences_building_id_idx').on(table.buildingId),
+  // Date indexes for range queries
+  createdAtIdx: index('residences_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('residences_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -131,6 +142,11 @@ export const userResidences = pgTable('user_residences', {
 }, (table) => ({
   userIdIdx: index('user_residences_user_id_idx').on(table.userId),
   residenceIdIdx: index('user_residences_residence_id_idx').on(table.residenceId),
+  // Date indexes for range queries
+  startDateIdx: index('user_residences_start_date_idx').on(table.startDate),
+  endDateIdx: index('user_residences_end_date_idx').on(table.endDate),
+  createdAtIdx: index('user_residences_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('user_residences_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -154,6 +170,9 @@ export const contacts = pgTable('contacts', {
   entityIdIdx: index('contacts_entity_id_idx').on(table.entityId),
   entityIdx: index('contacts_entity_idx').on(table.entity),
   contactCategoryIdx: index('contacts_contact_category_idx').on(table.contactCategory),
+  // Date indexes for range queries
+  createdAtIdx: index('contacts_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('contacts_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -181,6 +200,9 @@ export const commonSpaces = pgTable('common_spaces', {
 }, (table) => ({
   buildingIdIdx: index('common_spaces_building_id_idx').on(table.buildingId),
   contactPersonIdIdx: index('common_spaces_contact_person_id_idx').on(table.contactPersonId),
+  // Date indexes for range queries
+  createdAtIdx: index('common_spaces_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('common_spaces_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -206,6 +228,11 @@ export const bookings = pgTable('bookings', {
   commonSpaceIdIdx: index('bookings_common_space_id_idx').on(table.commonSpaceId),
   userIdIdx: index('bookings_user_id_idx').on(table.userId),
   statusIdx: index('bookings_status_idx').on(table.status),
+  // Date indexes for range queries
+  startTimeIdx: index('bookings_start_time_idx').on(table.startTime),
+  endTimeIdx: index('bookings_end_time_idx').on(table.endTime),
+  createdAtIdx: index('bookings_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('bookings_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -229,6 +256,9 @@ export const userBookingRestrictions = pgTable('user_booking_restrictions', {
 }, (table) => ({
   userIdIdx: index('user_booking_restrictions_user_id_idx').on(table.userId),
   commonSpaceIdIdx: index('user_booking_restrictions_common_space_id_idx').on(table.commonSpaceId),
+  // Date indexes for range queries
+  createdAtIdx: index('user_booking_restrictions_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('user_booking_restrictions_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -250,6 +280,9 @@ export const userTimeLimits = pgTable('user_time_limits', {
 }, (table) => ({
   userIdIdx: index('user_time_limits_user_id_idx').on(table.userId),
   commonSpaceIdIdx: index('user_time_limits_common_space_id_idx').on(table.commonSpaceId),
+  // Date indexes for range queries
+  createdAtIdx: index('user_time_limits_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('user_time_limits_updated_at_idx').on(table.updatedAt),
 }));
 
 // Insert schemas

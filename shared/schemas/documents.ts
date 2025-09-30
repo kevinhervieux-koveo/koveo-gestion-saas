@@ -39,6 +39,10 @@ export const documents = pgTable('documents', {
   uploadedByIdIdx: index('documents_uploaded_by_id_idx').on(table.uploadedById),
   attachedToIdIdx: index('documents_attached_to_id_idx').on(table.attachedToId),
   documentTypeIdx: index('documents_document_type_idx').on(table.documentType),
+  // Date indexes for range queries
+  effectiveDateIdx: index('documents_effective_date_idx').on(table.effectiveDate),
+  createdAtIdx: index('documents_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('documents_updated_at_idx').on(table.updatedAt),
 }));
 
 // Enhanced document schema with file metadata

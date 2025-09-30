@@ -52,6 +52,13 @@ export const sslCertificates = pgTable('ssl_certificates', {
 }, (table) => ({
   createdByIdx: index('ssl_certificates_created_by_idx').on(table.createdBy),
   statusIdx: index('ssl_certificates_status_idx').on(table.status),
+  // Date indexes for range queries
+  validFromIdx: index('ssl_certificates_valid_from_idx').on(table.validFrom),
+  validToIdx: index('ssl_certificates_valid_to_idx').on(table.validTo),
+  lastRenewalAttemptIdx: index('ssl_certificates_last_renewal_attempt_idx').on(table.lastRenewalAttempt),
+  nextRenewalDateIdx: index('ssl_certificates_next_renewal_date_idx').on(table.nextRenewalDate),
+  createdAtIdx: index('ssl_certificates_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('ssl_certificates_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -63,7 +70,10 @@ export const sessions = pgTable('session', {
   sid: varchar('sid').primaryKey().notNull(),
   sess: json('sess').notNull(),
   expire: timestamp('expire', { precision: 6 }).notNull(),
-});
+}, (table) => ({
+  // Date indexes for range queries
+  expireIdx: index('sessions_expire_idx').on(table.expire),
+}));
 
 // Insert schemas
 export const insertSslCertificateSchema = z.object({

@@ -162,6 +162,11 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
   assignedToIdx: index('maintenance_requests_assigned_to_idx').on(table.assignedTo),
   statusIdx: index('maintenance_requests_status_idx').on(table.status),
   priorityIdx: index('maintenance_requests_priority_idx').on(table.priority),
+  // Date indexes for range queries
+  scheduledDateIdx: index('maintenance_requests_scheduled_date_idx').on(table.scheduledDate),
+  completedDateIdx: index('maintenance_requests_completed_date_idx').on(table.completedDate),
+  createdAtIdx: index('maintenance_requests_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('maintenance_requests_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -186,6 +191,9 @@ export const notifications = pgTable('notifications', {
 }, (table) => ({
   userIdIdx: index('notifications_user_id_idx').on(table.userId),
   typeIdx: index('notifications_type_idx').on(table.type),
+  // Date indexes for range queries
+  readAtIdx: index('notifications_read_at_idx').on(table.readAt),
+  createdAtIdx: index('notifications_created_at_idx').on(table.createdAt),
 }));
 
 /**
@@ -226,6 +234,10 @@ export const demands = pgTable('demands', {
   reviewedByIdx: index('demands_reviewed_by_idx').on(table.reviewedBy),
   typeIdx: index('demands_type_idx').on(table.type),
   statusIdx: index('demands_status_idx').on(table.status),
+  // Date indexes for range queries
+  reviewedAtIdx: index('demands_reviewed_at_idx').on(table.reviewedAt),
+  createdAtIdx: index('demands_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('demands_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -251,6 +263,9 @@ export const demandComments = pgTable('demands_comments', {
   demandIdIdx: index('demand_comments_demand_id_idx').on(table.demandId),
   commenterIdIdx: index('demand_comments_commenter_id_idx').on(table.commenterId),
   commentTypeIdx: index('demand_comments_comment_type_idx').on(table.commentType),
+  // Date indexes for range queries
+  createdAtIdx: index('demand_comments_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('demand_comments_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -290,6 +305,10 @@ export const bugs = pgTable('bugs', {
   statusIdx: index('bugs_status_idx').on(table.status),
   priorityIdx: index('bugs_priority_idx').on(table.priority),
   categoryIdx: index('bugs_category_idx').on(table.category),
+  // Date indexes for range queries
+  resolvedAtIdx: index('bugs_resolved_at_idx').on(table.resolvedAt),
+  createdAtIdx: index('bugs_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('bugs_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -328,6 +347,10 @@ export const featureRequests = pgTable('feature_requests', {
   reviewedByIdx: index('feature_requests_reviewed_by_idx').on(table.reviewedBy),
   statusIdx: index('feature_requests_status_idx').on(table.status),
   categoryIdx: index('feature_requests_category_idx').on(table.category),
+  // Date indexes for range queries
+  reviewedAtIdx: index('feature_requests_reviewed_at_idx').on(table.reviewedAt),
+  createdAtIdx: index('feature_requests_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('feature_requests_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -348,6 +371,8 @@ export const featureRequestUpvotes = pgTable('feature_request_upvotes', {
 }, (table) => ({
   featureRequestIdIdx: index('feature_request_upvotes_feature_request_id_idx').on(table.featureRequestId),
   userIdIdx: index('feature_request_upvotes_user_id_idx').on(table.userId),
+  // Date indexes for range queries
+  createdAtIdx: index('feature_request_upvotes_created_at_idx').on(table.createdAt),
 }));
 
 /**
@@ -369,6 +394,10 @@ export const userNotificationPreferences = pgTable('user_notification_preference
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   userIdIdx: index('user_notification_preferences_user_id_idx').on(table.userId),
+  // Date indexes for range queries
+  startingDateIdx: index('user_notification_preferences_starting_date_idx').on(table.startingDate),
+  createdAtIdx: index('user_notification_preferences_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('user_notification_preferences_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -395,6 +424,10 @@ export const generalCommunications = pgTable('general_communications', {
 }, (table) => ({
   organizationIdIdx: index('general_communications_organization_id_idx').on(table.organizationId),
   createdByIdx: index('general_communications_created_by_idx').on(table.createdBy),
+  // Date indexes for range queries
+  scheduledForIdx: index('general_communications_scheduled_for_idx').on(table.scheduledFor),
+  sentAtIdx: index('general_communications_sent_at_idx').on(table.sentAt),
+  createdAtIdx: index('general_communications_created_at_idx').on(table.createdAt),
 }));
 
 /**
@@ -422,6 +455,10 @@ export const meetings = pgTable('meetings', {
 }, (table) => ({
   organizationIdIdx: index('meetings_organization_id_idx').on(table.organizationId),
   createdByIdx: index('meetings_created_by_idx').on(table.createdBy),
+  // Date indexes for range queries
+  scheduledDateIdx: index('meetings_scheduled_date_idx').on(table.scheduledDate),
+  sentAtIdx: index('meetings_sent_at_idx').on(table.sentAt),
+  createdAtIdx: index('meetings_created_at_idx').on(table.createdAt),
 }));
 
 /**
@@ -455,6 +492,11 @@ export const notificationConfigurations = pgTable('notification_configurations',
   organizationIdIdx: index('notification_configurations_organization_id_idx').on(table.organizationId),
   buildingIdIdx: index('notification_configurations_building_id_idx').on(table.buildingId),
   createdByIdx: index('notification_configurations_created_by_idx').on(table.createdBy),
+  // Date indexes for range queries
+  startDateIdx: index('notification_configurations_start_date_idx').on(table.startDate),
+  endsAtIdx: index('notification_configurations_ends_at_idx').on(table.endsAt),
+  createdAtIdx: index('notification_configurations_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('notification_configurations_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -476,6 +518,8 @@ export const notificationDispatchLog = pgTable('notification_dispatch_log', {
 }, (table) => ({
   configurationIdIdx: index('notification_dispatch_log_configuration_id_idx').on(table.configurationId),
   userIdIdx: index('notification_dispatch_log_user_id_idx').on(table.userId),
+  // Date indexes for range queries
+  sentAtIdx: index('notification_dispatch_log_sent_at_idx').on(table.sentAt),
   // Unique constraint to prevent duplicate dispatch records
   uniqueDispatchRecord: unique().on(table.configurationId, table.userId, table.periodKey),
 }));

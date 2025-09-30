@@ -145,6 +145,11 @@ export const bills = pgTable('bills', {
   sourceTemplateIdIdx: index('bills_source_template_id_idx').on(table.sourceTemplateId),
   statusIdx: index('bills_status_idx').on(table.status),
   categoryIdx: index('bills_category_idx').on(table.category),
+  // Date indexes for range queries
+  startDateIdx: index('bills_start_date_idx').on(table.startDate),
+  endDateIdx: index('bills_end_date_idx').on(table.endDate),
+  createdAtIdx: index('bills_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('bills_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -169,6 +174,11 @@ export const payments = pgTable('payments', {
 }, (table) => ({
   billIdIdx: index('payments_bill_id_idx').on(table.billId),
   statusIdx: index('payments_status_idx').on(table.status),
+  // Date indexes for range queries
+  scheduledDateIdx: index('payments_scheduled_date_idx').on(table.scheduledDate),
+  paidDateIdx: index('payments_paid_date_idx').on(table.paidDate),
+  createdAtIdx: index('payments_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('payments_updated_at_idx').on(table.updatedAt),
 }));
 
 
@@ -202,6 +212,10 @@ export const budgets = pgTable('budgets', {
   buildingIdIdx: index('budgets_building_id_idx').on(table.buildingId),
   approvedByIdx: index('budgets_approved_by_idx').on(table.approvedBy),
   createdByIdx: index('budgets_created_by_idx').on(table.createdBy),
+  // Date indexes for range queries
+  approvedDateIdx: index('budgets_approved_date_idx').on(table.approvedDate),
+  createdAtIdx: index('budgets_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('budgets_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -232,6 +246,10 @@ export const monthlyBudgets = pgTable('monthly_budgets', {
   buildingIdIdx: index('monthly_budgets_building_id_idx').on(table.buildingId),
   approvedByIdx: index('monthly_budgets_approved_by_idx').on(table.approvedBy),
   originalBudgetIdIdx: index('monthly_budgets_original_budget_id_idx').on(table.originalBudgetId),
+  // Date indexes for range queries
+  approvedDateIdx: index('monthly_budgets_approved_date_idx').on(table.approvedDate),
+  createdAtIdx: index('monthly_budgets_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('monthly_budgets_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -260,6 +278,10 @@ export const capitalInvestments = pgTable('capital_investments', {
   urgencyIdx: index('capital_investments_urgency_idx').on(table.urgency),
   typeIdx: index('capital_investments_type_idx').on(table.type),
   ownershipTypeIdx: index('capital_investments_ownership_type_idx').on(table.ownershipType),
+  // Date indexes for range queries
+  targetDateIdx: index('capital_investments_target_date_idx').on(table.targetDate),
+  createdAtIdx: index('capital_investments_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('capital_investments_updated_at_idx').on(table.updatedAt),
 }));
 
 /**
@@ -387,6 +409,11 @@ export const financialCache = pgTable('financial_cache', {
     table.cacheKey,
     table.expiresAt
   ),
+  // Date indexes for range queries
+  startDateIdx: index('financial_cache_start_date_idx').on(table.startDate),
+  endDateIdx: index('financial_cache_end_date_idx').on(table.endDate),
+  createdAtIdx: index('financial_cache_created_at_idx').on(table.createdAt),
+  expiresAtIdx: index('financial_cache_expires_at_idx').on(table.expiresAt),
 }));
 
 // Insert schemas

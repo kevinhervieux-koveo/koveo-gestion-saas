@@ -109,6 +109,11 @@ export const improvementSuggestions = pgTable('improvement_suggestions', {
   categoryIdx: index('improvement_suggestions_category_idx').on(table.category),
   priorityIdx: index('improvement_suggestions_priority_idx').on(table.priority),
   statusIdx: index('improvement_suggestions_status_idx').on(table.status),
+  // Date indexes for range queries
+  createdAtIdx: index('improvement_suggestions_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('improvement_suggestions_updated_at_idx').on(table.updatedAt),
+  acknowledgedAtIdx: index('improvement_suggestions_acknowledged_at_idx').on(table.acknowledgedAt),
+  completedAtIdx: index('improvement_suggestions_completed_at_idx').on(table.completedAt),
 }));
 
 /**
@@ -149,6 +154,13 @@ export const features = pgTable('features', {
   categoryIdx: index('features_category_idx').on(table.category),
   statusIdx: index('features_status_idx').on(table.status),
   priorityIdx: index('features_priority_idx').on(table.priority),
+  // Date indexes for range queries
+  startDateIdx: index('features_start_date_idx').on(table.startDate),
+  completedDateIdx: index('features_completed_date_idx').on(table.completedDate),
+  createdAtIdx: index('features_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('features_updated_at_idx').on(table.updatedAt),
+  aiAnalyzedAtIdx: index('features_ai_analyzed_at_idx').on(table.aiAnalyzedAt),
+  syncedAtIdx: index('features_synced_at_idx').on(table.syncedAt),
 }));
 
 /**
@@ -187,6 +199,11 @@ export const actionableItems = pgTable('actionable_items', {
   assignedToIdx: index('actionable_items_assigned_to_idx').on(table.assignedTo),
   typeIdx: index('actionable_items_type_idx').on(table.type),
   statusIdx: index('actionable_items_status_idx').on(table.status),
+  // Date indexes for range queries
+  createdAtIdx: index('actionable_items_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('actionable_items_updated_at_idx').on(table.updatedAt),
+  startedAtIdx: index('actionable_items_started_at_idx').on(table.startedAt),
+  completedAtIdx: index('actionable_items_completed_at_idx').on(table.completedAt),
 }));
 
 /**
@@ -206,6 +223,9 @@ export const developmentPillars = pgTable('development_pillars', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   statusIdx: index('development_pillars_status_idx').on(table.status),
+  // Date indexes for range queries
+  createdAtIdx: index('development_pillars_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('development_pillars_updated_at_idx').on(table.updatedAt),
 }));
 
 export const workspaceStatus = pgTable('workspace_status', {
@@ -217,6 +237,8 @@ export const workspaceStatus = pgTable('workspace_status', {
   lastUpdated: timestamp('last_updated').defaultNow(),
 }, (table) => ({
   statusIdx: index('workspace_status_status_idx').on(table.status),
+  // Date indexes for range queries
+  lastUpdatedIdx: index('workspace_status_last_updated_idx').on(table.lastUpdated),
 }));
 
 export const qualityMetrics = pgTable('quality_metrics', {
@@ -228,6 +250,8 @@ export const qualityMetrics = pgTable('quality_metrics', {
   timestamp: timestamp('timestamp').defaultNow(),
 }, (table) => ({
   metricTypeIdx: index('quality_metrics_metric_type_idx').on(table.metricType),
+  // Date indexes for range queries
+  timestampIdx: index('quality_metrics_timestamp_idx').on(table.timestamp),
 }));
 
 export const frameworkConfiguration = pgTable('framework_configuration', {
@@ -239,7 +263,11 @@ export const frameworkConfiguration = pgTable('framework_configuration', {
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  // Date indexes for range queries
+  createdAtIdx: index('framework_configuration_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('framework_configuration_updated_at_idx').on(table.updatedAt),
+}));
 
 // Insert schemas
 export const insertImprovementSuggestionSchema = z.object({
