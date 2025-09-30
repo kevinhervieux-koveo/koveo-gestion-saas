@@ -303,7 +303,7 @@ function isWriteOperation(method: string, path: string, queryString?: string, is
  * Determines the user's preferred language from request headers
  */
 function getPreferredLanguage(req: Request): 'en' | 'fr' {
-  const acceptLanguage = req.headers['accept-language'];
+  const acceptLanguage = req.headers?['accept-language'];
   if (acceptLanguage && acceptLanguage.includes('fr')) {
     return 'fr';
   }
