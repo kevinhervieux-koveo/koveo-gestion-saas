@@ -564,6 +564,16 @@ export interface Translations {
   description: string;
   describeDemandDetail: string;
   creating: string;
+  createDemand: string;
+  typeLabel: string;
+  buildingLabel: string;
+  descriptionLabel: string;
+  residenceOptional: string;
+  noSpecificResidence: string;
+  searchResidencesPlaceholder: string;
+  attachmentsOptional: string;
+  attachmentUploadInstructions: string;
+  submitRequestComplaint: string;
   maintenanceType: string;
   complaintType: string;
   informationType: string;
@@ -1043,6 +1053,13 @@ export interface Translations {
   noDocumentsUploadedYet: string;
   myDemands: string;
   showingResults: string;
+  searchTypePlaceholder: string;
+  showingDemandsRange: string;
+  buildingField: string;
+  residenceField: string;
+  createdField: string;
+  unknownBuilding: string;
+  loadingDemandsMessage: string;
   manageBuildingsOrganization: string;
   searchBuildingsAddress: string;
   fullscreen: string;
@@ -1685,6 +1702,16 @@ export const translations: Record<Language, Translations> = {
     description: 'Description',
     describeDemandDetail: 'Describe the demand in detail...',
     creating: 'Creating...',
+    createDemand: 'Create Demand',
+    typeLabel: 'Type',
+    buildingLabel: 'Building',
+    descriptionLabel: 'Description',
+    residenceOptional: 'Residence (Optional)',
+    noSpecificResidence: 'No specific residence',
+    searchResidencesPlaceholder: 'Search residences...',
+    attachmentsOptional: 'Attachments (Optional)',
+    attachmentUploadInstructions: 'Upload photos, documents, or screenshots. Camera supported for mobile. Max 10MB per file.',
+    submitRequestComplaint: 'Submit a new request or complaint',
     maintenanceType: 'Maintenance',
     complaintType: 'Complaint',
     informationType: 'Information',
@@ -2164,6 +2191,13 @@ export const translations: Record<Language, Translations> = {
     noDocumentsUploadedYet: 'No documents have been uploaded yet for this residence.',
     myDemands: 'My Demands',
     showingResults: 'Showing {start} to {end} of {total} demands',
+    searchTypePlaceholder: 'Search type...',
+    showingDemandsRange: 'Showing {start} to {end} of {total} demands',
+    buildingField: 'Building:',
+    residenceField: 'Residence:',
+    createdField: 'Created:',
+    unknownBuilding: 'Unknown',
+    loadingDemandsMessage: 'Loading demands...',
     manageBuildingsOrganization: 'Manage {count} buildings in your organization',
     searchBuildingsAddress: 'Search buildings by name or address...',
     fullscreen: 'Fullscreen',
@@ -2728,7 +2762,17 @@ export const translations: Record<Language, Translations> = {
     allTypes: 'Tous les types',
     description: 'Description',
     describeDemandDetail: 'Décrivez la demande en détail...',
-    creating: 'Création en cours...',
+    creating: 'Création...',
+    createDemand: 'Créer une demande',
+    typeLabel: 'Type',
+    buildingLabel: 'Bâtiment',
+    descriptionLabel: 'Description',
+    residenceOptional: 'Résidence (optionnel)',
+    noSpecificResidence: 'Aucune résidence spécifique',
+    searchResidencesPlaceholder: 'Rechercher des résidences...',
+    attachmentsOptional: 'Pièces jointes (optionnel)',
+    attachmentUploadInstructions: 'Téléchargez des photos, documents ou captures d\'écran. Caméra supportée pour mobile. Maximum 10 Mo par fichier.',
+    submitRequestComplaint: 'Soumettre une nouvelle demande ou plainte',
     maintenanceType: 'Entretien',
     complaintType: 'Plainte',
     informationType: 'Information',
@@ -3172,6 +3216,13 @@ export const translations: Record<Language, Translations> = {
     documentsCount: 'Documents ({count})',
     myDemands: 'Mes demandes',
     showingResults: 'Affichage de {start} à {end} sur {total} demandes',
+    searchTypePlaceholder: 'Rechercher le type...',
+    showingDemandsRange: 'Affichage de {start} à {end} sur {total} demandes',
+    buildingField: 'Bâtiment :',
+    residenceField: 'Résidence :',
+    createdField: 'Créé :',
+    unknownBuilding: 'Inconnu',
+    loadingDemandsMessage: 'Chargement des demandes...',
     manageBuildingsOrganization: 'Gérer {count} bâtiments dans votre organisation',
     searchBuildingsAddress: 'Rechercher des bâtiments par nom ou adresse...',
     fullscreen: 'Plein écran',

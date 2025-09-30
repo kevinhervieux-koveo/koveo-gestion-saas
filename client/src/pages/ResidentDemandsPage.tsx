@@ -122,13 +122,6 @@ const statusColors = {
   cancelled: 'bg-gray-100 text-gray-800',
 };
 
-const typeLabels = {
-  maintenance: 'Maintenance',
-  complaint: 'Complaint',
-  information: 'Information',
-  other: 'Other',
-};
-
 /**
  *
  */
@@ -140,6 +133,13 @@ export default function /**
 
 ResidentDemandsPage() {
   const { t, language } = useLanguage();
+
+  const typeLabels = {
+    maintenance: t('maintenanceType'),
+    complaint: t('complaintType'),
+    information: t('informationType'),
+    other: t('otherType'),
+  };
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -393,15 +393,15 @@ ResidentDemandsPage() {
         <CardContent className='pt-0'>
           <div className='text-sm text-muted-foreground space-y-1'>
             <p>
-              <strong>Building:</strong> {building?.name || 'Unknown'}
+              <strong>{t('buildingField')}</strong> {building?.name || t('unknownBuilding')}
             </p>
             {residence && (
               <p>
-                <strong>Residence:</strong> {residence.name}
+                <strong>{t('residenceField')}</strong> {residence.name}
               </p>
             )}
             <p>
-              <strong>Created:</strong> {new Date(demand.createdAt).toLocaleDateString()}
+              <strong>{t('createdField')}</strong> {new Date(demand.createdAt).toLocaleDateString()}
             </p>
           </div>
         </CardContent>
@@ -421,7 +421,7 @@ ResidentDemandsPage() {
         <Header title={t('myDemands')} subtitle={t('submitAndTrackRequests')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='flex items-center justify-center h-64'>
-            <div className='text-center'>Loading demands...</div>
+            <div className='text-center'>{t('loadingDemandsMessage')}</div>
           </div>
         </div>
       </div>
@@ -447,49 +447,49 @@ ResidentDemandsPage() {
               <DialogContent className='max-w-lg max-h-[90vh] overflow-y-auto'>
                 <DialogHeader>
                   <DialogTitle>{t('createNewDemand')}</DialogTitle>
-                  <DialogDescription>Submit a new request or complaint</DialogDescription>
+                  <DialogDescription>{t('submitRequestComplaint')}</DialogDescription>
                 </DialogHeader>
                 <Form {...newDemandForm}>
                   <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className='space-y-4'>
                     <SearchableFormSelect
                       control={newDemandForm.control}
                       name='type'
-                      label='Type'
+                      label={t('typeLabel')}
                       options={[
-                        { value: 'maintenance', label: 'Maintenance' },
-                        { value: 'complaint', label: 'Complaint' },
-                        { value: 'information', label: 'Information' },
-                        { value: 'other', label: 'Other' }
+                        { value: 'maintenance', label: t('maintenanceType') },
+                        { value: 'complaint', label: t('complaintType') },
+                        { value: 'information', label: t('informationType') },
+                        { value: 'other', label: t('otherType') }
                       ]}
                       placeholder={t('selectType')}
-                      searchPlaceholder="Search type..."
+                      searchPlaceholder={t('searchTypePlaceholder')}
                       required={true}
                     />
                     <SearchableFormSelect
                       control={newDemandForm.control}
                       name='buildingId'
-                      label='Building'
+                      label={t('buildingLabel')}
                       options={buildings.map((building) => ({
                         value: building.id,
                         label: building.name,
                       }))}
                       placeholder={t('selectBuilding')}
-                      searchPlaceholder="Search buildings..."
+                      searchPlaceholder={t('searchBuildingsPlaceholder')}
                       required={true}
                     />
                     <SearchableFormSelect
                       control={newDemandForm.control}
                       name='residenceId'
-                      label='Residence (Optional)'
+                      label={t('residenceOptional')}
                       options={[
-                        { value: '', label: 'No specific residence' },
+                        { value: '', label: t('noSpecificResidence') },
                         ...residences.map((residence) => ({
                           value: residence.id,
                           label: `${residence.unitNumber} - ${residence.name || `Unit ${residence.unitNumber}`}`,
                         }))
                       ]}
                       placeholder={t('selectResidence')}
-                      searchPlaceholder="Search residences..."
+                      searchPlaceholder={t('searchResidencesPlaceholder')}
                       required={false}
                     />
                     <FormField
@@ -497,7 +497,7 @@ ResidentDemandsPage() {
                       name='description'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>{t('descriptionLabel')}</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder={t('describeRequestDetail')}
@@ -511,7 +511,7 @@ ResidentDemandsPage() {
                       )}
                     />
                     <div className='space-y-2'>
-                      <label className='text-sm font-medium'>Attachments (Optional)</label>
+                      <label className='text-sm font-medium'>{t('attachmentsOptional')}</label>
                       <SharedUploader
                         onDocumentChange={(file, extractedText) => {
                           if (file) {
@@ -520,12 +520,12 @@ ResidentDemandsPage() {
                         }}
                         formType="maintenance"
                         uploadContext={uploadContext}
-                        showAiToggle={false} // No toggle, use config-based AI enablement
+                        showAiToggle={false}
                         allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}
                         maxFileSize={10}
                       />
                       <p className='text-xs text-muted-foreground'>
-                        Upload photos, documents, or screenshots. Camera supported for mobile. Max 10MB per file.
+                        {t('attachmentUploadInstructions')}
                       </p>
                     </div>
                     <DialogFooter>
@@ -534,7 +534,7 @@ ResidentDemandsPage() {
                         disabled={createDemandMutation.isPending}
                         data-testid="button-create-demand"
                       >
-                        {createDemandMutation.isPending ? 'Creating...' : 'Create Demand'}
+                        {createDemandMutation.isPending ? t('creating') : t('createDemand')}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -563,7 +563,10 @@ ResidentDemandsPage() {
             {/* Page info */}
             {filteredDemands.length > 0 && (
               <div className='text-center text-sm text-muted-foreground'>
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of {filteredDemands.length} demands
+                {t('showingDemandsRange')
+                  .replace('{start}', String(startIndex + 1))
+                  .replace('{end}', String(Math.min(endIndex, filteredDemands.length)))
+                  .replace('{total}', String(filteredDemands.length))}
               </div>
             )}
 
