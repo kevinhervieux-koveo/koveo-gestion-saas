@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { useBuildingContext, BuildingContextProvider } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject, EvaluationSuggestion } from '@shared/schemas/maintenance';
@@ -79,6 +80,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     buildingName
   } = props;
   
+  const { t } = useLanguage();
   
   const { toast } = useToast();
 
@@ -209,10 +211,10 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     
     // Show success message
     toast({
-      title: projectFormMode === 'create' ? 'Project Created' : 'Project Updated',
-      description: `${project.title} has been ${projectFormMode === 'create' ? 'created' : 'updated'} successfully.`,
+      title: projectFormMode === 'create' ? t('projectCreated') : t('projectUpdated'),
+      description: `${project.title} ${projectFormMode === 'create' ? t('projectCreatedSuccessfully') : t('projectUpdatedSuccessfully')}`,
     });
-  }, [projectFormMode, toast]);
+  }, [projectFormMode, toast, t]);
 
   const handleWorkflowModalUpdate = useCallback((project: MaintenanceProject) => {
     // Update selected project with latest data
@@ -227,28 +229,28 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     setSelectedSuggestions([]);
     
     toast({
-      title: 'Projects Created',
-      description: `${projects.length} project(s) have been created from evaluation suggestions.`,
+      title: t('projectsCreated'),
+      description: `${projects.length} ${t('projectsCreatedFromSuggestions')}`,
     });
-  }, [toast]);
+  }, [toast, t]);
 
   // Handle auto-project acceptance success
   const handleAutoProjectAccepted = useCallback((project: MaintenanceProject) => {
     toast({
-      title: "Project Created Successfully",
-      description: `Auto-generated project "${project.title}" has been converted to a maintenance project.`,
+      title: t('projectCreatedSuccessfully2'),
+      description: `${project.title} ${t('autoProjectConvertedSuccess')}`,
     });
     // Projects will be automatically refreshed by React Query cache invalidation
-  }, [toast]);
+  }, [toast, t]);
 
   const handleStatusStepperSuccess = useCallback(() => {
     setShowStatusStepper(false);
     
     toast({
-      title: 'Status Updated',
-      description: 'Project status has been updated successfully.',
+      title: t('statusUpdated'),
+      description: t('projectStatusUpdatedSuccessfully'),
     });
-  }, [toast]);
+  }, [toast, t]);
 
   // Filter handlers
   const handleSearchChange = useCallback((term: string) => {
@@ -327,9 +329,9 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <Folder className="h-16 w-16 text-muted-foreground mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Select Building</h2>
+        <h2 className="text-xl font-semibold mb-2">{t('selectBuilding')}</h2>
         <p className="text-muted-foreground text-center max-w-md">
-          Please select an organization and building to view its maintenance projects.
+          {t('selectBuildingProjectsMessage')}
         </p>
       </div>
     );
@@ -339,8 +341,8 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
       {/* Page Title and Navigation */}
       <Header 
-        title="Projects - Maintenance Management"
-        subtitle="Manage maintenance projects, track progress, and coordinate work schedules"
+        title={t('projectsMaintenanceManagement')}
+        subtitle={t('projectsManagementSubtitle')}
       />
       
       {/* Project Controls and Filters */}
@@ -375,7 +377,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-lg font-semibold">Project Overview</h2>
+                  <h2 className="text-lg font-semibold">{t('projectOverview')}</h2>
                 </div>
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="sm" data-testid="project-overview-toggle">
@@ -384,7 +386,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                     ) : (
                       <ChevronRight className="h-4 w-4" />
                     )}
-                    <span className="sr-only">Toggle project overview</span>
+                    <span className="sr-only">{t('toggleProjectOverview')}</span>
                   </Button>
                 </CollapsibleTrigger>
               </div>
@@ -409,11 +411,11 @@ function ProjectsPageContent(props: ProjectsPageProps) {
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
                 <div className="flex items-center gap-2">
                   <Database className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-lg font-semibold">Projects</h2>
+                  <h2 className="text-lg font-semibold">{t('projects')}</h2>
                   {selectedProjects.length > 0 && (
                     <div className="flex items-center gap-2 ml-4">
                       <span className="text-sm text-muted-foreground">
-                        {selectedProjects.length} project(s) selected
+                        {selectedProjects.length} {t('projectsSelected')}
                       </span>
                     </div>
                   )}
@@ -422,7 +424,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                   {canCreate && (
                     <Button onClick={handleAddProject} size="sm" data-testid="add-project-button">
                       <Plus className="h-4 w-4 mr-1" />
-                      New Project
+                      {t('newProject')}
                     </Button>
                   )}
                   {selectedProjects.length > 0 && (
@@ -432,7 +434,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                       onClick={() => setSelectedProjects([])}
                       data-testid="clear-selection"
                     >
-                      Clear Selection
+                      {t('clearSelection')}
                     </Button>
                   )}
                   <CollapsibleTrigger asChild>
@@ -442,7 +444,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                       ) : (
                         <ChevronRight className="h-4 w-4" />
                       )}
-                      <span className="sr-only">Toggle projects table</span>
+                      <span className="sr-only">{t('toggleProjectsTable')}</span>
                     </Button>
                   </CollapsibleTrigger>
                 </div>
@@ -452,7 +454,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-md font-medium">
-                      Project Table
+                      {t('projectTable')}
                     </h3>
                   </div>
 
@@ -520,7 +522,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Project Status - {selectedProject.title}</h2>
+              <h2 className="text-lg font-semibold">{t('projectStatus')} - {selectedProject.title}</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowStatusStepper(false)}>
                 <X className="h-4 w-4" />
               </Button>
@@ -539,7 +541,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Project Timeline - {selectedProject.title}</h2>
+              <h2 className="text-lg font-semibold">{t('projectTimeline')} - {selectedProject.title}</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowProjectTimeline(false)}>
                 <X className="h-4 w-4" />
               </Button>
@@ -556,7 +558,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Project Elements - {selectedProject.title}</h2>
+              <h2 className="text-lg font-semibold">{t('projectElements')} - {selectedProject.title}</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowProjectElements(false)}>
                 <X className="h-4 w-4" />
               </Button>
@@ -573,7 +575,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Project Notes - {selectedProject.title}</h2>
+              <h2 className="text-lg font-semibold">{t('projectNotes')} - {selectedProject.title}</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowProjectNotes(false)}>
                 <X className="h-4 w-4" />
               </Button>
@@ -590,7 +592,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Project Budget - {selectedProject.title}</h2>
+              <h2 className="text-lg font-semibold">{t('projectBudget')} - {selectedProject.title}</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowProjectBudget(false)}>
                 <X className="h-4 w-4" />
               </Button>

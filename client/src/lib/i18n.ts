@@ -1059,6 +1059,62 @@ export interface Translations {
   deleteOrphanUsersWarningList2: string;
   deleteOrphanUsersWarningList3: string;
   deleteOrphanUsersWarningList4: string;
+  
+  selectBuildingInventoryMessage: string;
+  inventoryManagementSubtitle: string;
+  backToBuilding: string;
+  buildingElements: string;
+  toggleBuildingElementsTable: string;
+  searchElementsPlaceholder: string;
+  overdueEvaluations: string;
+  addElement: string;
+  allConditions: string;
+  excellent: string;
+  good: string;
+  fair: string;
+  poor: string;
+  uniformatCategory: string;
+  allCategories: string;
+  uniformatSubstructure: string;
+  uniformatShell: string;
+  uniformatInteriors: string;
+  uniformatServices: string;
+  uniformatEquipmentFurnishings: string;
+  uniformatSpecialConstruction: string;
+  uniformatBuildingSitework: string;
+  elementDocuments: string;
+  uniformatBrowser: string;
+  featureComingSoon: string;
+  evaluationSchedulingComingSoon: string;
+  elementImportComingSoon: string;
+  reportExportComingSoon: string;
+  elementDeleted: string;
+  elementDeletedSuccessfully: string;
+  
+  selectBuildingProjectsMessage: string;
+  projectsMaintenanceManagement: string;
+  projectsManagementSubtitle: string;
+  projectOverview: string;
+  toggleProjectOverview: string;
+  projectsSelected: string;
+  newProject: string;
+  toggleProjectsTable: string;
+  projectTable: string;
+  projectStatus: string;
+  projectTimeline: string;
+  projectElements: string;
+  projectNotes: string;
+  projectBudget: string;
+  projectCreated: string;
+  projectUpdated: string;
+  projectCreatedSuccessfully: string;
+  projectUpdatedSuccessfully: string;
+  projectsCreated: string;
+  projectsCreatedFromSuggestions: string;
+  projectCreatedSuccessfully2: string;
+  autoProjectConvertedSuccess: string;
+  statusUpdated: string;
+  projectStatusUpdatedSuccessfully: string;
 }
 
 /**
@@ -2116,6 +2172,62 @@ export const translations: Record<Language, Translations> = {
     close: 'Close',
     edit: 'Edit',
     delete: 'Delete',
+    
+    selectBuildingInventoryMessage: 'Please select an organization and building to view its maintenance inventory.',
+    inventoryManagementSubtitle: 'Manage building elements, maintenance records, and asset documentation across your property portfolio.',
+    backToBuilding: 'Back to',
+    buildingElements: 'Building Elements',
+    toggleBuildingElementsTable: 'Toggle building elements table',
+    searchElementsPlaceholder: 'Search elements by name, UNIFORMAT code, or description...',
+    overdueEvaluations: 'Overdue Evaluations',
+    addElement: 'Add Element',
+    allConditions: 'All Conditions',
+    excellent: 'Excellent',
+    good: 'Good',
+    fair: 'Fair',
+    poor: 'Poor',
+    uniformatCategory: 'UNIFORMAT Category',
+    allCategories: 'All Categories',
+    uniformatSubstructure: 'A - Substructure',
+    uniformatShell: 'B - Shell',
+    uniformatInteriors: 'C - Interiors',
+    uniformatServices: 'D - Services',
+    uniformatEquipmentFurnishings: 'E - Equipment & Furnishings',
+    uniformatSpecialConstruction: 'F - Special Construction',
+    uniformatBuildingSitework: 'G - Building Sitework',
+    elementDocuments: 'Element Documents',
+    uniformatBrowser: 'UNIFORMAT Browser',
+    featureComingSoon: 'Feature Coming Soon',
+    evaluationSchedulingComingSoon: 'Evaluation scheduling will be available in a future update.',
+    elementImportComingSoon: 'Element import functionality will be available in a future update.',
+    reportExportComingSoon: 'Report export functionality will be available in a future update.',
+    elementDeleted: 'Element Deleted',
+    elementDeletedSuccessfully: 'has been successfully deleted from the inventory.',
+    
+    selectBuildingProjectsMessage: 'Please select an organization and building to view its maintenance projects.',
+    projectsMaintenanceManagement: 'Projects - Maintenance Management',
+    projectsManagementSubtitle: 'Manage maintenance projects, track progress, and coordinate work schedules',
+    projectOverview: 'Project Overview',
+    toggleProjectOverview: 'Toggle project overview',
+    projectsSelected: 'project(s) selected',
+    newProject: 'New Project',
+    toggleProjectsTable: 'Toggle projects table',
+    projectTable: 'Project Table',
+    projectStatus: 'Project Status',
+    projectTimeline: 'Project Timeline',
+    projectElements: 'Project Elements',
+    projectNotes: 'Project Notes',
+    projectBudget: 'Project Budget',
+    projectCreated: 'Project Created',
+    projectUpdated: 'Project Updated',
+    projectCreatedSuccessfully: 'has been created successfully.',
+    projectUpdatedSuccessfully: 'has been updated successfully.',
+    projectsCreated: 'Projects Created',
+    projectsCreatedFromSuggestions: 'project(s) have been created from evaluation suggestions.',
+    projectCreatedSuccessfully2: 'Project Created Successfully',
+    autoProjectConvertedSuccess: 'has been converted to a maintenance project.',
+    statusUpdated: 'Status Updated',
+    projectStatusUpdatedSuccessfully: 'Project status has been updated successfully.',
   },
   fr: {
 
@@ -3168,5 +3280,61 @@ export const translations: Record<Language, Translations> = {
     termsOfService: 'Conditions de service',
     noSetupFees: 'Aucun frais d\'installation',
     noDocumentsUploadedYet: 'Aucun document n\'a encore été téléchargé pour cette résidence.',
+    
+    selectBuildingInventoryMessage: 'Veuillez sélectionner une organisation et un bâtiment pour voir son inventaire de maintenance.',
+    inventoryManagementSubtitle: 'Gérez les éléments du bâtiment, les dossiers d\'entretien et la documentation des actifs dans votre portefeuille immobilier.',
+    backToBuilding: 'Retour à',
+    buildingElements: 'Éléments du bâtiment',
+    toggleBuildingElementsTable: 'Basculer le tableau des éléments du bâtiment',
+    searchElementsPlaceholder: 'Rechercher des éléments par nom, code UNIFORMAT ou description...',
+    overdueEvaluations: 'Évaluations en retard',
+    addElement: 'Ajouter un élément',
+    allConditions: 'Toutes les conditions',
+    excellent: 'Excellent',
+    good: 'Bon',
+    fair: 'Acceptable',
+    poor: 'Mauvais',
+    uniformatCategory: 'Catégorie UNIFORMAT',
+    allCategories: 'Toutes les catégories',
+    uniformatSubstructure: 'A - Infrastructure',
+    uniformatShell: 'B - Enveloppe',
+    uniformatInteriors: 'C - Aménagements intérieurs',
+    uniformatServices: 'D - Services',
+    uniformatEquipmentFurnishings: 'E - Équipements et ameublements',
+    uniformatSpecialConstruction: 'F - Construction spéciale',
+    uniformatBuildingSitework: 'G - Travaux de site du bâtiment',
+    elementDocuments: 'Documents de l\'élément',
+    uniformatBrowser: 'Navigateur UNIFORMAT',
+    featureComingSoon: 'Fonctionnalité à venir',
+    evaluationSchedulingComingSoon: 'La planification des évaluations sera disponible dans une mise à jour future.',
+    elementImportComingSoon: 'La fonctionnalité d\'importation d\'éléments sera disponible dans une mise à jour future.',
+    reportExportComingSoon: 'La fonctionnalité d\'exportation de rapports sera disponible dans une mise à jour future.',
+    elementDeleted: 'Élément supprimé',
+    elementDeletedSuccessfully: 'a été supprimé avec succès de l\'inventaire.',
+    
+    selectBuildingProjectsMessage: 'Veuillez sélectionner une organisation et un bâtiment pour voir ses projets de maintenance.',
+    projectsMaintenanceManagement: 'Projets - Gestion de la maintenance',
+    projectsManagementSubtitle: 'Gérez les projets de maintenance, suivez les progrès et coordonnez les horaires de travail',
+    projectOverview: 'Aperçu des projets',
+    toggleProjectOverview: 'Basculer l\'aperçu des projets',
+    projectsSelected: 'projet(s) sélectionné(s)',
+    newProject: 'Nouveau projet',
+    toggleProjectsTable: 'Basculer le tableau des projets',
+    projectTable: 'Tableau des projets',
+    projectStatus: 'Statut du projet',
+    projectTimeline: 'Chronologie du projet',
+    projectElements: 'Éléments du projet',
+    projectNotes: 'Notes du projet',
+    projectBudget: 'Budget du projet',
+    projectCreated: 'Projet créé',
+    projectUpdated: 'Projet mis à jour',
+    projectCreatedSuccessfully: 'a été créé avec succès.',
+    projectUpdatedSuccessfully: 'a été mis à jour avec succès.',
+    projectsCreated: 'Projets créés',
+    projectsCreatedFromSuggestions: 'projet(s) ont été créé(s) à partir des suggestions d\'évaluation.',
+    projectCreatedSuccessfully2: 'Projet créé avec succès',
+    autoProjectConvertedSuccess: 'a été converti en projet de maintenance.',
+    statusUpdated: 'Statut mis à jour',
+    projectStatusUpdatedSuccessfully: 'Le statut du projet a été mis à jour avec succès.',
   }
 };

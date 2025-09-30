@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import { useLanguage } from '@/hooks/use-language';
 import {
   Select,
   SelectContent,
@@ -79,6 +80,8 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     backButtonLabel,
     onBack
   } = props;
+  
+  const { t } = useLanguage();
   
   // State for Building Elements section collapsible
   const [buildingElementsExpanded, setBuildingElementsExpanded] = useState(false);
@@ -159,10 +162,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     // - EvaluationScheduleModal component with date picker and recurrence options
     // - Integration with notification system for reminders
     toast({
-      title: 'Feature Coming Soon',
-      description: 'Evaluation scheduling will be available in a future update.',
+      title: t('featureComingSoon'),
+      description: t('evaluationSchedulingComingSoon'),
     });
-  }, [toast]);
+  }, [toast, t]);
 
   const handleDeleteElement = useCallback((element: BuildingElement) => {
     // Close the element form first
@@ -171,10 +174,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     
     // Show success message
     toast({
-      title: 'Element Deleted',
-      description: `${element.name} has been successfully deleted from the inventory.`,
+      title: t('elementDeleted'),
+      description: `${element.name} ${t('elementDeletedSuccessfully')}`,
     });
-  }, [toast]);
+  }, [toast, t]);
 
   // Import/Export handlers
   const handleImportElements = useCallback(() => {
@@ -192,10 +195,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     // - ImportPreviewModal to review and confirm imports
     // - Backend API endpoint for bulk element creation
     toast({
-      title: 'Feature Coming Soon',
-      description: 'Element import functionality will be available in a future update.',
+      title: t('featureComingSoon'),
+      description: t('elementImportComingSoon'),
     });
-  }, [toast]);
+  }, [toast, t]);
 
   const handleExportReport = useCallback(() => {
     // NOTE: Report export feature not yet implemented.
@@ -212,10 +215,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     // - Report template designs and formatting logic
     // - Backend API to gather all report data efficiently
     toast({
-      title: 'Feature Coming Soon',
-      description: 'Report export functionality will be available in a future update.',
+      title: t('featureComingSoon'),
+      description: t('reportExportComingSoon'),
     });
-  }, [toast]);
+  }, [toast, t]);
 
 
 
@@ -252,9 +255,9 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <Package className="h-16 w-16 text-muted-foreground mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Select Building</h2>
+        <h2 className="text-xl font-semibold mb-2">{t('selectBuilding')}</h2>
         <p className="text-muted-foreground text-center max-w-md">
-          Please select an organization and building to view its maintenance inventory.
+          {t('selectBuildingInventoryMessage')}
         </p>
       </div>
     );
@@ -264,8 +267,8 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     <div className={cn('flex-1 flex flex-col overflow-hidden', className)}>
       {/* Header */}
       <Header 
-        title="Inventory Management" 
-        subtitle="Manage building elements, maintenance records, and asset documentation across your property portfolio." 
+        title={t('inventoryManagement')} 
+        subtitle={t('inventoryManagementSubtitle')} 
       />
       
       {/* Back to Building Navigation */}
@@ -280,7 +283,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
               data-testid="button-back-to-building"
             >
               <ArrowLeft className="w-4 h-4" />
-              {backButtonLabel || `Back to ${buildingName}`}
+              {backButtonLabel || `${t('backToBuilding')} ${buildingName}`}
             </Button>
           </div>
         </div>
@@ -309,10 +312,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
                 <div className="flex items-center gap-2">
                   <Database className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-lg font-semibold">Building Elements</h2>
+                  <h2 className="text-lg font-semibold">{t('buildingElements')}</h2>
                   {selectedElements.length > 0 && (
                     <Badge variant="secondary" className="ml-2">
-                      {selectedElements.length} selected
+                      {selectedElements.length} {t('selected')}
                     </Badge>
                   )}
                 </div>
@@ -324,7 +327,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                       onClick={() => setSelectedElements([])}
                       data-testid="clear-selection"
                     >
-                      Clear Selection
+                      {t('clearSelection')}
                     </Button>
                   )}
                   <CollapsibleTrigger asChild>
@@ -334,7 +337,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                       ) : (
                         <ChevronRight className="h-4 w-4" />
                       )}
-                      <span className="sr-only">Toggle building elements table</span>
+                      <span className="sr-only">{t('toggleBuildingElementsTable')}</span>
                     </Button>
                   </CollapsibleTrigger>
                 </div>
@@ -348,7 +351,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                     <div className="relative flex-1 min-w-[280px] max-w-md">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                       <Input
-                        placeholder="Search elements by name, UNIFORMAT code, or description..."
+                        placeholder={t('searchElementsPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => handleSearchChange(e.target.value)}
                         className="pl-10"
@@ -365,10 +368,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                       data-testid="filters-toggle"
                     >
                       <Filter className="h-4 w-4 mr-2" />
-                      Filters
+                      {t('filters')}
                       {(conditionFilter || uniformatFilter || showOverdueOnly) && (
                         <Badge variant="secondary" className="ml-2 text-xs">
-                          {[conditionFilter, uniformatFilter, showOverdueOnly && 'Overdue'].filter(Boolean).length}
+                          {[conditionFilter, uniformatFilter, showOverdueOnly && t('overdueEvaluations')].filter(Boolean).length}
                         </Badge>
                       )}
                     </Button>
@@ -380,13 +383,13 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                       data-testid="overdue-filter-button"
                     >
                       <AlertTriangle className="h-4 w-4 mr-2" />
-                      Overdue Evaluations
+                      {t('overdueEvaluations')}
                     </Button>
 
                     {canCreate && (
                       <Button onClick={handleAddElement} data-testid="add-element-button">
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Element
+                        {t('addElement')}
                       </Button>
                     )}
 
@@ -399,35 +402,35 @@ function InventoryPageContent(props: InventoryPageContentProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg border mt-4" data-testid="expanded-filters">
                     {/* Condition Filter */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Condition</label>
+                      <label className="text-sm font-medium">{t('condition')}</label>
                       <Select value={conditionFilter} onValueChange={handleConditionFilterChange}>
                         <SelectTrigger data-testid="condition-filter">
-                          <SelectValue placeholder="All conditions" />
+                          <SelectValue placeholder={t('allConditions')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Conditions</SelectItem>
+                          <SelectItem value="all">{t('allConditions')}</SelectItem>
                           <SelectItem value="excellent">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-green-500" />
-                              Excellent
+                              {t('excellent')}
                             </div>
                           </SelectItem>
                           <SelectItem value="good">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-blue-500" />
-                              Good
+                              {t('good')}
                             </div>
                           </SelectItem>
                           <SelectItem value="fair">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                              Fair
+                              {t('fair')}
                             </div>
                           </SelectItem>
                           <SelectItem value="poor">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-red-500" />
-                              Poor
+                              {t('poor')}
                             </div>
                           </SelectItem>
                         </SelectContent>
@@ -436,20 +439,20 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
                     {/* UNIFORMAT Filter */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">UNIFORMAT Category</label>
+                      <label className="text-sm font-medium">{t('uniformatCategory')}</label>
                       <Select value={uniformatFilter} onValueChange={handleUniformatFilterChange}>
                         <SelectTrigger data-testid="uniformat-filter">
-                          <SelectValue placeholder="All categories" />
+                          <SelectValue placeholder={t('allCategories')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          <SelectItem value="A">A - Substructure</SelectItem>
-                          <SelectItem value="B">B - Shell</SelectItem>
-                          <SelectItem value="C">C - Interiors</SelectItem>
-                          <SelectItem value="D">D - Services</SelectItem>
-                          <SelectItem value="E">E - Equipment & Furnishings</SelectItem>
-                          <SelectItem value="F">F - Special Construction</SelectItem>
-                          <SelectItem value="G">G - Building Sitework</SelectItem>
+                          <SelectItem value="all">{t('allCategories')}</SelectItem>
+                          <SelectItem value="A">{t('uniformatSubstructure')}</SelectItem>
+                          <SelectItem value="B">{t('uniformatShell')}</SelectItem>
+                          <SelectItem value="C">{t('uniformatInteriors')}</SelectItem>
+                          <SelectItem value="D">{t('uniformatServices')}</SelectItem>
+                          <SelectItem value="E">{t('uniformatEquipmentFurnishings')}</SelectItem>
+                          <SelectItem value="F">{t('uniformatSpecialConstruction')}</SelectItem>
+                          <SelectItem value="G">{t('uniformatBuildingSitework')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -504,7 +507,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">Element Documents - {selectedElement.name}</h2>
+              <h2 className="text-lg font-semibold">{t('elementDocuments')} - {selectedElement.name}</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowDocumentManager(false)}>
                 <X className="h-4 w-4" />
               </Button>
@@ -524,7 +527,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold">UNIFORMAT Browser</h2>
+              <h2 className="text-lg font-semibold">{t('uniformatBrowser')}</h2>
               <Button variant="ghost" size="sm" onClick={() => setShowUniformatBrowser(false)}>
                 <X className="h-4 w-4" />
               </Button>
