@@ -29,6 +29,8 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 import { sanitizeComment, sanitizeDescription } from '@/utils/sanitize';
+import { useLanguage } from '@/hooks/use-language';
+import { useLocation } from 'wouter';
 
 // Types
 /**
@@ -118,37 +120,6 @@ interface DemandDetailsPopupProps {
   onDemandUpdated?: () => void;
 }
 
-// Form schemas
-const editDemandSchema = z.object({
-  type: z.enum(['maintenance', 'complaint', 'information', 'other']),
-  description: z.string().min(10, 'Description must be at least 10 characters long (example: Faucet in kitchen sink is leaking and needs repair)').max(2000, 'Description must be less than 2000 characters'),
-  status: z
-    .enum([
-      'submitted',
-      'under_review',
-      'approved',
-      'rejected',
-      'in_progress',
-      'completed',
-      'cancelled',
-    ])
-    .optional(),
-  reviewNotes: z.string().max(1000, 'Review notes must be less than 1000 characters').optional(),
-});
-
-const _commentSchema = z.object({
-  comment: z.string().min(1, 'Comment text is required (minimum 1 character)').max(1000, 'Comment must be less than 1000 characters'),
-});
-
-/**
- *
- */
-type EditDemandFormData = z.infer<typeof editDemandSchema>;
-/**
- *
- */
-type _CommentFormData = z.infer<typeof _commentSchema>;
-
 const statusColors = {
   submitted: 'bg-blue-100 text-blue-800',
   under_review: 'bg-yellow-100 text-yellow-800',
@@ -157,23 +128,6 @@ const statusColors = {
   in_progress: 'bg-purple-100 text-purple-800',
   completed: 'bg-emerald-100 text-emerald-800',
   cancelled: 'bg-gray-100 text-gray-800',
-};
-
-const typeLabels = {
-  maintenance: 'Maintenance',
-  complaint: 'Complaint',
-  information: 'Information',
-  other: 'Other',
-};
-
-const statusLabels = {
-  submitted: 'Submitted',
-  under_review: 'Under Review',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
 };
 
 /**
@@ -195,8 +149,58 @@ export default function DemandDetailsPopup({
   onDemandUpdated,
 }: DemandDetailsPopupProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
+  const [, setLocation] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [newComment, setNewComment] = useState('');
+
+  // Form schemas - must be inside component to access t()
+  const editDemandSchema = z.object({
+    type: z.enum(['maintenance', 'complaint', 'information', 'other']),
+    description: z.string()
+      .min(10, t('descriptionMinLengthError'))
+      .max(2000, t('descriptionMaxLengthError')),
+    status: z
+      .enum([
+        'submitted',
+        'under_review',
+        'approved',
+        'rejected',
+        'in_progress',
+        'completed',
+        'cancelled',
+      ])
+      .optional(),
+    reviewNotes: z.string()
+      .max(1000, t('reviewNotesMaxLengthError'))
+      .optional(),
+  });
+
+  const commentSchema = z.object({
+    comment: z.string()
+      .min(1, t('commentMinLengthError'))
+      .max(1000, t('commentMaxLengthError')),
+  });
+
+  type EditDemandFormData = z.infer<typeof editDemandSchema>;
+  type CommentFormData = z.infer<typeof commentSchema>;
+
+  const typeLabels = {
+    maintenance: t('maintenanceType'),
+    complaint: t('complaintType'),
+    information: t('informationType'),
+    other: t('otherType'),
+  };
+  
+  const statusLabels = {
+    submitted: t('submittedStatus'),
+    under_review: t('underReviewStatus'),
+    approved: t('approvedStatus'),
+    rejected: t('rejectedStatus'),
+    in_progress: t('inProgressStatus'),
+    completed: t('completedStatus'),
+    cancelled: t('cancelledStatus'),
+  };
 
   // Check permissions
   // Nobody can edit demands (as requested)
@@ -258,14 +262,14 @@ export default function DemandDetailsPopup({
       setIsEditing(false);
       onDemandUpdated?.();
       toast({
-        title: 'Success',
-        description: 'Demand updated successfully',
+        title: t('success'),
+        description: t('demandUpdatedSuccessfully'),
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to update demand',
+        title: t('error'),
+        description: t('failedToUpdateDemand'),
         variant: 'destructive',
       });
     },
@@ -287,14 +291,14 @@ export default function DemandDetailsPopup({
       onClose();
       onDemandUpdated?.();
       toast({
-        title: 'Success',
-        description: 'Demand deleted successfully',
+        title: t('success'),
+        description: t('demandDeletedSuccessfully'),
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to delete demand',
+        title: t('error'),
+        description: t('failedToDeleteDemand'),
         variant: 'destructive',
       });
     },
@@ -319,14 +323,14 @@ export default function DemandDetailsPopup({
       refetchComments();
       setNewComment('');
       toast({
-        title: 'Success',
-        description: 'Comment added successfully',
+        title: t('success'),
+        description: t('commentAddedSuccessfully'),
       });
     },
     onError: () => {
       toast({
-        title: 'Error',
-        description: 'Failed to add comment',
+        title: t('error'),
+        description: t('failedToAddComment'),
         variant: 'destructive',
       });
     },
@@ -337,7 +341,7 @@ export default function DemandDetailsPopup({
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this demand?')) {
+    if (window.confirm(t('confirmDeleteDemand'))) {
       deleteDemandMutation.mutate();
     }
   };
@@ -379,12 +383,20 @@ export default function DemandDetailsPopup({
       <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle className='flex items-center justify-between'>
-            <span>Demand Details</span>
+            <span>{t('demandDetails')}</span>
             <div className='flex items-center gap-2'>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => setLocation(`/residents/building/documents?buildingId=${demand.buildingId}`)}
+              >
+                <Paperclip className='h-4 w-4 mr-1' />
+                {t('viewRelatedDocuments')}
+              </Button>
               {canEdit && !isEditing && (
                 <Button variant='outline' size='sm' onClick={() => setIsEditing(true)}>
                   <Edit2 className='h-4 w-4 mr-1' />
-                  Edit
+                  {t('edit')}
                 </Button>
               )}
               {canEscalate && (
@@ -395,7 +407,7 @@ export default function DemandDetailsPopup({
                   disabled={updateDemandMutation.isPending}
                 >
                   <ArrowUp className='h-4 w-4 mr-1' />
-                  Escalate to Manager
+                  {t('escalateToManager')}
                 </Button>
               )}
             </div>
@@ -426,19 +438,19 @@ export default function DemandDetailsPopup({
                       {user?.role === 'resident' ? (
                         // Residents can only change status to submitted or cancelled
                         <>
-                          <SelectItem value='submitted'>Submitted</SelectItem>
-                          <SelectItem value='cancelled'>Cancelled</SelectItem>
+                          <SelectItem value='submitted'>{t('submittedStatus')}</SelectItem>
+                          <SelectItem value='cancelled'>{t('cancelledStatus')}</SelectItem>
                         </>
                       ) : (
                         // Managers and admins can change to any status (except draft)
                         <>
-                          <SelectItem value='submitted'>Submitted</SelectItem>
-                          <SelectItem value='under_review'>Under Review</SelectItem>
-                          <SelectItem value='approved'>Approved</SelectItem>
-                          <SelectItem value='rejected'>Rejected</SelectItem>
-                          <SelectItem value='in_progress'>In Progress</SelectItem>
-                          <SelectItem value='completed'>Completed</SelectItem>
-                          <SelectItem value='cancelled'>Cancelled</SelectItem>
+                          <SelectItem value='submitted'>{t('submittedStatus')}</SelectItem>
+                          <SelectItem value='under_review'>{t('underReviewStatus')}</SelectItem>
+                          <SelectItem value='approved'>{t('approvedStatus')}</SelectItem>
+                          <SelectItem value='rejected'>{t('rejectedStatus')}</SelectItem>
+                          <SelectItem value='in_progress'>{t('inProgressStatus')}</SelectItem>
+                          <SelectItem value='completed'>{t('completedStatus')}</SelectItem>
+                          <SelectItem value='cancelled'>{t('cancelledStatus')}</SelectItem>
                         </>
                       )}
                     </SelectContent>
@@ -455,7 +467,7 @@ export default function DemandDetailsPopup({
                       name='type'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Type</FormLabel>
+                          <FormLabel>{t('typeLabel')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
@@ -463,10 +475,10 @@ export default function DemandDetailsPopup({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value='maintenance'>Maintenance</SelectItem>
-                              <SelectItem value='complaint'>Complaint</SelectItem>
-                              <SelectItem value='information'>Information</SelectItem>
-                              <SelectItem value='other'>Other</SelectItem>
+                              <SelectItem value='maintenance'>{t('maintenanceType')}</SelectItem>
+                              <SelectItem value='complaint'>{t('complaintType')}</SelectItem>
+                              <SelectItem value='information'>{t('informationType')}</SelectItem>
+                              <SelectItem value='other'>{t('otherType')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -478,7 +490,7 @@ export default function DemandDetailsPopup({
                       name='description'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>{t('descriptionLabel')}</FormLabel>
                           <FormControl>
                             <Textarea className='min-h-[120px]' {...field} />
                           </FormControl>
@@ -492,9 +504,9 @@ export default function DemandDetailsPopup({
                         name='reviewNotes'
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Review Notes</FormLabel>
+                            <FormLabel>{t('reviewNotes')}</FormLabel>
                             <FormControl>
-                              <Textarea placeholder='Add review notes...' {...field} />
+                              <Textarea placeholder={t('addReviewNotes')} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -504,11 +516,11 @@ export default function DemandDetailsPopup({
                     <div className='flex gap-2'>
                       <Button type='submit' disabled={updateDemandMutation.isPending}>
                         <Save className='h-4 w-4 mr-1' />
-                        {updateDemandMutation.isPending ? 'Saving...' : 'Save'}
+                        {updateDemandMutation.isPending ? t('saving') : t('save')}
                       </Button>
                       <Button type='button' variant='outline' onClick={() => setIsEditing(false)}>
                         <X className='h-4 w-4 mr-1' />
-                        Cancel
+                        {t('cancel')}
                       </Button>
                     </div>
                   </form>
@@ -516,7 +528,7 @@ export default function DemandDetailsPopup({
               ) : (
                 <div className='space-y-4'>
                   <div>
-                    <Label>Description</Label>
+                    <Label>{t('descriptionLabel')}</Label>
                     <p className='mt-1 text-sm whitespace-pre-wrap'>{sanitizeDescription(demand.description)}</p>
                   </div>
 
@@ -525,7 +537,7 @@ export default function DemandDetailsPopup({
                     <div>
                       <Label className='flex items-center gap-1'>
                         <Paperclip className='h-4 w-4' />
-                        File Attachment
+                        {t('fileAttachment')}
                       </Label>
                       <div className='mt-2 space-y-2'>
                         {demand.fileName && (() => {
@@ -546,7 +558,7 @@ export default function DemandDetailsPopup({
                                 onClick={() => window.open(demand.filePath, '_blank')}
                                 data-testid='button-view-attachment-0'
                               >
-                                {isImage ? 'View' : 'Download'}
+                                {isImage ? t('view') : t('download')}
                                 <Download className='h-3 w-3 ml-1' />
                               </Button>
                             </div>
@@ -558,7 +570,7 @@ export default function DemandDetailsPopup({
 
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-sm'>
                     <div>
-                      <Label>Submitted by</Label>
+                      <Label>{t('submittedBy')}</Label>
                       <p className='mt-1'>
                         {demand.submitter?.firstName} {demand.submitter?.lastName}
                         <br />
@@ -566,14 +578,14 @@ export default function DemandDetailsPopup({
                       </p>
                     </div>
                     <div>
-                      <Label>Location</Label>
+                      <Label>{t('location')}</Label>
                       <p className='mt-1'>
                         {demand.building?.name}
                         {demand.residence && (
                           <>
                             <br />
                             <span className='text-muted-foreground'>
-                              Unit: {demand.residence.unitNumber}
+                              {t('unit')} {demand.residence.unitNumber}
                             </span>
                           </>
                         )}
@@ -583,7 +595,7 @@ export default function DemandDetailsPopup({
 
                   {demand.reviewNotes && (
                     <div>
-                      <Label>Review Notes</Label>
+                      <Label>{t('reviewNotes')}</Label>
                       <p className='mt-1 text-sm text-muted-foreground whitespace-pre-wrap'>
                         {demand.reviewNotes}
                       </p>
@@ -591,8 +603,8 @@ export default function DemandDetailsPopup({
                   )}
 
                   <div className='text-xs text-muted-foreground'>
-                    <p>Created: {new Date(demand.createdAt).toLocaleString()}</p>
-                    <p>Updated: {new Date(demand.updatedAt).toLocaleString()}</p>
+                    <p>{t('created')} {new Date(demand.createdAt).toLocaleString()}</p>
+                    <p>{t('updated')} {new Date(demand.updatedAt).toLocaleString()}</p>
                   </div>
                 </div>
               )}
@@ -603,13 +615,13 @@ export default function DemandDetailsPopup({
 
           {/* Comments Section */}
           <div className='space-y-4'>
-            <h3 className='font-semibold'>Comments ({comments.length})</h3>
+            <h3 className='font-semibold'>{t('comments')} ({comments.length})</h3>
 
             {/* Add Comment - only if demand is not closed */}
             {demand && !['cancelled', 'completed', 'rejected'].includes(demand.status) && (
               <div className='space-y-2'>
                 <Textarea
-                  placeholder='Add a comment...'
+                  placeholder={t('addAComment')}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   rows={3}
@@ -620,7 +632,7 @@ export default function DemandDetailsPopup({
                   size='sm'
                 >
                   <Send className='h-4 w-4 mr-1' />
-                  {addCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
+                  {addCommentMutation.isPending ? t('adding') : t('addComment')}
                 </Button>
               </div>
             )}
@@ -628,7 +640,7 @@ export default function DemandDetailsPopup({
             {/* Show message if demand is closed */}
             {demand && ['cancelled', 'completed', 'rejected'].includes(demand.status) && (
               <p className='text-sm text-muted-foreground bg-gray-50 p-3 rounded'>
-                Comments are disabled for {demand.status} demands.
+                {t('commentsDisabledFor').replace('{status}', demand.status)}
               </p>
             )}
 
@@ -650,7 +662,7 @@ export default function DemandDetailsPopup({
                 </Card>
               ))}
               {comments.length === 0 && (
-                <p className='text-center text-muted-foreground py-4'>No comments yet</p>
+                <p className='text-center text-muted-foreground py-4'>{t('noCommentsYet')}</p>
               )}
             </div>
           </div>
@@ -666,7 +678,7 @@ export default function DemandDetailsPopup({
                 data-testid='button-delete-demand'
               >
                 <Trash2 className='h-4 w-4 mr-1' />
-                {deleteDemandMutation.isPending ? 'Deleting...' : 'Delete'}
+                {deleteDemandMutation.isPending ? t('deleting') : t('deleteDemand')}
               </Button>
             </div>
           )}

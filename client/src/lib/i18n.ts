@@ -1132,6 +1132,44 @@ export interface Translations {
   autoProjectConvertedSuccess: string;
   statusUpdated: string;
   projectStatusUpdatedSuccessfully: string;
+  
+  // Demand details translations
+  demandDetails: string;
+  escalateToManager: string;
+  fileAttachment: string;
+  view: string;
+  download: string;
+  location: string;
+  reviewNotes: string;
+  addReviewNotes: string;
+  updated: string;
+  comments: string;
+  addAComment: string;
+  addComment: string;
+  adding: string;
+  noCommentsYet: string;
+  commentsDisabledFor: string;
+  deleteDemand: string;
+  confirmDeleteDemand: string;
+  demandUpdatedSuccessfully: string;
+  failedToUpdateDemand: string;
+  demandDeletedSuccessfully: string;
+  failedToDeleteDemand: string;
+  commentAddedSuccessfully: string;
+  failedToAddComment: string;
+  underReviewStatus: string;
+  approvedStatus: string;
+  rejectedStatus: string;
+  inProgressStatus: string;
+  completedStatus: string;
+  cancelledStatus: string;
+  submittedStatus: string;
+  viewRelatedDocuments: string;
+  descriptionMinLengthError: string;
+  descriptionMaxLengthError: string;
+  reviewNotesMaxLengthError: string;
+  commentMinLengthError: string;
+  commentMaxLengthError: string;
 }
 
 /**
@@ -2262,6 +2300,44 @@ export const translations: Record<Language, Translations> = {
     autoProjectConvertedSuccess: 'has been converted to a maintenance project.',
     statusUpdated: 'Status Updated',
     projectStatusUpdatedSuccessfully: 'Project status has been updated successfully.',
+    
+    // Demand details translations
+    demandDetails: 'Demand Details',
+    escalateToManager: 'Escalate to Manager',
+    fileAttachment: 'File Attachment',
+    view: 'View',
+    download: 'Download',
+    location: 'Location',
+    reviewNotes: 'Review Notes',
+    addReviewNotes: 'Add review notes...',
+    updated: 'Updated:',
+    comments: 'Comments',
+    addAComment: 'Add a comment...',
+    addComment: 'Add Comment',
+    adding: 'Adding...',
+    noCommentsYet: 'No comments yet',
+    commentsDisabledFor: 'Comments are disabled for {status} demands.',
+    deleteDemand: 'Delete',
+    confirmDeleteDemand: 'Are you sure you want to delete this demand?',
+    demandUpdatedSuccessfully: 'Demand updated successfully',
+    failedToUpdateDemand: 'Failed to update demand',
+    demandDeletedSuccessfully: 'Demand deleted successfully',
+    failedToDeleteDemand: 'Failed to delete demand',
+    commentAddedSuccessfully: 'Comment added successfully',
+    failedToAddComment: 'Failed to add comment',
+    underReviewStatus: 'Under Review',
+    approvedStatus: 'Approved',
+    rejectedStatus: 'Rejected',
+    inProgressStatus: 'In Progress',
+    completedStatus: 'Completed',
+    cancelledStatus: 'Cancelled',
+    submittedStatus: 'Submitted',
+    viewRelatedDocuments: 'View Related Documents',
+    descriptionMinLengthError: 'Description must be at least 10 characters long (example: Faucet in kitchen sink is leaking and needs repair)',
+    descriptionMaxLengthError: 'Description must be less than 2000 characters',
+    reviewNotesMaxLengthError: 'Review notes must be less than 1000 characters',
+    commentMinLengthError: 'Comment text is required (minimum 1 character)',
+    commentMaxLengthError: 'Comment must be less than 1000 characters',
   },
   fr: {
 
@@ -3387,5 +3463,43 @@ export const translations: Record<Language, Translations> = {
     autoProjectConvertedSuccess: 'a été converti en projet de maintenance.',
     statusUpdated: 'Statut mis à jour',
     projectStatusUpdatedSuccessfully: 'Le statut du projet a été mis à jour avec succès.',
+    
+    // Demand details translations
+    demandDetails: 'Détails de la demande',
+    escalateToManager: 'Escalader au gestionnaire',
+    fileAttachment: 'Pièce jointe',
+    view: 'Voir',
+    download: 'Télécharger',
+    location: 'Emplacement',
+    reviewNotes: 'Notes de révision',
+    addReviewNotes: 'Ajouter des notes de révision...',
+    updated: 'Mis à jour :',
+    comments: 'Commentaires',
+    addAComment: 'Ajouter un commentaire...',
+    addComment: 'Ajouter un commentaire',
+    adding: 'Ajout...',
+    noCommentsYet: 'Aucun commentaire pour le moment',
+    commentsDisabledFor: 'Les commentaires sont désactivés pour les demandes {status}.',
+    deleteDemand: 'Supprimer',
+    confirmDeleteDemand: 'Êtes-vous sûr de vouloir supprimer cette demande?',
+    demandUpdatedSuccessfully: 'Demande mise à jour avec succès',
+    failedToUpdateDemand: 'Échec de la mise à jour de la demande',
+    demandDeletedSuccessfully: 'Demande supprimée avec succès',
+    failedToDeleteDemand: 'Échec de la suppression de la demande',
+    commentAddedSuccessfully: 'Commentaire ajouté avec succès',
+    failedToAddComment: 'Échec de l\'ajout du commentaire',
+    underReviewStatus: 'En révision',
+    approvedStatus: 'Approuvé',
+    rejectedStatus: 'Rejeté',
+    inProgressStatus: 'En cours',
+    completedStatus: 'Terminé',
+    cancelledStatus: 'Annulé',
+    submittedStatus: 'Soumis',
+    viewRelatedDocuments: 'Voir les documents associés',
+    descriptionMinLengthError: 'La description doit contenir au moins 10 caractères (exemple : Le robinet de l\'évier de la cuisine fuit et nécessite une réparation)',
+    descriptionMaxLengthError: 'La description doit contenir moins de 2000 caractères',
+    reviewNotesMaxLengthError: 'Les notes de révision doivent contenir moins de 1000 caractères',
+    commentMinLengthError: 'Le texte du commentaire est requis (minimum 1 caractère)',
+    commentMaxLengthError: 'Le commentaire doit contenir moins de 1000 caractères',
   }
 };
