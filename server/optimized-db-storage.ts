@@ -2834,7 +2834,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
   // Old building document methods removed - using unified documents table
 
-  // Unified Document operations
+  // Unified Document operations with optimized queries
   async getDocuments(filters?: {
     buildingId?: string;
     residenceId?: string;
@@ -2852,61 +2852,67 @@ export class OptimizedDatabaseStorage implements IStorage {
       cacheKey: `documents:${JSON.stringify(filters)}`
     }, 'DEBUG');
 
+    // Import optimized query functions
+    const { getDocumentsWithRelations, getDocumentsForUser } = await import('./db/queries/optimized-document-queries');
+
     return this.withOptimizations(
       'getDocuments',
       `documents:${JSON.stringify(filters)}`,
       'documents',
       async () => {
-        this.logStorageOperation('getDocuments_QUERY_BUILD', {
-          operationId,
-          filters: filters || {}
-        }, 'DEBUG');
+        const dbStart = performance.now();
 
+        // Use optimized queries with JOINs when user filtering is involved
+        if (filters?.userId && filters?.userRole) {
+          this.logStorageOperation('getDocuments_USING_OPTIMIZED_USER_QUERY', {
+            operationId,
+            userId: filters.userId,
+            userRole: filters.userRole
+          }, 'DEBUG');
+
+          const documents = await getDocumentsForUser(
+            filters.userId,
+            filters.userRole,
+            {
+              buildingId: filters.buildingId,
+              residenceId: filters.residenceId,
+              documentType: filters.documentType,
+            }
+          );
+
+          const dbTime = performance.now() - dbStart;
+          this.logStorageOperation('getDocuments_OPTIMIZED_QUERY_EXECUTED', {
+            operationId,
+            resultCount: documents.length,
+            dbExecutionTime: `${dbTime.toFixed(2)}ms`,
+            optimization: 'Single query with JOINs'
+          }, 'DEBUG');
+
+          return documents;
+        }
+
+        // Use optimized query with relations for better performance
         const conditions = [];
         if (filters?.buildingId) {
           conditions.push(eq(schema.documents.buildingId, filters.buildingId));
-          this.logStorageOperation('getDocuments_FILTER_BUILDING', {
-            operationId,
-            buildingId: filters.buildingId
-          }, 'DEBUG');
         }
         if (filters?.residenceId) {
           conditions.push(eq(schema.documents.residenceId, filters.residenceId));
-          this.logStorageOperation('getDocuments_FILTER_RESIDENCE', {
-            operationId,
-            residenceId: filters.residenceId
-          }, 'DEBUG');
         }
         if (filters?.documentType) {
           conditions.push(eq(schema.documents.documentType, filters.documentType));
-          this.logStorageOperation('getDocuments_FILTER_TYPE', {
-            operationId,
-            documentType: filters.documentType
-          }, 'DEBUG');
         }
         if (filters?.attachedToType) {
           conditions.push(eq(schema.documents.attachedToType, filters.attachedToType));
-          this.logStorageOperation('getDocuments_FILTER_ATTACHED_TYPE', {
-            operationId,
-            attachedToType: filters.attachedToType
-          }, 'DEBUG');
         } else {
           // By default, exclude bill attachments unless explicitly requested
           conditions.push(or(
             isNull(schema.documents.attachedToType),
             notInArray(schema.documents.attachedToType, ['bill'])
           ));
-          this.logStorageOperation('getDocuments_EXCLUDE_BILLS_DEFAULT', {
-            operationId,
-            message: 'Excluding bill attachments by default'
-          }, 'DEBUG');
         }
         if (filters?.attachedToId) {
           conditions.push(eq(schema.documents.attachedToId, filters.attachedToId));
-          this.logStorageOperation('getDocuments_FILTER_ATTACHED_ID', {
-            operationId,
-            attachedToId: filters.attachedToId
-          }, 'DEBUG');
         }
 
         // Build query with all conditions at once to avoid type issues
@@ -2914,12 +2920,6 @@ export class OptimizedDatabaseStorage implements IStorage {
           ? db.select().from(schema.documents).where(and(...conditions))
           : db.select().from(schema.documents);
 
-        this.logStorageOperation('getDocuments_CONDITIONS_APPLIED', {
-          operationId,
-          conditionCount: conditions.length
-        }, 'DEBUG');
-
-        const dbStart = performance.now();
         const result = await query.orderBy(desc(schema.documents.createdAt));
         const dbTime = performance.now() - dbStart;
         

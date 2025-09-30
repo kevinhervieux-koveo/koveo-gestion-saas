@@ -1154,40 +1154,32 @@ export function registerDocumentRoutes(app: Express): void {
       const attachedToType = req.query.attachedToType as string; // Filter by attached entity type
       const attachedToId = req.query.attachedToId as string; // Filter by attached entity ID
 
-      // Get user's organization and residences for filtering
-      logDocumentOperation('USER_DATA_FETCH_START', { userId }, 'DEBUG');
+      // OPTIMIZED: Use single query to get user access scope instead of 3 separate queries
+      logDocumentOperation('USER_ACCESS_SCOPE_FETCH_START', { userId, userRole }, 'DEBUG');
       
-      logDocumentOperation('CALL_getUserOrganizations', { userId }, 'DEBUG');
-      const organizationsStart = performance.now();
-      const organizations = await storage.getUserOrganizations(userId);
-      const organizationsTime = performance.now() - organizationsStart;
-      logDocumentOperation('getUserOrganizations_SUCCESS', {
-        count: organizations.length,
-        executionTime: `${organizationsTime.toFixed(2)}ms`,
-        organizations: organizations.map((org: any) => ({ id: org.organizationId, role: org.organizationRole }))
+      const scopeStart = performance.now();
+      const { getUserAccessScope } = await import('../db/queries/optimized-document-queries');
+      const scope = await getUserAccessScope(userId, userRole);
+      const scopeTime = performance.now() - scopeStart;
+      
+      logDocumentOperation('USER_ACCESS_SCOPE_SUCCESS', {
+        executionTime: `${scopeTime.toFixed(2)}ms`,
+        organizationCount: scope.organizationIds.length,
+        buildingCount: scope.buildingIds.length,
+        residenceCount: scope.residenceIds.length,
+        optimization: 'Single CTE query replaced 3 separate queries'
       }, 'DEBUG');
       
-      logDocumentOperation('CALL_getUserResidences', { userId }, 'DEBUG');
-      const residencesStart = performance.now();
-      const userResidences = await storage.getUserResidences(userId);
-      const residencesTime = performance.now() - residencesStart;
-      logDocumentOperation('getUserResidences_SUCCESS', {
-        count: userResidences.length,
-        executionTime: `${residencesTime.toFixed(2)}ms`,
-        residenceIds: userResidences.map((ur: any) => ur.residenceId).filter(Boolean)
-      }, 'DEBUG');
+      // Use scope data directly - no need for compatibility objects
+      const organizationIds = scope.organizationIds;
+      const scopeBuildingIds = scope.buildingIds;
+      const scopeResidenceIds = scope.residenceIds;
       
-      logDocumentOperation('CALL_getBuildings', {}, 'DEBUG');
-      const buildingsStart = performance.now();
-      const buildings = await storage.getBuildings();
-      const buildingsTime = performance.now() - buildingsStart;
-      logDocumentOperation('getBuildings_SUCCESS', {
-        count: buildings.length,
-        executionTime: `${buildingsTime.toFixed(2)}ms`,
-        buildingIds: buildings.map(b => b.id)
-      }, 'DEBUG');
+      // For backward compatibility where needed
+      const organizations = scope.organizationIds.map(id => ({ organizationId: id }));
+      const userResidences = scope.residenceIds.map(id => ({ residenceId: id }));
 
-      const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+      const organizationId = organizationIds.length > 0 ? organizationIds[0] : undefined;
       // console.log(`[${timestamp}] 🏢 Organization ID determined:`, organizationId);
 
       // If specific residence ID provided, filter to only that residence
@@ -1240,7 +1232,7 @@ export function registerDocumentRoutes(app: Express): void {
           .filter((id: any) => id !== null);
       }
 
-      const buildingIds = buildings.map((b) => b.id);
+      const buildingIds = scopeBuildingIds; // Use optimized scope building IDs
 
       const allDocumentRecords: any[] = [];
 
@@ -1280,30 +1272,44 @@ export function registerDocumentRoutes(app: Express): void {
         }
       }
 
-      // CRITICAL: Enhanced document fetching with performance tracking
-      logDocumentOperation('STORAGE_getDocuments_CALL', {
+      // OPTIMIZED: Use optimized query that loads documents with all related data in single query
+      logDocumentOperation('OPTIMIZED_DOCUMENTS_FETCH_START', {
+        userRole,
+        userId,
         filters,
-        storageInstance: storage.constructor.name,
-        filtersStringified: JSON.stringify(filters, null, 2)
+        optimization: 'Using getDocumentsForUser with JOINs'
       }, 'DEBUG');
       
       const documentsStart = performance.now();
       let documents;
       try {
-        documents = await storage.getDocuments(filters);
+        const { getDocumentsForUser } = await import('../db/queries/optimized-document-queries');
+        const additionalFilters: any = {};
+        
+        if (specificBuildingId) {
+          additionalFilters.buildingId = specificBuildingId;
+        }
+        if (specificResidenceId) {
+          additionalFilters.residenceId = specificResidenceId;
+        }
+        if (documentType) {
+          additionalFilters.documentType = documentType;
+        }
+        
+        documents = await getDocumentsForUser(userId, userRole, additionalFilters);
         const documentsTime = performance.now() - documentsStart;
-        logDocumentOperation('STORAGE_getDocuments_SUCCESS', {
+        logDocumentOperation('OPTIMIZED_DOCUMENTS_SUCCESS', {
           documentCount: documents?.length || 0,
           executionTime: `${documentsTime.toFixed(2)}ms`,
-          filters: filters
+          optimization: 'Single query with JOINs for documents + related entities',
+          performanceGain: 'Eliminated N+1 queries for buildings/residences/users'
         }, 'DEBUG');
       } catch (documentsError) {
         const documentsTime = performance.now() - documentsStart;
-        logDocumentOperation('STORAGE_getDocuments_ERROR', {
+        logDocumentOperation('OPTIMIZED_DOCUMENTS_ERROR', {
           error: documentsError.message,
           stack: documentsError.stack?.substring(0, 200),
-          executionTime: `${documentsTime.toFixed(2)}ms`,
-          filters: filters
+          executionTime: `${documentsTime.toFixed(2)}ms`
         }, 'ERROR');
         throw documentsError;
       }
@@ -1387,12 +1393,9 @@ export function registerDocumentRoutes(app: Express): void {
             return true;
           }
           // Residents can see building documents related to their residences
-          if (doc.buildingId) {
-            // Check if any of user's residences belong to this building
-            const userBuildingIds = userResidences
-              .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
-              .filter(Boolean);
-            return userBuildingIds.includes(doc.buildingId);
+          // FIXED: Use scopeBuildingIds from optimized query instead of trying to extract from non-existent nested objects
+          if (doc.buildingId && scopeBuildingIds.includes(doc.buildingId)) {
+            return true;
           }
         }
 
@@ -1409,12 +1412,9 @@ export function registerDocumentRoutes(app: Express): void {
           }
 
           // Tenants can see visible building documents related to their residences
-          if (doc.buildingId) {
-            // Check if any of user's residences belong to this building
-            const userBuildingIds = userResidences
-              .map((ur: any) => ur.residence?.buildingId || ur.userResidence?.residence?.buildingId)
-              .filter(Boolean);
-            return userBuildingIds.includes(doc.buildingId);
+          // FIXED: Use scopeBuildingIds from optimized query instead of trying to extract from non-existent nested objects
+          if (doc.buildingId && scopeBuildingIds.includes(doc.buildingId)) {
+            return true;
           }
         }
 
@@ -2203,7 +2203,8 @@ export function registerDocumentRoutes(app: Express): void {
       const documentId = req.params.id;
 
       // Get existing document first to check permissions and get current file path
-      const existingDocument = await storage.getDocuments().then(docs => docs.find(doc => doc.id === documentId));
+      // FIXED: Pass userId and userRole to enable optimized query path
+      const existingDocument = await storage.getDocuments({ userId, userRole }).then(docs => docs.find(doc => doc.id === documentId));
       
       if (!existingDocument) {
         // console.log(`❌ [DOCUMENT UPDATE] Document not found: ${documentId}`);
@@ -3161,22 +3162,27 @@ export function registerDocumentRoutes(app: Express): void {
         }
       }, 'INFO');
 
-      // Enhanced permission data loading with timing
+      // OPTIMIZED: Use single query to get user access scope instead of 3 separate queries
       const permissionLoadStart = performance.now();
-      const organizations = await storage.getUserOrganizations(userId);
-      const residences = await storage.getUserResidences(userId);
-      const buildings = await storage.getBuildings();
+      const { getUserAccessScope } = await import('../db/queries/optimized-document-queries');
+      const scope = await getUserAccessScope(userId, userRole);
       const permissionLoadTime = performance.now() - permissionLoadStart;
       
-      logDocumentOperation('PERMISSION_DATA_LOADED', {
+      logDocumentOperation('PERMISSION_DATA_LOADED_OPTIMIZED', {
         operationId,
         loadTime: `${permissionLoadTime.toFixed(2)}ms`,
         dataStats: {
-          organizationsCount: organizations.length,
-          residencesCount: residences.length,
-          buildingsCount: buildings.length
-        }
+          organizationsCount: scope.organizationIds.length,
+          buildingsCount: scope.buildingIds.length,
+          residencesCount: scope.residenceIds.length
+        },
+        optimization: 'Single CTE query replaced 3 separate queries'
       }, 'DEBUG');
+      
+      // For backward compatibility
+      const organizations = scope.organizationIds.map(id => ({ organizationId: id }));
+      const residences = scope.residenceIds.map(id => ({ residenceId: id }));
+      const buildings = scope.buildingIds.map(id => ({ id }));
 
       // Enhanced security audit for file access
       logSecurityEvent('DOCUMENT_FILE_ACCESS_ATTEMPT', user, false, documentId, {
@@ -3249,20 +3255,8 @@ export function registerDocumentRoutes(app: Express): void {
         .map((ur: any) => ur.residenceId || ur.userResidence?.residenceId || ur.residence?.id)
         .filter(Boolean);
 
-      // Get building IDs that user's residences belong to
-      const userBuildingIds = [];
-      for (const userResidence of residences) {
-        // Handle different residence data structures
-        const residenceId = userResidence.residenceId;
-        if (residenceId) {
-          // Find the actual residence to get building ID
-          const allResidences = await storage.getResidences();
-          const residence = allResidences.find(r => r.id === residenceId);
-          if (residence?.buildingId) {
-            userBuildingIds.push(residence.buildingId);
-          }
-        }
-      }
+      // OPTIMIZED: Building IDs already loaded from scope query, no need for additional queries
+      const userBuildingIds = scope.buildingIds;
 
       // Check permissions based on the specified rules
       let hasAccess = false;
@@ -3297,16 +3291,10 @@ export function registerDocumentRoutes(app: Express): void {
         
         // Manager has access to all residences in their organization
         if (document.residenceId) {
-          // Check if residence belongs to manager's organization
-          const allResidences = await storage.getResidences();
-          const residence = allResidences.find(r => r.id === document.residenceId);
-          if (residence) {
-            // Check if residence building belongs to manager's organization
-            const residenceBuilding = buildings.find(b => b.id === residence.buildingId);
-            if (residenceBuilding && userOrganizations.includes(residenceBuilding.organizationId || '')) {
-              hasAccess = true;
-              accessReason = 'Manager has access to organization residences';
-            }
+          // OPTIMIZED: Check if residence is in user's accessible residences (already loaded from scope)
+          if (scope.residenceIds.includes(document.residenceId)) {
+            hasAccess = true;
+            accessReason = 'Manager has access to organization residences';
           }
         }
       } else if (userRole === 'resident' || userRole === 'demo_resident') {

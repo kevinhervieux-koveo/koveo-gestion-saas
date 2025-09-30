@@ -43,6 +43,13 @@ export const documents = pgTable('documents', {
   effectiveDateIdx: index('documents_effective_date_idx').on(table.effectiveDate),
   createdAtIdx: index('documents_created_at_idx').on(table.createdAt),
   updatedAtIdx: index('documents_updated_at_idx').on(table.updatedAt),
+  // Composite indexes for common query patterns
+  buildingDocTypeIdx: index('documents_building_doctype_idx').on(table.buildingId, table.documentType),
+  residenceDocTypeIdx: index('documents_residence_doctype_idx').on(table.residenceId, table.documentType),
+  uploaderCreatedIdx: index('documents_uploader_created_idx').on(table.uploadedById, table.createdAt),
+  buildingCreatedIdx: index('documents_building_created_idx').on(table.buildingId, table.createdAt),
+  residenceCreatedIdx: index('documents_residence_created_idx').on(table.residenceId, table.createdAt),
+  attachedEntityIdx: index('documents_attached_entity_idx').on(table.attachedToType, table.attachedToId),
 }));
 
 // Enhanced document schema with file metadata
