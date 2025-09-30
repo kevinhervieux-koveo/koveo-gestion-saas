@@ -21,7 +21,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { Invoice } from '@shared/schemas/invoices';
-import { InvoiceForm } from './InvoiceForm';
+import { InvoiceForm } from '../invoices/InvoiceForm';
 import { DocumentCard } from '@/components/document-management/DocumentCard';
 import {
   DropdownMenu,
@@ -188,7 +188,22 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
             <DialogTitle>Edit Invoice</DialogTitle>
           </DialogHeader>
           <InvoiceForm
-            invoice={invoice}
+            buildingId={invoice.buildingId}
+            residenceId={invoice.residenceId}
+            initialData={{
+              vendorName: invoice.vendorName,
+              invoiceNumber: invoice.invoiceNumber,
+              totalAmount: invoice.totalAmount,
+              dueDate: new Date(invoice.dueDate),
+              paymentType: invoice.paymentType,
+              frequency: invoice.frequency,
+              startDate: invoice.startDate ? new Date(invoice.startDate) : undefined,
+              customPaymentDates: invoice.customPaymentDates?.map((d: string) => new Date(d)),
+              documentId: invoice.documentId,
+              isAiExtracted: invoice.isAiExtracted,
+              extractionConfidence: invoice.extractionConfidence ? parseFloat(invoice.extractionConfidence.toString()) : undefined,
+            }}
+            mode="edit"
             onSuccess={handleEditSuccess}
             onCancel={() => setShowEditDialog(false)}
           />
