@@ -3439,7 +3439,10 @@ export function registerDocumentRoutes(app: Express): void {
 
           // SECURITY: Only try safe path combinations - no direct filesystem access
           const baseUploadDir = path.resolve(process.cwd(), 'uploads');
+          const tmpUploadDir = '/tmp/uploads';
           const possiblePaths = [
+            // Check /tmp/uploads first (where multer saves files)
+            path.join(tmpUploadDir, cleanFilePath),
             // Only search within the uploads directory structure
             path.join(baseUploadDir, cleanFilePath),
             path.join(baseUploadDir, 'demo', cleanFilePath),
@@ -3459,11 +3462,20 @@ export function registerDocumentRoutes(app: Express): void {
             if (fs.existsSync(possiblePath)) {
               // SECURITY: Strict path validation - only allow files within uploads directory
               const resolvedPath = path.resolve(possiblePath);
-              const allowedBaseDir = path.resolve(process.cwd(), 'uploads');
+              const allowedBaseDirs = [
+                path.resolve(process.cwd(), 'uploads'),
+                path.resolve(tmpUploadDir)
+              ];
               
-              // Use path.relative to ensure the file is within the allowed directory
-              const relativePath = path.relative(allowedBaseDir, resolvedPath);
-              const isPathSafe = !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
+              // Use path.relative to ensure the file is within one of the allowed directories
+              let isPathSafe = false;
+              for (const allowedBaseDir of allowedBaseDirs) {
+                const relativePath = path.relative(allowedBaseDir, resolvedPath);
+                if (!relativePath.startsWith('..') && !path.isAbsolute(relativePath)) {
+                  isPathSafe = true;
+                  break;
+                }
+              }
               
               if (isPathSafe) {
                 filePathToServe = resolvedPath;
@@ -3477,7 +3489,7 @@ export function registerDocumentRoutes(app: Express): void {
                 logDocumentOperation('UNSAFE_PATH_REJECTED', {
                   operationId,
                   rejectedPath: resolvedPath,
-                  allowedBaseDir
+                  allowedBaseDirs
                 }, 'WARN');
               }
             }
