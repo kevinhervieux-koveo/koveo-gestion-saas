@@ -3489,7 +3489,7 @@ export function registerDocumentRoutes(app: Express): void {
                 logDocumentOperation('UNSAFE_PATH_REJECTED', {
                   operationId,
                   rejectedPath: resolvedPath,
-                  allowedDirs
+                  allowedBaseDir
                 }, 'WARN');
               }
             }

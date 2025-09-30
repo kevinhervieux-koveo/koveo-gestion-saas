@@ -147,16 +147,14 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
         filePath: storageResult.filePath!,
         mimeType: file.mimetype,
         fileSize: file.size,
-        organizationId: uploadData.organizationId,
         buildingId: uploadData.buildingId,
         residenceId: uploadData.residenceId,
-        uploadedBy: user.id,
-        uploadedAt: new Date(),
+        uploadedById: user.id,
         isVisibleToTenants: false,
         documentType: uploadData.documentType,
       };
 
-      const [document] = await db.insert(documents).values(documentData).returning();
+      const [document] = await db.insert(documents).values([documentData]).returning();
 
       const responseTime = performance.now() - startTime;
       

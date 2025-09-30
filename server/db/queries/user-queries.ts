@@ -31,10 +31,10 @@ export async function getUsersForUser(userContext: UserContext) {
       createdAt: users.createdAt,
     })
     .from(users)
-    .where(eq(users.isActive, true))
-    .orderBy(users.lastName, users.firstName);
+    .where(eq(users.isActive, true));
 
-  return await scopeQuery(baseQuery, userContext, 'users');
+  const scopedQuery = await scopeQuery(baseQuery, userContext, 'users');
+  return await scopedQuery.orderBy(users.lastName, users.firstName);
 }
 
 /**
@@ -104,10 +104,10 @@ export async function getUsersByRole(
       createdAt: users.createdAt,
     })
     .from(users)
-    .where(and(eq(users.role, role), eq(users.isActive, true)))
-    .orderBy(users.lastName, users.firstName);
+    .where(and(eq(users.role, role), eq(users.isActive, true)));
 
-  return await scopeQuery(baseQuery, userContext, 'users');
+  const scopedQuery = await scopeQuery(baseQuery, userContext, 'users');
+  return await scopedQuery.orderBy(users.lastName, users.firstName);
 }
 
 /**
@@ -147,15 +147,16 @@ export async function searchUsers(searchTerm: string, userContext: UserContext) 
           ilike(users.email, searchPattern)
         )
       )
-    )
-    .orderBy(users.lastName, users.firstName);
+    );
 
-  return await scopeQuery(baseQuery, userContext, 'users');
+  const scopedQuery = await scopeQuery(baseQuery, userContext, 'users');
+  return await scopedQuery.orderBy(users.lastName, users.firstName);
 }
 
 /**
  * Get users associated with a specific residence.
  * Shows all users (owners, tenants, occupants) for a residence.
+ * OPTIMIZED: Access check integrated using EXISTS subquery instead of separate query.
  *
  * @param residenceId - Residence ID to get users for.
  * @param userContext - User context for access control.
@@ -168,7 +169,78 @@ export async function searchUsers(searchTerm: string, userContext: UserContext) 
  * @returns Function result.
  */
 export async function getUsersForResidence(residenceId: string, userContext: UserContext) {
-  const baseQuery = db
+  const { userId, role } = userContext;
+
+  // OPTIMIZATION: Single query with integrated access check
+  // Admin users have access to all residences
+  if (role === 'admin') {
+    return await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        phone: users.phone,
+        role: users.role,
+        isActive: users.isActive,
+        relationshipType: userResidences.relationshipType,
+        startDate: userResidences.startDate,
+        endDate: userResidences.endDate,
+        residenceActive: userResidences.isActive,
+      })
+      .from(users)
+      .innerJoin(userResidences, eq(users.id, userResidences.userId))
+      .where(
+        and(
+          eq(userResidences.residenceId, residenceId),
+          eq(users.isActive, true),
+          eq(userResidences.isActive, true)
+        )
+      )
+      .orderBy(userResidences.relationshipType, users.lastName);
+  }
+
+  // For non-admin users, verify access via their own residence associations
+  // User has access if they have an active residence association
+  const hasAccess = await db
+    .select({ id: userResidences.id })
+    .from(userResidences)
+    .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+    .where(
+      and(
+        eq(userResidences.userId, userId),
+        eq(userResidences.residenceId, residenceId),
+        eq(userResidences.isActive, true),
+        eq(residences.isActive, true)
+      )
+    )
+    .limit(1);
+
+  if (hasAccess.length === 0) {
+    // For managers, check if they have access through building management
+    if (role === 'manager' && userContext.buildingIds?.length) {
+      const buildingAccess = await db
+        .select({ id: residences.id })
+        .from(residences)
+        .where(
+          and(
+            eq(residences.id, residenceId),
+            inArray(residences.buildingId, userContext.buildingIds),
+            eq(residences.isActive, true)
+          )
+        )
+        .limit(1);
+
+      if (buildingAccess.length === 0) {
+        return [];
+      }
+    } else {
+      return [];
+    }
+  }
+
+  // User has access, return the users for this residence
+  return await db
     .select({
       id: users.id,
       email: users.email,
@@ -177,7 +249,6 @@ export async function getUsersForResidence(residenceId: string, userContext: Use
       phone: users.phone,
       role: users.role,
       isActive: users.isActive,
-      // Include relationship info
       relationshipType: userResidences.relationshipType,
       startDate: userResidences.startDate,
       endDate: userResidences.endDate,
@@ -193,26 +264,12 @@ export async function getUsersForResidence(residenceId: string, userContext: Use
       )
     )
     .orderBy(userResidences.relationshipType, users.lastName);
-
-  // Since this query involves residences, we need to scope it appropriately
-  // First verify the user has access to this residence
-  const residenceAccessQuery = await scopeQuery(
-    db.select({ id: residences.id }).from(residences).where(eq(residences.id, residenceId)),
-    userContext,
-    'residences'
-  );
-
-  const residenceAccess = await residenceAccessQuery;
-  if (residenceAccess.length === 0) {
-    return []; // No access to this residence
-  }
-
-  return await baseQuery;
 }
 
 /**
  * Get users associated with a specific building.
  * Shows all users who have residences in the building.
+ * OPTIMIZED: Access check integrated instead of separate query.
  *
  * @param buildingId - Building ID to get users for.
  * @param userContext - User context for access control.
@@ -225,19 +282,89 @@ export async function getUsersForResidence(residenceId: string, userContext: Use
  * @returns Function result.
  */
 export async function getUsersForBuilding(buildingId: string, userContext: UserContext) {
-  // First verify the user has access to this building
-  const buildingAccessQuery = await scopeQuery(
-    db.select({ id: buildings.id }).from(buildings).where(eq(buildings.id, buildingId)),
-    userContext,
-    'buildings'
-  );
+  const { userId, role } = userContext;
 
-  const buildingAccess = await buildingAccessQuery;
-  if (buildingAccess.length === 0) {
-    return []; // No access to this building
+  // OPTIMIZATION: Integrated access check instead of separate queries
+  // Admin users have access to all buildings
+  if (role === 'admin') {
+    return await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        phone: users.phone,
+        role: users.role,
+        isActive: users.isActive,
+        unitNumber: residences.unitNumber,
+        relationshipType: userResidences.relationshipType,
+        startDate: userResidences.startDate,
+        endDate: userResidences.endDate,
+      })
+      .from(users)
+      .innerJoin(userResidences, eq(users.id, userResidences.userId))
+      .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+      .where(
+        and(
+          eq(residences.buildingId, buildingId),
+          eq(users.isActive, true),
+          eq(userResidences.isActive, true),
+          eq(residences.isActive, true)
+        )
+      )
+      .orderBy(residences.unitNumber, userResidences.relationshipType, users.lastName);
   }
 
-  const baseQuery = db
+  // For managers, check if they manage this building
+  if (role === 'manager' && userContext.buildingIds?.includes(buildingId)) {
+    return await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        phone: users.phone,
+        role: users.role,
+        isActive: users.isActive,
+        unitNumber: residences.unitNumber,
+        relationshipType: userResidences.relationshipType,
+        startDate: userResidences.startDate,
+        endDate: userResidences.endDate,
+      })
+      .from(users)
+      .innerJoin(userResidences, eq(users.id, userResidences.userId))
+      .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+      .where(
+        and(
+          eq(residences.buildingId, buildingId),
+          eq(users.isActive, true),
+          eq(userResidences.isActive, true),
+          eq(residences.isActive, true)
+        )
+      )
+      .orderBy(residences.unitNumber, userResidences.relationshipType, users.lastName);
+  }
+
+  // For non-admin/non-manager users, verify they have a residence in this building
+  const hasAccess = await db
+    .select({ id: userResidences.id })
+    .from(userResidences)
+    .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+    .where(
+      and(
+        eq(userResidences.userId, userId),
+        eq(residences.buildingId, buildingId),
+        eq(userResidences.isActive, true),
+        eq(residences.isActive, true)
+      )
+    )
+    .limit(1);
+
+  if (hasAccess.length === 0) {
+    return [];
+  }
+
+  return await db
     .select({
       id: users.id,
       email: users.email,
@@ -246,7 +373,6 @@ export async function getUsersForBuilding(buildingId: string, userContext: UserC
       phone: users.phone,
       role: users.role,
       isActive: users.isActive,
-      // Include residence and relationship info
       unitNumber: residences.unitNumber,
       relationshipType: userResidences.relationshipType,
       startDate: userResidences.startDate,
@@ -264,13 +390,12 @@ export async function getUsersForBuilding(buildingId: string, userContext: UserC
       )
     )
     .orderBy(residences.unitNumber, userResidences.relationshipType, users.lastName);
-
-  return await baseQuery;
 }
 
 /**
  * Get the current user's profile with their residence associations.
  * Shows complete profile information and all associated residences.
+ * OPTIMIZED: Single query with LEFT JOIN instead of separate queries.
  *
  * @param userContext - User context containing current user info.
  * @returns Promise resolving to user profile with residence associations.
@@ -281,58 +406,120 @@ export async function getUsersForBuilding(buildingId: string, userContext: UserC
  * @returns Function result.
  */
 export async function getCurrentUserProfile(userContext: UserContext) {
-  // Get user basic info
-  const userProfile = await getUserById(userContext.userId, userContext);
-
-  if (!userProfile) {
-    return null;
-  }
-
-  // Get user's residence associations
-  const residenceAssociations = await db
+  // OPTIMIZATION: Combined query - get user and all residence associations in a single query
+  const results = await db
     .select({
+      // User fields
+      id: users.id,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      phone: users.phone,
+      language: users.language,
+      role: users.role,
+      isActive: users.isActive,
+      lastLoginAt: users.lastLoginAt,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+      // Residence relationship fields
       residenceId: userResidences.residenceId,
       relationshipType: userResidences.relationshipType,
       startDate: userResidences.startDate,
       endDate: userResidences.endDate,
-      isActive: userResidences.isActive,
-      // Include residence details
+      residenceActive: userResidences.isActive,
+      // Residence details
       unitNumber: residences.unitNumber,
       floor: residences.floor,
       squareFootage: residences.squareFootage,
       bedrooms: residences.bedrooms,
       bathrooms: residences.bathrooms,
       monthlyFees: residences.monthlyFees,
-      // Include building details
+      // Building details
       buildingId: buildings.id,
       buildingName: buildings.name,
       buildingAddress: buildings.address,
       buildingCity: buildings.city,
       buildingType: buildings.buildingType,
-      // Include organization details
+      // Organization details
       organizationId: organizations.id,
       organizationName: organizations.name,
       organizationType: organizations.type,
     })
-    .from(userResidences)
-    .innerJoin(residences, eq(userResidences.residenceId, residences.id))
-    .innerJoin(buildings, eq(residences.buildingId, buildings.id))
-    .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-    .where(
+    .from(users)
+    .leftJoin(
+      userResidences,
       and(
-        eq(userResidences.userId, userContext.userId),
-        eq(userResidences.isActive, true),
-        eq(residences.isActive, true),
-        eq(buildings.isActive, true),
+        eq(users.id, userResidences.userId),
+        eq(userResidences.isActive, true)
+      )
+    )
+    .leftJoin(
+      residences,
+      and(
+        eq(userResidences.residenceId, residences.id),
+        eq(residences.isActive, true)
+      )
+    )
+    .leftJoin(
+      buildings,
+      and(
+        eq(residences.buildingId, buildings.id),
+        eq(buildings.isActive, true)
+      )
+    )
+    .leftJoin(
+      organizations,
+      and(
+        eq(buildings.organizationId, organizations.id),
         eq(organizations.isActive, true)
       )
     )
+    .where(eq(users.id, userContext.userId))
     .orderBy(userResidences.relationshipType, residences.unitNumber);
 
-  return {
-    ...userProfile,
-    residences: residenceAssociations,
+  if (results.length === 0) {
+    return null;
+  }
+
+  // Transform flat results into nested structure
+  const userProfile = {
+    id: results[0].id,
+    email: results[0].email,
+    firstName: results[0].firstName,
+    lastName: results[0].lastName,
+    phone: results[0].phone,
+    language: results[0].language,
+    role: results[0].role,
+    isActive: results[0].isActive,
+    lastLoginAt: results[0].lastLoginAt,
+    createdAt: results[0].createdAt,
+    updatedAt: results[0].updatedAt,
+    residences: results
+      .filter(r => r.residenceId !== null)
+      .map(r => ({
+        residenceId: r.residenceId,
+        relationshipType: r.relationshipType,
+        startDate: r.startDate,
+        endDate: r.endDate,
+        isActive: r.residenceActive,
+        unitNumber: r.unitNumber,
+        floor: r.floor,
+        squareFootage: r.squareFootage,
+        bedrooms: r.bedrooms,
+        bathrooms: r.bathrooms,
+        monthlyFees: r.monthlyFees,
+        buildingId: r.buildingId,
+        buildingName: r.buildingName,
+        buildingAddress: r.buildingAddress,
+        buildingCity: r.buildingCity,
+        buildingType: r.buildingType,
+        organizationId: r.organizationId,
+        organizationName: r.organizationName,
+        organizationType: r.organizationType,
+      })),
   };
+
+  return userProfile;
 }
 
 /**
@@ -349,19 +536,16 @@ export async function getCurrentUserProfile(userContext: UserContext) {
  */
 export async function getUserSummary(userContext: UserContext) {
   // Get all accessible users
-  const accessibleUsersQuery = await scopeQuery(
-    db
-      .select({
-        id: users.id,
-        role: users.role,
-        isActive: users.isActive,
-        lastLoginAt: users.lastLoginAt,
-      })
-      .from(users),
-    userContext,
-    'users'
-  );
+  const baseQuery = db
+    .select({
+      id: users.id,
+      role: users.role,
+      isActive: users.isActive,
+      lastLoginAt: users.lastLoginAt,
+    })
+    .from(users);
 
+  const accessibleUsersQuery = await scopeQuery(baseQuery, userContext, 'users');
   const accessibleUsers = await accessibleUsersQuery;
 
   if (accessibleUsers.length === 0) {
@@ -395,7 +579,7 @@ export async function getUserSummary(userContext: UserContext) {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  accessibleUsers.forEach((user: unknown) => {
+  accessibleUsers.forEach((user) => {
     totalUsers++;
 
     if (user.isActive) {

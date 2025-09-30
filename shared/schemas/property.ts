@@ -114,6 +114,8 @@ export const residences = pgTable('residences', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   buildingIdIdx: index('residences_building_id_idx').on(table.buildingId),
+  // Composite index for optimized join conditions
+  buildingIdActiveIdx: index('residences_building_id_active_idx').on(table.buildingId, table.isActive),
   // Date indexes for range queries
   createdAtIdx: index('residences_created_at_idx').on(table.createdAt),
   updatedAtIdx: index('residences_updated_at_idx').on(table.updatedAt),
@@ -142,6 +144,9 @@ export const userResidences = pgTable('user_residences', {
 }, (table) => ({
   userIdIdx: index('user_residences_user_id_idx').on(table.userId),
   residenceIdIdx: index('user_residences_residence_id_idx').on(table.residenceId),
+  // Composite indexes for optimized join conditions
+  userIdActiveIdx: index('user_residences_user_id_active_idx').on(table.userId, table.isActive),
+  residenceIdActiveIdx: index('user_residences_residence_id_active_idx').on(table.residenceId, table.isActive),
   // Date indexes for range queries
   startDateIdx: index('user_residences_start_date_idx').on(table.startDate),
   endDateIdx: index('user_residences_end_date_idx').on(table.endDate),
