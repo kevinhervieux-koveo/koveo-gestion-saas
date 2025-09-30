@@ -3489,21 +3489,115 @@ export function registerDocumentRoutes(app: Express): void {
           // SECURITY: Only try safe path combinations - no direct filesystem access
           const baseUploadDir = path.resolve(process.cwd(), 'uploads');
           const tmpUploadDir = '/tmp/uploads';
+          
+          // Build comprehensive list of possible file locations
           const possiblePaths = [
             // Check /tmp/uploads first (where multer saves files)
             path.join(tmpUploadDir, cleanFilePath),
-            // Only search within the uploads directory structure
+            // Standard uploads directory
             path.join(baseUploadDir, cleanFilePath),
+            // Demo data paths
             path.join(baseUploadDir, 'demo', cleanFilePath),
             path.join(baseUploadDir, 'demo', 'residences', cleanFilePath),
             path.join(baseUploadDir, 'demo', 'buildings', cleanFilePath),
           ];
 
+          // Add quarantine directory paths (legacy files that were quarantined)
+          let quarantineDirs: string[] = [];
+          try {
+            if (fs.existsSync(baseUploadDir)) {
+              quarantineDirs = fs.readdirSync(baseUploadDir)
+                .filter(dir => dir.startsWith('_quarantine_'))
+                .map(dir => path.join(baseUploadDir, dir));
+            }
+          } catch (e) {
+            // If directory doesn't exist or can't be read, continue without quarantine paths
+            logDocumentOperation('QUARANTINE_DIR_READ_ERROR', { error: e.message }, 'DEBUG');
+          }
+          
+          for (const quarantineDir of quarantineDirs) {
+            // Files in quarantine are in 'directories' subdirectory with original structure
+            possiblePaths.push(path.join(quarantineDir, 'directories', cleanFilePath));
+          }
+
+          // Add hierarchical organization paths for modern file structure
+          // Pattern: {type}/org_{orgId}/building_{buildingId}/residence_{residenceId}/role_{role}/
+          if (document.buildingId) {
+            const docType = cleanFilePath.split('/')[0]; // e.g., 'bills', 'documents', etc.
+            const filename = path.basename(cleanFilePath);
+            
+            // Search in organization-based hierarchical paths
+            let orgDirs: string[] = [];
+            try {
+              if (fs.existsSync(baseUploadDir)) {
+                const allDirs = fs.readdirSync(baseUploadDir);
+                orgDirs = allDirs.filter(dir => {
+                  // Safely check if directory matches or exists, wrapped in try/catch
+                  try {
+                    if (dir === docType) return true;
+                    const fullPath = path.join(baseUploadDir, dir);
+                    return fs.existsSync(fullPath);
+                  } catch (e) {
+                    // If any error occurs during check, skip this directory
+                    return false;
+                  }
+                });
+              }
+            } catch (e) {
+              // If directory doesn't exist or can't be read, continue without hierarchical paths
+              logDocumentOperation('HIERARCHICAL_DIR_READ_ERROR', { error: e.message }, 'DEBUG');
+            }
+            
+            for (const dir of orgDirs) {
+              const dirPath = path.join(baseUploadDir, dir);
+              
+              // Safely check if path is a directory using existsSync + lstatSync with try/catch
+              let isDirectory = false;
+              try {
+                if (fs.existsSync(dirPath)) {
+                  const stats = fs.lstatSync(dirPath);
+                  isDirectory = stats.isDirectory();
+                }
+              } catch (e) {
+                // If lstatSync fails (ENOENT, ENOTDIR, permission errors), skip this directory
+                logDocumentOperation('DIRECTORY_STAT_ERROR', { dirPath, error: e.message }, 'DEBUG');
+                continue;
+              }
+              
+              if (isDirectory) {
+                // Check for org_* subdirectories
+                try {
+                  const subDirs = fs.readdirSync(dirPath).filter(d => d.startsWith('org_') || d.startsWith('building_'));
+                  for (const subDir of subDirs) {
+                    possiblePaths.push(path.join(dirPath, subDir, filename));
+                    possiblePaths.push(path.join(dirPath, subDir, `building_${document.buildingId}`, filename));
+                    if (document.residenceId) {
+                      possiblePaths.push(path.join(dirPath, subDir, `building_${document.buildingId}`, `residence_${document.residenceId}`, filename));
+                    }
+                  }
+                } catch (e) {
+                  // Skip if directory read fails
+                  logDocumentOperation('SUBDIR_READ_ERROR', { dirPath, error: e.message }, 'DEBUG');
+                }
+              }
+            }
+          }
+
+          // Add legacy path patterns for backward compatibility
+          const pathVariants = [
+            // Legacy uploads/uploads structure
+            path.join(baseUploadDir, 'uploads', cleanFilePath),
+            path.join(baseUploadDir, 'uploads', 'demo', cleanFilePath),
+          ];
+          
+          possiblePaths.push(...pathVariants);
+
           logDocumentOperation('PATH_RESOLUTION_START', {
             operationId,
             originalPath: document.filePath,
             cleanedPath: cleanFilePath,
-            searchPaths: possiblePaths.length
+            searchPaths: possiblePaths.length,
+            includesQuarantine: quarantineDirs.length > 0
           }, 'DEBUG');
 
           // Try to find the file in any of these locations
