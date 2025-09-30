@@ -414,6 +414,7 @@ export default function ModularDocumentPageWrapper({
   // Determine permissions based on user role and type
   const isUserTenant = user?.role === 'tenant';
   const isManager = user?.role === 'manager' || user?.role === 'admin';
+  const isResident = user?.role === 'resident';
   
   const userPermissions: DocumentPermissions = userRole === 'manager' 
     ? {
@@ -426,9 +427,9 @@ export default function ModularDocumentPageWrapper({
     : {
         canView: true,
         canDownload: !isUserTenant,
-        canEdit: !isUserTenant,
-        canDelete: !isUserTenant,
-        canCreate: !isUserTenant, // Residents can create documents, tenants cannot
+        canEdit: isResident && type === 'residence', // Residents can only edit residence documents
+        canDelete: isResident && type === 'residence', // Residents can only delete residence documents
+        canCreate: isResident && type === 'residence', // Residents can only create residence documents
       };
 
   // Filter and search documents
