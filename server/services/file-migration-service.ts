@@ -453,7 +453,22 @@ export class FileMigrationService {
 
       console.log('🔄 Rolling back migration...');
       
-      // TODO: Implement database rollback as well
+      // NOTE: Database rollback is not implemented due to complexity and risk factors.
+      // 
+      // Implementing automatic database rollback would require:
+      // 1. Snapshot creation before migration with all file path references
+      // 2. Transactional updates that can be reversed atomically
+      // 3. Handling of concurrent changes during migration
+      // 4. Verification that database state matches file system state
+      // 
+      // RECOMMENDED ROLLBACK PROCEDURE (Manual):
+      // 1. Stop the application to prevent new file operations
+      // 2. Restore database from backup taken before migration
+      // 3. Use this rollbackMigration() to restore file system
+      // 4. Verify database file paths match restored file locations
+      // 5. Run integrity check before resuming operations
+      // 
+      // PREVENTION: Always run migration in dry-run mode first and maintain recent backups.
       console.warn('⚠️  WARNING: Database rollback not implemented. You may need to restore from database backup.');
       
       // Remove current uploads directory

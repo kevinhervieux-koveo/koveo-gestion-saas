@@ -283,7 +283,13 @@ export default function ModularDocuments() {
                   </Select>
                 </div>
 
-                {/* Organization Filter (Admin only) - TODO: Implement organization filtering */}
+                {/* Organization Filter (Admin only) 
+                    NOTE: Organization filtering not yet implemented. Documents are currently associated 
+                    with buildings/residences, not directly with organizations. To implement:
+                    1. Add organizationId to documents schema or derive from building relationships
+                    2. Update backend query to support organization-level filtering
+                    3. Connect Select onValueChange to filter logic (currently no-op)
+                */}
                 {user?.role === 'admin' && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium flex items-center gap-1">
@@ -466,24 +472,45 @@ export default function ModularDocuments() {
             </div>
           )}
 
-          {/* Document View Modal - TODO: Implement DocumentViewModal component */}
-          {/* <DocumentViewModal
-            documentId={selectedDocumentId}
-            userPermissions={userPermissions}
-            onEditClick={handleDocumentEdit}
-            isOpen={isViewModalOpen}
-            onOpenChange={setIsViewModalOpen}
-          /> */}
+          {/* Document View Modal 
+              NOTE: DocumentViewModal component needs to be created to display document details.
+              The component should:
+              - Display document metadata (name, type, created date, building/residence)
+              - Show document preview (PDF viewer, image viewer, or file download)
+              - Provide edit/delete actions based on userPermissions
+              - Handle different document types appropriately
+              - Call onEditClick when user wants to edit the document
+              
+              Template implementation:
+              <DocumentViewModal
+                documentId={selectedDocumentId}
+                userPermissions={userPermissions}
+                onEditClick={handleDocumentEdit}
+                isOpen={isViewModalOpen}
+                onOpenChange={setIsViewModalOpen}
+              />
+          */}
 
-          {/* Document Edit/Create Modal - TODO: Implement DocumentEditModal component */}
-          {/* <DocumentEditModal
-            documentId={isCreating ? undefined : selectedDocumentId}
-            entityType="general"
-            entityId={undefined}
-            isOpen={isEditModalOpen}
-            onOpenChange={setIsEditModalOpen}
-            onSuccess={handleDocumentSuccess}
-          /> */}
+          {/* Document Edit/Create Modal 
+              NOTE: DocumentEditModal component needs to be created for document creation/editing.
+              The component should:
+              - Handle both create (no documentId) and edit (with documentId) modes
+              - Support form fields: name, documentType, description, file upload
+              - Associate document with building/residence (entityType/entityId)
+              - Validate file size, type, and required fields
+              - Call onSuccess after successful create/update to refresh the list
+              - Integrate with file upload API and document management backend
+              
+              Template implementation:
+              <DocumentEditModal
+                documentId={isCreating ? undefined : selectedDocumentId}
+                entityType="general"
+                entityId={undefined}
+                isOpen={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
+                onSuccess={handleDocumentSuccess}
+              />
+          */}
         </div>
       </div>
     </div>

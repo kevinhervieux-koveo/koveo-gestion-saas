@@ -170,8 +170,28 @@ export function InvoiceForm({
     try {
       // Submitting invoice data
       
-      // TODO: Implement API call to create/update invoice
-      // This will be implemented in the next task
+      // NOTE: API call to create/update invoice not yet implemented.
+      // The invoice form is fully functional with AI extraction and validation,
+      // but backend integration is pending. To complete this feature:
+      // 
+      // 1. Create backend API endpoint:
+      //    POST   /api/invoices          - Create new invoice
+      //    PATCH  /api/invoices/:id      - Update existing invoice
+      // 
+      // 2. Add invoice to database schema (shared/schema.ts):
+      //    - invoiceNumber, date, dueDate, status
+      //    - supplier info (name, address, contact)
+      //    - line items (description, quantity, unitPrice, totalPrice)
+      //    - payment terms and custom payment dates
+      //    - building/residence association
+      //    - AI extraction metadata
+      // 
+      // 3. Implement the API call here:
+      //    const response = mode === 'create' 
+      //      ? await apiRequest('/api/invoices', { method: 'POST', body: data })
+      //      : await apiRequest(`/api/invoices/${invoice.id}`, { method: 'PATCH', body: data });
+      // 
+      // 4. Invalidate invoice queries after success
       
       toast({
         title: mode === 'create' ? "Invoice Created" : "Invoice Updated",

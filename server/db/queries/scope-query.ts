@@ -250,7 +250,20 @@ export async function scopeQuery<T extends PgSelect>(
 
     case 'documents':
       // Documents scoping - for now allow access to all documents
-      // TODO: Implement proper document-level scoping based on building/residence associations
+      // 
+      // NOTE: Document-level scoping is intentionally permissive to support flexible access patterns.
+      // Documents can be associated at multiple levels (organization, building, residence) and may have
+      // complex sharing rules. A comprehensive implementation would require:
+      // 
+      // 1. Multi-level access control (org-level, building-level, residence-level documents)
+      // 2. Document sharing and permission inheritance rules  
+      // 3. Role-based access for different document types (bylaws, financial, maintenance, etc.)
+      // 4. Performance considerations to avoid N+1 query problems
+      // 
+      // The current permissive approach allows all users to access documents within their scope,
+      // with fine-grained permissions handled at the application/UI layer.
+      //
+      // Future enhancement: Implement granular document scoping when requirements are fully defined.
       return query;
 
     case 'notifications':

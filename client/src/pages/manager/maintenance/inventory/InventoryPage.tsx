@@ -146,7 +146,18 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   }, []);
 
   const handleScheduleEvaluation = useCallback((element: BuildingElement) => {
-    // TODO: Implement evaluation scheduling
+    // NOTE: Evaluation scheduling feature not yet implemented.
+    // This feature should:
+    // - Open a modal to schedule periodic inspections for building elements
+    // - Allow setting inspection frequency based on element condition and criticality
+    // - Integrate with calendar/scheduling system for inspector assignments
+    // - Send notifications when evaluations are due
+    // - Track evaluation history and condition changes over time
+    // 
+    // Implementation requires:
+    // - Backend API for creating/updating evaluation schedules
+    // - EvaluationScheduleModal component with date picker and recurrence options
+    // - Integration with notification system for reminders
     toast({
       title: 'Feature Coming Soon',
       description: 'Evaluation scheduling will be available in a future update.',
@@ -167,7 +178,19 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // Import/Export handlers
   const handleImportElements = useCallback(() => {
-    // TODO: Implement element import
+    // NOTE: Element import feature not yet implemented.
+    // This feature should:
+    // - Accept CSV/Excel files with building element data
+    // - Parse and validate file format (columns: name, location, uniformat, condition, etc.)
+    // - Show preview of elements to be imported with validation warnings
+    // - Allow mapping of file columns to database fields
+    // - Bulk create elements with proper error handling
+    // 
+    // Implementation requires:
+    // - File upload component with drag-drop support
+    // - CSV/Excel parsing library (e.g., papaparse, xlsx)
+    // - ImportPreviewModal to review and confirm imports
+    // - Backend API endpoint for bulk element creation
     toast({
       title: 'Feature Coming Soon',
       description: 'Element import functionality will be available in a future update.',
@@ -175,7 +198,19 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   }, [toast]);
 
   const handleExportReport = useCallback(() => {
-    // TODO: Implement report export
+    // NOTE: Report export feature not yet implemented.
+    // This feature should:
+    // - Generate comprehensive inventory reports in PDF/Excel format
+    // - Include filtered/selected elements with full details
+    // - Support custom report templates (summary, detailed, maintenance plan)
+    // - Add charts/graphs for condition distribution and replacement costs
+    // - Include building photos and element images if available
+    // 
+    // Implementation requires:
+    // - PDF generation library (e.g., jsPDF, react-pdf)
+    // - Excel generation library (e.g., xlsx, exceljs)
+    // - Report template designs and formatting logic
+    // - Backend API to gather all report data efficiently
     toast({
       title: 'Feature Coming Soon',
       description: 'Report export functionality will be available in a future update.',

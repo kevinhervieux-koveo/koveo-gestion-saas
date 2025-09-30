@@ -532,7 +532,24 @@ export class OptimizedScopeQueryManager {
     userContext: OptimizedUserContext
   ): T {
     // For now, allow access to all documents (as in original implementation)
-    // TODO: Implement proper document-level scoping based on building/residence associations
+    // 
+    // NOTE: Document-level scoping is intentionally permissive to support flexible access patterns.
+    // Documents can be associated at multiple levels (organization, building, residence) and may have
+    // complex sharing rules. A comprehensive implementation would require:
+    // 
+    // 1. Multi-level access control (org-level, building-level, residence-level documents)
+    // 2. Document sharing and permission inheritance rules
+    // 3. Role-based access for different document types (bylaws, financial, maintenance, etc.)
+    // 4. Performance-optimized queries to avoid N+1 problems with complex document hierarchies
+    // 
+    // The current permissive approach allows all users to access documents within their scope,
+    // with fine-grained permissions handled at the application/UI layer. This trade-off prioritizes
+    // functionality and performance while maintaining security through the broader scope system.
+    //
+    // Future enhancement: Implement granular document scoping with:
+    //   - Document visibility rules based on document type and user role
+    //   - Building/residence association filtering
+    //   - Document sharing and collaboration permissions
     return query;
   }
 

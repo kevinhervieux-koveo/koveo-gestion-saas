@@ -186,7 +186,28 @@ export class MonthlyBudgetService {
   /**
    * Get aggregated income and expense amounts for a specific month/year.
    * Since moneyFlow table was deleted, this returns zero values.
-   * TODO: Implement alternative data source (e.g., from bills/payments tables)
+   * 
+   * NOTE: The moneyFlow table was removed during a data model refactoring. Budget data population
+   * now returns zero values as a placeholder. To restore budget data aggregation, consider:
+   * 
+   * OPTION 1 - Bills/Payments Integration:
+   *   - Query bills table for expenses by category and date range
+   *   - Query payments/transactions table for actual income/expense flows
+   *   - Aggregate by month and category to populate budget entries
+   * 
+   * OPTION 2 - Manual Budget Entry:
+   *   - Remove automatic population entirely
+   *   - Let managers manually enter budget projections through the UI
+   *   - Use historical data as suggestions rather than auto-population
+   * 
+   * OPTION 3 - Historical Analysis:
+   *   - Restore moneyFlow table or equivalent transaction log
+   *   - Implement comprehensive financial tracking system
+   *   - Use machine learning for budget forecasting based on historical patterns
+   * 
+   * Current implementation maintains the data structure for future integration while avoiding
+   * database errors. Budget entries are created with zero values that can be manually updated.
+   * 
    * @param buildingId
    * @param year
    * @param month
