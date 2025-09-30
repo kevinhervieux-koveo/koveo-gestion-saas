@@ -194,16 +194,14 @@ export function withHierarchicalSelection<T extends object>(
         
         let allBuildings = await response.json();
         
-        // For residence access mode, filter buildings that have accessible residences
-        // This is the key bottom-up filtering logic
-        if (config.checkResidenceAccess) {
+        // For residence access mode with non-resident/tenant users (e.g., managers),
+        // filter buildings that have accessible residences since their endpoint doesn't filter
+        if (config.checkResidenceAccess && !isResidentOrTenant) {
           const buildingsWithResidences = [];
           
           for (const building of allBuildings) {
             try {
-              const residenceUrl = isResidentOrTenant 
-                ? `/api/users/me/residences?building_id=${building.id}`
-                : `/api/buildings/${building.id}/residences`;
+              const residenceUrl = `/api/buildings/${building.id}/residences`;
                 
               const residenceResponse = await fetch(residenceUrl, {
                 credentials: 'include'
@@ -223,6 +221,7 @@ export function withHierarchicalSelection<T extends object>(
           return buildingsWithResidences;
         }
         
+        // For residents/tenants, the /api/users/me/buildings endpoint already filters correctly
         return allBuildings;
       },
       enabled: Boolean(

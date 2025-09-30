@@ -14,7 +14,7 @@ Working Methodology: **CRITICAL** - Always restart the "Start application" workf
 ### UI/UX Decisions
 The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, prioritizing responsive design. All forms are designed to be responsive, featuring a single scroll bar behavior with `max-h-[90vh]` and `overflow-y-auto` on dialog containers. Project type icons across maintenance workflow components use Lucide React components for consistency.
 
-**Hierarchical Navigation**: The HOC (withHierarchicalSelection) provides intelligent auto-forwarding based on user access. When a resident has only one organization, building, or residence assigned, they are automatically routed to the appropriate level, eliminating unnecessary selection screens and improving the user experience.
+**Hierarchical Navigation**: The HOC (withHierarchicalSelection) provides intelligent auto-forwarding based on user access. When a resident has only one organization, building, or residence assigned, they are automatically routed to the appropriate level, eliminating unnecessary selection screens and improving the user experience. The HOC implements role-based filtering where residents/tenants rely on server-side filtering via `/api/users/me/buildings`, while managers/admins use client-side filtering when `checkResidenceAccess` is enabled.
 
 ### Technical Implementations
 - **Frontend**: React 18 with TypeScript and Vite, using Wouter for routing, TanStack Query for state management, and React Hook Form with Zod for form handling and validation.
