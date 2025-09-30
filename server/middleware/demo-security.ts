@@ -8,26 +8,6 @@ import { canUserPerformWriteOperation, isOpenDemoUser } from '../rbac';
  * Provides elegant, user-friendly error messages in both French and English.
  */
 
-interface DemoSecurityRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    username: string;
-    password?: string;
-    phone?: string;
-    profileImage?: string;
-    language?: string;
-    isActive?: boolean;
-    organizationId?: string;
-    lastLoginAt?: Date | null;
-    createdAt?: Date;
-    updatedAt?: Date;
-  };
-}
-
 /**
  * Error messages for demo restrictions in multiple languages
  */
@@ -224,13 +204,9 @@ function isWriteOperation(method: string, path: string, queryString?: string, is
   
   // CRITICAL SECURITY FIX: Enhanced query parameter validation
   // For Open Demo users, use stricter deny-by-default policy
+  // Regular users can use any query parameters as they have proper RBAC checks
   if (isDemoUser) {
     if (hasDangerousQueryParamsForDemo(queryString || '')) {
-      return true;
-    }
-  } else {
-    // For regular users, use standard dangerous query detection
-    if (hasDangerousQueryParams(queryString || '')) {
       return true;
     }
   }
@@ -303,7 +279,7 @@ function isWriteOperation(method: string, path: string, queryString?: string, is
  * Determines the user's preferred language from request headers
  */
 function getPreferredLanguage(req: Request): 'en' | 'fr' {
-  const acceptLanguage = req.headers?['accept-language'];
+  const acceptLanguage = req.headers && req.headers['accept-language'];
   if (acceptLanguage && acceptLanguage.includes('fr')) {
     return 'fr';
   }
@@ -344,7 +320,7 @@ function createDemoRestrictionResponse(req: Request) {
  * Uses explicit allowlists and proper action mapping for maximum security
  */
 export function enforceDemoSecurity() {
-  return async (req: DemoSecurityRequest, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Skip if user is not authenticated
       if (!req.user) {
@@ -411,7 +387,7 @@ export function enforceDemoSecurity() {
  * Middleware specifically for file upload restrictions
  */
 export function enforceFileUploadSecurity() {
-  return async (req: DemoSecurityRequest, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         return next();
@@ -462,7 +438,7 @@ export function enforceFileUploadSecurity() {
  * Middleware for bulk operation restrictions
  */
 export function enforceBulkOperationSecurity() {
-  return async (req: DemoSecurityRequest, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         return next();
@@ -513,7 +489,7 @@ export function enforceBulkOperationSecurity() {
  * Middleware for data export restrictions
  */
 export function enforceExportSecurity() {
-  return async (req: DemoSecurityRequest, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         return next();
