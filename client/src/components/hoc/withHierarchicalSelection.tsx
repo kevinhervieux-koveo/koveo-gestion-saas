@@ -272,24 +272,24 @@ export function withHierarchicalSelection<T extends object>(
 
     // Auto-forwarding logic
     React.useEffect(() => {
-      if (currentLevel === 'organization' && organizations.length === 1 && !organizationId) {
+      if (currentLevel === 'organization' && organizations.length === 1 && !organizationId && !isLoadingOrganizations) {
         // Auto-forward if only one organization
         navigate({ organization: organizations[0].id });
         return;
       }
       
-      if (currentLevel === 'building' && buildings.length === 1 && !buildingId) {
+      if (currentLevel === 'building' && buildings.length === 1 && !buildingId && !isLoadingBuildings) {
         // Auto-forward if only one building (preserve organization)  
         navigate({ organization: organizationId, building: buildings[0].id });
         return;
       }
       
-      if (currentLevel === 'residence' && residences.length === 1 && !residenceId) {
+      if (currentLevel === 'residence' && residences.length === 1 && !residenceId && !isLoadingResidences) {
         // Auto-forward if only one residence (preserve organization and building)
         navigate({ organization: organizationId, building: buildingId, residence: residences[0].id });
         return;
       }
-    }, [organizations.length, buildings.length, residences.length, currentLevel, organizationId, buildingId, residenceId]);
+    }, [organizations.length, buildings.length, residences.length, currentLevel, organizationId, buildingId, residenceId, isLoadingOrganizations, isLoadingBuildings, isLoadingResidences]);
 
     // Handle selection
     const handleSelection = (id: string) => {      
