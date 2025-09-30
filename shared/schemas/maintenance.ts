@@ -237,6 +237,7 @@ export const vendors = pgTable('vendors', {
 }, (table) => ({
   // Performance index for organization lookups
   organizationIdIdx: index('vendors_organization_id_idx').on(table.organizationId),
+  categoryIdx: index('vendors_category_idx').on(table.category),
   // Validation constraints
   ratingCheck: check('vendors_rating_check', sql`rating >= 0 AND rating <= 5`),
 }));
@@ -305,6 +306,7 @@ export const elementHistory = pgTable('element_history', {
   elementIdIdx: index('element_history_element_id_idx').on(table.elementId),
   eventDateIdx: index('element_history_event_date_idx').on(table.eventDate),
   vendorIdIdx: index('element_history_vendor_id_idx').on(table.vendorId),
+  eventTypeIdx: index('element_history_event_type_idx').on(table.eventType),
   // Validation constraints
   costCheck: check('element_history_cost_check', sql`cost >= 0`),
 }));
@@ -332,6 +334,7 @@ export const evaluationSuggestions = pgTable('evaluation_suggestions', {
   elementIdIdx: index('evaluation_suggestions_element_id_idx').on(table.elementId),
   statusSuggestedDateIdx: index('evaluation_suggestions_status_suggested_date_idx').on(table.status, table.suggestedDate),
   projectIdIdx: index('evaluation_suggestions_project_id_idx').on(table.projectId),
+  suggestedTypeIdx: index('evaluation_suggestions_suggested_type_idx').on(table.suggestedType),
 }));
 
 /**
@@ -415,6 +418,7 @@ export const maintenanceProjects = pgTable('maintenance_projects', {
 }, (table) => ({
   // Performance indexes for maintenance projects
   buildingStatusIdx: index('maintenance_projects_building_status_idx').on(table.buildingId, table.status),
+  typeIdx: index('maintenance_projects_type_idx').on(table.type),
   // Validation constraints
   totalBudgetCheck: check('maintenance_projects_total_budget_check', sql`total_budget >= 0`),
   actualCostCheck: check('maintenance_projects_actual_cost_check', sql`actual_cost >= 0`),
@@ -488,6 +492,7 @@ export const elementDocuments = pgTable('element_documents', {
   elementIdIdx: index('element_documents_element_id_idx').on(table.elementId),
   historyIdIdx: index('element_documents_history_id_idx').on(table.historyId),
   uploadedByIdx: index('element_documents_uploaded_by_idx').on(table.uploadedBy),
+  documentTypeIdx: index('element_documents_document_type_idx').on(table.documentType),
 }));
 
 /**

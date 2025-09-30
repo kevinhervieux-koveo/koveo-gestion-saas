@@ -65,7 +65,9 @@ export const users = pgTable('users', {
   lastLoginAt: timestamp('last_login_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  roleIdx: index('users_role_idx').on(table.role),
+}));
 
 /**
  * Organizations table storing management companies, syndicates, and co-ownership entities.
@@ -149,6 +151,8 @@ export const invitations = pgTable('invitations', {
   residenceIdIdx: index('invitations_residence_id_idx').on(table.residenceId),
   invitedByUserIdIdx: index('invitations_invited_by_user_id_idx').on(table.invitedByUserId),
   acceptedByIdx: index('invitations_accepted_by_idx').on(table.acceptedBy),
+  roleIdx: index('invitations_role_idx').on(table.role),
+  statusIdx: index('invitations_status_idx').on(table.status),
 }));
 
 /**

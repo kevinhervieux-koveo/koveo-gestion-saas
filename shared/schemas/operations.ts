@@ -160,6 +160,8 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
   residenceIdIdx: index('maintenance_requests_residence_id_idx').on(table.residenceId),
   submittedByIdx: index('maintenance_requests_submitted_by_idx').on(table.submittedBy),
   assignedToIdx: index('maintenance_requests_assigned_to_idx').on(table.assignedTo),
+  statusIdx: index('maintenance_requests_status_idx').on(table.status),
+  priorityIdx: index('maintenance_requests_priority_idx').on(table.priority),
 }));
 
 /**
@@ -183,6 +185,7 @@ export const notifications = pgTable('notifications', {
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   userIdIdx: index('notifications_user_id_idx').on(table.userId),
+  typeIdx: index('notifications_type_idx').on(table.type),
 }));
 
 /**
@@ -221,6 +224,8 @@ export const demands = pgTable('demands', {
   residenceIdIdx: index('demands_residence_id_idx').on(table.residenceId),
   buildingIdIdx: index('demands_building_id_idx').on(table.buildingId),
   reviewedByIdx: index('demands_reviewed_by_idx').on(table.reviewedBy),
+  typeIdx: index('demands_type_idx').on(table.type),
+  statusIdx: index('demands_status_idx').on(table.status),
 }));
 
 /**
@@ -245,6 +250,7 @@ export const demandComments = pgTable('demands_comments', {
 }, (table) => ({
   demandIdIdx: index('demand_comments_demand_id_idx').on(table.demandId),
   commenterIdIdx: index('demand_comments_commenter_id_idx').on(table.commenterId),
+  commentTypeIdx: index('demand_comments_comment_type_idx').on(table.commentType),
 }));
 
 /**
@@ -281,6 +287,9 @@ export const bugs = pgTable('bugs', {
   createdByIdx: index('bugs_created_by_idx').on(table.createdBy),
   assignedToIdx: index('bugs_assigned_to_idx').on(table.assignedTo),
   resolvedByIdx: index('bugs_resolved_by_idx').on(table.resolvedBy),
+  statusIdx: index('bugs_status_idx').on(table.status),
+  priorityIdx: index('bugs_priority_idx').on(table.priority),
+  categoryIdx: index('bugs_category_idx').on(table.category),
 }));
 
 /**
@@ -317,6 +326,8 @@ export const featureRequests = pgTable('feature_requests', {
   createdByIdx: index('feature_requests_created_by_idx').on(table.createdBy),
   assignedToIdx: index('feature_requests_assigned_to_idx').on(table.assignedTo),
   reviewedByIdx: index('feature_requests_reviewed_by_idx').on(table.reviewedBy),
+  statusIdx: index('feature_requests_status_idx').on(table.status),
+  categoryIdx: index('feature_requests_category_idx').on(table.category),
 }));
 
 /**

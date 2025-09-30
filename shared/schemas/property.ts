@@ -79,6 +79,7 @@ export const buildings = pgTable('buildings', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   organizationIdIdx: index('buildings_organization_id_idx').on(table.organizationId),
+  buildingTypeIdx: index('buildings_building_type_idx').on(table.buildingType),
 }));
 
 /**
@@ -151,6 +152,8 @@ export const contacts = pgTable('contacts', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   entityIdIdx: index('contacts_entity_id_idx').on(table.entityId),
+  entityIdx: index('contacts_entity_idx').on(table.entity),
+  contactCategoryIdx: index('contacts_contact_category_idx').on(table.contactCategory),
 }));
 
 /**
@@ -202,6 +205,7 @@ export const bookings = pgTable('bookings', {
 }, (table) => ({
   commonSpaceIdIdx: index('bookings_common_space_id_idx').on(table.commonSpaceId),
   userIdIdx: index('bookings_user_id_idx').on(table.userId),
+  statusIdx: index('bookings_status_idx').on(table.status),
 }));
 
 /**

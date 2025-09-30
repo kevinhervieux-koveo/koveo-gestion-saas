@@ -75,7 +75,9 @@ export const metricEffectivenessTracking = pgTable('metric_effectiveness_trackin
   propertyManagementContext: text('property_management_context'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  metricTypeIdx: index('metric_effectiveness_tracking_metric_type_idx').on(table.metricType),
+}));
 
 /**
  * Stores predictions made by quality metrics before validation.
@@ -97,7 +99,10 @@ export const metricPredictions = pgTable('metric_predictions', {
   filePath: text('file_path'),
   lineNumber: integer('line_number'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  metricTypeIdx: index('metric_predictions_metric_type_idx').on(table.metricType),
+  expectedSeverityIdx: index('metric_predictions_expected_severity_idx').on(table.expectedSeverity),
+}));
 
 /**
  * Validates metric predictions against real outcomes.
@@ -124,6 +129,8 @@ export const predictionValidations = pgTable('prediction_validations', {
 }, (table) => ({
   predictionIdIdx: index('prediction_validations_prediction_id_idx').on(table.predictionId),
   validatorIdIdx: index('prediction_validations_validator_id_idx').on(table.validatorId),
+  validationStatusIdx: index('prediction_validations_validation_status_idx').on(table.validationStatus),
+  impactLevelIdx: index('prediction_validations_impact_level_idx').on(table.impactLevel),
 }));
 
 /**
@@ -151,7 +158,9 @@ export const metricCalibrationData = pgTable('metric_calibration_data', {
   performanceMetrics: jsonb('performance_metrics'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  metricTypeIdx: index('metric_calibration_data_metric_type_idx').on(table.metricType),
+}));
 
 /**
  * Tracks quality issues found in the codebase and their resolution.
@@ -186,6 +195,10 @@ export const qualityIssues = pgTable('quality_issues', {
 }, (table) => ({
   detectedByIdx: index('quality_issues_detected_by_idx').on(table.detectedBy),
   predictionIdIdx: index('quality_issues_prediction_id_idx').on(table.predictionId),
+  categoryIdx: index('quality_issues_category_idx').on(table.category),
+  severityIdx: index('quality_issues_severity_idx').on(table.severity),
+  relatedMetricTypeIdx: index('quality_issues_related_metric_type_idx').on(table.relatedMetricType),
+  resolutionStatusIdx: index('quality_issues_resolution_status_idx').on(table.resolutionStatus),
 }));
 
 // Insert schemas

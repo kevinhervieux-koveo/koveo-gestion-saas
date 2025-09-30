@@ -51,6 +51,7 @@ export const sslCertificates = pgTable('ssl_certificates', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   createdByIdx: index('ssl_certificates_created_by_idx').on(table.createdBy),
+  statusIdx: index('ssl_certificates_status_idx').on(table.status),
 }));
 
 /**

@@ -78,6 +78,8 @@ export const invoices = pgTable('invoices', {
   buildingIdIdx: index('invoices_building_id_idx').on(table.buildingId),
   residenceIdIdx: index('invoices_residence_id_idx').on(table.residenceId),
   createdByIdx: index('invoices_created_by_idx').on(table.createdBy),
+  paymentTypeIdx: index('invoices_payment_type_idx').on(table.paymentType),
+  frequencyIdx: index('invoices_frequency_idx').on(table.frequency),
 }));
 
 // Zod validation schemas with conditional logic for recurring payments

@@ -38,6 +38,7 @@ export const documents = pgTable('documents', {
   buildingIdIdx: index('documents_building_id_idx').on(table.buildingId),
   uploadedByIdIdx: index('documents_uploaded_by_id_idx').on(table.uploadedById),
   attachedToIdIdx: index('documents_attached_to_id_idx').on(table.attachedToId),
+  documentTypeIdx: index('documents_document_type_idx').on(table.documentType),
 }));
 
 // Enhanced document schema with file metadata

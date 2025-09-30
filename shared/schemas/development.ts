@@ -106,6 +106,9 @@ export const improvementSuggestions = pgTable('improvement_suggestions', {
 }, (table) => ({
   suggestedByIdx: index('improvement_suggestions_suggested_by_idx').on(table.suggestedBy),
   assignedToIdx: index('improvement_suggestions_assigned_to_idx').on(table.assignedTo),
+  categoryIdx: index('improvement_suggestions_category_idx').on(table.category),
+  priorityIdx: index('improvement_suggestions_priority_idx').on(table.priority),
+  statusIdx: index('improvement_suggestions_status_idx').on(table.status),
 }));
 
 /**
@@ -142,7 +145,11 @@ export const features = pgTable('features', {
   aiAnalyzedAt: timestamp('ai_analyzed_at'),
   isStrategicPath: boolean('is_strategic_path').notNull().default(false),
   syncedAt: timestamp('synced_at'),
-});
+}, (table) => ({
+  categoryIdx: index('features_category_idx').on(table.category),
+  statusIdx: index('features_status_idx').on(table.status),
+  priorityIdx: index('features_priority_idx').on(table.priority),
+}));
 
 /**
  * Actionable items table for tracking specific tasks generated from feature analysis.
@@ -178,6 +185,8 @@ export const actionableItems = pgTable('actionable_items', {
 }, (table) => ({
   featureIdIdx: index('actionable_items_feature_id_idx').on(table.featureId),
   assignedToIdx: index('actionable_items_assigned_to_idx').on(table.assignedTo),
+  typeIdx: index('actionable_items_type_idx').on(table.type),
+  statusIdx: index('actionable_items_status_idx').on(table.status),
 }));
 
 /**
@@ -195,7 +204,9 @@ export const developmentPillars = pgTable('development_pillars', {
   configuration: jsonb('configuration'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  statusIdx: index('development_pillars_status_idx').on(table.status),
+}));
 
 export const workspaceStatus = pgTable('workspace_status', {
   id: varchar('id')
@@ -204,7 +215,9 @@ export const workspaceStatus = pgTable('workspace_status', {
   component: text('component').notNull(),
   status: text('status').notNull().default('pending'), // 'pending', 'in-progress', 'complete'
   lastUpdated: timestamp('last_updated').defaultNow(),
-});
+}, (table) => ({
+  statusIdx: index('workspace_status_status_idx').on(table.status),
+}));
 
 export const qualityMetrics = pgTable('quality_metrics', {
   id: varchar('id')
@@ -213,7 +226,9 @@ export const qualityMetrics = pgTable('quality_metrics', {
   metricType: text('metric_type').notNull(),
   _value: text('value').notNull(),
   timestamp: timestamp('timestamp').defaultNow(),
-});
+}, (table) => ({
+  metricTypeIdx: index('quality_metrics_metric_type_idx').on(table.metricType),
+}));
 
 export const frameworkConfiguration = pgTable('framework_configuration', {
   id: varchar('id')

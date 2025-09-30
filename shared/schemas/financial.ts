@@ -143,6 +143,8 @@ export const bills = pgTable('bills', {
   buildingIdIdx: index('bills_building_id_idx').on(table.buildingId),
   createdByIdx: index('bills_created_by_idx').on(table.createdBy),
   sourceTemplateIdIdx: index('bills_source_template_id_idx').on(table.sourceTemplateId),
+  statusIdx: index('bills_status_idx').on(table.status),
+  categoryIdx: index('bills_category_idx').on(table.category),
 }));
 
 /**
@@ -166,6 +168,7 @@ export const payments = pgTable('payments', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   billIdIdx: index('payments_bill_id_idx').on(table.billId),
+  statusIdx: index('payments_status_idx').on(table.status),
 }));
 
 
@@ -254,6 +257,9 @@ export const capitalInvestments = pgTable('capital_investments', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   buildingIdIdx: index('capital_investments_building_id_idx').on(table.buildingId),
+  urgencyIdx: index('capital_investments_urgency_idx').on(table.urgency),
+  typeIdx: index('capital_investments_type_idx').on(table.type),
+  ownershipTypeIdx: index('capital_investments_ownership_type_idx').on(table.ownershipType),
 }));
 
 /**
