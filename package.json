@@ -148,7 +148,7 @@
     "date-fns": "^4.1.0",
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.44.5",
-    "drizzle-zod": "^0.5.1",
+    "drizzle-zod": "^0.8.1",
     "esbuild": "^0.25.9",
     "express": "^4.18.2",
     "express-rate-limit": "^8.0.1",
@@ -197,7 +197,7 @@
     "whatwg-fetch": "^3.6.20",
     "wouter": "^3.7.1",
     "ws": "^8.18.3",
-    "zod": "^4.1.1"
+    "zod": "^3.25.1"
   },
   "devDependencies": {
     "@jest/globals": "^30.0.5",

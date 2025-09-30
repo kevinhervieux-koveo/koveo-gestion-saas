@@ -12,18 +12,19 @@ const config = {
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/__mocks__/fileMock.js',
     
-    // Complete database isolation - prevent any real connections
-    '@neondatabase/serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
-    'drizzle-orm/neon-http': '<rootDir>/__mocks__/enhanced-database-mock.js',
-    'drizzle-orm/neon-serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
-    '^drizzle-orm/pg-core(?:\\.js)?$': '<rootDir>/__mocks__/drizzle-orm/pg-core.js',
-    '^drizzle-orm$': '<rootDir>/__mocks__/drizzle-orm/index.js',
-    '^drizzle-zod(?:\\.js)?$': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    // Complete database isolation - prevent any real connections (disabled for server integration tests)
+    // '@neondatabase/serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    // 'drizzle-orm/neon-http': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    // 'drizzle-orm/neon-serverless': '<rootDir>/__mocks__/enhanced-database-mock.js',
+    // '^drizzle-orm/pg-core(?:\\.js)?$': '<rootDir>/__mocks__/drizzle-orm/pg-core.js',
+    // '^drizzle-orm$': '<rootDir>/__mocks__/drizzle-orm/index.js',
+    // '^drizzle-zod(?:\\.js)?$': '<rootDir>/__mocks__/enhanced-database-mock.js',
     
     // Server module mocks to prevent real imports - relative paths
-    '^../server/db$': '<rootDir>/__mocks__/server/db.ts',
+    // Note: db mocking disabled for server integration tests
+    // '^../server/db$': '<rootDir>/__mocks__/server/db.ts',
     '^../server/storage$': '<rootDir>/__mocks__/server/storage.ts',
-    '^../../server/db$': '<rootDir>/__mocks__/server/db.ts', 
+    // '^../../server/db$': '<rootDir>/__mocks__/server/db.ts', 
     '^../../server/storage$': '<rootDir>/__mocks__/server/storage.ts',
     '^../../../server/routes$': '<rootDir>/__mocks__/server/routes.ts',
     '^../../server/routes$': '<rootDir>/__mocks__/server/routes.ts',
@@ -34,25 +35,25 @@ const config = {
     
     // Server module mocks to prevent real imports - absolute paths
     '^server/auth(?:/index\\.ts)?$': '<rootDir>/__mocks__/server/auth.ts',
-    '^server/db(?:/index\\.ts)?$': '<rootDir>/__mocks__/server/db.ts',
+    // '^server/db(?:/index\\.ts)?$': '<rootDir>/__mocks__/server/db.ts',
     '^server/storage(?:/index\\.ts)?$': '<rootDir>/__mocks__/server/storage.ts',
     '^server/routes(?:/index\\.ts)?$': '<rootDir>/__mocks__/server/routes.ts',
     
     // Critical: Server internal imports (from within server directory) 
     // These patterns catch imports within server files themselves
-    '^\\./db(?:\\.ts)?$': '<rootDir>/__mocks__/server/db.ts',
+    // '^\\./db(?:\\.ts)?$': '<rootDir>/__mocks__/server/db.ts',
     '^\\./storage(?:\\.ts)?$': '<rootDir>/__mocks__/server/storage.ts',
     '^\\./auth(?:\\.ts)?$': '<rootDir>/__mocks__/server/auth.ts',
     '^\\./routes(?:\\.ts)?$': '<rootDir>/__mocks__/server/routes.ts',
     
     // Server subdirectory imports (from server/api/, server/services/, etc.)
-    '^\\.\\./db(?:\\.ts)?$': '<rootDir>/__mocks__/server/db.ts',
+    // '^\\.\\./db(?:\\.ts)?$': '<rootDir>/__mocks__/server/db.ts',
     '^\\.\\./storage(?:\\.ts)?$': '<rootDir>/__mocks__/server/storage.ts',
     '^\\.\\./auth(?:\\.ts)?$': '<rootDir>/__mocks__/server/auth.ts',
     '^\\.\\./routes(?:\\.ts)?$': '<rootDir>/__mocks__/server/routes.ts',
     
-    // Schema mocks to prevent drizzle-orm imports - robust directory-agnostic pattern
-    '^(.*/)?shared/schema(?:\\.(ts|js))?$': '<rootDir>/__mocks__/shared/schema.ts',
+    // Schema mocks to prevent drizzle-orm imports - robust directory-agnostic pattern (disabled for server integration tests)
+    // '^(.*/)?shared/schema(?:\\.(ts|js))?$': '<rootDir>/__mocks__/shared/schema.ts',
     
     // CSS and assets (simplified)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
@@ -73,13 +74,14 @@ const config = {
     '^child_process$': '<rootDir>/__mocks__/child_process.js',
     '^util$': '<rootDir>/__mocks__/util.js',
     
-    // File system mocks for safer testing
-    '^fs$': '<rootDir>/__mocks__/fs.js',
-    '^fs/promises$': '<rootDir>/__mocks__/fs-promises.js',
+    // File system mocks for safer testing (excluding server tests)
+    // Note: fs mocking is skipped for server integration tests to allow real file operations
+    // '^fs$': '<rootDir>/__mocks__/fs.js',
+    // '^fs/promises$': '<rootDir>/__mocks__/fs-promises.js',
   },
   
-  testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
-  testPathIgnorePatterns: ['/node_modules/', '/server/tests/', '\\.disabled'],
+  testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}', '<rootDir>/server/tests/**/*.test.{ts,tsx}'],
+  testPathIgnorePatterns: ['/node_modules/', '\\.disabled'],
   
   collectCoverageFrom: [
     'client/src/**/*.{ts,tsx}',

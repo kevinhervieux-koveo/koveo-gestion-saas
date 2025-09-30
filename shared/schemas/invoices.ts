@@ -11,7 +11,6 @@ import {
   pgEnum,
   index,
 } from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { users } from './core';
 import { buildings, residences } from './property';
@@ -88,12 +87,12 @@ export const invoices = pgTable('invoices', {
 }));
 
 // Zod validation schemas with conditional logic for recurring payments
-export const insertInvoiceSchema = createInsertSchema(invoices, {
+export const insertInvoiceSchema = z.object({
   // Core field validations
   vendorName: z.string().min(1, 'Vendor name is required').max(255, 'Vendor name too long'),
   invoiceNumber: z.string().min(1, 'Invoice number is required').max(100, 'Invoice number too long'),
-  totalAmount: z.coerce.number().positive('Total amount must be positive'),
-  dueDate: z.coerce.date(),
+  totalAmount: z.string().min(1, 'Total amount is required'),
+  dueDate: z.string().min(1, 'Due date is required'),
   
   // Payment type validation
   paymentType: z.enum(['one-time', 'recurring']),
@@ -102,13 +101,10 @@ export const insertInvoiceSchema = createInsertSchema(invoices, {
   frequency: z.enum(['monthly', 'quarterly', 'annually', 'custom']).optional(),
   
   // Start date validation (for standard frequencies)
-  startDate: z.coerce.date().optional(),
+  startDate: z.string().optional(),
   
   // Custom dates validation (only for custom frequency)
-  customPaymentDates: z.array(z.coerce.date()).optional().refine(
-    (dates) => !dates || dates.length === 0 || dates.every(date => date instanceof Date && !isNaN(date.getTime())),
-    "All custom payment dates must be valid dates"
-  ),
+  customPaymentDates: z.array(z.string()).optional(),
   
   // Document reference (optional for testing)
   documentId: z.string().uuid('Invalid document ID').optional(),
@@ -118,12 +114,12 @@ export const insertInvoiceSchema = createInsertSchema(invoices, {
   residenceId: z.string().uuid().optional(),
   
   // AI fields
-  isAiExtracted: z.boolean().default(false),
-  extractionConfidence: z.coerce.number().min(0).max(1).optional(),
-}).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true 
+  isAiExtracted: z.boolean().default(false).optional(),
+  aiExtractionData: z.any().optional(),
+  extractionConfidence: z.number().min(0).max(1).optional(),
+  
+  // Audit fields
+  createdBy: z.string().uuid().min(1, 'Created by user ID is required'),
 });
 
 // Base insert schema without refinements

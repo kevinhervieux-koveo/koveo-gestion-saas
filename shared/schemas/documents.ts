@@ -1,6 +1,5 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, text, timestamp, boolean, varchar, uuid, integer, index } from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { buildings, residences } from './property';
 

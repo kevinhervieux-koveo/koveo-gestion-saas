@@ -548,6 +548,11 @@ export const userValidationSchemas = {
 export const insertDocumentSchema = {
   parse: jest.fn().mockImplementation((data) => data),
   safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+  extend: jest.fn().mockImplementation((schema) => ({
+    parse: jest.fn().mockImplementation((data) => data),
+    safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
+    extend: jest.fn().mockImplementation((s) => insertDocumentSchema.extend(s)),
+  })),
 };
 
 export const insertBuildingSchema = {
