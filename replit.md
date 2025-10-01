@@ -4,6 +4,10 @@
 
 Koveo Gestion is an AI-powered SaaS platform designed for property management within Quebec's residential communities. Its primary purpose is to offer a comprehensive suite of tools covering documentation, maintenance, financial planning, and complaint resolution. The platform ensures compliance with Quebec's Law 25, supports both French and English, and targets the co-ownership properties market. The project aims to deliver an enterprise-grade application with high test coverage and proven production reliability.
 
+## Recent Changes
+
+**October 1, 2025**: Fixed document filtering bug in ModularDocumentPageWrapper where documents were not appearing on residence and building pages. Removed incorrect `type` parameter from API call that was interfering with proper document filtering. Documents are now correctly filtered by `buildingId` or `residenceId` parameters only.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

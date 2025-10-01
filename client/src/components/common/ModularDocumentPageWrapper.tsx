@@ -400,7 +400,7 @@ export default function ModularDocumentPageWrapper({
     queryKey: ['/api/documents', type, entityId],
     queryFn: async () => {
       const param = type === 'building' ? 'buildingId' : 'residenceId';
-      const response = await apiRequest('GET', `/api/documents?${param}=${entityId}&type=${type}`);
+      const response = await apiRequest('GET', `/api/documents?${param}=${entityId}`);
       return response.json();
     },
     enabled: !!entityId,
