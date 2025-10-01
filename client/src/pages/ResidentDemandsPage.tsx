@@ -251,9 +251,9 @@ ResidentDemandsPage() {
           status: 'submitted',
           // Convert empty strings to undefined for optional UUID fields
           buildingId: data.buildingId || undefined,
-          residenceId: data.residenceId || undefined,
           assignationBuildingId: data.assignationBuildingId || undefined,
           assignationResidenceId: data.assignationResidenceId || undefined,
+          // residenceId will be auto-populated by backend from user's data
         }),
       });
 
@@ -282,7 +282,6 @@ ResidentDemandsPage() {
       type: 'maintenance',
       description: '',
       buildingId: undefined,
-      residenceId: undefined,
       assignationBuildingId: undefined,
       assignationResidenceId: undefined,
     },
@@ -476,7 +475,7 @@ ResidentDemandsPage() {
                     />
                     <SearchableFormSelect
                       control={newDemandForm.control}
-                      name='residenceId'
+                      name='assignationResidenceId'
                       label={t('residenceOptional')}
                       options={[
                         { value: '', label: t('noSpecificResidence') },
