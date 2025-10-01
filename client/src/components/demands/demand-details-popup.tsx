@@ -231,6 +231,12 @@ export default function DemandDetailsPopup({
     enabled: !!demand?.id && isOpen,
   });
 
+  // Fetch attached documents
+  const { data: attachedDocuments = [] } = useQuery<any[]>({
+    queryKey: ['/api/documents', { attachedToType: 'demand', attachedToId: demand?.id }],
+    enabled: !!demand?.id && isOpen,
+  });
+
   // Edit form
   const editForm = useForm<EditDemandFormData>({
     resolver: zodResolver(editDemandSchema),
@@ -669,6 +675,116 @@ export default function DemandDetailsPopup({
               )}
             </CardContent>
           </Card>
+
+          <Separator />
+
+          {/* Attached Documents Section */}
+          {attachedDocuments.length > 0 && (
+            <div className='space-y-4'>
+              <h3 className='font-semibold flex items-center gap-2'>
+                <Paperclip className='h-5 w-5' />
+                {t('fileAttachment')}s ({attachedDocuments.length})
+              </h3>
+              <div className='space-y-2'>
+                {attachedDocuments.map((doc: any) => {
+                  const filename = doc.fileName || doc.name;
+                  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+                  
+                  const handleView = async () => {
+                    try {
+                      const newTab = window.open('about:blank', '_blank');
+                      if (!newTab) {
+                        throw new Error('Popup blocked - please allow popups for this site');
+                      }
+                      
+                      const response = await fetch(`/api/documents/${doc.id}/file`, {
+                        method: 'GET',
+                        credentials: 'include',
+                      });
+
+                      if (!response.ok) {
+                        newTab.close();
+                        throw new Error(`View failed: ${response.status} ${response.statusText}`);
+                      }
+
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      newTab.location.href = url;
+                      
+                      setTimeout(() => {
+                        window.URL.revokeObjectURL(url);
+                      }, 3000);
+                    } catch (error: any) {
+                      alert(`Failed to open file: ${error.message || 'Unknown error'}`);
+                    }
+                  };
+
+                  const handleDownload = async () => {
+                    try {
+                      const response = await fetch(`/api/documents/${doc.id}/file`, {
+                        method: 'GET',
+                        credentials: 'include',
+                      });
+
+                      if (!response.ok) {
+                        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+                      }
+
+                      const blob = await response.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      
+                      const link = window.document.createElement('a');
+                      link.href = url;
+                      link.download = filename;
+                      window.document.body.appendChild(link);
+                      link.click();
+                      
+                      window.document.body.removeChild(link);
+                      window.URL.revokeObjectURL(url);
+                    } catch (error: any) {
+                      alert(`Download failed: ${error.message || 'Unknown error'}`);
+                    }
+                  };
+                  
+                  return (
+                    <div key={doc.id} className='flex items-center gap-2 p-3 bg-gray-50 rounded-md border'>
+                      {isImage ? (
+                        <Image className='h-5 w-5 text-blue-500' />
+                      ) : (
+                        <Paperclip className='h-5 w-5 text-gray-500' />
+                      )}
+                      <div className='flex-1'>
+                        <span className='text-sm font-medium'>{filename}</span>
+                        {doc.description && (
+                          <p className='text-xs text-muted-foreground'>{doc.description}</p>
+                        )}
+                      </div>
+                      <div className='flex gap-2'>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={handleView}
+                          data-testid={`button-view-document-${doc.id}`}
+                        >
+                          <Eye className='h-3 w-3 mr-1' />
+                          {t('view')}
+                        </Button>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={handleDownload}
+                          data-testid={`button-download-document-${doc.id}`}
+                        >
+                          <Download className='h-3 w-3 mr-1' />
+                          {t('download')}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <Separator />
 
