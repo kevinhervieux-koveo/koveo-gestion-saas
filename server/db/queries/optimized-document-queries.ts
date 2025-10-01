@@ -44,6 +44,7 @@ export interface DocumentFilters {
   organizationId?: string;
   buildingIds?: string[];
   residenceIds?: string[];
+  onlyBuildingLevel?: boolean; // If true, exclude residence documents (residenceId must be NULL)
   limit?: number;
   offset?: number;
 }
@@ -84,6 +85,11 @@ export async function getDocumentsWithRelations(
 
   if (filters.organizationId) {
     conditions.push(eq(buildings.organizationId, filters.organizationId));
+  }
+
+  // Filter to only building-level documents (exclude residence documents)
+  if (filters.onlyBuildingLevel) {
+    conditions.push(isNull(documents.residenceId));
   }
 
   // Build query with all joins
@@ -279,9 +285,11 @@ export async function getDocumentsForUser(
     // Get building documents based on role:
     // - Residents see ALL building documents
     // - Tenants see only documents marked as visible to tenants
+    // IMPORTANT: Only fetch building-level documents (residenceId must be NULL)
     const buildingDocuments = await getDocumentsWithRelations({
       ...additionalFilters,
       buildingIds: scope.buildingIds,
+      onlyBuildingLevel: true, // Exclude residence documents
     });
     
     const visibleBuildingDocuments = (userRole === 'tenant' || userRole === 'demo_tenant')
