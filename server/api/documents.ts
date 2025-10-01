@@ -1436,14 +1436,6 @@ export function registerDocumentRoutes(app: Express): void {
         uploadDate: doc.createdAt, // For backward compatibility
         fileUrl: doc.filePath ? `/api/documents/${doc.id}/file` : undefined, // Generate file URL if file exists
       }));
-      
-      console.log('[DOCUMENTS API] Sample documents being returned:', enhancedDocumentRecords.slice(0, 2).map(d => ({
-        id: d.id,
-        name: d.name,
-        effectiveDate: d.effectiveDate,
-        createdAt: d.createdAt,
-        hasEffectiveDate: !!d.effectiveDate
-      })));
 
       allDocumentRecords.push(...enhancedDocumentRecords);
 
@@ -2051,6 +2043,7 @@ export function registerDocumentRoutes(app: Express): void {
           residenceId: undefined,
           buildingId: validatedData.buildingId,
           uploadedById: validatedData.uploadedById,
+          effectiveDate: validatedData.effectiveDate,
         };
 
         // console.log(`🏢 [BUILDING UPLOAD] Creating document in database:`, {
@@ -2201,6 +2194,7 @@ export function registerDocumentRoutes(app: Express): void {
           residenceId: validatedData.residenceId,
           buildingId: residence.buildingId,
           uploadedById: validatedData.uploadedById,
+          effectiveDate: validatedData.effectiveDate,
         };
 
         const document = await storage.createDocument(unifiedDocument) ;
@@ -2898,21 +2892,6 @@ export function registerDocumentRoutes(app: Express): void {
       
       const { textContent, name, description, documentType, attachedToType, attachedToId, buildingId, residenceId, isVisibleToTenants, effectiveDate } = req.body;
       
-      console.log(`[${timestamp}] 🔍 Text document data:`, {
-        textContentLength: textContent?.length,
-        name,
-        description,
-        documentType,
-        attachedToType,
-        attachedToId,
-        buildingId,
-        residenceId,
-        isVisibleToTenants,
-        effectiveDate,
-        effectiveDateType: typeof effectiveDate,
-        userId
-      });
-      
       // Validate required fields
       if (!textContent || !name) {
         // console.log(`[${timestamp}] ❌ Missing required fields: textContent=${!!textContent}, name=${!!name}`);
@@ -2973,12 +2952,6 @@ export function registerDocumentRoutes(app: Express): void {
         uploadedById: userId,
         effectiveDate: effectiveDate || undefined,
       };
-      
-      console.log(`[${timestamp}] 💾 Document data being saved:`, {
-        name: documentData.name,
-        effectiveDate: documentData.effectiveDate,
-        hasEffectiveDate: !!documentData.effectiveDate
-      });
       
       // console.log(`[${timestamp}] 💾 Creating document record in database:`, {
       //   ...documentData,
@@ -3056,14 +3029,6 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Parse form data
-      console.log('[FILE UPLOAD] req.body received:', {
-        effectiveDate: req.body.effectiveDate,
-        effectiveDateType: typeof req.body.effectiveDate,
-        effectiveDateLength: req.body.effectiveDate?.length,
-        hasEffectiveDate: !!req.body.effectiveDate,
-        allKeys: Object.keys(req.body)
-      });
-      
       const formData = {
         name: req.body.name,
         description: req.body.description || '',
@@ -3075,11 +3040,6 @@ export function registerDocumentRoutes(app: Express): void {
         attachedToId: req.body.attachedToId || undefined,
         effectiveDate: req.body.effectiveDate && req.body.effectiveDate.trim() !== '' ? req.body.effectiveDate : undefined,
       };
-      
-      console.log('[FILE UPLOAD] formData after parsing:', {
-        effectiveDate: formData.effectiveDate,
-        hasEffectiveDate: !!formData.effectiveDate
-      });
 
       // Production debugging: Log form data before validation
       if (process.env.NODE_ENV === 'production') {

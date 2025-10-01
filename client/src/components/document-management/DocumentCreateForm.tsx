@@ -120,14 +120,6 @@ export function DocumentCreateForm({
     mutationFn: async (data: DocumentCreateData) => {
       const formData = new FormData();
       
-      console.log('[DocumentCreateForm] Form data being sent:', {
-        name: data.name,
-        category: data.category,
-        effectiveDate: data.effectiveDate,
-        hasEffectiveDate: !!data.effectiveDate,
-        effectiveDateTrimmed: data.effectiveDate?.trim(),
-      });
-      
       // Add document metadata
       formData.append('name', data.name);
       formData.append('documentType', data.category);
@@ -136,9 +128,6 @@ export function DocumentCreateForm({
       }
       if (data.effectiveDate && data.effectiveDate.trim() !== '') {
         formData.append('effectiveDate', data.effectiveDate);
-        console.log('[DocumentCreateForm] Adding effectiveDate to FormData:', data.effectiveDate);
-      } else {
-        console.log('[DocumentCreateForm] No effective date to send (empty or null)');
       }
       
       // Add entity association
