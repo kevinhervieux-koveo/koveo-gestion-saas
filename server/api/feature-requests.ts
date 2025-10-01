@@ -149,8 +149,13 @@ export function registerFeatureRequestRoutes(app: Express): void {
       
       // Handle file upload if present
       if (req.file) {
+        // Import sanitizeFilePath at top of file if not already imported
+        const sanitizeFilePath = (filePath: string): string => {
+          return filePath.replace(/[^a-zA-Z0-9._\/-]/g, '_');
+        };
+        
         featureRequestData.filePath = req.file.path;
-        featureRequestData.fileName = req.file.originalname;
+        featureRequestData.fileName = sanitizeFilePath(req.file.originalname);
         featureRequestData.fileSize = req.file.size;
       }
       
@@ -298,8 +303,13 @@ export function registerFeatureRequestRoutes(app: Express): void {
       
       // Handle file upload if present
       if (req.file) {
+        // Import sanitizeFilePath at top of file if not already imported
+        const sanitizeFilePath = (filePath: string): string => {
+          return filePath.replace(/[^a-zA-Z0-9._\/-]/g, '_');
+        };
+        
         updates.filePath = req.file.path;
-        updates.fileName = req.file.originalname;
+        updates.fileName = sanitizeFilePath(req.file.originalname);
         updates.fileSize = req.file.size;
       }
       

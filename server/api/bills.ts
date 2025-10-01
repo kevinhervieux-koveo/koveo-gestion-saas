@@ -1083,7 +1083,7 @@ export function registerBillRoutes(app: Express) {
         // Update bill with document info and AI analysis
         const updateData: unknown = {
           filePath,
-          fileName: req.file.originalname,
+          fileName: secureFilename,
           fileSize: req.file.size,
           isAiAnalyzed: !!analysisResult,
           aiAnalysisData: analysisResult,
@@ -1109,11 +1109,11 @@ export function registerBillRoutes(app: Express) {
         // console.log(`📄 [BILLS UPLOAD] Creating document record for bill ${id}`);
         try {
           const documentData = {
-            name: req.file.originalname,
+            name: secureFilename,
             description: `AI-analyzed bill document for ${updatedBill[0].title || 'Bill'}`,
             documentType: 'attachment',
             filePath,
-            fileName: req.file.originalname,
+            fileName: secureFilename,
             fileSize: req.file.size,
             mimeType: req.file.mimetype,
             isVisibleToTenants: false,

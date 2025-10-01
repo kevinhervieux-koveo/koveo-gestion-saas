@@ -2326,15 +2326,16 @@ export function registerDocumentRoutes(app: Express): void {
           return res.status(400).json({ message: fileValidation.error });
         }
 
-        // Generate unique file path
+        // Generate unique file path with sanitization
         const fileExtension = path.extname(req.file.originalname);
         const baseFileName = path.basename(req.file.originalname, fileExtension);
         const uniqueId = crypto.randomBytes(16).toString('hex');
+        const unsanitizedFileName = `${uniqueId}-${baseFileName}${fileExtension}`;
+        const uniqueFileName = sanitizeFilePath(unsanitizedFileName);
         const entityType = existingDocument.buildingId ? 'buildings' : 'residences';
         const entityId = existingDocument.buildingId || existingDocument.residenceId;
         
         const documentsDir = path.join(process.cwd(), 'uploads', entityType, entityId || 'general');
-        const uniqueFileName = `${uniqueId}-${baseFileName}${fileExtension}`;
         const finalPath = path.join(documentsDir, uniqueFileName);
         const relativePath = path.join(entityType, entityId || 'general', uniqueFileName);
 
@@ -2348,7 +2349,7 @@ export function registerDocumentRoutes(app: Express): void {
         
         // Update file-related fields
         updateData.filePath = relativePath;
-        updateData.fileName = req.file.originalname;
+        updateData.fileName = uniqueFileName;
         updateData.fileSize = req.file.size;
         updateData.mimeType = req.file.mimetype;
 
@@ -2832,10 +2833,11 @@ export function registerDocumentRoutes(app: Express): void {
 
         // Note: File upload to external storage removed
 
-        // Update document with file information
+        // Update document with file information (with sanitized filename)
+        const sanitizedName = sanitizeFilePath(req.file.originalname);
         const updatedDocument = await storage.updateDocument(documentId, {
-          filePath: `prod_org_${organizationId}/${req.file.originalname}`,
-          name: req.file.originalname,
+          filePath: `prod_org_${organizationId}/${sanitizedName}`,
+          name: sanitizedName,
           // Remove mimeType as it's not in schema
         });
 

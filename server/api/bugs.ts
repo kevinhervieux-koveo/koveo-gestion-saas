@@ -150,10 +150,15 @@ export function registerBugRoutes(app: Express): void {
 
       // Handle single file attachment if present
       if (req.file) {
-        // Fix filename encoding issues
+        // Fix filename encoding issues and sanitize
         const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+        const sanitizeFilePath = (filePath: string): string => {
+          return filePath.replace(/[^a-zA-Z0-9._\/-]/g, '_');
+        };
+        const sanitizedFilename = sanitizeFilePath(originalname);
         // console.log(`📎 Processing attachment for new bug:`, {
         //   originalname: originalname,
+        //   sanitizedFilename: sanitizedFilename,
         //   filename: req.file.filename,
         //   size: req.file.size,
         //   mimetype: req.file.mimetype
@@ -161,7 +166,7 @@ export function registerBugRoutes(app: Express): void {
         bugData = {
           ...bugData,
           filePath: `general/${req.file.filename}`,
-          fileName: originalname,
+          fileName: sanitizedFilename,
           fileSize: req.file.size,
         };
       }
