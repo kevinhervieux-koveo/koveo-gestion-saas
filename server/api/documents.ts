@@ -3056,6 +3056,14 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Parse form data
+      console.log('[FILE UPLOAD] req.body received:', {
+        effectiveDate: req.body.effectiveDate,
+        effectiveDateType: typeof req.body.effectiveDate,
+        effectiveDateLength: req.body.effectiveDate?.length,
+        hasEffectiveDate: !!req.body.effectiveDate,
+        allKeys: Object.keys(req.body)
+      });
+      
       const formData = {
         name: req.body.name,
         description: req.body.description || '',
@@ -3065,8 +3073,13 @@ export function registerDocumentRoutes(app: Express): void {
         buildingId: req.body.buildingId || undefined,
         attachedToType: req.body.attachedToType || undefined,
         attachedToId: req.body.attachedToId || undefined,
-        effectiveDate: req.body.effectiveDate || undefined,
+        effectiveDate: req.body.effectiveDate && req.body.effectiveDate.trim() !== '' ? req.body.effectiveDate : undefined,
       };
+      
+      console.log('[FILE UPLOAD] formData after parsing:', {
+        effectiveDate: formData.effectiveDate,
+        hasEffectiveDate: !!formData.effectiveDate
+      });
 
       // Production debugging: Log form data before validation
       if (process.env.NODE_ENV === 'production') {
