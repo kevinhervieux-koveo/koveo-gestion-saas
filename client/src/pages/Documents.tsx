@@ -675,10 +675,10 @@ Documents() {
             key={document.id}
             className='hover:shadow-lg transition-shadow cursor-pointer'
             onClick={() => {
-              if (document.fileUrl) {
-                window.open(document.fileUrl, '_blank');
+              if (document.fileName) {
+                window.open(`/api/documents/${document.id}/file`, '_blank');
               } else {
-                alert('This document does not have a file URL available.');
+                alert('This document does not have a file uploaded yet.');
               }
             }}
             data-testid={`document-card-${document.id}`}
@@ -747,13 +747,13 @@ Documents() {
               {/* Actions */}
               <div className='flex justify-between items-center pt-2'>
                 <div className='flex gap-2'>
-                  {document.fileUrl && (
+                  {document.fileName && (
                     <Button
                       size='sm'
                       variant='outline'
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.open(document.fileUrl, '_blank');
+                        window.open(`/api/documents/${document.id}/file?download=true`, '_blank');
                       }}
                     >
                       <Download className='w-4 h-4 mr-1' />
