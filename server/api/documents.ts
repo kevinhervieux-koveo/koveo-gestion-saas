@@ -1436,6 +1436,14 @@ export function registerDocumentRoutes(app: Express): void {
         uploadDate: doc.createdAt, // For backward compatibility
         fileUrl: doc.filePath ? `/api/documents/${doc.id}/file` : undefined, // Generate file URL if file exists
       }));
+      
+      console.log('[DOCUMENTS API] Sample documents being returned:', enhancedDocumentRecords.slice(0, 2).map(d => ({
+        id: d.id,
+        name: d.name,
+        effectiveDate: d.effectiveDate,
+        createdAt: d.createdAt,
+        hasEffectiveDate: !!d.effectiveDate
+      })));
 
       allDocumentRecords.push(...enhancedDocumentRecords);
 
