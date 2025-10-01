@@ -52,6 +52,8 @@ import { SearchInput } from '@/components/common/SearchInput';
 import { FilterDropdown } from '@/components/common/FilterDropdown';
 import { schemas, enumFields } from '@/lib/validations';
 import { sanitizeFileName, sanitizeDescription } from '@/utils/sanitize';
+import { DatePicker } from '@/components/ui/date-picker';
+import { format } from 'date-fns';
 
 // Simple translation function for placeholder texts
 const t = (key: string) => {
@@ -111,6 +113,7 @@ const documentFormSchema = z.object({
   buildingId: z.string().optional(),
   residenceId: z.string().optional(),
   isVisibleToTenants: z.boolean(),
+  effectiveDate: z.date().optional(),
 });
 
 /**
@@ -230,7 +233,11 @@ Documents() {
   // Create document mutation
   const createDocumentMutation = useMutation({
     mutationFn: async (_data: DocumentFormData) => {
-      return apiRequest('POST', '/api/documents', _data);
+      const payload = {
+        ..._data,
+        effectiveDate: _data.effectiveDate ? _data.effectiveDate.toISOString() : undefined,
+      };
+      return apiRequest('POST', '/api/documents', payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
@@ -252,7 +259,11 @@ Documents() {
   // Update document mutation
   const updateDocumentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DocumentFormData> }) => {
-      return apiRequest('PUT', `/api/documents/${id}`, data);
+      const payload = {
+        ...data,
+        effectiveDate: data.effectiveDate ? data.effectiveDate.toISOString() : undefined,
+      };
+      return apiRequest('PUT', `/api/documents/${id}`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
@@ -364,6 +375,7 @@ Documents() {
       buildingId: '',
       residenceId: '',
       isVisibleToTenants: false,
+      effectiveDate: undefined,
     },
   });
 
@@ -378,6 +390,7 @@ Documents() {
           buildingId: selectedDocument.buildingId || '',
           residenceId: selectedDocument.residenceId || '',
           isVisibleToTenants: selectedDocument.isVisibleToTenants,
+          effectiveDate: undefined,
         }
       : {
           title: '',
@@ -387,6 +400,7 @@ Documents() {
           buildingId: '',
           residenceId: '',
           isVisibleToTenants: false,
+          effectiveDate: undefined,
         },
   });
 
@@ -616,6 +630,28 @@ Documents() {
                     )}
                   />
                 )}
+
+                <FormField
+                  control={form.control}
+                  name='effectiveDate'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Effective Date (Optional)</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          date={field.value}
+                          onSelect={field.onChange}
+                          placeholder='Select date'
+                          data-testid='input-effectiveDate'
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Date when this document becomes effective
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}

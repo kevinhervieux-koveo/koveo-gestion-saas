@@ -2147,21 +2147,22 @@ export function registerDocumentRoutes(app: Express): void {
           });
         }
 
+        // Fetch residence to get buildingId for access control
+        const residence = await storage.getResidence(residenceId);
+        if (!residence) {
+          return res.status(404).json({ message: 'Residence not found' });
+        }
+
         // Permission checks for resident documents
         if (userRole === 'manager') {
           const organizations = await storage.getUserOrganizations(userId);
           const organizationId =
             organizations.length > 0 ? organizations[0].organizationId : undefined;
-          const residence = await storage.getResidence(residenceId);
-          if (residence) {
-            const building = await storage.getBuilding(residence.buildingId);
-            if (!building || building.organizationId !== organizationId) {
-              return res
-                .status(403)
-                .json({ message: 'Cannot assign document to residence outside your organization' });
-            }
-          } else {
-            return res.status(404).json({ message: 'Residence not found' });
+          const building = await storage.getBuilding(residence.buildingId);
+          if (!building || building.organizationId !== organizationId) {
+            return res
+              .status(403)
+              .json({ message: 'Cannot assign document to residence outside your organization' });
           }
         }
 
@@ -2176,7 +2177,7 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
 
-        // Convert to unified document format
+        // Convert to unified document format with buildingId from residence
         const unifiedDocument: InsertDocument = {
           name: validatedData.name || 'Untitled',
           description: validatedData.description,
@@ -2188,7 +2189,7 @@ export function registerDocumentRoutes(app: Express): void {
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
           isQuarantined: false, // Resident documents are validated and safe
           residenceId: validatedData.residenceId,
-          buildingId: undefined,
+          buildingId: residence.buildingId,
           uploadedById: validatedData.uploadedById,
         };
 
@@ -3074,6 +3075,16 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(401).json({ message: 'User not authenticated' });
       }
 
+      // Fetch buildingId from residence if residenceId is provided
+      let actualBuildingId = validatedData.buildingId;
+      if (validatedData.residenceId && !actualBuildingId) {
+        const residence = await storage.getResidence(validatedData.residenceId);
+        if (!residence) {
+          return res.status(404).json({ message: 'Residence not found' });
+        }
+        actualBuildingId = residence.buildingId;
+      }
+
       // GCS DISABLED: Skip bucket configuration (using local storage only)
       // console.log('📁 GCS disabled - skipping bucket configuration check');
 
@@ -3085,8 +3096,8 @@ export function registerDocumentRoutes(app: Express): void {
       let filePath: string;
       if (validatedData.residenceId) {
         filePath = `residences/${validatedData.residenceId}/${uniqueFileName}`;
-      } else if (validatedData.buildingId) {
-        filePath = `buildings/${validatedData.buildingId}/${uniqueFileName}`;
+      } else if (actualBuildingId) {
+        filePath = `buildings/${actualBuildingId}/${uniqueFileName}`;
       } else {
         filePath = `general/${uniqueFileName}`;
       }
@@ -3137,7 +3148,7 @@ export function registerDocumentRoutes(app: Express): void {
         throw new Error('Failed to save file locally');
       }
 
-      // Create document record in database
+      // Create document record in database with buildingId from residence if applicable
       const documentData: InsertDocument = {
         name: validatedData.name,
         description: validatedData.description,
@@ -3146,7 +3157,7 @@ export function registerDocumentRoutes(app: Express): void {
         isVisibleToTenants: validatedData.isVisibleToTenants,
         isQuarantined: false, // File uploads are validated and safe
         residenceId: validatedData.residenceId,
-        buildingId: validatedData.buildingId,
+        buildingId: actualBuildingId,
         uploadedById: userId,
         attachedToType: validatedData.attachedToType,
         attachedToId: validatedData.attachedToId,
