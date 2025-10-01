@@ -2043,7 +2043,7 @@ export function registerDocumentRoutes(app: Express): void {
           residenceId: undefined,
           buildingId: validatedData.buildingId,
           uploadedById: validatedData.uploadedById,
-          effectiveDate: validatedData.effectiveDate,
+          effectiveDate: validatedData.effectiveDate ? new Date(validatedData.effectiveDate) as any : undefined,
         };
 
         // console.log(`🏢 [BUILDING UPLOAD] Creating document in database:`, {
@@ -2194,7 +2194,7 @@ export function registerDocumentRoutes(app: Express): void {
           residenceId: validatedData.residenceId,
           buildingId: residence.buildingId,
           uploadedById: validatedData.uploadedById,
-          effectiveDate: validatedData.effectiveDate,
+          effectiveDate: validatedData.effectiveDate ? new Date(validatedData.effectiveDate) as any : undefined,
         };
 
         const document = await storage.createDocument(unifiedDocument) ;
@@ -2950,7 +2950,7 @@ export function registerDocumentRoutes(app: Express): void {
         attachedToType: attachedToType || undefined,
         attachedToId: attachedToId || undefined,
         uploadedById: userId,
-        effectiveDate: effectiveDate || undefined,
+        effectiveDate: effectiveDate ? new Date(effectiveDate) as any : undefined,
       };
       
       // console.log(`[${timestamp}] 💾 Creating document record in database:`, {
