@@ -276,9 +276,35 @@ export async function getDocumentsForUser(
     // Manager sees documents in their organization's buildings
     filters.buildingIds = scope.buildingIds;
   } else if (userRole === 'resident' || userRole === 'tenant' || userRole === 'demo_resident' || userRole === 'demo_tenant') {
+    // Separate filters for residence and building documents to avoid conflicts
+    const { buildingId, residenceId, documentType, ...commonFilters } = additionalFilters;
+    
+    // If a specific residence is requested, only fetch that residence's documents
+    if (residenceId) {
+      return getDocumentsWithRelations({
+        ...commonFilters,
+        residenceIds: [residenceId],
+      });
+    }
+    
+    // If a specific building is requested, only fetch that building's documents
+    if (buildingId) {
+      const buildingDocs = await getDocumentsWithRelations({
+        ...commonFilters,
+        buildingIds: [buildingId],
+        onlyBuildingLevel: true, // Exclude residence documents
+      });
+      
+      const visibleDocs = (userRole === 'tenant' || userRole === 'demo_tenant')
+        ? buildingDocs.filter(doc => doc.isVisibleToTenants)
+        : buildingDocs;
+      
+      return visibleDocs;
+    }
+    
     // Get residence documents (both residents and tenants can see their residence docs)
     const residenceDocuments = await getDocumentsWithRelations({
-      ...additionalFilters,
+      ...commonFilters,
       residenceIds: scope.residenceIds,
     });
 
@@ -287,7 +313,7 @@ export async function getDocumentsForUser(
     // - Tenants see only documents marked as visible to tenants
     // IMPORTANT: Only fetch building-level documents (residenceId must be NULL)
     const buildingDocuments = await getDocumentsWithRelations({
-      ...additionalFilters,
+      ...commonFilters,
       buildingIds: scope.buildingIds,
       onlyBuildingLevel: true, // Exclude residence documents
     });
