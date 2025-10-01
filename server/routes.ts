@@ -291,12 +291,15 @@ export async function registerRoutes(app: Express) {
       const user = req.user;
       const requestedPath = req.params[0]; // Everything after /uploads/
       
+      console.log(`[FILE ACCESS] User ${user.id} (${user.role}) requesting: ${requestedPath}`);
+      
       // Check if this is a demand file
       const isDemandFile = requestedPath.startsWith('demands/');
       
       // For demand files, verify user has access to the demand
       if (isDemandFile) {
         const fileName = path.basename(requestedPath);
+        console.log(`[FILE ACCESS] Demand file detected: ${fileName}`);
         
         // Query the database to find the demand with this file
         const { db } = await import('./db');
@@ -306,8 +309,11 @@ export async function registerRoutes(app: Express) {
         const [demand] = await db.select().from(demands).where(eq(demands.fileName, fileName)).limit(1);
         
         if (!demand) {
+          console.log(`[FILE ACCESS] No demand found with fileName: ${fileName}`);
           return res.status(404).json({ error: 'File not found' });
         }
+        
+        console.log(`[FILE ACCESS] Found demand ${demand.id}, submitter: ${demand.submitterId}, user: ${user.id}, role: ${user.role}`);
         
         // Check if user has access to this demand
         // Users can access demands they submitted or if they're admin/manager for the building
@@ -316,12 +322,17 @@ export async function registerRoutes(app: Express) {
           user.role === 'admin' || // Admin has access to all
           user.role === 'manager'; // Manager has access to all (could be refined by building)
         
+        console.log(`[FILE ACCESS] Access check result: ${hasAccess}`);
+        
         if (!hasAccess) {
+          console.log(`[FILE ACCESS] Access denied for user ${user.id}`);
           return res.status(403).json({ 
             error: 'Access denied',
             message: 'You do not have permission to access this file'
           });
         }
+        
+        console.log(`[FILE ACCESS] Access granted for user ${user.id}`);
       } else {
         // For non-demand files, only allow admin access
         if (user.role !== 'admin') {
