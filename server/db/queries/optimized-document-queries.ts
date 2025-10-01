@@ -38,6 +38,7 @@ export interface DocumentFilters {
   buildingId?: string;
   residenceId?: string;
   documentType?: string;
+  specificDocumentType?: string;
   userId?: string;
   userRole?: string;
   organizationId?: string;
@@ -75,6 +76,10 @@ export async function getDocumentsWithRelations(
 
   if (filters.documentType) {
     conditions.push(eq(documents.documentType, filters.documentType));
+  }
+  
+  if (filters.specificDocumentType) {
+    conditions.push(eq(documents.documentType, filters.specificDocumentType));
   }
 
   if (filters.organizationId) {

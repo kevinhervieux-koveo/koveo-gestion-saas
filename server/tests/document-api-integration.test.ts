@@ -1,10 +1,10 @@
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import path from 'path';
 import fs from 'fs';
 import { testApp as app } from './test-app';
 import { db } from '../db';
-import { documents, users, organizations, buildings } from '@shared/schema';
+import { documents, users, organizations, buildings, userOrganizations } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 describe('Document API Integration Tests', () => {
@@ -19,6 +19,36 @@ describe('Document API Integration Tests', () => {
   let uploadedDocumentId: string;
 
   beforeAll(async () => {
+    // Clean up any existing test data from previous runs in correct order
+    try {
+      const existingUser = await db.select().from(users).where(eq(users.email, 'testdocuser@example.com'));
+      const existingOrg = await db.select().from(organizations).where(eq(organizations.email, 'testdocs@example.com'));
+      
+      if (existingOrg.length > 0) {
+        // Delete documents first
+        const orgBuildings = await db.select().from(buildings).where(eq(buildings.organizationId, existingOrg[0].id));
+        for (const building of orgBuildings) {
+          await db.delete(documents).where(eq(documents.buildingId, building.id));
+        }
+        // Delete buildings
+        await db.delete(buildings).where(eq(buildings.organizationId, existingOrg[0].id));
+      }
+      
+      if (existingUser.length > 0) {
+        // Delete user organizations
+        await db.delete(userOrganizations).where(eq(userOrganizations.userId, existingUser[0].id));
+        // Delete user
+        await db.delete(users).where(eq(users.id, existingUser[0].id));
+      }
+      
+      if (existingOrg.length > 0) {
+        // Delete organization
+        await db.delete(organizations).where(eq(organizations.id, existingOrg[0].id));
+      }
+    } catch (error) {
+      console.log('Error during cleanup:', error);
+    }
+
     // Ensure test files exist
     if (!fs.existsSync(TEST_FILES_DIR)) {
       fs.mkdirSync(TEST_FILES_DIR, { recursive: true });
@@ -80,6 +110,14 @@ describe('Document API Integration Tests', () => {
     }).returning();
     testUser = userResult[0];
 
+    // Link user to organization
+    await db.insert(userOrganizations).values({
+      userId: testUser.id,
+      organizationId: testOrganization.id,
+      organizationRole: 'manager',
+      isActive: true,
+    });
+
     // Simulate login by creating a session
     const agent = request.agent(app);
     const loginRes = await agent
@@ -94,18 +132,34 @@ describe('Document API Integration Tests', () => {
   });
 
   afterAll(async () => {
-    // Cleanup test data
-    if (uploadedDocumentId) {
-      await db.delete(documents).where(eq(documents.id, uploadedDocumentId));
-    }
-    if (testUser?.id) {
-      await db.delete(users).where(eq(users.id, testUser.id));
-    }
-    if (testBuilding?.id) {
-      await db.delete(buildings).where(eq(buildings.id, testBuilding.id));
-    }
-    if (testOrganization?.id) {
-      await db.delete(organizations).where(eq(organizations.id, testOrganization.id));
+    // Cleanup test data in correct order (documents first, then buildings, then users, then organizations)
+    try {
+      // Delete all documents for the test building first
+      if (testBuilding?.id) {
+        await db.delete(documents).where(eq(documents.buildingId, testBuilding.id));
+      }
+      
+      if (uploadedDocumentId) {
+        await db.delete(documents).where(eq(documents.id, uploadedDocumentId));
+      }
+      
+      if (testUser?.id && testOrganization?.id) {
+        await db.delete(userOrganizations).where(eq(userOrganizations.userId, testUser.id));
+      }
+      
+      if (testUser?.id) {
+        await db.delete(users).where(eq(users.id, testUser.id));
+      }
+      
+      if (testBuilding?.id) {
+        await db.delete(buildings).where(eq(buildings.id, testBuilding.id));
+      }
+      
+      if (testOrganization?.id) {
+        await db.delete(organizations).where(eq(organizations.id, testOrganization.id));
+      }
+    } catch (error) {
+      console.error('Error during cleanup:', error);
     }
 
     // Cleanup test files
@@ -203,11 +257,12 @@ describe('Document API Integration Tests', () => {
     beforeEach(async () => {
       // Ensure we have a document to test with
       if (!uploadedDocumentId) {
+        const uniqueId = Date.now();
         const result = await db.insert(documents).values({
           name: 'Get Test Document',
           documentType: 'legal',
-          filePath: 'test/path.pdf',
-          fileName: 'test.pdf',
+          filePath: `test/path-${uniqueId}.pdf`,
+          fileName: `test-${uniqueId}.pdf`,
           buildingId: testBuilding.id,
           uploadedById: testUser.id,
         }).returning();
@@ -247,8 +302,10 @@ describe('Document API Integration Tests', () => {
     let downloadTestFilePath: string;
 
     beforeEach(async () => {
-      // Create a real document with actual file
-      const testFilePath = path.join(process.cwd(), 'uploads', 'test-download.pdf');
+      // Create a real document with actual file using unique filename
+      const uniqueId = Date.now();
+      const fileName = `test-download-${uniqueId}.pdf`;
+      const testFilePath = path.join(process.cwd(), 'uploads', fileName);
       const testDir = path.dirname(testFilePath);
       
       if (!fs.existsSync(testDir)) {
@@ -256,13 +313,13 @@ describe('Document API Integration Tests', () => {
       }
       
       fs.copyFileSync(TEST_PDF_PATH, testFilePath);
-      downloadTestFilePath = 'uploads/test-download.pdf';
+      downloadTestFilePath = `uploads/${fileName}`;
 
       const result = await db.insert(documents).values({
         name: 'Download Test Document',
         documentType: 'legal',
         filePath: downloadTestFilePath,
-        fileName: 'test-download.pdf',
+        fileName: fileName,
         mimeType: 'application/pdf',
         fileSize: fs.statSync(testFilePath).size,
         buildingId: testBuilding.id,
@@ -286,13 +343,14 @@ describe('Document API Integration Tests', () => {
 
     it('should download document file', async () => {
       const response = await request(app)
-        .get(`/api/documents/${downloadTestDocId}/file`)
+        .get(`/api/documents/${downloadTestDocId}/file?download=true`)
         .set('x-test-user-id', testUser.id);
 
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toBe('application/pdf');
       expect(response.headers['content-disposition']).toContain('attachment');
-      expect(response.headers['content-disposition']).toContain('test-download.pdf');
+      expect(response.headers['content-disposition']).toContain('test-download-');
+      expect(response.headers['content-disposition']).toContain('.pdf');
       expect(response.body).toBeDefined();
     });
 
@@ -307,11 +365,12 @@ describe('Document API Integration Tests', () => {
 
     it('should return 404 for non-existent file', async () => {
       // Create document with non-existent file path
+      const uniqueId = Date.now();
       const result = await db.insert(documents).values({
         name: 'Missing File Document',
         documentType: 'other',
-        filePath: 'uploads/nonexistent.pdf',
-        fileName: 'nonexistent.pdf',
+        filePath: `uploads/nonexistent-${uniqueId}.pdf`,
+        fileName: `nonexistent-${uniqueId}.pdf`,
         buildingId: testBuilding.id,
         uploadedById: testUser.id,
       }).returning();
@@ -334,10 +393,11 @@ describe('Document API Integration Tests', () => {
         .set('x-test-user-id', testUser.id);
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThan(0);
-      expect(response.body[0]).toHaveProperty('id');
-      expect(response.body[0]).toHaveProperty('name');
+      expect(response.body).toHaveProperty('documents');
+      expect(Array.isArray(response.body.documents)).toBe(true);
+      expect(response.body.documents.length).toBeGreaterThan(0);
+      expect(response.body.documents[0]).toHaveProperty('id');
+      expect(response.body.documents[0]).toHaveProperty('name');
     });
 
     it('should filter documents by type', async () => {
@@ -350,8 +410,9 @@ describe('Document API Integration Tests', () => {
         .set('x-test-user-id', testUser.id);
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      response.body.forEach((doc: any) => {
+      expect(response.body).toHaveProperty('documents');
+      expect(Array.isArray(response.body.documents)).toBe(true);
+      response.body.documents.forEach((doc: any) => {
         expect(doc.documentType).toBe('legal');
       });
     });
@@ -360,11 +421,12 @@ describe('Document API Integration Tests', () => {
   describe('DELETE /api/documents/:id - Delete Document', () => {
     it('should delete document successfully', async () => {
       // Create a document to delete
+      const uniqueId = Date.now();
       const result = await db.insert(documents).values({
         name: 'Document to Delete',
         documentType: 'other',
-        filePath: 'test/delete-me.pdf',
-        fileName: 'delete-me.pdf',
+        filePath: `test/delete-me-${uniqueId}.pdf`,
+        fileName: `delete-me-${uniqueId}.pdf`,
         buildingId: testBuilding.id,
         uploadedById: testUser.id,
       }).returning();
@@ -375,8 +437,7 @@ describe('Document API Integration Tests', () => {
         .delete(`/api/documents/${docId}`)
         .set('x-test-user-id', testUser.id);
 
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('message');
+      expect(response.status).toBe(204);
 
       // Verify deletion
       const checkDoc = await db.select().from(documents).where(eq(documents.id, docId));
@@ -384,8 +445,9 @@ describe('Document API Integration Tests', () => {
     });
 
     it('should return 404 when deleting non-existent document', async () => {
+      const nonExistentId = '00000000-0000-0000-0000-000000000000';
       const response = await request(app)
-        .delete('/api/documents/nonexistent-doc-id')
+        .delete(`/api/documents/${nonExistentId}`)
         .set('x-test-user-id', testUser.id);
 
       expect(response.status).toBe(404);

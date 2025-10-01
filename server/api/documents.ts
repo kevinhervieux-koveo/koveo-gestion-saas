@@ -1149,6 +1149,7 @@ export function registerDocumentRoutes(app: Express): void {
         }
       }, 'DEBUG');
       const documentType = req.query.type as string; // 'building', 'resident', or undefined for both
+      const specificDocumentType = req.query.documentType as string; // Filter by document type (legal, maintenance, etc.)
       const specificResidenceId = req.query.residenceId as string; // Filter by specific residence
       const specificBuildingId = req.query.buildingId as string; // Filter by specific building
       const attachedToType = req.query.attachedToType as string; // Filter by attached entity type
@@ -1294,6 +1295,9 @@ export function registerDocumentRoutes(app: Express): void {
         }
         if (documentType) {
           additionalFilters.documentType = documentType;
+        }
+        if (specificDocumentType) {
+          additionalFilters.specificDocumentType = specificDocumentType;
         }
         
         documents = await getDocumentsForUser(userId, userRole, additionalFilters);
@@ -1557,8 +1561,35 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // Multer error handling middleware
+  const handleMulterError = (err: any, req: any, res: any, next: any) => {
+    if (err) {
+      // Handle multer-specific errors
+      if (err.name === 'MulterError') {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: `File size exceeds ${SECURITY_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB limit` });
+        }
+        return res.status(400).json({ error: err.message });
+      }
+      // Handle custom validation errors from fileFilter
+      if (err.message) {
+        return res.status(400).json({ error: err.message });
+      }
+      // Generic error
+      return res.status(400).json({ error: 'File upload failed' });
+    }
+    next();
+  };
+
   // Create a new document (supports both file upload and text-only documents)
-  app.post('/api/documents', requireAuth, upload.single('file'), async (req: any, res) => {
+  app.post('/api/documents', requireAuth, (req: any, res, next) => {
+    upload.single('file')(req, res, (err) => {
+      if (err) {
+        return handleMulterError(err, req, res, next);
+      }
+      next();
+    });
+  }, async (req: any, res) => {
     const operationId = crypto.randomUUID();
     const startTime = performance.now();
     
@@ -1913,6 +1944,9 @@ export function registerDocumentRoutes(app: Express): void {
           filePath = `temp-path-${Date.now()}`;
         }
         
+        // Convert string boolean fields to actual booleans for validation
+        const isVisibleToTenants = otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true;
+        
         const dataToValidate = {
           ...otherData,
           buildingId,
@@ -1922,6 +1956,7 @@ export function registerDocumentRoutes(app: Express): void {
           fileSize: req.file?.size,
           mimeType: req.file?.mimetype,
           documentType: documentType || type || 'other', // Default to 'other' if not provided
+          isVisibleToTenants, // Use converted boolean value
         };
         
         // console.log(`🏢 [BUILDING UPLOAD] Data to validate:`, {
@@ -1999,6 +2034,9 @@ export function registerDocumentRoutes(app: Express): void {
           description: validatedData.description,
           documentType: validatedData.documentType,
           filePath: validatedData.filePath || `temp-path-${Date.now()}`,
+          fileName: validatedData.fileName,
+          fileSize: validatedData.fileSize,
+          mimeType: validatedData.mimeType,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
           isQuarantined: false, // Building documents are validated and safe
           residenceId: undefined,
@@ -2074,6 +2112,9 @@ export function registerDocumentRoutes(app: Express): void {
           filePath = `temp-path-${Date.now()}`;
         }
 
+        // Convert string boolean fields to actual booleans for validation
+        const isVisibleToTenants = otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true;
+        
         const dataToValidate = {
           ...otherData,
           residenceId,
@@ -2083,6 +2124,7 @@ export function registerDocumentRoutes(app: Express): void {
           fileSize: req.file?.size,
           mimeType: req.file?.mimetype,
           documentType: documentType || type || 'other', // Default to 'other' if not provided
+          isVisibleToTenants, // Use converted boolean value
         };
         
         // console.log('🔍 Residence document validation debug:', {
@@ -2140,6 +2182,9 @@ export function registerDocumentRoutes(app: Express): void {
           description: validatedData.description,
           documentType: validatedData.documentType,
           filePath: validatedData.filePath || `temp-path-${Date.now()}`,
+          fileName: validatedData.fileName,
+          fileSize: validatedData.fileSize,
+          mimeType: validatedData.mimeType,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
           isQuarantined: false, // Resident documents are validated and safe
           residenceId: validatedData.residenceId,
@@ -3320,16 +3365,8 @@ export function registerDocumentRoutes(app: Express): void {
         
         // Manager should have access to buildings they are assigned to
         if (document.buildingId) {
-          // Checking building-level access
-          // Get buildings for the manager's organization
-          const orgBuildings = buildings.filter(building => 
-            userOrganizations.includes(building.organizationId || '')
-          );
-          const orgBuildingIds = orgBuildings.map(b => b.id);
-          
-          // Checking organization buildings
-          
-          if (orgBuildingIds.includes(document.buildingId)) {
+          // Checking building-level access using pre-loaded building IDs from scope
+          if (userBuildingIds.includes(document.buildingId)) {
             hasAccess = true;
             accessReason = 'Manager has access to organization buildings';
             // Manager building access granted
