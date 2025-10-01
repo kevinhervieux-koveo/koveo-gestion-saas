@@ -2898,18 +2898,20 @@ export function registerDocumentRoutes(app: Express): void {
       
       const { textContent, name, description, documentType, attachedToType, attachedToId, buildingId, residenceId, isVisibleToTenants, effectiveDate } = req.body;
       
-      // console.log(`[${timestamp}] 🔍 Text document data:`, {
-      //   textContentLength: textContent?.length,
-      //   name,
-      //   description,
-      //   documentType,
-      //   attachedToType,
-      //   attachedToId,
-      //   buildingId,
-      //   residenceId,
-      //   isVisibleToTenants,
-      //   userId
-      // });
+      console.log(`[${timestamp}] 🔍 Text document data:`, {
+        textContentLength: textContent?.length,
+        name,
+        description,
+        documentType,
+        attachedToType,
+        attachedToId,
+        buildingId,
+        residenceId,
+        isVisibleToTenants,
+        effectiveDate,
+        effectiveDateType: typeof effectiveDate,
+        userId
+      });
       
       // Validate required fields
       if (!textContent || !name) {
@@ -2969,8 +2971,14 @@ export function registerDocumentRoutes(app: Express): void {
         attachedToType: attachedToType || undefined,
         attachedToId: attachedToId || undefined,
         uploadedById: userId,
-        effectiveDate: effectiveDate,
+        effectiveDate: effectiveDate || undefined,
       };
+      
+      console.log(`[${timestamp}] 💾 Document data being saved:`, {
+        name: documentData.name,
+        effectiveDate: documentData.effectiveDate,
+        hasEffectiveDate: !!documentData.effectiveDate
+      });
       
       // console.log(`[${timestamp}] 💾 Creating document record in database:`, {
       //   ...documentData,
