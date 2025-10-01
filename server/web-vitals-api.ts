@@ -26,7 +26,7 @@ const MAX_METRICS = 10000; // Keep last 10k metrics
 
 // Web Vitals submission schema
 const webVitalSchema = z.object({
-  name: z.enum(['CLS', 'FID', 'LCP', 'FCP', 'TTFB']),
+  name: z.enum(['CLS', 'FID', 'LCP', 'FCP', 'TTFB', 'INP']),
   value: z.number().nonnegative(),
   id: z.string(),
   rating: z.enum(['good', 'needs-improvement', 'poor']),
