@@ -3088,18 +3088,19 @@ export function registerDocumentRoutes(app: Express): void {
       // GCS DISABLED: Skip bucket configuration (using local storage only)
       // console.log('📁 GCS disabled - skipping bucket configuration check');
 
-      // Generate unique GCS path
+      // Generate unique file path with sanitized filename
       const fileExtension = path.extname(req.file.originalname);
       const baseFileName = path.basename(req.file.originalname, fileExtension);
-      const uniqueFileName = `${uuidv4()}-${baseFileName}${fileExtension}`;
+      // Sanitize filename to prevent path traversal and ensure consistent naming
+      const sanitizedFileName = sanitizeFilePath(`${uuidv4()}-${baseFileName}${fileExtension}`);
 
       let filePath: string;
       if (validatedData.residenceId) {
-        filePath = `residences/${validatedData.residenceId}/${uniqueFileName}`;
+        filePath = `residences/${validatedData.residenceId}/${sanitizedFileName}`;
       } else if (actualBuildingId) {
-        filePath = `buildings/${actualBuildingId}/${uniqueFileName}`;
+        filePath = `buildings/${actualBuildingId}/${sanitizedFileName}`;
       } else {
-        filePath = `general/${uniqueFileName}`;
+        filePath = `general/${sanitizedFileName}`;
       }
 
       // DISABLED GCS: Force local storage for all environments
