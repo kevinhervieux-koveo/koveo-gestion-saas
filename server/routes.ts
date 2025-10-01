@@ -291,12 +291,45 @@ export async function registerRoutes(app: Express) {
       const user = req.user;
       const requestedPath = req.params[0]; // Everything after /uploads/
       
-      // Only allow admin access to arbitrary paths for now
-      if (user.role !== 'admin') {
-        return res.status(403).json({ 
-          error: 'Direct file access requires admin privileges',
-          message: 'Please use the appropriate API endpoints for file access'
-        });
+      // Check if this is a demand file
+      const isDemandFile = requestedPath.startsWith('demands/');
+      
+      // For demand files, verify user has access to the demand
+      if (isDemandFile) {
+        const fileName = path.basename(requestedPath);
+        
+        // Query the database to find the demand with this file
+        const { db } = await import('./db');
+        const { demands } = await import('../shared/schemas/operations');
+        const { eq } = await import('drizzle-orm');
+        
+        const [demand] = await db.select().from(demands).where(eq(demands.fileName, fileName)).limit(1);
+        
+        if (!demand) {
+          return res.status(404).json({ error: 'File not found' });
+        }
+        
+        // Check if user has access to this demand
+        // Users can access demands they submitted or if they're admin/manager for the building
+        const hasAccess = 
+          demand.submitterId === user.id || // User created the demand
+          user.role === 'admin' || // Admin has access to all
+          user.role === 'manager'; // Manager has access to all (could be refined by building)
+        
+        if (!hasAccess) {
+          return res.status(403).json({ 
+            error: 'Access denied',
+            message: 'You do not have permission to access this file'
+          });
+        }
+      } else {
+        // For non-demand files, only allow admin access
+        if (user.role !== 'admin') {
+          return res.status(403).json({ 
+            error: 'Direct file access requires admin privileges',
+            message: 'Please use the appropriate API endpoints for file access'
+          });
+        }
       }
       
       // Sanitize the path
