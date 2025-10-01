@@ -566,8 +566,8 @@ export const insertNotificationSchema = z.object({
 export const insertDemandSchema = z.object({
   submitterId: z.string().uuid(),
   type: z.enum(['maintenance', 'complaint', 'information', 'other']),
-  assignationResidenceId: z.string().uuid().optional(),
-  assignationBuildingId: z.string().uuid().optional(),
+  assignationResidenceId: z.preprocess((val) => val === '' ? undefined : val, z.string().uuid().optional()),
+  assignationBuildingId: z.preprocess((val) => val === '' ? undefined : val, z.string().uuid().optional()),
   description: z
     .string()
     .min(10, 'Description must be at least 10 characters')
@@ -575,8 +575,8 @@ export const insertDemandSchema = z.object({
   filePath: z.string().optional(), // Path to uploaded file
   fileName: z.string().optional(), // Original filename  
   fileSize: z.number().int().optional(), // File size in bytes
-  residenceId: z.string().uuid().optional(),
-  buildingId: z.string().uuid().optional(),
+  residenceId: z.preprocess((val) => val === '' ? undefined : val, z.string().uuid().optional()),
+  buildingId: z.preprocess((val) => val === '' ? undefined : val, z.string().uuid().optional()),
   status: z.string().default('submitted'),
   reviewNotes: z.string().optional(),
 });

@@ -300,7 +300,10 @@ export function DocumentCreateForm({
                       <Input
                         type="date"
                         placeholder="Select effective date"
-                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                        }}
                         data-testid="input-document-effective-date"
                       />
                     </FormControl>
