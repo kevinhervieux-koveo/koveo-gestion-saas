@@ -1913,8 +1913,9 @@ export function registerDocumentRoutes(app: Express): void {
         if (req.file) {
           // console.log(`🏢 [BUILDING UPLOAD] Processing file upload for building ${buildingId}`);
           
-          // Generate unique filename and move to permanent location
-          fileName = `${uuidv4()}-${req.file.originalname}`;
+          // Generate unique filename with sanitization and move to permanent location
+          const unsanitizedFileName = `${uuidv4()}-${req.file.originalname}`;
+          fileName = sanitizeFilePath(unsanitizedFileName);
           const permanentDir = path.join(process.cwd(), 'uploads', 'buildings', buildingId);
           
           // console.log(`🏢 [BUILDING UPLOAD] File paths:`, {
@@ -2081,8 +2082,9 @@ export function registerDocumentRoutes(app: Express): void {
         if (req.file) {
           // console.log(`🏠 [RESIDENCE UPLOAD] Processing file upload for residence ${residenceId}`);
           
-          // Generate unique filename and move to permanent location
-          fileName = `${uuidv4()}-${req.file.originalname}`;
+          // Generate unique filename with sanitization and move to permanent location
+          const unsanitizedFileName = `${uuidv4()}-${req.file.originalname}`;
+          fileName = sanitizeFilePath(unsanitizedFileName);
           const permanentDir = path.join(process.cwd(), 'uploads', 'residences', residenceId);
           
           // console.log(`🏠 [RESIDENCE UPLOAD] File paths:`, {
