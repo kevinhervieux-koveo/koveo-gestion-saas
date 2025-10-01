@@ -11,6 +11,7 @@ interface DocumentCardProps {
   documentType?: string;
   description?: string;
   createdAt?: string;
+  effectiveDate?: string;
   fileSize?: number;
   mimeType?: string;
   uploadedBy?: string;
@@ -34,6 +35,7 @@ export function DocumentCard({
   documentType,
   description,
   createdAt,
+  effectiveDate,
   fileSize,
   mimeType,
   uploadedBy,
@@ -124,19 +126,22 @@ export function DocumentCard({
   // Build metadata array for StandardCard
   // In compact mode: only show minimal metadata (file size, date)
   // In normal mode: show all metadata (date, uploaded by, file size)
+  // Prefer effectiveDate over createdAt for display
+  const displayDate = effectiveDate || createdAt;
+  
   const metadata = showMetadata ? (
     compact ? [
       fileSize && {
         value: formatFileSize(fileSize) || ''
       },
-      createdAt && {
+      displayDate && {
         icon: <Calendar className="w-3 h-3" />,
-        value: formatDate(createdAt) || ''
+        value: formatDate(displayDate) || ''
       }
     ].filter(Boolean) : [
-      createdAt && {
+      displayDate && {
         icon: <Calendar className="w-3 h-3" />,
-        value: formatDate(createdAt) || ''
+        value: formatDate(displayDate) || ''
       },
       uploadedBy && {
         icon: <User className="w-3 h-3" />,

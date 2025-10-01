@@ -161,6 +161,12 @@ function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdit }: Do
                 <Label className="text-sm font-medium">Category</Label>
                 <p className="text-sm text-gray-600 capitalize">{document.category || document.documentType || 'Other'}</p>
               </div>
+              {document.effectiveDate && (
+                <div>
+                  <Label className="text-sm font-medium">Effective Date</Label>
+                  <p className="text-sm text-gray-600">{new Date(document.effectiveDate).toLocaleDateString()}</p>
+                </div>
+              )}
               <div>
                 <Label className="text-sm font-medium">Upload Date</Label>
                 <p className="text-sm text-gray-600">{new Date(document.createdAt).toLocaleDateString()}</p>
@@ -764,6 +770,7 @@ export default function ModularDocumentPageWrapper({
                                   title={document.name}
                                   documentType={document.category || document.documentType}
                                   createdAt={document.createdAt}
+                                  effectiveDate={document.effectiveDate}
                                   onViewClick={handleDocumentView}
                                   compact={viewMode === 'list'}
                                 />
