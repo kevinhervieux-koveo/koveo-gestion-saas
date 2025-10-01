@@ -3408,6 +3408,22 @@ export function registerDocumentRoutes(app: Express): void {
           }
         }
       }
+      
+      // Special handling for documents attached to demands
+      if (!hasAccess && document.attachedToType === 'demand' && document.attachedToId) {
+        const { demands } = await import('../../shared/schemas/operations');
+        const [demand] = await db.select().from(demands).where(eq(demands.id, document.attachedToId)).limit(1);
+        
+        if (demand) {
+          // User can access if they created the demand, or if they're admin/manager
+          if (demand.submitterId === userId || userRole === 'admin' || userRole === 'manager' || userRole === 'demo_manager') {
+            hasAccess = true;
+            accessReason = demand.submitterId === userId 
+              ? 'User created the demand this document is attached to'
+              : 'Manager/admin has access to all demands';
+          }
+        }
+      }
 
       if (!hasAccess) {
         logDocumentOperation('FILE_ACCESS_DENIED', {

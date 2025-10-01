@@ -36,6 +36,8 @@ import { performanceRouter } from './performance-api';
 import { webVitalsRouter } from './web-vitals-api';
 import { db } from './db';
 import * as schema from '@shared/schema';
+import { demands } from '../shared/schemas/operations';
+import { eq } from 'drizzle-orm';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -241,68 +243,59 @@ export async function registerRoutes(app: Express) {
   // SECURITY FIX: Removed direct static file serving - replaced with authenticated endpoints below
   // Old vulnerable code: app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   
-  // Legacy support for simple file access (MUST come before the more specific route)
+  // Demand file access endpoint - handles /uploads/demands/* URLs
   app.get('/uploads/demands/*', requireAuth, async (req: any, res) => {
     try {
       const user = req.user;
       const fileName = req.params[0]; // Everything after /uploads/demands/
       
-      console.log(`[DEMAND FILE ACCESS] User ${user.id} (${user.role}) requesting: ${fileName}`);
+      console.log(`[DEMAND FILE] User ${user.id} (${user.role}) requesting: ${fileName}`);
       
-      // Query the database to find the demand with this file
-      const { db } = await import('./db');
-      const { demands } = await import('../shared/schemas/operations');
-      const { eq } = await import('drizzle-orm');
-      
+      // Find the demand with this file
       const [demand] = await db.select().from(demands).where(eq(demands.fileName, fileName)).limit(1);
       
       if (!demand) {
-        console.log(`[DEMAND FILE ACCESS] No demand found with fileName: ${fileName}`);
+        console.log(`[DEMAND FILE] No demand found for: ${fileName}`);
         return res.status(404).json({ error: 'File not found' });
       }
       
-      console.log(`[DEMAND FILE ACCESS] Found demand ${demand.id}, submitter: ${demand.submitterId}, user: ${user.id}, role: ${user.role}`);
+      console.log(`[DEMAND FILE] Demand ${demand.id} by ${demand.submitterId}, checking access for ${user.id}`);
       
-      // Check if user has access to this demand
-      // Users can access demands they submitted or if they're admin/manager for the building
+      // Access check: user created demand OR is admin/manager
       const hasAccess = 
-        demand.submitterId === user.id || // User created the demand
-        user.role === 'admin' || // Admin has access to all
-        user.role === 'manager'; // Manager has access to all (could be refined by building)
-      
-      console.log(`[DEMAND FILE ACCESS] Access check result: ${hasAccess}`);
+        demand.submitterId === user.id || 
+        user.role === 'admin' || 
+        user.role === 'manager' ||
+        user.role === 'demo_manager';
       
       if (!hasAccess) {
-        console.log(`[DEMAND FILE ACCESS] Access denied for user ${user.id}`);
-        return res.status(403).json({ 
-          error: 'Access denied',
-          message: 'You do not have permission to access this file'
-        });
+        console.log(`[DEMAND FILE] Access DENIED for ${user.id}`);
+        return res.status(403).json({ error: 'Access denied' });
       }
       
-      console.log(`[DEMAND FILE ACCESS] Access granted for user ${user.id}`);
+      console.log(`[DEMAND FILE] Access GRANTED for ${user.id}`);
       
-      // Sanitize and construct safe file path
-      const sanitizedFileName = fileName.replace(/\.\.[\\\/]/g, '').replace(/^[\\\/]+/, '');
+      // Build and verify file path
+      const sanitizedFileName = fileName.replace(/\.\./g, '').replace(/^\/+/, '');
       const safeFilePath = path.join(process.cwd(), 'uploads', 'demands', sanitizedFileName);
       const uploadsDir = path.resolve(process.cwd(), 'uploads');
       const resolvedPath = path.resolve(safeFilePath);
       
-      // Ensure the resolved path is within uploads directory
       if (!resolvedPath.startsWith(uploadsDir)) {
-        return res.status(403).json({ error: 'Access denied - invalid file path' });
+        console.log(`[DEMAND FILE] Path traversal attempt: ${resolvedPath}`);
+        return res.status(403).json({ error: 'Invalid file path' });
       }
       
-      // Check if file exists
       if (!fs.existsSync(resolvedPath)) {
-        return res.status(404).json({ error: 'File not found' });
+        console.log(`[DEMAND FILE] File not found on disk: ${resolvedPath}`);
+        return res.status(404).json({ error: 'File not found on disk' });
       }
       
-      // Serve the file
+      console.log(`[DEMAND FILE] Serving file: ${resolvedPath}`);
       res.sendFile(resolvedPath);
       
     } catch (error: any) {
-      console.error('Demand file serving error:', error);
+      console.error(`[DEMAND FILE] Error:`, error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
