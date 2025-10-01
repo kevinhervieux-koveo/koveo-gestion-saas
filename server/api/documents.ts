@@ -3095,16 +3095,8 @@ export function registerDocumentRoutes(app: Express): void {
       const baseFileName = path.basename(req.file.originalname, fileExtension);
       const unsanitizedName = `${uuidv4()}-${baseFileName}${fileExtension}`;
       
-      // DEBUG: Log filename sanitization process
-      console.log('🔍 [FILENAME DEBUG] Original filename:', req.file.originalname);
-      console.log('🔍 [FILENAME DEBUG] Base name:', baseFileName);
-      console.log('🔍 [FILENAME DEBUG] Unsanitized name:', unsanitizedName);
-      
       // Sanitize filename to prevent path traversal and ensure consistent naming
       const sanitizedFileName = sanitizeFilePath(unsanitizedName);
-      
-      console.log('🔍 [FILENAME DEBUG] Sanitized name:', sanitizedFileName);
-      console.log('🔍 [FILENAME DEBUG] Sanitization changed:', unsanitizedName !== sanitizedFileName);
 
       let filePath: string;
       if (validatedData.residenceId) {
@@ -3114,8 +3106,6 @@ export function registerDocumentRoutes(app: Express): void {
       } else {
         filePath = `general/${sanitizedFileName}`;
       }
-      
-      console.log('🔍 [FILENAME DEBUG] Final file path:', filePath);
 
       // DISABLED GCS: Force local storage for all environments
       // console.log('📁 GCS disabled - using local storage for all document operations');
