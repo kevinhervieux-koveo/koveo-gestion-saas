@@ -416,12 +416,48 @@ export function registerDemandRoutes(app: Express) {
       //   description: validatedData.description
       // });
 
+      // Handle file attachments if provided
+      let fileInfo: { filePath?: string; fileName?: string; fileSize?: number } = {};
+      
+      if (demandData.attachments && Array.isArray(demandData.attachments) && demandData.attachments.length > 0) {
+        const firstAttachment = demandData.attachments[0];
+        
+        // Extract filename from the file path (e.g., '/uploads/demands/demand-xxx.jpg' -> 'demand-xxx.jpg')
+        const fileName = firstAttachment.split('/').pop() || '';
+        
+        // Get file size from filesystem if file exists
+        let fileSize = 0;
+        try {
+          const fs = await import('fs');
+          const path = await import('path');
+          const fullPath = path.join(process.cwd(), firstAttachment.replace(/^\//, ''));
+          if (fs.existsSync(fullPath)) {
+            const stats = fs.statSync(fullPath);
+            fileSize = stats.size;
+          }
+        } catch (error) {
+          // If we can't get file size, just set it to 0
+        }
+        
+        fileInfo = {
+          filePath: firstAttachment,
+          fileName: fileName,
+          fileSize: fileSize,
+        };
+      }
+
       const demandInsertData = {
-        ...validatedData,
+        type: validatedData.type,
+        description: validatedData.description,
         buildingId: validatedData.buildingId,
         residenceId: validatedData.residenceId,
+        assignationBuildingId: validatedData.assignationBuildingId,
+        assignationResidenceId: validatedData.assignationResidenceId,
         submitterId: user.id,
         status: (validatedData.status as 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed' | 'cancelled') || 'submitted',
+        filePath: fileInfo.filePath,
+        fileName: fileInfo.fileName,
+        fileSize: fileInfo.fileSize,
       };
 
       const newDemand = await db.insert(demands).values([demandInsertData]).returning();
