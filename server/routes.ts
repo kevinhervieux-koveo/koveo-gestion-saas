@@ -241,6 +241,72 @@ export async function registerRoutes(app: Express) {
   // SECURITY FIX: Removed direct static file serving - replaced with authenticated endpoints below
   // Old vulnerable code: app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   
+  // Legacy support for simple file access (MUST come before the more specific route)
+  app.get('/uploads/demands/*', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const fileName = req.params[0]; // Everything after /uploads/demands/
+      
+      console.log(`[DEMAND FILE ACCESS] User ${user.id} (${user.role}) requesting: ${fileName}`);
+      
+      // Query the database to find the demand with this file
+      const { db } = await import('./db');
+      const { demands } = await import('../shared/schemas/operations');
+      const { eq } = await import('drizzle-orm');
+      
+      const [demand] = await db.select().from(demands).where(eq(demands.fileName, fileName)).limit(1);
+      
+      if (!demand) {
+        console.log(`[DEMAND FILE ACCESS] No demand found with fileName: ${fileName}`);
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      console.log(`[DEMAND FILE ACCESS] Found demand ${demand.id}, submitter: ${demand.submitterId}, user: ${user.id}, role: ${user.role}`);
+      
+      // Check if user has access to this demand
+      // Users can access demands they submitted or if they're admin/manager for the building
+      const hasAccess = 
+        demand.submitterId === user.id || // User created the demand
+        user.role === 'admin' || // Admin has access to all
+        user.role === 'manager'; // Manager has access to all (could be refined by building)
+      
+      console.log(`[DEMAND FILE ACCESS] Access check result: ${hasAccess}`);
+      
+      if (!hasAccess) {
+        console.log(`[DEMAND FILE ACCESS] Access denied for user ${user.id}`);
+        return res.status(403).json({ 
+          error: 'Access denied',
+          message: 'You do not have permission to access this file'
+        });
+      }
+      
+      console.log(`[DEMAND FILE ACCESS] Access granted for user ${user.id}`);
+      
+      // Sanitize and construct safe file path
+      const sanitizedFileName = fileName.replace(/\.\.[\\\/]/g, '').replace(/^[\\\/]+/, '');
+      const safeFilePath = path.join(process.cwd(), 'uploads', 'demands', sanitizedFileName);
+      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      const resolvedPath = path.resolve(safeFilePath);
+      
+      // Ensure the resolved path is within uploads directory
+      if (!resolvedPath.startsWith(uploadsDir)) {
+        return res.status(403).json({ error: 'Access denied - invalid file path' });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(resolvedPath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      // Serve the file
+      res.sendFile(resolvedPath);
+      
+    } catch (error: any) {
+      console.error('Demand file serving error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
   // Secure authenticated file serving endpoint
   app.get('/uploads/:orgId/:category/:fileId', requireAuth, async (req: any, res) => {
     try {
