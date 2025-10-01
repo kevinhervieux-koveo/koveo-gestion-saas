@@ -220,15 +220,17 @@ export async function registerRoutes(app: Express) {
         });
       }
 
-      // Generate file URLs/paths for the uploaded files
-      const fileUrls = files.map(file => {
-        return `/uploads/demands/${file.filename}`;
-      });
-
+      // Generate file info including original names
+      const uploadedFiles = files.map(file => ({
+        url: `/uploads/demands/${file.filename}`,
+        originalName: file.originalname,
+        size: file.size
+      }));
 
       return res.json({ 
         message: 'Files uploaded successfully',
-        fileUrls: fileUrls,
+        files: uploadedFiles,
+        fileUrls: uploadedFiles.map(f => f.url), // Keep for backward compatibility
         fileCount: files.length
       });
     } catch (error: any) {

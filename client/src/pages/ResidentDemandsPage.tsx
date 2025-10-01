@@ -213,7 +213,7 @@ ResidentDemandsPage() {
   }), [defaultUser?.role, defaultUser?.id]);
 
   // File upload helper function
-  const uploadFiles = async (files: File[]): Promise<string[]> => {
+  const uploadFiles = async (files: File[]): Promise<Array<{ url: string; originalName: string; size: number } | string>> => {
     if (files.length === 0) return [];
     
     const formData = new FormData();
@@ -231,7 +231,8 @@ ResidentDemandsPage() {
     }
     
     const result = await response.json();
-    return result.fileUrls || [];
+    // Return file objects with original names if available, otherwise fall back to URLs
+    return result.files || result.fileUrls?.map((url: string) => url) || [];
   };
 
   // Create demand mutation

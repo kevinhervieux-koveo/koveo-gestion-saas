@@ -422,28 +422,38 @@ export function registerDemandRoutes(app: Express) {
       if (demandData.attachments && Array.isArray(demandData.attachments) && demandData.attachments.length > 0) {
         const firstAttachment = demandData.attachments[0];
         
-        // Extract filename from the file path (e.g., '/uploads/demands/demand-xxx.jpg' -> 'demand-xxx.jpg')
-        const fileName = firstAttachment.split('/').pop() || '';
-        
-        // Get file size from filesystem if file exists
-        let fileSize = 0;
-        try {
-          const fs = await import('fs');
-          const path = await import('path');
-          const fullPath = path.join(process.cwd(), firstAttachment.replace(/^\//, ''));
-          if (fs.existsSync(fullPath)) {
-            const stats = fs.statSync(fullPath);
-            fileSize = stats.size;
+        // Check if attachment is an object with url and originalName (new format)
+        // or just a string URL (old format for backward compatibility)
+        if (typeof firstAttachment === 'object' && firstAttachment.url) {
+          fileInfo = {
+            filePath: firstAttachment.url,
+            fileName: firstAttachment.originalName || firstAttachment.url.split('/').pop() || '',
+            fileSize: firstAttachment.size || 0,
+          };
+        } else if (typeof firstAttachment === 'string') {
+          // Old format: just a URL string
+          const fileName = firstAttachment.split('/').pop() || '';
+          
+          // Get file size from filesystem if file exists
+          let fileSize = 0;
+          try {
+            const fs = await import('fs');
+            const path = await import('path');
+            const fullPath = path.join(process.cwd(), firstAttachment.replace(/^\//, ''));
+            if (fs.existsSync(fullPath)) {
+              const stats = fs.statSync(fullPath);
+              fileSize = stats.size;
+            }
+          } catch (error) {
+            // If we can't get file size, just set it to 0
           }
-        } catch (error) {
-          // If we can't get file size, just set it to 0
+          
+          fileInfo = {
+            filePath: firstAttachment,
+            fileName: fileName,
+            fileSize: fileSize,
+          };
         }
-        
-        fileInfo = {
-          filePath: firstAttachment,
-          fileName: fileName,
-          fileSize: fileSize,
-        };
       }
 
       const demandInsertData = {
