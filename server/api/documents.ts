@@ -3077,12 +3077,23 @@ export function registerDocumentRoutes(app: Express): void {
 
       // Fetch buildingId from residence if residenceId is provided
       let actualBuildingId = validatedData.buildingId;
+      console.log('🔍 [DEBUG] Initial actualBuildingId:', actualBuildingId);
+      console.log('🔍 [DEBUG] validatedData.residenceId:', validatedData.residenceId);
+      console.log('🔍 [DEBUG] Will fetch residence?:', validatedData.residenceId && !actualBuildingId);
+      
       if (validatedData.residenceId && !actualBuildingId) {
+        console.log('🔍 [DEBUG] Fetching residence to get buildingId...');
         const residence = await storage.getResidence(validatedData.residenceId);
+        console.log('🔍 [DEBUG] Residence fetched:', residence);
+        
         if (!residence) {
+          console.log('❌ [DEBUG] Residence not found!');
           return res.status(404).json({ message: 'Residence not found' });
         }
         actualBuildingId = residence.buildingId;
+        console.log('✅ [DEBUG] actualBuildingId set from residence:', actualBuildingId);
+      } else {
+        console.log('⚠️ [DEBUG] NOT fetching residence. actualBuildingId already set or no residenceId');
       }
 
       // GCS DISABLED: Skip bucket configuration (using local storage only)
@@ -3163,6 +3174,13 @@ export function registerDocumentRoutes(app: Express): void {
         attachedToId: validatedData.attachedToId,
         effectiveDate: validatedData.effectiveDate,
       };
+      
+      console.log('📊 [DEBUG] Final documentData before storage.createDocument:', {
+        name: documentData.name,
+        buildingId: documentData.buildingId,
+        residenceId: documentData.residenceId,
+        filePath: documentData.filePath
+      });
 
       // Create document record in database
 
@@ -3367,44 +3385,74 @@ export function registerDocumentRoutes(app: Express): void {
       let hasAccess = false;
       let accessReason = '';
 
+      console.log('🔐 [ACCESS CONTROL DEBUG] Starting access check:', {
+        operationId,
+        userRole,
+        userId,
+        documentId: document.id,
+        documentBuildingId: document.buildingId,
+        documentResidenceId: document.residenceId,
+        userBuildingIds,
+        userResidenceIds,
+        userOrganizations
+      });
+
       if (userRole === 'admin') {
         hasAccess = true;
         accessReason = 'Admin has global access';
-        // Admin access granted
+        console.log('✅ [ACCESS] Admin granted access');
       } else if (userRole === 'manager' || userRole === 'demo_manager') {
-        // Checking manager permissions
+        console.log('👔 [ACCESS] Checking manager permissions...');
         
         // Manager should have access to buildings they are assigned to
         if (document.buildingId) {
+          console.log('🏢 [ACCESS] Document has buildingId, checking building access...');
           // Checking building-level access using pre-loaded building IDs from scope
           if (userBuildingIds.includes(document.buildingId)) {
             hasAccess = true;
             accessReason = 'Manager has access to organization buildings';
-            // Manager building access granted
+            console.log('✅ [ACCESS] Manager granted access via building');
           } else {
-            // Manager building access denied
+            console.log('❌ [ACCESS] Manager does NOT have access to this building');
           }
+        } else {
+          console.log('⚠️ [ACCESS] Document has NO buildingId (this is the problem!)');
         }
         
         // Manager has access to all residences in their organization
         if (document.residenceId) {
+          console.log('🏠 [ACCESS] Document has residenceId, checking residence access...');
           // OPTIMIZED: Check if residence is in user's accessible residences (already loaded from scope)
           if (scope.residenceIds.includes(document.residenceId)) {
             hasAccess = true;
             accessReason = 'Manager has access to organization residences';
+            console.log('✅ [ACCESS] Manager granted access via residence');
+          } else {
+            console.log('❌ [ACCESS] Manager does NOT have access to this residence');
           }
         }
       } else if (userRole === 'resident' || userRole === 'demo_resident') {
+        console.log('👤 [ACCESS] Checking resident permissions...');
+        
         // Resident has access to building files they are assigned to
         if (document.buildingId && userBuildingIds.includes(document.buildingId)) {
           hasAccess = true;
           accessReason = 'Resident has access to assigned building documents';
+          console.log('✅ [ACCESS] Resident granted access via building');
+        } else if (document.buildingId) {
+          console.log('❌ [ACCESS] Resident does NOT have access to this building');
         }
         
         // Resident has access to residence files they are assigned to
         if (document.residenceId && userResidenceIds.includes(document.residenceId)) {
           hasAccess = true;
           accessReason = 'Resident has access to assigned residence documents';
+          console.log('✅ [ACCESS] Resident granted access via residence');
+        } else if (document.residenceId) {
+          console.log('❌ [ACCESS] Resident does NOT have access to this residence');
+          console.log('🔍 [ACCESS] userResidenceIds:', userResidenceIds);
+          console.log('🔍 [ACCESS] document.residenceId:', document.residenceId);
+          console.log('🔍 [ACCESS] includes check:', userResidenceIds.includes(document.residenceId));
         }
       } else if (userRole === 'tenant' || userRole === 'demo_tenant') {
         // Tenants can only access documents marked as visible to tenants
