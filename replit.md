@@ -24,7 +24,11 @@ The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, prioritizing respons
 - **Authorization**: Four-tier Role-Based Access Control (RBAC) (Admin, Manager, Tenant, Resident) with granular permissions and organization-based access.
 - **File Storage**: A modern hierarchical structure is used for file storage: `{type}/org_{organizationId}/building_{buildingId}/residence_{residenceId}/role_{userRole}/user_{userId}`. It includes role normalization, type mapping, a secure resolver endpoint (`GET /api/documents/:id/file`), and a quarantine system for legacy files.
 - **Internationalization**: Custom language provider supports English and French.
-- **Testing**: A comprehensive test suite using Jest covers unit, integration, and API routes, with a focus on Quebec Law 25 compliance. It features advanced Jest configuration with ES module support, server mocking, and unified database mocking.
+- **Testing**: A comprehensive test suite using Vitest covers unit, integration, and API routes, with a focus on Quebec Law 25 compliance. The testing infrastructure includes:
+  - **Vitest Configuration**: Modern test runner with better ESM and TypeScript support, replacing Jest for improved drizzle-orm compatibility.
+  - **Document API Tests**: 30 tests total (15 helper function tests + 15 integration tests) covering document upload, download, view, list, and delete operations with full authentication and authorization testing.
+  - **Test Authentication**: Custom test authentication middleware using `x-test-user-id` header for integration tests.
+  - **Schema Validation**: Manual Zod schemas (replacing drizzle-zod createInsertSchema) ensure proper validation aligned with actual database column types.
 
 ### Feature Specifications
 - **Document Management**: Full system with role-based access control, hierarchical storage, secure file access, a 30-day quarantine for legacy files, and comprehensive upload/download with categorization.
