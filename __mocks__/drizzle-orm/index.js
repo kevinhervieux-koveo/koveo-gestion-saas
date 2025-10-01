@@ -1,3 +1,11 @@
+// For server integration tests, use actual drizzle-orm but mock only what's needed
+let actualDrizzleOrm;
+try {
+  actualDrizzleOrm = jest.requireActual('drizzle-orm');
+} catch (e) {
+  actualDrizzleOrm = {};
+}
+
 // Re-export drizzle-orm operators for centralized mocking
 const { eq, and, or, sql, gte, lte } = require('../enhanced-database-mock');
 
@@ -50,11 +58,20 @@ const notExists = jest.fn().mockImplementation((query) => ({
   type: 'notExists', query
 }));
 
-// Relations function
-const relations = jest.fn().mockImplementation((table, relationCallback) => ({
-  table,
-  relations: relationCallback || {}
-}));
+// Relations function - for server integration tests, return empty object
+// Relations are metadata only and don't affect actual database operations
+const relations = jest.fn().mockImplementation((table, relationCallback) => {
+  // Call the callback if provided to avoid errors, but don't use the result
+  if (typeof relationCallback === 'function') {
+    try {
+      relationCallback({ one: jest.fn(), many: jest.fn() });
+    } catch (e) {
+      // Ignore errors in relation definitions
+    }
+  }
+  // Return an empty object - relations are not needed for basic CRUD
+  return {};
+});
 
 // Ordering functions
 const desc = jest.fn().mockImplementation((column) => ({

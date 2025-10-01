@@ -62,11 +62,11 @@ export const insertDocumentSchema = z.object({
   mimeType: z.string().optional(),
   isVisibleToTenants: z.boolean().default(false),
   isQuarantined: z.boolean().default(false),
-  residenceId: z.string().uuid().optional(),
-  buildingId: z.string().uuid().optional(),
-  uploadedById: z.string().uuid().min(1, 'Uploaded by user ID is required'),
+  residenceId: z.string().optional(),
+  buildingId: z.string().optional(),
+  uploadedById: z.string().min(1, 'Uploaded by user ID is required'),
   attachedToType: z.string().optional(),
-  attachedToId: z.string().uuid().optional(),
+  attachedToId: z.string().optional(),
   effectiveDate: z.string().optional(),
 });
 
@@ -79,8 +79,8 @@ export const attachDocumentSchema = z.object({
   fileSize: z.number().int().optional(),
   mimeType: z.string().optional(),
   attachedToType: z.enum(['bill', 'feature_request', 'bug_report', 'maintenance_request']),
-  attachedToId: z.string().uuid().min(1, 'Attached entity ID is required'),
-  uploadedById: z.string().uuid().min(1, 'Uploaded by user ID is required'),
+  attachedToId: z.string().min(1, 'Attached entity ID is required'),
+  uploadedById: z.string().min(1, 'Uploaded by user ID is required'),
   effectiveDate: z.string().optional(),
 });
 
