@@ -52,6 +52,9 @@ interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
+  filePath?: string;
+  fileName?: string;
+  fileSize?: number;
   status:
     | 'submitted'
     | 'under_review'
