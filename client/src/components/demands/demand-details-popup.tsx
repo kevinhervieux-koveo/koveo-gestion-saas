@@ -233,7 +233,7 @@ export default function DemandDetailsPopup({
 
   // Fetch attached documents
   const { data: attachedDocuments = [] } = useQuery<any[]>({
-    queryKey: ['/api/documents', { attachedToType: 'demand', attachedToId: demand?.id }],
+    queryKey: [`/api/documents?attachedToType=demand&attachedToId=${demand?.id}`],
     enabled: !!demand?.id && isOpen,
   });
 
