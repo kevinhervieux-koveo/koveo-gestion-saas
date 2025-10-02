@@ -253,8 +253,10 @@ export async function registerRoutes(app: Express) {
       
       console.log(`[DEMAND FILE] User ${user.id} (${user.role}) requesting: ${fileName}`);
       
-      // Find the demand with this file
-      const [demand] = await db.select().from(demands).where(eq(demands.fileName, fileName)).limit(1);
+      // Find the demand with this file by matching against filePath (which contains the server-generated filename)
+      // Note: fileName column now stores the original user filename for display
+      const requestedPath = `/uploads/demands/${fileName}`;
+      const [demand] = await db.select().from(demands).where(eq(demands.filePath, requestedPath)).limit(1);
       
       if (!demand) {
         console.log(`[DEMAND FILE] No demand found for: ${fileName}`);
