@@ -890,11 +890,11 @@ export default function ModularDocumentPageWrapper({
                                   documentType={document.category || document.documentType}
                                   createdAt={document.createdAt}
                                   effectiveDate={document.effectiveDate}
-                                  onViewClick={handleDocumentView}
+                                  onViewClick={selectionMode ? undefined : handleDocumentView}
                                   compact={viewMode === 'list'}
                                   selectable={selectionMode}
                                   selected={selectedDocuments.has(document.id)}
-                                  onSelectionChange={(selected) => handleDocumentSelectionChange(document.id, selected)}
+                                  onSelectionChange={handleDocumentSelectionChange}
                                 />
                               ))}
                             </div>
