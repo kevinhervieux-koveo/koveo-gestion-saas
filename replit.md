@@ -6,7 +6,16 @@ Koveo Gestion is an AI-powered SaaS platform designed for property management wi
 
 ## Recent Changes
 
-**October 4, 2025 (Latest)**: Enhanced document management with bulk operations and duplicate page cleanup:
+**October 4, 2025 (Latest)**: Comprehensive codebase cleanup - removed duplicate and unused pages:
+1. **Page deduplication**: Removed 4 duplicate/unused pages totaling ~2,800 lines of dead code
+   - Documents.tsx (961 lines) - unused legacy document management page
+   - ModularDocuments.tsx (518 lines) - unused legacy document management page
+   - ManagerDemandsPage.tsx (682 lines) - duplicate of manager/demands.tsx
+   - admin/suggestions-with-filter.tsx - unused admin page without route
+2. **Index.ts cleanup**: Updated page exports to reflect removed files, ensuring proper module resolution
+3. **Verified uniqueness**: All remaining 58 pages are unique, properly routed, and actively used in the application
+
+**October 4, 2025**: Enhanced document management with bulk operations and duplicate page cleanup:
 1. **Bulk delete functionality**: Implemented comprehensive bulk delete for documents in ModularDocumentPageWrapper component used across manager and resident document pages
 2. **Selection mode UI**: Added visual selection mode with checkboxes, "Select All"/"Deselect All" buttons, and bulk delete button showing selected count
 3. **Graceful error handling**: Uses Promise.allSettled for reliable partial failure handling - operations continue even if individual deletions fail
