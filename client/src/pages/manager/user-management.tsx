@@ -56,7 +56,7 @@ import { InvitationManagement } from '@/components/InvitationManagement';
 
 // Form validation schema for editing users - dynamic based on available roles
 const createEditUserSchema = (availableRoles: { value: string; label: string }[]) => {
-  if (!Array.isArray(availableRoles) || availableRoles.length === 0) {
+  if (!availableRoles || !Array.isArray(availableRoles) || availableRoles.length === 0) {
     return z.object({
       firstName: z.string().min(1, 'First name is required (example: Jean)').max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name can only contain letters, spaces, apostrophes and hyphens'),
       lastName: z.string().min(1, 'Last name is required (example: Dupont)').max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Last name can only contain letters, spaces, apostrophes and hyphens'),
@@ -242,7 +242,8 @@ export default function UserManagement() {
   });
 
   // Extract users and pagination info from response
-  const users = usersResponse?.users || [];
+  // Ensure users is always an array, even if API returns unexpected data
+  const users = Array.isArray(usersResponse?.users) ? usersResponse.users : [];
   const paginationInfo = usersResponse?.pagination;
 
   // Fetch dynamic filter options
@@ -255,26 +256,29 @@ export default function UserManagement() {
     queryKey: ['/api/users/filter-options'],
   });
 
-  // Fetch organizations
-  const { data: organizations = [] } = useQuery<Organization[]>({
+  // Fetch organizations - ensure always an array
+  const { data: organizationsData } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
     queryFn: () => apiRequest('GET', '/api/organizations') as unknown as Promise<Organization[]>,
     enabled: true,
   });
+  const organizations = Array.isArray(organizationsData) ? organizationsData : [];
 
-  // Fetch buildings
-  const { data: buildings = [] } = useQuery<Building[]>({
+  // Fetch buildings - ensure always an array
+  const { data: buildingsData } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
     queryFn: () => apiRequest('GET', '/api/buildings') as unknown as Promise<Building[]>,
     enabled: true,
   });
+  const buildings = Array.isArray(buildingsData) ? buildingsData : [];
 
-  // Fetch residences
-  const { data: residences = [] } = useQuery<Residence[]>({
+  // Fetch residences - ensure always an array
+  const { data: residencesData } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
     queryFn: () => apiRequest('GET', '/api/residences') as unknown as Promise<Residence[]>,
     enabled: true,
   });
+  const residences = Array.isArray(residencesData) ? residencesData : [];
 
   // Get current user to check permissions
   const { data: currentUser } = useQuery<User>({
@@ -390,7 +394,11 @@ export default function UserManagement() {
   }, [currentUser, userOrganizationContext]);
 
   // Dynamic edit user schema based on available roles
-  const editUserSchema = useMemo(() => createEditUserSchema(getAvailableRoles), [getAvailableRoles]);
+  const editUserSchema = useMemo(() => {
+    // Ensure we always pass an array to createEditUserSchema
+    const rolesArray = Array.isArray(getAvailableRoles) ? getAvailableRoles : [];
+    return createEditUserSchema(rolesArray);
+  }, [getAvailableRoles]);
 
   // Bulk action handler
   const bulkActionMutation = useMutation({
