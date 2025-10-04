@@ -2534,16 +2534,16 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
       <Header title="Budget Management" subtitle="Plan and track financial budgets for property management with comprehensive forecasting and analysis." />
       
       {/* Back Navigation */}
-      {(organizationId || buildingId) && (
+      {buildingId && (
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <Button
             variant="outline"
-            onClick={buildingId ? handleBackToBuilding : handleBackToOrganization}
+            onClick={handleBackToBuilding}
             className="flex items-center gap-2"
-            data-testid={buildingId ? "button-back-to-building" : "button-back-to-organization"}
+            data-testid="button-back-to-building"
           >
             <ArrowLeft className="w-4 h-4" />
-            {buildingId ? t('building') : t('organization')}
+            Back to Building
           </Button>
         </div>
       )}
