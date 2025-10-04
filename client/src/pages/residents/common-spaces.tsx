@@ -559,16 +559,18 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
   });
 
   // Get bookings for selected date
+  const formDate = form.watch('date');
+
   const bookingsForDate = useMemo(() => {
-    if (!bookings || !selectedDate) {
+    if (!bookings || !formDate) {
       return [];
     }
 
     return bookings.filter((booking: Booking) => {
       const bookingDate = parseISO(booking.startTime);
-      return isSameDay(bookingDate, selectedDate);
+      return isSameDay(bookingDate, formDate);
     });
-  }, [bookings, selectedDate]);
+  }, [bookings, formDate]);
 
   // Get time slots availability
   const timeSlots = useMemo(() => {
@@ -737,6 +739,7 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
   const handleDateClick = (date: Date) => {
     setPreSelectedDate(date);
     form.setValue('date', date);
+    setSelectedDate(date);
     setIsBookingDialogOpen(true);
   };
 
@@ -745,6 +748,7 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
     if (date) {
       setPreSelectedDate(date);
       form.setValue('date', date);
+      setSelectedDate(date);
     }
     setIsBookingDialogOpen(true);
   };

@@ -311,15 +311,15 @@ function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any[
     return true; // No restrictions if no opening hours defined
   }
 
-  const startDay = startTime.toLocaleDateString('en-US', { weekday: 'long' });
-  const endDay = endTime.toLocaleDateString('en-US', { weekday: 'long' });
+  const startDay = startTime.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+  const endDay = endTime.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
   // For simplicity, require booking to be within same day
   if (startDay !== endDay) {
     return false;
   }
 
-  const dayHours = openingHours.find((oh) => oh.day === startDay);
+  const dayHours = openingHours.find((oh) => oh.day.toLowerCase() === startDay);
   if (!dayHours) {
     return false; // No hours defined for this day
   }
