@@ -244,16 +244,14 @@ export function StandardCard({
         
         {/* Metadata */}
         {metadata.length > 0 && (
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
-            <div className="flex items-center space-x-4">
-              {metadata.map((item, index) => (
-                <div key={index} className="flex items-center space-x-1">
-                  {item.icon}
-                  {item.label && <span className="font-medium">{item.label}:</span>}
-                  <span>{item.value}</span>
-                </div>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400 mt-2">
+            {metadata.map((item, index) => (
+              <div key={index} className="flex items-center space-x-1 min-w-0">
+                {item.icon && <span className="flex-shrink-0">{item.icon}</span>}
+                {item.label && <span className="font-medium flex-shrink-0">{item.label}:</span>}
+                <span className="truncate">{item.value}</span>
+              </div>
+            ))}
           </div>
         )}
       </CardHeader>

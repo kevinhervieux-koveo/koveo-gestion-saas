@@ -100,12 +100,12 @@ export function ResidenceCard({
 
   const buildingInfo = (
     <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-      <p className='flex items-center gap-1'>
-        <Building className='w-3 h-3' />
-        {residence.building.name}
+      <p className='flex items-center gap-1 min-w-0'>
+        <Building className='w-3 h-3 flex-shrink-0' />
+        <span className='truncate'>{residence.building.name}</span>
       </p>
       <p className='flex items-center gap-1'>
-        <MapPin className='w-3 h-3' />
+        <MapPin className='w-3 h-3 flex-shrink-0' />
         {t('floor')} {residence.floor || 'N/A'}
       </p>
     </div>
@@ -154,7 +154,7 @@ export function ResidenceCard({
         ) : (
           <div className='space-y-1' data-testid={`tenants-list-${residence.id}`}>
             {residence.tenants.slice(0, 2).map((tenant) => (
-              <p key={tenant.id} className='text-xs text-gray-600'>
+              <p key={tenant.id} className='text-xs text-gray-600 truncate'>
                 {tenant.firstName} {tenant.lastName}
               </p>
             ))}
