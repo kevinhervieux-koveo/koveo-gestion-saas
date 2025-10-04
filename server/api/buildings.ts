@@ -6,6 +6,7 @@ import {
   residences,
   userResidences,
   userOrganizations,
+  userBuildings,
   users,
   documents,
 } from '@shared/schema';
@@ -425,8 +426,65 @@ export function registerBuildingRoutes(app: Express): void {
           }
         });
       } else {
-        // Regular users: For Admin and Manager roles: Get buildings from their organizations only
-        if (currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
+        // Regular users: For Manager roles: Get buildings from their userBuildings assignments only
+        if (currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
+          // Managers should only see buildings they are explicitly assigned to via userBuildings table
+          const userBuildingAssignments = await db
+            .select({
+              buildingId: userBuildings.buildingId,
+            })
+            .from(userBuildings)
+            .where(and(eq(userBuildings.userId, currentUser.id), eq(userBuildings.isActive, true)));
+
+          if (userBuildingAssignments.length > 0) {
+            const assignedBuildingIds = userBuildingAssignments.map((ub) => ub.buildingId);
+
+            // Get buildings the manager is assigned to (filtered by organizationId if specified)
+            const whereConditions = [eq(buildings.isActive, true), inArray(buildings.id, assignedBuildingIds)];
+            if (organizationIdFilter) {
+              whereConditions.push(eq(buildings.organizationId, organizationIdFilter));
+            }
+            
+            const assignedBuildings = await db
+              .select({
+                id: buildings.id,
+                name: buildings.name,
+                address: buildings.address,
+                city: buildings.city,
+                province: buildings.province,
+                postalCode: buildings.postalCode,
+                buildingType: buildings.buildingType,
+                constructionDate: buildings.constructionDate,
+                totalUnits: buildings.totalUnits,
+                totalFloors: buildings.totalFloors,
+                parkingSpaces: buildings.parkingSpaces,
+                storageSpaces: buildings.storageSpaces,
+                amenities: buildings.amenities,
+                managementCompany: buildings.managementCompany,
+                organizationId: buildings.organizationId,
+                isActive: buildings.isActive,
+                createdAt: buildings.createdAt,
+                updatedAt: buildings.updatedAt,
+                organizationName: organizations.name,
+                organizationType: organizations.type,
+              })
+              .from(buildings)
+              .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+              .where(and(...whereConditions));
+
+            assignedBuildings.forEach((building) => {
+              if (!buildingIds.has(building.id)) {
+                buildingIds.add(building.id);
+                accessibleBuildings.push({
+                  ...building,
+                  accessType: 'assignment', // Track how user has access (via userBuildings)
+                });
+              }
+            });
+          }
+        }
+        // Admin users with non-global access: Get buildings from their organizations
+        else if (currentUser.role === 'admin') {
           if (userOrgs.length > 0) {
             const orgIds = userOrgs.map((uo) => uo.organizationId);
 

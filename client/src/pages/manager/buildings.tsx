@@ -356,13 +356,16 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
     queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
   });
 
-  // Fetch organizations for form
+  // Fetch user's organizations to check count
+  const { data: userOrganizations = [] } = useQuery({
+    queryKey: ['/api/users/me/organizations'],
+    queryFn: () => apiRequest('GET', '/api/users/me/organizations') as Promise<any[]>,
+  });
+
+  // Fetch all organizations for form (admin only)
   const { data: organizations = [] } = useQuery({
     queryKey: ['/api/organizations'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/organizations');
-      return await response.json();
-    },
+    queryFn: () => apiRequest('GET', '/api/organizations') as Promise<any[]>,
   });
 
   // Fetch buildings for the selected organization
@@ -560,8 +563,8 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title="Buildings Management" subtitle="Manage building information, property assets, and organization structures." />
       
-      {/* Back to Organization Navigation */}
-      {organizationId && (
+      {/* Back to Organization Navigation - only show if user has multiple organizations */}
+      {organizationId && userOrganizations.length > 1 && (
         <div className="p-4 border-b border-gray-200">
           <Button
             variant="outline"
