@@ -286,22 +286,71 @@ export default function UserManagement() {
   });
 
   // Fetch current user's organizations independently
-  const { data: currentUserOrganizations } = useQuery<Organization[]>({
+  const { data: currentUserOrganizations, isLoading: orgsLoading, error: orgsError } = useQuery<Organization[]>({
     queryKey: ['/api/users/me/organizations'],
+    queryFn: async () => {
+      console.log('🔍 [USER_MANAGEMENT] Fetching current user organizations...');
+      const response = await fetch('/api/users/me/organizations', { credentials: 'include' });
+      if (!response.ok) {
+        console.error('❌ [USER_MANAGEMENT] Failed to fetch organizations:', response.status, response.statusText);
+        throw new Error(`Failed to fetch organizations: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('✅ [USER_MANAGEMENT] Fetched organizations:', data);
+      return data;
+    },
     enabled: !!currentUser,
   });
 
   // Fetch current user's buildings independently
-  const { data: currentUserBuildings } = useQuery<Building[]>({
+  const { data: currentUserBuildings, isLoading: buildingsLoading, error: buildingsError } = useQuery<Building[]>({
     queryKey: ['/api/users/me/buildings'],
+    queryFn: async () => {
+      console.log('🔍 [USER_MANAGEMENT] Fetching current user buildings...');
+      const response = await fetch('/api/users/me/buildings', { credentials: 'include' });
+      if (!response.ok) {
+        console.error('❌ [USER_MANAGEMENT] Failed to fetch buildings:', response.status, response.statusText);
+        throw new Error(`Failed to fetch buildings: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('✅ [USER_MANAGEMENT] Fetched buildings:', data);
+      return data;
+    },
     enabled: !!currentUser,
   });
 
   // Fetch current user's residences independently
-  const { data: currentUserResidences } = useQuery<Residence[]>({
+  const { data: currentUserResidences, isLoading: residencesLoading, error: residencesError } = useQuery<Residence[]>({
     queryKey: ['/api/users/me/residences'],
+    queryFn: async () => {
+      console.log('🔍 [USER_MANAGEMENT] Fetching current user residences...');
+      const response = await fetch('/api/users/me/residences', { credentials: 'include' });
+      if (!response.ok) {
+        console.error('❌ [USER_MANAGEMENT] Failed to fetch residences:', response.status, response.statusText);
+        throw new Error(`Failed to fetch residences: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('✅ [USER_MANAGEMENT] Fetched residences:', data);
+      return data;
+    },
     enabled: !!currentUser,
   });
+
+  // Debug logging for current user assignment queries
+  useEffect(() => {
+    console.log('🔍 [USER_MANAGEMENT] Current user assignment queries status:', {
+      currentUser: currentUser?.email,
+      orgsLoading,
+      buildingsLoading,
+      residencesLoading,
+      orgsError: orgsError?.message,
+      buildingsError: buildingsError?.message,
+      residencesError: residencesError?.message,
+      currentUserOrganizations: currentUserOrganizations?.length,
+      currentUserBuildings: currentUserBuildings?.length,
+      currentUserResidences: currentUserResidences?.length
+    });
+  }, [currentUser, orgsLoading, buildingsLoading, residencesLoading, orgsError, buildingsError, residencesError, currentUserOrganizations, currentUserBuildings, currentUserResidences]);
 
   // Memoized lookup maps for O(1) performance
   const buildingLookup = useMemo(() => {
@@ -605,7 +654,15 @@ export default function UserManagement() {
 
   // Get current user's access information for role-based filtering
   const currentUserAccess = useMemo(() => {
+    console.log('🔍 [USER_MANAGEMENT] Computing currentUserAccess memo:', {
+      currentUser: currentUser?.email,
+      currentUserOrganizations: currentUserOrganizations,
+      currentUserBuildings: currentUserBuildings,
+      currentUserResidences: currentUserResidences
+    });
+
     if (!currentUser) {
+      console.log('❌ [USER_MANAGEMENT] No current user, returning empty access');
       return {
         organizationIds: [],
         buildingIds: [],
@@ -627,6 +684,12 @@ export default function UserManagement() {
     const residenceIds = Array.isArray(currentUserResidences) 
       ? currentUserResidences.map((residence: any) => residence.id) 
       : [];
+
+    console.log('✅ [USER_MANAGEMENT] Extracted access IDs:', {
+      organizationIds,
+      buildingIds,
+      residenceIds
+    });
 
     return {
       organizationIds,

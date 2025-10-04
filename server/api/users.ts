@@ -1601,6 +1601,7 @@ export function registerUserRoutes(app: Express): void {
     try {
       const userId = req.user.id;
       const { has_common_spaces, organization_id } = req.query;
+      console.log(`📊 [USER_MANAGEMENT] Fetching buildings for user ${userId} (${req.user.role})`, { has_common_spaces, organization_id });
 
       // For residents and tenants (including demo roles), get buildings through their residences  
       if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(req.user.role)) {
@@ -1678,6 +1679,7 @@ export function registerUserRoutes(app: Express): void {
         }
 
         const buildingDetails = await buildingQuery;
+        console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for resident/tenant ${userId}`);
         return res.json(buildingDetails);
       }
 
@@ -1708,6 +1710,7 @@ export function registerUserRoutes(app: Express): void {
           )
           .orderBy(schema.buildings.name);
 
+        console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for admin ${userId}`);
         return res.json(buildingDetails);
       }
 
@@ -1789,6 +1792,7 @@ export function registerUserRoutes(app: Express): void {
         )
         .orderBy(schema.buildings.name);
 
+      console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for manager ${userId} (from ${buildingIds.length} building IDs)`);
       res.json(buildingDetails);
 
     } catch (error) {
@@ -1807,6 +1811,7 @@ export function registerUserRoutes(app: Express): void {
     try {
       const userId = req.user.id;
       const { building_id } = req.query;
+      console.log(`📊 [USER_MANAGEMENT] Fetching residences for user ${userId} (${req.user.role})`, { building_id });
 
       // For residents and tenants, get only their assigned residences
       if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(req.user.role)) {
@@ -1836,6 +1841,7 @@ export function registerUserRoutes(app: Express): void {
           .where(and(...whereConditions))
           .orderBy(schema.buildings.name, schema.residences.unitNumber);
 
+        console.log(`✅ [USER_MANAGEMENT] Returning ${userResidences.length} residences for resident/tenant ${userId}`);
         return res.json(userResidences);
       }
 
@@ -1848,6 +1854,7 @@ export function registerUserRoutes(app: Express): void {
       const orgIds = userOrgs.map(org => org.organizationId);
 
       if (orgIds.length === 0) {
+        console.log(`⚠️ [USER_MANAGEMENT] No organizations found for manager/admin ${userId}`);
         return res.json([]);
       }
 
@@ -1875,6 +1882,7 @@ export function registerUserRoutes(app: Express): void {
         .where(and(...whereConditions))
         .orderBy(schema.buildings.name, schema.residences.unitNumber);
 
+      console.log(`✅ [USER_MANAGEMENT] Returning ${residences.length} residences for manager/admin ${userId}`);
       return res.json(residences);
     } catch (error: any) {
       console.error('❌ Error getting user residences:', error);
