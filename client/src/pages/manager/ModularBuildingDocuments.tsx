@@ -1,18 +1,27 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useLocation } from 'wouter';
-import { Grid, List, ArrowLeft, Plus, FileText } from 'lucide-react';
+import { Grid, List, ArrowLeft, FileText, CheckSquare, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import {
   SharedUploader,
-  DocumentCard,
-  DocumentViewModal,
-  DocumentEditModal
+  DocumentCard
 } from '@/components/document-management';
 import { useFilterSort, FilterSortConfig } from '@/lib/filter-sort';
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
@@ -27,12 +36,14 @@ export default function ModularBuildingDocuments() {
   const buildingId = (params as any).buildingId;
   const queryClient = useQueryClient();
 
-  // State for modals and interactions
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  // State for view mode
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // State for selection mode and bulk operations
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Component initialized', {
@@ -106,14 +117,14 @@ export default function ModularBuildingDocuments() {
         type: 'select',
         icon: FileText,
         options: [
-          { label: 'Bylaws', value: 'bylaw' },
-          { label: 'Financial', value: 'financial' },
-          { label: 'Maintenance', value: 'maintenance' },
-          { label: 'Legal', value: 'legal' },
-          { label: 'Meeting Minutes', value: 'meeting_minutes' },
-          { label: 'Insurance', value: 'insurance' },
-          { label: 'Contracts', value: 'contracts' },
-          { label: 'Other', value: 'other' },
+          { label: 'Bylaws', _value: 'bylaw' },
+          { label: 'Financial', _value: 'financial' },
+          { label: 'Maintenance', _value: 'maintenance' },
+          { label: 'Legal', _value: 'legal' },
+          { label: 'Meeting Minutes', _value: 'meeting_minutes' },
+          { label: 'Insurance', _value: 'insurance' },
+          { label: 'Contracts', _value: 'contracts' },
+          { label: 'Other', _value: 'other' },
         ],
         defaultOperator: 'equals',
       },
@@ -146,65 +157,93 @@ export default function ModularBuildingDocuments() {
   });
 
 
-  // Handle document interactions
-  const handleDocumentView = (documentId: string) => {
-    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] User action: View document', { documentId });
-    setSelectedDocumentId(documentId);
-    setIsViewModalOpen(true);
-  };
-
-  const handleDocumentEdit = (documentId: string) => {
-    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] User action: Edit document', { documentId });
-    setSelectedDocumentId(documentId);
-    setIsEditModalOpen(true);
-    setIsViewModalOpen(false);
-  };
-
-  const handleCreateDocument = () => {
-    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] User action: Create new document');
-    setSelectedDocumentId(null);
-    setIsCreating(true);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDocumentSuccess = (documentId: string, action: 'created' | 'updated' | 'deleted') => {
-    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Document operation completed:', {
-      documentId,
-      action
-    });
-    // Document action completed - UI state updated
-    setIsEditModalOpen(false);
-    setIsViewModalOpen(false);
-    setIsCreating(false);
-    setSelectedDocumentId(null);
-    
-    // Refresh the document list to show the new/updated document
-    queryClient.invalidateQueries({
-      queryKey: ['/api/documents', 'building', buildingId],
-    });
-    
-    // Also invalidate general documents cache
-    queryClient.invalidateQueries({
-      queryKey: ['/api/documents'],
-    });
-  };
-
   const handleBack = () => {
     console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Navigating to:', '/manager/buildings');
     navigate('/manager/buildings');
   };
 
+  // Document view handler - opens document in new tab
+  const handleDocumentView = (documentId: string) => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Opening document:', { documentId });
+    window.open(`/api/documents/${documentId}/file`, '_blank');
+  };
+
+  // Selection mode handlers
+  const handleToggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedDocuments(new Set());
+  };
+
+  const handleDocumentSelectionChange = (documentId: string, selected: boolean) => {
+    const newSelection = new Set(selectedDocuments);
+    if (selected) {
+      newSelection.add(documentId);
+    } else {
+      newSelection.delete(documentId);
+    }
+    setSelectedDocuments(newSelection);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedDocuments.size === filteredDocuments.length) {
+      setSelectedDocuments(new Set());
+    } else {
+      const allDocumentIds = new Set(filteredDocuments.map((doc: DocumentWithMetadata) => doc.id));
+      setSelectedDocuments(allDocumentIds);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const documentIds = Array.from(selectedDocuments);
+    const deletePromises = documentIds.map(documentId =>
+      apiRequest('DELETE', `/api/documents/${documentId}`)
+        .then(() => ({ status: 'fulfilled' as const, documentId }))
+        .catch((error) => ({ status: 'rejected' as const, documentId, error }))
+    );
+
+    const results = await Promise.allSettled(deletePromises);
+    
+    const successfulDeletions: string[] = [];
+    const failedDeletions: string[] = [];
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value.status === 'fulfilled') {
+        successfulDeletions.push(result.value.documentId);
+      } else {
+        failedDeletions.push(documentIds[index]);
+      }
+    });
+
+    if (successfulDeletions.length > 0) {
+      toast({
+        title: 'Documents deleted',
+        description: `Successfully deleted ${successfulDeletions.length} document${successfulDeletions.length > 1 ? 's' : ''}`,
+      });
+    }
+
+    if (failedDeletions.length > 0) {
+      toast({
+        title: 'Deletion failed',
+        description: `Failed to delete ${failedDeletions.length} document${failedDeletions.length > 1 ? 's' : ''}`,
+        variant: 'destructive',
+      });
+    }
+
+    queryClient.invalidateQueries({
+      queryKey: ['/api/documents', 'building', buildingId],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ['/api/documents'],
+    });
+
+    setSelectedDocuments(new Set());
+    setShowDeleteDialog(false);
+    setSelectionMode(false);
+  };
+
   useEffect(() => {
     console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] State updated: View mode', { viewMode });
   }, [viewMode]);
-
-  useEffect(() => {
-    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] State updated: View modal', { isOpen: isViewModalOpen });
-  }, [isViewModalOpen]);
-
-  useEffect(() => {
-    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] State updated: Edit modal', { isOpen: isEditModalOpen, isCreating });
-  }, [isEditModalOpen, isCreating]);
 
   useEffect(() => {
     console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] State updated: Search', { search });
@@ -233,13 +272,6 @@ export default function ModularBuildingDocuments() {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Buildings
           </Button>
-          
-          {userPermissions.canCreate && (
-            <Button onClick={handleCreateDocument} data-testid="button-create-document">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Document
-            </Button>
-          )}
         </div>
 
         <div>
@@ -264,6 +296,32 @@ export default function ModularBuildingDocuments() {
         </div>
         
         <div className="flex gap-2">
+          {/* Selection mode controls */}
+          {selectionMode && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAll}
+                data-testid="button-select-all"
+              >
+                {selectedDocuments.size === filteredDocuments.length ? 'Deselect All' : 'Select All'}
+              </Button>
+              {selectedDocuments.size > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                  data-testid="button-bulk-delete"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete ({selectedDocuments.size})
+                </Button>
+              )}
+            </>
+          )}
+          
+          {/* View mode buttons */}
           <Button
             variant={viewMode === 'grid' ? 'default' : 'outline'}
             size="sm"
@@ -286,6 +344,18 @@ export default function ModularBuildingDocuments() {
           >
             <List className="w-4 h-4" />
           </Button>
+          
+          {/* Selection mode toggle */}
+          {userPermissions.canDelete && (
+            <Button
+              variant={selectionMode ? 'default' : 'outline'}
+              size="sm"
+              onClick={handleToggleSelectionMode}
+              data-testid="button-toggle-selection-mode"
+            >
+              <CheckSquare className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -312,12 +382,6 @@ export default function ModularBuildingDocuments() {
                 <p className="text-gray-500 mb-4">
                   {search ? 'No documents match your search.' : 'No documents have been uploaded yet.'}
                 </p>
-                {userPermissions.canCreate && !search && (
-                  <Button onClick={handleCreateDocument}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add First Document
-                  </Button>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -326,15 +390,15 @@ export default function ModularBuildingDocuments() {
             ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
             : "space-y-4"
           }>
-            {filteredDocuments.map((document) => (
+            {filteredDocuments.map((document: DocumentWithMetadata) => (
               <DocumentCard
                 key={document.id}
                 title={document.name}
                 documentId={document.id}
-                onViewClick={handleDocumentView}
+                onViewClick={!selectionMode ? handleDocumentView : undefined}
                 documentType={document.documentType}
                 description={document.description}
-                createdAt={document.createdAt}
+                createdAt={document.createdAt ? new Date(document.createdAt).toISOString() : undefined}
                 fileSize={document.fileSize ? Number(document.fileSize) : undefined}
                 mimeType={document.mimeType}
                 uploadedBy={document.uploadedBy?.firstName && document.uploadedBy?.lastName 
@@ -344,6 +408,9 @@ export default function ModularBuildingDocuments() {
                 isVisibleToTenants={document.isVisibleToTenants}
                 compact={viewMode === 'list'}
                 showMetadata={true}
+                selectable={selectionMode}
+                selected={selectedDocuments.has(document.id)}
+                onSelectionChange={handleDocumentSelectionChange}
                 data-testid={`document-card-${document.id}`}
               />
             ))}
@@ -368,23 +435,28 @@ export default function ModularBuildingDocuments() {
         </div>
       )}
 
-      {/* Modals */}
-      <DocumentViewModal
-        documentId={selectedDocumentId || ''}
-        userPermissions={userPermissions}
-        onEditClick={handleDocumentEdit}
-        isOpen={isViewModalOpen}
-        onOpenChange={setIsViewModalOpen}
-      />
-
-      <DocumentEditModal
-        documentId={isCreating ? undefined : selectedDocumentId || undefined}
-        entityType="building"
-        entityId={buildingId}
-        isOpen={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        onSuccess={handleDocumentSuccess}
-      />
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent data-testid="dialog-bulk-delete-confirm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Documents</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedDocuments.size} document{selectedDocuments.size > 1 ? 's' : ''}? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-bulk-delete">Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBulkDelete}
+              data-testid="button-confirm-bulk-delete"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

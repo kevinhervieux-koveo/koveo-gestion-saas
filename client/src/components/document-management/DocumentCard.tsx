@@ -1,11 +1,12 @@
 import React from 'react';
 import { Eye, FileText, Image, File, Calendar, User } from 'lucide-react';
 import { StandardCard } from '@/components/common/StandardCard';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface DocumentCardProps {
   title: string;
   documentId: string;
-  onViewClick: (documentId: string) => void;
+  onViewClick?: (documentId: string) => void;
   
   // Optional metadata for enhanced display
   documentType?: string;
@@ -16,6 +17,11 @@ interface DocumentCardProps {
   mimeType?: string;
   uploadedBy?: string;
   isVisibleToTenants?: boolean;
+  
+  // Selection mode
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectionChange?: (documentId: string, selected: boolean) => void;
   
   // Visual customization
   className?: string;
@@ -40,6 +46,9 @@ export function DocumentCard({
   mimeType,
   uploadedBy,
   isVisibleToTenants,
+  selectable = false,
+  selected = false,
+  onSelectionChange,
   className,
   compact = false,
   showMetadata = true
@@ -112,7 +121,7 @@ export function DocumentCard({
   ].filter(Boolean) : [];
 
   // Build actions array for StandardCard
-  const actions = [
+  const actions = onViewClick ? [
     {
       icon: <Eye className="w-4 h-4" />,
       label: 'View document',
@@ -121,7 +130,7 @@ export function DocumentCard({
       className: 'hover:bg-blue-50 dark:hover:bg-blue-950',
       testId: `view-document-${documentId}`
     }
-  ];
+  ] : [];
 
   // Build metadata array for StandardCard
   // In compact mode: only show minimal metadata (file size, date)
@@ -153,6 +162,42 @@ export function DocumentCard({
     ].filter(Boolean)
   ) : [];
 
+  const handleCheckboxChange = (checked: boolean) => {
+    if (onSelectionChange) {
+      onSelectionChange(documentId, checked);
+    }
+  };
+
+  if (selectable) {
+    return (
+      <div className="relative group">
+        <StandardCard
+          title={title}
+          description={!compact ? description : undefined}
+          icon={getDocumentIcon()}
+          badges={badges}
+          actions={actions}
+          metadata={metadata}
+          onClick={onViewClick ? () => onViewClick(documentId) : undefined}
+          spacing={compact ? 'compact' : 'normal'}
+          className={className}
+          testId={`document-card-${documentId}`}
+        />
+        <div 
+          className="absolute top-2 right-2 z-10"
+          onClick={(e) => e.stopPropagation()}
+          data-testid={`checkbox-select-${documentId}`}
+        >
+          <Checkbox
+            checked={selected}
+            onCheckedChange={handleCheckboxChange}
+            className="h-5 w-5 bg-white dark:bg-gray-800 border-2 shadow-sm"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <StandardCard
       title={title}
@@ -161,7 +206,7 @@ export function DocumentCard({
       badges={badges}
       actions={actions}
       metadata={metadata}
-      onClick={() => onViewClick(documentId)}
+      onClick={onViewClick ? () => onViewClick(documentId) : undefined}
       spacing={compact ? 'compact' : 'normal'}
       className={className}
       testId={`document-card-${documentId}`}
