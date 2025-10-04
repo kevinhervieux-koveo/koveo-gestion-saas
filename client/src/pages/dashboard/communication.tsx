@@ -1449,10 +1449,9 @@ export default function CommunicationDashboard() {
                                             <Select
                                               onValueChange={field.onChange}
                                               value={field.value}
-                                              data-testid={`select-${type.key}-frequency`}
                                             >
                                               <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger data-testid={`select-${type.key}-frequency`}>
                                                   <SelectValue />
                                                 </SelectTrigger>
                                               </FormControl>
@@ -1673,8 +1672,8 @@ export default function CommunicationDashboard() {
           </AlertDialogHeader>
           
           <div className="py-4">
-            <Select onValueChange={setBulkFrequency} data-testid="select-bulk-frequency">
-              <SelectTrigger>
+            <Select onValueChange={setBulkFrequency}>
+              <SelectTrigger data-testid="select-bulk-frequency">
                 <SelectValue placeholder={
                   language === 'fr' ? 'Sélectionner une fréquence' : 'Select frequency'
                 } />

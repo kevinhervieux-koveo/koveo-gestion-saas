@@ -116,7 +116,7 @@ const config = {
   cache: false,
   cacheDirectory: '<rootDir>/.jest-cache',
   detectOpenHandles: true,
-  forceExit: true,
+  forceExit: false,
   clearMocks: true,
   restoreMocks: true,
   resetMocks: true,

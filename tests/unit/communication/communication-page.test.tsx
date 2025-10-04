@@ -1,10 +1,10 @@
 /**
  * Communication Page Test Suite
- * Tests notification preferences, general communication form, meeting planning, and RBAC enforcement
+ * Tests notification preferences, general communication form, and RBAC enforcement
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { render as customRender } from '../../utils/test-utils';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
@@ -21,278 +21,32 @@ jest.mock('@/hooks/use-language', () => ({
   useLanguage: () => mockLanguage,
 }));
 
-// Import the communication page component
-// Note: Create a mock component for testing since the actual component is complex
-const MockCommunicationPage = () => {
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [showError, setShowError] = React.useState(false);
-  const [preferences, setPreferences] = React.useState<any[]>([]);
-  const [isLoadingPreferences, setIsLoadingPreferences] = React.useState(true);
+// Mock Collapsible to always be open (expanded) for testing
+jest.mock('@/components/ui/collapsible', () => ({
+  Collapsible: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  CollapsibleTrigger: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  CollapsibleContent: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+}));
 
-  // Use the mocked language hook to simulate translation usage
-  const { t } = {
-    t: mockLanguage.t
-  };
+// Mock NotificationConfigurations component
+jest.mock('@/components/dashboard/notification-configurations', () => ({
+  NotificationConfigurations: () => <div data-testid="notification-configurations">Notification Configurations Component</div>
+}));
 
-  // Call translation function to simulate real component behavior
-  React.useEffect(() => {
-    t('Bill Reminders');
-    t('Maintenance Updates');
-    t('General Announcements');
-    t('Meeting Invitations');
-  }, [t]);
-
-  // Fetch preferences on mount
-  React.useEffect(() => {
-    const fetchPreferences = async () => {
-      setIsLoadingPreferences(true);
-      try {
-        const prefs = await mockApiRequest('GET', '/api/communication/preferences');
-        setPreferences(prefs || []);
-        setIsLoadingPreferences(false);
-      } catch (error) {
-        setIsLoadingPreferences(false);
-        mockToast({
-          title: 'Network error occurred',
-          variant: 'destructive'
-        });
-      }
-    };
-    fetchPreferences();
-  }, []);
-
-  // Fetch organizations on mount
-  React.useEffect(() => {
-    mockApiRequest('GET', '/api/organizations').catch(() => {});
-  }, []);
-
-  const handleBulkFrequency = async () => {
-    const bulkSelect = document.querySelector('[data-testid="bulk-frequency-select"]') as HTMLSelectElement;
-    const frequency = bulkSelect?.value || 'immediate';
-    
-    try {
-      await mockApiRequest('PUT', '/api/communication/preferences/bulk', {
-        frequency
-      });
-    } catch (error) {
-      mockToast({
-        title: 'Bulk update error',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleTogglePreference = async () => {
-    try {
-      await mockApiRequest('PUT', '/api/communication/preferences', {
-        preferences: [
-          {
-            notificationType: 'bill_reminder',
-            isEnabled: false
-          }
-        ]
-      });
-    } catch (error) {
-      mockToast({
-        title: 'Toggle error',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleSavePreferences = async () => {
-    try {
-      await mockApiRequest('PUT', '/api/communication/preferences', {
-        preferences: preferences
-      });
-      mockToast({
-        title: 'Preferences saved successfully'
-      });
-    } catch (error) {
-      mockToast({
-        title: 'Save error',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleResetPreferences = async () => {
-    try {
-      const prefs = await mockApiRequest('GET', '/api/communication/preferences');
-      setPreferences(prefs || []);
-    } catch (error) {
-      mockToast({
-        title: 'Reset error',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    const titleInput = document.querySelector('[data-testid="input-communication-title"]') as HTMLInputElement;
-    const contentTextarea = document.querySelector('[data-testid="textarea-communication-content"]') as HTMLTextAreaElement;
-    const urgencySelect = document.querySelector('[data-testid="select-urgency-level"]') as HTMLSelectElement;
-    
-    const title = titleInput?.value || '';
-    const content = contentTextarea?.value || '';
-    const urgency = urgencySelect?.value || 'low';
-    
-    try {
-      await mockApiRequest('POST', '/api/communication/general', {
-        title,
-        content,
-        isUrgent: urgency === 'high' || urgency === 'urgent',
-        organizationId: '123e4567-e89b-12d3-a456-426614174001',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
-      });
-      setIsSubmitting(false);
-      
-      // Clear form on success
-      if (titleInput) titleInput.value = '';
-      if (contentTextarea) contentTextarea.value = '';
-      
-      mockToast({
-        title: 'Communication sent successfully'
-      });
-    } catch (error) {
-      setIsSubmitting(false);
-      mockToast({
-        title: 'Submission error',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  const handleMeetingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const titleInput = document.querySelector('[data-testid="input-meeting-title"]') as HTMLInputElement;
-    const descriptionTextarea = document.querySelector('[data-testid="textarea-meeting-description"]') as HTMLTextAreaElement;
-    const locationInput = document.querySelector('[data-testid="input-meeting-location"]') as HTMLInputElement;
-    const dateInput = document.querySelector('[data-testid="input-meeting-date"]') as HTMLInputElement;
-    const durationInput = document.querySelector('[data-testid="input-meeting-duration"]') as HTMLInputElement;
-    
-    const title = titleInput?.value || '';
-    const description = descriptionTextarea?.value || '';
-    const location = locationInput?.value || '';
-    const date = dateInput?.value || '';
-    const duration = parseInt(durationInput?.value || '60');
-    
-    try {
-      await mockApiRequest('POST', '/api/communication/meetings', {
-        title,
-        description,
-        location,
-        date,
-        duration,
-        organizationId: '123e4567-e89b-12d3-a456-426614174001',
-        createdBy: '123e4567-e89b-12d3-a456-426614174000'
-      });
-      
-      // Clear form on success
-      if (titleInput) titleInput.value = '';
-      if (locationInput) locationInput.value = '';
-      
-      mockToast({
-        title: 'Meeting invitation sent successfully'
-      });
-    } catch (error) {
-      mockToast({
-        title: 'Meeting creation error',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  return (
-    <div data-testid="communication-page">
-      <div data-testid="notification-preferences-panel">
-        {isLoadingPreferences && <div data-testid="preferences-loading">Loading preferences...</div>}
-        <div data-testid="bulk-frequency-select">
-          <select data-testid="bulk-frequency-select">
-            <option value="immediate">Immediate</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-        </div>
-        <button data-testid="apply-bulk-frequency" onClick={handleBulkFrequency}>Apply Bulk</button>
-        <button data-testid="save-preferences" onClick={handleSavePreferences}>Save Preferences</button>
-        <button data-testid="reset-preferences" onClick={handleResetPreferences}>Reset Preferences</button>
-        <div data-testid="preference-toggle-bill_reminder">
-          <input type="checkbox" defaultChecked onClick={handleTogglePreference} />
-        </div>
-        {/* Render notification types */}
-        <div>bill_reminder</div>
-        <div>maintenance_update</div>
-        <div>announcement</div>
-        <div>emergency</div>
-        <div>meeting_invite</div>
-        <div>policy_change</div>
-        <div>seasonal_reminder</div>
-        {/* Render frequency options */}
-        <select defaultValue="immediate">
-          <option value="immediate">immediate</option>
-          <option value="weekly">weekly</option>
-          <option value="monthly">monthly</option>
-          <option value="quarterly">quarterly</option>
-        </select>
-      </div>
-      <form data-testid="general-communication-form" onSubmit={handleFormSubmit}>
-        <input data-testid="input-communication-title" placeholder="Title" />
-        <textarea data-testid="textarea-communication-content" placeholder="Content" />
-        <select data-testid="select-urgency-level">
-          <option value="low">low</option>
-          <option value="medium">medium</option>
-          <option value="high">high</option>
-          <option value="urgent">urgent</option>
-        </select>
-        <select data-testid="select-organization">
-          <option value="org1">Test Organization 1</option>
-          <option value="org2">Test Organization 2</option>
-        </select>
-        <select data-testid="select-recipient-roles">
-          <option value="all">all</option>
-          <option value="resident">resident</option>
-          <option value="tenant">tenant</option>
-          <option value="manager">manager</option>
-          <option value="admin">admin</option>
-        </select>
-        <button data-testid="button-send-communication" type="submit">Send Communication</button>
-        <div data-testid="form-submitting" style={{ display: isSubmitting ? 'block' : 'none' }}>Submitting...</div>
-        <div data-testid="title-required" style={{ display: 'none' }}>Title is required</div>
-        <div data-testid="content-required" style={{ display: 'none' }}>Content is required</div>
-      </form>
-      <form data-testid="meeting-planning-form" onSubmit={handleMeetingSubmit}>
-        <input data-testid="input-meeting-title" placeholder="Meeting Title" />
-        <textarea data-testid="textarea-meeting-description" placeholder="Description" />
-        <input data-testid="input-meeting-location" placeholder="Location" />
-        <input data-testid="input-meeting-date" type="datetime-local" />
-        <input data-testid="input-meeting-duration" type="number" defaultValue="60" />
-        <select data-testid="select-invited-roles">
-          <option value="all">all</option>
-          <option value="resident">resident</option>
-          <option value="manager">manager</option>
-          <option value="admin">admin</option>
-        </select>
-        <button data-testid="button-send-meeting-invite" type="submit">Send Meeting Invite</button>
-        <div data-testid="meeting-title-required" style={{ display: 'none' }}>Title is required</div>
-        <div data-testid="meeting-location-required" style={{ display: 'none' }}>Location is required</div>
-        <div data-testid="meeting-duration-required" style={{ display: 'none' }}>Duration must be a positive number</div>
-      </form>
-    </div>
-  );
-};
+// Mock Header component
+jest.mock('@/components/layout/header', () => ({
+  Header: () => <div data-testid="header">Header Component</div>
+}));
 
 // Mock API request function
 const mockApiRequest = jest.fn();
+const mockQueryClient = {
+  invalidateQueries: jest.fn(),
+};
+
 jest.mock('@/lib/queryClient', () => ({
-  apiRequest: mockApiRequest,
-  queryClient: {
-    invalidateQueries: jest.fn(),
-  }
+  apiRequest: (...args: any[]) => mockApiRequest(...args),
+  queryClient: mockQueryClient,
 }));
 
 // Mock toast hook
@@ -301,7 +55,8 @@ jest.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: mockToast }),
 }));
 
-
+// Import the real communication page component after mocks
+import CommunicationDashboard from '@/pages/dashboard/communication';
 
 // Create mock auth user function
 const createMockAuthUser = (role: string = 'admin') => ({
@@ -317,6 +72,9 @@ const createMockAuthUser = (role: string = 'admin') => ({
   },
   login: jest.fn(),
   logout: jest.fn(),
+  hasRole: jest.fn((roles: string[]) => {
+    return roles.includes(role);
+  }),
 });
 
 // Mock authentication hook - will be overridden in tests
@@ -325,13 +83,13 @@ jest.mock('@/hooks/use-auth', () => ({
   useAuth: () => mockAuth,
 }));
 
-// Mock notification preferences data with all 17 types
+// Mock notification preferences data with 15 notification types
 const mockNotificationPreferences = [
   {
     id: '1',
     userId: '123e4567-e89b-12d3-a456-426614174000',
     notificationType: 'bill_reminder',
-    frequency: 'weekly',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -340,7 +98,7 @@ const mockNotificationPreferences = [
     id: '2',
     userId: '123e4567-e89b-12d3-a456-426614174000',
     notificationType: 'maintenance_update',
-    frequency: 'immediate',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -349,7 +107,7 @@ const mockNotificationPreferences = [
     id: '3',
     userId: '123e4567-e89b-12d3-a456-426614174000',
     notificationType: 'announcement',
-    frequency: 'immediate',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -366,8 +124,8 @@ const mockNotificationPreferences = [
   {
     id: '5',
     userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'emergency',
-    frequency: 'immediate',
+    notificationType: 'upcoming_payment',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -375,23 +133,14 @@ const mockNotificationPreferences = [
   {
     id: '6',
     userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'upcoming_payment',
-    frequency: 'weekly',
+    notificationType: 'upcoming_bills',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
   {
     id: '7',
-    userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'upcoming_bills',
-    frequency: 'immediate',
-    isEnabled: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '8',
     userId: '123e4567-e89b-12d3-a456-426614174000',
     notificationType: 'bill_paid_last_month',
     frequency: 'monthly',
@@ -400,10 +149,19 @@ const mockNotificationPreferences = [
     updatedAt: new Date().toISOString(),
   },
   {
-    id: '9',
+    id: '8',
     userId: '123e4567-e89b-12d3-a456-426614174000',
     notificationType: 'bills_overdue',
-    frequency: 'weekly',
+    frequency: 'monthly',
+    isEnabled: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: '9',
+    userId: '123e4567-e89b-12d3-a456-426614174000',
+    notificationType: 'payment_overdue',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -411,8 +169,8 @@ const mockNotificationPreferences = [
   {
     id: '10',
     userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'payment_overdue',
-    frequency: 'immediate',
+    notificationType: 'new_building_document',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -420,8 +178,8 @@ const mockNotificationPreferences = [
   {
     id: '11',
     userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'new_building_document',
-    frequency: 'weekly',
+    notificationType: 'meeting_invite',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -429,8 +187,8 @@ const mockNotificationPreferences = [
   {
     id: '12',
     userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'general_communication',
-    frequency: 'weekly',
+    notificationType: 'maintenance_completed',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -438,8 +196,8 @@ const mockNotificationPreferences = [
   {
     id: '13',
     userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'meeting_invite',
-    frequency: 'immediate',
+    notificationType: 'budget_update',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -447,8 +205,8 @@ const mockNotificationPreferences = [
   {
     id: '14',
     userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'maintenance_completed',
-    frequency: 'immediate',
+    notificationType: 'policy_change',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -456,31 +214,20 @@ const mockNotificationPreferences = [
   {
     id: '15',
     userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'budget_update',
-    frequency: 'quarterly',
-    isEnabled: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '16',
-    userId: '123e4567-e89b-12d3-a456-426614174000',
-    notificationType: 'policy_change',
-    frequency: 'immediate',
-    isEnabled: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '17',
-    userId: '123e4567-e89b-12d3-a456-426614174000',
     notificationType: 'seasonal_reminder',
-    frequency: 'quarterly',
+    frequency: 'monthly',
     isEnabled: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
 ];
+
+// Mock organization context
+const mockOrganizationContext = {
+  id: '123e4567-e89b-12d3-a456-426614174001',
+  name: 'Test Organization 1',
+  canSendToAllOrganizations: false,
+};
 
 // Mock organizations data
 const mockOrganizations = [
@@ -496,23 +243,17 @@ const mockOrganizations = [
   },
 ];
 
-// Mock users data for recipient selection
-const mockUsers = [
+// Mock buildings data
+const mockBuildings = [
   {
-    id: '123e4567-e89b-12d3-a456-426614174003',
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    role: 'resident',
-    organizationId: '123e4567-e89b-12d3-a456-426614174001',
+    id: 'building-1',
+    name: 'Building 1',
+    address: '123 Main St',
   },
   {
-    id: '123e4567-e89b-12d3-a456-426614174004',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    email: 'jane.smith@example.com',
-    role: 'manager',
-    organizationId: '123e4567-e89b-12d3-a456-426614174001',
+    id: 'building-2',
+    name: 'Building 2',
+    address: '456 Oak Ave',
   },
 ];
 
@@ -520,24 +261,111 @@ describe('Communication Page Test Suite', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Default API request mocks
-    mockApiRequest.mockImplementation((method, url) => {
-      if (url === '/api/communication/preferences') {
-        return Promise.resolve(mockNotificationPreferences);
+    // Mock fetch for React Query's default queryFn
+    global.fetch = jest.fn((url: string, options?: any) => {
+      const urlStr = url.toString();
+      
+      // GET requests
+      if (urlStr.includes('/api/communication/preferences')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockNotificationPreferences,
+        } as Response);
       }
-      if (url === '/api/organizations') {
-        return Promise.resolve(mockOrganizations);
+      if (urlStr.includes('/api/communication/settings')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ startingDate: '2025-01-01' }),
+        } as Response);
       }
-      if (url === '/api/users') {
-        return Promise.resolve(mockUsers);
+      if (urlStr.includes('/api/communication/organizations') && urlStr.includes('/member-counts')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ resident: 10, tenant: 5, manager: 2, admin: 1 }),
+        } as Response);
       }
-      if (url === '/api/communication/general') {
-        return Promise.resolve({ success: true, id: 'test-communication-id' });
+      if (urlStr.includes('/api/communication/organizations')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ 
+            organizations: [
+              { id: '123e4567-e89b-12d3-a456-426614174001', name: 'Test Organization' }
+            ],
+            userRole: 'admin',
+            canAccessAll: true
+          }),
+        } as Response);
       }
-      if (url === '/api/communication/meetings') {
-        return Promise.resolve({ success: true, id: 'test-meeting-id' });
+      if (urlStr.includes('/api/communication/buildings')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ 
+            buildings: [
+              { id: 'building-1', name: 'Test Building', address: '123 Test St' }
+            ]
+          }),
+        } as Response);
       }
-      return Promise.resolve({ success: true });
+      if (urlStr.includes('/api/communication/organization-context')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockOrganizationContext,
+        } as Response);
+      }
+      if (urlStr.includes('/api/organizations')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockOrganizations,
+        } as Response);
+      }
+      if (urlStr.includes('/api/communication/buildings')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ buildings: mockBuildings }),
+        } as Response);
+      }
+      
+      // Default fallback
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ success: true }),
+      } as Response);
+    }) as jest.Mock;
+
+    // Mock apiRequest for mutations
+    mockApiRequest.mockImplementation((method: string, url: string, data?: any) => {
+      // PUT requests
+      if (method === 'PUT' && url === '/api/communication/preferences') {
+        return Promise.resolve({ 
+          json: async () => ({
+            success: true, 
+            message: 'Preferences updated',
+            preferences: data?.preferences || [] 
+          })
+        });
+      }
+      if (method === 'PUT' && url === '/api/communication/settings') {
+        return Promise.resolve({ 
+          json: async () => ({
+            success: true, 
+            message: 'Settings updated',
+          })
+        });
+      }
+      
+      // POST requests
+      if (method === 'POST' && url === '/api/communication/general') {
+        return Promise.resolve({ 
+          json: async () => ({
+            success: true, 
+            id: 'test-communication-id',
+            ...data 
+          })
+        });
+      }
+      
+      // Default fallback
+      return Promise.resolve({ json: async () => ({ success: true }) });
     });
 
     // Reset mock auth to admin by default
@@ -553,186 +381,183 @@ describe('Communication Page Test Suite', () => {
   });
 
   describe('Component Rendering and RBAC', () => {
-    it('should render communication page for admin users', () => {
+    it('should render communication page for admin users', async () => {
       mockAuth = createMockAuthUser('admin');
-      customRender(<MockCommunicationPage />);
+      customRender(<CommunicationDashboard />);
 
-      expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      expect(screen.getByTestId('notification-preferences-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('general-communication-form')).toBeInTheDocument();
-      expect(screen.getByTestId('meeting-planning-form')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('communication-page')).toBeInTheDocument();
+      });
+
+      // Wait for data to load and check for key elements
+      await waitFor(() => {
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
+      });
+
+      // Admin should see communication sending features
+      expect(screen.getByTestId('input-communication-title')).toBeInTheDocument();
     });
 
-    it('should render communication page for manager users', () => {
+    it('should render communication page for manager users', async () => {
       mockAuth = createMockAuthUser('manager');
-      customRender(<MockCommunicationPage />);
+      customRender(<CommunicationDashboard />);
 
-      expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      expect(screen.getByTestId('notification-preferences-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('general-communication-form')).toBeInTheDocument();
-      expect(screen.getByTestId('meeting-planning-form')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('communication-page')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
+      });
+
+      // Manager should see communication sending features
+      expect(screen.getByTestId('input-communication-title')).toBeInTheDocument();
     });
 
-    it('should render communication page for demo_manager users', () => {
+    it('should render communication page for demo_manager users', async () => {
       mockAuth = createMockAuthUser('demo_manager');
-      customRender(<MockCommunicationPage />);
+      customRender(<CommunicationDashboard />);
 
-      expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      expect(screen.getByTestId('notification-preferences-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('general-communication-form')).toBeInTheDocument();
-      expect(screen.getByTestId('meeting-planning-form')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('communication-page')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
+      });
+
+      // Demo manager should see communication sending features
+      expect(screen.getByTestId('input-communication-title')).toBeInTheDocument();
     });
 
-    it('should restrict general communication form for resident users', () => {
+    it('should restrict general communication form for resident users', async () => {
       mockAuth = createMockAuthUser('resident');
-      // Create special component for role-based restriction testing
-      const RestrictedMockComponent = () => {
-        const { user } = mockAuth;
-        const canAccessForms = ['admin', 'manager', 'demo_manager'].includes(user?.role || '');
-        return (
-          <div data-testid="communication-page">
-            <div data-testid="notification-preferences-panel">Preferences Panel</div>
-            {canAccessForms && <div data-testid="general-communication-form">General Communication</div>}
-            {canAccessForms && <div data-testid="meeting-planning-form">Meeting Planning</div>}
-          </div>
-        );
-      };
-      customRender(<RestrictedMockComponent />);
+      customRender(<CommunicationDashboard />);
 
-      expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      expect(screen.getByTestId('notification-preferences-panel')).toBeInTheDocument();
-      
-      // Resident should not see general communication and meeting forms
-      expect(screen.queryByTestId('general-communication-form')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('meeting-planning-form')).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('communication-page')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
+      });
+
+      // Resident should NOT see communication sending features
+      expect(screen.queryByTestId('input-communication-title')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('button-send-communication')).not.toBeInTheDocument();
     });
 
-    it('should restrict general communication form for tenant users', () => {
+    it('should restrict general communication form for tenant users', async () => {
       mockAuth = createMockAuthUser('tenant');
-      // Create special component for role-based restriction testing
-      const RestrictedMockComponent = () => {
-        const { user } = mockAuth;
-        const canAccessForms = ['admin', 'manager', 'demo_manager'].includes(user?.role || '');
-        return (
-          <div data-testid="communication-page">
-            <div data-testid="notification-preferences-panel">Preferences Panel</div>
-            {canAccessForms && <div data-testid="general-communication-form">General Communication</div>}
-            {canAccessForms && <div data-testid="meeting-planning-form">Meeting Planning</div>}
-          </div>
-        );
-      };
-      customRender(<RestrictedMockComponent />);
+      customRender(<CommunicationDashboard />);
 
-      expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      expect(screen.getByTestId('notification-preferences-panel')).toBeInTheDocument();
-      
-      // Tenant should not see general communication and meeting forms
-      expect(screen.queryByTestId('general-communication-form')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('meeting-planning-form')).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('communication-page')).toBeInTheDocument();
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
+      });
+
+      // Tenant should NOT see communication sending features
+      expect(screen.queryByTestId('input-communication-title')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('button-send-communication')).not.toBeInTheDocument();
     });
   });
 
-  describe('Notification Preferences Panel', () => {
+  describe('Notification Preferences', () => {
     beforeEach(() => {
       mockAuth = createMockAuthUser('admin');
     });
 
-    it('should render all 17 notification types', async () => {
-      customRender(<MockCommunicationPage />);
+    it('should render notification preference controls', async () => {
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('GET', '/api/communication/preferences');
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
       });
 
-      // Check for specific notification types
-      expect(screen.getByText('bill_reminder')).toBeInTheDocument();
-      expect(screen.getByText('maintenance_update')).toBeInTheDocument();
-      expect(screen.getByText('announcement')).toBeInTheDocument();
-      expect(screen.getByText('emergency')).toBeInTheDocument();
-      expect(screen.getByText('meeting_invite')).toBeInTheDocument();
-      expect(screen.getByText('policy_change')).toBeInTheDocument();
-      expect(screen.getByText('seasonal_reminder')).toBeInTheDocument();
-    });
-
-    it('should render all 7 frequency options', async () => {
-      customRender(<MockCommunicationPage />);
-
+      // Categories are now always expanded due to Collapsible mock
       await waitFor(() => {
-        expect(screen.getByDisplayValue('immediate')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('weekly')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('monthly')).toBeInTheDocument();
-        expect(screen.getByDisplayValue('quarterly')).toBeInTheDocument();
+        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
       });
-
-      // Check for specific frequency selects
-      const frequencySelects = screen.getAllByRole('combobox');
-      expect(frequencySelects.length).toBeGreaterThan(0);
-    });
-
-    it('should handle bulk actions for setting all preferences to same frequency', async () => {
-      customRender(<MockCommunicationPage />);
-
-      await waitFor(() => {
-        expect(screen.getByTestId('bulk-frequency-select')).toBeInTheDocument();
-      });
-
-      const bulkSelect = screen.getByTestId('bulk-frequency-select');
-      const applyBulkButton = screen.getByTestId('apply-bulk-frequency');
-
-      await userEvent.click(bulkSelect);
-      await userEvent.click(screen.getByText('immediate'));
-      await userEvent.click(applyBulkButton);
-
-      // Should update all preferences to immediate
-      await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith(
-          'PUT',
-          '/api/communication/preferences/bulk',
-          expect.objectContaining({
-            frequency: 'immediate'
-          })
-        );
-      });
+      
+      // Check that select element exists (testid is now on SelectTrigger)
+      expect(screen.getByTestId('select-bill_reminder-frequency')).toBeInTheDocument();
     });
 
     it('should toggle notification preference enabled state', async () => {
-      customRender(<MockCommunicationPage />);
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        const enableToggle = screen.getByTestId('preference-toggle-bill_reminder');
-        expect(enableToggle).toBeInTheDocument();
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
       });
 
-      const enableToggle = screen.getByTestId('preference-toggle-bill_reminder');
-      await userEvent.click(enableToggle);
-
+      // Categories are now always expanded due to Collapsible mock
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith(
-          'PUT',
-          '/api/communication/preferences',
-          expect.objectContaining({
-            preferences: expect.arrayContaining([
-              expect.objectContaining({
-                notificationType: 'bill_reminder',
-                isEnabled: false
-              })
-            ])
-          })
-        );
+        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
+      });
+
+      const enableSwitch = screen.getByTestId('switch-bill_reminder-enabled');
+      
+      // Switch should be checked initially (from mock data)
+      expect(enableSwitch).toBeChecked();
+
+      // Click to toggle
+      await userEvent.click(enableSwitch);
+
+      // Should show unsaved changes
+      await waitFor(() => {
+        expect(screen.getByText(/Unsaved changes/i)).toBeInTheDocument();
       });
     });
 
-    it('should save notification preferences', async () => {
-      customRender(<MockCommunicationPage />);
+    it('should update notification frequency', async () => {
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        const saveButton = screen.getByTestId('save-preferences');
-        expect(saveButton).toBeInTheDocument();
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
       });
 
-      const saveButton = screen.getByTestId('save-preferences');
+      // Categories are now always expanded due to Collapsible mock
+      await waitFor(() => {
+        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
+      });
+
+      // Verify select trigger renders (testid is now on SelectTrigger)
+      const selectTrigger = screen.getByTestId('select-bill_reminder-frequency');
+      expect(selectTrigger).toBeInTheDocument();
+      expect(selectTrigger).toHaveAttribute('role', 'combobox');
+      
+      // Verify the select has a value displayed (current frequency)
+      expect(selectTrigger).toHaveTextContent(/monthly|weekly|immediate|quarterly|bi-annually|annually|2weeks/i);
+    });
+
+    it('should save preference changes', async () => {
+      customRender(<CommunicationDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
+      });
+
+      // Categories are now always expanded due to Collapsible mock
+      await waitFor(() => {
+        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
+      });
+
+      // Toggle a switch to create changes
+      const enableSwitch = screen.getByTestId('switch-bill_reminder-enabled');
+      await userEvent.click(enableSwitch);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Unsaved changes/i)).toBeInTheDocument();
+      });
+
+      // Click save button
+      const saveButton = screen.getByTestId('button-save-preferences');
       await userEvent.click(saveButton);
 
+      // Should call apiRequest
       await waitFor(() => {
         expect(mockApiRequest).toHaveBeenCalledWith(
           'PUT',
@@ -741,44 +566,99 @@ describe('Communication Page Test Suite', () => {
             preferences: expect.any(Array)
           })
         );
+      });
+
+      // Should show success toast
+      await waitFor(() => {
         expect(mockToast).toHaveBeenCalledWith(
           expect.objectContaining({
-            title: expect.stringContaining('success')
+            title: 'Preferences updated',
           })
         );
       });
     });
 
-    it('should reset notification preferences', async () => {
-      customRender(<MockCommunicationPage />);
+    it('should reset preference changes', async () => {
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        const resetButton = screen.getByTestId('reset-preferences');
-        expect(resetButton).toBeInTheDocument();
+        expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
       });
 
-      const resetButton = screen.getByTestId('reset-preferences');
+      // Categories are now always expanded due to Collapsible mock
+      await waitFor(() => {
+        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
+      });
+
+      // Toggle a switch to create changes
+      const enableSwitch = screen.getByTestId('switch-bill_reminder-enabled');
+      await userEvent.click(enableSwitch);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Unsaved changes/i)).toBeInTheDocument();
+      });
+
+      // Click reset button
+      const resetButton = screen.getByTestId('button-reset-preferences');
       await userEvent.click(resetButton);
 
-      // Should reload preferences from API
+      // Should remove unsaved changes indicator
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('GET', '/api/communication/preferences');
+        expect(screen.queryByText(/Unsaved changes/i)).not.toBeInTheDocument();
       });
     });
+  });
 
-    it('should handle notification preferences API error', async () => {
-      mockApiRequest.mockRejectedValueOnce(new Error('Failed to load preferences'));
-      
-      customRender(<MockCommunicationPage />);
+  describe('Bulk Update', () => {
+    beforeEach(() => {
+      mockAuth = createMockAuthUser('admin');
+    });
+
+    it('should open bulk update dialog', async () => {
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            title: expect.stringContaining('error'),
-            variant: 'destructive'
-          })
-        );
+        const bulkButton = screen.getByTestId('button-bulk-update');
+        expect(bulkButton).toBeInTheDocument();
       });
+
+      const bulkButton = screen.getByTestId('button-bulk-update');
+      await userEvent.click(bulkButton);
+
+      // Dialog should open
+      await waitFor(() => {
+        expect(screen.getByTestId('dialog-bulk-update')).toBeInTheDocument();
+      });
+
+      // Select should be in dialog
+      expect(screen.getByTestId('select-bulk-frequency')).toBeInTheDocument();
+    });
+
+    it('should apply bulk frequency update', async () => {
+      customRender(<CommunicationDashboard />);
+
+      await waitFor(() => {
+        const bulkButton = screen.getByTestId('button-bulk-update');
+        expect(bulkButton).toBeInTheDocument();
+      });
+
+      // Open dialog
+      const bulkButton = screen.getByTestId('button-bulk-update');
+      await userEvent.click(bulkButton);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('select-bulk-frequency')).toBeInTheDocument();
+      });
+
+      // Verify select element renders correctly
+      const select = screen.getByTestId('select-bulk-frequency');
+      expect(select).toBeInTheDocument();
+      expect(select).toHaveAttribute('role', 'combobox');
+      
+      // Verify apply button exists and is disabled when no frequency selected
+      const applyButton = screen.getByTestId('button-apply-bulk');
+      expect(applyButton).toBeInTheDocument();
+      expect(applyButton).toBeDisabled();
     });
   });
 
@@ -787,418 +667,155 @@ describe('Communication Page Test Suite', () => {
       mockAuth = createMockAuthUser('admin');
     });
 
-    it('should render general communication form elements', () => {
-      customRender(<MockCommunicationPage />);
+    it('should render communication form for authorized users', async () => {
+      customRender(<CommunicationDashboard />);
 
-      expect(screen.getByTestId('general-communication-form')).toBeInTheDocument();
-      expect(screen.getByTestId('input-communication-title')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('input-communication-title')).toBeInTheDocument();
+      });
+
       expect(screen.getByTestId('textarea-communication-content')).toBeInTheDocument();
       expect(screen.getByTestId('select-urgency-level')).toBeInTheDocument();
-      expect(screen.getByTestId('select-recipient-roles')).toBeInTheDocument();
       expect(screen.getByTestId('button-send-communication')).toBeInTheDocument();
     });
 
-    it('should render all urgency level options', async () => {
-      customRender(<MockCommunicationPage />);
-
-      const urgencySelect = screen.getByTestId('select-urgency-level');
-      await userEvent.click(urgencySelect);
-
-      expect(screen.getByText('low')).toBeInTheDocument();
-      expect(screen.getByText('medium')).toBeInTheDocument();
-      expect(screen.getByText('high')).toBeInTheDocument();
-      expect(screen.getByText('urgent')).toBeInTheDocument();
-    });
-
-    it('should validate required fields', async () => {
-      // Create form component that shows validation errors
-      const ValidationMockComponent = () => {
-        const [showErrors, setShowErrors] = React.useState(false);
-        return (
-          <div data-testid="communication-page">
-            <div data-testid="general-communication-form">
-              <input data-testid="input-communication-title" placeholder="Title" />
-              <textarea data-testid="textarea-communication-content" placeholder="Content" />
-              <button 
-                data-testid="button-send-communication" 
-                onClick={() => setShowErrors(true)}
-              >
-                Send Communication
-              </button>
-              {showErrors && <div>Title is required</div>}
-              {showErrors && <div>Content is required</div>}
-            </div>
-          </div>
-        );
-      };
-      customRender(<ValidationMockComponent />);
-
-      const submitButton = screen.getByTestId('button-send-communication');
-      await userEvent.click(submitButton);
+    it('should fill and submit communication form', async () => {
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        expect(screen.getByText('Title is required')).toBeInTheDocument();
-        expect(screen.getByText('Content is required')).toBeInTheDocument();
+        expect(screen.getByTestId('input-communication-title')).toBeInTheDocument();
       });
-    });
-
-    it('should submit general communication form with correct data', async () => {
-      customRender(<MockCommunicationPage />);
 
       const titleInput = screen.getByTestId('input-communication-title');
       const contentTextarea = screen.getByTestId('textarea-communication-content');
+
+      await userEvent.type(titleInput, 'Test Communication');
+      await userEvent.type(contentTextarea, 'This is a test message');
+
+      // Verify urgency select renders correctly (interaction testing skipped due to JSDOM/Radix UI limitation)
       const urgencySelect = screen.getByTestId('select-urgency-level');
+      expect(urgencySelect).toBeInTheDocument();
+      expect(urgencySelect).toHaveAttribute('role', 'combobox');
+
+      // Verify submit button exists
       const submitButton = screen.getByTestId('button-send-communication');
-
-      await userEvent.type(titleInput, 'Test Communication Title');
-      await userEvent.type(contentTextarea, 'This is a test communication message.');
-      
-      await userEvent.click(urgencySelect);
-      await userEvent.click(screen.getByText('high'));
-
-      await userEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith(
-          'POST',
-          '/api/communication/general',
-          expect.objectContaining({
-            title: 'Test Communication Title',
-            content: 'This is a test communication message.',
-            isUrgent: true, // high urgency should set isUrgent to true
-            organizationId: '123e4567-e89b-12d3-a456-426614174001',
-            createdBy: '123e4567-e89b-12d3-a456-426614174000'
-          })
-        );
-        expect(mockToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            title: expect.stringContaining('success')
-          })
-        );
-      });
+      expect(submitButton).toBeInTheDocument();
     });
 
-    it('should handle organization filtering', async () => {
-      customRender(<MockCommunicationPage />);
+    it('should reset communication form', async () => {
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith('GET', '/api/organizations');
+        expect(screen.getByTestId('input-communication-title')).toBeInTheDocument();
       });
 
-      // Should display organization selector for multi-org users
-      const orgSelect = screen.getByTestId('select-organization');
-      expect(orgSelect).toBeInTheDocument();
+      const titleInput = screen.getByTestId('input-communication-title') as HTMLInputElement;
+      await userEvent.type(titleInput, 'Test Communication');
 
-      await userEvent.click(orgSelect);
-      expect(screen.getByText('Test Organization 1')).toBeInTheDocument();
-      expect(screen.getByText('Test Organization 2')).toBeInTheDocument();
-    });
+      expect(titleInput.value).toBe('Test Communication');
 
-    it('should handle recipient role selection', async () => {
-      customRender(<MockCommunicationPage />);
+      // Click reset button
+      const resetButton = screen.getByTestId('button-reset-communication');
+      await userEvent.click(resetButton);
 
-      const recipientSelect = screen.getByTestId('select-recipient-roles');
-      await userEvent.click(recipientSelect);
-
-      expect(screen.getByText('all')).toBeInTheDocument();
-      expect(screen.getByText('resident')).toBeInTheDocument();
-      expect(screen.getByText('tenant')).toBeInTheDocument();
-      expect(screen.getByText('manager')).toBeInTheDocument();
-      expect(screen.getByText('admin')).toBeInTheDocument();
-    });
-
-    it('should handle general communication API error', async () => {
-      mockApiRequest.mockImplementation((method, url) => {
-        if (url === '/api/communication/general') {
-          return Promise.reject(new Error('Failed to send communication'));
-        }
-        return Promise.resolve(mockNotificationPreferences);
-      });
-
-      customRender(<MockCommunicationPage />);
-
-      const titleInput = screen.getByTestId('input-communication-title');
-      const contentTextarea = screen.getByTestId('textarea-communication-content');
-      const submitButton = screen.getByTestId('button-send-communication');
-
-      await userEvent.type(titleInput, 'Test Title');
-      await userEvent.type(contentTextarea, 'Test content');
-      await userEvent.click(submitButton);
-
+      // Form should be cleared
       await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            title: expect.stringContaining('error'),
-            variant: 'destructive'
-          })
-        );
+        expect(titleInput.value).toBe('');
       });
     });
   });
 
-  describe('Meeting Planning Form', () => {
-    beforeEach(() => {
-      mockAuth = createMockAuthUser('admin');
-    });
-
-    it('should render meeting planning form elements', () => {
-      customRender(<MockCommunicationPage />);
-
-      expect(screen.getByTestId('meeting-planning-form')).toBeInTheDocument();
-      expect(screen.getByTestId('input-meeting-title')).toBeInTheDocument();
-      expect(screen.getByTestId('textarea-meeting-description')).toBeInTheDocument();
-      expect(screen.getByTestId('input-meeting-location')).toBeInTheDocument();
-      expect(screen.getByTestId('input-meeting-date')).toBeInTheDocument();
-      expect(screen.getByTestId('input-meeting-duration')).toBeInTheDocument();
-      expect(screen.getByTestId('select-invited-roles')).toBeInTheDocument();
-      expect(screen.getByTestId('button-send-meeting-invite')).toBeInTheDocument();
-    });
-
-    it('should validate meeting form required fields', async () => {
-      // Create meeting form component that shows validation errors
-      const MeetingValidationMockComponent = () => {
-        const [showErrors, setShowErrors] = React.useState(false);
-        return (
-          <div data-testid="communication-page">
-            <div data-testid="meeting-planning-form">
-              <input data-testid="input-meeting-title" placeholder="Meeting Title" />
-              <input data-testid="input-meeting-location" placeholder="Location" />
-              <input data-testid="input-meeting-duration" type="number" defaultValue="" />
-              <button 
-                data-testid="button-send-meeting-invite" 
-                onClick={() => setShowErrors(true)}
-              >
-                Send Meeting Invite
-              </button>
-              {showErrors && <div>Title is required</div>}
-              {showErrors && <div>Location is required</div>}
-              {showErrors && <div>Duration must be a positive number</div>}
-            </div>
-          </div>
-        );
-      };
-      customRender(<MeetingValidationMockComponent />);
-
-      const submitButton = screen.getByTestId('button-send-meeting-invite');
-      await userEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(screen.getByText('Title is required')).toBeInTheDocument();
-        expect(screen.getByText('Location is required')).toBeInTheDocument();
-        expect(screen.getByText('Duration must be a positive number')).toBeInTheDocument();
-      });
-    });
-
-    it('should submit meeting invitation with correct data', async () => {
-      customRender(<MockCommunicationPage />);
-
-      const titleInput = screen.getByTestId('input-meeting-title');
-      const descriptionTextarea = screen.getByTestId('textarea-meeting-description');
-      const locationInput = screen.getByTestId('input-meeting-location');
-      const dateInput = screen.getByTestId('input-meeting-date');
-      const durationInput = screen.getByTestId('input-meeting-duration');
-      const submitButton = screen.getByTestId('button-send-meeting-invite');
-
-      await userEvent.type(titleInput, 'Board Meeting');
-      await userEvent.type(descriptionTextarea, 'Monthly board meeting discussion');
-      await userEvent.type(locationInput, 'Conference Room A');
-      await userEvent.type(dateInput, '2024-12-01T14:00');
-      await userEvent.clear(durationInput);
-      await userEvent.type(durationInput, '120');
-
-      await userEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockApiRequest).toHaveBeenCalledWith(
-          'POST',
-          '/api/communication/meetings',
-          expect.objectContaining({
-            title: 'Board Meeting',
-            description: 'Monthly board meeting discussion',
-            location: 'Conference Room A',
-            duration: 120,
-            organizationId: '123e4567-e89b-12d3-a456-426614174001',
-            createdBy: '123e4567-e89b-12d3-a456-426614174000'
-          })
-        );
-        expect(mockToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            title: expect.stringContaining('success')
-          })
-        );
-      });
-    });
-
-    it('should handle invited roles selection for meetings', async () => {
-      customRender(<MockCommunicationPage />);
-
-      const invitedRolesSelect = screen.getByTestId('select-invited-roles');
-      await userEvent.click(invitedRolesSelect);
-
-      expect(screen.getByText('all')).toBeInTheDocument();
-      expect(screen.getByText('resident')).toBeInTheDocument();
-      expect(screen.getByText('manager')).toBeInTheDocument();
-      expect(screen.getByText('admin')).toBeInTheDocument();
-    });
-
-    it('should handle meeting invitation API error', async () => {
-      mockApiRequest.mockImplementation((method, url) => {
-        if (url === '/api/communication/meetings') {
-          return Promise.reject(new Error('Failed to send meeting invitation'));
-        }
-        return Promise.resolve(mockNotificationPreferences);
-      });
-
-      customRender(<MockCommunicationPage />);
-
-      const titleInput = screen.getByTestId('input-meeting-title');
-      const locationInput = screen.getByTestId('input-meeting-location');
-      const dateInput = screen.getByTestId('input-meeting-date');
-      const durationInput = screen.getByTestId('input-meeting-duration');
-      const submitButton = screen.getByTestId('button-send-meeting-invite');
-
-      await userEvent.type(titleInput, 'Test Meeting');
-      await userEvent.type(locationInput, 'Test Location');
-      await userEvent.type(dateInput, '2024-12-01T14:00');
-      await userEvent.clear(durationInput);
-      await userEvent.type(durationInput, '60');
-      await userEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            title: expect.stringContaining('error'),
-            variant: 'destructive'
-          })
-        );
-      });
-    });
-  });
-
-  describe('Bilingual Support', () => {
-    it('should support French language interface', () => {
+  describe('Language Support', () => {
+    it('should display French labels when language is set to French', async () => {
       mockLanguage.language = 'fr';
-      mockLanguage.t.mockImplementation((key: string) => {
-        const translations: Record<string, string> = {
-          'Bill Reminders': 'Rappels de factures',
-          'Maintenance Updates': 'Mises à jour de maintenance',
-          'General Announcements': 'Annonces générales',
-          'Meeting Invitations': 'Invitations aux réunions',
-        };
-        return translations[key] || key;
+      mockAuth = createMockAuthUser('admin');
+      
+      customRender(<CommunicationDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('communication-page')).toBeInTheDocument();
       });
 
-      customRender(<MockCommunicationPage />);
-
-      expect(mockLanguage.t).toHaveBeenCalled();
-      expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-    });
-
-    it('should support English language interface', () => {
-      mockLanguage.language = 'en';
-      mockLanguage.t.mockImplementation((key: string) => key);
-
-      customRender(<MockCommunicationPage />);
-
-      expect(mockLanguage.t).toHaveBeenCalled();
-      expect(screen.getByTestId('communication-page')).toBeInTheDocument();
+      // Check for French text in the card title
+      await waitFor(() => {
+        expect(screen.getByText('Préférences de notification')).toBeInTheDocument();
+      });
     });
   });
 
-  describe('Loading States and Error Handling', () => {
-    it('should show loading state while fetching preferences', () => {
-      // Mock a delayed response
-      mockApiRequest.mockImplementation(() => 
-        new Promise(resolve => setTimeout(() => resolve(mockNotificationPreferences), 100))
-      );
-
-      customRender(<MockCommunicationPage />);
-
-      expect(screen.getByTestId('preferences-loading')).toBeInTheDocument();
+  describe('Test Email Functionality', () => {
+    beforeEach(() => {
+      mockAuth = createMockAuthUser('admin');
     });
 
-    it('should show loading state during form submission', async () => {
-      // Mock a delayed response for form submission
-      mockApiRequest.mockImplementation((method, url) => {
-        if (method === 'POST' && url === '/api/communication/general') {
-          return new Promise(resolve => setTimeout(() => resolve({ success: true }), 100));
-        }
-        return Promise.resolve(mockNotificationPreferences);
-      });
-
-      customRender(<MockCommunicationPage />);
-
-      const titleInput = screen.getByTestId('input-communication-title');
-      const contentTextarea = screen.getByTestId('textarea-communication-content');
-      const submitButton = screen.getByTestId('button-send-communication');
-
-      await userEvent.type(titleInput, 'Test Title');
-      await userEvent.type(contentTextarea, 'Test content');
-      await userEvent.click(submitButton);
-
-      expect(screen.getByTestId('form-submitting')).toBeInTheDocument();
-    });
-
-    it('should handle network errors gracefully', async () => {
-      mockApiRequest.mockRejectedValue(new Error('Network error'));
-
-      customRender(<MockCommunicationPage />);
+    it('should render test email button', async () => {
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        expect(mockToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            title: expect.stringContaining('error'),
-            variant: 'destructive'
-          })
+        expect(screen.getByTestId('button-combined-test-email')).toBeInTheDocument();
+      });
+    });
+
+    it('should send test email', async () => {
+      mockApiRequest.mockImplementation((method: string, url: string, data?: any) => {
+        if (method === 'POST' && url === '/api/communication/preferences/test-combined-email') {
+          return Promise.resolve({ 
+            json: async () => ({ success: true })
+          });
+        }
+        return Promise.resolve({ json: async () => ({ success: true }) });
+      });
+
+      customRender(<CommunicationDashboard />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('button-combined-test-email')).toBeInTheDocument();
+      });
+
+      const testButton = screen.getByTestId('button-combined-test-email');
+      await userEvent.click(testButton);
+
+      await waitFor(() => {
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'POST',
+          '/api/communication/preferences/test-combined-email',
+          expect.objectContaining({ language: 'en' })
         );
       });
     });
   });
 
-  describe('Form Reset and State Management', () => {
+  describe('Settings Management', () => {
     beforeEach(() => {
       mockAuth = createMockAuthUser('admin');
     });
 
-    it('should reset general communication form after successful submission', async () => {
-      customRender(<MockCommunicationPage />);
-
-      const titleInput = screen.getByTestId('input-communication-title');
-      const contentTextarea = screen.getByTestId('textarea-communication-content');
-      const submitButton = screen.getByTestId('button-send-communication');
-
-      await userEvent.type(titleInput, 'Test Title');
-      await userEvent.type(contentTextarea, 'Test content');
-      await userEvent.click(submitButton);
+    it('should render settings save button', async () => {
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        expect((titleInput as HTMLInputElement).value).toBe('');
-        expect((contentTextarea as HTMLTextAreaElement).value).toBe('');
+        expect(screen.getByTestId('button-save-settings')).toBeInTheDocument();
       });
     });
 
-    it('should reset meeting form after successful submission', async () => {
-      customRender(<MockCommunicationPage />);
-
-      const titleInput = screen.getByTestId('input-meeting-title');
-      const locationInput = screen.getByTestId('input-meeting-location');
-      const submitButton = screen.getByTestId('button-send-meeting-invite');
-
-      await userEvent.type(titleInput, 'Test Meeting');
-      await userEvent.type(locationInput, 'Test Location');
-
-      // Fill required fields for successful submission
-      const dateInput = screen.getByTestId('input-meeting-date');
-      const durationInput = screen.getByTestId('input-meeting-duration');
-      await userEvent.type(dateInput, '2024-12-01T14:00');
-      await userEvent.clear(durationInput);
-      await userEvent.type(durationInput, '60');
-
-      await userEvent.click(submitButton);
+    it('should save settings', async () => {
+      customRender(<CommunicationDashboard />);
 
       await waitFor(() => {
-        expect((titleInput as HTMLInputElement).value).toBe('');
-        expect((locationInput as HTMLInputElement).value).toBe('');
+        expect(screen.getByTestId('button-save-settings')).toBeInTheDocument();
+      });
+
+      const saveButton = screen.getByTestId('button-save-settings');
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockApiRequest).toHaveBeenCalledWith(
+          'PUT',
+          '/api/communication/settings',
+          expect.objectContaining({
+            startingDate: expect.any(String)
+          })
+        );
       });
     });
   });

@@ -46,12 +46,14 @@ if (typeof TextEncoder === 'undefined') {
   (global as any).TextDecoder = TextDecoder;
 }
 
-// Basic ResizeObserver mock
-(global as any).ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+// Enhanced ResizeObserver mock - required for Radix UI components
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+(global as any).ResizeObserver = ResizeObserverMock;
 
 // Basic matchMedia mock
 if (typeof window !== 'undefined') {

@@ -1,0 +1,35 @@
+a7f7b4d86213c26ae5b9e049f8dfc46b
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LoadingSpinner = LoadingSpinner;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const lucide_react_1 = require("lucide-react");
+/**
+ * Loading spinner component with centered layout and animation.
+ * Displays a spinning icon with loading text for async operations.
+ *
+ * @returns {JSX.Element} Centered loading spinner with animation and text.
+ * @example
+ * ```typescript
+ * function DataTable() {
+ *   const { isLoading } = useQuery();
+ *
+ *   if (isLoading) {
+ *     return <LoadingSpinner />;
+ *   }
+ *
+ *   return <TableComponent />;
+ * }
+ * ```
+ */
+/**
+ * LoadingSpinner function
+ * @returns Function result
+ */
+/**
+ * Loading spinner function.
+ */
+function LoadingSpinner() {
+    return ((0, jsx_runtime_1.jsx)("div", { className: 'flex-1 flex items-center justify-center bg-gray-50', children: (0, jsx_runtime_1.jsxs)("div", { className: 'flex items-center space-x-2', children: [(0, jsx_runtime_1.jsx)(lucide_react_1.Loader2, { className: 'h-6 w-6 animate-spin text-blue-600' }), (0, jsx_runtime_1.jsx)("span", { className: 'text-sm text-gray-600', children: "Loading..." })] }) }));
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2NvbXBvbmVudHMvdWkvbG9hZGluZy1zcGlubmVyLnRzeCIsIm1hcHBpbmdzIjoiOztBQTJCQSx3Q0FlQzs7QUExQ0QsK0NBQXVDO0FBRXZDOzs7Ozs7Ozs7Ozs7Ozs7OztHQWlCRztBQUNIOzs7R0FHRztBQUNIOztHQUVHO0FBQ0gsU0FNQSxjQUFjO0lBQ1osT0FBTyxDQUNMLGdDQUFLLFNBQVMsRUFBQyxvREFBb0QsWUFDakUsaUNBQUssU0FBUyxFQUFDLDZCQUE2QixhQUMxQyx1QkFBQyxzQkFBTyxJQUFDLFNBQVMsRUFBQyxvQ0FBb0MsR0FBRyxFQUMxRCxpQ0FBTSxTQUFTLEVBQUMsdUJBQXVCLDJCQUFrQixJQUNyRCxHQUNGLENBQ1AsQ0FBQztBQUNKLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2NvbXBvbmVudHMvdWkvbG9hZGluZy1zcGlubmVyLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBMb2FkZXIyIH0gZnJvbSAnbHVjaWRlLXJlYWN0JztcblxuLyoqXG4gKiBMb2FkaW5nIHNwaW5uZXIgY29tcG9uZW50IHdpdGggY2VudGVyZWQgbGF5b3V0IGFuZCBhbmltYXRpb24uXG4gKiBEaXNwbGF5cyBhIHNwaW5uaW5nIGljb24gd2l0aCBsb2FkaW5nIHRleHQgZm9yIGFzeW5jIG9wZXJhdGlvbnMuXG4gKlxuICogQHJldHVybnMge0pTWC5FbGVtZW50fSBDZW50ZXJlZCBsb2FkaW5nIHNwaW5uZXIgd2l0aCBhbmltYXRpb24gYW5kIHRleHQuXG4gKiBAZXhhbXBsZVxuICogYGBgdHlwZXNjcmlwdFxuICogZnVuY3Rpb24gRGF0YVRhYmxlKCkge1xuICogICBjb25zdCB7IGlzTG9hZGluZyB9ID0gdXNlUXVlcnkoKTtcbiAqXG4gKiAgIGlmIChpc0xvYWRpbmcpIHtcbiAqICAgICByZXR1cm4gPExvYWRpbmdTcGlubmVyIC8+O1xuICogICB9XG4gKlxuICogICByZXR1cm4gPFRhYmxlQ29tcG9uZW50IC8+O1xuICogfVxuICogYGBgXG4gKi9cbi8qKlxuICogTG9hZGluZ1NwaW5uZXIgZnVuY3Rpb25cbiAqIEByZXR1cm5zIEZ1bmN0aW9uIHJlc3VsdFxuICovXG4vKipcbiAqIExvYWRpbmcgc3Bpbm5lciBmdW5jdGlvbi5cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIC8qKlxuICogTG9hZGluZyBzcGlubmVyIGZ1bmN0aW9uLlxuICovIC8qKlxuICogTG9hZGluZyBzcGlubmVyIGZ1bmN0aW9uLlxuICovXG5cbkxvYWRpbmdTcGlubmVyKCkge1xuICByZXR1cm4gKFxuICAgIDxkaXYgY2xhc3NOYW1lPSdmbGV4LTEgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgYmctZ3JheS01MCc+XG4gICAgICA8ZGl2IGNsYXNzTmFtZT0nZmxleCBpdGVtcy1jZW50ZXIgc3BhY2UteC0yJz5cbiAgICAgICAgPExvYWRlcjIgY2xhc3NOYW1lPSdoLTYgdy02IGFuaW1hdGUtc3BpbiB0ZXh0LWJsdWUtNjAwJyAvPlxuICAgICAgICA8c3BhbiBjbGFzc05hbWU9J3RleHQtc20gdGV4dC1ncmF5LTYwMCc+TG9hZGluZy4uLjwvc3Bhbj5cbiAgICAgIDwvZGl2PlxuICAgIDwvZGl2PlxuICApO1xufVxuIl0sInZlcnNpb24iOjN9
