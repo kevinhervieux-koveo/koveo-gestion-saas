@@ -548,15 +548,21 @@ export default function UserManagement() {
       // Only initialize once per user - prevent re-initialization on unrelated renders
       const userWithAssignments = findUserWithAssignments(editingUser.id);
       if (userWithAssignments) {
-        const currentOrgIds = userWithAssignments.organizations?.map((org: any) => org.id) || [];
-        const currentBuildingIds = userWithAssignments.buildings?.map((building: any) => building.id) || [];
-        const currentResidenceAssignments = userWithAssignments.residences?.map((residence: any) => ({
-          residenceId: residence.id,
-          relationshipType: residence.relationshipType || 'tenant',
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: null,
-          isActive: true
-        })) || [];
+        const currentOrgIds = Array.isArray(userWithAssignments.organizations) 
+          ? userWithAssignments.organizations.map((org: any) => org.id) 
+          : [];
+        const currentBuildingIds = Array.isArray(userWithAssignments.buildings) 
+          ? userWithAssignments.buildings.map((building: any) => building.id) 
+          : [];
+        const currentResidenceAssignments = Array.isArray(userWithAssignments.residences) 
+          ? userWithAssignments.residences.map((residence: any) => ({
+            residenceId: residence.id,
+            relationshipType: residence.relationshipType || 'tenant',
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: null,
+            isActive: true
+          }))
+          : [];
         setSelectedOrganizationIds(currentOrgIds);
         setSelectedBuildingIds(currentBuildingIds);
         setSelectedResidenceAssignments(currentResidenceAssignments);
@@ -592,9 +598,15 @@ export default function UserManagement() {
       };
     }
 
-    const organizationIds = currentUserWithAssignments.organizations?.map((org: any) => org.id) || [];
-    const buildingIds = currentUserWithAssignments.buildings?.map((building: any) => building.id) || [];
-    const residenceIds = currentUserWithAssignments.residences?.map((residence: any) => residence.id) || [];
+    const organizationIds = Array.isArray(currentUserWithAssignments.organizations) 
+      ? currentUserWithAssignments.organizations.map((org: any) => org.id) 
+      : [];
+    const buildingIds = Array.isArray(currentUserWithAssignments.buildings) 
+      ? currentUserWithAssignments.buildings.map((building: any) => building.id) 
+      : [];
+    const residenceIds = Array.isArray(currentUserWithAssignments.residences) 
+      ? currentUserWithAssignments.residences.map((residence: any) => residence.id) 
+      : [];
 
     return {
       organizationIds,
