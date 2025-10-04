@@ -1048,14 +1048,9 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                           data-testid={`time-slot-${time}`}
                                         >
                                           <div className='font-medium'>{time}</div>
-                                          {hasBooking && userName && (
-                                            <div className='text-[10px] mt-1 text-orange-600 line-clamp-2' data-testid={`booking-user-${time}`}>
-                                              {userName}
-                                            </div>
-                                          )}
-                                          {hasBooking && !userName && (
-                                            <div className='text-[10px] mt-1 text-orange-600'>
-                                              {language === 'fr' ? 'Réservé' : 'Booked'}
+                                          {hasBooking && slotBooking && (
+                                            <div className='text-[10px] mt-1 text-orange-600 font-semibold' data-testid={`booking-time-${time}`}>
+                                              {format(parseISO(slotBooking.startTime), 'HH')}-{format(parseISO(slotBooking.endTime), 'HH')}
                                             </div>
                                           )}
                                           {!isAvailable && !hasBooking && (
