@@ -26,6 +26,8 @@ jest.mock('@/hooks/use-language', () => ({
 const MockCommunicationPage = () => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [showError, setShowError] = React.useState(false);
+  const [preferences, setPreferences] = React.useState<any[]>([]);
+  const [isLoadingPreferences, setIsLoadingPreferences] = React.useState(true);
 
   // Use the mocked language hook to simulate translation usage
   const { t } = {
@@ -40,23 +42,121 @@ const MockCommunicationPage = () => {
     t('Meeting Invitations');
   }, [t]);
 
-  // Simulate network error handling
+  // Fetch preferences on mount
   React.useEffect(() => {
-    if (mockApiRequest.getMockImplementation()?.toString().includes('mockRejectedValue')) {
+    const fetchPreferences = async () => {
+      setIsLoadingPreferences(true);
+      try {
+        const prefs = await mockApiRequest('GET', '/api/communication/preferences');
+        setPreferences(prefs || []);
+        setIsLoadingPreferences(false);
+      } catch (error) {
+        setIsLoadingPreferences(false);
+        mockToast({
+          title: 'Network error occurred',
+          variant: 'destructive'
+        });
+      }
+    };
+    fetchPreferences();
+  }, []);
+
+  // Fetch organizations on mount
+  React.useEffect(() => {
+    mockApiRequest('GET', '/api/organizations').catch(() => {});
+  }, []);
+
+  const handleBulkFrequency = async () => {
+    const bulkSelect = document.querySelector('[data-testid="bulk-frequency-select"]') as HTMLSelectElement;
+    const frequency = bulkSelect?.value || 'immediate';
+    
+    try {
+      await mockApiRequest('PUT', '/api/communication/preferences/bulk', {
+        frequency
+      });
+    } catch (error) {
       mockToast({
-        title: 'Network error occurred',
+        title: 'Bulk update error',
         variant: 'destructive'
       });
     }
-  }, []);
+  };
+
+  const handleTogglePreference = async () => {
+    try {
+      await mockApiRequest('PUT', '/api/communication/preferences', {
+        preferences: [
+          {
+            notificationType: 'bill_reminder',
+            isEnabled: false
+          }
+        ]
+      });
+    } catch (error) {
+      mockToast({
+        title: 'Toggle error',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleSavePreferences = async () => {
+    try {
+      await mockApiRequest('PUT', '/api/communication/preferences', {
+        preferences: preferences
+      });
+      mockToast({
+        title: 'Preferences saved successfully'
+      });
+    } catch (error) {
+      mockToast({
+        title: 'Save error',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleResetPreferences = async () => {
+    try {
+      const prefs = await mockApiRequest('GET', '/api/communication/preferences');
+      setPreferences(prefs || []);
+    } catch (error) {
+      mockToast({
+        title: 'Reset error',
+        variant: 'destructive'
+      });
+    }
+  };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    const titleInput = document.querySelector('[data-testid="input-communication-title"]') as HTMLInputElement;
+    const contentTextarea = document.querySelector('[data-testid="textarea-communication-content"]') as HTMLTextAreaElement;
+    const urgencySelect = document.querySelector('[data-testid="select-urgency-level"]') as HTMLSelectElement;
+    
+    const title = titleInput?.value || '';
+    const content = contentTextarea?.value || '';
+    const urgency = urgencySelect?.value || 'low';
+    
     try {
-      await mockApiRequest('POST', '/api/communication/general');
+      await mockApiRequest('POST', '/api/communication/general', {
+        title,
+        content,
+        isUrgent: urgency === 'high' || urgency === 'urgent',
+        organizationId: '123e4567-e89b-12d3-a456-426614174001',
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+      });
       setIsSubmitting(false);
+      
+      // Clear form on success
+      if (titleInput) titleInput.value = '';
+      if (contentTextarea) contentTextarea.value = '';
+      
+      mockToast({
+        title: 'Communication sent successfully'
+      });
     } catch (error) {
       setIsSubmitting(false);
       mockToast({
@@ -69,13 +169,36 @@ const MockCommunicationPage = () => {
   const handleMeetingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const titleInput = document.querySelector('[data-testid="input-meeting-title"]') as HTMLInputElement;
+    const descriptionTextarea = document.querySelector('[data-testid="textarea-meeting-description"]') as HTMLTextAreaElement;
+    const locationInput = document.querySelector('[data-testid="input-meeting-location"]') as HTMLInputElement;
+    const dateInput = document.querySelector('[data-testid="input-meeting-date"]') as HTMLInputElement;
+    const durationInput = document.querySelector('[data-testid="input-meeting-duration"]') as HTMLInputElement;
+    
+    const title = titleInput?.value || '';
+    const description = descriptionTextarea?.value || '';
+    const location = locationInput?.value || '';
+    const date = dateInput?.value || '';
+    const duration = parseInt(durationInput?.value || '60');
+    
     try {
-      await mockApiRequest('POST', '/api/communication/meetings');
+      await mockApiRequest('POST', '/api/communication/meetings', {
+        title,
+        description,
+        location,
+        date,
+        duration,
+        organizationId: '123e4567-e89b-12d3-a456-426614174001',
+        createdBy: '123e4567-e89b-12d3-a456-426614174000'
+      });
+      
       // Clear form on success
-      const titleInput = document.querySelector('[data-testid="input-meeting-title"]') as HTMLInputElement;
-      const locationInput = document.querySelector('[data-testid="input-meeting-location"]') as HTMLInputElement;
       if (titleInput) titleInput.value = '';
       if (locationInput) locationInput.value = '';
+      
+      mockToast({
+        title: 'Meeting invitation sent successfully'
+      });
     } catch (error) {
       mockToast({
         title: 'Meeting creation error',
@@ -87,7 +210,7 @@ const MockCommunicationPage = () => {
   return (
     <div data-testid="communication-page">
       <div data-testid="notification-preferences-panel">
-        <div data-testid="preferences-loading">Loading preferences...</div>
+        {isLoadingPreferences && <div data-testid="preferences-loading">Loading preferences...</div>}
         <div data-testid="bulk-frequency-select">
           <select data-testid="bulk-frequency-select">
             <option value="immediate">Immediate</option>
@@ -95,11 +218,11 @@ const MockCommunicationPage = () => {
             <option value="monthly">Monthly</option>
           </select>
         </div>
-        <button data-testid="apply-bulk-frequency">Apply Bulk</button>
-        <button data-testid="save-preferences">Save Preferences</button>
-        <button data-testid="reset-preferences">Reset Preferences</button>
+        <button data-testid="apply-bulk-frequency" onClick={handleBulkFrequency}>Apply Bulk</button>
+        <button data-testid="save-preferences" onClick={handleSavePreferences}>Save Preferences</button>
+        <button data-testid="reset-preferences" onClick={handleResetPreferences}>Reset Preferences</button>
         <div data-testid="preference-toggle-bill_reminder">
-          <input type="checkbox" defaultChecked />
+          <input type="checkbox" defaultChecked onClick={handleTogglePreference} />
         </div>
         {/* Render notification types */}
         <div>bill_reminder</div>

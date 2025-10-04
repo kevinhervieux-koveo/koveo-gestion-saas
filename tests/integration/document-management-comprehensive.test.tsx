@@ -829,6 +829,8 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
         .mockResolvedValueOnce({ buildings: [demoBuildingData] })
         .mockResolvedValueOnce({ documents: demoBuildingDocuments });
 
+      setupManagerRouterMock('building-demo-789', 'building');
+
       render(
         <TestProviders userRole='manager'>
           <ManagerBuildingDocuments />
@@ -868,6 +870,8 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
         .mockResolvedValueOnce(demoResidenceData)
         .mockResolvedValueOnce({ buildings: [demoBuildingData] })
         .mockResolvedValueOnce({ documents: demoResidenceDocuments });
+
+      setupManagerRouterMock('residence-demo-101', 'residence');
 
       render(
         <TestProviders userRole='manager'>
