@@ -539,6 +539,8 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/common-spaces'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/common-spaces', selectedSpace?.id, 'bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/common-spaces/my-bookings'] });
       toast({
         title: 'Réservation confirmée',
         description: 'Votre réservation a été créée avec succès.',
