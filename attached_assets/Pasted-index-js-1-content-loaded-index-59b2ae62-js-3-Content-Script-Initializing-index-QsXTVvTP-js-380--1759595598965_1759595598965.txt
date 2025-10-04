@@ -1,0 +1,154 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-QsXTVvTP.js:380  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ index-QsXTVvTP.js:380
+r @ vendor-query-C8qmTmkl.js:1
+y @ vendor-query-C8qmTmkl.js:1
+start @ vendor-query-C8qmTmkl.js:1
+fetch @ vendor-query-C8qmTmkl.js:1
+#l @ vendor-query-C8qmTmkl.js:1
+onSubscribe @ vendor-query-C8qmTmkl.js:1
+subscribe @ vendor-query-C8qmTmkl.js:1
+(anonymous) @ vendor-query-C8qmTmkl.js:1
+Zp @ index-QsXTVvTP.js:120
+react_stack_bottom_frame @ index-QsXTVvTP.js:229
+q @ index-QsXTVvTP.js:45
+fl @ index-QsXTVvTP.js:150
+Ih @ index-QsXTVvTP.js:163
+ig @ index-QsXTVvTP.js:163
+Cn @ index-QsXTVvTP.js:163
+ig @ index-QsXTVvTP.js:163
+Cn @ index-QsXTVvTP.js:163
+ig @ index-QsXTVvTP.js:163
+Cn @ index-QsXTVvTP.js:163
+ig @ index-QsXTVvTP.js:163
+Cn @ index-QsXTVvTP.js:163
+ig @ index-QsXTVvTP.js:163
+Cn @ index-QsXTVvTP.js:163
+ig @ index-QsXTVvTP.js:163
+Cn @ index-QsXTVvTP.js:163
+ig @ index-QsXTVvTP.js:163
+Cn @ index-QsXTVvTP.js:163
+ig @ index-QsXTVvTP.js:163
+xg @ index-QsXTVvTP.js:163
+gl @ index-QsXTVvTP.js:163
+kg @ index-QsXTVvTP.js:185
+vl @ index-QsXTVvTP.js:185
+Eg @ index-QsXTVvTP.js:163
+dd @ index-QsXTVvTP.js:163
+pg @ index-QsXTVvTP.js:163
+mg @ index-QsXTVvTP.js:163
+zg @ index-QsXTVvTP.js:185
+u @ index-QsXTVvTP.js:23
+<jC>
+vu.jsxDEV @ index-QsXTVvTP.js:15
+Fx @ index-QsXTVvTP.js:384
+react_stack_bottom_frame @ index-QsXTVvTP.js:229
+hc @ index-QsXTVvTP.js:120
+Gc @ index-QsXTVvTP.js:141
+Wc @ index-QsXTVvTP.js:150
+q @ index-QsXTVvTP.js:45
+bg @ index-QsXTVvTP.js:163
+vg @ index-QsXTVvTP.js:163
+cd @ index-QsXTVvTP.js:163
+mg @ index-QsXTVvTP.js:163
+zg @ index-QsXTVvTP.js:185
+u @ index-QsXTVvTP.js:23
+<Fx>
+vu.jsxDEV @ index-QsXTVvTP.js:15
+(anonymous) @ index-QsXTVvTP.js:384
+user-management-BR8ejS6L.js:1 🔍 [USER_MANAGEMENT] Component mounted
+index-QsXTVvTP.js:136 TypeError: Q.map is not a function
+    at user-management-BR8ejS6L.js:1:70360
+    at Ks (index-QsXTVvTP.js:120:14320)
+    at Object.useMemo (index-QsXTVvTP.js:229:5353)
+    at He.s.useMemo (vendor-react-BZXSkU7I.js:21:11462)
+    at rr (user-management-BR8ejS6L.js:1:70336)
+    at Object.react_stack_bottom_frame (index-QsXTVvTP.js:229:12448)
+    at hc (index-QsXTVvTP.js:120:804)
+    at Gc (index-QsXTVvTP.js:141:5839)
+    at Wc (index-QsXTVvTP.js:150:10147)
+    at q (index-QsXTVvTP.js:45:108)
+
+The above error occurred in the <rr> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, sx.
+
+overrideMethod @ hook.js:608
+Ch @ index-QsXTVvTP.js:136
+Rh @ index-QsXTVvTP.js:141
+q @ index-QsXTVvTP.js:45
+Yc.l.componentDidCatch.e.callback @ index-QsXTVvTP.js:141
+Yp @ index-QsXTVvTP.js:107
+Gp @ index-QsXTVvTP.js:107
+q @ index-QsXTVvTP.js:45
+Yh @ index-QsXTVvTP.js:163
+Zh @ index-QsXTVvTP.js:163
+Xn @ index-QsXTVvTP.js:163
+Zh @ index-QsXTVvTP.js:163
+Xn @ index-QsXTVvTP.js:163
+Zh @ index-QsXTVvTP.js:163
+Xn @ index-QsXTVvTP.js:163
+Zh @ index-QsXTVvTP.js:163
+Xn @ index-QsXTVvTP.js:163
+Zh @ index-QsXTVvTP.js:163
+Xn @ index-QsXTVvTP.js:163
+Zh @ index-QsXTVvTP.js:163
+Xn @ index-QsXTVvTP.js:163
+Zh @ index-QsXTVvTP.js:163
+Ag @ index-QsXTVvTP.js:163
+dd @ index-QsXTVvTP.js:163
+pg @ index-QsXTVvTP.js:163
+mg @ index-QsXTVvTP.js:163
+kg @ index-QsXTVvTP.js:185
+vl @ index-QsXTVvTP.js:185
+pd @ index-QsXTVvTP.js:185
+(anonymous) @ index-QsXTVvTP.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+u0 @ index-QsXTVvTP.js:240
+P @ index-QsXTVvTP.js:240
+react_stack_bottom_frame @ index-QsXTVvTP.js:229
+hc @ index-QsXTVvTP.js:120
+Gc @ index-QsXTVvTP.js:141
+Wc @ index-QsXTVvTP.js:150
+q @ index-QsXTVvTP.js:45
+bg @ index-QsXTVvTP.js:163
+z1 @ index-QsXTVvTP.js:163
+U1 @ index-QsXTVvTP.js:163
+mg @ index-QsXTVvTP.js:163
+zg @ index-QsXTVvTP.js:185
+u @ index-QsXTVvTP.js:23
+<P>
+vu.jsxDEV @ index-QsXTVvTP.js:15
+Qx @ index-QsXTVvTP.js:384
+react_stack_bottom_frame @ index-QsXTVvTP.js:229
+hc @ index-QsXTVvTP.js:120
+Gc @ index-QsXTVvTP.js:141
+Wc @ index-QsXTVvTP.js:150
+q @ index-QsXTVvTP.js:45
+bg @ index-QsXTVvTP.js:163
+vg @ index-QsXTVvTP.js:163
+cd @ index-QsXTVvTP.js:163
+mg @ index-QsXTVvTP.js:163
+kg @ index-QsXTVvTP.js:185
+vl @ index-QsXTVvTP.js:185
+pd @ index-QsXTVvTP.js:185
+(anonymous) @ index-QsXTVvTP.js:185
+<Qx>
+vu.jsxDEV @ index-QsXTVvTP.js:15
+Fx @ index-QsXTVvTP.js:384
+react_stack_bottom_frame @ index-QsXTVvTP.js:229
+hc @ index-QsXTVvTP.js:120
+Gc @ index-QsXTVvTP.js:141
+Wc @ index-QsXTVvTP.js:150
+q @ index-QsXTVvTP.js:45
+bg @ index-QsXTVvTP.js:163
+vg @ index-QsXTVvTP.js:163
+cd @ index-QsXTVvTP.js:163
+mg @ index-QsXTVvTP.js:163
+zg @ index-QsXTVvTP.js:185
+u @ index-QsXTVvTP.js:23
+<Fx>
+vu.jsxDEV @ index-QsXTVvTP.js:15
+(anonymous) @ index-QsXTVvTP.js:384

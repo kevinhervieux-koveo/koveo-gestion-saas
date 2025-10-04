@@ -273,17 +273,17 @@ export default function UserManagement() {
 
   // Memoized lookup maps for O(1) performance
   const buildingLookup = useMemo(() => {
-    if (!buildings) return new Map();
+    if (!buildings || !Array.isArray(buildings)) return new Map();
     return new Map(buildings.map(building => [building.id, building]));
   }, [buildings]);
 
   const residenceLookup = useMemo(() => {
-    if (!residences) return new Map();
+    if (!residences || !Array.isArray(residences)) return new Map();
     return new Map(residences.map(residence => [residence.id, residence]));
   }, [residences]);
 
   const organizationLookup = useMemo(() => {
-    if (!organizations) return new Map();
+    if (!organizations || !Array.isArray(organizations)) return new Map();
     return new Map(organizations.map(org => [org.id, org]));
   }, [organizations]);
 
