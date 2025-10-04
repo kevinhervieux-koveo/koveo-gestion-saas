@@ -6,7 +6,13 @@ Koveo Gestion is an AI-powered SaaS platform designed for property management wi
 
 ## Recent Changes
 
-**October 4, 2025 (Latest)**: Major test infrastructure improvements - fixed critical testing issues:
+**October 4, 2025 (Latest)**: Fixed user management page assignment visibility issue:
+1. **Current user access fix**: Updated user-management page to fetch current user's organization/building/residence assignments independently of the paginated user list, fixing the issue where users couldn't assign access to other users when the logged-in user wasn't on the current page
+2. **Independent queries**: Added three separate useQuery calls to `/api/users/me/organizations`, `/api/users/me/buildings`, and `/api/users/me/residences` to fetch assignments regardless of pagination state
+3. **Improved UX**: Non-admin users can now always see and assign organizations/buildings/residences based on their own access, regardless of which page they're viewing in the user list
+4. **Performance**: Lightweight queries are cached by TanStack Query and only issue requests once per session
+
+**October 4, 2025**: Major test infrastructure improvements - fixed critical testing issues:
 1. **Jest Configuration**: Removed `bail=true` to allow full test suite execution, optimized workers and timeouts, disabled `forceExit` to prove no async leaks
 2. **Mock Infrastructure Fixes**: 
    - Added `relations` export to drizzle-orm mock to fix "relations is not a function" errors
