@@ -163,7 +163,9 @@ export function withHierarchicalSelection<T extends object>(
         // Always use the user-specific endpoint for residents/tenants to ensure proper access control
         const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
         
-        const url = (organizationId && !isResidentOrTenant)
+        // When checkResidenceAccess is true, use user-specific endpoint for managers too
+        // This ensures managers only see buildings they have access to manage
+        const url = (organizationId && !isResidentOrTenant && !config.checkResidenceAccess)
           ? `/api/organizations/${organizationId}/buildings`
           : '/api/users/me/buildings';
         
@@ -194,34 +196,8 @@ export function withHierarchicalSelection<T extends object>(
         
         let allBuildings = await response.json();
         
-        // For residence access mode with non-resident/tenant users (e.g., managers),
-        // filter buildings that have accessible residences since their endpoint doesn't filter
-        if (config.checkResidenceAccess && !isResidentOrTenant) {
-          const buildingsWithResidences = [];
-          
-          for (const building of allBuildings) {
-            try {
-              const residenceUrl = `/api/buildings/${building.id}/residences`;
-                
-              const residenceResponse = await fetch(residenceUrl, {
-                credentials: 'include'
-              });
-              
-              if (residenceResponse.ok) {
-                const residences = await residenceResponse.json();
-                if (residences.length > 0) {
-                  buildingsWithResidences.push(building);
-                }
-              }
-            } catch (error) {
-              // Continue with next building if error occurs
-            }
-          }
-          
-          return buildingsWithResidences;
-        }
-        
-        // For residents/tenants, the /api/users/me/buildings endpoint already filters correctly
+        // When using /api/users/me/buildings endpoint (residents, tenants, or managers with checkResidenceAccess),
+        // the endpoint already returns only buildings the user has access to, so no additional filtering needed
         return allBuildings;
       },
       enabled: Boolean(

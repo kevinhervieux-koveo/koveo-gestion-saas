@@ -1711,16 +1711,57 @@ export function registerUserRoutes(app: Express): void {
         return res.json(buildingDetails);
       }
 
-      // For managers, get buildings in their organizations
+      // For managers, get buildings where they have assigned residences
+      // First get their organizations to ensure we only show buildings in their organizations
       const userOrgs = await db
         .select({ organizationId: schema.userOrganizations.organizationId })
         .from(schema.userOrganizations)
-        .where(eq(schema.userOrganizations.userId, userId));
+        .where(and(
+          eq(schema.userOrganizations.userId, userId),
+          eq(schema.userOrganizations.isActive, true)
+        ));
 
       const orgIds = userOrgs.map(org => org.organizationId);
 
       if (orgIds.length === 0) {
         return res.json([]);
+      }
+
+      // Get buildings where the manager has assigned residences
+      const userResidences = await db
+        .select({
+          residenceId: schema.userResidences.residenceId,
+          buildingId: schema.residences.buildingId,
+        })
+        .from(schema.userResidences)
+        .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+        .where(and(
+          eq(schema.userResidences.userId, userId),
+          eq(schema.userResidences.isActive, true),
+          eq(schema.residences.isActive, true)
+        ));
+
+      if (userResidences.length === 0) {
+        return res.json([]);
+      }
+
+      // Get unique building IDs from manager's assigned residences
+      const buildingIds = [...new Set(userResidences.map(ur => ur.buildingId).filter(Boolean))];
+
+      if (buildingIds.length === 0) {
+        return res.json([]);
+      }
+
+      // Build the where conditions
+      const whereConditions = [
+        inArray(schema.buildings.id, buildingIds),
+        inArray(schema.buildings.organizationId, orgIds),
+        eq(schema.buildings.isActive, true)
+      ];
+
+      // Add organization filter if specified
+      if (organization_id) {
+        whereConditions.push(eq(schema.buildings.organizationId, organization_id));
       }
 
       const buildingDetails = await db
@@ -1736,10 +1777,7 @@ export function registerUserRoutes(app: Express): void {
         })
         .from(schema.buildings)
         .leftJoin(schema.residences, eq(schema.buildings.id, schema.residences.buildingId))
-        .where(and(
-          inArray(schema.buildings.organizationId, orgIds),
-          eq(schema.buildings.isActive, true)
-        ))
+        .where(and(...whereConditions))
         .groupBy(
           schema.buildings.id,
           schema.buildings.name,
