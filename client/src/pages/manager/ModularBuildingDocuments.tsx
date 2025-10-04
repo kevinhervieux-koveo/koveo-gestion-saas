@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useLocation } from 'wouter';
 import { Grid, List, ArrowLeft, Plus, FileText } from 'lucide-react';
@@ -34,18 +34,37 @@ export default function ModularBuildingDocuments() {
   const [isCreating, setIsCreating] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  useEffect(() => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Component initialized', {
+      buildingId,
+      timestamp: new Date().toISOString()
+    });
+  }, [buildingId]);
+
   // Fetch building info
   const { data: building } = useQuery({
     queryKey: ['/api/manager/buildings', buildingId],
     enabled: !!buildingId,
+    queryFn: async () => {
+      console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Fetching building info...', { buildingId });
+      const response = await apiRequest('GET', `/api/manager/buildings/${buildingId}`);
+      const data = await response.json();
+      console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Building info received:', { buildingName: data?.name });
+      return data;
+    },
   });
 
   // Fetch documents for this building
   const { data: documentResponse, isLoading } = useQuery({
     queryKey: ['/api/documents', 'building', buildingId],
     queryFn: async () => {
+      console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Fetching documents...', { buildingId });
       const response = await apiRequest('GET', `/api/documents?buildingId=${buildingId}`);
-      return response.json();
+      const data = await response.json();
+      console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Documents received:', {
+        count: data?.documents?.length || 0
+      });
+      return data;
     },
     enabled: !!buildingId,
   });
@@ -56,7 +75,16 @@ export default function ModularBuildingDocuments() {
   // Get current user for permissions
   const { data: user } = useQuery({
     queryKey: ['/api/auth/user'],
-    queryFn: () => apiRequest('GET', '/api/auth/user'),
+    queryFn: async () => {
+      console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Fetching user info...');
+      const response = await apiRequest('GET', '/api/auth/user');
+      const data = await response.json();
+      console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] User info received:', {
+        role: data?.role,
+        userId: data?.id
+      });
+      return data;
+    },
   });
 
   // Determine user permissions based on role
@@ -120,23 +148,30 @@ export default function ModularBuildingDocuments() {
 
   // Handle document interactions
   const handleDocumentView = (documentId: string) => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] User action: View document', { documentId });
     setSelectedDocumentId(documentId);
     setIsViewModalOpen(true);
   };
 
   const handleDocumentEdit = (documentId: string) => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] User action: Edit document', { documentId });
     setSelectedDocumentId(documentId);
     setIsEditModalOpen(true);
     setIsViewModalOpen(false);
   };
 
   const handleCreateDocument = () => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] User action: Create new document');
     setSelectedDocumentId(null);
     setIsCreating(true);
     setIsEditModalOpen(true);
   };
 
   const handleDocumentSuccess = (documentId: string, action: 'created' | 'updated' | 'deleted') => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Document operation completed:', {
+      documentId,
+      action
+    });
     // Document action completed - UI state updated
     setIsEditModalOpen(false);
     setIsViewModalOpen(false);
@@ -155,8 +190,25 @@ export default function ModularBuildingDocuments() {
   };
 
   const handleBack = () => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] Navigating to:', '/manager/buildings');
     navigate('/manager/buildings');
   };
+
+  useEffect(() => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] State updated: View mode', { viewMode });
+  }, [viewMode]);
+
+  useEffect(() => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] State updated: View modal', { isOpen: isViewModalOpen });
+  }, [isViewModalOpen]);
+
+  useEffect(() => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] State updated: Edit modal', { isOpen: isEditModalOpen, isCreating });
+  }, [isEditModalOpen, isCreating]);
+
+  useEffect(() => {
+    console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] State updated: Search', { search });
+  }, [search]);
 
   if (!buildingId) {
     return (
@@ -215,7 +267,10 @@ export default function ModularBuildingDocuments() {
           <Button
             variant={viewMode === 'grid' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewMode('grid')}
+            onClick={() => {
+              console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] User action: Switch to grid view');
+              setViewMode('grid');
+            }}
             data-testid="button-grid-view"
           >
             <Grid className="w-4 h-4" />
@@ -223,7 +278,10 @@ export default function ModularBuildingDocuments() {
           <Button
             variant={viewMode === 'list' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setViewMode('list')}
+            onClick={() => {
+              console.log('🔍 [MODULAR_BUILDING_DOCUMENTS] User action: Switch to list view');
+              setViewMode('list');
+            }}
             data-testid="button-list-view"
           >
             <List className="w-4 h-4" />

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Header } from '@/components/layout/header';
 import { useLanguage } from '@/hooks/use-language';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -233,7 +233,14 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }
   };
 
-  React.useEffect(() => {
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [BUDGET] Component mounted', { organizationId, buildingId });
+  }, []);
+
+  // Log context changes
+  useEffect(() => {
+    console.log('🔍 [BUDGET] Context changed:', { organizationId, buildingId });
     debugLog('Component initialized', { organizationId, buildingId });
   }, [organizationId, buildingId]);
 
@@ -348,6 +355,11 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   
   const [filters, setFilters] = useState<BudgetFilters>(getInitialFilters());
   
+  // Log filter changes
+  useEffect(() => {
+    console.log('🔍 [BUDGET] Filters updated:', filters);
+  }, [filters]);
+  
   // Budget filters collapsible state
   const [filtersCollapsed, setFiltersCollapsed] = useState(() => {
     const saved = localStorage.getItem('budget-filters-collapsed');
@@ -355,7 +367,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   });
   
   // Save collapsed state to localStorage
-  React.useEffect(() => {
+  useEffect(() => {
     localStorage.setItem('budget-filters-collapsed', JSON.stringify(filtersCollapsed));
   }, [filtersCollapsed]);
 
@@ -372,7 +384,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     };
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     localStorage.setItem('budget-cards-collapsed', JSON.stringify(cardsCollapsed));
   }, [cardsCollapsed]);
 
@@ -468,39 +480,39 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   });
 
   // Debug logging for bank account data
-  React.useEffect(() => {
+  useEffect(() => {
     if (bankAccountData) {
       debugLog('Bank account data fetched', { buildingId, data: bankAccountData });
     }
   }, [bankAccountData, buildingId]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (bankAccountError) {
       debugLog('Bank account fetch error', { buildingId, error: bankAccountError });
     }
   }, [bankAccountError, buildingId]);
 
   // Debug logging for capital investments data
-  React.useEffect(() => {
+  useEffect(() => {
     if (serverInvestments) {
       debugLog('Capital investments data fetched', { buildingId, count: serverInvestments.length });
     }
   }, [serverInvestments, buildingId]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (investmentsError) {
       debugLog('Capital investments fetch error', { buildingId, error: investmentsError });
     }
   }, [investmentsError, buildingId]);
 
   // Debug logging for maintenance projects data
-  React.useEffect(() => {
+  useEffect(() => {
     if (maintenanceProjectsResponse?.data) {
       debugLog('Maintenance projects data fetched', { buildingId, count: maintenanceProjectsResponse.data.length });
     }
   }, [maintenanceProjectsResponse, buildingId]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (projectsError) {
       debugLog('Maintenance projects fetch error', { buildingId, error: projectsError });
     }
@@ -510,7 +522,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const projectStatesRef = React.useRef<Map<string, boolean>>(new Map());
 
   // Process maintenance projects for current financial year and future
-  React.useEffect(() => {
+  useEffect(() => {
     if (!maintenanceProjectsResponse?.data) return;
 
     const maintenanceProjects = maintenanceProjectsResponse.data;
@@ -555,7 +567,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   }, [maintenanceProjectsResponse, localSettings.financialYearStart]);
 
   // Initialize local settings when bank account data is loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (!bankAccountData) return;
     
     const data = bankAccountData as any; // Extended data from server
@@ -800,7 +812,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   const dbInitializedRef = React.useRef(false);
   const previousDbDataRef = React.useRef<CapitalInvestment[]>([]);
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (dbCapitalInvestments && Array.isArray(dbCapitalInvestments)) {
       // Check if database data has changed since last initialization
       const dataChanged = JSON.stringify(previousDbDataRef.current) !== JSON.stringify(dbCapitalInvestments);
@@ -860,7 +872,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   // Custom bank fields are now handled directly in forecastParams useMemo
 
   // CRITICAL FIX: Sync filters.periodLength to localSettings.investmentHorizonYears when in yearly view
-  React.useEffect(() => {
+  useEffect(() => {
     if (filters.viewType === 'year' && filters.periodLength !== localSettings.investmentHorizonYears) {
       setLocalSettings(prev => ({
         ...prev,
@@ -875,7 +887,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   }, [filters.periodLength, filters.viewType, localSettings.investmentHorizonYears]);
 
   // Update Period Window when financialYearStart changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (localSettings.financialYearStart) {
       const financialYearDate = parseFinancialYearStart(localSettings.financialYearStart);
       
@@ -899,7 +911,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   }, [localSettings.financialYearStart, filters.startMonth, filters.startYear]);
 
   // Debug logging for forecast data and errors
-  React.useEffect(() => {
+  useEffect(() => {
     if (forecastData) {
       debugLog('Budget forecast data received', { 
         buildingId, 
@@ -910,7 +922,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
     }
   }, [forecastData, buildingId]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (forecastError) {
       debugLog('Budget forecast fetch error', { buildingId, error: forecastError });
     }
@@ -1163,7 +1175,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   // Intersection Observer for floating refresh button visibility
   const sentinelRef = React.useRef<HTMLDivElement>(null);
   
-  React.useEffect(() => {
+  useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
@@ -1864,7 +1876,7 @@ function BudgetInner({ organizationId, buildingId }: BudgetProps) {
   }, [capitalInvestments, filters.viewType, filters.periodLength]);
 
   // Auto-generate investments when forecast data changes (with proper scenario switching and clearing)
-  React.useEffect(() => {
+  useEffect(() => {
     if (forecastData && buildingId) {
       debugLog('Auto-generation effect triggered', { 
         mode: capitalInvestmentMode, 

@@ -94,6 +94,21 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [RESIDENCES] Component mounted', { organizationId, buildingId });
+  }, []);
+
+  // Log context changes
+  useEffect(() => {
+    console.log('🔍 [RESIDENCES] Context changed:', { organizationId, buildingId });
+  }, [organizationId, buildingId]);
+
+  // Log filter changes
+  useEffect(() => {
+    console.log('🔍 [RESIDENCES] Filters updated:', { searchTerm, selectedFloor, currentPage });
+  }, [searchTerm, selectedFloor, currentPage]);
+
 
   // Fetch residences with search and filters
   const {
@@ -103,6 +118,7 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   } = useQuery({
     queryKey: ['/api/residences', searchTerm, selectedFloor, buildingId],
     queryFn: async () => {
+      console.log('🔍 [RESIDENCES] Fetching residences with params:', { searchTerm, selectedFloor, buildingId });
       const params = new URLSearchParams(); /**
        * If function.
        * @param searchTerm - SearchTerm parameter.
@@ -152,7 +168,9 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
       if (!response.ok) {
         throw new Error('Failed to fetch residences');
       }
-      return response.json() as Promise<Residence[]>;
+      const data = await response.json() as Residence[];
+      console.log('🔍 [RESIDENCES] Received residences data:', { count: data?.length });
+      return data;
     },
   });
 
@@ -179,11 +197,13 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   // Reset page when filters change
 
   const handleFloorChange = (value: string) => {
+    console.log('🔍 [RESIDENCES] User action: Floor filter changed', { floor: value });
     setSelectedFloor(value);
     setCurrentPage(1);
   };
 
   const handleSearchChange = (value: string) => {
+    console.log('🔍 [RESIDENCES] User action: Search term changed', { searchTerm: value });
     setSearchTerm(value);
     setCurrentPage(1);
   };

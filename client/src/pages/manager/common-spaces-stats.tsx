@@ -189,9 +189,24 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [COMMON_SPACES_STATS] Component mounted', { organizationId, buildingId });
+  }, []);
+
+  // Log context changes
+  useEffect(() => {
+    console.log('🔍 [COMMON_SPACES_STATS] Context changed:', { organizationId, buildingId });
+  }, [organizationId, buildingId]);
+
   // Always use buildingId from hierarchy
   const selectedBuildingId = buildingId || '';
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
+  
+  // Log space selection changes
+  useEffect(() => {
+    console.log('🔍 [COMMON_SPACES_STATS] Selected space changed:', { selectedSpaceId });
+  }, [selectedSpaceId]);
   const [restrictionDialogOpen, setRestrictionDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -234,10 +249,12 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   });
 
   const handleBackToOrganization = () => {
+    console.log('🔍 [COMMON_SPACES_STATS] Navigating back to organization selection');
     navigate('/manager/common-spaces-stats');
   };
 
   const handleBackToBuilding = () => {
+    console.log('🔍 [COMMON_SPACES_STATS] Navigating back to building selection');
     navigate(`/manager/common-spaces-stats?organization=${organizationId}`);
   };
 
@@ -249,9 +266,12 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   }>({
     queryKey: ['/api/manager/buildings', organizationId],
     queryFn: async () => {
+      console.log('🔍 [COMMON_SPACES_STATS] Fetching buildings with params:', { organizationId });
       const url = organizationId ? `/api/manager/buildings?organizationId=${organizationId}` : '/api/manager/buildings';
       const response = await fetch(url);
-      return response.json();
+      const data = await response.json();
+      console.log('🔍 [COMMON_SPACES_STATS] Received buildings:', { count: data?.buildings?.length });
+      return data;
     },
     enabled: !!user,
   });
@@ -261,8 +281,13 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   // Fetch common spaces for selected building
   const { data: commonSpaces = [], isLoading: spacesLoading } = useQuery<CommonSpace[]>({
     queryKey: ['/api/common-spaces', selectedBuildingId],
-    queryFn: () =>
-      fetch(`/api/common-spaces?building_id=${selectedBuildingId}`).then((res) => res.json()),
+    queryFn: async () => {
+      console.log('🔍 [COMMON_SPACES_STATS] Fetching common spaces for building:', { buildingId: selectedBuildingId });
+      const response = await fetch(`/api/common-spaces?building_id=${selectedBuildingId}`);
+      const data = await response.json();
+      console.log('🔍 [COMMON_SPACES_STATS] Received common spaces:', { count: data?.length });
+      return data;
+    },
     enabled: !!selectedBuildingId,
   });
 

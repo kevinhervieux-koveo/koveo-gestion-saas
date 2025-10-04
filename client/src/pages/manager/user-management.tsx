@@ -89,6 +89,11 @@ export default function UserManagement() {
   const [editingUserResidences, setEditingUserResidences] = useState<UserWithAssignments | null>(null);
   const [showDeleteOrphansDialog, setShowDeleteOrphansDialog] = useState(false);
 
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [USER_MANAGEMENT] Component mounted');
+  }, []);
+
   // Cascading filter states for user edit tabs
   const [selectedOrganizationIds, setSelectedOrganizationIds] = useState<string[]>([]);
   const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
@@ -493,7 +498,7 @@ export default function UserManagement() {
   };
 
   // Reset form when editing user changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (editingUser) {
       editForm.reset({
         firstName: decodeHtmlEntities(editingUser.firstName || ''),
@@ -506,7 +511,7 @@ export default function UserManagement() {
   }, [editingUser]);
 
   // Reset delete form when deleting user changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (deletingUser) {
       deleteForm.reset({
         confirmEmail: '',
@@ -516,14 +521,14 @@ export default function UserManagement() {
   }, [deletingUser]);
 
   // Reset to page 1 when filters change (excluding search since it's disabled)
-  React.useEffect(() => {
+  useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
   }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
   // Initialize states ONCE per user when dialog opens - guard against re-initialization
-  React.useEffect(() => {
+  useEffect(() => {
     if (editingUser && editingUser.id !== lastInitializedUserIdRef.current) {
       // Only initialize once per user - prevent re-initialization on unrelated renders
       const userWithAssignments = findUserWithAssignments(editingUser.id);

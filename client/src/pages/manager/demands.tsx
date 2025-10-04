@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Search, AlertCircle, Clock, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -116,6 +116,11 @@ export default function ManagerDemandsPage() {
   const { toast } = useToast();
   const { t } = useLanguage();
 
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [DEMANDS] Component mounted');
+  }, []);
+
   // Function to get translated type labels
   const getTypeLabel = (type: string) => {
     switch (type) {
@@ -139,6 +144,13 @@ export default function ManagerDemandsPage() {
   } = useQuery({
     queryKey: ['/api/demands'],
     refetchInterval: 30000, // Refresh every 30 seconds
+    queryFn: async ({ queryKey }) => {
+      console.log('🔍 [DEMANDS] Fetching demands');
+      const response = await fetch(queryKey[0] as string);
+      const data = await response.json();
+      console.log('🔍 [DEMANDS] Received demands:', { count: data?.length });
+      return data;
+    },
   });
 
   // Fetch buildings
@@ -171,6 +183,7 @@ export default function ManagerDemandsPage() {
   // Create demand mutation
   const createDemandMutation = useMutation({
     mutationFn: async (data: DemandFormData) => {
+      console.log('🔍 [DEMANDS] User action: Creating demand', { type: data.type, building: data.buildingId });
       const response = await fetch('/api/demands', {
         method: 'POST',
         headers: {

@@ -51,7 +51,15 @@ export function ProjectsHeader({
       {/* Building Navigation Bar */}
       {showBackButton && (
         <div className="flex items-center gap-3 pb-2 border-b">
-          <Button variant="ghost" size="sm" onClick={onBack} data-testid="back-to-building">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => {
+              console.log('🔍 [PROJECTS] Navigating back to building', { buildingId, buildingName });
+              onBack?.();
+            }} 
+            data-testid="back-to-building"
+          >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Back to Building
           </Button>

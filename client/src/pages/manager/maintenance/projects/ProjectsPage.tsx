@@ -93,15 +93,28 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     building: contextBuilding
   } = useBuildingContext();
 
+  // Component initialization debug log
+  useEffect(() => {
+    console.log('🔍 [PROJECTS] Component initialized', {
+      organizationId,
+      buildingId,
+      residenceId,
+      buildingName,
+      showBackButton
+    });
+  }, [organizationId, buildingId, residenceId, buildingName, showBackButton]);
+
   // Sync HOC props with building context
   useEffect(() => {
     if (organizationId && organizationId !== contextOrganizationId) {
+      console.log('🔍 [PROJECTS] Syncing organization ID with context', { organizationId });
       setOrganizationId(organizationId);
     }
   }, [organizationId, contextOrganizationId, setOrganizationId]);
 
   useEffect(() => {
     if (buildingId && buildingId !== contextBuildingId) {
+      console.log('🔍 [PROJECTS] Syncing building ID with context', { buildingId });
       setBuildingId(buildingId);
     }
   }, [buildingId, contextBuildingId, setBuildingId]);
@@ -112,6 +125,15 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   // State for collapsible sections
   const [projectOverviewExpanded, setProjectOverviewExpanded] = useState(false);
   const [projectsTableExpanded, setProjectsTableExpanded] = useState(false);
+
+  // Log collapsible section state changes
+  useEffect(() => {
+    console.log('🔍 [PROJECTS] Project overview section toggled:', { expanded: projectOverviewExpanded });
+  }, [projectOverviewExpanded]);
+
+  useEffect(() => {
+    console.log('🔍 [PROJECTS] Projects table section toggled:', { expanded: projectsTableExpanded });
+  }, [projectsTableExpanded]);
   
 
   // State for modals and panels
@@ -127,6 +149,55 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   const [showProjectNotes, setShowProjectNotes] = useState(false);
   const [showProjectBudget, setShowProjectBudget] = useState(false);
   const [showSuggestionsIntegration, setShowSuggestionsIntegration] = useState(false);
+
+  // Log modal state changes
+  useEffect(() => {
+    if (showProjectForm) {
+      console.log('🔍 [PROJECTS] Modal opened: Project form', { mode: projectFormMode, projectId: selectedProject?.id });
+    }
+  }, [showProjectForm, projectFormMode, selectedProject?.id]);
+
+  useEffect(() => {
+    if (showProjectWorkflow) {
+      console.log('🔍 [PROJECTS] Modal opened: Project workflow', { projectId: selectedProject?.id, initialTab: workflowInitialTab });
+    }
+  }, [showProjectWorkflow, selectedProject?.id, workflowInitialTab]);
+
+  useEffect(() => {
+    if (showProjectDetails) {
+      console.log('🔍 [PROJECTS] Panel opened: Project details', { projectId: selectedProject?.id });
+    }
+  }, [showProjectDetails, selectedProject?.id]);
+
+  useEffect(() => {
+    if (showProjectElements) {
+      console.log('🔍 [PROJECTS] Modal opened: Project elements', { projectId: selectedProject?.id });
+    }
+  }, [showProjectElements, selectedProject?.id]);
+
+  useEffect(() => {
+    if (showProjectTimeline) {
+      console.log('🔍 [PROJECTS] Modal opened: Project timeline', { projectId: selectedProject?.id });
+    }
+  }, [showProjectTimeline, selectedProject?.id]);
+
+  useEffect(() => {
+    if (showProjectNotes) {
+      console.log('🔍 [PROJECTS] Modal opened: Project notes', { projectId: selectedProject?.id });
+    }
+  }, [showProjectNotes, selectedProject?.id]);
+
+  useEffect(() => {
+    if (showProjectBudget) {
+      console.log('🔍 [PROJECTS] Modal opened: Project budget', { projectId: selectedProject?.id });
+    }
+  }, [showProjectBudget, selectedProject?.id]);
+
+  useEffect(() => {
+    if (showSuggestionsIntegration) {
+      console.log('🔍 [PROJECTS] Modal opened: Suggestions integration');
+    }
+  }, [showSuggestionsIntegration]);
 
   // State for filtering and search
   const [searchTerm, setSearchTerm] = useState('');
@@ -149,18 +220,21 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Project handlers
   const handleViewProject = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] User action: View project', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setWorkflowInitialTab(undefined); // Let workflow determine the appropriate tab
     setShowProjectWorkflow(true);
   }, []);
 
   const handleEditProject = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] User action: Edit project', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setWorkflowInitialTab(undefined); // Let workflow determine the appropriate tab
     setShowProjectWorkflow(true);
   }, []);
 
   const handleAddProject = useCallback(() => {
+    console.log('🔍 [PROJECTS] User action: Add new project');
     setSelectedProject(null);
     setProjectFormMode('create');
     setShowProjectForm(true); // Still use ProjectForm for creating new projects
@@ -168,6 +242,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Handler to open workflow modal at specific tab
   const handleOpenWorkflowTab = useCallback((project: MaintenanceProject, tabId?: string) => {
+    console.log('🔍 [PROJECTS] User action: Open workflow tab', { projectId: project.id, tabId });
     setSelectedProject(project);
     setWorkflowInitialTab(tabId);
     setShowProjectWorkflow(true);
@@ -175,26 +250,31 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
 
   const handleManageElements = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] User action: Manage elements', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setShowProjectElements(true);
   }, []);
 
   const handleManageTimeline = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] User action: Manage timeline', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setShowProjectTimeline(true);
   }, []);
 
   const handleManageNotes = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] User action: Manage notes', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setShowProjectNotes(true);
   }, []);
 
   const handleManageBudget = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] User action: Manage budget', { projectId: project.id, projectTitle: project.title });
     setSelectedProject(project);
     setShowProjectBudget(true);
   }, []);
 
   const handleUpdateStatus = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] User action: Update status', { projectId: project.id, currentStatus: project.status });
     // Open workflow modal at the current status tab for status management
     setSelectedProject(project);
     setWorkflowInitialTab(project.status);
@@ -206,6 +286,11 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Form success handlers
   const handleProjectFormSuccess = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] Project form success', { 
+      projectId: project.id, 
+      projectTitle: project.title, 
+      mode: projectFormMode 
+    });
     setShowProjectForm(false);
     setSelectedProject(null);
     
@@ -217,6 +302,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   }, [projectFormMode, toast, t]);
 
   const handleWorkflowModalUpdate = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] Workflow modal updated', { projectId: project.id, projectTitle: project.title });
     // Update selected project with latest data
     setSelectedProject(project);
     
@@ -225,6 +311,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   }, []);
 
   const handleSuggestionsIntegrationSuccess = useCallback((projects: MaintenanceProject[]) => {
+    console.log('🔍 [PROJECTS] Suggestions integration success', { projectCount: projects.length });
     setShowSuggestionsIntegration(false);
     setSelectedSuggestions([]);
     
@@ -236,6 +323,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Handle auto-project acceptance success
   const handleAutoProjectAccepted = useCallback((project: MaintenanceProject) => {
+    console.log('🔍 [PROJECTS] Auto-project accepted', { projectId: project.id, projectTitle: project.title });
     toast({
       title: t('projectCreatedSuccessfully2'),
       description: `${project.title} ${t('autoProjectConvertedSuccess')}`,
@@ -244,6 +332,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   }, [toast, t]);
 
   const handleStatusStepperSuccess = useCallback(() => {
+    console.log('🔍 [PROJECTS] Status stepper success');
     setShowStatusStepper(false);
     
     toast({
@@ -254,27 +343,33 @@ function ProjectsPageContent(props: ProjectsPageProps) {
 
   // Filter handlers
   const handleSearchChange = useCallback((term: string) => {
+    console.log('🔍 [PROJECTS] Filter changed: Search term', { searchTerm: term });
     setSearchTerm(term);
   }, []);
 
   const handleStatusFilterChange = useCallback((status: string) => {
+    console.log('🔍 [PROJECTS] Filter changed: Status', { status });
     setStatusFilter(status);
   }, []);
 
   const handlePriorityFilterChange = useCallback((priority: string) => {
+    console.log('🔍 [PROJECTS] Filter changed: Priority', { priority });
     setPriorityFilter(priority);
   }, []);
 
   const handleTypeFilterChange = useCallback((type: string) => {
+    console.log('🔍 [PROJECTS] Filter changed: Type', { type });
     setTypeFilter(type);
   }, []);
 
   const handleShowOverdueChange = useCallback((overdue: boolean) => {
+    console.log('🔍 [PROJECTS] Filter changed: Show overdue only', { showOverdueOnly: overdue });
     setShowOverdueOnly(overdue);
   }, []);
 
   // Selection handlers
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
+    console.log('🔍 [PROJECTS] Selection changed', { selectedCount: selectedIds.length, selectedIds });
     setSelectedProjects(selectedIds);
   }, []);
 

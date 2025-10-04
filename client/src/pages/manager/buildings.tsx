@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -307,8 +307,18 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
   const { t } = useLanguage();
   const [, navigate] = useLocation();
 
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [BUILDINGS] Component mounted', { organizationId });
+  }, []);
+
+  // Log organization ID changes
+  useEffect(() => {
+    console.log('🔍 [BUILDINGS] Organization context changed:', { organizationId });
+  }, [organizationId]);
+
   const handleBackToOrganization = () => {
-    // Navigate back to organization selection
+    console.log('🔍 [BUILDINGS] Navigating back to organization selection');
     navigate('/manager/buildings');
   };
 
@@ -335,6 +345,11 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
   const [editingBuilding, setEditingBuilding] = useState<BuildingData | null>(null);
   const [deletingBuilding, setDeletingBuilding] = useState<BuildingData | null>(null);
 
+  // Log search term changes
+  useEffect(() => {
+    console.log('🔍 [BUILDINGS] Search term updated:', searchTerm);
+  }, [searchTerm]);
+
   // Get current user
   const { data: user } = useQuery({
     queryKey: ['/api/auth/user'],
@@ -358,9 +373,11 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
   } = useQuery({
     queryKey: ['/api/manager/buildings', organizationId],
     queryFn: async () => {
+      console.log('🔍 [BUILDINGS] Fetching buildings with params:', { organizationId });
       const url = organizationId ? `/api/manager/buildings?organizationId=${organizationId}` : '/api/manager/buildings';
       const response = await apiRequest('GET', url);
       const data = await response.json();
+      console.log('🔍 [BUILDINGS] Received buildings data:', { count: data?.buildings?.length, organizationId });
       return data;
     },
   });
@@ -466,10 +483,12 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
   // Event handlers
   const handleCreateBuilding = async (data: BuildingFormData) => {
+    console.log('🔍 [BUILDINGS] User action: Creating building', { buildingName: data.name, organizationId: data.organizationId });
     createBuildingMutation.mutate(data);
   };
 
   const handleEditBuilding = (building: BuildingData) => {
+    console.log('🔍 [BUILDINGS] User action: Editing building', { buildingId: building.id, buildingName: building.name });
     setEditingBuilding(building);
     editForm.reset({
       name: building.name,
@@ -486,16 +505,19 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
   const handleUpdateBuilding = async (data: BuildingFormData) => {
     if (editingBuilding) {
+      console.log('🔍 [BUILDINGS] User action: Updating building', { buildingId: editingBuilding.id, buildingName: data.name });
       updateBuildingMutation.mutate({ id: editingBuilding.id, data });
     }
   };
 
   const handleDeleteBuilding = (building: BuildingData) => {
+    console.log('🔍 [BUILDINGS] User action: Initiating building deletion', { buildingId: building.id, buildingName: building.name });
     setDeletingBuilding(building);
   };
 
   const confirmDeleteBuilding = () => {
     if (deletingBuilding) {
+      console.log('🔍 [BUILDINGS] User action: Confirming building deletion', { buildingId: deletingBuilding.id });
       deleteBuildingMutation.mutate(deletingBuilding.id);
     }
   };
