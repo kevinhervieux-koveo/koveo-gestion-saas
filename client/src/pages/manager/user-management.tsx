@@ -285,6 +285,24 @@ export default function UserManagement() {
     queryKey: ['/api/auth/user'],
   });
 
+  // Fetch current user's organizations independently
+  const { data: currentUserOrganizations } = useQuery<Organization[]>({
+    queryKey: ['/api/users/me/organizations'],
+    enabled: !!currentUser,
+  });
+
+  // Fetch current user's buildings independently
+  const { data: currentUserBuildings } = useQuery<Building[]>({
+    queryKey: ['/api/users/me/buildings'],
+    enabled: !!currentUser,
+  });
+
+  // Fetch current user's residences independently
+  const { data: currentUserResidences } = useQuery<Residence[]>({
+    queryKey: ['/api/users/me/residences'],
+    enabled: !!currentUser,
+  });
+
   // Memoized lookup maps for O(1) performance
   const buildingLookup = useMemo(() => {
     if (!buildings || !Array.isArray(buildings)) return new Map();
@@ -587,7 +605,7 @@ export default function UserManagement() {
 
   // Get current user's access information for role-based filtering
   const currentUserAccess = useMemo(() => {
-    if (!currentUser || !organizations || !buildings || !residences || !users || !Array.isArray(users)) {
+    if (!currentUser) {
       return {
         organizationIds: [],
         buildingIds: [],
@@ -595,25 +613,19 @@ export default function UserManagement() {
       };
     }
 
-    // Find current user in users list to get their assignments
-    const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
-    
-    if (!currentUserWithAssignments) {
-      return {
-        organizationIds: [],
-        buildingIds: [],
-        residenceIds: []
-      };
-    }
+    // Extract organization IDs from current user's organizations
+    const organizationIds = Array.isArray(currentUserOrganizations) 
+      ? currentUserOrganizations.map((org: any) => org.id) 
+      : [];
 
-    const organizationIds = Array.isArray(currentUserWithAssignments.organizations) 
-      ? currentUserWithAssignments.organizations.map((org: any) => org.id) 
+    // Extract building IDs from current user's buildings
+    const buildingIds = Array.isArray(currentUserBuildings) 
+      ? currentUserBuildings.map((building: any) => building.id) 
       : [];
-    const buildingIds = Array.isArray(currentUserWithAssignments.buildings) 
-      ? currentUserWithAssignments.buildings.map((building: any) => building.id) 
-      : [];
-    const residenceIds = Array.isArray(currentUserWithAssignments.residences) 
-      ? currentUserWithAssignments.residences.map((residence: any) => residence.id) 
+
+    // Extract residence IDs from current user's residences
+    const residenceIds = Array.isArray(currentUserResidences) 
+      ? currentUserResidences.map((residence: any) => residence.id) 
       : [];
 
     return {
@@ -621,7 +633,7 @@ export default function UserManagement() {
       buildingIds,
       residenceIds
     };
-  }, [currentUser, users, organizations, buildings, residences]);
+  }, [currentUser, currentUserOrganizations, currentUserBuildings, currentUserResidences]);
 
   // Helper function to provide user-friendly error messages
   const getErrorMessage = (error: Error, context: string = '') => {
