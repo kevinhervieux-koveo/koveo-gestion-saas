@@ -6,10 +6,13 @@ Koveo Gestion is an AI-powered SaaS platform designed for property management wi
 
 ## Recent Changes
 
-**October 4, 2025**: Fixed critical common spaces booking functionality issues where booked time slots were not displaying correctly and booking creation was failing with validation errors. Three coordinated fixes were implemented:
-1. **Frontend date synchronization**: Fixed `bookingsForDate` memo to use `form.watch('date')` with proper dependency tracking, ensuring bookings match displayed time slots
-2. **State consistency**: Added `setSelectedDate()` calls when opening booking dialog to maintain date state synchronization
-3. **Backend validation**: Made day name comparison case-insensitive in `isWithinOpeningHours` function to prevent false "OUTSIDE_OPENING_HOURS" errors
+**October 4, 2025**: Fixed multiple critical common spaces booking functionality issues:
+1. **Time slot availability logic**: Fixed slot duration check from 60 minutes to 30 minutes to match the minimum booking interval, allowing slots like 12:30 to be available when they don't conflict with existing bookings
+2. **Opening hours validation**: Fixed closing time logic to prevent bookings from starting AT closing time (e.g., 22:00 with 22:00 close). Slots must now start BEFORE closing time, allowing only 21:30 as the last available slot for a 22:00 closing
+3. **Calendar color coding**: Verified that the CalendarView component correctly displays user's own bookings in green and other users' bookings in gray, using the `isOwnBooking` flag set by the backend
+4. **Frontend date synchronization**: Fixed `bookingsForDate` memo to use `form.watch('date')` with proper dependency tracking, ensuring bookings match displayed time slots
+5. **State consistency**: Added `setSelectedDate()` calls when opening booking dialog to maintain date state synchronization
+6. **Backend validation**: Made day name comparison case-insensitive in `isWithinOpeningHours` function to prevent false "OUTSIDE_OPENING_HOURS" errors
 
 **October 1, 2025**: Fixed document filtering bug in ModularDocumentPageWrapper where documents were not appearing on residence and building pages. Removed incorrect `type` parameter from API call that was interfering with proper document filtering. Documents are now correctly filtered by `buildingId` or `residenceId` parameters only.
 
