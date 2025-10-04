@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useParams } from 'wouter';
-import { Grid, List, ArrowLeft, Plus, Search, Filter, Building, Home, ChevronDown, ChevronRight, Eye } from 'lucide-react';
+import { Grid, List, ArrowLeft, Plus, Search, Filter, Building, Home, ChevronDown, ChevronRight, Eye, CheckSquare, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import {
   Collapsible,
@@ -17,6 +27,7 @@ import {
 import { Header } from '@/components/layout/header';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
+import { useToast } from '@/hooks/use-toast';
 import {
   SharedUploader,
   DocumentCard,
@@ -341,6 +352,7 @@ export default function ModularDocumentPageWrapper({
   const [, navigate] = useLocation();
   const params = useParams();
   const { t } = useLanguage();
+  const { toast } = useToast();
 
   // State for document interactions
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -349,6 +361,11 @@ export default function ModularDocumentPageWrapper({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // State for bulk delete functionality
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   // State for collapsible categories (start with all categories expanded)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(() => {
@@ -513,6 +530,66 @@ export default function ModularDocumentPageWrapper({
     setSelectedCategory('all');
   };
 
+  // Bulk delete handlers
+  const handleToggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    if (selectionMode) {
+      setSelectedDocuments(new Set());
+    }
+  };
+
+  const handleDocumentSelectionChange = (documentId: string, selected: boolean) => {
+    const newSelected = new Set(selectedDocuments);
+    if (selected) {
+      newSelected.add(documentId);
+    } else {
+      newSelected.delete(documentId);
+    }
+    setSelectedDocuments(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedDocuments.size === filteredDocuments.length && filteredDocuments.length > 0) {
+      setSelectedDocuments(new Set());
+    } else {
+      setSelectedDocuments(new Set(filteredDocuments.map(doc => doc.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const documentIds = Array.from(selectedDocuments);
+    const deletePromises = documentIds.map(documentId =>
+      apiRequest('DELETE', `/api/documents/${documentId}`)
+        .then(() => ({ status: 'fulfilled' as const, documentId }))
+        .catch((error) => ({ status: 'rejected' as const, documentId, error }))
+    );
+
+    const results = await Promise.allSettled(deletePromises);
+    
+    const successfulDeletions: string[] = [];
+    const failedDeletions: string[] = [];
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled' && result.value.status === 'fulfilled') {
+        successfulDeletions.push(result.value.documentId);
+      } else {
+        failedDeletions.push(documentIds[index]);
+      }
+    });
+
+    if (successfulDeletions.length > 0) {
+      toast({ title: 'Documents deleted', description: `Successfully deleted ${successfulDeletions.length} document${successfulDeletions.length > 1 ? 's' : ''}` });
+    }
+    if (failedDeletions.length > 0) {
+      toast({ title: 'Deletion failed', description: `Failed to delete ${failedDeletions.length} document${failedDeletions.length > 1 ? 's' : ''}`, variant: 'destructive' });
+    }
+
+    queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+    setSelectedDocuments(new Set());
+    setShowDeleteDialog(false);
+    setSelectionMode(false);
+  };
+
   if (!entityId) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -640,7 +717,49 @@ export default function ModularDocumentPageWrapper({
                 {/* View Mode & Actions */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">View & Actions</label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
+                    {!selectionMode ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleToggleSelectionMode}
+                        data-testid="button-select-mode"
+                      >
+                        <CheckSquare className="w-4 h-4 mr-2" />
+                        Select
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleToggleSelectionMode}
+                          data-testid="button-cancel-select-mode"
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleSelectAll}
+                          data-testid="button-select-all"
+                        >
+                          {selectedDocuments.size === filteredDocuments.length && filteredDocuments.length > 0 ? 'Deselect All' : 'Select All'}
+                        </Button>
+                        {selectedDocuments.size > 0 && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setShowDeleteDialog(true)}
+                            data-testid="button-bulk-delete"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete ({selectedDocuments.size})
+                          </Button>
+                        )}
+                      </>
+                    )}
                     <div className="flex gap-1">
                       <Button
                         variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -773,6 +892,9 @@ export default function ModularDocumentPageWrapper({
                                   effectiveDate={document.effectiveDate}
                                   onViewClick={handleDocumentView}
                                   compact={viewMode === 'list'}
+                                  selectable={selectionMode}
+                                  selected={selectedDocuments.has(document.id)}
+                                  onSelectionChange={(selected) => handleDocumentSelectionChange(document.id, selected)}
                                 />
                               ))}
                             </div>
@@ -832,6 +954,29 @@ export default function ModularDocumentPageWrapper({
               }}
             />
           )}
+
+          {/* Bulk Delete Confirmation Dialog */}
+          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Documents</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete {selectedDocuments.size} document{selectedDocuments.size > 1 ? 's' : ''}? 
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel data-testid="button-cancel-bulk-delete">Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleBulkDelete}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  data-testid="button-confirm-bulk-delete"
+                >
+                  Delete {selectedDocuments.size} Document{selectedDocuments.size > 1 ? 's' : ''}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </div>
