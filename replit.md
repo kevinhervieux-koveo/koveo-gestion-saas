@@ -6,13 +6,13 @@ Koveo Gestion is an AI-powered SaaS platform designed for property management wi
 
 ## Recent Changes
 
-**October 4, 2025 (Latest)**: Implemented bulk delete functionality for documents on manager buildings page:
-1. **Document selection mode**: Added checkbox selection mode to DocumentCard component with visual feedback
-2. **Bulk operations**: Implemented "Select All" / "Deselect All" buttons for efficient multi-document selection
-3. **Bulk delete**: Added bulk delete button with count display, confirmation dialog, and graceful error handling using Promise.allSettled for partial failure tolerance
-4. **State management**: Proper selection state tracking with automatic cleanup and query invalidation after deletions
-5. **User feedback**: Clear toast notifications showing count of successful vs failed deletions, with UI staying in sync even with partial failures
-6. **Document viewing**: Cards remain clickable for viewing documents when not in selection mode, opening files in new tabs
+**October 4, 2025 (Latest)**: Enhanced document management with bulk operations and duplicate page cleanup:
+1. **Bulk delete functionality**: Implemented comprehensive bulk delete for documents in ModularDocumentPageWrapper component used across manager and resident document pages
+2. **Selection mode UI**: Added visual selection mode with checkboxes, "Select All"/"Deselect All" buttons, and bulk delete button showing selected count
+3. **Graceful error handling**: Uses Promise.allSettled for reliable partial failure handling - operations continue even if individual deletions fail
+4. **User feedback**: Separate toast notifications show counts of successful vs failed deletions for clear transparency
+5. **Smart document viewing**: Automatically disables document viewing when in selection mode to prevent accidental opens
+6. **Code cleanup**: Removed duplicate ModularBuildingDocuments.tsx page - only BuildingDocuments.tsx (wrapping ModularDocumentPageWrapper) is used
 
 **October 4, 2025**: Fixed manager building access control and user-management page issues:
 1. **Manager building filtering**: Updated `/api/manager/buildings` endpoint to use `userBuildings` table for manager role filtering, ensuring managers only see buildings they are explicitly assigned to
