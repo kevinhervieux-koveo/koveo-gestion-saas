@@ -661,8 +661,8 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
       const openTime = parse(todayHours.open, 'HH:mm', selectedDate);
       const closeTime = parse(todayHours.close, 'HH:mm', selectedDate);
 
-      // Check if slot starts before closing time (slot can extend past closing)
-      if (!isWithinInterval(slotStart, { start: openTime, end: closeTime })) {
+      // Check if slot starts within opening hours (must start before closing time)
+      if (slotStart < openTime || slotStart >= closeTime) {
         return false;
       }
 
