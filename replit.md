@@ -6,7 +6,15 @@ Koveo Gestion is an AI-powered SaaS platform designed for property management wi
 
 ## Recent Changes
 
-**October 4, 2025 (Latest)**: Fixed manager building access control and user-management page issues:
+**October 4, 2025 (Latest)**: Implemented bulk delete functionality for documents on manager buildings page:
+1. **Document selection mode**: Added checkbox selection mode to DocumentCard component with visual feedback
+2. **Bulk operations**: Implemented "Select All" / "Deselect All" buttons for efficient multi-document selection
+3. **Bulk delete**: Added bulk delete button with count display, confirmation dialog, and graceful error handling using Promise.allSettled for partial failure tolerance
+4. **State management**: Proper selection state tracking with automatic cleanup and query invalidation after deletions
+5. **User feedback**: Clear toast notifications showing count of successful vs failed deletions, with UI staying in sync even with partial failures
+6. **Document viewing**: Cards remain clickable for viewing documents when not in selection mode, opening files in new tabs
+
+**October 4, 2025**: Fixed manager building access control and user-management page issues:
 1. **Manager building filtering**: Updated `/api/manager/buildings` endpoint to use `userBuildings` table for manager role filtering, ensuring managers only see buildings they are explicitly assigned to
 2. **Organization selector visibility**: Fixed organization selector to hide when user has only 1 organization, improving UX by removing unnecessary navigation
 3. **User-management query fixes**: Fixed React Query implementations for organizations, buildings, and residences to use explicit `apiRequest` calls with proper TypeScript casting through `unknown`, resolving runtime "L.map is not a function" errors
