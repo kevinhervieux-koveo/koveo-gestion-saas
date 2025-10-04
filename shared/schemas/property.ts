@@ -154,6 +154,34 @@ export const userResidences = pgTable('user_residences', {
 }));
 
 /**
+ * User-Building relationship table to track direct user assignments to buildings.
+ * Stores building-level assignments separately from residence-level assignments.
+ * This prevents building assignments from being deleted when residences are assigned.
+ */
+export const userBuildings = pgTable('user_buildings', {
+  id: varchar('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  buildingId: varchar('building_id')
+    .notNull()
+    .references(() => buildings.id, { onDelete: 'cascade' }),
+  relationshipType: text('relationship_type').notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  userIdIdx: index('user_buildings_user_id_idx').on(table.userId),
+  buildingIdIdx: index('user_buildings_building_id_idx').on(table.buildingId),
+  userIdActiveIdx: index('user_buildings_user_id_active_idx').on(table.userId, table.isActive),
+  buildingIdActiveIdx: index('user_buildings_building_id_active_idx').on(table.buildingId, table.isActive),
+  createdAtIdx: index('user_buildings_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('user_buildings_updated_at_idx').on(table.updatedAt),
+}));
+
+/**
  * Contacts table storing contact information for organizations, buildings, and residences.
  * Allows tracking various types of contacts like residents, managers, tenants, maintenance, etc.
  */
@@ -335,6 +363,12 @@ export const insertUserResidenceSchema = z.object({
   endDate: z.date().optional(),
 });
 
+export const insertUserBuildingSchema = z.object({
+  userId: z.string().uuid(),
+  buildingId: z.string().uuid(),
+  relationshipType: z.string(),
+});
+
 export const insertContactSchema = z.object({
   name: z.string(),
   email: z.string().email().optional(),
@@ -426,6 +460,15 @@ export type InsertUserResidence = z.infer<typeof insertUserResidenceSchema>;
  *
  */
 export type UserResidence = typeof userResidences.$inferSelect;
+
+/**
+ *
+ */
+export type InsertUserBuilding = z.infer<typeof insertUserBuildingSchema>;
+/**
+ *
+ */
+export type UserBuilding = typeof userBuildings.$inferSelect;
 
 /**
  *

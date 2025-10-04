@@ -1506,36 +1506,19 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // For now, we'll create user-residence relationships for each building
-      // This is a simplified approach - in a real system you'd have user-building relationships
-      
-      // Get residences for the selected buildings
-      const residences = await db
-        .select()
-        .from(schema.residences)
-        .where(inArray(schema.residences.buildingId, buildingIds));
+      // Remove existing building assignments for this user
+      await db.delete(schema.userBuildings).where(eq(schema.userBuildings.userId, userId));
 
-      // Remove existing residence assignments for this user
-      await db.delete(schema.userResidences).where(eq(schema.userResidences.userId, userId));
-
-      // Add new residence assignments (one per building - taking the first residence)
-      if (residences.length > 0) {
-        const buildingToResidence = new Map();
-        residences.forEach(residence => {
-          if (!buildingToResidence.has(residence.buildingId)) {
-            buildingToResidence.set(residence.buildingId, residence);
-          }
-        });
-
-        const newAssignments = Array.from(buildingToResidence.values()).map((residence: any) => ({
+      // Add new building assignments
+      if (buildingIds.length > 0) {
+        const newAssignments = buildingIds.map((buildingId: string) => ({
           userId,
-          residenceId: residence.id,
+          buildingId,
           relationshipType: user.role === 'manager' ? 'manager' : 'tenant',
-          startDate: new Date().toISOString().split('T')[0],
           isActive: true,
         }));
 
-        await db.insert(schema.userResidences).values(newAssignments);
+        await db.insert(schema.userBuildings).values(newAssignments);
       }
 
       res.json({

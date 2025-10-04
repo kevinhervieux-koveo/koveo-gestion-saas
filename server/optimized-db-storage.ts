@@ -176,8 +176,25 @@ export class OptimizedDatabaseStorage implements IStorage {
           )
         );
 
+      // Single query to get all user buildings from direct assignments
+      const directUserBuildings = await db
+        .select({
+          userId: schema.userBuildings.userId,
+          id: schema.buildings.id,
+          name: schema.buildings.name
+        })
+        .from(schema.userBuildings)
+        .innerJoin(schema.buildings, eq(schema.userBuildings.buildingId, schema.buildings.id))
+        .where(
+          and(
+            inArray(schema.userBuildings.userId, userIds),
+            eq(schema.userBuildings.isActive, true),
+            eq(schema.buildings.isActive, true)
+          )
+        );
+
       // Single query to get all user buildings (through residence assignments)
-      const userBuildings = await db
+      const indirectUserBuildings = await db
         .selectDistinct({
           userId: schema.userResidences.userId,
           id: schema.buildings.id,
@@ -194,6 +211,9 @@ export class OptimizedDatabaseStorage implements IStorage {
             eq(schema.buildings.isActive, true)
           )
         );
+
+      // Combine direct and indirect building assignments
+      const userBuildings = [...directUserBuildings, ...indirectUserBuildings];
 
       // Single query to get all user residences
       const userResidences = await db
@@ -512,6 +532,15 @@ export class OptimizedDatabaseStorage implements IStorage {
                   '[]'::json
                 ) as buildings
               FROM (
+                -- Direct building assignments from user_buildings table
+                SELECT DISTINCT ub.user_id, b.id, b.name
+                FROM user_buildings ub
+                INNER JOIN buildings b ON ub.building_id = b.id
+                WHERE ub.is_active = true AND b.is_active = true
+                
+                UNION
+                
+                -- Indirect building assignments through residences
                 SELECT DISTINCT ur.user_id, b.id, b.name
                 FROM user_residences ur
                 INNER JOIN residences r ON ur.residence_id = r.id
@@ -763,6 +792,15 @@ export class OptimizedDatabaseStorage implements IStorage {
                   '[]'::json
                 ) as buildings
               FROM (
+                -- Direct building assignments from user_buildings table
+                SELECT DISTINCT ub.user_id, b.id, b.name
+                FROM user_buildings ub
+                INNER JOIN buildings b ON ub.building_id = b.id
+                WHERE ub.is_active = true AND b.is_active = true
+                
+                UNION
+                
+                -- Indirect building assignments through residences
                 SELECT DISTINCT ur.user_id, b.id, b.name
                 FROM user_residences ur
                 INNER JOIN residences r ON ur.residence_id = r.id
