@@ -314,20 +314,37 @@ function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any[
   const startDay = startTime.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
   const endDay = endTime.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
 
+  console.log('🔍 Opening hours check:', {
+    startTime: startTime.toISOString(),
+    endTime: endTime.toISOString(),
+    startDay,
+    endDay,
+    openingHours
+  });
+
   // For simplicity, require booking to be within same day
   if (startDay !== endDay) {
+    console.log('❌ Start and end are on different days');
     return false;
   }
 
   const dayHours = openingHours.find((oh) => oh.day.toLowerCase() === startDay);
   if (!dayHours) {
+    console.log('❌ No opening hours found for day:', startDay);
+    console.log('Available days:', openingHours.map(oh => oh.day.toLowerCase()));
     return false; // No hours defined for this day
   }
 
   const startTimeStr = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`;
   const endTimeStr = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
 
-  return startTimeStr >= dayHours.open && endTimeStr <= dayHours.close;
+  console.log('✅ Found hours for', startDay, ':', dayHours.open, '-', dayHours.close);
+  console.log('Checking:', startTimeStr, '-', endTimeStr);
+  
+  const result = startTimeStr >= dayHours.open && endTimeStr <= dayHours.close;
+  console.log('Result:', result);
+  
+  return result;
 }
 
 /**
