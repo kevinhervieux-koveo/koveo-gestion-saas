@@ -112,7 +112,7 @@ const config = {
   
   // Performance settings - more aggressive timeouts to prevent hanging
   testTimeout: 8000,
-  maxWorkers: 1,
+  maxWorkers: '50%',
   cache: false,
   cacheDirectory: '<rootDir>/.jest-cache',
   detectOpenHandles: true,
@@ -123,7 +123,7 @@ const config = {
   resetModules: false,  // Disable module reset to avoid import issues
   verbose: true,
   passWithNoTests: false,
-  bail: true,  // Stop on first failure to identify issues quickly
+  bail: false,  // Run all tests to discover all issues
   
   // Strict cleanup and isolation settings
   sandboxInjectedGlobals: [
