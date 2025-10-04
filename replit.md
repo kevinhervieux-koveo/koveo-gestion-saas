@@ -12,7 +12,7 @@ Koveo Gestion is an AI-powered SaaS platform designed for property management wi
 3. **Calendar color coding**: Verified that the CalendarView component correctly displays user's own bookings in green and other users' bookings in gray, using the `isOwnBooking` flag set by the backend
 4. **Frontend date synchronization**: Fixed `bookingsForDate` memo to use `form.watch('date')` with proper dependency tracking, ensuring bookings match displayed time slots
 5. **State consistency**: Added `setSelectedDate()` calls when opening booking dialog to maintain date state synchronization
-6. **Backend validation**: Made day name comparison case-insensitive in `isWithinOpeningHours` function to prevent false "OUTSIDE_OPENING_HOURS" errors
+6. **Timezone handling**: Fixed critical timezone bug in `isWithinOpeningHours` function where UTC times were being compared to local opening hours. Now properly converts times to America/Montreal timezone before validation, preventing false "OUTSIDE_OPENING_HOURS" errors
 
 **October 1, 2025**: Fixed document filtering bug in ModularDocumentPageWrapper where documents were not appearing on residence and building pages. Removed incorrect `type` parameter from API call that was interfering with proper document filtering. Documents are now correctly filtered by `buildingId` or `residenceId` parameters only.
 
