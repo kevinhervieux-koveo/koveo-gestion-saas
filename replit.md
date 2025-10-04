@@ -16,18 +16,19 @@ Koveo Gestion is an AI-powered SaaS platform designed for property management wi
    - Comprehensive API mocking for all endpoints (auth, entities, documents, uploads, deletions)
    - Added filterDocumentsByRole() for proper visibility testing
    - Reduced test file from 925 to 571 lines (38% reduction)
-4. **Communication Page Tests**: Replaced mock component with real production component, achieving 14/20 passing (70%)
+4. **Communication Page Tests**: Replaced mock component with real production component, achieving 20/20 passing (100%)
    - Fixed state management with finally blocks for 6 async operations
    - Added 4 missing loading/error state flags for proper async cleanup
    - Deterministic mock behavior for all 6 API endpoints
    - Removed 7 tests for non-existent features (meeting planning)
    - Fixed ResizeObserver mock for Radix UI components
-   - Remaining 6 failures are Radix UI component testing infrastructure issues, not production bugs
+   - Fixed Radix UI testid placement (Select → SelectTrigger) for proper testing
+   - Updated test queries to match accessible patterns in JSDOM environment
 5. **Test Results Summary**:
    - Budget page: 21/21 passing (100%)
    - Document management: 11/11 passing (100%)
-   - Communication page: 14/20 passing (70%)
-   - Overall improvement: From ~6 test suites running to 42+ tests passing with real components
+   - Communication page: 20/20 passing (100%)
+   - Overall improvement: From ~6 test suites running to 52 tests passing with real components (100% pass rate)
 
 **October 4, 2025**: Comprehensive codebase cleanup - removed duplicate and unused pages:
 1. **Page deduplication**: Removed 4 duplicate/unused pages totaling ~2,800 lines of dead code
