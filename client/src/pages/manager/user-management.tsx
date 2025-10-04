@@ -299,7 +299,7 @@ export default function UserManagement() {
 
   // Organization context detection for role filtering
   const userOrganizationContext = useMemo(() => {
-    if (!currentUser || !organizations || !Array.isArray(organizations) || !users) return null;
+    if (!currentUser || !organizations || !Array.isArray(organizations) || !users || !Array.isArray(users)) return null;
 
     // Get current user's organization assignments - if not in current page, we'll skip for admin
     const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
@@ -579,7 +579,7 @@ export default function UserManagement() {
 
   // Get current user's access information for role-based filtering
   const currentUserAccess = useMemo(() => {
-    if (!currentUser || !organizations || !buildings || !residences) {
+    if (!currentUser || !organizations || !buildings || !residences || !users || !Array.isArray(users)) {
       return {
         organizationIds: [],
         buildingIds: [],
