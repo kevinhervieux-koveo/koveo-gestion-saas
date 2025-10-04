@@ -1,0 +1,70 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-tyRB3Si5.js:1 🔍 [USER_MANAGEMENT] Component mounted
+index-ZKI5x1yZ.js:136 TypeError: t.map is not a function
+    at user-management-tyRB3Si5.js:1:38676
+    at Uc (index-ZKI5x1yZ.js:120:14136)
+    at Object.useMemo (index-ZKI5x1yZ.js:229:2544)
+    at He.s.useMemo (vendor-react-BZXSkU7I.js:21:11462)
+    at Ds (user-management-tyRB3Si5.js:1:38652)
+    at Object.react_stack_bottom_frame (index-ZKI5x1yZ.js:229:12448)
+    at hc (index-ZKI5x1yZ.js:120:804)
+    at Gc (index-ZKI5x1yZ.js:141:5839)
+    at Wc (index-ZKI5x1yZ.js:150:10147)
+    at q (index-ZKI5x1yZ.js:45:108)
+
+The above error occurred in the <Ds> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, sx.
+
+overrideMethod @ hook.js:608
+Ch @ index-ZKI5x1yZ.js:136
+Rh @ index-ZKI5x1yZ.js:141
+q @ index-ZKI5x1yZ.js:45
+Yc.l.componentDidCatch.e.callback @ index-ZKI5x1yZ.js:141
+Yp @ index-ZKI5x1yZ.js:107
+Gp @ index-ZKI5x1yZ.js:107
+q @ index-ZKI5x1yZ.js:45
+Yh @ index-ZKI5x1yZ.js:163
+Zh @ index-ZKI5x1yZ.js:163
+Xn @ index-ZKI5x1yZ.js:163
+Zh @ index-ZKI5x1yZ.js:163
+Xn @ index-ZKI5x1yZ.js:163
+Zh @ index-ZKI5x1yZ.js:163
+Xn @ index-ZKI5x1yZ.js:163
+Zh @ index-ZKI5x1yZ.js:163
+Xn @ index-ZKI5x1yZ.js:163
+Zh @ index-ZKI5x1yZ.js:163
+Xn @ index-ZKI5x1yZ.js:163
+Zh @ index-ZKI5x1yZ.js:163
+Xn @ index-ZKI5x1yZ.js:163
+Zh @ index-ZKI5x1yZ.js:163
+Ag @ index-ZKI5x1yZ.js:163
+dd @ index-ZKI5x1yZ.js:163
+pg @ index-ZKI5x1yZ.js:163
+mg @ index-ZKI5x1yZ.js:163
+kg @ index-ZKI5x1yZ.js:185
+vl @ index-ZKI5x1yZ.js:185
+pd @ index-ZKI5x1yZ.js:185
+(anonymous) @ index-ZKI5x1yZ.js:185
+<Ds>
+vu.jsxDEV @ index-ZKI5x1yZ.js:15
+rr @ user-management-tyRB3Si5.js:1
+react_stack_bottom_frame @ index-ZKI5x1yZ.js:229
+hc @ index-ZKI5x1yZ.js:120
+Gc @ index-ZKI5x1yZ.js:141
+Wc @ index-ZKI5x1yZ.js:150
+q @ index-ZKI5x1yZ.js:45
+bg @ index-ZKI5x1yZ.js:163
+vg @ index-ZKI5x1yZ.js:163
+cd @ index-ZKI5x1yZ.js:163
+mg @ index-ZKI5x1yZ.js:163
+kg @ index-ZKI5x1yZ.js:185
+vl @ index-ZKI5x1yZ.js:185
+pd @ index-ZKI5x1yZ.js:185
+(anonymous) @ index-ZKI5x1yZ.js:185

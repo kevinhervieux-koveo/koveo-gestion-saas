@@ -56,6 +56,16 @@ import { InvitationManagement } from '@/components/InvitationManagement';
 
 // Form validation schema for editing users - dynamic based on available roles
 const createEditUserSchema = (availableRoles: { value: string; label: string }[]) => {
+  if (!Array.isArray(availableRoles) || availableRoles.length === 0) {
+    return z.object({
+      firstName: z.string().min(1, 'First name is required (example: Jean)').max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name can only contain letters, spaces, apostrophes and hyphens'),
+      lastName: z.string().min(1, 'Last name is required (example: Dupont)').max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Last name can only contain letters, spaces, apostrophes and hyphens'),
+      email: z.string().min(1, 'Email address is required').email('Please enter a valid email address (example: jean.dupont@email.com)'),
+      role: z.string().min(1, 'Please select a user role'),
+      isActive: z.boolean(),
+    });
+  }
+  
   const roleValues = availableRoles.map(role => role.value) as [string, ...string[]];
   
   return z.object({
@@ -1301,7 +1311,7 @@ export default function UserManagement() {
                         </select>
 
                         {/* Organization Filter - Hidden for demo_manager since they can only see their own organization */}
-                        {filterOptions?.organizations && filterOptions.organizations.length > 0 && currentUser?.role !== 'demo_manager' && (
+                        {filterOptions?.organizations && Array.isArray(filterOptions.organizations) && filterOptions.organizations.length > 0 && currentUser?.role !== 'demo_manager' && (
                           <select
                             value={organizationFilter}
                             onChange={(e) => setOrganizationFilter(e.target.value)}
@@ -1316,7 +1326,7 @@ export default function UserManagement() {
                         )}
 
                         {/* Orphan User Filter - Admin Only, Hidden when organization is selected or for demo users */}
-                        {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && currentUser?.role !== 'demo_manager' && (
+                        {filterOptions?.orphanOptions && Array.isArray(filterOptions.orphanOptions) && filterOptions.orphanOptions.length > 0 && !organizationFilter && currentUser?.role !== 'demo_manager' && (
                           <select
                             value={orphanFilter}
                             onChange={(e) => setOrphanFilter(e.target.value)}
@@ -1331,7 +1341,7 @@ export default function UserManagement() {
                         )}
                         
                         {/* Show explanation when orphan filter is disabled - not for demo users */}
-                        {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && currentUser?.role !== 'demo_manager' && (
+                        {organizationFilter && filterOptions?.orphanOptions && Array.isArray(filterOptions.orphanOptions) && filterOptions.orphanOptions.length > 0 && currentUser?.role !== 'demo_manager' && (
                           <div className="text-sm text-gray-500 italic px-3 py-2 border border-gray-200 rounded-md bg-gray-100">
                             Orphan filter unavailable (organization selected)
                           </div>
@@ -1492,11 +1502,11 @@ export default function UserManagement() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {getAvailableRoles?.map((role) => (
+                            {Array.isArray(getAvailableRoles) && getAvailableRoles.map((role) => (
                               <SelectItem key={role.value} value={role.value}>
                                 {role.label}
                               </SelectItem>
-                            )) || []}
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
