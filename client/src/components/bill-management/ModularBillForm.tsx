@@ -955,12 +955,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">
-          {bill ? 'Edit Bill' : 'Create New Bill'}
+          {bill ? t('bills.editBill') : t('bills.createNewBill')}
         </h2>
         {aiExtractionData && (
           <Badge variant="secondary" className="flex items-center gap-1">
             <Sparkles className="w-3 h-3" />
-            AI Extracted
+            {t('bills.aiExtracted')}
           </Badge>
         )}
       </div>
@@ -971,12 +971,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="manual" data-testid="tab-manual">
               <FileText className="w-4 h-4 mr-2" />
-              Manual Entry
+              {t('bills.manualEntry')}
             </TabsTrigger>
             {aiEnabled && (
               <TabsTrigger value="ai" data-testid="tab-ai">
                 <Sparkles className="w-4 h-4 mr-2" />
-                AI Extraction
+                {t('bills.aiExtraction')}
               </TabsTrigger>
             )}
           </TabsList>
@@ -987,7 +987,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5" />
-                    Upload Bill Document
+                    {t('bills.uploadBillDocument')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1034,7 +1034,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />
-                  Upload Document (Optional)
+                  {t('bills.uploadDocumentOptional')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1057,7 +1057,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Auto-save status indicator */}
-          {(isAutoSaving || autoSaveStatus) && (
+          {(isAutoSaving || (autoSaveStatus && autoSaveStatus !== 'Draft')) && (
             <div className="flex items-center justify-center gap-2 p-2 text-sm bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
               {isAutoSaving && (
                 <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -1069,7 +1069,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 (isAutoSaving || autoSaveStatus === 'Saving...') && "text-blue-600 dark:text-blue-400",
                 autoSaveStatus === 'Draft' && "text-gray-600 dark:text-gray-400"
               )}>
-                {isAutoSaving ? 'Auto-saving...' : autoSaveStatus}
+                {isAutoSaving ? t('bills.autoSaving') : autoSaveStatus}
               </span>
             </div>
           )}
@@ -1081,7 +1081,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title *</FormLabel>
+                  <FormLabel>{t('bills.title')}</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Monthly Electricity Bill" {...field} />
                   </FormControl>
@@ -1096,7 +1096,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               name="vendor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Vendor</FormLabel>
+                  <FormLabel>{t('bills.vendor')}</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Hydro Quebec" {...field} />
                   </FormControl>
@@ -1111,7 +1111,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category *</FormLabel>
+                  <FormLabel>{t('bills.category')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -1137,7 +1137,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status *</FormLabel>
+                  <FormLabel>{t('bills.status')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -1145,11 +1145,11 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="sent">Sent</SelectItem>
-                      <SelectItem value="overdue">Overdue</SelectItem>
-                      <SelectItem value="paid">Paid</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="draft">{t('bills.statusDraft')}</SelectItem>
+                      <SelectItem value="sent">{t('bills.statusSent')}</SelectItem>
+                      <SelectItem value="overdue">{t('bills.statusOverdue')}</SelectItem>
+                      <SelectItem value="paid">{t('bills.statusPaid')}</SelectItem>
+                      <SelectItem value="cancelled">{t('bills.statusCancelled')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -1163,7 +1163,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               name="paymentType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Type *</FormLabel>
+                  <FormLabel>{t('bills.paymentType')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -1171,8 +1171,8 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="unique">One-Time Bill</SelectItem>
-                      <SelectItem value="recurrent">Recurring Payment</SelectItem>
+                      <SelectItem value="unique">{t('bills.paymentTypeOneTime')}</SelectItem>
+                      <SelectItem value="recurrent">{t('bills.paymentTypeRecurring')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -1187,12 +1187,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 name="totalAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Amount *</FormLabel>
+                    <FormLabel>{t('bills.totalAmount')}</FormLabel>
                     <FormControl>
                       <Input placeholder="0.00" type="number" step="0.01" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Complete amount for this one-time bill
+                      {t('bills.totalAmountDescriptionOneTime')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1204,12 +1204,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 name="totalAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Total Amount (Optional)</FormLabel>
+                    <FormLabel>{t('bills.totalAmountOptional')}</FormLabel>
                     <FormControl>
                       <Input placeholder="0.00" type="number" step="0.01" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Leave empty to calculate from individual payment amounts
+                      {t('bills.totalAmountDescriptionRecurring')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1223,7 +1223,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               name="startDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Start Date *</FormLabel>
+                  <FormLabel>{t('bills.startDate')}</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -1241,7 +1241,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 name="schedulePayment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Schedule</FormLabel>
+                    <FormLabel>{t('bills.paymentSchedule')}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -1249,11 +1249,11 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                        <SelectItem value="yearly">Yearly</SelectItem>
-                        <SelectItem value="custom">Custom Schedule</SelectItem>
+                        <SelectItem value="weekly">{t('bills.scheduleWeekly')}</SelectItem>
+                        <SelectItem value="monthly">{t('bills.scheduleMonthly')}</SelectItem>
+                        <SelectItem value="quarterly">{t('bills.scheduleQuarterly')}</SelectItem>
+                        <SelectItem value="yearly">{t('bills.scheduleYearly')}</SelectItem>
+                        <SelectItem value="custom">{t('bills.scheduleCustom')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -1263,7 +1263,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
 
               {/* Smart Payment Configuration */}
               <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
-                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">Payment Configuration</h4>
+                <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">{t('bills.paymentConfiguration')}</h4>
                 
                 {/* Initial Payment Question */}
                 <FormField
@@ -1272,9 +1272,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Initial Payment</FormLabel>
+                        <FormLabel className="text-base">{t('bills.initialPayment')}</FormLabel>
                         <FormDescription>
-                          Is there an upfront payment different from recurring amounts?
+                          {t('bills.initialPaymentDescription')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -1296,9 +1296,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Equal Recurring Payments</FormLabel>
+                        <FormLabel className="text-base">{t('bills.equalRecurringPayments')}</FormLabel>
                         <FormDescription>
-                          Are all recurring payment amounts the same?
+                          {t('bills.equalRecurringPaymentsDescription')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -1323,12 +1323,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                     name="initialPaymentAmount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Initial Payment Amount *</FormLabel>
+                        <FormLabel>{t('bills.initialPaymentAmount')}</FormLabel>
                         <FormControl>
                           <Input placeholder="0.00" type="number" step="0.01" {...field} />
                         </FormControl>
                         <FormDescription>
-                          Amount for the upfront payment
+                          {t('bills.initialPaymentAmountDescription')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -1343,12 +1343,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                     name="recurringPaymentAmount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Recurring Payment Amount *</FormLabel>
+                        <FormLabel>{t('bills.recurringPaymentAmount')}</FormLabel>
                         <FormControl>
                           <Input placeholder="0.00" type="number" step="0.01" {...field} />
                         </FormControl>
                         <FormDescription>
-                          Amount for each recurring payment
+                          {t('bills.recurringPaymentAmountDescription')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -1363,7 +1363,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 name="endDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Recurrence End Date (Optional)</FormLabel>
+                    <FormLabel>{t('bills.recurrenceEndDate')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="date" 
@@ -1372,7 +1372,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                       />
                     </FormControl>
                     <FormDescription>
-                      Payment schedule will be limited to the next year. Setting an end date will stop recurring bills after this date.
+                      {t('bills.recurrenceEndDateDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1383,7 +1383,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
-                      <span>{schedulePayment === 'custom' ? 'Custom Payment Schedule' : 'Individual Payment Amounts'}</span>
+                      <span>{schedulePayment === 'custom' ? t('bills.customPaymentSchedule') : t('bills.individualPaymentAmounts')}</span>
                       <Button
                         type="button"
                         variant="outline"
@@ -1391,21 +1391,21 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                         onClick={addCustomPayment}
                       >
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Payment
+                        {t('bills.addPayment')}
                       </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                       {schedulePayment === 'custom' 
-                        ? 'Define your custom payment schedule with specific dates and amounts.'
-                        : 'Since recurring payments are not equal, specify individual amounts for each payment. Dates will be calculated based on your selected schedule.'}
+                        ? t('bills.customPaymentScheduleDescription')
+                        : t('bills.individualPaymentAmountsDescription')}
                     </div>
                     <div className="max-h-60 overflow-y-auto space-y-3">
                       {customPayments.map((payment, index) => (
                         <div key={index} className="flex gap-2 items-end p-3 border rounded bg-white dark:bg-gray-800">
                           <div className="flex-1">
-                            <label className="text-xs text-gray-500 dark:text-gray-400">Amount *</label>
+                            <label className="text-xs text-gray-500 dark:text-gray-400">{t('bills.amount')}</label>
                             <Input
                               placeholder="0.00"
                               type="number"
@@ -1417,7 +1417,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                           </div>
                           {schedulePayment === 'custom' && (
                             <div className="flex-1">
-                              <label className="text-xs text-gray-500 dark:text-gray-400">Date *</label>
+                              <label className="text-xs text-gray-500 dark:text-gray-400">{t('bills.date')}</label>
                               <Input
                                 type="date"
                                 value={payment.date}
@@ -1428,7 +1428,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                             </div>
                           )}
                           <div className="flex-1">
-                            <label className="text-xs text-gray-500 dark:text-gray-400">Description</label>
+                            <label className="text-xs text-gray-500 dark:text-gray-400">{t('bills.description')}</label>
                             <Input
                               placeholder={schedulePayment === 'custom' ? 'Payment description' : `Payment ${index + 1}`}
                               value={payment.description || ''}
@@ -1467,7 +1467,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t('bills.description')}</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Additional details about this bill..."
@@ -1486,7 +1486,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Notes</FormLabel>
+                <FormLabel>{t('bills.notes')}</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Internal notes..."
@@ -1538,7 +1538,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                   onClick={handleDelete} 
                   disabled={deleteBillMutation.isPending}
                 >
-                  {deleteBillMutation.isPending ? 'Deleting...' : 'Delete Bill'}
+                  {deleteBillMutation.isPending ? t('bills.deleting') : t('bills.deleteBill')}
                 </Button>
               )}
             </div>
@@ -1547,11 +1547,11 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
             <div className="flex gap-2">
               {onCancel && (
                 <Button type="button" variant="outline" onClick={onCancel}>
-                  Cancel
+                  {t('bills.cancel')}
                 </Button>
               )}
               <Button type="submit" disabled={billMutation.isPending}>
-                {billMutation.isPending ? 'Processing...' : (bill ? 'Update Bill' : 'Create Bill')}
+                {billMutation.isPending ? t('bills.processing') : (bill ? t('bills.updateBill') : t('bills.createBill'))}
               </Button>
             </div>
           </div>
