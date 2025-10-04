@@ -180,7 +180,7 @@ export function ResidenceCard({
         data-testid={`button-documents-${residence.id}`}
       >
         <FileText className='w-3 h-3 mr-1' />
-        {t('residenceDocumentsButton')}
+        {t('documentsButton')}
       </Button>
       
       {showEditDialog && (
@@ -194,7 +194,7 @@ export function ResidenceCard({
               data-testid={`button-edit-${residence.id}`}
             >
               <Edit className='w-3 h-3 mr-1' />
-              Edit
+              {t('edit')}
             </Button>
           </DialogTrigger>
           <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
