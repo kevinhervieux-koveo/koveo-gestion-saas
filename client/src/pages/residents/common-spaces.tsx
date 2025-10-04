@@ -565,7 +565,7 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
     if (!bookings || !formDate) {
       return [];
     }
-
+    
     return bookings.filter((booking: Booking) => {
       const bookingDate = parseISO(booking.startTime);
       return isSameDay(bookingDate, formDate);
@@ -661,11 +661,8 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
       const openTime = parse(todayHours.open, 'HH:mm', selectedDate);
       const closeTime = parse(todayHours.close, 'HH:mm', selectedDate);
 
-      // Check if slot is within opening hours
-      if (
-        !isWithinInterval(slotStart, { start: openTime, end: closeTime }) ||
-        !isWithinInterval(slotEnd, { start: openTime, end: closeTime })
-      ) {
+      // Check if slot starts before closing time (slot can extend past closing)
+      if (!isWithinInterval(slotStart, { start: openTime, end: closeTime })) {
         return false;
       }
 
@@ -987,7 +984,6 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                         const bookingStart = parseISO(booking.startTime);
                                         const bookingEnd = parseISO(booking.endTime);
                                         
-                                        // Create timeSlot in local time matching the selected date
                                         const selectedDate = form.watch('date');
                                         const [hour, minute] = time.split(':').map(Number);
                                         const timeSlot = new Date(
