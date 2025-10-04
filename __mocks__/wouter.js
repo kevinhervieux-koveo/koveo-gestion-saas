@@ -160,8 +160,30 @@ const Switch = ({ children }) => {
   return React.createElement('div', { 'data-testid': 'switch' }, children);
 };
 
-// Export object with all functions
-const wouterMock = {
+// Named exports for Jest/ES6 interop
+module.exports.Router = Router;
+module.exports.Route = Route;
+module.exports.Link = Link;
+module.exports.Switch = Switch;
+module.exports.Redirect = Redirect;
+module.exports.useLocation = useLocation;
+module.exports.useRoute = useRoute;
+module.exports.useParams = useParams;
+module.exports.useSearch = useSearch;
+module.exports.useRouter = useRouter;
+module.exports.useNavigate = useNavigate;
+
+// Test helpers
+module.exports.__setLocation = __setLocation;
+module.exports.__setSearch = __setSearch;
+module.exports.__setParams = __setParams;
+module.exports.__resetMocks = __resetMocks;
+
+// ES module compatibility - set after named exports
+module.exports.__esModule = true;
+
+// Default export for require() calls
+module.exports.default = {
   Router,
   Route,
   Link,
@@ -173,31 +195,8 @@ const wouterMock = {
   useSearch,
   useRouter,
   useNavigate,
-  // Test helpers
   __setLocation,
   __setSearch,
   __setParams,
   __resetMocks
 };
-
-// ES module compatibility
-Object.defineProperty(wouterMock, '__esModule', { value: true });
-wouterMock.default = wouterMock;
-
-// Individual exports for named imports with ES module compatibility
-Object.keys(wouterMock).forEach(key => {
-  if (key !== '__esModule' && key !== 'default') {
-    module.exports[key] = wouterMock[key];
-  }
-});
-
-// Additional explicit exports to fix ES module import issues
-module.exports.useParams = wouterMock.useParams;
-module.exports.useLocation = wouterMock.useLocation;
-module.exports.useRoute = wouterMock.useRoute;
-module.exports.useSearch = wouterMock.useSearch;
-module.exports.useRouter = wouterMock.useRouter;
-module.exports.useNavigate = wouterMock.useNavigate;
-
-// Main export
-module.exports = wouterMock;

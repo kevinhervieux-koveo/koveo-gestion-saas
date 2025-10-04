@@ -42,14 +42,41 @@ jest.mock('../../client/src/hooks/use-auth', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-jest.mock('../../client/src/hooks/use-toast', () => ({
+jest.mock('@/hooks/use-toast', () => ({
+  __esModule: true,
   useToast: () => ({
     toast: jest.fn(),
   }),
 }));
 
-// Use comprehensive wouter mock from __mocks__/wouter.js
-jest.mock('wouter');
+// Mock wouter with proper hooks
+const mockWouterNavigate = jest.fn();
+const mockUseLocation = jest.fn(() => ['/', mockWouterNavigate]);
+const mockUseParams = jest.fn(() => ({}));
+const mockUseRoute = jest.fn(() => [false, {}]);
+const mockUseSearch = jest.fn(() => '');
+
+jest.mock('wouter', () => ({
+  __esModule: true,
+  useLocation: () => mockUseLocation(),
+  useParams: () => mockUseParams(),
+  useRoute: (pattern: string) => mockUseRoute(pattern),
+  useSearch: () => mockUseSearch(),
+  useRouter: () => ({
+    navigate: mockWouterNavigate,
+    location: '/',
+    search: '',
+    params: {}
+  }),
+  useNavigate: () => mockWouterNavigate,
+  Link: ({ children, href, to, ...props }: any) => 
+    React.createElement('a', { href: to || href, ...props }, children),
+  Route: ({ component: Component, children, ...props }: any) =>
+    Component ? React.createElement(Component, props) : children,
+  Router: ({ children }: any) => React.createElement('div', { 'data-testid': 'router' }, children),
+  Switch: ({ children }: any) => React.createElement('div', { 'data-testid': 'switch' }, children),
+  Redirect: () => null,
+}));
 
 // Demo test data
 const demoTenantUser = {
@@ -202,7 +229,9 @@ describe('Document Management - Comprehensive Testing with Demo Users', () => {
     global.open = jest.fn();
 
     // Set up default router mock for residence documents
-    setupResidenceRouterMock('residence-demo-101', '/residents/residence/documents');
+    mockUseLocation.mockReturnValue(['/residents/residence/documents', mockWouterNavigate]);
+    mockUseParams.mockReturnValue({ residenceId: 'residence-demo-101' });
+    mockUseSearch.mockReturnValue('?residenceId=residence-demo-101');
 
     // Set default auth mock
     mockUseAuth.mockReturnValue({
