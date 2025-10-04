@@ -1,0 +1,92 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Organization context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Search term updated: 
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Fetching buildings with params: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Received buildings data: {count: 5, organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+BuildingDocuments-g8fcGSRK.js:1 🔍 [BUILDING_DOCUMENTS] Component initialized {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', userRole: 'manager', timestamp: '2025-10-04T13:53:07.194Z'}
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Organization context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Search term updated: 
+BuildingDocuments-g8fcGSRK.js:1 🔍 [BUILDING_DOCUMENTS] Component initialized {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', userRole: 'manager', timestamp: '2025-10-04T13:53:09.213Z'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Organization context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Search term updated: 
+BuildingDocuments-g8fcGSRK.js:1 🔍 [BUILDING_DOCUMENTS] Component initialized {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', userRole: 'manager', timestamp: '2025-10-04T13:53:11.808Z'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Organization context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Search term updated: 
+BuildingDocuments-g8fcGSRK.js:1 🔍 [BUILDING_DOCUMENTS] Component initialized {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', userRole: 'manager', timestamp: '2025-10-04T13:53:13.963Z'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Organization context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Search term updated: 
+BuildingDocuments-g8fcGSRK.js:1 🔍 [BUILDING_DOCUMENTS] Component initialized {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', userRole: 'manager', timestamp: '2025-10-04T13:53:15.959Z'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Organization context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Search term updated: 
+BuildingDocuments-g8fcGSRK.js:1 🔍 [BUILDING_DOCUMENTS] Component initialized {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', userRole: 'manager', timestamp: '2025-10-04T13:53:18.397Z'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Organization context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+buildings-DWHBkvnq.js:1 🔍 [BUILDINGS] Search term updated: 
+index-B9j7au6h.js:136 TypeError: L.map is not a function
+    at user-management-BrrBLtEm.js:1:70236
+    at Uc (index-B9j7au6h.js:120:14136)
+    at Object.useMemo (index-B9j7au6h.js:229:2544)
+    at He.s.useMemo (vendor-react-BZXSkU7I.js:21:11462)
+    at rr (user-management-BrrBLtEm.js:1:70212)
+    at Object.react_stack_bottom_frame (index-B9j7au6h.js:229:12448)
+    at hc (index-B9j7au6h.js:120:804)
+    at Gc (index-B9j7au6h.js:141:5839)
+    at Wc (index-B9j7au6h.js:150:9693)
+    at q (index-B9j7au6h.js:45:108)
+
+The above error occurred in the <rr> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, sx.
+
+overrideMethod @ hook.js:608
+Ch @ index-B9j7au6h.js:136
+Rh @ index-B9j7au6h.js:141
+q @ index-B9j7au6h.js:45
+Yc.l.componentDidCatch.e.callback @ index-B9j7au6h.js:141
+Yp @ index-B9j7au6h.js:107
+Gp @ index-B9j7au6h.js:107
+q @ index-B9j7au6h.js:45
+Yh @ index-B9j7au6h.js:163
+Zh @ index-B9j7au6h.js:163
+Xn @ index-B9j7au6h.js:163
+Zh @ index-B9j7au6h.js:163
+Xn @ index-B9j7au6h.js:163
+Zh @ index-B9j7au6h.js:163
+Xn @ index-B9j7au6h.js:163
+Zh @ index-B9j7au6h.js:163
+Xn @ index-B9j7au6h.js:163
+Zh @ index-B9j7au6h.js:163
+Xn @ index-B9j7au6h.js:163
+Zh @ index-B9j7au6h.js:163
+Xn @ index-B9j7au6h.js:163
+Zh @ index-B9j7au6h.js:163
+Ag @ index-B9j7au6h.js:163
+dd @ index-B9j7au6h.js:163
+pg @ index-B9j7au6h.js:163
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+u0 @ index-B9j7au6h.js:240
+P @ index-B9j7au6h.js:240
+react_stack_bottom_frame @ index-B9j7au6h.js:229
+hc @ index-B9j7au6h.js:120
+Gc @ index-B9j7au6h.js:141
+Wc @ index-B9j7au6h.js:150
+q @ index-B9j7au6h.js:45
+bg @ index-B9j7au6h.js:163
+vg @ index-B9j7au6h.js:163
+cd @ index-B9j7au6h.js:163
+mg @ index-B9j7au6h.js:163
+zg @ index-B9j7au6h.js:185
+u @ index-B9j7au6h.js:23

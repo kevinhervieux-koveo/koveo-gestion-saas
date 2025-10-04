@@ -6,6 +6,11 @@ Koveo Gestion is an AI-powered SaaS platform designed for property management wi
 
 ## Recent Changes
 
+**October 4, 2025 (Latest)**: Fixed manager building access control and user-management page issues:
+1. **Manager building filtering**: Updated `/api/manager/buildings` endpoint to use `userBuildings` table for manager role filtering, ensuring managers only see buildings they are explicitly assigned to
+2. **Organization selector visibility**: Fixed organization selector to hide when user has only 1 organization, improving UX by removing unnecessary navigation
+3. **User-management query fixes**: Fixed React Query implementations for organizations, buildings, and residences to use explicit `apiRequest` calls with proper TypeScript casting through `unknown`, resolving runtime "L.map is not a function" errors
+
 **October 4, 2025**: Fixed multiple critical common spaces booking functionality issues:
 1. **Time slot availability logic**: Fixed slot duration check from 60 minutes to 30 minutes to match the minimum booking interval, allowing slots like 12:30 to be available when they don't conflict with existing bookings
 2. **Opening hours validation**: Fixed closing time logic to prevent bookings from starting AT closing time (e.g., 22:00 with 22:00 close). Slots must now start BEFORE closing time, allowing only 21:30 as the last available slot for a 22:00 closing

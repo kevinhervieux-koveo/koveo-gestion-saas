@@ -248,18 +248,21 @@ export default function UserManagement() {
   // Fetch organizations
   const { data: organizations = [] } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
+    queryFn: () => apiRequest('GET', '/api/organizations') as unknown as Promise<Organization[]>,
     enabled: true,
   });
 
   // Fetch buildings
   const { data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
+    queryFn: () => apiRequest('GET', '/api/buildings') as unknown as Promise<Building[]>,
     enabled: true,
   });
 
   // Fetch residences
   const { data: residences = [] } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
+    queryFn: () => apiRequest('GET', '/api/residences') as unknown as Promise<Residence[]>,
     enabled: true,
   });
 
