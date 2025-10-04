@@ -977,7 +977,7 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                   
                                   <div className='grid grid-cols-4 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg bg-gray-50'>
                                     {timeSlots.map((time) => {
-                                      const isAvailable = isTimeSlotAvailable(time);
+                                      const isAvailable = isTimeSlotAvailable(time, 30);
                                       
                                       // Find the booking for this time slot (if any)
                                       const slotBooking = bookingsForDate.find((booking: Booking) => {
