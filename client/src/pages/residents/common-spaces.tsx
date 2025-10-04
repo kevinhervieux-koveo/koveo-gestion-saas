@@ -975,7 +975,9 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                   <div className='grid grid-cols-4 gap-2 max-h-60 overflow-y-auto p-2 border rounded-lg bg-gray-50'>
                                     {timeSlots.map((time) => {
                                       const isAvailable = isTimeSlotAvailable(time);
-                                      const hasBooking = bookingsForDate.some((booking: Booking) => {
+                                      
+                                      // Find the booking for this time slot (if any)
+                                      const slotBooking = bookingsForDate.find((booking: Booking) => {
                                         const bookingStart = parseISO(booking.startTime);
                                         const bookingEnd = parseISO(booking.endTime);
                                         
@@ -995,11 +997,16 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                         return timeSlot >= bookingStart && timeSlot < bookingEnd;
                                       });
                                       
+                                      const hasBooking = !!slotBooking;
+                                      const userName = slotBooking?.user 
+                                        ? `${slotBooking.user.firstName} ${slotBooking.user.lastName}`
+                                        : null;
+                                      
                                       const currentStartTime = form.watch('startTime');
                                       const currentEndTime = form.watch('endTime');
                                       const isSelected = time === currentStartTime || time === currentEndTime;
                                       
-                                      return (
+                                      const slotButton = (
                                         <button
                                           key={time}
                                           type='button'
@@ -1032,9 +1039,15 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                                     : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-100 hover:border-gray-300'
                                             }
                                           `}
+                                          data-testid={`time-slot-${time}`}
                                         >
                                           <div className='font-medium'>{time}</div>
-                                          {hasBooking && (
+                                          {hasBooking && userName && (
+                                            <div className='text-[10px] mt-1 text-orange-600 line-clamp-2' data-testid={`booking-user-${time}`}>
+                                              {userName}
+                                            </div>
+                                          )}
+                                          {hasBooking && !userName && (
                                             <div className='text-[10px] mt-1 text-orange-600'>
                                               {language === 'fr' ? 'Réservé' : 'Booked'}
                                             </div>
@@ -1054,6 +1067,30 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                           )}
                                         </button>
                                       );
+                                      
+                                      // Wrap in tooltip if there's a booking
+                                      if (hasBooking && slotBooking) {
+                                        return (
+                                          <Tooltip key={time}>
+                                            <TooltipTrigger asChild>
+                                              {slotButton}
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                              <div className='space-y-1'>
+                                                <p className='font-semibold'>
+                                                  {language === 'fr' ? 'Réservé par:' : 'Booked by:'}
+                                                </p>
+                                                {userName && <p className='text-sm'>{userName}</p>}
+                                                <p className='text-xs text-gray-500'>
+                                                  {format(parseISO(slotBooking.startTime), 'HH:mm')} - {format(parseISO(slotBooking.endTime), 'HH:mm')}
+                                                </p>
+                                              </div>
+                                            </TooltipContent>
+                                          </Tooltip>
+                                        );
+                                      }
+                                      
+                                      return slotButton;
                                     })}
                                   </div>
 
