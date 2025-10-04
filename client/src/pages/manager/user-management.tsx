@@ -281,60 +281,87 @@ export default function UserManagement() {
   const residences = Array.isArray(residencesData) ? residencesData : [];
 
   // Get current user to check permissions
-  const { data: currentUser } = useQuery<User>({
+  const { data: currentUser, isLoading: currentUserLoading, error: currentUserError } = useQuery<User>({
     queryKey: ['/api/auth/user'],
   });
+
+  // Debug logging for currentUser query
+  useEffect(() => {
+    console.log('🔍 [USER_MANAGEMENT] Current user query status:', {
+      currentUser: currentUser ? { id: currentUser.id, email: currentUser.email, role: currentUser.role } : null,
+      isLoading: currentUserLoading,
+      error: currentUserError,
+    });
+  }, [currentUser, currentUserLoading, currentUserError]);
 
   // Fetch current user's organizations independently
   const { data: currentUserOrganizations, isLoading: orgsLoading, error: orgsError } = useQuery<Organization[]>({
     queryKey: ['/api/users/me/organizations'],
     queryFn: async () => {
-      console.log('🔍 [USER_MANAGEMENT] Fetching current user organizations...');
-      const response = await fetch('/api/users/me/organizations', { credentials: 'include' });
+      const response = await fetch('/api/users/me/organizations', {
+        credentials: 'include',
+      });
       if (!response.ok) {
-        console.error('❌ [USER_MANAGEMENT] Failed to fetch organizations:', response.status, response.statusText);
         throw new Error(`Failed to fetch organizations: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('✅ [USER_MANAGEMENT] Fetched organizations:', data);
-      return data;
+      console.log('🔍 [QUERY] /api/users/me/organizations returned:', data);
+      return Array.isArray(data) ? data : [];
     },
     enabled: !!currentUser,
+    staleTime: 0, // Force fresh data
   });
 
   // Fetch current user's buildings independently
   const { data: currentUserBuildings, isLoading: buildingsLoading, error: buildingsError } = useQuery<Building[]>({
     queryKey: ['/api/users/me/buildings'],
     queryFn: async () => {
-      console.log('🔍 [USER_MANAGEMENT] Fetching current user buildings...');
-      const response = await fetch('/api/users/me/buildings', { credentials: 'include' });
+      const response = await fetch('/api/users/me/buildings', {
+        credentials: 'include',
+      });
       if (!response.ok) {
-        console.error('❌ [USER_MANAGEMENT] Failed to fetch buildings:', response.status, response.statusText);
         throw new Error(`Failed to fetch buildings: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('✅ [USER_MANAGEMENT] Fetched buildings:', data);
-      return data;
+      console.log('🔍 [QUERY] /api/users/me/buildings returned:', data);
+      return Array.isArray(data) ? data : [];
     },
     enabled: !!currentUser,
+    staleTime: 0, // Force fresh data
   });
 
   // Fetch current user's residences independently
   const { data: currentUserResidences, isLoading: residencesLoading, error: residencesError } = useQuery<Residence[]>({
     queryKey: ['/api/users/me/residences'],
     queryFn: async () => {
-      console.log('🔍 [USER_MANAGEMENT] Fetching current user residences...');
-      const response = await fetch('/api/users/me/residences', { credentials: 'include' });
+      const response = await fetch('/api/users/me/residences', {
+        credentials: 'include',
+      });
       if (!response.ok) {
-        console.error('❌ [USER_MANAGEMENT] Failed to fetch residences:', response.status, response.statusText);
         throw new Error(`Failed to fetch residences: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('✅ [USER_MANAGEMENT] Fetched residences:', data);
-      return data;
+      console.log('🔍 [QUERY] /api/users/me/residences returned:', data);
+      return Array.isArray(data) ? data : [];
     },
     enabled: !!currentUser,
+    staleTime: 0, // Force fresh data
   });
+
+  // Debug logging for all assignment queries
+  useEffect(() => {
+    console.log('🔍 [USER_MANAGEMENT] Assignment queries data received:', {
+      organizations: currentUserOrganizations ? `${currentUserOrganizations.length} orgs` : 'null',
+      buildings: currentUserBuildings ? `${currentUserBuildings.length} buildings` : 'null',
+      residences: currentUserResidences ? `${currentUserResidences.length} residences` : 'null',
+      orgsLoading,
+      buildingsLoading,
+      residencesLoading,
+      orgsError: orgsError?.message,
+      buildingsError: buildingsError?.message,
+      residencesError: residencesError?.message,
+    });
+  }, [currentUserOrganizations, currentUserBuildings, currentUserResidences, orgsLoading, buildingsLoading, residencesLoading, orgsError, buildingsError, residencesError]);
 
   // Debug logging for current user assignment queries
   useEffect(() => {
@@ -656,9 +683,18 @@ export default function UserManagement() {
   const currentUserAccess = useMemo(() => {
     console.log('🔍 [USER_MANAGEMENT] Computing currentUserAccess memo:', {
       currentUser: currentUser?.email,
-      currentUserOrganizations: currentUserOrganizations,
-      currentUserBuildings: currentUserBuildings,
-      currentUserResidences: currentUserResidences
+      currentUserOrganizationsType: typeof currentUserOrganizations,
+      currentUserOrganizationsIsArray: Array.isArray(currentUserOrganizations),
+      currentUserOrganizationsLength: Array.isArray(currentUserOrganizations) ? currentUserOrganizations.length : 'N/A',
+      currentUserBuildingsType: typeof currentUserBuildings,
+      currentUserBuildingsIsArray: Array.isArray(currentUserBuildings),
+      currentUserBuildingsLength: Array.isArray(currentUserBuildings) ? currentUserBuildings.length : 'N/A',
+      currentUserResidencesType: typeof currentUserResidences,
+      currentUserResidencesIsArray: Array.isArray(currentUserResidences),
+      currentUserResidencesLength: Array.isArray(currentUserResidences) ? currentUserResidences.length : 'N/A',
+      orgsLoading,
+      buildingsLoading,
+      residencesLoading
     });
 
     if (!currentUser) {
@@ -671,24 +707,28 @@ export default function UserManagement() {
     }
 
     // Extract organization IDs from current user's organizations
-    const organizationIds = Array.isArray(currentUserOrganizations) 
-      ? currentUserOrganizations.map((org: any) => org.id) 
+    // Ensure we have an array and it has data
+    const organizationIds = Array.isArray(currentUserOrganizations) && currentUserOrganizations.length > 0
+      ? currentUserOrganizations.map((org: any) => org.id).filter((id): id is string => !!id)
       : [];
 
     // Extract building IDs from current user's buildings
-    const buildingIds = Array.isArray(currentUserBuildings) 
-      ? currentUserBuildings.map((building: any) => building.id) 
+    const buildingIds = Array.isArray(currentUserBuildings) && currentUserBuildings.length > 0
+      ? currentUserBuildings.map((building: any) => building.id).filter((id): id is string => !!id)
       : [];
 
     // Extract residence IDs from current user's residences
-    const residenceIds = Array.isArray(currentUserResidences) 
-      ? currentUserResidences.map((residence: any) => residence.id) 
+    const residenceIds = Array.isArray(currentUserResidences) && currentUserResidences.length > 0
+      ? currentUserResidences.map((residence: any) => residence.id).filter((id): id is string => !!id)
       : [];
 
     console.log('✅ [USER_MANAGEMENT] Extracted access IDs:', {
       organizationIds,
       buildingIds,
-      residenceIds
+      residenceIds,
+      organizationIdsCount: organizationIds.length,
+      buildingIdsCount: buildingIds.length,
+      residenceIdsCount: residenceIds.length
     });
 
     return {
@@ -696,7 +736,7 @@ export default function UserManagement() {
       buildingIds,
       residenceIds
     };
-  }, [currentUser, currentUserOrganizations, currentUserBuildings, currentUserResidences]);
+  }, [currentUser, currentUserOrganizations, currentUserBuildings, currentUserResidences, orgsLoading, buildingsLoading, residencesLoading]);
 
   // Helper function to provide user-friendly error messages
   const getErrorMessage = (error: Error, context: string = '') => {

@@ -1653,9 +1653,10 @@ export function registerUserRoutes(app: Express): void {
               name: schema.buildings.name,
               address: schema.buildings.address,
               city: schema.buildings.city,
-              state: schema.buildings.province,
-              postal_code: schema.buildings.postalCode,
-              organization_id: schema.buildings.organizationId,
+              province: schema.buildings.province,
+              postalCode: schema.buildings.postalCode,
+              organizationId: schema.buildings.organizationId,
+              isActive: schema.buildings.isActive,
             })
             .from(schema.buildings)
             .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
@@ -1669,9 +1670,10 @@ export function registerUserRoutes(app: Express): void {
               name: schema.buildings.name,
               address: schema.buildings.address,
               city: schema.buildings.city,
-              state: schema.buildings.province,
-              postal_code: schema.buildings.postalCode,
-              organization_id: schema.buildings.organizationId,
+              province: schema.buildings.province,
+              postalCode: schema.buildings.postalCode,
+              organizationId: schema.buildings.organizationId,
+              isActive: schema.buildings.isActive,
             })
             .from(schema.buildings)
             .where(and(...whereConditions))
@@ -1691,23 +1693,13 @@ export function registerUserRoutes(app: Express): void {
             name: schema.buildings.name,
             address: schema.buildings.address,
             city: schema.buildings.city,
-            state: schema.buildings.province,
-            postal_code: schema.buildings.postalCode,
-            organization_id: schema.buildings.organizationId,
-            residence_count: count(schema.residences.id),
+            province: schema.buildings.province,
+            postalCode: schema.buildings.postalCode,
+            organizationId: schema.buildings.organizationId,
+            isActive: schema.buildings.isActive,
           })
           .from(schema.buildings)
-          .leftJoin(schema.residences, eq(schema.buildings.id, schema.residences.buildingId))
           .where(eq(schema.buildings.isActive, true))
-          .groupBy(
-            schema.buildings.id,
-            schema.buildings.name,
-            schema.buildings.address,
-            schema.buildings.city,
-            schema.buildings.province,
-            schema.buildings.postalCode,
-            schema.buildings.organizationId
-          )
           .orderBy(schema.buildings.name);
 
         console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for admin ${userId}`);
@@ -1773,13 +1765,12 @@ export function registerUserRoutes(app: Express): void {
           name: schema.buildings.name,
           address: schema.buildings.address,
           city: schema.buildings.city,
-          state: schema.buildings.province,
-          postal_code: schema.buildings.postalCode,
-          organization_id: schema.buildings.organizationId,
-          residence_count: count(schema.residences.id),
+          province: schema.buildings.province,
+          postalCode: schema.buildings.postalCode,
+          organizationId: schema.buildings.organizationId,
+          isActive: schema.buildings.isActive,
         })
         .from(schema.buildings)
-        .leftJoin(schema.residences, eq(schema.buildings.id, schema.residences.buildingId))
         .where(and(...whereConditions))
         .groupBy(
           schema.buildings.id,
@@ -1788,7 +1779,8 @@ export function registerUserRoutes(app: Express): void {
           schema.buildings.city,
           schema.buildings.province,
           schema.buildings.postalCode,
-          schema.buildings.organizationId
+          schema.buildings.organizationId,
+          schema.buildings.isActive
         )
         .orderBy(schema.buildings.name);
 
