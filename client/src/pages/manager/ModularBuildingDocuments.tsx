@@ -321,6 +321,31 @@ export default function ModularBuildingDocuments() {
             </>
           )}
           
+          {/* Selection mode toggle - always show for managers */}
+          {!selectionMode && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleSelectionMode}
+              data-testid="button-toggle-selection-mode"
+            >
+              <CheckSquare className="w-4 h-4 mr-2" />
+              Select
+            </Button>
+          )}
+          
+          {/* Cancel selection mode */}
+          {selectionMode && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleSelectionMode}
+              data-testid="button-cancel-selection"
+            >
+              Cancel
+            </Button>
+          )}
+          
           {/* View mode buttons */}
           <Button
             variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -344,18 +369,6 @@ export default function ModularBuildingDocuments() {
           >
             <List className="w-4 h-4" />
           </Button>
-          
-          {/* Selection mode toggle */}
-          {userPermissions.canDelete && (
-            <Button
-              variant={selectionMode ? 'default' : 'outline'}
-              size="sm"
-              onClick={handleToggleSelectionMode}
-              data-testid="button-toggle-selection-mode"
-            >
-              <CheckSquare className="w-4 h-4" />
-            </Button>
-          )}
         </div>
       </div>
 
