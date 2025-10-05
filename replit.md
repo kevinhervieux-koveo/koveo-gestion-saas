@@ -17,7 +17,7 @@ The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsi
 - **Backend**: Node.js, Express.js, TypeScript (ES modules) providing a RESTful API.
 - **Database**: PostgreSQL with Drizzle ORM and Drizzle Kit for migrations, hosted on Neon (serverless).
 - **Authentication**: Express sessions with PostgreSQL store, custom username/password, token-based password reset, and multi-step registration with Law 25 consent.
-- **Authorization**: Four-tier Role-Based Access Control (RBAC: Admin, Manager, Tenant, Resident) with granular, organization-based permissions.
+- **Authorization**: Four-tier Role-Based Access Control (RBAC: Admin, Manager, Tenant, Resident) with granular permissions. Maintenance features (inventory and projects) enforce building-level access: Admin users access all buildings, while Manager users only access buildings linked via the `userBuildings` table.
 - **File Storage**: Hierarchical structure (`{type}/org_{organizationId}/building_{buildingId}/residence_{residenceId}/role_{userRole}/user_{userId}`) with a secure resolver endpoint and a quarantine system for legacy files.
 - **Internationalization**: Custom language provider for English and French.
 - **Testing**: Comprehensive Vitest suite for unit, integration, and API routes, focusing on Law 25 compliance. Includes custom test authentication and manual Zod schemas for validation.
