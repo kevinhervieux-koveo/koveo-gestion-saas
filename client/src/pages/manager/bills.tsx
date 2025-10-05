@@ -656,11 +656,11 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                 label: t('category'),
                 displayValue: getCategoryLabel(filters.category, t)
               }] : []),
-              ...(filters.year !== new Date().getFullYear().toString() ? [{
+              {
                 id: 'year',
                 label: t('year'),
-                displayValue: filters.year
-              }] : []),
+                displayValue: filters.year + (filters.year === new Date().getFullYear().toString() ? ' (Current)' : '')
+              },
               ...(filters.months.length > 0 ? [{
                 id: 'months',
                 label: t('months'),

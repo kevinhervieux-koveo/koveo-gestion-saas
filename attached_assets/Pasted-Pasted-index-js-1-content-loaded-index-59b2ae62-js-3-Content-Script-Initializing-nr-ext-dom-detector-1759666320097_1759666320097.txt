@@ -1,0 +1,148 @@
+Pasted-index-js-1-content-loaded-index-59b2ae62-js-3-Content-Script-Initializing-nr-ext-dom-detector-js--1759609111502_1759609111504.txt
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-Bqd__KI7.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-Bqd__KI7.js:1 🔍 [USER_MANAGEMENT] Component mounted
+bills-BXKICfmT.js:6 🔍 [BILLS] Component mounted {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BXKICfmT.js:6 🔍 [BILLS] Context changed: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BXKICfmT.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-BXKICfmT.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+index-VcIdWd3R.js:185 [Violation] 'setTimeout' handler took 85ms
+vendor-ui-DRWoInZm.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-DRWoInZm.js:58
+react_stack_bottom_frame @ index-VcIdWd3R.js:229
+q @ index-VcIdWd3R.js:45
+fl @ index-VcIdWd3R.js:150
+Ih @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+Cn @ index-VcIdWd3R.js:163
+ig @ index-VcIdWd3R.js:163
+xg @ index-VcIdWd3R.js:163
+gl @ index-VcIdWd3R.js:163
+Eg @ index-VcIdWd3R.js:163
+dd @ index-VcIdWd3R.js:163
+pg @ index-VcIdWd3R.js:163
+mg @ index-VcIdWd3R.js:163
+kg @ index-VcIdWd3R.js:185
+vl @ index-VcIdWd3R.js:185
+pd @ index-VcIdWd3R.js:185
+(anonymous) @ index-VcIdWd3R.js:185
+<jd>
+Je.jsx @ vendor-ui-DRWoInZm.js:14
+(anonymous) @ vendor-ui-DRWoInZm.js:54
+react_stack_bottom_frame @ index-VcIdWd3R.js:229
+hc @ index-VcIdWd3R.js:120
+wh @ index-VcIdWd3R.js:141
+Wc @ index-VcIdWd3R.js:150
+q @ index-VcIdWd3R.js:45
+bg @ index-VcIdWd3R.js:163
+vg @ index-VcIdWd3R.js:163
+cd @ index-VcIdWd3R.js:163
+mg @ index-VcIdWd3R.js:163
+kg @ index-VcIdWd3R.js:185
+vl @ index-VcIdWd3R.js:185
+pd @ index-VcIdWd3R.js:185
+(anonymous) @ index-VcIdWd3R.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-DRWoInZm.js:14
+(anonymous) @ vendor-ui-DRWoInZm.js:54
+react_stack_bottom_frame @ index-VcIdWd3R.js:229
+hc @ index-VcIdWd3R.js:120
+wh @ index-VcIdWd3R.js:141
+Wc ...

@@ -1168,6 +1168,65 @@ export interface Translations {
   reviewNotesMaxLengthError: string;
   commentMinLengthError: string;
   commentMaxLengthError: string;
+  
+  // Bills translations
+  'bills.editBill': string;
+  'bills.createNewBill': string;
+  'bills.aiExtracted': string;
+  'bills.manualEntry': string;
+  'bills.aiExtraction': string;
+  'bills.uploadBillDocument': string;
+  'bills.uploadDocumentOptional': string;
+  'bills.autoSaving': string;
+  'bills.title': string;
+  'bills.vendor': string;
+  'bills.category': string;
+  'bills.status': string;
+  'bills.paymentType': string;
+  'bills.totalAmount': string;
+  'bills.totalAmountOptional': string;
+  'bills.startDate': string;
+  'bills.paymentSchedule': string;
+  'bills.paymentConfiguration': string;
+  'bills.initialPayment': string;
+  'bills.equalRecurringPayments': string;
+  'bills.initialPaymentAmount': string;
+  'bills.recurringPaymentAmount': string;
+  'bills.recurrenceEndDate': string;
+  'bills.customPaymentSchedule': string;
+  'bills.individualPaymentAmounts': string;
+  'bills.addPayment': string;
+  'bills.amount': string;
+  'bills.date': string;
+  'bills.description': string;
+  'bills.notes': string;
+  'bills.statusDraft': string;
+  'bills.statusSent': string;
+  'bills.statusOverdue': string;
+  'bills.statusPaid': string;
+  'bills.statusCancelled': string;
+  'bills.paymentTypeOneTime': string;
+  'bills.paymentTypeRecurring': string;
+  'bills.scheduleWeekly': string;
+  'bills.scheduleMonthly': string;
+  'bills.scheduleQuarterly': string;
+  'bills.scheduleYearly': string;
+  'bills.scheduleCustom': string;
+  'bills.totalAmountDescriptionOneTime': string;
+  'bills.totalAmountDescriptionRecurring': string;
+  'bills.initialPaymentDescription': string;
+  'bills.equalRecurringPaymentsDescription': string;
+  'bills.initialPaymentAmountDescription': string;
+  'bills.recurringPaymentAmountDescription': string;
+  'bills.recurrenceEndDateDescription': string;
+  'bills.customPaymentScheduleDescription': string;
+  'bills.individualPaymentAmountsDescription': string;
+  'bills.deleting': string;
+  'bills.deleteBill': string;
+  'bills.cancel': string;
+  'bills.processing': string;
+  'bills.updateBill': string;
+  'bills.createBill': string;
 }
 
 /**
@@ -1451,6 +1510,65 @@ export const translations: Record<Language, Translations> = {
     createNewBill: 'Create New Bill',
     billCreationForm: 'Bill Creation Form',
     createBill: 'Create Bill',
+    
+    // Bills form translations
+    'bills.editBill': 'Edit Bill',
+    'bills.createNewBill': 'Create New Bill',
+    'bills.aiExtracted': 'AI Extracted',
+    'bills.manualEntry': 'Manual Entry',
+    'bills.aiExtraction': 'AI Extraction',
+    'bills.uploadBillDocument': 'Upload Bill Document',
+    'bills.uploadDocumentOptional': 'Upload Document (Optional)',
+    'bills.autoSaving': 'Auto-saving...',
+    'bills.title': 'Title *',
+    'bills.vendor': 'Vendor',
+    'bills.category': 'Category *',
+    'bills.status': 'Status *',
+    'bills.paymentType': 'Payment Type *',
+    'bills.totalAmount': 'Total Amount *',
+    'bills.totalAmountOptional': 'Total Amount (Optional)',
+    'bills.startDate': 'Start Date *',
+    'bills.paymentSchedule': 'Payment Schedule',
+    'bills.paymentConfiguration': 'Payment Configuration',
+    'bills.initialPayment': 'Initial Payment',
+    'bills.equalRecurringPayments': 'Equal Recurring Payments',
+    'bills.initialPaymentAmount': 'Initial Payment Amount *',
+    'bills.recurringPaymentAmount': 'Recurring Payment Amount *',
+    'bills.recurrenceEndDate': 'Recurrence End Date (Optional)',
+    'bills.customPaymentSchedule': 'Custom Payment Schedule',
+    'bills.individualPaymentAmounts': 'Individual Payment Amounts',
+    'bills.addPayment': 'Add Payment',
+    'bills.amount': 'Amount *',
+    'bills.date': 'Date *',
+    'bills.description': 'Description',
+    'bills.notes': 'Notes',
+    'bills.statusDraft': 'Draft',
+    'bills.statusSent': 'Sent',
+    'bills.statusOverdue': 'Overdue',
+    'bills.statusPaid': 'Paid',
+    'bills.statusCancelled': 'Cancelled',
+    'bills.paymentTypeOneTime': 'One-Time Bill',
+    'bills.paymentTypeRecurring': 'Recurring Payment',
+    'bills.scheduleWeekly': 'Weekly',
+    'bills.scheduleMonthly': 'Monthly',
+    'bills.scheduleQuarterly': 'Quarterly',
+    'bills.scheduleYearly': 'Yearly',
+    'bills.scheduleCustom': 'Custom Schedule',
+    'bills.totalAmountDescriptionOneTime': 'Complete amount for this one-time bill',
+    'bills.totalAmountDescriptionRecurring': 'Leave empty to calculate from individual payment amounts',
+    'bills.initialPaymentDescription': 'Is there an upfront payment different from recurring amounts?',
+    'bills.equalRecurringPaymentsDescription': 'Are all recurring payment amounts the same?',
+    'bills.initialPaymentAmountDescription': 'Amount for the upfront payment',
+    'bills.recurringPaymentAmountDescription': 'Amount for each recurring payment',
+    'bills.recurrenceEndDateDescription': 'Payment schedule will be limited to the next year. Setting an end date will stop recurring bills after this date.',
+    'bills.customPaymentScheduleDescription': 'Define your custom payment schedule with specific dates and amounts.',
+    'bills.individualPaymentAmountsDescription': 'Since recurring payments are not equal, specify individual amounts for each payment. Dates will be calculated based on your selected schedule.',
+    'bills.deleting': 'Deleting...',
+    'bills.deleteBill': 'Delete Bill',
+    'bills.cancel': 'Cancel',
+    'bills.processing': 'Processing...',
+    'bills.updateBill': 'Update Bill',
+    'bills.createBill': 'Create Bill',
     createNewDemand: 'Create New Demand',
     submitNewRequest: 'Submit New Request',
     submitAndTrackRequests: 'Submit and track requests',
@@ -2577,6 +2695,65 @@ export const translations: Record<Language, Translations> = {
     createNewBill: 'Créer une nouvelle facture',
     billCreationForm: 'Formulaire de création de facture',
     createBill: 'Créer une facture',
+    
+    // Bills form translations
+    'bills.editBill': 'Modifier la facture',
+    'bills.createNewBill': 'Créer une nouvelle facture',
+    'bills.aiExtracted': 'Extrait par IA',
+    'bills.manualEntry': 'Saisie manuelle',
+    'bills.aiExtraction': 'Extraction IA',
+    'bills.uploadBillDocument': 'Télécharger le document de facture',
+    'bills.uploadDocumentOptional': 'Télécharger un document (optionnel)',
+    'bills.autoSaving': 'Sauvegarde automatique...',
+    'bills.title': 'Titre *',
+    'bills.vendor': 'Fournisseur',
+    'bills.category': 'Catégorie *',
+    'bills.status': 'Statut *',
+    'bills.paymentType': 'Type de paiement *',
+    'bills.totalAmount': 'Montant total *',
+    'bills.totalAmountOptional': 'Montant total (optionnel)',
+    'bills.startDate': 'Date de début *',
+    'bills.paymentSchedule': 'Échéancier de paiement',
+    'bills.paymentConfiguration': 'Configuration du paiement',
+    'bills.initialPayment': 'Paiement initial',
+    'bills.equalRecurringPayments': 'Paiements récurrents égaux',
+    'bills.initialPaymentAmount': 'Montant du paiement initial *',
+    'bills.recurringPaymentAmount': 'Montant du paiement récurrent *',
+    'bills.recurrenceEndDate': 'Date de fin de récurrence (optionnel)',
+    'bills.customPaymentSchedule': 'Échéancier de paiement personnalisé',
+    'bills.individualPaymentAmounts': 'Montants de paiement individuels',
+    'bills.addPayment': 'Ajouter un paiement',
+    'bills.amount': 'Montant *',
+    'bills.date': 'Date *',
+    'bills.description': 'Description',
+    'bills.notes': 'Notes',
+    'bills.statusDraft': 'Brouillon',
+    'bills.statusSent': 'Envoyé',
+    'bills.statusOverdue': 'En retard',
+    'bills.statusPaid': 'Payé',
+    'bills.statusCancelled': 'Annulé',
+    'bills.paymentTypeOneTime': 'Facture unique',
+    'bills.paymentTypeRecurring': 'Paiement récurrent',
+    'bills.scheduleWeekly': 'Hebdomadaire',
+    'bills.scheduleMonthly': 'Mensuel',
+    'bills.scheduleQuarterly': 'Trimestriel',
+    'bills.scheduleYearly': 'Annuel',
+    'bills.scheduleCustom': 'Échéancier personnalisé',
+    'bills.totalAmountDescriptionOneTime': 'Montant complet pour cette facture unique',
+    'bills.totalAmountDescriptionRecurring': 'Laisser vide pour calculer à partir des montants de paiement individuels',
+    'bills.initialPaymentDescription': 'Y a-t-il un paiement initial différent des montants récurrents?',
+    'bills.equalRecurringPaymentsDescription': 'Tous les montants de paiement récurrents sont-ils les mêmes?',
+    'bills.initialPaymentAmountDescription': 'Montant du paiement initial',
+    'bills.recurringPaymentAmountDescription': 'Montant de chaque paiement récurrent',
+    'bills.recurrenceEndDateDescription': 'L\'échéancier de paiement sera limité à l\'année suivante. Définir une date de fin arrêtera les factures récurrentes après cette date.',
+    'bills.customPaymentScheduleDescription': 'Définissez votre échéancier de paiement personnalisé avec des dates et des montants spécifiques.',
+    'bills.individualPaymentAmountsDescription': 'Étant donné que les paiements récurrents ne sont pas égaux, spécifiez les montants individuels pour chaque paiement. Les dates seront calculées en fonction de votre échéancier sélectionné.',
+    'bills.deleting': 'Suppression...',
+    'bills.deleteBill': 'Supprimer la facture',
+    'bills.cancel': 'Annuler',
+    'bills.processing': 'Traitement...',
+    'bills.updateBill': 'Mettre à jour la facture',
+    'bills.createBill': 'Créer la facture',
     createNewDemand: 'Créer une nouvelle demande',
     submitNewRequest: 'Soumettre une nouvelle demande',
     submitAndTrackRequests: 'Soumettre et suivre les demandes',

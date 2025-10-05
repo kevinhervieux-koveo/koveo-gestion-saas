@@ -54,7 +54,7 @@ function generateSecureFilename(originalName: string): string {
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
 import { BILL_CATEGORIES } from '@shared/schemas/financial';
 
-const { buildings, bills, documents } = schema;
+const { buildings, bills, documents, payments } = schema;
 
 // Database-driven bills - no more mock data
 
@@ -2070,7 +2070,11 @@ export function registerBillRoutes(app: Express) {
       }
 
       // Get payments for this bill
-      // Get payments directly from database - financial service handles payment generation
+      const billPayments = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.billId, id))
+        .orderBy(payments.paymentNumber);
 
       res.json({
         payments: billPayments,
