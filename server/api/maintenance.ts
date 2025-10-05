@@ -48,7 +48,7 @@ import {
   type ElementProjectUpdate,
   type InsertElementProjectUpdate,
 } from '@shared/schemas/maintenance';
-import { buildings, organizations, userOrganizations, residences } from '@shared/schema';
+import { buildings, organizations, userOrganizations, userBuildings, residences } from '@shared/schema';
 import { workflowService } from '../services/workflow-service';
 import multer from 'multer';
 import path from 'path';
@@ -402,15 +402,14 @@ async function checkBuildingAccess(userId: string, buildingId: string, userRole:
   }
   
   if (userRole === 'manager') {
-    // Check if user has access to the building's organization
+    // Check if user has direct access to this specific building
     const result = await db
-      .select({ organizationId: buildings.organizationId })
-      .from(buildings)
-      .innerJoin(userOrganizations, eq(userOrganizations.organizationId, buildings.organizationId))
+      .select({ buildingId: userBuildings.buildingId })
+      .from(userBuildings)
       .where(and(
-        eq(buildings.id, buildingId),
-        eq(userOrganizations.userId, userId),
-        eq(userOrganizations.isActive, true)
+        eq(userBuildings.buildingId, buildingId),
+        eq(userBuildings.userId, userId),
+        eq(userBuildings.isActive, true)
       ))
       .limit(1);
     
