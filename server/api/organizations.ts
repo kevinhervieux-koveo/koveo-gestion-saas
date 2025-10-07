@@ -12,10 +12,11 @@ import {
   users,
   userOrganizations,
   userResidences,
+  userBuildings,
   invitations,
   commonSpaces,
 } from '@shared/schema';
-import { and, eq, count, sql, or, inArray, isNull, ne } from 'drizzle-orm';
+import { and, eq, count, sql, or, inArray, isNull, ne, exists } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 
 /**
@@ -864,7 +865,15 @@ export function registerOrganizationRoutes(app: Express): void {
                   ? eq(userResidences.userId, currentUser.id) // Residents: only buildings with residences
                   : or(
                       eq(userResidences.userId, currentUser.id), // User has a residence in the building
-                      eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
+                      exists(
+                        db.select({ buildingId: userBuildings.buildingId })
+                          .from(userBuildings)
+                          .where(and(
+                            eq(userBuildings.buildingId, buildings.id),
+                            eq(userBuildings.userId, currentUser.id),
+                            eq(userBuildings.isActive, true)
+                          ))
+                      )
                     )
               )
             )
@@ -907,7 +916,15 @@ export function registerOrganizationRoutes(app: Express): void {
                   ? eq(userResidences.userId, currentUser.id) // Residents: only buildings with residences
                   : or(
                       eq(userResidences.userId, currentUser.id), // User has a residence in the building
-                      eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
+                      exists(
+                        db.select({ buildingId: userBuildings.buildingId })
+                          .from(userBuildings)
+                          .where(and(
+                            eq(userBuildings.buildingId, buildings.id),
+                            eq(userBuildings.userId, currentUser.id),
+                            eq(userBuildings.isActive, true)
+                          ))
+                      )
                     )
               )
             )

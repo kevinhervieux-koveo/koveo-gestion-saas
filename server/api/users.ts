@@ -1706,42 +1706,23 @@ export function registerUserRoutes(app: Express): void {
         return res.json(buildingDetails);
       }
 
-      // For managers, get buildings where they have assigned residences
-      // First get their organizations to ensure we only show buildings in their organizations
-      const userOrgs = await db
-        .select({ organizationId: schema.userOrganizations.organizationId })
-        .from(schema.userOrganizations)
-        .where(and(
-          eq(schema.userOrganizations.userId, userId),
-          eq(schema.userOrganizations.isActive, true)
-        ));
-
-      const orgIds = userOrgs.map(org => org.organizationId);
-
-      if (orgIds.length === 0) {
-        return res.json([]);
-      }
-
-      // Get buildings where the manager has assigned residences
-      const userResidences = await db
+      // For managers, get buildings from userBuildings table
+      const userBuildingsData = await db
         .select({
-          residenceId: schema.userResidences.residenceId,
-          buildingId: schema.residences.buildingId,
+          buildingId: schema.userBuildings.buildingId,
         })
-        .from(schema.userResidences)
-        .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+        .from(schema.userBuildings)
         .where(and(
-          eq(schema.userResidences.userId, userId),
-          eq(schema.userResidences.isActive, true),
-          eq(schema.residences.isActive, true)
+          eq(schema.userBuildings.userId, userId),
+          eq(schema.userBuildings.isActive, true)
         ));
 
-      if (userResidences.length === 0) {
+      if (userBuildingsData.length === 0) {
         return res.json([]);
       }
 
-      // Get unique building IDs from manager's assigned residences
-      const buildingIds = [...new Set(userResidences.map(ur => ur.buildingId).filter(Boolean))];
+      // Get unique building IDs
+      const buildingIds = [...new Set(userBuildingsData.map(ub => ub.buildingId).filter(Boolean))];
 
       if (buildingIds.length === 0) {
         return res.json([]);
@@ -1750,7 +1731,6 @@ export function registerUserRoutes(app: Express): void {
       // Build the where conditions
       const whereConditions = [
         inArray(schema.buildings.id, buildingIds),
-        inArray(schema.buildings.organizationId, orgIds),
         eq(schema.buildings.isActive, true)
       ];
 
@@ -1772,19 +1752,9 @@ export function registerUserRoutes(app: Express): void {
         })
         .from(schema.buildings)
         .where(and(...whereConditions))
-        .groupBy(
-          schema.buildings.id,
-          schema.buildings.name,
-          schema.buildings.address,
-          schema.buildings.city,
-          schema.buildings.province,
-          schema.buildings.postalCode,
-          schema.buildings.organizationId,
-          schema.buildings.isActive
-        )
         .orderBy(schema.buildings.name);
 
-      console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for manager ${userId} (from ${buildingIds.length} building IDs)`);
+      console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for manager ${userId} (from userBuildings table)`);
       res.json(buildingDetails);
 
     } catch (error) {
