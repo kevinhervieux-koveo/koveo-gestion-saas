@@ -9,6 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import {
   Form,
   FormControl,
@@ -44,7 +47,9 @@ const billFormSchema = z.object({
   description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
   category: z.enum(BILL_CATEGORIES),
   vendor: z.string().max(150, 'Vendor name must be less than 150 characters').optional(),
-  paymentType: z.enum(['unique', 'recurrent']),
+  paymentCount: z.enum(['1', 'multiple']),
+  recurrence: z.boolean().default(false),
+  paymentType: z.enum(['unique', 'recurrent']).optional(),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   hasInitialPayment: z.boolean().optional(),
   recurringPaymentsEqual: z.boolean().optional(),
@@ -84,37 +89,63 @@ const billFormSchema = z.object({
   notes: z.string().max(2000, 'Notes must be less than 2000 characters').optional(),
 }).superRefine((data, ctx) => {
   // Custom validation logic for payment structure with specific field error targeting
-  if (data.paymentType === 'unique') {
-    // For unique payments, total amount is required
+  if (data.paymentCount === '1') {
+    // For single payment, total amount is required
     if (!data.totalAmount || data.totalAmount.trim() === '') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Total amount is required for one-time bills',
+        message: 'Payment amount is required for single payment bills',
         path: ['totalAmount']
       });
     }
-  } else if (data.paymentType === 'recurrent') {
-    // For recurring payments, validate based on configuration
-    if (data.hasInitialPayment && (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '')) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Initial payment amount is required when initial payment is enabled',
-        path: ['initialPaymentAmount']
-      });
-    }
-    if (data.recurringPaymentsEqual && (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '')) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Recurring payment amount is required for equal recurring payments',
-        path: ['recurringPaymentAmount']
-      });
-    }
-    if (!data.recurringPaymentsEqual && (!data.customPayments || data.customPayments.length === 0)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'At least one custom payment is required for unequal recurring payments',
-        path: ['customPayments']
-      });
+  } else if (data.paymentCount === 'multiple') {
+    // For multiple payments, validate based on recurrence and configuration
+    if (!data.recurrence) {
+      // Multiple payments without recurrence - validate payment structure
+      if (data.hasInitialPayment && (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Initial payment amount is required when initial payment is enabled',
+          path: ['initialPaymentAmount']
+        });
+      }
+      if (data.recurringPaymentsEqual && (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Payment amount is required for equal payments',
+          path: ['recurringPaymentAmount']
+        });
+      }
+      if (!data.recurringPaymentsEqual && (!data.customPayments || data.customPayments.length === 0)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'At least one payment is required for unequal payments',
+          path: ['customPayments']
+        });
+      }
+    } else {
+      // Multiple payments with recurrence - validate recurring payment structure
+      if (data.hasInitialPayment && (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Initial payment amount is required when initial payment is enabled',
+          path: ['initialPaymentAmount']
+        });
+      }
+      if (data.recurringPaymentsEqual && (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '')) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Recurring payment amount is required for equal recurring payments',
+          path: ['recurringPaymentAmount']
+        });
+      }
+      if (!data.recurringPaymentsEqual && (!data.customPayments || data.customPayments.length === 0)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'At least one custom payment is required for unequal recurring payments',
+          path: ['customPayments']
+        });
+      }
     }
   }
 });
@@ -144,6 +175,8 @@ const CATEGORY_OPTIONS = BILL_CATEGORIES.map(category => ({
 function parseBillPaymentData(bill: Bill | null | undefined) {
   if (!bill) {
     return {
+      paymentCount: '1' as const,
+      recurrence: false,
       schedulePayment: 'monthly' as const,
       hasInitialPayment: false,
       recurringPaymentsEqual: true,
@@ -157,7 +190,19 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
   const scheduleCustom = bill.scheduleCustom || [];
   const paymentType = bill.paymentType;
 
-  // Default values
+  // Determine paymentCount and recurrence based on paymentType and costs
+  let paymentCount: '1' | 'multiple' = '1';
+  let recurrence = false;
+  
+  if (paymentType === 'recurrent') {
+    paymentCount = 'multiple';
+    recurrence = true;
+  } else if (paymentType === 'unique' && costs.length > 1) {
+    paymentCount = 'multiple';
+    recurrence = false;
+  }
+
+  // Default values for payment structure
   let hasInitialPayment = false;
   let recurringPaymentsEqual = true;
   let initialPaymentAmount = '';
@@ -201,6 +246,8 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
   }
 
   return {
+    paymentCount,
+    recurrence,
     schedulePayment: bill.schedulePayment || 'monthly' as const,
     hasInitialPayment,
     recurringPaymentsEqual,
@@ -254,6 +301,8 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       description: bill?.description || '',
       category: bill?.category || 'other',
       vendor: bill?.vendor || '',
+      paymentCount: parsedPaymentData.paymentCount,
+      recurrence: parsedPaymentData.recurrence,
       paymentType: bill?.paymentType || 'unique',
       schedulePayment: parsedPaymentData.schedulePayment,
       customPayments: parsedPaymentData.customPayments,
@@ -269,6 +318,8 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     }
   });
 
+  const paymentCount = form.watch('paymentCount');
+  const recurrence = form.watch('recurrence');
   const paymentType = form.watch('paymentType');
   const schedulePayment = form.watch('schedulePayment');
   const hasInitialPayment = form.watch('hasInitialPayment');
@@ -292,13 +343,23 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
 
       // Only auto-save if we're editing an existing bill
       if (bill?.id) {
+        // Map paymentCount + recurrence to paymentType for database
+        let paymentType: 'unique' | 'recurrent';
+        if (formData.paymentCount === '1') {
+          paymentType = 'unique';
+        } else if (formData.paymentCount === 'multiple' && formData.recurrence) {
+          paymentType = 'recurrent';
+        } else {
+          paymentType = 'unique'; // multiple payments without recurrence
+        }
+        
         // Calculate costs array based on payment structure (same logic as main submit)
         let costs: string[] = [];
         let calculatedTotalAmount = formData.totalAmount;
         
-        if (formData.paymentType === 'unique') {
+        if (formData.paymentCount === '1') {
           costs = [formData.totalAmount || '0'];
-        } else if (formData.paymentType === 'recurrent') {
+        } else if (formData.paymentCount === 'multiple') {
           if (formData.recurringPaymentsEqual) {
             const maxPayments = 12;
             
@@ -325,7 +386,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
         }
         
         let scheduleCustom: string[] = [];
-        if (formData.paymentType === 'recurrent' && !formData.recurringPaymentsEqual && formData.customPayments) {
+        if (formData.paymentCount === 'multiple' && !formData.recurringPaymentsEqual && formData.customPayments) {
           scheduleCustom = formData.customPayments
             .map(p => p.date)
             .filter(d => d && d.trim() !== '');
@@ -333,6 +394,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
         
         const billData = {
           ...formData,
+          paymentType, // Use the mapped paymentType for the database
           buildingId: buildingId || bill.buildingId,
           totalAmount: calculatedTotalAmount,
           costs,
@@ -419,6 +481,8 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     
     // Update form values if bill has changed
     if (bill) {
+      form.setValue('paymentCount', newParsedData.paymentCount);
+      form.setValue('recurrence', newParsedData.recurrence);
       form.setValue('schedulePayment', newParsedData.schedulePayment);
       form.setValue('hasInitialPayment', newParsedData.hasInitialPayment);
       form.setValue('recurringPaymentsEqual', newParsedData.recurringPaymentsEqual);
@@ -635,13 +699,23 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       const endpoint = bill ? `/api/bills/${bill.id}` : '/api/bills';
       const method = bill ? 'PUT' : 'POST';
       
+      // Map paymentCount + recurrence to paymentType for database
+      let paymentType: 'unique' | 'recurrent';
+      if (data.paymentCount === '1') {
+        paymentType = 'unique';
+      } else if (data.paymentCount === 'multiple' && data.recurrence) {
+        paymentType = 'recurrent';
+      } else {
+        paymentType = 'unique'; // multiple payments without recurrence
+      }
+      
       // Calculate costs array based on payment structure
       let costs: string[] = [];
       let calculatedTotalAmount = data.totalAmount;
       
-      if (data.paymentType === 'unique') {
+      if (data.paymentCount === '1') {
         costs = [data.totalAmount || '0'];
-      } else if (data.paymentType === 'recurrent') {
+      } else if (data.paymentCount === 'multiple') {
         if (data.recurringPaymentsEqual) {
           // For equal recurring payments - generate all 12 payment amounts
           const maxPayments = 12; // Default to 12 monthly payments
@@ -676,7 +750,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       
       // Extract custom schedule dates for backend persistence
       let scheduleCustom: string[] = [];
-      if (data.paymentType === 'recurrent' && !data.recurringPaymentsEqual && data.customPayments) {
+      if (data.paymentCount === 'multiple' && !data.recurringPaymentsEqual && data.customPayments) {
         scheduleCustom = data.customPayments
           .map(p => p.date)
           .filter(d => d && d.trim() !== '');
@@ -684,6 +758,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       
       const billData = {
         ...data,
+        paymentType, // Use the mapped paymentType for the database
         buildingId: buildingId || bill?.buildingId,
         totalAmount: calculatedTotalAmount,
         costs,
@@ -1157,42 +1232,82 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               )}
             />
 
-            {/* Payment Type */}
+            {/* Payment Count */}
             <FormField
               control={form.control}
-              name="paymentType"
+              name="paymentCount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('bills.paymentType')}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select payment type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="unique">{t('bills.paymentTypeOneTime')}</SelectItem>
-                      <SelectItem value="recurrent">{t('bills.paymentTypeRecurring')}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Payment Count</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex gap-4"
+                      data-testid="radio-payment-count"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="1" id="payment-count-1" data-testid="radio-payment-count-1" />
+                        <Label htmlFor="payment-count-1" className="font-normal cursor-pointer">
+                          Single Payment
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="multiple" id="payment-count-multiple" data-testid="radio-payment-count-multiple" />
+                        <Label htmlFor="payment-count-multiple" className="font-normal cursor-pointer">
+                          Multiple Payments
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormDescription>
+                    Choose whether this is a single payment or multiple payments
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Total Amount - Conditional based on payment type */}
-            {paymentType === 'unique' ? (
+            {/* Recurrence Checkbox - Only visible when paymentCount is 'multiple' */}
+            {paymentCount === 'multiple' && (
+              <FormField
+                control={form.control}
+                name="recurrence"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="checkbox-recurrence"
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="font-normal cursor-pointer">
+                        Generate bills for next year automatically
+                      </FormLabel>
+                      <FormDescription>
+                        When enabled, this bill will automatically recur for the next year
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Total Amount - Conditional based on payment count */}
+            {paymentCount === '1' ? (
               <FormField
                 control={form.control}
                 name="totalAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('bills.totalAmount')}</FormLabel>
+                    <FormLabel>Payment Amount</FormLabel>
                     <FormControl>
-                      <Input placeholder="0.00" type="number" step="0.01" {...field} />
+                      <Input placeholder="0.00" type="number" step="0.01" {...field} data-testid="input-total-amount" />
                     </FormControl>
                     <FormDescription>
-                      {t('bills.totalAmountDescriptionOneTime')}
+                      Enter the total amount for this single payment
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1204,12 +1319,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 name="totalAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('bills.totalAmountOptional')}</FormLabel>
+                    <FormLabel>Total Amount (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="0.00" type="number" step="0.01" {...field} />
+                      <Input placeholder="0.00" type="number" step="0.01" {...field} data-testid="input-total-amount" />
                     </FormControl>
                     <FormDescription>
-                      {t('bills.totalAmountDescriptionRecurring')}
+                      Will be calculated from individual payments if left blank
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1233,8 +1348,8 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
             />
           </div>
 
-          {/* Recurring Payment Schedule */}
-          {paymentType === 'recurrent' && (
+          {/* Payment Configuration - Only shown for multiple payments */}
+          {paymentCount === 'multiple' && (
             <div className="space-y-4">
               <FormField
                 control={form.control}
