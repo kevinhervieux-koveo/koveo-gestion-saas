@@ -1227,6 +1227,20 @@ export interface Translations {
   'bills.processing': string;
   'bills.updateBill': string;
   'bills.createBill': string;
+  'bills.paymentCount': string;
+  'bills.paymentCountSingle': string;
+  'bills.paymentCountMultiple': string;
+  'bills.paymentCountDescription': string;
+  'bills.recurrence': string;
+  'bills.recurrenceDescription': string;
+  'bills.singlePaymentAmount': string;
+  'bills.singlePaymentAmountDescription': string;
+  'bills.calculatedTotalAmount': string;
+  'bills.totalAmountSingleDescription': string;
+  'bills.totalAmountMultipleEqualDescription': string;
+  'bills.totalAmountMultipleCustomDescription': string;
+  'bills.autoCalculatedBadge': string;
+  'bills.fromPaymentAmountBadge': string;
 }
 
 /**
@@ -1569,6 +1583,20 @@ export const translations: Record<Language, Translations> = {
     'bills.processing': 'Processing...',
     'bills.updateBill': 'Update Bill',
     'bills.createBill': 'Create Bill',
+    'bills.paymentCount': 'Payment Count *',
+    'bills.paymentCountSingle': 'Single Payment',
+    'bills.paymentCountMultiple': 'Multiple Payments',
+    'bills.paymentCountDescription': 'Choose whether this is a single payment or multiple payments',
+    'bills.recurrence': 'Generate bills for next year automatically',
+    'bills.recurrenceDescription': 'When enabled, this bill will automatically recur for the next year',
+    'bills.singlePaymentAmount': 'Payment Amount *',
+    'bills.singlePaymentAmountDescription': 'Enter the amount for this single payment',
+    'bills.calculatedTotalAmount': 'Calculated Total Amount',
+    'bills.totalAmountSingleDescription': 'Amount for single payment',
+    'bills.totalAmountMultipleEqualDescription': 'Calculated from payment configuration (12 payments)',
+    'bills.totalAmountMultipleCustomDescription': 'Sum of all payment amounts',
+    'bills.autoCalculatedBadge': 'Auto-calculated',
+    'bills.fromPaymentAmountBadge': 'From payment amount',
     createNewDemand: 'Create New Demand',
     submitNewRequest: 'Submit New Request',
     submitAndTrackRequests: 'Submit and track requests',
@@ -2754,6 +2782,20 @@ export const translations: Record<Language, Translations> = {
     'bills.processing': 'Traitement...',
     'bills.updateBill': 'Mettre à jour la facture',
     'bills.createBill': 'Créer la facture',
+    'bills.paymentCount': 'Nombre de paiements *',
+    'bills.paymentCountSingle': 'Paiement unique',
+    'bills.paymentCountMultiple': 'Paiements multiples',
+    'bills.paymentCountDescription': 'Choisissez s\'il s\'agit d\'un paiement unique ou de paiements multiples',
+    'bills.recurrence': 'Générer automatiquement les factures pour l\'année prochaine',
+    'bills.recurrenceDescription': 'Lorsqu\'elle est activée, cette facture se répétera automatiquement pour l\'année suivante',
+    'bills.singlePaymentAmount': 'Montant du paiement *',
+    'bills.singlePaymentAmountDescription': 'Entrez le montant pour ce paiement unique',
+    'bills.calculatedTotalAmount': 'Montant total calculé',
+    'bills.totalAmountSingleDescription': 'Montant pour le paiement unique',
+    'bills.totalAmountMultipleEqualDescription': 'Calculé à partir de la configuration de paiement (12 paiements)',
+    'bills.totalAmountMultipleCustomDescription': 'Somme de tous les montants de paiement',
+    'bills.autoCalculatedBadge': 'Auto-calculé',
+    'bills.fromPaymentAmountBadge': 'Du montant de paiement',
     createNewDemand: 'Créer une nouvelle demande',
     submitNewRequest: 'Soumettre une nouvelle demande',
     submitAndTrackRequests: 'Soumettre et suivre les demandes',

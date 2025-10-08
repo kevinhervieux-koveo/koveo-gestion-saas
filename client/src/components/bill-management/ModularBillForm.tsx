@@ -1309,7 +1309,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               name="paymentCount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Count</FormLabel>
+                  <FormLabel>{t('bills.paymentCount')}</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -1320,19 +1320,19 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="1" id="payment-count-1" data-testid="radio-payment-count-1" />
                         <Label htmlFor="payment-count-1" className="font-normal cursor-pointer">
-                          Single Payment
+                          {t('bills.paymentCountSingle')}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="multiple" id="payment-count-multiple" data-testid="radio-payment-count-multiple" />
                         <Label htmlFor="payment-count-multiple" className="font-normal cursor-pointer">
-                          Multiple Payments
+                          {t('bills.paymentCountMultiple')}
                         </Label>
                       </div>
                     </RadioGroup>
                   </FormControl>
                   <FormDescription>
-                    Choose whether this is a single payment or multiple payments
+                    {t('bills.paymentCountDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -1355,10 +1355,10 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       <FormLabel className="font-normal cursor-pointer">
-                        Generate bills for next year automatically
+                        {t('bills.recurrence')}
                       </FormLabel>
                       <FormDescription>
-                        When enabled, this bill will automatically recur for the next year
+                        {t('bills.recurrenceDescription')}
                       </FormDescription>
                     </div>
                   </FormItem>
@@ -1373,12 +1373,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                 name="singlePaymentAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Amount</FormLabel>
+                    <FormLabel>{t('bills.singlePaymentAmount')}</FormLabel>
                     <FormControl>
                       <Input placeholder="0.00" type="number" step="0.01" {...field} data-testid="input-payment-amount" />
                     </FormControl>
                     <FormDescription>
-                      Enter the amount for this single payment
+                      {t('bills.singlePaymentAmountDescription')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1702,14 +1702,14 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    Total Amount
+                    {t('bills.calculatedTotalAmount')}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {paymentCount === '1' 
-                      ? 'Amount for single payment' 
+                      ? t('bills.totalAmountSingleDescription')
                       : paymentCount === 'multiple' && recurringPaymentsEqual 
-                        ? 'Calculated from payment configuration (12 payments)' 
-                        : 'Sum of all payment amounts'}
+                        ? t('bills.totalAmountMultipleEqualDescription')
+                        : t('bills.totalAmountMultipleCustomDescription')}
                   </p>
                 </div>
                 <div className="text-right">
@@ -1719,7 +1719,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                       : calculatedTotal.toFixed(2)}
                   </div>
                   <Badge variant="secondary" className="mt-2">
-                    {paymentCount === 'multiple' ? 'Auto-calculated' : 'From payment amount'}
+                    {paymentCount === 'multiple' ? t('bills.autoCalculatedBadge') : t('bills.fromPaymentAmountBadge')}
                   </Badge>
                 </div>
               </div>
