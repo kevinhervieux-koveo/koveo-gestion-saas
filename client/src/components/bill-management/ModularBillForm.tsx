@@ -53,6 +53,11 @@ const billFormSchema = z.object({
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   hasInitialPayment: z.boolean().optional(),
   recurringPaymentsEqual: z.boolean().optional(),
+  singlePaymentAmount: z.string().optional().refine((val) => {
+    if (!val) return true;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  }, 'Payment amount must be between $0.01 and $999,999.99'),
   initialPaymentAmount: z.string().optional().refine((val) => {
     if (!val) return true;
     const num = parseFloat(val);
@@ -90,12 +95,12 @@ const billFormSchema = z.object({
 }).superRefine((data, ctx) => {
   // Custom validation logic for payment structure with specific field error targeting
   if (data.paymentCount === '1') {
-    // For single payment, total amount is required
-    if (!data.totalAmount || data.totalAmount.trim() === '') {
+    // For single payment, singlePaymentAmount is required
+    if (!data.singlePaymentAmount || data.singlePaymentAmount.trim() === '') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Payment amount is required for single payment bills',
-        path: ['totalAmount']
+        path: ['singlePaymentAmount']
       });
     }
   } else if (data.paymentCount === 'multiple') {
@@ -180,6 +185,7 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
       schedulePayment: 'monthly' as const,
       hasInitialPayment: false,
       recurringPaymentsEqual: true,
+      singlePaymentAmount: '',
       initialPaymentAmount: '',
       recurringPaymentAmount: '',
       customPayments: [] as CustomPayment[],
@@ -203,13 +209,17 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
   }
 
   // Default values for payment structure
+  let singlePaymentAmount = '';
   let hasInitialPayment = false;
   let recurringPaymentsEqual = true;
   let initialPaymentAmount = '';
   let recurringPaymentAmount = '';
   let customPayments: CustomPayment[] = [];
 
-  if (paymentType === 'recurrent' && costs.length > 0) {
+  // Handle single payment case
+  if (paymentType === 'unique' && costs.length === 1) {
+    singlePaymentAmount = costs[0].toString();
+  } else if (paymentType === 'recurrent' && costs.length > 0) {
     // Determine payment structure based on costs array
     if (costs.length === 1) {
       // Single recurring payment
@@ -251,6 +261,7 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
     schedulePayment: bill.schedulePayment || 'monthly' as const,
     hasInitialPayment,
     recurringPaymentsEqual,
+    singlePaymentAmount,
     initialPaymentAmount,
     recurringPaymentAmount,
     customPayments,
@@ -308,6 +319,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       customPayments: parsedPaymentData.customPayments,
       hasInitialPayment: parsedPaymentData.hasInitialPayment,
       recurringPaymentsEqual: parsedPaymentData.recurringPaymentsEqual,
+      singlePaymentAmount: parsedPaymentData.singlePaymentAmount,
       initialPaymentAmount: parsedPaymentData.initialPaymentAmount,
       recurringPaymentAmount: parsedPaymentData.recurringPaymentAmount,
       totalAmount: bill?.totalAmount?.toString() || '',
@@ -324,6 +336,64 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   const schedulePayment = form.watch('schedulePayment');
   const hasInitialPayment = form.watch('hasInitialPayment');
   const recurringPaymentsEqual = form.watch('recurringPaymentsEqual');
+  const singlePaymentAmount = form.watch('singlePaymentAmount');
+  const initialPaymentAmount = form.watch('initialPaymentAmount');
+  const recurringPaymentAmount = form.watch('recurringPaymentAmount');
+  const watchedCustomPayments = form.watch('customPayments');
+
+  // Calculate total amount based on payment structure
+  const calculatedTotal = React.useMemo(() => {
+    if (paymentCount === '1') {
+      // For single payment, total equals the singlePaymentAmount
+      return parseFloat(singlePaymentAmount || '0');
+    } else if (paymentCount === 'multiple') {
+      let total = 0;
+      
+      if (recurringPaymentsEqual) {
+        // For equal recurring payments
+        const maxPayments = 12; // Default to 12 monthly payments
+        
+        if (hasInitialPayment && initialPaymentAmount) {
+          total += parseFloat(initialPaymentAmount || '0');
+          
+          if (recurringPaymentAmount) {
+            // Add remaining payments (12 - 1 = 11)
+            total += parseFloat(recurringPaymentAmount || '0') * (maxPayments - 1);
+          }
+        } else if (recurringPaymentAmount) {
+          // All payments use the same recurring amount
+          total += parseFloat(recurringPaymentAmount || '0') * maxPayments;
+        }
+      } else if (watchedCustomPayments && watchedCustomPayments.length > 0) {
+        // For custom payments, sum all amounts
+        total = watchedCustomPayments.reduce((sum, payment) => {
+          return sum + parseFloat(payment.amount || '0');
+        }, 0);
+      }
+      
+      return total;
+    }
+    
+    return 0;
+  }, [
+    paymentCount,
+    singlePaymentAmount,
+    hasInitialPayment,
+    initialPaymentAmount,
+    recurringPaymentsEqual,
+    recurringPaymentAmount,
+    watchedCustomPayments
+  ]);
+
+  // Update form's totalAmount field with calculated value - ALWAYS set for ALL cases
+  useEffect(() => {
+    const totalStr = calculatedTotal.toFixed(2);
+    
+    // Only update if the value has changed to avoid unnecessary re-renders
+    if (form.getValues('totalAmount') !== totalStr) {
+      form.setValue('totalAmount', totalStr, { shouldValidate: false });
+    }
+  }, [calculatedTotal, form]);
 
   // Auto-save function with 1.5 second delay
   const performAutoSave = useCallback(async (formData: BillFormData) => {
@@ -358,7 +428,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
         let calculatedTotalAmount = formData.totalAmount;
         
         if (formData.paymentCount === '1') {
-          costs = [formData.totalAmount || '0'];
+          costs = [formData.singlePaymentAmount || '0'];
         } else if (formData.paymentCount === 'multiple') {
           if (formData.recurringPaymentsEqual) {
             const maxPayments = 12;
@@ -486,6 +556,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       form.setValue('schedulePayment', newParsedData.schedulePayment);
       form.setValue('hasInitialPayment', newParsedData.hasInitialPayment);
       form.setValue('recurringPaymentsEqual', newParsedData.recurringPaymentsEqual);
+      form.setValue('singlePaymentAmount', newParsedData.singlePaymentAmount);
       form.setValue('initialPaymentAmount', newParsedData.initialPaymentAmount);
       form.setValue('recurringPaymentAmount', newParsedData.recurringPaymentAmount);
       form.setValue('customPayments', newParsedData.customPayments);
@@ -714,7 +785,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       let calculatedTotalAmount = data.totalAmount;
       
       if (data.paymentCount === '1') {
-        costs = [data.totalAmount || '0'];
+        costs = [data.singlePaymentAmount || '0'];
       } else if (data.paymentCount === 'multiple') {
         if (data.recurringPaymentsEqual) {
           // For equal recurring payments - generate all 12 payment amounts
@@ -1295,36 +1366,19 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               />
             )}
 
-            {/* Total Amount - Conditional based on payment count */}
-            {paymentCount === '1' ? (
+            {/* Payment Amount - Only for single payment */}
+            {paymentCount === '1' && (
               <FormField
                 control={form.control}
-                name="totalAmount"
+                name="singlePaymentAmount"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Payment Amount</FormLabel>
                     <FormControl>
-                      <Input placeholder="0.00" type="number" step="0.01" {...field} data-testid="input-total-amount" />
+                      <Input placeholder="0.00" type="number" step="0.01" {...field} data-testid="input-payment-amount" />
                     </FormControl>
                     <FormDescription>
-                      Enter the total amount for this single payment
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormField
-                control={form.control}
-                name="totalAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total Amount (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="0.00" type="number" step="0.01" {...field} data-testid="input-total-amount" />
-                    </FormControl>
-                    <FormDescription>
-                      Will be calculated from individual payments if left blank
+                      Enter the amount for this single payment
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1641,6 +1695,36 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               </div>
             </div>
           )}
+
+          {/* Calculated Total Amount Display */}
+          <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Total Amount
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {paymentCount === '1' 
+                      ? 'Amount for single payment' 
+                      : paymentCount === 'multiple' && recurringPaymentsEqual 
+                        ? 'Calculated from payment configuration (12 payments)' 
+                        : 'Sum of all payment amounts'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400" data-testid="text-calculated-total">
+                    ${paymentCount === '1' 
+                      ? parseFloat(form.watch('totalAmount') || '0').toFixed(2)
+                      : calculatedTotal.toFixed(2)}
+                  </div>
+                  <Badge variant="secondary" className="mt-2">
+                    {paymentCount === 'multiple' ? 'Auto-calculated' : 'From payment amount'}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Form Actions */}
           <div className="flex justify-between items-center">
