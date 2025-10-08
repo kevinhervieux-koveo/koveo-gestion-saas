@@ -28,7 +28,10 @@ The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsi
     - **Buildings**: Management for Admin/Manager roles.
     - **Residences**: Auto-generated units with advanced search, filtering, and multi-parking/storage.
     - **Inventory Management**: Building element inventory with UNIFORMAT code support, condition tracking, and lifecycle management. Features enhanced view mode and seamless editing.
-- **Bilingual Support**: Full bilingual translation for Inventory and Projects management pages, compliant with Quebec Law 25.
+- **Financial Management**:
+    - **Bill Management**: Enhanced payment structure with clear single/multiple payment options and auto-generation controls. Features calculated read-only total amounts, separated single payment amounts, and intelligent payment structure preservation.
+    - **Auto-Generation**: Recurrent bills automatically generate future instances with proper field normalization (paymentCount, recurrence, singlePaymentAmount). Generated bills are properly configured as unique single-payment instances.
+- **Bilingual Support**: Full bilingual translation for Inventory, Projects, and Bills management pages, compliant with Quebec Law 25. All form fields, labels, and descriptions are available in both English and French with grammatically correct translations.
 
 ### System Design Choices
 - **Monorepo Structure**: Single workspace for client, server, and shared code with unified TypeScript.
