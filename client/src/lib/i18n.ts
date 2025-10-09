@@ -542,6 +542,10 @@ export interface Translations {
   supplies: string;
   taxes: string;
   salary: string;
+  construction: string;
+  consulting: string;
+  equipmentRental: string;
+  legalServices: string;
   billsManagement: string;
   billsSubtitle: string;
   invoiceManagement: string;
@@ -1873,6 +1877,10 @@ export const translations: Record<Language, Translations> = {
     supplies: 'Supplies',
     taxes: 'Taxes',
     salary: 'Salary',
+    construction: 'Construction',
+    consulting: 'Consulting',
+    equipmentRental: 'Equipment Rental',
+    legalServices: 'Legal Services',
     billsManagement: 'Bills Management',
     billsSubtitle: 'Manage property bills, invoices, and financial documents with comprehensive tracking and organization.',
     invoiceManagement: 'Invoice Management',
@@ -3056,6 +3064,10 @@ export const translations: Record<Language, Translations> = {
     supplies: 'Fournitures',
     taxes: 'Taxes',
     salary: 'Salaire',
+    construction: 'Construction',
+    consulting: 'Consultation',
+    equipmentRental: 'Location d\'équipement',
+    legalServices: 'Services juridiques',
     billsManagement: 'Gestion des factures',
     billsSubtitle: 'Gérer les factures de propriété, les factures et les documents financiers avec un suivi et une organisation complets.',
     invoiceManagement: 'Gestion des factures',

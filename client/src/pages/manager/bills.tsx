@@ -83,19 +83,18 @@ const MONTHS = [
 // Category labels using translation keys
 const getCategoryLabel = (category: string, t: (key: string) => string) => {
   const categoryTranslationKeys: Record<string, string> = {
-    insurance: 'insurance',
-    maintenance: 'maintenance', 
-    salary: 'salary',
-    utilities: 'utilities',
-    cleaning: 'cleaning',
-    security: 'security',
-    landscaping: 'landscaping',
-    professional_services: 'professionalServices',
     administration: 'administration',
+    construction: 'construction',
+    consulting: 'consulting',
+    equipment_rental: 'equipmentRental',
+    insurance: 'insurance',
+    legal_services: 'legalServices',
+    maintenance: 'maintenance',
+    professional_services: 'professionalServices',
     repairs: 'repairs',
     supplies: 'supplies',
     taxes: 'taxes',
-    technology: 'technology',
+    utilities: 'utilities',
     other: 'other'
   };
   return t(categoryTranslationKeys[category] || category);
