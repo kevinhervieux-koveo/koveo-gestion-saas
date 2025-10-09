@@ -341,7 +341,7 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
       **IMPORTANT: Your response MUST be a raw JSON object only, without any Markdown formatting, backticks, or explanatory text. Do not wrap the JSON in triple backticks or any other non-JSON characters.**`;
 
       const response = await this.genAI.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.0-flash-exp',
         contents: [
           {
             role: 'user',
@@ -486,7 +486,7 @@ Your final output must be only the JSON object.
 Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ-123","totalAmount":450.75,"dueDate":"2025-10-15","paymentType":"recurring","frequency":"custom","startDate":null,"customPaymentDates":["2025-10-15", "2025-11-15", "2026-01-15"]}`;
 
       const result = await this.genAI.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash-exp',
         contents: [{
           role: 'user',
           parts: [
@@ -590,7 +590,7 @@ Example for utilities: {"vendorName":"Hydro Quebec","description":"Monthly elect
 Example for one-time: {"vendorName":"ABC Repairs","description":"Emergency plumbing repair","totalAmount":350.00,"dueDate":"2025-01-30","paymentType":"one-time","frequency":null,"startDate":null,"customPaymentDates":null,"category":"repairs"}`;
 
       const result = await this.genAI.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash-exp',
         contents: [{
           role: 'user',
           parts: [
@@ -680,7 +680,7 @@ Example for one-time: {"vendorName":"ABC Repairs","description":"Emergency plumb
   async validateApiKey(): Promise<boolean> {
     try {
       await this.genAI.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash-exp',
         contents: [{
           role: 'user',
           parts: [{ text: 'Test connection' }]

@@ -161,13 +161,18 @@ function convertBillResponseToFormData(aiData: any) {
       return {};
     }
     
+    // Map AI payment type to new payment structure
+    const paymentTypeMapping = mapPaymentTypeToStructure(aiData.paymentType);
+    
     // Map AI response to bill form fields with more robust null checking
     const formData = {
       title: aiData.description || aiData.vendorName || 'Extracted Bill',
       vendor: aiData.vendorName || '',
+      singlePaymentAmount: paymentTypeMapping.paymentCount === '1' ? (aiData.totalAmount !== null && aiData.totalAmount !== undefined ? aiData.totalAmount.toString() : '') : '',
       totalAmount: (aiData.totalAmount !== null && aiData.totalAmount !== undefined) ? aiData.totalAmount.toString() : '',
       category: aiData.category || mapVendorToCategory(aiData.vendorName),
-      paymentType: mapPaymentType(aiData.paymentType),
+      paymentCount: paymentTypeMapping.paymentCount,
+      recurrence: paymentTypeMapping.recurrence,
       description: aiData.description || (aiData.vendorName ? `Bill from ${aiData.vendorName}` : 'Extracted bill'),
       startDate: aiData.dueDate || aiData.startDate || '',
       endDate: aiData.endDate || '',
@@ -227,17 +232,19 @@ function mapVendorToCategory(vendorName: string): string {
 }
 
 /**
- * Map AI payment type to form payment type
+ * Map AI payment type to new payment structure (paymentCount + recurrence)
  */
-function mapPaymentType(aiPaymentType: string): string {
-  if (!aiPaymentType) return 'unique';
+function mapPaymentTypeToStructure(aiPaymentType: string): { paymentCount: '1' | 'multiple', recurrence: boolean } {
+  if (!aiPaymentType) {
+    return { paymentCount: '1', recurrence: false };
+  }
   
   const type = aiPaymentType.toLowerCase();
   if (type.includes('recurring') || type.includes('repeat')) {
-    return 'recurrent';
+    return { paymentCount: 'multiple', recurrence: true };
   }
   
-  return 'unique';
+  return { paymentCount: '1', recurrence: false };
 }
 
 /**
