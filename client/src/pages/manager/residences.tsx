@@ -217,7 +217,7 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title="Residence Management" subtitle="Manage residence information, units, property details, and tenant assignments across your properties." />
+      <Header title={t('residencesManagement')} subtitle={t('residencesManagementSubtitle')} />
       
       {showBackButton && onBack && (
         <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>

@@ -50,6 +50,7 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { useLanguage } from '@/hooks/use-language';
 import { SharedUploader } from '@/components/document-management';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
 import type { UploadContext } from '@shared/config/upload-config';
@@ -124,6 +125,7 @@ const statusColors = {
 };
 
 export default function BugReports() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -408,7 +410,7 @@ export default function BugReports() {
 
   return (
     <div className="space-y-6">
-      <Header title="Bug Reports" subtitle="Report and track application issues" />
+      <Header title={t('bugReports')} subtitle={t('bugReportsSubtitle')} />
       
       <div className="space-y-6">
         <Card>

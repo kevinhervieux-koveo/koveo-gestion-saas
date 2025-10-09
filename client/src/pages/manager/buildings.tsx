@@ -561,7 +561,7 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title="Buildings Management" subtitle="Manage building information, property assets, and organization structures." />
+      <Header title={t('buildingsManagement')} subtitle={t('buildingsManagementSubtitle')} />
       
       {/* Back to Organization Navigation - only show if user has multiple organizations */}
       {organizationId && userOrganizations.length > 1 && (

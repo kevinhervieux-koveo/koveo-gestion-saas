@@ -35,6 +35,7 @@ import { BuildingSelectionGrid } from '@/components/BuildingSelectionGrid';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import type { Building } from '@shared/schema';
 import type { Invoice } from '@shared/schemas/invoices';
 
@@ -64,6 +65,7 @@ const MONTHS = [
 ];
 
 export default function Invoices() {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<InvoiceFilters>({
     buildingId: '',
     paymentType: '',
@@ -237,7 +239,7 @@ export default function Invoices() {
     console.log('🔍 [INVOICES] Loading buildings...');
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Invoice Management" subtitle="Modern AI-powered invoice processing and management" />
+        <Header title={t('invoiceManagement')} subtitle={t('invoiceManagementSubtitle')} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -252,7 +254,7 @@ export default function Invoices() {
   if (buildingsError) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title="Invoice Management" subtitle="Modern AI-powered invoice processing and management" />
+        <Header title={t('invoiceManagement')} subtitle={t('invoiceManagementSubtitle')} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <p className="text-red-500 mb-4">Failed to load buildings</p>
@@ -270,7 +272,7 @@ export default function Invoices() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <Header title="Invoice Management" subtitle="Modern AI-powered invoice processing and management" />
+      <Header title={t('invoiceManagement')} subtitle={t('invoiceManagementSubtitle')} />
 
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto space-y-6">
@@ -343,7 +345,7 @@ export default function Invoices() {
                         <SelectItem key={year} value={year.toString()}>
                           {year}
                           {year === currentYear && (
-                            <span className="ml-2 text-xs text-blue-500">(Current)</span>
+                            <span className="ml-2 text-xs text-blue-500">({t('current')})</span>
                           )}
                         </SelectItem>
                       ))}

@@ -1305,7 +1305,7 @@ export default function UserManagement() {
   if (usersError) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title="User Management" subtitle="Manage users, roles, access permissions, and send invitations to new members." />
+        <Header title={t('userManagement')} subtitle={t('userManagementSubtitle')} />
         <div className='flex-1 overflow-auto p-6'>
           <Card>
             <CardContent className='p-6'>
@@ -1319,7 +1319,7 @@ export default function UserManagement() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title="User Management" subtitle="Manage users, roles, access permissions, and send invitations to new members." />
+      <Header title={t('userManagement')} subtitle={t('userManagementSubtitle')} />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
