@@ -151,6 +151,7 @@ export interface Translations {
   pendingInvitations: string;
   totalInvitations: string;
   userManagement: string;
+  userManagementSubtitle: string;
   manageUsersInvitationsRoles: string;
   searchUsersInvitations: string;
   filterByRole: string;
@@ -450,6 +451,7 @@ export interface Translations {
   informationFilter: string;
   otherFilter: string;
   buildingsManagement: string;
+  buildingsManagementSubtitle: string;
   manageBuildings: string;
   addBuilding: string;
   editBuilding: string;
@@ -492,6 +494,7 @@ export interface Translations {
   mixedUseType: string;
   otherBuildingType: string;
   residencesManagement: string;
+  residencesManagementSubtitle: string;
   manageResidences: string;
   searchFilters: string;
   searchResidences: string;
@@ -514,6 +517,8 @@ export interface Translations {
   viewDocuments: string;
   budgetDashboard: string;
   budgetSubtitle: string;
+  budgetManagement: string;
+  budgetManagementSubtitle: string;
   totalBudget: string;
   usedBudget: string;
   remaining: string;
@@ -539,6 +544,8 @@ export interface Translations {
   salary: string;
   billsManagement: string;
   billsSubtitle: string;
+  invoiceManagement: string;
+  invoiceManagementSubtitle: string;
   filters: string;
   year: string;
   months: string;
@@ -713,6 +720,7 @@ export interface Translations {
   exportFailed: string;
   failedExportData: string;
   bugReports: string;
+  bugReportsSubtitle: string;
   reportTrackIssues: string;
   reportBug: string;
   reportNewBug: string;
@@ -748,6 +756,7 @@ export interface Translations {
   failedUpdateBug: string;
   bugDeletedSuccess: string;
   ideaBox: string;
+  ideaBoxSubtitle: string;
   shareIdeasImprove: string;
   submitNewIdea: string;
   createIdea: string;
@@ -1391,6 +1400,7 @@ export const translations: Record<Language, Translations> = {
     pendingInvitations: 'Pending Invitations',
     totalInvitations: 'Total Invitations',
     userManagement: 'User Management',
+    userManagementSubtitle: 'Manage users, roles, access permissions, and send invitations to new members.',
     manageUsersInvitationsRoles: 'Manage users, invitations, and roles',
     searchUsersInvitations: 'Search users and invitations...',
     filterByRole: 'Filter by role',
@@ -1772,6 +1782,7 @@ export const translations: Record<Language, Translations> = {
     informationFilter: 'Information',
     otherFilter: 'Other',
     buildingsManagement: 'Buildings Management',
+    buildingsManagementSubtitle: 'Manage building information, property assets, and organization structures.',
     manageBuildings: 'Manage all buildings in your organization',
     addBuilding: 'Add Building',
     editBuilding: 'Edit Building',
@@ -1814,6 +1825,7 @@ export const translations: Record<Language, Translations> = {
     mixedUseType: 'Mixed Use',
     otherBuildingType: 'Other',
     residencesManagement: 'Residences Management',
+    residencesManagementSubtitle: 'Manage residence information, units, property details, and tenant assignments across your properties.',
     manageResidences: 'Manage all residences and units',
     searchFilters: 'Search & Filters',
     searchResidences: 'Search',
@@ -1836,6 +1848,8 @@ export const translations: Record<Language, Translations> = {
     viewDocuments: 'View Documents',
     budgetDashboard: 'Budget Dashboard',
     budgetSubtitle: 'Financial budget management and tracking',
+    budgetManagement: 'Budget Management',
+    budgetManagementSubtitle: 'Plan and track financial budgets for property management with comprehensive forecasting and analysis.',
     totalBudget: 'Total Budget',
     usedBudget: 'Used Budget',
     remaining: 'Remaining',
@@ -1859,8 +1873,10 @@ export const translations: Record<Language, Translations> = {
     supplies: 'Supplies',
     taxes: 'Taxes',
     salary: 'Salary',
-    billsManagement: 'Building Management',
-    billsSubtitle: 'Manage building expenses and revenue tracking',
+    billsManagement: 'Bills Management',
+    billsSubtitle: 'Manage property bills, invoices, and financial documents with comprehensive tracking and organization.',
+    invoiceManagement: 'Invoice Management',
+    invoiceManagementSubtitle: 'Modern AI-powered invoice processing and management',
     filters: 'Filters',
     year: 'Year',
     months: 'Months',
@@ -2035,6 +2051,7 @@ export const translations: Record<Language, Translations> = {
     exportFailed: 'Export failed',
     failedExportData: 'Failed to export data',
     bugReports: 'Bug Reports',
+    bugReportsSubtitle: 'Report and track application issues',
     reportTrackIssues: 'Report and track application issues',
     reportBug: 'Report Bug',
     reportNewBug: 'Report New Bug',
@@ -2070,6 +2087,7 @@ export const translations: Record<Language, Translations> = {
     failedUpdateBug: 'Failed to update bug report',
     bugDeletedSuccess: 'Bug report deleted successfully',
     ideaBox: 'Idea Box',
+    ideaBoxSubtitle: 'Share your ideas to improve our platform',
     shareIdeasImprove: 'Share your ideas to improve our platform',
     submitNewIdea: 'Submit New Idea',
     createIdea: 'Create Idea',
@@ -2618,6 +2636,7 @@ export const translations: Record<Language, Translations> = {
     pendingInvitations: 'Invitations en attente',
     totalInvitations: 'Invitations totales',
     userManagement: 'Gestion des utilisateurs',
+    userManagementSubtitle: 'Gérer les utilisateurs, les rôles, les autorisations d\'accès et envoyer des invitations aux nouveaux membres.',
     manageUsersInvitationsRoles: 'Gérer les utilisateurs, invitations et rôles',
     searchUsersInvitations: 'Rechercher des utilisateurs et invitations...',
     filterByRole: 'Filtrer par rôle',
@@ -2953,6 +2972,7 @@ export const translations: Record<Language, Translations> = {
     informationFilter: 'Information',
     otherFilter: 'Autre',
     buildingsManagement: 'Gestion des bâtiments',
+    buildingsManagementSubtitle: 'Gérer les informations sur les bâtiments, les actifs immobiliers et les structures organisationnelles.',
     manageBuildings: 'Gérer tous les bâtiments de votre organisation',
     addBuilding: 'Ajouter un bâtiment',
     editBuilding: 'Modifier le bâtiment',
@@ -2993,6 +3013,7 @@ export const translations: Record<Language, Translations> = {
     mixedUseType: 'Usage mixte',
     otherBuildingType: 'Autre',
     residencesManagement: 'Gestion des résidences',
+    residencesManagementSubtitle: 'Gérer les informations sur les résidences, les unités, les détails des propriétés et les affectations des locataires dans vos propriétés.',
     manageResidences: 'Gérer toutes les résidences et unités',
     searchFilters: 'Recherche et filtres',
     searchResidences: 'Recherche',
@@ -3012,6 +3033,8 @@ export const translations: Record<Language, Translations> = {
     viewDocuments: 'Voir les documents',
     budgetDashboard: 'Tableau de bord budgétaire',
     budgetSubtitle: 'Gestion et suivi du budget financier',
+    budgetManagement: 'Gestion du budget',
+    budgetManagementSubtitle: 'Planifier et suivre les budgets financiers pour la gestion immobilière avec des prévisions et des analyses complètes.',
     totalBudget: 'Budget total',
     usedBudget: 'Budget utilisé',
     remaining: 'Restant',
@@ -3033,8 +3056,10 @@ export const translations: Record<Language, Translations> = {
     supplies: 'Fournitures',
     taxes: 'Taxes',
     salary: 'Salaire',
-    billsManagement: 'Gestion du budget',
-    billsSubtitle: 'Gérer les dépenses des bâtiments et le suivi des revenus',
+    billsManagement: 'Gestion des factures',
+    billsSubtitle: 'Gérer les factures de propriété, les factures et les documents financiers avec un suivi et une organisation complets.',
+    invoiceManagement: 'Gestion des factures',
+    invoiceManagementSubtitle: 'Traitement et gestion modernes des factures alimentés par l\'IA',
     filters: 'Filtres',
     year: 'Année',
     months: 'Mois',
@@ -3197,6 +3222,7 @@ export const translations: Record<Language, Translations> = {
     dataExported: 'Données exportées',
     dataExportedDescription: 'Vos données ont été téléchargées avec succès.',
     bugReports: 'Rapports de bogues',
+    bugReportsSubtitle: 'Signaler et suivre les problèmes de l\'application',
     reportBug: 'Signaler un bogue',
     reportNewBug: 'Signaler un nouveau bogue',
     searchBugs: 'Rechercher des bogues...',
@@ -3231,6 +3257,7 @@ export const translations: Record<Language, Translations> = {
     failedUpdateBug: 'Échec de la mise à jour du rapport de bogue',
     bugDeletedSuccess: 'Rapport de bogue supprimé avec succès',
     ideaBox: 'Boîte à idées',
+    ideaBoxSubtitle: 'Partagez vos idées pour améliorer notre plateforme',
     shareIdeasImprove: 'Partagez vos idées pour améliorer notre plateforme',
     submitNewIdea: 'Soumettre une nouvelle idée',
     createIdea: 'Créer une idée',
