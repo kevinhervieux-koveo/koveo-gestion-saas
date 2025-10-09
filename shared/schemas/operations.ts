@@ -64,9 +64,9 @@ export const notificationTypeEnum = pgEnum('notification_type', [
 ]);
 
 export const demandTypeEnum = pgEnum('demand_type', [
-  'maintenance',
   'complaint',
   'information',
+  'maintenance',
   'other',
 ]);
 
@@ -565,7 +565,7 @@ export const insertNotificationSchema = z.object({
 
 export const insertDemandSchema = z.object({
   submitterId: z.string().uuid(),
-  type: z.enum(['maintenance', 'complaint', 'information', 'other']),
+  type: z.enum(['complaint', 'information', 'maintenance', 'other']),
   assignationResidenceId: z.preprocess((val) => val === '' ? undefined : val, z.string().uuid().optional()),
   assignationBuildingId: z.preprocess((val) => val === '' ? undefined : val, z.string().uuid().optional()),
   description: z

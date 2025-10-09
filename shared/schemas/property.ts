@@ -28,11 +28,11 @@ export const contactEntityEnum = pgEnum('contact_entity', [
 ]);
 
 export const contactCategoryEnum = pgEnum('contact_category', [
-  'resident',
-  'manager',
-  'tenant',
-  'maintenance',
   'emergency',
+  'maintenance',
+  'manager',
+  'resident',
+  'tenant',
   'other',
 ]);
 
