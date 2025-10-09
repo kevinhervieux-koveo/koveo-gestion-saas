@@ -1298,6 +1298,11 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                       <SelectItem value="cancelled">{t('bills.statusCancelled')}</SelectItem>
                     </SelectContent>
                   </Select>
+                  {field.value === 'draft' && (
+                    <FormDescription className="text-amber-600 dark:text-amber-400">
+                      {t('bills.statusDraftNote')}
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

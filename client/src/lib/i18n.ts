@@ -1201,6 +1201,7 @@ export interface Translations {
   'bills.description': string;
   'bills.notes': string;
   'bills.statusDraft': string;
+  'bills.statusDraftNote': string;
   'bills.statusSent': string;
   'bills.statusOverdue': string;
   'bills.statusPaid': string;
@@ -1557,6 +1558,7 @@ export const translations: Record<Language, Translations> = {
     'bills.description': 'Description',
     'bills.notes': 'Notes',
     'bills.statusDraft': 'Draft',
+    'bills.statusDraftNote': 'Draft bills are excluded from budget calculations',
     'bills.statusSent': 'Sent',
     'bills.statusOverdue': 'Overdue',
     'bills.statusPaid': 'Paid',
@@ -2756,6 +2758,7 @@ export const translations: Record<Language, Translations> = {
     'bills.description': 'Description',
     'bills.notes': 'Notes',
     'bills.statusDraft': 'Brouillon',
+    'bills.statusDraftNote': 'Les factures en brouillon sont exclues des calculs budgétaires',
     'bills.statusSent': 'Envoyé',
     'bills.statusOverdue': 'En retard',
     'bills.statusPaid': 'Payé',
