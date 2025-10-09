@@ -452,7 +452,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title="Bills Management" subtitle="Manage property bills, invoices, and financial documents with comprehensive tracking and organization." />
+      <Header title={t('billsManagement')} subtitle={t('billsSubtitle')} />
       
       {/* Back to Building Navigation */}
       {buildingId && (
@@ -534,7 +534,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                         <SelectItem key={year} value={year.toString()}>
                           {year}
                           {year === currentYear && (
-                            <span className='ml-2 text-xs text-blue-500'>(Current)</span>
+                            <span className='ml-2 text-xs text-blue-500'>({t('current')})</span>
                           )}
                         </SelectItem>
                       ))}
@@ -659,7 +659,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
               {
                 id: 'year',
                 label: t('year'),
-                displayValue: filters.year + (filters.year === new Date().getFullYear().toString() ? ' (Current)' : '')
+                displayValue: filters.year + (filters.year === new Date().getFullYear().toString() ? ` (${t('current')})` : '')
               },
               ...(filters.months.length > 0 ? [{
                 id: 'months',
