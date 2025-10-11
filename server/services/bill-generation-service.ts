@@ -41,16 +41,6 @@ export class BillAutoGenerationService {
       id: '', // Will be generated on insert
       billNumber: uniqueBillNumber, // Use atomic bill number
       paymentType: 'unique' as const, // Convert to unique bill
-      // NEW: Set payment structure fields for single payment
-      paymentCount: '1' as const,
-      recurrence: false,
-      singlePaymentAmount: templateBill.totalAmount, // Use total as single amount
-      // Clear multi-payment configuration
-      hasInitialPayment: false,
-      recurringPaymentsEqual: true,
-      initialPaymentAmount: '',
-      recurringPaymentAmount: '',
-      customPayments: [],
       startDate: startDate.toISOString().split('T')[0],
       endDate: newBillData.endDate || templateBill.endDate,
       status: 'draft' as const,
