@@ -91,7 +91,6 @@ const billFormSchema = z.object({
     return !isNaN(Date.parse(val));
   }, 'End date must be a valid date'),
   status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
-  notes: z.string().max(2000, 'Notes must be less than 2000 characters').optional(),
 }).superRefine((data, ctx) => {
   // Custom validation logic for payment structure with specific field error targeting
   if (data.paymentCount === '1') {
@@ -331,7 +330,6 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       startDate: bill?.startDate || '',
       endDate: bill?.endDate || '',
       status: bill?.status || 'draft',
-      notes: bill?.notes || '',
     }
   });
 
@@ -1656,25 +1654,6 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
                   <Textarea
                     placeholder="Additional details about this bill..."
                     className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Notes */}
-          <FormField
-            control={form.control}
-            name="notes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('bills.notes')}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Internal notes..."
-                    className="min-h-[80px]"
                     {...field}
                   />
                 </FormControl>
