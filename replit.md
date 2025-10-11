@@ -29,8 +29,8 @@ The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsi
     - **Residences**: Auto-generated units with advanced search, filtering, and multi-parking/storage.
     - **Inventory Management**: Building element inventory with UNIFORMAT code support, condition tracking, and lifecycle management. Features enhanced view mode and seamless editing.
 - **Financial Management**:
-    - **Bill Management**: Enhanced payment structure with clear single/multiple payment options and auto-generation controls. Features calculated read-only total amounts, separated single payment amounts, and intelligent payment structure preservation.
-    - **Auto-Generation**: Recurrent bills automatically generate future instances with proper field normalization (paymentCount, recurrence, singlePaymentAmount). Generated bills are properly configured as unique single-payment instances.
+    - **Bill Management**: Enhanced payment structure with clear single/multiple payment options and auto-generation controls. Features calculated read-only total amounts, separated single payment amounts, and intelligent payment structure preservation. Both single and multiple payment bills support auto-generation for next year.
+    - **Auto-Generation**: Bills with auto-generation enabled (recurrence=true) automatically generate future instances for the next year, regardless of payment count. The system properly maps recurrence to paymentType='recurrent' for backend processing. Generated bills are properly configured with appropriate payment structures.
 - **Bilingual Support**: Full bilingual translation for Inventory, Projects, and Bills management pages, compliant with Quebec Law 25. All form fields, labels, and descriptions are available in both English and French with grammatically correct translations.
 
 ### System Design Choices
