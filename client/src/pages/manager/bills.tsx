@@ -753,6 +753,9 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
       {/* Create Bill Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto' aria-describedby="create-bill-description">
+          <DialogHeader>
+            <DialogTitle>{t('createNewBill')}</DialogTitle>
+          </DialogHeader>
           <ModularBillForm
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
@@ -1061,6 +1064,9 @@ function BillCard({
       {/* Bill Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto' aria-describedby="edit-bill-description">
+          <DialogHeader>
+            <DialogTitle>{t('bills.editBill')}</DialogTitle>
+          </DialogHeader>
           <ModularBillForm
             bill={bill}
             onSuccess={() => {
