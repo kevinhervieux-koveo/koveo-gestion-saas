@@ -1505,7 +1505,7 @@ export class BillAutoGenerationService {
         description: sourceBill.description,
         category: sourceBill.category,
         vendor: sourceBill.vendor,
-        paymentType: 'auto-generated' as const,
+        paymentType: 'unique' as const,
         schedulePayment: sourceBill.schedulePayment, // Inherit exact schedule
         scheduleCustom: sourceBill.scheduleCustom,   // Inherit custom schedule if exists
         costs: [...sourceBill.costs], // Clone exact same payment plan array
