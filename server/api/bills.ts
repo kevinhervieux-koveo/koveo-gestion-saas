@@ -639,8 +639,18 @@ export function registerBillRoutes(app: Express) {
       if (billData.paymentType) {
         updateData.paymentType = billData.paymentType;
       }
-      if (billData.schedulePayment) {
-        updateData.schedulePayment = billData.schedulePayment;
+      // Only update schedulePayment if explicitly provided in the request
+      if ('schedulePayment' in req.body) {
+        updateData.schedulePayment = billData.schedulePayment || null;
+      } else {
+        // Determine final state using billData (validated request) OR originalBill
+        const finalPaymentType = billData.paymentType || originalBill[0].paymentType;
+        const finalCosts = billData.costs ? billData.costs.map((c: string) => parseFloat(c)) : originalBill[0].costs;
+        
+        // Clear schedulePayment for single payment recurrent bills
+        if (finalPaymentType === 'recurrent' && finalCosts && finalCosts.length === 1) {
+          updateData.schedulePayment = null;
+        }
       }
       if (billData.scheduleCustom) {
         updateData.scheduleCustom = billData.scheduleCustom;
@@ -785,8 +795,18 @@ export function registerBillRoutes(app: Express) {
       if (billData.paymentType) {
         updateData.paymentType = billData.paymentType;
       }
-      if (billData.schedulePayment) {
-        updateData.schedulePayment = billData.schedulePayment;
+      // Only update schedulePayment if explicitly provided in the request
+      if ('schedulePayment' in req.body) {
+        updateData.schedulePayment = billData.schedulePayment || null;
+      } else {
+        // Determine final state using billData (validated request) OR originalBill
+        const finalPaymentType = billData.paymentType || originalBill[0].paymentType;
+        const finalCosts = billData.costs ? billData.costs.map((c: string) => parseFloat(c)) : originalBill[0].costs;
+        
+        // Clear schedulePayment for single payment recurrent bills
+        if (finalPaymentType === 'recurrent' && finalCosts && finalCosts.length === 1) {
+          updateData.schedulePayment = null;
+        }
       }
       if (billData.scheduleCustom) {
         updateData.scheduleCustom = billData.scheduleCustom;
