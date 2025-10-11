@@ -756,7 +756,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
           <ModularBillForm
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
-              setShowCreateDialog(false);
+              setTimeout(() => setShowCreateDialog(false), 100);
             }}
             onCancel={() => setShowCreateDialog(false)}
             buildingId={buildingId}
@@ -1064,8 +1064,8 @@ function BillCard({
           <ModularBillForm
             bill={bill}
             onSuccess={() => {
-              setShowEditDialog(false);
               onUpdate();
+              setTimeout(() => setShowEditDialog(false), 100);
             }}
             onCancel={() => setShowEditDialog(false)}
             buildingId={bill.buildingId}
