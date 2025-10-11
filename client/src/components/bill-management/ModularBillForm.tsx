@@ -164,6 +164,7 @@ type CustomPayment = {
 
 interface ModularBillFormProps {
   bill?: Bill | null;
+  isTemplate?: boolean; // If true, use bill data as template for new bill (don't update)
   onSuccess?: (billId: string, action: 'created' | 'updated') => void;
   onCancel?: () => void;
   buildingId?: string;
@@ -272,7 +273,7 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
   };
 }
 
-export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId }: ModularBillFormProps) {
+export default function ModularBillForm({ bill, isTemplate = false, onSuccess, onCancel, buildingId }: ModularBillFormProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -414,8 +415,8 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
         return;
       }
 
-      // Only auto-save if we're editing an existing bill
-      if (bill?.id) {
+      // Only auto-save if we're editing an existing bill (not creating from template)
+      if (bill?.id && !isTemplate) {
         // Map paymentCount + recurrence to paymentType for database
         let paymentType: 'unique' | 'recurrent';
         if (formData.recurrence) {
@@ -512,7 +513,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       setAutoSaveStatus('Save failed');
       setTimeout(() => setAutoSaveStatus(null), 3000);
     }
-  }, [bill?.id, buildingId, queryClient]);
+  }, [bill?.id, isTemplate, buildingId, queryClient]);
 
   // Debounced auto-save function with 1.5 second delay
   const debouncedAutoSave = useCallback((formData: BillFormData) => {
@@ -774,8 +775,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   // Create/Update bill mutation
   const billMutation = useMutation({
     mutationFn: async (data: BillFormData) => {
-      const endpoint = bill ? `/api/bills/${bill.id}` : '/api/bills';
-      const method = bill ? 'PUT' : 'POST';
+      // If isTemplate, always create new bill (POST), even if bill data is provided
+      const endpoint = (bill && !isTemplate) ? `/api/bills/${bill.id}` : '/api/bills';
+      const method = (bill && !isTemplate) ? 'PUT' : 'POST';
       
       // Map paymentCount + recurrence to paymentType for database
       let paymentType: 'unique' | 'recurrent';
@@ -954,9 +956,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       }
       toast({
         title: 'Success',
-        description: `Bill ${bill ? 'updated' : 'created'} successfully`,
+        description: `Bill ${(bill && !isTemplate) ? 'updated' : 'created'} successfully`,
       });
-      onSuccess?.(data.id, bill ? 'updated' : 'created');
+      onSuccess?.(data.id, (bill && !isTemplate) ? 'updated' : 'created');
     },
     onError: (error: any) => {
       toast({
@@ -1000,7 +1002,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
   };
 
   const handleDelete = () => {
-    if (!bill) return;
+    if (!bill || isTemplate) return; // Prevent deletion when creating from template
     
     if (confirm(`Are you sure you want to delete bill "${bill.title}"? This action cannot be undone.`)) {
       deleteBillMutation.mutate();
@@ -1111,7 +1113,7 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">
-          {bill ? t('bills.editBill') : t('bills.createNewBill')}
+          {isTemplate ? t('bills.createFromTemplate') : (bill ? t('bills.editBill') : t('bills.createNewBill'))}
         </h2>
         {aiExtractionData && (
           <Badge variant="secondary" className="flex items-center gap-1">
@@ -1722,9 +1724,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
 
           {/* Form Actions */}
           <div className="flex justify-between items-center">
-            {/* Delete button on the left (only for existing bills) */}
+            {/* Delete button on the left (only for existing bills, not templates) */}
             <div>
-              {bill && (
+              {bill && !isTemplate && (
                 <Button 
                   type="button" 
                   variant="destructive" 

@@ -1185,6 +1185,7 @@ export interface Translations {
   // Bills translations
   'bills.editBill': string;
   'bills.createNewBill': string;
+  'bills.createFromTemplate': string;
   'bills.aiExtracted': string;
   'bills.manualEntry': string;
   'bills.aiExtraction': string;
@@ -1543,6 +1544,7 @@ export const translations: Record<Language, Translations> = {
     // Bills form translations
     'bills.editBill': 'Edit Bill',
     'bills.createNewBill': 'Create New Bill',
+    'bills.createFromTemplate': 'Create Bill from Template',
     'bills.aiExtracted': 'AI Extracted',
     'bills.manualEntry': 'Manual Entry',
     'bills.aiExtraction': 'AI Extraction',
@@ -2756,6 +2758,7 @@ export const translations: Record<Language, Translations> = {
     // Bills form translations
     'bills.editBill': 'Modifier la facture',
     'bills.createNewBill': 'Créer une nouvelle facture',
+    'bills.createFromTemplate': 'Créer une facture à partir du modèle',
     'bills.aiExtracted': 'Extrait par IA',
     'bills.manualEntry': 'Saisie manuelle',
     'bills.aiExtraction': 'Extraction IA',
