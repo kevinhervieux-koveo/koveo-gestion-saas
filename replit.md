@@ -55,6 +55,7 @@ The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsi
 - **Code Consolidation**: Achieved through standardized form patterns, unified card components (`StandardCard`), and consolidated form hooks (`useStandardForm`).
 - **Query Optimization**: Eliminated N+1 patterns and improved data lookup speeds for user and document operations.
 - **Dropdown Organization**: All dropdown options are alphabetically sorted (based on English) for improved user experience, with 'other' kept at the end. This applies to bill categories, demand types, contact categories, and building types. Status and role enums maintain their logical workflow order.
+- **Testing Infrastructure**: Comprehensive Jest-based testing suite with 37+ unit tests for bills management, covering template workflow, auto-generation features, payment type mapping, and data validation. Test files located in `tests/unit/` and `tests/integration/` directories.
 
 ## External Dependencies
 - **@neondatabase/serverless**: Serverless PostgreSQL connector.
