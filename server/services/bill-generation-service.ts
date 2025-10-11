@@ -337,8 +337,10 @@ export class BillAutoGenerationService {
       return false;
     }
 
-    // Rule 2: Must have valid schedule
-    if (!bill.schedulePayment) {
+    // Rule 2: Must have valid schedule (or be single payment recurrent)
+    // Single payment recurrent bills (schedulePayment=null, costs.length=1) are treated as yearly
+    const isSinglePaymentRecurrent = !bill.schedulePayment && bill.costs && bill.costs.length === 1;
+    if (!bill.schedulePayment && !isSinglePaymentRecurrent) {
       return false;
     }
 
