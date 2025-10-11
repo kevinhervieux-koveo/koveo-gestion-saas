@@ -415,12 +415,10 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       if (bill?.id) {
         // Map paymentCount + recurrence to paymentType for database
         let paymentType: 'unique' | 'recurrent';
-        if (formData.paymentCount === '1') {
-          paymentType = 'unique';
-        } else if (formData.paymentCount === 'multiple' && formData.recurrence) {
-          paymentType = 'recurrent';
+        if (formData.recurrence) {
+          paymentType = 'recurrent';  // Auto-generation enabled for single or multiple payments
         } else {
-          paymentType = 'unique'; // multiple payments without recurrence
+          paymentType = 'unique';  // No auto-generation
         }
         
         // Calculate costs array based on payment structure (same logic as main submit)
@@ -772,12 +770,10 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
       
       // Map paymentCount + recurrence to paymentType for database
       let paymentType: 'unique' | 'recurrent';
-      if (data.paymentCount === '1') {
-        paymentType = 'unique';
-      } else if (data.paymentCount === 'multiple' && data.recurrence) {
-        paymentType = 'recurrent';
+      if (data.recurrence) {
+        paymentType = 'recurrent';  // Auto-generation enabled for single or multiple payments
       } else {
-        paymentType = 'unique'; // multiple payments without recurrence
+        paymentType = 'unique';  // No auto-generation
       }
       
       // Calculate costs array based on payment structure
@@ -1344,32 +1340,30 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
               )}
             />
 
-            {/* Recurrence Checkbox - Only visible when paymentCount is 'multiple' */}
-            {paymentCount === 'multiple' && (
-              <FormField
-                control={form.control}
-                name="recurrence"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        data-testid="checkbox-recurrence"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="font-normal cursor-pointer">
-                        {t('bills.recurrence')}
-                      </FormLabel>
-                      <FormDescription>
-                        {t('bills.recurrenceDescription')}
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            )}
+            {/* Recurrence Checkbox - Visible for both single and multiple payments */}
+            <FormField
+              control={form.control}
+              name="recurrence"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="checkbox-recurrence"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="font-normal cursor-pointer">
+                      {t('bills.recurrence')}
+                    </FormLabel>
+                    <FormDescription>
+                      {t('bills.recurrenceDescription')}
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
 
             {/* Payment Amount - Only for single payment */}
             {paymentCount === '1' && (
