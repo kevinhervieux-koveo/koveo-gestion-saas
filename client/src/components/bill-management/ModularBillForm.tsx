@@ -182,7 +182,7 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
     return {
       paymentCount: '1' as const,
       recurrence: false,
-      schedulePayment: 'monthly' as const,
+      schedulePayment: undefined,
       hasInitialPayment: false,
       recurringPaymentsEqual: true,
       singlePaymentAmount: '',
@@ -258,7 +258,7 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
   return {
     paymentCount,
     recurrence,
-    schedulePayment: bill.schedulePayment || 'monthly' as const,
+    schedulePayment: bill.schedulePayment as 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom' | undefined,
     hasInitialPayment,
     recurringPaymentsEqual,
     singlePaymentAmount,
@@ -460,9 +460,9 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
             .filter(d => d && d.trim() !== '');
         }
         
-        const billData = {
+        const billData: any = {
           ...formData,
-          paymentType, // Use the mapped paymentType for the database
+          paymentType,
           buildingId: buildingId || bill.buildingId,
           totalAmount: calculatedTotalAmount,
           costs,
@@ -475,6 +475,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
             customPayments: formData.customPayments,
           },
         };
+        
+        if (formData.paymentCount === 'multiple') {
+          billData.schedulePayment = formData.schedulePayment;
+        } else {
+          delete billData.schedulePayment;
+        }
 
         const response = await apiRequest('PUT', `/api/bills/${bill.id}`, billData);
         
@@ -823,14 +829,13 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
           .filter(d => d && d.trim() !== '');
       }
       
-      const billData = {
+      const billData: any = {
         ...data,
-        paymentType, // Use the mapped paymentType for the database
+        paymentType,
         buildingId: buildingId || bill?.buildingId,
         totalAmount: calculatedTotalAmount,
         costs,
-        scheduleCustom, // Send custom dates to backend for persistence
-        // Include the new payment structure fields
+        scheduleCustom,
         paymentStructure: {
           hasInitialPayment: data.hasInitialPayment,
           recurringPaymentsEqual: data.recurringPaymentsEqual,
@@ -839,6 +844,12 @@ export default function ModularBillForm({ bill, onSuccess, onCancel, buildingId 
           customPayments: data.customPayments,
         },
       };
+      
+      if (data.paymentCount === 'multiple') {
+        billData.schedulePayment = data.schedulePayment;
+      } else {
+        delete billData.schedulePayment;
+      }
 
       const response = await apiRequest(method, endpoint, billData);
       const billResponse = await response.json();
