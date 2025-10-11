@@ -201,8 +201,13 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
   let recurrence = false;
   
   if (paymentType === 'recurrent') {
-    paymentCount = 'multiple';
     recurrence = true;
+    // Check costs length to determine if it's single or multiple payment
+    if (costs.length === 1) {
+      paymentCount = '1';
+    } else {
+      paymentCount = 'multiple';
+    }
   } else if (paymentType === 'unique' && costs.length > 1) {
     paymentCount = 'multiple';
     recurrence = false;
@@ -216,8 +221,8 @@ function parseBillPaymentData(bill: Bill | null | undefined) {
   let recurringPaymentAmount = '';
   let customPayments: CustomPayment[] = [];
 
-  // Handle single payment case
-  if (paymentType === 'unique' && costs.length === 1) {
+  // Handle single payment case (both unique and recurrent)
+  if (costs.length === 1) {
     singlePaymentAmount = costs[0].toString();
   } else if (paymentType === 'recurrent' && costs.length > 0) {
     // Determine payment structure based on costs array
