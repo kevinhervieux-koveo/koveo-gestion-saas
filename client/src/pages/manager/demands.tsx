@@ -137,10 +137,7 @@ export default function ManagerDemandsPage() {
     mutationFn: async ({ demandIds, status }: { demandIds: string[]; status: string }) => {
       const results = await Promise.all(
         demandIds.map(id =>
-          apiRequest(`/api/demands/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ status }),
-          })
+          apiRequest('PATCH', `/api/demands/${id}`, { status })
         )
       );
       return results;
@@ -166,9 +163,7 @@ export default function ManagerDemandsPage() {
     mutationFn: async (demandIds: string[]) => {
       const results = await Promise.all(
         demandIds.map(id =>
-          apiRequest(`/api/demands/${id}`, {
-            method: 'DELETE',
-          })
+          apiRequest('DELETE', `/api/demands/${id}`)
         )
       );
       return results;
@@ -506,12 +501,14 @@ export default function ManagerDemandsPage() {
             )}
           </div>
 
-          <DemandDetailsPopup
-            demand={selectedDemand}
-            isOpen={isDetailsOpen}
-            onClose={() => setIsDetailsOpen(false)}
-            onDemandUpdated={handleDemandUpdated}
-          />
+          {selectedDemand && (
+            <DemandDetailsPopup
+              demand={selectedDemand as any}
+              isOpen={isDetailsOpen}
+              onClose={() => setIsDetailsOpen(false)}
+              onDemandUpdated={handleDemandUpdated}
+            />
+          )}
 
           <AlertDialog open={showBulkStatusDialog} onOpenChange={setShowBulkStatusDialog}>
             <AlertDialogContent>
