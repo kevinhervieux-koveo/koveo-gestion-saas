@@ -403,11 +403,6 @@ export default function ManagerDemandsPage() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          <div>
-            <h2 className='text-2xl font-bold'>{t('allDemands')}</h2>
-            <p className='text-muted-foreground'>{t('reviewManageDemands')}</p>
-          </div>
-
           {selectedDemands.size > 0 && (
             <Card className='bg-primary/5 border-primary'>
               <CardContent className='py-3'>
