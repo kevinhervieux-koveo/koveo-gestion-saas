@@ -279,7 +279,8 @@ export default function ManagerDemandsPage() {
 
     return (
       <Card
-        className={`transition-all ${isSelected ? 'ring-2 ring-primary' : ''}`}
+        className={`transition-all cursor-pointer ${isSelected ? 'ring-2 ring-primary' : ''}`}
+        onClick={() => handleDemandClick(demand)}
         data-testid={`card-demand-${demand.id}`}
       >
         <CardHeader className='pb-3'>
@@ -291,7 +292,7 @@ export default function ManagerDemandsPage() {
               data-testid={`checkbox-demand-${demand.id}`}
               onClick={(e) => e.stopPropagation()}
             />
-            <div className='flex-1 cursor-pointer' onClick={() => handleDemandClick(demand)}>
+            <div className='flex-1'>
               <div className='flex items-center justify-between mb-2'>
                 <div className='flex items-center gap-2'>
                   <Badge variant='outline'>{getTypeLabel(demand.type)}</Badge>
