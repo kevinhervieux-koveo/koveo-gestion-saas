@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CollapsibleFilters } from '@/components/ui/collapsible-filters';
 import {
   Select,
   SelectContent,
@@ -447,86 +448,182 @@ export default function ManagerDemandsPage() {
             </Card>
           )}
 
-          <div className='space-y-4'>
-            <div className='flex items-center gap-4 flex-wrap'>
-              <div className='relative flex-1 max-w-sm'>
-                <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
-                <Input
-                  placeholder={t('searchDemands')}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className='pl-10'
-                  data-testid='input-search-demands'
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className='w-40' data-testid='select-status-filter'>
-                  <SelectValue placeholder={t('status')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>{t('allStatus')}</SelectItem>
-                  <SelectItem value='cancelled'>{t('cancelled')}</SelectItem>
-                  <SelectItem value='completed'>{t('completed')}</SelectItem>
-                  <SelectItem value='in_progress'>{t('inProgress')}</SelectItem>
-                  <SelectItem value='submitted'>{t('submitted')}</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className='w-40' data-testid='select-type-filter'>
-                  <SelectValue placeholder={t('type')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>{t('allTypes')}</SelectItem>
-                  <SelectItem value='maintenance'>{t('maintenanceType')}</SelectItem>
-                  <SelectItem value='complaint'>{t('complaintType')}</SelectItem>
-                  <SelectItem value='information'>{t('informationType')}</SelectItem>
-                  <SelectItem value='other'>{t('otherType')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className='flex items-center gap-4 flex-wrap'>
-              <Select value={buildingFilter} onValueChange={setBuildingFilter}>
-                <SelectTrigger className='w-56' data-testid='select-building-filter'>
-                  <SelectValue placeholder='All buildings' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All buildings</SelectItem>
-                  {uniqueBuildings.map((building) => (
-                    <SelectItem key={building.id} value={building.id}>
-                      {building.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={residenceFilter} onValueChange={setResidenceFilter}>
-                <SelectTrigger className='w-56' data-testid='select-residence-filter'>
-                  <SelectValue placeholder='All residences' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All residences</SelectItem>
-                  {uniqueResidences.map((residence) => (
-                    <SelectItem key={residence.id} value={residence.id}>
-                      {residence.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={creatorFilter} onValueChange={setCreatorFilter}>
-                <SelectTrigger className='w-56' data-testid='select-creator-filter'>
-                  <SelectValue placeholder='All creators' />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value='all'>All creators</SelectItem>
-                  {uniqueCreators.map((creator) => (
-                    <SelectItem key={creator.id} value={creator.id}>
-                      {creator.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <CollapsibleFilters
+            title={t('filters')}
+            defaultExpanded={false}
+            filters={[
+              {
+                id: 'search',
+                label: t('searchDemands'),
+                type: 'custom',
+                customComponent: (
+                  <Input
+                    placeholder={t('searchDemands')}
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    data-testid='input-search-demands'
+                  />
+                ),
+                value: search,
+                onChange: (value) => setSearch(value as string),
+              },
+              {
+                id: 'status',
+                label: t('status'),
+                type: 'custom',
+                customComponent: (
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger data-testid='select-status-filter'>
+                      <SelectValue placeholder={t('allStatus')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>{t('allStatus')}</SelectItem>
+                      <SelectItem value='cancelled'>{t('cancelled')}</SelectItem>
+                      <SelectItem value='completed'>{t('completed')}</SelectItem>
+                      <SelectItem value='in_progress'>{t('inProgress')}</SelectItem>
+                      <SelectItem value='submitted'>{t('submitted')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ),
+                value: statusFilter,
+                onChange: (value) => setStatusFilter(value as string),
+              },
+              {
+                id: 'type',
+                label: t('type'),
+                type: 'custom',
+                customComponent: (
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger data-testid='select-type-filter'>
+                      <SelectValue placeholder={t('allTypes')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>{t('allTypes')}</SelectItem>
+                      <SelectItem value='maintenance'>{t('maintenanceType')}</SelectItem>
+                      <SelectItem value='complaint'>{t('complaintType')}</SelectItem>
+                      <SelectItem value='information'>{t('informationType')}</SelectItem>
+                      <SelectItem value='other'>{t('otherType')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ),
+                value: typeFilter,
+                onChange: (value) => setTypeFilter(value as string),
+              },
+              {
+                id: 'building',
+                label: 'Building',
+                type: 'custom',
+                customComponent: (
+                  <Select value={buildingFilter} onValueChange={setBuildingFilter}>
+                    <SelectTrigger data-testid='select-building-filter'>
+                      <SelectValue placeholder='All buildings' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>All buildings</SelectItem>
+                      {uniqueBuildings.map((building) => (
+                        <SelectItem key={building.id} value={building.id}>
+                          {building.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ),
+                value: buildingFilter,
+                onChange: (value) => setBuildingFilter(value as string),
+              },
+              {
+                id: 'residence',
+                label: 'Residence',
+                type: 'custom',
+                customComponent: (
+                  <Select value={residenceFilter} onValueChange={setResidenceFilter}>
+                    <SelectTrigger data-testid='select-residence-filter'>
+                      <SelectValue placeholder='All residences' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>All residences</SelectItem>
+                      {uniqueResidences.map((residence) => (
+                        <SelectItem key={residence.id} value={residence.id}>
+                          {residence.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ),
+                value: residenceFilter,
+                onChange: (value) => setResidenceFilter(value as string),
+              },
+              {
+                id: 'creator',
+                label: 'Creator',
+                type: 'custom',
+                customComponent: (
+                  <Select value={creatorFilter} onValueChange={setCreatorFilter}>
+                    <SelectTrigger data-testid='select-creator-filter'>
+                      <SelectValue placeholder='All creators' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>All creators</SelectItem>
+                      {uniqueCreators.map((creator) => (
+                        <SelectItem key={creator.id} value={creator.id}>
+                          {creator.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ),
+                value: creatorFilter,
+                onChange: (value) => setCreatorFilter(value as string),
+              },
+            ]}
+            activeFilters={[
+              ...(search ? [{
+                id: 'search',
+                label: t('searchDemands'),
+                displayValue: `"${search}"`
+              }] : []),
+              ...(statusFilter !== 'all' ? [{
+                id: 'status',
+                label: t('status'),
+                displayValue: statusFilter === 'in_progress' ? t('inProgress') : 
+                             statusFilter === 'cancelled' ? t('cancelled') :
+                             statusFilter === 'completed' ? t('completed') :
+                             statusFilter === 'submitted' ? t('submitted') : statusFilter
+              }] : []),
+              ...(typeFilter !== 'all' ? [{
+                id: 'type',
+                label: t('type'),
+                displayValue: typeFilter === 'maintenance' ? t('maintenanceType') :
+                             typeFilter === 'complaint' ? t('complaintType') :
+                             typeFilter === 'information' ? t('informationType') :
+                             typeFilter === 'other' ? t('otherType') : typeFilter
+              }] : []),
+              ...(buildingFilter !== 'all' ? [{
+                id: 'building',
+                label: 'Building',
+                displayValue: uniqueBuildings.find(b => b.id === buildingFilter)?.name || buildingFilter
+              }] : []),
+              ...(residenceFilter !== 'all' ? [{
+                id: 'residence',
+                label: 'Residence',
+                displayValue: uniqueResidences.find(r => r.id === residenceFilter)?.name || residenceFilter
+              }] : []),
+              ...(creatorFilter !== 'all' ? [{
+                id: 'creator',
+                label: 'Creator',
+                displayValue: uniqueCreators.find(c => c.id === creatorFilter)?.name || creatorFilter
+              }] : []),
+            ]}
+            onReset={() => {
+              setSearch('');
+              setStatusFilter('all');
+              setTypeFilter('all');
+              setBuildingFilter('all');
+              setResidenceFilter('all');
+              setCreatorFilter('all');
+            }}
+            resetLabel={t('clearFilters')}
+          />
 
           <div className='space-y-4'>
             <div className='flex items-center gap-3 px-1'>
