@@ -60,7 +60,7 @@ The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsi
 - **Security**: Law 25 compliant enhancements including secure database connections, malware detection for uploads, input sanitization, SSRF protection, and secure error handling.
 - **Code Consolidation**: Achieved through standardized form patterns, unified card components (`StandardCard`), and consolidated form hooks (`useStandardForm`).
 - **Query Optimization**: Eliminated N+1 patterns and improved data lookup speeds for user and document operations.
-- **Dropdown Organization**: All dropdown options are alphabetically sorted (based on English) for improved user experience, with 'other' kept at the end. This applies to bill categories, demand types, contact categories, and building types. Status and role enums maintain their logical workflow order.
+- **Filter Organization**: All filter dropdown options are alphabetically sorted (based on English) for improved user experience across the entire application. This applies to all filters including status, type, category, building, residence, creator, and any other filter options. The 'other' option, when present, is kept at the end after all alphabetically sorted options.
 - **Testing Infrastructure**: Comprehensive Jest-based testing suite with 37+ unit tests for bills management, covering template workflow, auto-generation features, payment type mapping, and data validation. Test files located in `tests/unit/` and `tests/integration/` directories.
 
 ## External Dependencies

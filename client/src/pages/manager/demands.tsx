@@ -603,9 +603,9 @@ export default function ManagerDemandsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value='all'>{t('allTypes')}</SelectItem>
-                      <SelectItem value='maintenance'>{t('maintenanceType')}</SelectItem>
                       <SelectItem value='complaint'>{t('complaintType')}</SelectItem>
                       <SelectItem value='information'>{t('informationType')}</SelectItem>
+                      <SelectItem value='maintenance'>{t('maintenanceType')}</SelectItem>
                       <SelectItem value='other'>{t('otherType')}</SelectItem>
                     </SelectContent>
                   </Select>
