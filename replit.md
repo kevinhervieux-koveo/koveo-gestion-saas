@@ -12,6 +12,12 @@ Working Methodology: **CRITICAL** - Always restart the "Start application" workf
 ### UI/UX Decisions
 The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsive design. Forms feature single scroll behavior. Lucide React components are used for icons. A Hierarchical Navigation HOC (`withHierarchicalSelection`) provides intelligent auto-forwarding based on user access and implements role-based filtering for residents/tenants (server-side) and managers/admins (client-side).
 
+**Cascading Filters (Application-Wide Rule)**: All filter dropdowns display only values that exist in the currently filtered dataset. This creates an intelligent filtering experience where each filter shows only options that would return results based on other active filters. Implementation details:
+- Each filter dropdown is populated from the currently filtered data, not the complete dataset
+- Dependent filters automatically reset to 'all' when their selected value is no longer available after parent filter changes
+- Example: In demands management, the Residence filter only shows residences with demands matching the current Status, Type, and Building filters
+- This pattern is implemented using cascading useMemo hooks with proper dependency tracking
+
 ### Technical Implementations
 - **Frontend**: React 18, TypeScript, Vite, Wouter for routing, TanStack Query for state management, and React Hook Form with Zod for validation.
 - **Backend**: Node.js, Express.js, TypeScript (ES modules) providing a RESTful API.

@@ -191,36 +191,121 @@ export default function ManagerDemandsPage() {
 
   const demandsArray = Array.isArray(demands) ? demands : [];
 
+  // Cascading filter options - each filter only shows values available in the current filtered set
+  // Buildings: filtered by search, status, type only
+  const uniqueBuildings = useMemo(() => {
+    let filtered = demandsArray.filter((d: Demand) =>
+      ['submitted', 'in_progress', 'completed', 'cancelled'].includes(d.status)
+    );
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter((d: Demand) =>
+        d.description?.toLowerCase().includes(searchLower) ||
+        d.type?.toLowerCase().includes(searchLower) ||
+        d.submitter?.firstName?.toLowerCase().includes(searchLower) ||
+        d.submitter?.lastName?.toLowerCase().includes(searchLower) ||
+        d.building?.name?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((d: Demand) => d.status === statusFilter);
+    }
+
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter((d: Demand) => d.type === typeFilter);
+    }
+
+    const buildingsMap = new Map<string, { id: string; name: string }>();
+    filtered.forEach((d: Demand) => {
+      if (d.building) {
+        buildingsMap.set(d.building.id, { id: d.building.id, name: d.building.name });
+      }
+    });
+    return Array.from(buildingsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [demandsArray, search, statusFilter, typeFilter]);
+
+  // Residences: filtered by search, status, type, and building
+  const uniqueResidences = useMemo(() => {
+    let filtered = demandsArray.filter((d: Demand) =>
+      ['submitted', 'in_progress', 'completed', 'cancelled'].includes(d.status)
+    );
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter((d: Demand) =>
+        d.description?.toLowerCase().includes(searchLower) ||
+        d.type?.toLowerCase().includes(searchLower) ||
+        d.submitter?.firstName?.toLowerCase().includes(searchLower) ||
+        d.submitter?.lastName?.toLowerCase().includes(searchLower) ||
+        d.building?.name?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((d: Demand) => d.status === statusFilter);
+    }
+
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter((d: Demand) => d.type === typeFilter);
+    }
+
+    if (buildingFilter !== 'all') {
+      filtered = filtered.filter((d: Demand) => d.buildingId === buildingFilter);
+    }
+
+    const residencesMap = new Map<string, { id: string; name: string }>();
+    filtered.forEach((d: Demand) => {
+      if (d.residence) {
+        residencesMap.set(d.residence.id, { id: d.residence.id, name: d.residence.unitNumber });
+      }
+    });
+    return Array.from(residencesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [demandsArray, search, statusFilter, typeFilter, buildingFilter]);
+
+  // Creators: filtered by search, status, type, building, and residence
   const uniqueCreators = useMemo(() => {
+    let filtered = demandsArray.filter((d: Demand) =>
+      ['submitted', 'in_progress', 'completed', 'cancelled'].includes(d.status)
+    );
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filtered = filtered.filter((d: Demand) =>
+        d.description?.toLowerCase().includes(searchLower) ||
+        d.type?.toLowerCase().includes(searchLower) ||
+        d.submitter?.firstName?.toLowerCase().includes(searchLower) ||
+        d.submitter?.lastName?.toLowerCase().includes(searchLower) ||
+        d.building?.name?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((d: Demand) => d.status === statusFilter);
+    }
+
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter((d: Demand) => d.type === typeFilter);
+    }
+
+    if (buildingFilter !== 'all') {
+      filtered = filtered.filter((d: Demand) => d.buildingId === buildingFilter);
+    }
+
+    if (residenceFilter !== 'all') {
+      filtered = filtered.filter((d: Demand) => d.residenceId === residenceFilter);
+    }
+
     const creatorsMap = new Map<string, { id: string; name: string }>();
-    demandsArray.forEach((d: Demand) => {
+    filtered.forEach((d: Demand) => {
       if (d.submitter) {
         const fullName = `${d.submitter.firstName} ${d.submitter.lastName}`;
         creatorsMap.set(d.submitter.id, { id: d.submitter.id, name: fullName });
       }
     });
     return Array.from(creatorsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [demandsArray]);
-
-  const uniqueBuildings = useMemo(() => {
-    const buildingsMap = new Map<string, { id: string; name: string }>();
-    demandsArray.forEach((d: Demand) => {
-      if (d.building) {
-        buildingsMap.set(d.building.id, { id: d.building.id, name: d.building.name });
-      }
-    });
-    return Array.from(buildingsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [demandsArray]);
-
-  const uniqueResidences = useMemo(() => {
-    const residencesMap = new Map<string, { id: string; name: string }>();
-    demandsArray.forEach((d: Demand) => {
-      if (d.residence) {
-        residencesMap.set(d.residence.id, { id: d.residence.id, name: d.residence.unitNumber });
-      }
-    });
-    return Array.from(residencesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [demandsArray]);
+  }, [demandsArray, search, statusFilter, typeFilter, buildingFilter, residenceFilter]);
 
   const filteredDemands = useMemo(() => {
     let filtered = demandsArray.filter((d: Demand) =>
@@ -277,6 +362,25 @@ export default function ManagerDemandsPage() {
   useEffect(() => {
     setCurrentPage(1);
   }, [search, statusFilter, typeFilter, buildingFilter, residenceFilter, creatorFilter]);
+
+  // Auto-reset dependent filters when parent filter changes and selected value is no longer available
+  useEffect(() => {
+    if (buildingFilter !== 'all' && !uniqueBuildings.find(b => b.id === buildingFilter)) {
+      setBuildingFilter('all');
+    }
+  }, [uniqueBuildings, buildingFilter]);
+
+  useEffect(() => {
+    if (residenceFilter !== 'all' && !uniqueResidences.find(r => r.id === residenceFilter)) {
+      setResidenceFilter('all');
+    }
+  }, [uniqueResidences, residenceFilter]);
+
+  useEffect(() => {
+    if (creatorFilter !== 'all' && !uniqueCreators.find(c => c.id === creatorFilter)) {
+      setCreatorFilter('all');
+    }
+  }, [uniqueCreators, creatorFilter]);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
