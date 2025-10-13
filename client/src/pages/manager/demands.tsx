@@ -615,15 +615,15 @@ export default function ManagerDemandsPage() {
               },
               {
                 id: 'building',
-                label: 'Building',
+                label: t('building'),
                 type: 'custom',
                 customComponent: (
                   <Select value={buildingFilter} onValueChange={setBuildingFilter}>
                     <SelectTrigger data-testid='select-building-filter'>
-                      <SelectValue placeholder='All buildings' />
+                      <SelectValue placeholder={t('allBuildings')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All buildings</SelectItem>
+                      <SelectItem value='all'>{t('allBuildings')}</SelectItem>
                       {uniqueBuildings.map((building) => (
                         <SelectItem key={building.id} value={building.id}>
                           {building.name}
@@ -637,15 +637,15 @@ export default function ManagerDemandsPage() {
               },
               {
                 id: 'residence',
-                label: 'Residence',
+                label: t('residence'),
                 type: 'custom',
                 customComponent: (
                   <Select value={residenceFilter} onValueChange={setResidenceFilter}>
                     <SelectTrigger data-testid='select-residence-filter'>
-                      <SelectValue placeholder='All residences' />
+                      <SelectValue placeholder={t('allResidences')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All residences</SelectItem>
+                      <SelectItem value='all'>{t('allResidences')}</SelectItem>
                       {uniqueResidences.map((residence) => (
                         <SelectItem key={residence.id} value={residence.id}>
                           {residence.name}
@@ -659,15 +659,15 @@ export default function ManagerDemandsPage() {
               },
               {
                 id: 'creator',
-                label: 'Creator',
+                label: t('creator'),
                 type: 'custom',
                 customComponent: (
                   <Select value={creatorFilter} onValueChange={setCreatorFilter}>
                     <SelectTrigger data-testid='select-creator-filter'>
-                      <SelectValue placeholder='All creators' />
+                      <SelectValue placeholder={t('allCreators')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='all'>All creators</SelectItem>
+                      <SelectItem value='all'>{t('allCreators')}</SelectItem>
                       {uniqueCreators.map((creator) => (
                         <SelectItem key={creator.id} value={creator.id}>
                           {creator.name}
@@ -704,17 +704,17 @@ export default function ManagerDemandsPage() {
               }] : []),
               ...(buildingFilter !== 'all' ? [{
                 id: 'building',
-                label: 'Building',
+                label: t('building'),
                 displayValue: uniqueBuildings.find(b => b.id === buildingFilter)?.name || buildingFilter
               }] : []),
               ...(residenceFilter !== 'all' ? [{
                 id: 'residence',
-                label: 'Residence',
+                label: t('residence'),
                 displayValue: uniqueResidences.find(r => r.id === residenceFilter)?.name || residenceFilter
               }] : []),
               ...(creatorFilter !== 'all' ? [{
                 id: 'creator',
-                label: 'Creator',
+                label: t('creator'),
                 displayValue: uniqueCreators.find(c => c.id === creatorFilter)?.name || creatorFilter
               }] : []),
             ]}
@@ -741,7 +741,7 @@ export default function ManagerDemandsPage() {
                 onCheckedChange={handleSelectAll}
                 data-testid='checkbox-select-all'
               />
-              <span className='text-sm font-medium'>Select all</span>
+              <span className='text-sm font-medium'>{t('selectAll')}</span>
             </div>
 
             {paginatedDemands.length === 0 ? (

@@ -180,6 +180,7 @@ export interface Translations {
   usersList: string;
   user: string;
   selectAllUsers: string;
+  selectAll: string;
   lastLogin: string;
   joinedDate: string;
   userActions: string;
@@ -324,6 +325,9 @@ export interface Translations {
   welcome: string;
   building2: string;
   residence: string;
+  allResidences: string;
+  creator: string;
+  allCreators: string;
   selectABuilding: string;
   address: string;
   floor: string;
@@ -1434,6 +1438,7 @@ export const translations: Record<Language, Translations> = {
     usersList: 'Users List',
     user: 'User',
     selectAllUsers: 'Select All Users',
+    selectAll: 'Select all',
     lastLogin: 'Last Login',
     joinedDate: 'Joined Date',
     userActions: 'User Actions',
@@ -1661,6 +1666,9 @@ export const translations: Record<Language, Translations> = {
     welcome: 'Welcome',
     building2: 'Building',
     residence: 'Residence',
+    allResidences: 'All residences',
+    creator: 'Creator',
+    allCreators: 'All creators',
     selectABuilding: 'Select a building',
     address: 'Address',
     floor: 'Floor',
@@ -2670,6 +2678,7 @@ export const translations: Record<Language, Translations> = {
     usersList: 'Liste des utilisateurs',
     user: 'Utilisateur',
     selectAllUsers: 'Sélectionner tous les utilisateurs',
+    selectAll: 'Tout sélectionner',
     lastLogin: 'Dernière connexion',
     userActions: 'Actions utilisateur',
     actions: 'Actions',
@@ -2871,6 +2880,9 @@ export const translations: Record<Language, Translations> = {
     welcome: 'Bienvenue',
     building2: 'Bâtiment',
     residence: 'Résidence',
+    allResidences: 'Toutes les résidences',
+    creator: 'Créateur',
+    allCreators: 'Tous les créateurs',
     selectABuilding: 'Sélectionner un bâtiment',
     address: 'Adresse',
     floor: 'Étage',
