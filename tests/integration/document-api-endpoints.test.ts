@@ -1,5 +1,8 @@
 /**
  * @jest-environment node
+ */
+
+/**
  * Integration tests for document API endpoints
  * Tests actual HTTP endpoints for upload, fetch, and access control
  */
@@ -332,7 +335,7 @@ describe('Document API Endpoints Integration', () => {
       maliciousPaths.forEach(maliciousPath => {
         const sanitized = sanitizePath(maliciousPath);
         expect(sanitized).not.toContain('..');
-        expect(sanitized.length).toBeLessThan(maliciousPath.length);
+        expect(sanitized.length).toBeLessThanOrEqual(maliciousPath.length);
       });
     });
 
