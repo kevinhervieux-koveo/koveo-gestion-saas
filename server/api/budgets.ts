@@ -29,8 +29,8 @@ const debugLog = (endpoint: string, data: any) => {
 const forecastInputSchema = z.object({
   bankAccountStartAmount: z.coerce.number().optional(),
   bankAccountMinimums: z.coerce.number().optional(),
-  generalInflationRate: z.coerce.number().min(0).max(100).optional(),
-  revenueInflationRate: z.coerce.number().min(0).max(100).optional(),
+  generalInflationRate: z.coerce.number().min(-100).max(100).optional(),
+  revenueInflationRate: z.coerce.number().min(-100).max(100).optional(),
   unplannedBillsAmount: z.coerce.number().min(0).optional(),
   // Time window parameters
   viewType: z.enum(['month', 'year']).optional(),
@@ -778,12 +778,14 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         )
       );
 
-    // Fetch unique bills for Bills Configuration display count
+    // Fetch unique bills for Bills Configuration display count and forecast calculations
     const uniqueBills = await db
       .select({
         id: bills.id,
         category: bills.category,
         status: bills.status,
+        startDate: bills.startDate,
+        totalAmount: bills.totalAmount,
       })
       .from(bills)
       .where(
@@ -904,6 +906,11 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     // Total baseline income (for backward compatibility and fallback)
     const totalBaselineIncome = monthlyFeesRevenue + otherMonthlyIncome;
     
+    // Apply fallback to otherMonthlyIncome if no revenue exists (for forecast calculations)
+    if (totalBaselineIncome === 0) {
+      otherMonthlyIncome = 50000; // Default monthly income when no data exists
+    }
+    
     // Use fallback only if no residence or budget revenue exists
     const monthlyBaselineIncome = totalBaselineIncome > 0 ? totalBaselineIncome : 50000;
 
@@ -965,8 +972,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     });
 
     // Calculate time window for forecast based on user selection
-    const effectiveViewType = viewType || 'month';
-    const effectivePeriodLength = periodLength || 12; // Default to 12 months
+    // Default to 25 years (300 months) if no parameters provided
+    const effectiveViewType = viewType || 'year';
+    const effectivePeriodLength = periodLength || 25; // Default to 25 years
     const effectiveStartYear = startYear || latestYear;
     const effectiveStartMonth = startMonth || 1; // Default to January
     
@@ -1123,10 +1131,22 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       // Apply inflation to recurring expenses
       const inflatedRecurringExpenses = monthlyRecurringExpenses * Math.pow(1 + generalInflation, yearsElapsed);
 
-      // Calculate unique bills payments for this month
+      // Calculate unique bills for this month
       let monthlyUniqueBillsPayments = 0;
       
-      // Get unique bills payments that are due this month
+      // Check if any unique bills are due this month (based on startDate)
+      uniqueBills.forEach((uniqueBill) => {
+        const billDate = new Date(uniqueBill.startDate);
+        if (billDate.getFullYear() === currentYear && billDate.getMonth() === currentMonth - 1) {
+          // Add unique bill cost when its startDate matches the forecast month
+          const billAmount = parseFloat(uniqueBill.totalAmount || '0');
+          if (Number.isFinite(billAmount)) {
+            monthlyUniqueBillsPayments += billAmount;
+          }
+        }
+      });
+      
+      // Also get unique bills payments from the payments table (for additional tracking)
       const uniqueBillsPayments = await db
         .select({
           amount: payments.amount,
@@ -1146,10 +1166,16 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
           )
         );
       
-      // Sum up unique bills payments for this month
-      monthlyUniqueBillsPayments = uniqueBillsPayments.reduce((total, payment) => {
+      // Add payments from payments table (if not already counted via startDate)
+      const paymentsAmount = uniqueBillsPayments.reduce((total, payment) => {
         return total + parseFloat(payment.amount);
       }, 0);
+      
+      // Only add payments if we didn't already add via startDate
+      // This prevents double-counting
+      if (monthlyUniqueBillsPayments === 0) {
+        monthlyUniqueBillsPayments = paymentsAmount;
+      }
 
       // Check if unplanned bills should be applied based on start date
       let appliedUnplannedBills = 0;
@@ -1272,11 +1298,18 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
 
       // Determine status based on final balance
       let status = 'green';
-      // Fix: Use proper number comparison to avoid NaN issues
-      if (Number.isFinite(minimumFund) && finalBalance < minimumFund) {
+      // For the first month, also check if we started with negative balance
+      if (monthIndex === 0 && periodStartingBalance < 0) {
+        status = 'red';
+      }
+      // Check for negative balance (red status)
+      else if (finalBalance < 0) {
+        status = 'red';
+      }
+      // Then check if below minimum fund (yellow status)
+      else if (Number.isFinite(minimumFund) && finalBalance < minimumFund) {
         status = 'yellow';
       }
-      // Balance should never be red now since we inject capital investment
 
       // Add to forecast data
       forecastData.push({
@@ -1285,6 +1318,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         period: `${currentYear}-${String(currentMonth).padStart(2, '0')}`, // Frontend expects this format
         revenue: Math.round(totalRevenue * 100) / 100,
         spending: Math.round(totalSpending * 100) / 100,
+        netCashFlow: Math.round((totalRevenue - totalSpending) * 100) / 100, // Net cash flow for the period
         plannedInvestments: Math.round(plannedInvestments * 100) / 100, // User-created investments
         capitalInvestment: Math.round(autoGeneratedInvestment * 100) / 100, // Auto-generated investments
         autoGeneratedInvestment: Math.round(autoGeneratedInvestment * 100) / 100, // Frontend expects this field name
@@ -1294,6 +1328,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
         startingBalance: Math.round(periodStartingBalance * 100) / 100, // Balance at start of period
         status,
         inflatedIncome: Math.round(inflatedIncome * 100) / 100,
+        inflatedExpenses: Math.round(inflatedRecurringExpenses * 100) / 100, // Alias for backward compatibility
         inflatedRecurringExpenses: Math.round(inflatedRecurringExpenses * 100) / 100,
         appliedUnplannedBills: Math.round(appliedUnplannedBills * 100) / 100,
         monthlyUniqueBillsPayments: Math.round(monthlyUniqueBillsPayments * 100) / 100,
@@ -1308,10 +1343,10 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       startingBalance: startAmount,
       minimumRequirement: minimumRequirement,
       minimumFund, // Keep for backward compatibility
-      // CORRECTED: Return the properly converted decimal rates as percentages for display
-      generalInflationRate: Math.round(generalInflation * 100) / 100, // Round to 2 decimal places
-      revenueGrowthRate: Math.round(revenueInflation * 100) / 100,
-      revenueInflationRate: Math.round(revenueInflation * 100) / 100, // Keep for backward compatibility
+      // CORRECTED: Return the original percentage values (not converted decimals)
+      generalInflationRate: rawGeneralInflationRate, // Return as percentage (e.g., 3.5)
+      revenueGrowthRate: requestRevenueInflationRate, // Return as percentage (e.g., 2.8)
+      revenueInflationRate: requestRevenueInflationRate, // Keep for backward compatibility
       revenueGrowthRateSource: revenueInflationSource,
       baselineMonthlyIncome: monthlyBaselineIncome,
       baselineMonthlyExpenses: monthlyRecurringCosts,
