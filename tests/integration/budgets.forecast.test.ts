@@ -4,39 +4,64 @@
  */
 
 import request from 'supertest';
-import express, { type Request, type Response, type NextFunction } from 'express';
+import express, { type Request, type Response, type NextFunction, type RequestHandler } from 'express';
 import session from 'express-session';
 import { describe, it, expect, beforeEach, afterEach, jest, beforeAll } from '@jest/globals';
 
-// Define authenticated user type based on schema
-interface AuthenticatedUser {
+// Import the actual AuthenticatedUser type from server
+import type { AuthenticatedUser } from '../../server/rbac';
+
+// Define specific types for mock data
+interface MockBuilding {
   id: string;
-  role: 'admin' | 'manager' | 'tenant' | 'resident' | 'demo_manager' | 'demo_tenant' | 'demo_resident';
-  organizations?: string[];
-  email?: string;
-  username?: string;
-  firstName?: string;
-  lastName?: string;
+  name: string;
+  bankAccountStartAmount: string;
+  bankAccountMinimums: string;
+  generalInflationRate: string;
+  revenueInflationRate: string;
 }
 
-// Extend Express Request type to include user property
-declare global {
-  namespace Express {
-    interface Request {
-      user?: AuthenticatedUser;
-    }
-  }
+interface MockBill {
+  id: string;
+  category: string;
+  costs: string[];
+  schedulePayment: 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+  startDate: Date;
+  endDate: Date | null;
+}
+
+interface MockUniqueBill {
+  startDate: Date;
+  totalAmount: string;
+  category: string;
+}
+
+interface MockBaselineIncome {
+  incomeTypes: string[];
+  incomes: string[];
+  spendingTypes: string[];
+  spendings: string[];
+}
+
+interface MockResidence {
+  monthlyFees: string;
 }
 
 // Mock database operations with realistic data structures
 const mockDb = {
   query: {
     buildings: {
-      findFirst: jest.fn(),
+      findFirst: jest.fn() as unknown as jest.Mock<Promise<MockBuilding | null>>,
+    },
+    residences: {
+      findMany: jest.fn() as unknown as jest.Mock<Promise<MockResidence[]>>,
+    },
+    monthlyBudgets: {
+      findMany: jest.fn() as unknown as jest.Mock<Promise<any[]>>,
     },
   },
-  select: jest.fn(),
-  update: jest.fn(),
+  select: jest.fn() as unknown as jest.Mock<any>,
+  update: jest.fn() as unknown as jest.Mock<any>,
 };
 
 // Mock the database module
@@ -67,10 +92,13 @@ jest.mock('@shared/schema', () => ({
   buildings: { id: 'buildings.id', name: 'buildings.name' },
   bills: { id: 'bills.id', buildingId: 'bills.buildingId' },
   monthlyBudgets: { id: 'monthlyBudgets.id', buildingId: 'monthlyBudgets.buildingId' },
+  residences: { id: 'residences.id', buildingId: 'residences.buildingId' },
+  capitalInvestments: { id: 'capitalInvestments.id', buildingId: 'capitalInvestments.buildingId' },
+  payments: { amount: 'payments.amount', scheduledDate: 'payments.scheduledDate', status: 'payments.status', billId: 'payments.billId' },
 }));
 
 // Mock authentication middleware - this will be configured per test
-const mockAuthMiddleware = jest.fn();
+const mockAuthMiddleware = jest.fn() as unknown as jest.Mock<RequestHandler>;
 
 jest.mock('../../server/auth', () => ({
   requireAuth: mockAuthMiddleware,
@@ -81,7 +109,7 @@ import budgetRouter from '../../server/api/budgets';
 
 describe('Budget Forecast Integration Tests', () => {
   let app: express.Application;
-  let agent: request.SuperAgentTest;
+  let agent: ReturnType<typeof request.agent>;
 
   beforeAll(() => {
     // Set up realistic test data
@@ -115,7 +143,7 @@ describe('Budget Forecast Integration Tests', () => {
   describe('Authentication and Authorization', () => {
     it('should return 401 for unauthenticated access', async () => {
       // Configure auth middleware to reject
-      mockAuthMiddleware.mockImplementation((req: Request, res: Response, next: NextFunction) => {
+      mockAuthMiddleware.mockImplementation((req: any, res: any, next: any) => {
         res.status(401).json({ error: 'Authentication required' });
       });
 
@@ -135,12 +163,16 @@ describe('Budget Forecast Integration Tests', () => {
 
     it('should return 403 for unauthorized roles', async () => {
       // Configure auth middleware to authorize but with wrong role
-      mockAuthMiddleware.mockImplementation((req: Request, res: Response, next: NextFunction) => {
+      mockAuthMiddleware.mockImplementation((req: any, res: any, next: any) => {
         req.user = {
           id: 'test-user-id',
-          role: 'tenant', // Unauthorized role for budget operations
-          organizations: ['test-org-id'],
+          username: 'tenant',
           email: 'tenant@example.com',
+          firstName: 'Test',
+          lastName: 'Tenant',
+          role: 'tenant' as const,
+          isActive: true,
+          organizations: ['test-org-id'],
         } as AuthenticatedUser;
         
         // Simulate role-based access control
@@ -166,18 +198,22 @@ describe('Budget Forecast Integration Tests', () => {
 
     it('should allow access for authorized manager role', async () => {
       // Configure auth middleware to authorize manager
-      mockAuthMiddleware.mockImplementation((req: Request, res: Response, next: NextFunction) => {
+      mockAuthMiddleware.mockImplementation((req: any, res: any, next: any) => {
         req.user = {
           id: 'test-user-id',
-          role: 'manager',
-          organizations: ['test-org-id'],
+          username: 'manager',
           email: 'manager@example.com',
+          firstName: 'Test',
+          lastName: 'Manager',
+          role: 'manager' as const,
+          isActive: true,
+          organizations: ['test-org-id'],
         } as AuthenticatedUser;
         next();
       });
 
       // Mock successful building lookup
-      mockDb.query.buildings.findFirst.mockResolvedValue({
+      (mockDb.query.buildings.findFirst as any).mockResolvedValue({
         id: 'test-building-id',
         name: 'Test Building',
         bankAccountStartAmount: '100000',
@@ -186,10 +222,27 @@ describe('Budget Forecast Integration Tests', () => {
         revenueInflationRate: '2.0',
       });
 
-      // Mock database select operations
-      const mockSelectChain = {
+      // Mock residences.findMany
+      (mockDb.query.residences.findMany as any).mockResolvedValue([]);
+
+      // Mock monthlyBudgets.findMany for unplanned bills
+      (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
+
+      // Mock database select operations - some queries use .from().where() directly
+      const mockSelectChainDirect = {
         from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]), // Empty results
+          where: jest.fn().mockResolvedValue([]),
+        }),
+      };
+
+      // Some queries use .from().where().orderBy().limit()
+      const mockSelectChainWithOrderBy = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockReturnValue({
+              limit: jest.fn().mockResolvedValue([]),
+            }),
+          }),
         }),
       };
 
@@ -201,10 +254,31 @@ describe('Budget Forecast Integration Tests', () => {
         }),
       };
 
-      mockDb.select
-        .mockImplementationOnce(() => mockSelectChain) // recurrent bills
-        .mockImplementationOnce(() => mockSelectChain) // unique bills
-        .mockImplementationOnce(() => mockSelectChainBudgets); // baseline income
+      const mockSelectChainCapitalInvestments = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      // Mock for payments query (runs in loop, uses innerJoin)
+      const mockSelectChainPayments = {
+        from: jest.fn().mockReturnValue({
+          innerJoin: jest.fn().mockReturnValue({
+            where: jest.fn().mockResolvedValue([]), // Return empty array for all payment queries
+          }),
+        }),
+      };
+
+      (mockDb.select as any)
+        .mockImplementationOnce(() => mockSelectChainDirect) // 1. unplanned unique bills (from calculateUnplannedBillsSuggestion)
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy) // 2. first bill (conditional, from calculateUnplannedBillsSuggestion)
+        .mockImplementationOnce(() => mockSelectChainDirect) // 3. recurrent bills
+        .mockImplementationOnce(() => mockSelectChainDirect) // 4. unique bills (for forecast)
+        .mockImplementationOnce(() => mockSelectChainBudgets) // 5. baseline income
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments) // 6. capital investments
+        .mockImplementation(() => mockSelectChainPayments); // 7+. payments queries in loop
 
       const response = await agent
         .post('/api/budgets/test-building-id/forecast')
@@ -223,10 +297,15 @@ describe('Budget Forecast Integration Tests', () => {
   describe('Input Validation', () => {
     beforeEach(() => {
       // Setup authorized user for validation tests
-      mockAuthMiddleware.mockImplementation((req: Request, res: Response, next: NextFunction) => {
+      mockAuthMiddleware.mockImplementation((req: any, res: any, next: any) => {
         req.user = {
           id: 'test-user-id',
-          role: 'manager',
+          username: 'manager',
+          email: 'manager@example.com',
+          firstName: 'Test',
+          lastName: 'Manager',
+          role: 'manager' as const,
+          isActive: true,
           organizations: ['test-org-id'],
         } as AuthenticatedUser;
         next();
@@ -234,7 +313,7 @@ describe('Budget Forecast Integration Tests', () => {
     });
 
     it('should return 400 for invalid building ID format', async () => {
-      mockDb.query.buildings.findFirst.mockResolvedValue(null);
+      (mockDb.query.buildings.findFirst as any).mockResolvedValue(null);
 
       const response = await agent
         .post('/api/budgets/invalid-building-format/forecast')
@@ -251,7 +330,7 @@ describe('Budget Forecast Integration Tests', () => {
     });
 
     it('should handle extreme inflation rate values', async () => {
-      mockDb.query.buildings.findFirst.mockResolvedValue({
+      (mockDb.query.buildings.findFirst as any).mockResolvedValue({
         id: 'test-building-id',
         name: 'Test Building',
         bankAccountStartAmount: '100000',
@@ -260,9 +339,22 @@ describe('Budget Forecast Integration Tests', () => {
         revenueInflationRate: '2.0',
       });
 
-      const mockSelectChain = {
+      (mockDb.query.residences.findMany as any).mockResolvedValue([]);
+      (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
+
+      const mockSelectChainDirect = {
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockResolvedValue([]),
+        }),
+      };
+
+      const mockSelectChainWithOrderBy = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockReturnValue({
+              limit: jest.fn().mockResolvedValue([]),
+            }),
+          }),
         }),
       };
 
@@ -274,11 +366,31 @@ describe('Budget Forecast Integration Tests', () => {
         }),
       };
 
-      mockDb.select
-        .mockImplementation(() => mockSelectChain)
-        .mockImplementationOnce(() => mockSelectChain)
-        .mockImplementationOnce(() => mockSelectChain)
-        .mockImplementationOnce(() => mockSelectChainBudgets);
+      const mockSelectChainCapitalInvestments = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      // Mock for payments query (runs in loop, uses innerJoin)
+      const mockSelectChainPayments = {
+        from: jest.fn().mockReturnValue({
+          innerJoin: jest.fn().mockReturnValue({
+            where: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      (mockDb.select as any)
+        .mockImplementationOnce(() => mockSelectChainDirect) // 1. unplanned unique bills
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy) // 2. first bill (conditional)
+        .mockImplementationOnce(() => mockSelectChainDirect) // 3. recurrent bills
+        .mockImplementationOnce(() => mockSelectChainDirect) // 4. unique bills
+        .mockImplementationOnce(() => mockSelectChainBudgets) // 5. baseline income
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments) // 6. capital investments
+        .mockImplementation(() => mockSelectChainPayments); // 7+. payments queries in loop
 
       const response = await agent
         .post('/api/budgets/test-building-id/forecast')
@@ -296,7 +408,7 @@ describe('Budget Forecast Integration Tests', () => {
     });
 
     it('should handle negative starting amounts', async () => {
-      mockDb.query.buildings.findFirst.mockResolvedValue({
+      (mockDb.query.buildings.findFirst as any).mockResolvedValue({
         id: 'test-building-id',
         name: 'Test Building',
         bankAccountStartAmount: '100000',
@@ -305,9 +417,22 @@ describe('Budget Forecast Integration Tests', () => {
         revenueInflationRate: '2.0',
       });
 
-      const mockSelectChain = {
+      (mockDb.query.residences.findMany as any).mockResolvedValue([]);
+      (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
+
+      const mockSelectChainDirect = {
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockResolvedValue([]),
+        }),
+      };
+
+      const mockSelectChainWithOrderBy = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockReturnValue({
+              limit: jest.fn().mockResolvedValue([]),
+            }),
+          }),
         }),
       };
 
@@ -319,11 +444,31 @@ describe('Budget Forecast Integration Tests', () => {
         }),
       };
 
-      mockDb.select
-        .mockImplementation(() => mockSelectChain)
-        .mockImplementationOnce(() => mockSelectChain)
-        .mockImplementationOnce(() => mockSelectChain)
-        .mockImplementationOnce(() => mockSelectChainBudgets);
+      const mockSelectChainCapitalInvestments = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      // Mock for payments query (runs in loop, uses innerJoin)
+      const mockSelectChainPayments = {
+        from: jest.fn().mockReturnValue({
+          innerJoin: jest.fn().mockReturnValue({
+            where: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      (mockDb.select as any)
+        .mockImplementationOnce(() => mockSelectChainDirect) // 1. unplanned unique bills
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy) // 2. first bill (conditional)
+        .mockImplementationOnce(() => mockSelectChainDirect) // 3. recurrent bills
+        .mockImplementationOnce(() => mockSelectChainDirect) // 4. unique bills
+        .mockImplementationOnce(() => mockSelectChainBudgets) // 5. baseline income
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments) // 6. capital investments
+        .mockImplementation(() => mockSelectChainPayments); // 7+. payments queries in loop
 
       const response = await agent
         .post('/api/budgets/test-building-id/forecast')
@@ -346,14 +491,16 @@ describe('Budget Forecast Integration Tests', () => {
   describe('Happy Path Integration Tests', () => {
     beforeEach(() => {
       // Setup authorized user
-      mockAuthMiddleware.mockImplementation((req: Request, res: Response, next: NextFunction) => {
+      mockAuthMiddleware.mockImplementation((req: any, res: any, next: any) => {
         req.user = {
           id: 'test-user-id',
-          role: 'manager',
-          organizations: ['test-org-id'],
+          username: 'manager',
           email: 'manager@example.com',
           firstName: 'Test',
           lastName: 'Manager',
+          role: 'manager' as const,
+          isActive: true,
+          organizations: ['test-org-id'],
         } as AuthenticatedUser;
         next();
       });
@@ -361,7 +508,7 @@ describe('Budget Forecast Integration Tests', () => {
 
     it('should return complete forecast with realistic building data', async () => {
       // Mock building with comprehensive data
-      mockDb.query.buildings.findFirst.mockResolvedValue({
+      (mockDb.query.buildings.findFirst as any).mockResolvedValue({
         id: 'test-building-id',
         name: 'Sunset Towers',
         bankAccountStartAmount: '250000',
@@ -370,8 +517,15 @@ describe('Budget Forecast Integration Tests', () => {
         revenueInflationRate: '2.8',
       });
 
+      (mockDb.query.residences.findMany as any).mockResolvedValue([
+        { monthlyFees: '1500' },
+        { monthlyFees: '2000' },
+      ]);
+
+      (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
+
       // Mock recurrent bills with varied schedules
-      const mockRecurrentBills = [
+      const mockRecurrentBills: MockBill[] = [
         {
           id: 'insurance-bill',
           category: 'insurance',
@@ -399,7 +553,7 @@ describe('Budget Forecast Integration Tests', () => {
       ];
 
       // Mock unique bills for special projects
-      const mockUniqueBills = [
+      const mockUniqueBills: MockUniqueBill[] = [
         {
           startDate: new Date('2025-06-01'),
           totalAmount: '150000',
@@ -413,7 +567,7 @@ describe('Budget Forecast Integration Tests', () => {
       ];
 
       // Mock baseline income data
-      const mockBaselineIncome = [
+      const mockBaselineIncome: MockBaselineIncome[] = [
         {
           incomeTypes: ['monthly_fees', 'parking_fees', 'laundry_income'],
           incomes: ['75000', '5500', '2000'],
@@ -435,6 +589,22 @@ describe('Budget Forecast Integration Tests', () => {
         }),
       };
 
+      const mockSelectChainEmpty = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([]),
+        }),
+      };
+
+      const mockSelectChainWithOrderBy = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockReturnValue({
+              limit: jest.fn().mockResolvedValue([]),
+            }),
+          }),
+        }),
+      };
+
       const mockSelectChainBudgets = {
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
@@ -443,10 +613,31 @@ describe('Budget Forecast Integration Tests', () => {
         }),
       };
 
-      mockDb.select
-        .mockImplementationOnce(() => mockSelectChainRecurrent)
-        .mockImplementationOnce(() => mockSelectChainUnique)
-        .mockImplementationOnce(() => mockSelectChainBudgets);
+      const mockSelectChainCapitalInvestments = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      // Mock for payments query (runs in loop, uses innerJoin)
+      const mockSelectChainPayments = {
+        from: jest.fn().mockReturnValue({
+          innerJoin: jest.fn().mockReturnValue({
+            where: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      (mockDb.select as any)
+        .mockImplementationOnce(() => mockSelectChainEmpty) // 1. unplanned unique bills (returns [])
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy) // 2. first bill (runs because query 1 returned [])
+        .mockImplementationOnce(() => mockSelectChainRecurrent) // 3. recurrent bills
+        .mockImplementationOnce(() => mockSelectChainUnique) // 4. unique bills for forecast
+        .mockImplementationOnce(() => mockSelectChainBudgets) // 5. baseline income
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments) // 6. capital investments
+        .mockImplementation(() => mockSelectChainPayments); // 7+. payments queries in loop
 
       const response = await agent
         .post('/api/budgets/test-building-id/forecast')
@@ -500,7 +691,7 @@ describe('Budget Forecast Integration Tests', () => {
 
     it('should handle empty database responses gracefully', async () => {
       // Mock building exists but no bills or budget data
-      mockDb.query.buildings.findFirst.mockResolvedValue({
+      (mockDb.query.buildings.findFirst as any).mockResolvedValue({
         id: 'empty-building-id',
         name: 'Empty Building',
         bankAccountStartAmount: '100000',
@@ -509,25 +700,49 @@ describe('Budget Forecast Integration Tests', () => {
         revenueInflationRate: '2.0',
       });
 
+      (mockDb.query.residences.findMany as any).mockResolvedValue([]);
+      (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
+
       // Mock empty responses for all data queries
       const mockEmptySelectChain = {
         from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]), // No results
+          where: jest.fn().mockResolvedValue([]),
+        }),
+      };
+
+      const mockEmptyWithOrderBy = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockReturnValue({
+              limit: jest.fn().mockResolvedValue([]),
+            }),
+          }),
         }),
       };
 
       const mockEmptyBudgetChain = {
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([]), // No budget data
+            limit: jest.fn().mockResolvedValue([]),
           }),
         }),
       };
 
-      mockDb.select
-        .mockImplementationOnce(() => mockEmptySelectChain)
-        .mockImplementationOnce(() => mockEmptySelectChain)
-        .mockImplementationOnce(() => mockEmptyBudgetChain);
+      const mockEmptyCapitalInvestments = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      (mockDb.select as any)
+        .mockImplementationOnce(() => mockEmptySelectChain) // 1. unplanned unique bills (returns [])
+        .mockImplementationOnce(() => mockEmptyWithOrderBy) // 2. first bill (runs because query 1 returned [])
+        .mockImplementationOnce(() => mockEmptySelectChain) // 3. recurrent bills
+        .mockImplementationOnce(() => mockEmptySelectChain) // 4. unique bills
+        .mockImplementationOnce(() => mockEmptyBudgetChain) // 5. baseline income
+        .mockImplementationOnce(() => mockEmptyCapitalInvestments); // 6. capital investments
 
       const response = await agent
         .post('/api/budgets/empty-building-id/forecast')
@@ -562,7 +777,7 @@ describe('Budget Forecast Integration Tests', () => {
 
     it('should properly sequence database calls and handle errors', async () => {
       // Test that database errors are handled properly
-      mockDb.query.buildings.findFirst.mockRejectedValue(new Error('Database connection failed'));
+      (mockDb.query.buildings.findFirst as any).mockRejectedValue(new Error('Database connection failed'));
 
       const response = await agent
         .post('/api/budgets/test-building-id/forecast')
@@ -583,10 +798,15 @@ describe('Budget Forecast Integration Tests', () => {
 
   describe('Performance and Edge Cases', () => {
     beforeEach(() => {
-      mockAuthMiddleware.mockImplementation((req: Request, res: Response, next: NextFunction) => {
+      mockAuthMiddleware.mockImplementation((req: any, res: any, next: any) => {
         req.user = {
           id: 'test-user-id',
-          role: 'manager',
+          username: 'manager',
+          email: 'manager@example.com',
+          firstName: 'Test',
+          lastName: 'Manager',
+          role: 'manager' as const,
+          isActive: true,
           organizations: ['test-org-id'],
         } as AuthenticatedUser;
         next();
@@ -597,7 +817,7 @@ describe('Budget Forecast Integration Tests', () => {
       const startTime = Date.now();
       
       // Mock building
-      mockDb.query.buildings.findFirst.mockResolvedValue({
+      (mockDb.query.buildings.findFirst as any).mockResolvedValue({
         id: 'large-building-id',
         name: 'Large Building Complex',
         bankAccountStartAmount: '1000000',
@@ -606,19 +826,22 @@ describe('Budget Forecast Integration Tests', () => {
         revenueInflationRate: '3.0',
       });
 
+      (mockDb.query.residences.findMany as any).mockResolvedValue([]);
+      (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
+
       // Mock many recurrent bills
-      const manyRecurrentBills = Array.from({ length: 50 }, (_, i) => ({
+      const manyRecurrentBills: MockBill[] = Array.from({ length: 50 }, (_, i) => ({
         id: `bill-${i}`,
         category: `category-${i % 5}`,
         costs: ['1000', '500'],
-        schedulePayment: ['monthly', 'quarterly', 'yearly'][i % 3] as any,
+        schedulePayment: (['monthly', 'quarterly', 'yearly'][i % 3] as 'monthly' | 'quarterly' | 'yearly'),
         startDate: new Date('2025-01-01'),
         endDate: null,
       }));
 
       // Mock many unique bills across years
-      const manyUniqueBills = Array.from({ length: 100 }, (_, i) => ({
-        startDate: new Date(2025 + (i % 10), (i % 12) + 1, 1),
+      const manyUniqueBills: MockUniqueBill[] = Array.from({ length: 100 }, (_, i) => ({
+        startDate: new Date(2025 + (i % 10), (i % 12), 1),
         totalAmount: (Math.random() * 50000 + 10000).toFixed(0),
         category: `unique-category-${i % 8}`,
       }));
@@ -635,6 +858,22 @@ describe('Budget Forecast Integration Tests', () => {
         }),
       };
 
+      const mockSelectChainEmpty = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockResolvedValue([]),
+        }),
+      };
+
+      const mockSelectChainWithOrderBy = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockReturnValue({
+              limit: jest.fn().mockResolvedValue([]),
+            }),
+          }),
+        }),
+      };
+
       const mockSelectChainBudgets = {
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockReturnValue({
@@ -648,10 +887,31 @@ describe('Budget Forecast Integration Tests', () => {
         }),
       };
 
-      mockDb.select
-        .mockImplementationOnce(() => mockSelectChainRecurrent)
-        .mockImplementationOnce(() => mockSelectChainUnique)
-        .mockImplementationOnce(() => mockSelectChainBudgets);
+      const mockSelectChainCapitalInvestments = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      // Mock for payments query (runs in loop, uses innerJoin)
+      const mockSelectChainPayments = {
+        from: jest.fn().mockReturnValue({
+          innerJoin: jest.fn().mockReturnValue({
+            where: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      (mockDb.select as any)
+        .mockImplementationOnce(() => mockSelectChainEmpty) // 1. unplanned unique bills (returns [])
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy) // 2. first bill (runs because query 1 returned [])
+        .mockImplementationOnce(() => mockSelectChainRecurrent) // 3. recurrent bills
+        .mockImplementationOnce(() => mockSelectChainUnique) // 4. unique bills for forecast
+        .mockImplementationOnce(() => mockSelectChainBudgets) // 5. baseline income
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments) // 6. capital investments
+        .mockImplementation(() => mockSelectChainPayments); // 7+. payments queries in loop
 
       const response = await agent
         .post('/api/budgets/large-building-id/forecast')
@@ -676,7 +936,7 @@ describe('Budget Forecast Integration Tests', () => {
 
     it('should handle concurrent requests safely', async () => {
       // Mock building
-      mockDb.query.buildings.findFirst.mockResolvedValue({
+      (mockDb.query.buildings.findFirst as any).mockResolvedValue({
         id: 'concurrent-building-id',
         name: 'Concurrent Test Building',
         bankAccountStartAmount: '100000',
@@ -685,9 +945,22 @@ describe('Budget Forecast Integration Tests', () => {
         revenueInflationRate: '2.0',
       });
 
+      (mockDb.query.residences.findMany as any).mockResolvedValue([]);
+      (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
+
       const mockSelectChain = {
         from: jest.fn().mockReturnValue({
           where: jest.fn().mockResolvedValue([]),
+        }),
+      };
+
+      const mockSelectChainWithOrderBy = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockReturnValue({
+              limit: jest.fn().mockResolvedValue([]),
+            }),
+          }),
         }),
       };
 
@@ -699,11 +972,63 @@ describe('Budget Forecast Integration Tests', () => {
         }),
       };
 
-      mockDb.select
-        .mockImplementation(() => mockSelectChain)
-        .mockImplementation(() => mockSelectChain)
-        .mockImplementation(() => mockSelectChain)
-        .mockImplementation(() => mockSelectChainBudgets);
+      const mockSelectChainCapitalInvestments = {
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            orderBy: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      // Mock for payments query (runs in loop, uses innerJoin)
+      const mockSelectChainPayments = {
+        from: jest.fn().mockReturnValue({
+          innerJoin: jest.fn().mockReturnValue({
+            where: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      };
+
+      // Setup mocks for 5 concurrent requests (5 requests × 6 queries each = 30 mocks)
+      // Each request follows the pattern: unplanned unique bills → first bill → recurrent bills → unique bills → baseline income → capital investments
+      // Plus a default mock for payments queries in loop
+      (mockDb.select as any)
+        // Request 1
+        .mockImplementationOnce(() => mockSelectChain) // 1. unplanned unique bills
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy) // 2. first bill
+        .mockImplementationOnce(() => mockSelectChain) // 3. recurrent bills
+        .mockImplementationOnce(() => mockSelectChain) // 4. unique bills
+        .mockImplementationOnce(() => mockSelectChainBudgets) // 5. baseline income
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments) // 6. capital investments
+        // Request 2
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy)
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChainBudgets)
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments)
+        // Request 3
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy)
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChainBudgets)
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments)
+        // Request 4
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy)
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChainBudgets)
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments)
+        // Request 5
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChainWithOrderBy)
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChain)
+        .mockImplementationOnce(() => mockSelectChainBudgets)
+        .mockImplementationOnce(() => mockSelectChainCapitalInvestments)
+        .mockImplementation(() => mockSelectChainPayments); // 7+. payments queries in loop
 
       const payload = {
         bankAccountStartAmount: 100000,
