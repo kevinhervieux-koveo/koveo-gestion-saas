@@ -47,32 +47,22 @@ export interface BaselineBudgetData {
 export function calculateMonthlyRecurringCosts(bills: BillData[]): number {
   return bills.reduce((total, bill) => {
     if (bill.costs && bill.costs.length > 0) {
-      // For recurring bills, the costs array often contains individual payment amounts
-      // We should calculate the average cost per payment period, not sum all costs
-      let billCost: number;
-      
-      if (bill.costs.length === 1) {
-        // Single cost value - use it directly
-        billCost = parseFloat(bill.costs[0]);
-      } else {
-        // Multiple costs - this represents the payment schedule
-        // Calculate average cost per payment period
-        const totalCosts = bill.costs.reduce((sum, cost) => sum + parseFloat(cost), 0);
-        billCost = totalCosts / bill.costs.length;
-      }
+      // Sum all costs in the array (payment plan installments or cost components)
+      // This matches how costs are used in server/api/budgets.ts (lines 913, 1079)
+      const totalBillCost = bill.costs.reduce((sum, cost) => sum + parseFloat(cost), 0);
       
       // Convert to monthly based on schedule
       switch (bill.schedulePayment) {
         case 'yearly':
-          return total + (billCost / 12);
+          return total + (totalBillCost / 12);
         case 'quarterly':
-          return total + (billCost / 3);
+          return total + (totalBillCost / 3);
         case 'monthly':
-          return total + billCost;
+          return total + totalBillCost;
         case 'weekly':
-          return total + (billCost * 4.33); // 52 weeks / 12 months
+          return total + (totalBillCost * 4.33); // 52 weeks / 12 months
         default:
-          return total + billCost; // Assume monthly if unknown
+          return total + totalBillCost; // Assume monthly if unknown
       }
     }
     return total;
@@ -100,7 +90,7 @@ export function groupUniqueBillsByYear(uniqueBills: UniqueBillData[]): Record<nu
  */
 export function calculateBaselineMonthlyIncome(baselineIncome: BaselineBudgetData[]): number {
   let monthlyBaselineIncome = 50000; // Default fallback
-  if (baselineIncome.length > 0 && baselineIncome[0].incomes) {
+  if (baselineIncome.length > 0 && baselineIncome[0].incomes && baselineIncome[0].incomes.length > 0) {
     monthlyBaselineIncome = baselineIncome[0].incomes
       .reduce((sum, income) => sum + parseFloat(income), 0);
   }
@@ -116,7 +106,7 @@ export function calculateBaselineMonthlyIncome(baselineIncome: BaselineBudgetDat
  */
 export function applyInflation(baseAmount: number, inflationRate: number, yearsElapsed: number): number {
   // DEFENSIVE VALIDATION: Warn if inflation rate seems too high (likely a percentage instead of decimal)
-  if (inflationRate > 1.0) {
+  if (inflationRate >= 1.0) {
     console.warn(`⚠️  [BUDGET CALCULATIONS] applyInflation received suspiciously high rate: ${inflationRate} (${inflationRate * 100}%). Expected decimal 0-1 range. This may indicate a percentage-to-decimal conversion bug.`);
     console.warn(`⚠️  [BUDGET CALCULATIONS] Formula will use: ${baseAmount} * (1 + ${inflationRate})^${yearsElapsed} = ${baseAmount} * ${(1 + inflationRate).toFixed(4)}^${yearsElapsed}`);
   }
@@ -137,7 +127,7 @@ export function applyInflation(baseAmount: number, inflationRate: number, yearsE
  * @returns Status color
  */
 export function determineBalanceStatus(balance: number, minimumFund: number): 'red' | 'yellow' | 'green' {
-  if (balance < 0) {
+  if (balance <= 0) {
     return 'red';
   } else if (balance < minimumFund) {
     return 'yellow';

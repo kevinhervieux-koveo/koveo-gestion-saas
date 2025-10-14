@@ -3,7 +3,7 @@
  * @description Tests for getMonthlyFeesInflationRate and shouldApplyInflation functions
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
 // Import the actual production code instead of duplicating functions
 import {
@@ -14,11 +14,17 @@ import {
 } from '../../../server/utils/inflation';
 
 // Mock console.warn to capture warnings
-const mockConsoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+let mockConsoleWarn: any;
 
 describe('Inflation Calculations - Production Code Tests', () => {
   beforeEach(() => {
-    mockConsoleWarn.mockClear();
+    mockConsoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    if (mockConsoleWarn) {
+      mockConsoleWarn.mockRestore();
+    }
   });
 
   // NOTE: These tests now use the actual production code from server/utils/inflation
@@ -67,7 +73,7 @@ describe('Inflation Calculations - Production Code Tests', () => {
       };
 
       const result = getMonthlyFeesInflationRate(config, revenueInflation, generalInflation);
-      expect(result).toBe(0.028); // Should be converted to decimal
+      expect(result).toBeCloseTo(0.028, 5); // Should be converted to decimal (with floating point precision)
     });
 
     it('should fall back to revenueInflation for backward compatibility (third priority)', () => {

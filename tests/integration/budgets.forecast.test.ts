@@ -48,11 +48,18 @@ jest.mock('../../server/db', () => ({
 jest.mock('drizzle-orm', () => ({
   eq: jest.fn((column, value) => ({ column, operator: 'eq', value })),
   and: jest.fn((...conditions) => ({ operator: 'and', conditions })),
+  or: jest.fn((...conditions) => ({ operator: 'or', conditions })),
   gte: jest.fn((column, value) => ({ column, operator: 'gte', value })),
   lte: jest.fn((column, value) => ({ column, operator: 'lte', value })),
+  lt: jest.fn((column, value) => ({ column, operator: 'lt', value })),
+  ne: jest.fn((column, value) => ({ column, operator: 'ne', value })),
+  inArray: jest.fn((column, values) => ({ column, operator: 'inArray', values })),
+  isNull: jest.fn((column) => ({ column, operator: 'isNull' })),
   sql: jest.fn((query) => ({ sql: query })),
   desc: jest.fn((column) => ({ column, direction: 'desc' })),
   asc: jest.fn((column) => ({ column, direction: 'asc' })),
+  sum: jest.fn((column) => ({ column, aggregate: 'sum' })),
+  count: jest.fn((column) => ({ column, aggregate: 'count' })),
 }));
 
 // Mock schema tables
