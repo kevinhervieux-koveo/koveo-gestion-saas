@@ -1240,7 +1240,7 @@ class ProductionFallbackStorage implements IStorage {
       id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
       username: 'kevin.hervieux',
       email: 'kevin.hervieux@koveo-gestion.com',
-      password: '$2b$12$sAJXEcITZg5ItQou312JsucLyzByPC6lF7CLvrrLkhxKd1EyfSxda', // admin123
+      password: process.env.ADMIN_PASSWORD_HASH || '',
       firstName: 'Kevin',
       lastName: 'Hervieux',
       phone: '',

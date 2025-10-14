@@ -1417,8 +1417,8 @@ export class OptimizedDatabaseStorage implements IStorage {
       const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(insertUser.role);
       
       if (isDemoRole) {
-        // Always set the standard demo password hash for demo users, regardless of provided password
-        password = '$2b$12$cOc/QjMjzlhqAQqF2b/MTOZr2QAtERbXJGd4OSa1CXMlF04FC3F02'; // demo123456
+        // Use environment variable for demo password hash, with secure fallback
+        password = process.env.DEMO_PASSWORD_HASH || insertUser.password;
         console.log('🎭 Setting demo password for user with role:', insertUser.role);
       }
 
@@ -4241,18 +4241,18 @@ export class OptimizedDatabaseStorage implements IStorage {
     console.log('🔒 [STORAGE - COUNT ALL] Excluding admin user ID:', excludeUserId);
     
     try {
-      const countQuery = `
+      const countQuery = sql`
         SELECT COUNT(*) as total 
         FROM users u
         WHERE u.is_active = true
-        AND u.id != '${excludeUserId}'
+        AND u.id != ${excludeUserId}
       `;
       
-      console.log('🔍 [STORAGE - COUNT ALL] Executing SQL query:', countQuery.trim());
+      console.log('🔍 [STORAGE - COUNT ALL] Executing parameterized SQL query');
       console.log('⏱️ [STORAGE - COUNT ALL] Starting database execution...');
       
       const startTime = Date.now();
-      const result = await db.execute(sql.raw(countQuery));
+      const result = await db.execute(countQuery);
       const endTime = Date.now();
       
       console.log('⏱️ [STORAGE - COUNT ALL] Database query completed in:', (endTime - startTime), 'ms');
