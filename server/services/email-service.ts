@@ -1525,4 +1525,8 @@ ${language === 'fr' ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compl
   }
 }
 
+// Export the class for testing
+export { EmailService };
+
+// Export singleton instance for production use
 export const emailService = new EmailService();
