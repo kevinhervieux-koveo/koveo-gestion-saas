@@ -1521,12 +1521,19 @@ router.put('/:buildingId/investments', requireAuth, async (req, res) => {
         const validated = insertCapitalInvestmentSchema.parse({
           ...investment,
           buildingId,
+          type: 'custom', // Ensure type is set for custom investments
         });
-        // Convert fields to proper database types
+        // Convert fields to proper database types - explicitly construct to satisfy TypeScript
         return {
-          ...validated,
+          type: 'custom' as const,
+          buildingId: validated.buildingId,
+          title: validated.title,
+          urgency: validated.urgency,
+          ownershipType: validated.ownershipType,
           amount: validated.amount.toString(),
-          targetDate: validated.targetDate.toISOString().split('T')[0], // Convert Date to YYYY-MM-DD string
+          targetDate: validated.targetDate.toISOString().split('T')[0],
+          description: validated.description,
+          category: validated.category,
         };
       });
 

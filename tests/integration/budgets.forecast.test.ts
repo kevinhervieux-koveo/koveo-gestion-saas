@@ -51,17 +51,17 @@ interface MockResidence {
 const mockDb = {
   query: {
     buildings: {
-      findFirst: jest.fn() as unknown as jest.Mock<Promise<MockBuilding | null>>,
+      findFirst: jest.fn<() => Promise<MockBuilding | null>>(),
     },
     residences: {
-      findMany: jest.fn() as unknown as jest.Mock<Promise<MockResidence[]>>,
+      findMany: jest.fn<() => Promise<MockResidence[]>>(),
     },
     monthlyBudgets: {
-      findMany: jest.fn() as unknown as jest.Mock<Promise<any[]>>,
+      findMany: jest.fn<() => Promise<any[]>>(),
     },
   },
-  select: jest.fn() as unknown as jest.Mock<any>,
-  update: jest.fn() as unknown as jest.Mock<any>,
+  select: jest.fn(),
+  update: jest.fn(),
 };
 
 // Mock the database module
@@ -98,7 +98,7 @@ jest.mock('@shared/schema', () => ({
 }));
 
 // Mock authentication middleware - this will be configured per test
-const mockAuthMiddleware = jest.fn() as unknown as jest.Mock<RequestHandler>;
+const mockAuthMiddleware = jest.fn<RequestHandler>();
 
 jest.mock('../../server/auth', () => ({
   requireAuth: mockAuthMiddleware,
@@ -230,43 +230,43 @@ describe('Budget Forecast Integration Tests', () => {
 
       // Mock database select operations - some queries use .from().where() directly
       const mockSelectChainDirect = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue([] as any[]),
         }),
       };
 
       // Some queries use .from().where().orderBy().limit()
       const mockSelectChainWithOrderBy = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockReturnValue({
-              limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockReturnValue({
+              limit: jest.fn<any>().mockResolvedValue([] as any[]),
             }),
           }),
         }),
       };
 
       const mockSelectChainBudgets = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            limit: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       const mockSelectChainCapitalInvestments = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       // Mock for payments query (runs in loop, uses innerJoin)
       const mockSelectChainPayments = {
-        from: jest.fn().mockReturnValue({
-          innerJoin: jest.fn().mockReturnValue({
-            where: jest.fn().mockResolvedValue([]), // Return empty array for all payment queries
+        from: jest.fn<any>().mockReturnValue({
+          innerJoin: jest.fn<any>().mockReturnValue({
+            where: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
@@ -343,42 +343,42 @@ describe('Budget Forecast Integration Tests', () => {
       (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
 
       const mockSelectChainDirect = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue([] as any[]),
         }),
       };
 
       const mockSelectChainWithOrderBy = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockReturnValue({
-              limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockReturnValue({
+              limit: jest.fn<any>().mockResolvedValue([] as any[]),
             }),
           }),
         }),
       };
 
       const mockSelectChainBudgets = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            limit: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       const mockSelectChainCapitalInvestments = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       // Mock for payments query (runs in loop, uses innerJoin)
       const mockSelectChainPayments = {
-        from: jest.fn().mockReturnValue({
-          innerJoin: jest.fn().mockReturnValue({
-            where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          innerJoin: jest.fn<any>().mockReturnValue({
+            where: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
@@ -421,42 +421,42 @@ describe('Budget Forecast Integration Tests', () => {
       (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
 
       const mockSelectChainDirect = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue([] as any[]),
         }),
       };
 
       const mockSelectChainWithOrderBy = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockReturnValue({
-              limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockReturnValue({
+              limit: jest.fn<any>().mockResolvedValue([] as any[]),
             }),
           }),
         }),
       };
 
       const mockSelectChainBudgets = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            limit: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       const mockSelectChainCapitalInvestments = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       // Mock for payments query (runs in loop, uses innerJoin)
       const mockSelectChainPayments = {
-        from: jest.fn().mockReturnValue({
-          innerJoin: jest.fn().mockReturnValue({
-            where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          innerJoin: jest.fn<any>().mockReturnValue({
+            where: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
@@ -578,54 +578,54 @@ describe('Budget Forecast Integration Tests', () => {
 
       // Setup database select mocks
       const mockSelectChainRecurrent = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue(mockRecurrentBills),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue(mockRecurrentBills),
         }),
       };
 
       const mockSelectChainUnique = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue(mockUniqueBills),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue(mockUniqueBills),
         }),
       };
 
       const mockSelectChainEmpty = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue([] as any[]),
         }),
       };
 
       const mockSelectChainWithOrderBy = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockReturnValue({
-              limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockReturnValue({
+              limit: jest.fn<any>().mockResolvedValue([] as any[]),
             }),
           }),
         }),
       };
 
       const mockSelectChainBudgets = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue(mockBaselineIncome),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            limit: jest.fn<any>().mockResolvedValue(mockBaselineIncome),
           }),
         }),
       };
 
       const mockSelectChainCapitalInvestments = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       // Mock for payments query (runs in loop, uses innerJoin)
       const mockSelectChainPayments = {
-        from: jest.fn().mockReturnValue({
-          innerJoin: jest.fn().mockReturnValue({
-            where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          innerJoin: jest.fn<any>().mockReturnValue({
+            where: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
@@ -705,33 +705,41 @@ describe('Budget Forecast Integration Tests', () => {
 
       // Mock empty responses for all data queries
       const mockEmptySelectChain = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue([] as any[]),
         }),
       };
 
       const mockEmptyWithOrderBy = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockReturnValue({
-              limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockReturnValue({
+              limit: jest.fn<any>().mockResolvedValue([] as any[]),
             }),
           }),
         }),
       };
 
       const mockEmptyBudgetChain = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            limit: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       const mockEmptyCapitalInvestments = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockResolvedValue([] as any[]),
+          }),
+        }),
+      };
+
+      const mockEmptyPaymentChain = {
+        from: jest.fn<any>().mockReturnValue({
+          innerJoin: jest.fn<any>().mockReturnValue({
+            where: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
@@ -742,7 +750,8 @@ describe('Budget Forecast Integration Tests', () => {
         .mockImplementationOnce(() => mockEmptySelectChain) // 3. recurrent bills
         .mockImplementationOnce(() => mockEmptySelectChain) // 4. unique bills
         .mockImplementationOnce(() => mockEmptyBudgetChain) // 5. baseline income
-        .mockImplementationOnce(() => mockEmptyCapitalInvestments); // 6. capital investments
+        .mockImplementationOnce(() => mockEmptyCapitalInvestments) // 6. capital investments
+        .mockImplementation(() => mockEmptyPaymentChain); // 7+. payment queries in loop
 
       const response = await agent
         .post('/api/budgets/empty-building-id/forecast')
@@ -847,59 +856,59 @@ describe('Budget Forecast Integration Tests', () => {
       }));
 
       const mockSelectChainRecurrent = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue(manyRecurrentBills),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue(manyRecurrentBills),
         }),
       };
 
       const mockSelectChainUnique = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue(manyUniqueBills),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue(manyUniqueBills),
         }),
       };
 
       const mockSelectChainEmpty = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue([] as any[]),
         }),
       };
 
       const mockSelectChainWithOrderBy = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockReturnValue({
-              limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockReturnValue({
+              limit: jest.fn<any>().mockResolvedValue([] as any[]),
             }),
           }),
         }),
       };
 
       const mockSelectChainBudgets = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([{
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            limit: jest.fn<any>().mockResolvedValue([{
               incomeTypes: ['fees'],
               incomes: ['150000'],
               spendingTypes: ['expenses'],
               spendings: ['80000'],
-            }]),
+            }] as any[]),
           }),
         }),
       };
 
       const mockSelectChainCapitalInvestments = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       // Mock for payments query (runs in loop, uses innerJoin)
       const mockSelectChainPayments = {
-        from: jest.fn().mockReturnValue({
-          innerJoin: jest.fn().mockReturnValue({
-            where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          innerJoin: jest.fn<any>().mockReturnValue({
+            where: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
@@ -949,42 +958,42 @@ describe('Budget Forecast Integration Tests', () => {
       (mockDb.query.monthlyBudgets.findMany as any).mockResolvedValue([]);
 
       const mockSelectChain = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockResolvedValue([] as any[]),
         }),
       };
 
       const mockSelectChainWithOrderBy = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockReturnValue({
-              limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockReturnValue({
+              limit: jest.fn<any>().mockResolvedValue([] as any[]),
             }),
           }),
         }),
       };
 
       const mockSelectChainBudgets = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            limit: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       const mockSelectChainCapitalInvestments = {
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            orderBy: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          where: jest.fn<any>().mockReturnValue({
+            orderBy: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
 
       // Mock for payments query (runs in loop, uses innerJoin)
       const mockSelectChainPayments = {
-        from: jest.fn().mockReturnValue({
-          innerJoin: jest.fn().mockReturnValue({
-            where: jest.fn().mockResolvedValue([]),
+        from: jest.fn<any>().mockReturnValue({
+          innerJoin: jest.fn<any>().mockReturnValue({
+            where: jest.fn<any>().mockResolvedValue([] as any[]),
           }),
         }),
       };
