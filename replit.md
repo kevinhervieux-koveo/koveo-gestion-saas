@@ -57,7 +57,7 @@ The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsi
 ### System Design Choices
 - **Monorepo Structure**: Single workspace for client, server, and shared code with unified TypeScript.
 - **Development Framework (Pillar Methodology)**: Emphasizes modular components, quality assurance, testing, and security, with a hot reload system.
-- **Security**: Law 25 compliant enhancements including secure database connections, malware detection for uploads, input sanitization, SSRF protection, and secure error handling.
+- **Security**: Law 25 compliant enhancements including secure database connections, malware detection for uploads, input sanitization, SSRF protection, and secure error handling. All SQL queries use parameterized statements to prevent SQL injection. Credentials and secrets are managed via environment variables (DEMO_PASSWORD_HASH, ADMIN_PASSWORD_HASH) with no hardcoded values in the codebase. SSL certificates and private keys are externalized and excluded from version control.
 - **Code Consolidation**: Achieved through standardized form patterns, unified card components (`StandardCard`), and consolidated form hooks (`useStandardForm`).
 - **Query Optimization**: Eliminated N+1 patterns and improved data lookup speeds for user and document operations.
 - **Filter Organization**: All filter dropdown options are alphabetically sorted (based on English) for improved user experience across the entire application. This applies to all filters including status, type, category, building, residence, creator, and any other filter options. The 'other' option, when present, is kept at the end after all alphabetically sorted options.
