@@ -1,0 +1,19 @@
+72e5c9ba8f0b3ceda38dc7825d417c32
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Organizations;
+const jsx_runtime_1 = require("react/jsx-runtime");
+const react_1 = __importDefault(require("react"));
+const header_1 = require("@/components/layout/header");
+const organizations_card_1 = require("@/components/admin/organizations-card");
+/**
+ * Admin Organizations Management Page
+ * Complete CRUD interface for managing organizations.
+ */
+function Organizations() {
+    return ((0, jsx_runtime_1.jsxs)("div", { className: 'flex-1 flex flex-col overflow-hidden', children: [(0, jsx_runtime_1.jsx)(header_1.Header, { title: 'Organizations Management', subtitle: 'Create, view, edit and delete organizations in the system' }), (0, jsx_runtime_1.jsx)("div", { className: 'flex-1 overflow-auto p-6', children: (0, jsx_runtime_1.jsx)("div", { className: 'max-w-7xl mx-auto', children: (0, jsx_runtime_1.jsx)(organizations_card_1.OrganizationsCard, {}) }) })] }));
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL3BhZ2VzL2FkbWluL29yZ2FuaXphdGlvbnMudHN4IiwibWFwcGluZ3MiOiI7Ozs7O0FBUUEsZ0NBZUM7O0FBdkJELGtEQUEwQjtBQUMxQix1REFBb0Q7QUFDcEQsOEVBQTBFO0FBRTFFOzs7R0FHRztBQUNILFNBQXdCLGFBQWE7SUFDbkMsT0FBTyxDQUNMLGlDQUFLLFNBQVMsRUFBQyxzQ0FBc0MsYUFDbkQsdUJBQUMsZUFBTSxJQUNMLEtBQUssRUFBQywwQkFBMEIsRUFDaEMsUUFBUSxFQUFDLDJEQUEyRCxHQUNwRSxFQUVGLGdDQUFLLFNBQVMsRUFBQywwQkFBMEIsWUFDdkMsZ0NBQUssU0FBUyxFQUFDLG1CQUFtQixZQUNoQyx1QkFBQyxzQ0FBaUIsS0FBRyxHQUNqQixHQUNGLElBQ0YsQ0FDUCxDQUFDO0FBQ0osQ0FBQyIsIm5hbWVzIjpbXSwic291cmNlcyI6WyIvaG9tZS9ydW5uZXIvd29ya3NwYWNlL2NsaWVudC9zcmMvcGFnZXMvYWRtaW4vb3JnYW5pemF0aW9ucy50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JztcbmltcG9ydCB7IEhlYWRlciB9IGZyb20gJ0AvY29tcG9uZW50cy9sYXlvdXQvaGVhZGVyJztcbmltcG9ydCB7IE9yZ2FuaXphdGlvbnNDYXJkIH0gZnJvbSAnQC9jb21wb25lbnRzL2FkbWluL29yZ2FuaXphdGlvbnMtY2FyZCc7XG5cbi8qKlxuICogQWRtaW4gT3JnYW5pemF0aW9ucyBNYW5hZ2VtZW50IFBhZ2VcbiAqIENvbXBsZXRlIENSVUQgaW50ZXJmYWNlIGZvciBtYW5hZ2luZyBvcmdhbml6YXRpb25zLlxuICovXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBPcmdhbml6YXRpb25zKCkge1xuICByZXR1cm4gKFxuICAgIDxkaXYgY2xhc3NOYW1lPSdmbGV4LTEgZmxleCBmbGV4LWNvbCBvdmVyZmxvdy1oaWRkZW4nPlxuICAgICAgPEhlYWRlclxuICAgICAgICB0aXRsZT0nT3JnYW5pemF0aW9ucyBNYW5hZ2VtZW50J1xuICAgICAgICBzdWJ0aXRsZT0nQ3JlYXRlLCB2aWV3LCBlZGl0IGFuZCBkZWxldGUgb3JnYW5pemF0aW9ucyBpbiB0aGUgc3lzdGVtJ1xuICAgICAgLz5cblxuICAgICAgPGRpdiBjbGFzc05hbWU9J2ZsZXgtMSBvdmVyZmxvdy1hdXRvIHAtNic+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPSdtYXgtdy03eGwgbXgtYXV0byc+XG4gICAgICAgICAgPE9yZ2FuaXphdGlvbnNDYXJkIC8+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG4gICAgPC9kaXY+XG4gICk7XG59XG4iXSwidmVyc2lvbiI6M30=

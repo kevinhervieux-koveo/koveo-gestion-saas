@@ -1,6 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   testEnvironment: 'jsdom',
+  setupFiles: ['<rootDir>/jest.polyfills.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.simple.ts'],
   
   // Custom resolver temporarily disabled - format issues

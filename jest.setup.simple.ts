@@ -39,12 +39,7 @@ afterAll(() => {
 // MINIMAL REQUIRED POLYFILLS
 // =============================================================================
 
-// Basic TextEncoder/TextDecoder for Node.js
-if (typeof TextEncoder === 'undefined') {
-  const { TextEncoder, TextDecoder } = require('util');
-  (global as any).TextEncoder = TextEncoder;
-  (global as any).TextDecoder = TextDecoder;
-}
+// Note: TextEncoder/TextDecoder and fetch are now polyfilled in jest.polyfills.js
 
 // Enhanced ResizeObserver mock - required for Radix UI components
 class ResizeObserverMock {
