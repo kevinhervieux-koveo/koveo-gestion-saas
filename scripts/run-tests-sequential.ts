@@ -189,7 +189,7 @@ class SequentialTestRunner {
 
     return {
       name: `${category}-${name}`,
-      command: `npx jest "${filePath}" --maxWorkers=1 --testTimeout=${timeout} --passWithNoTests=true`,
+      command: JSON.stringify(['npx', 'jest', filePath, '--maxWorkers=1', `--testTimeout=${timeout}`, '--passWithNoTests=true']),
       description: `${category}: ${name}`,
       critical,
       timeout,
@@ -201,7 +201,8 @@ class SequentialTestRunner {
     const startTime = Date.now();
     
     return new Promise((resolve) => {
-      const [cmd, ...args] = command.split(' ');
+      const cmdParts = JSON.parse(command);
+      const [cmd, ...args] = cmdParts;
       const process = spawn(cmd, args, { 
         stdio: ['pipe', 'pipe', 'pipe'],
         shell: false
