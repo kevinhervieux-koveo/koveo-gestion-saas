@@ -9,7 +9,22 @@ const { TextDecoder, TextEncoder } = require('node:util');
 const { ReadableStream, TransformStream } = require('node:stream/web');
 const { clearImmediate } = require('node:timers');
 const { PerformanceObserver, performance } = require('node:perf_hooks');
-const { MessageChannel, MessagePort } = require('node:worker_threads');
+
+// Mock MessagePort and MessageChannel to avoid open handles
+class MockMessagePort {
+  start() {}
+  close() {}
+  postMessage() {}
+  addEventListener() {}
+  removeEventListener() {}
+}
+
+class MockMessageChannel {
+  constructor() {
+    this.port1 = new MockMessagePort();
+    this.port2 = new MockMessagePort();
+  }
+}
 
 Object.defineProperties(globalThis, {
   TextDecoder: { value: TextDecoder },
@@ -19,8 +34,8 @@ Object.defineProperties(globalThis, {
   clearImmediate: { value: clearImmediate },
   performance: { value: performance },
   PerformanceObserver: { value: PerformanceObserver },
-  MessageChannel: { value: MessageChannel },
-  MessagePort: { value: MessagePort },
+  MessageChannel: { value: MockMessageChannel },
+  MessagePort: { value: MockMessagePort },
 });
 
 // Use cross-fetch for better JSDOM compatibility
