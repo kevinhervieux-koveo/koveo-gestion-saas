@@ -1093,6 +1093,9 @@ export interface Translations {
   deleteOrphanUsersWarningList2: string;
   deleteOrphanUsersWarningList3: string;
   deleteOrphanUsersWarningList4: string;
+  filterByOrganization: string;
+  orphanFilterUnavailable: string;
+  userInvitationsNotAvailableDemo: string;
   
   selectBuildingInventoryMessage: string;
   inventoryManagementSubtitle: string;
@@ -1455,6 +1458,9 @@ export const translations: Record<Language, Translations> = {
     deleteOrphanUsersWarningList2: 'Preserve their data for audit purposes but remove access',
     deleteOrphanUsersWarningList3: 'Only affect users with no organization or residence assignments',
     deleteOrphanUsersWarningList4: 'Cannot be undone through the interface',
+    filterByOrganization: 'Filter by organization',
+    orphanFilterUnavailable: 'Orphan filter unavailable (organization selected)',
+    userInvitationsNotAvailableDemo: 'User invitations are not available in demo mode',
     noUsersFound: 'No users found',
     editUserDescription: 'Update user information and permissions',
     confirmDeleteUser: 'Are you sure you want to delete {name}?',
@@ -2602,6 +2608,9 @@ export const translations: Record<Language, Translations> = {
     deleteOrphanUsersWarningList2: 'Préserver leurs données à des fins d\'audit mais supprimer l\'accès',
     deleteOrphanUsersWarningList3: 'Affecter uniquement les utilisateurs sans affectation d\'organisation ou de résidence',
     deleteOrphanUsersWarningList4: 'Ne peut pas être annulé via l\'interface',
+    filterByOrganization: 'Filtrer par organisation',
+    orphanFilterUnavailable: 'Filtre orphelin non disponible (organisation sélectionnée)',
+    userInvitationsNotAvailableDemo: 'Les invitations d\'utilisateurs ne sont pas disponibles en mode démo',
     users: 'Utilisateurs',
     usersSelected: 'utilisateurs sélectionnés',
     bulkActions: 'Actions en lot',
