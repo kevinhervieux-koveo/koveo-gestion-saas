@@ -19,13 +19,6 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import request from 'supertest';
-import fs from 'fs';
-import path from 'path';
-import express, { Express } from 'express';
-
-// Import only essential routes for testing
-import { registerDocumentRoutes } from '../../server/api/documents';
 
 // Ultra-minimal mock storage without any typing complexity
 const mockStorage = {
@@ -42,7 +35,7 @@ const mockStorage = {
 const mockDb = {} as any;
 const mockSql = {} as any;
 
-// Mock all modules at the top
+// Mock all modules BEFORE any other imports
 jest.mock('../../server/storage', () => ({
   storage: mockStorage,
   default: mockStorage
@@ -52,15 +45,6 @@ jest.mock('../../server/db', () => ({
   db: mockDb,
   sql: mockSql,
 }));
-
-// Remove problematic fs/path mocks - use spies if needed
-
-// Simple fs spies for specific test needs
-const mockFsSpies = {
-  mkdirSync: jest.spyOn(fs, 'mkdirSync').mockImplementation(() => undefined),
-  unlinkSync: jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {}),
-  writeFileSync: jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {}),
-};
 
 // Mock authentication middleware
 jest.mock('../../server/middleware/auth-middleware', () => ({
@@ -73,6 +57,24 @@ jest.mock('../../server/middleware/auth-middleware', () => ({
     next();
   }
 }));
+
+// NOW import other modules after mocks are set up
+import request from 'supertest';
+import fs from 'fs';
+import path from 'path';
+import express, { Express } from 'express';
+
+// Import only essential routes for testing
+import { registerDocumentRoutes } from '../../server/api/documents';
+
+// Remove problematic fs/path mocks - use spies if needed
+
+// Simple fs spies for specific test needs
+const mockFsSpies = {
+  mkdirSync: jest.spyOn(fs, 'mkdirSync').mockImplementation(() => undefined),
+  unlinkSync: jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {}),
+  writeFileSync: jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {}),
+};
 
 describe('File Upload API Integration Tests', () => {
   const testFilesDir = path.join(__dirname, 'test-files');

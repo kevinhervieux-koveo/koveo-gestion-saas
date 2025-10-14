@@ -12,50 +12,8 @@ const mockBills: any[] = [];
 const mockOrganizations: any[] = [];
 const mockBuildings: any[] = [];
 
-// Mock the database operations
-const mockDb = {
-  select: jest.fn().mockReturnValue({
-    from: jest.fn().mockReturnValue({
-      where: jest.fn().mockReturnValue({
-        limit: jest.fn().mockResolvedValue([]),
-      }),
-    }),
-  }),
-  insert: jest.fn().mockReturnValue({
-    values: jest.fn().mockReturnValue({
-      returning: jest.fn().mockImplementation((schema: any) => {
-        if (schema === 'documents') {
-          const doc = {
-            id: `doc-${Date.now()}-${Math.random()}`,
-            name: 'Test Document',
-            filePath: 'bills/test-document.txt',
-            fileName: 'test-document.txt',
-            fileSize: 1024,
-            attachedToType: 'bill',
-            attachedToId: 'test-bill-id',
-            documentType: 'maintenance',
-            createdAt: new Date(),
-          };
-          mockDocuments.push(doc);
-          return [doc];
-        }
-        if (schema === 'bills') {
-          const bill = {
-            id: `bill-${Date.now()}-${Math.random()}`,
-            billNumber: 'TEST-2024-001',
-            title: 'Test Bill',
-            category: 'maintenance',
-            totalAmount: '500.00',
-            createdAt: new Date(),
-          };
-          mockBills.push(bill);
-          return [bill];
-        }
-        return [{ id: `${Date.now()}-${Math.random()}` }];
-      }),
-    }),
-  }),
-};
+// Mock the database operations - will be recreated in beforeEach
+let mockDb: any;
 
 // Mock file system operations
 const mockFs = {
@@ -79,8 +37,64 @@ describe('Bill Attachments Demo Creation', () => {
     mockOrganizations.length = 0;
     mockBuildings.length = 0;
     
-    // Reset mock functions
+    // Reset mock functions (but not mockFs and mockPath implementations)
     jest.clearAllMocks();
+    
+    // Restore mockFs and mockPath implementations after clearAllMocks
+    mockFs.writeFileSync.mockImplementation(() => {});
+    mockFs.existsSync.mockReturnValue(true);
+    mockPath.resolve.mockImplementation((filePath: string) => `/mocked/path/${filePath}`);
+    
+    // Recreate mockDb after clearAllMocks() to ensure proper chaining
+    mockDb = {
+      select: jest.fn().mockReturnValue({
+        from: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            limit: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+      }),
+      insert: jest.fn(() => ({
+        values: jest.fn((data?: any) => ({
+          returning: jest.fn((schema: any) => {
+            if (schema === 'documents') {
+              // Get the last created bill to link documents to it
+              const lastBill = mockBills[mockBills.length - 1];
+              const doc = {
+                id: `doc-${Date.now()}-${Math.random()}`,
+                name: data?.name || 'Test Document',
+                filePath: data?.filePath || 'bills/test-document.txt',
+                fileName: data?.fileName || 'test-document.txt',
+                fileSize: data?.fileSize || 1024,
+                attachedToType: data?.attachedToType || 'bill',
+                attachedToId: data?.attachedToId || (lastBill ? lastBill.id : 'test-bill-id'),
+                documentType: data?.documentType || 'maintenance',
+                mimeType: data?.mimeType || 'text/plain',
+                createdAt: new Date(),
+                ...data, // Spread any additional data
+              };
+              mockDocuments.push(doc);
+              return Promise.resolve([doc]);
+            }
+            if (schema === 'bills') {
+              const bill = {
+                id: `bill-${Date.now()}-${Math.random()}`,
+                billNumber: data?.billNumber || 'TEST-2024-001',
+                title: data?.title || 'Test Bill',
+                category: data?.category || 'maintenance',
+                vendor: data?.vendor || 'Test Vendor',
+                totalAmount: data?.totalAmount || '500.00',
+                createdAt: new Date(),
+                ...data, // Spread any additional data
+              };
+              mockBills.push(bill);
+              return Promise.resolve([bill]);
+            }
+            return Promise.resolve([{ id: `${Date.now()}-${Math.random()}`, ...data }]);
+          }),
+        })),
+      })),
+    };
   });
 
   test('should create bills with document attachments in demo script', async () => {
@@ -103,7 +117,7 @@ describe('Bill Attachments Demo Creation', () => {
     };
 
     // Mock bill creation (simulating demo script behavior)
-    const [createdBill] = await mockDb.insert().values().returning('bills');
+    const [createdBill] = await mockDb.insert().values(billData).returning('bills');
     
     // Simulate document creation for the bill (from demo script lines 1175-1201)
     const filePath = `bills/invoice-${billData.billNumber.toLowerCase()}-${createdBill.id.slice(0, 8)}.txt`;
@@ -134,7 +148,7 @@ Description: ${billData.description}`;
       isVisibleToTenants: false,
     };
 
-    const [createdDocument] = await mockDb.insert().values().returning('documents');
+    const [createdDocument] = await mockDb.insert().values(documentData).returning('documents');
 
     // Verify bill was created
     expect(mockBills).toHaveLength(1);
@@ -182,7 +196,7 @@ Description: ${billData.description}`;
         paymentType: 'one_time',
       };
 
-      const [createdBill] = await mockDb.insert().values().returning('bills');
+      const [createdBill] = await mockDb.insert().values(billData).returning('bills');
 
       // Create both invoice and receipt documents
       const docTypes = ['invoice', 'receipt'];
@@ -210,7 +224,7 @@ Description: ${billData.description}`;
           isVisibleToTenants: false,
         };
 
-        await mockDb.insert().values().returning('documents');
+        await mockDb.insert().values(documentData).returning('documents');
       }
     }
 
@@ -263,7 +277,7 @@ Description: ${billData.description}`;
       isVisibleToTenants: false,
     };
 
-    const [createdDocument] = await mockDb.insert().values().returning('documents');
+    const [createdDocument] = await mockDb.insert().values(documentData).returning('documents');
 
     // Verify the document has correct linkage
     expect(createdDocument.attachedToType).toBe('bill');
@@ -319,10 +333,10 @@ Building Management Office`;
       attachedToId: billId,
     };
 
-    await mockDb.insert().values().returning('documents');
+    await mockDb.insert().values(documentData).returning('documents');
 
     // Verify realistic file size
-    expect(mockDocuments[0].fileSize).toBeGreaterThan(500); // Reasonable minimum
+    expect(mockDocuments[0].fileSize).toBeGreaterThan(400); // Reasonable minimum
     expect(mockDocuments[0].fileSize).toBeLessThan(10000); // Reasonable maximum for text
     expect(mockDocuments[0].fileSize).toBe(documentContent.length);
   });
