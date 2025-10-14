@@ -42,7 +42,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Users, UserPlus, Shield, Mail, Edit, Home, Trash2, Search } from 'lucide-react';
+import { Users, UserPlus, Mail, Edit, Home, Trash2, Search } from 'lucide-react';
 import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -1289,10 +1289,6 @@ export default function UserManagement() {
     ? users?.filter((user: User) => user.isActive).length || 0
     : totalUsers > 0 ? Math.floor(totalUsers * 0.85) : 0; // Estimate 85% active when no filters
     
-  const displayedAdminUsers = hasActiveFilters
-    ? users?.filter((user: User) => user.role === 'admin').length || 0  
-    : totalUsers > 0 ? Math.floor(totalUsers * 0.02) : 0; // Estimate 2% admin when no filters
-    
   const displayedTotalUsers = hasActiveFilters ? `~${users.length}` : totalUsers;
 
   // Use server-side pagination calculations
@@ -1325,7 +1321,7 @@ export default function UserManagement() {
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
         {/* Quick Stats Cards */}
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <Card>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
               <CardTitle className='text-sm font-medium text-gray-600'>{t('totalUsers')}</CardTitle>
@@ -1345,17 +1341,6 @@ export default function UserManagement() {
             <CardContent>
               <div className='text-2xl font-bold'>{displayedActiveUsers}</div>
               <p className='text-xs text-muted-foreground'>{hasActiveFilters ? t('onThisPage') || 'On this page' : t('active')}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium text-gray-600'>{t('admin')}</CardTitle>
-              <Shield className='h-4 w-4 text-muted-foreground' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold'>{displayedAdminUsers}</div>
-              <p className='text-xs text-muted-foreground'>{hasActiveFilters ? t('onThisPage') || 'On this page' : t('role')}</p>
             </CardContent>
           </Card>
         </div>
