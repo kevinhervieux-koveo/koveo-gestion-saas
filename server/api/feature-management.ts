@@ -99,8 +99,8 @@ export function registerFeatureManagementRoutes(app: Express): void {
         return res.status(404).json({ message: 'Feature not found' });
       }
 
-      const feature = checkResult[0];
-      if (feature.status !== 'in-progress') {
+      const currentFeature = checkResult[0];
+      if (currentFeature.status !== 'in-progress') {
         return res.status(400).json({
           message: 'Feature must be in "in-progress" status for analysis',
         });
