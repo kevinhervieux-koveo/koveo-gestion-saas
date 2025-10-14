@@ -42,17 +42,7 @@ export function registerFeatureManagementRoutes(app: Express): void {
         return res.status(404).json({ message: 'Feature not found' });
       }
 
-      const row = result[0];
-      const feature = {
-        ...row,
-        isPublicRoadmap: row.is_public_roadmap,
-        isStrategicPath: row.is_strategic_path,
-        businessObjective: row.business_objective,
-        targetUsers: row.target_users,
-        successMetrics: row.success_metrics,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      };
+      const feature = result[0];
 
       res.json(feature);
     } catch (error) {
@@ -85,17 +75,7 @@ export function registerFeatureManagementRoutes(app: Express): void {
         return res.status(404).json({ message: 'Feature not found' });
       }
 
-      const row = result[0];
-      const feature = {
-        ...row,
-        isPublicRoadmap: row.is_public_roadmap,
-        isStrategicPath: row.is_strategic_path,
-        businessObjective: row.business_objective,
-        targetUsers: row.target_users,
-        successMetrics: row.success_metrics,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-      };
+      const feature = result[0];
 
       res.json(feature);
     } catch (error) {
@@ -136,19 +116,10 @@ export function registerFeatureManagementRoutes(app: Express): void {
         .where(eq(features.id, featureId))
         .returning();
 
-      const row = result[0];
+      const feature = result[0];
       res.json({
         message: 'Analysis completed successfully',
-        feature: {
-          ...row,
-          isPublicRoadmap: row.is_public_roadmap,
-          isStrategicPath: row.is_strategic_path,
-          businessObjective: row.business_objective,
-          targetUsers: row.target_users,
-          successMetrics: row.success_metrics,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at,
-        },
+        feature,
       });
     } catch (error) {
       console.error('Error analyzing feature:', error);
