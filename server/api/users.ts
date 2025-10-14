@@ -261,34 +261,38 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Prepare filter options with role-based filtering
+      // Return translation keys for client-side i18n
       const roleOptions = [
-        { value: '', label: 'All Roles' },
+        { value: '', label: 'allRoles', translationKey: true },
         ...allowedRoles.map(role => ({
           value: role,
-          label: role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')
+          label: role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' '),
+          translationKey: false
         }))
       ];
 
       const statusOptions = [
-        { value: '', label: 'All Statuses' },
+        { value: '', label: 'allStatuses', translationKey: true },
         ...statusResult.map(s => ({
           value: s.isActive === null ? 'null' : s.isActive.toString(),
-          label: s.isActive === null ? 'No Status' : (s.isActive ? 'Active' : 'Inactive')
+          label: s.isActive === null ? 'noStatus' : (s.isActive ? 'statusActive' : 'statusInactive'),
+          translationKey: true
         }))
       ];
 
       const organizationOptions = [
-        { value: '', label: 'All Organizations' },
+        { value: '', label: 'allOrganizations', translationKey: true },
         ...organizations.map(org => ({
           value: org.id,
-          label: org.name
+          label: org.name,
+          translationKey: false
         }))
       ];
 
       const orphanOptions = (currentUser.role === 'admin') ? [
-        { value: '', label: 'All Users' },
-        { value: 'true', label: 'Orphan Users' },
-        { value: 'false', label: 'Assigned Users' }
+        { value: '', label: 'allUsers', translationKey: true },
+        { value: 'true', label: 'orphanUsers', translationKey: true },
+        { value: 'false', label: 'assignedUsers', translationKey: true }
       ] : [];
 
       res.json({

@@ -1096,6 +1096,14 @@ export interface Translations {
   filterByOrganization: string;
   orphanFilterUnavailable: string;
   userInvitationsNotAvailableDemo: string;
+  allUsers: string;
+  orphanUsers: string;
+  assignedUsers: string;
+  noStatus: string;
+  noOrganizations: string;
+  noBuildings: string;
+  noResidences: string;
+  more: string;
   
   selectBuildingInventoryMessage: string;
   inventoryManagementSubtitle: string;
@@ -1461,6 +1469,14 @@ export const translations: Record<Language, Translations> = {
     filterByOrganization: 'Filter by organization',
     orphanFilterUnavailable: 'Orphan filter unavailable (organization selected)',
     userInvitationsNotAvailableDemo: 'User invitations are not available in demo mode',
+    allUsers: 'All Users',
+    orphanUsers: 'Orphan Users',
+    assignedUsers: 'Assigned Users',
+    noStatus: 'No Status',
+    noOrganizations: 'No organizations',
+    noBuildings: 'No buildings',
+    noResidences: 'No residences',
+    more: 'more',
     noUsersFound: 'No users found',
     editUserDescription: 'Update user information and permissions',
     confirmDeleteUser: 'Are you sure you want to delete {name}?',
@@ -2611,6 +2627,14 @@ export const translations: Record<Language, Translations> = {
     filterByOrganization: 'Filtrer par organisation',
     orphanFilterUnavailable: 'Filtre orphelin non disponible (organisation sélectionnée)',
     userInvitationsNotAvailableDemo: 'Les invitations d\'utilisateurs ne sont pas disponibles en mode démo',
+    allUsers: 'Tous les utilisateurs',
+    orphanUsers: 'Utilisateurs orphelins',
+    assignedUsers: 'Utilisateurs assignés',
+    noStatus: 'Aucun statut',
+    noOrganizations: 'Aucune organisation',
+    noBuildings: 'Aucun bâtiment',
+    noResidences: 'Aucune résidence',
+    more: 'de plus',
     users: 'Utilisateurs',
     usersSelected: 'utilisateurs sélectionnés',
     bulkActions: 'Actions en lot',

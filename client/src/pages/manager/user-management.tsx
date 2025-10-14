@@ -249,10 +249,10 @@ export default function UserManagement() {
 
   // Fetch dynamic filter options
   const { data: filterOptions } = useQuery<{
-    roles: Array<{ value: string; label: string }>;
-    statuses: Array<{ value: string; label: string }>;
-    organizations: Array<{ value: string; label: string }>;
-    orphanOptions: Array<{ value: string; label: string }>;
+    roles: Array<{ value: string; label: string; translationKey?: boolean }>;
+    statuses: Array<{ value: string; label: string; translationKey?: boolean }>;
+    organizations: Array<{ value: string; label: string; translationKey?: boolean }>;
+    orphanOptions: Array<{ value: string; label: string; translationKey?: boolean }>;
   }>({
     queryKey: ['/api/users/filter-options'],
   });
@@ -1436,7 +1436,7 @@ export default function UserManagement() {
                         onValueChange={setRoleFilter}
                         options={filterOptions?.roles?.map((role) => ({
                           value: role.value,
-                          label: role.label,
+                          label: role.translationKey ? t(role.label as keyof typeof t) : role.label,
                         })) || []}
                         placeholder={t('filterByRole')}
                         searchPlaceholder="Search roles..."
@@ -1450,7 +1450,7 @@ export default function UserManagement() {
                         onValueChange={setStatusFilter}
                         options={filterOptions?.statuses?.map((status) => ({
                           value: status.value,
-                          label: status.label,
+                          label: status.translationKey ? t(status.label as keyof typeof t) : status.label,
                         })) || []}
                         placeholder={t('filterByStatus')}
                         searchPlaceholder="Search status..."
@@ -1469,7 +1469,7 @@ export default function UserManagement() {
                           onValueChange={setOrganizationFilter}
                           options={filterOptions.organizations.map((org) => ({
                             value: org.value,
-                            label: org.label,
+                            label: org.translationKey ? t(org.label as keyof typeof t) : org.label,
                           }))}
                           placeholder={t('filterByOrganization')}
                           searchPlaceholder="Search organizations..."
@@ -1489,7 +1489,7 @@ export default function UserManagement() {
                           onValueChange={setOrphanFilter}
                           options={filterOptions.orphanOptions.map((option) => ({
                             value: option.value,
-                            label: option.label,
+                            label: option.translationKey ? t(option.label as keyof typeof t) : option.label,
                           }))}
                           placeholder={t('filterByStatus')}
                           searchPlaceholder="Search options..."
