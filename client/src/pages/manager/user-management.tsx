@@ -645,41 +645,6 @@ export default function UserManagement() {
     }
   }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
-  // Initialize states ONCE per user when dialog opens - guard against re-initialization
-  useEffect(() => {
-    if (editingUser && editingUser.id !== lastInitializedUserIdRef.current) {
-      // Only initialize once per user - prevent re-initialization on unrelated renders
-      const userWithAssignments = findUserWithAssignments(editingUser.id);
-      if (userWithAssignments) {
-        const currentOrgIds = Array.isArray(userWithAssignments.organizations) 
-          ? userWithAssignments.organizations.map((org: any) => org.id) 
-          : [];
-        const currentBuildingIds = Array.isArray(userWithAssignments.buildings) 
-          ? userWithAssignments.buildings.map((building: any) => building.id) 
-          : [];
-        const currentResidenceAssignments = Array.isArray(userWithAssignments.residences) 
-          ? userWithAssignments.residences.map((residence: any) => ({
-            residenceId: residence.id,
-            relationshipType: residence.relationshipType || 'tenant',
-            startDate: new Date().toISOString().split('T')[0],
-            endDate: null,
-            isActive: true
-          }))
-          : [];
-        setSelectedOrganizationIds(currentOrgIds);
-        setSelectedBuildingIds(currentBuildingIds);
-        setSelectedResidenceAssignments(currentResidenceAssignments);
-        lastInitializedUserIdRef.current = editingUser.id;
-      }
-    } else if (!editingUser) {
-      // Reset states when dialog closes
-      setSelectedOrganizationIds([]);
-      setSelectedBuildingIds([]);
-      setSelectedResidenceAssignments([]);
-      lastInitializedUserIdRef.current = null;
-    }
-  }, [editingUser?.id]);
-
   // Get current user's access information for role-based filtering
   const currentUserAccess = useMemo(() => {
     console.log('🔍 [USER_MANAGEMENT] Computing currentUserAccess memo:', {
@@ -738,6 +703,50 @@ export default function UserManagement() {
       residenceIds
     };
   }, [currentUser, currentUserOrganizations, currentUserBuildings, currentUserResidences, orgsLoading, buildingsLoading, residencesLoading]);
+
+  // Initialize states ONCE per user when dialog opens - guard against re-initialization
+  useEffect(() => {
+    if (editingUser && editingUser.id !== lastInitializedUserIdRef.current) {
+      // Only initialize once per user - prevent re-initialization on unrelated renders
+      const userWithAssignments = findUserWithAssignments(editingUser.id);
+      if (userWithAssignments) {
+        let currentOrgIds = Array.isArray(userWithAssignments.organizations) 
+          ? userWithAssignments.organizations.map((org: any) => org.id) 
+          : [];
+        
+        // For managers: if user has no organizations assigned yet, pre-select the manager's organizations
+        // This allows managers to assign buildings and residences within their scope
+        const isManager = currentUser?.role === 'manager' || currentUser?.role === 'demo_manager';
+        if (isManager && currentOrgIds.length === 0 && currentUserAccess.organizationIds.length > 0) {
+          console.log('🔧 [USER_MANAGEMENT] Manager editing user with no organizations - pre-selecting manager\'s organizations');
+          currentOrgIds = currentUserAccess.organizationIds;
+        }
+        
+        const currentBuildingIds = Array.isArray(userWithAssignments.buildings) 
+          ? userWithAssignments.buildings.map((building: any) => building.id) 
+          : [];
+        const currentResidenceAssignments = Array.isArray(userWithAssignments.residences) 
+          ? userWithAssignments.residences.map((residence: any) => ({
+            residenceId: residence.id,
+            relationshipType: residence.relationshipType || 'tenant',
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: null,
+            isActive: true
+          }))
+          : [];
+        setSelectedOrganizationIds(currentOrgIds);
+        setSelectedBuildingIds(currentBuildingIds);
+        setSelectedResidenceAssignments(currentResidenceAssignments);
+        lastInitializedUserIdRef.current = editingUser.id;
+      }
+    } else if (!editingUser) {
+      // Reset states when dialog closes
+      setSelectedOrganizationIds([]);
+      setSelectedBuildingIds([]);
+      setSelectedResidenceAssignments([]);
+      lastInitializedUserIdRef.current = null;
+    }
+  }, [editingUser?.id, currentUser, currentUserAccess.organizationIds]);
 
   // Helper function to provide user-friendly error messages
   const getErrorMessage = (error: Error, context: string = '') => {
