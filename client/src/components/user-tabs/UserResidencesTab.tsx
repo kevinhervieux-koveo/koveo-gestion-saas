@@ -140,7 +140,13 @@ export function UserResidencesTab({
       // Admin can access all residences
       if (currentUser?.role === 'admin') return true;
       
-      // Managers and other users can only assign residences they have access to
+      // Managers can assign any residence from their organization(s)
+      if (currentUser?.role === 'manager' || currentUser?.role === 'demo_manager') {
+        const building = buildingLookup.get(residence.buildingId);
+        return building && currentUserOrganizationIds.includes(building.organizationId);
+      }
+      
+      // Other users can only assign residences they have access to
       return currentUserResidenceIds.includes(residence.id);
     });
 
