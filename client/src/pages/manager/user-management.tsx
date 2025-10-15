@@ -707,12 +707,26 @@ export default function UserManagement() {
   // Initialize states ONCE per user when dialog opens - guard against re-initialization
   useEffect(() => {
     if (editingUser && editingUser.id !== lastInitializedUserIdRef.current) {
+      console.log('🔧 [USER_MANAGEMENT] Initializing edit dialog for user:', editingUser.id);
+      
       // Only initialize once per user - prevent re-initialization on unrelated renders
       const userWithAssignments = findUserWithAssignments(editingUser.id);
+      console.log('🔧 [USER_MANAGEMENT] User data:', {
+        id: editingUser.id,
+        email: editingUser.email,
+        organizations: userWithAssignments?.organizations,
+        buildings: userWithAssignments?.buildings,
+        residences: userWithAssignments?.residences
+      });
+      
       if (userWithAssignments) {
         let currentOrgIds = Array.isArray(userWithAssignments.organizations) 
           ? userWithAssignments.organizations.map((org: any) => org.id) 
           : [];
+        
+        console.log('🔧 [USER_MANAGEMENT] User organization IDs:', currentOrgIds);
+        console.log('🔧 [USER_MANAGEMENT] Current user role:', currentUser?.role);
+        console.log('🔧 [USER_MANAGEMENT] Manager organization IDs:', currentUserAccess.organizationIds);
         
         // For managers: if user has no organizations assigned yet, pre-select the manager's organizations
         // This allows managers to assign buildings and residences within their scope
@@ -721,6 +735,8 @@ export default function UserManagement() {
           console.log('🔧 [USER_MANAGEMENT] Manager editing user with no organizations - pre-selecting manager\'s organizations');
           currentOrgIds = currentUserAccess.organizationIds;
         }
+        
+        console.log('🔧 [USER_MANAGEMENT] Final organization IDs to select:', currentOrgIds);
         
         const currentBuildingIds = Array.isArray(userWithAssignments.buildings) 
           ? userWithAssignments.buildings.map((building: any) => building.id) 
@@ -734,6 +750,8 @@ export default function UserManagement() {
             isActive: true
           }))
           : [];
+        
+        console.log('🔧 [USER_MANAGEMENT] Setting selected organization IDs:', currentOrgIds);
         setSelectedOrganizationIds(currentOrgIds);
         setSelectedBuildingIds(currentBuildingIds);
         setSelectedResidenceAssignments(currentResidenceAssignments);
@@ -741,6 +759,7 @@ export default function UserManagement() {
       }
     } else if (!editingUser) {
       // Reset states when dialog closes
+      console.log('🔧 [USER_MANAGEMENT] Closing edit dialog, resetting states');
       setSelectedOrganizationIds([]);
       setSelectedBuildingIds([]);
       setSelectedResidenceAssignments([]);
