@@ -245,7 +245,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   const [timeLimitFormData, setTimeLimitFormData] = useState({
     limit_type: 'monthly' as 'monthly' | 'yearly',
     limit_hours: '10',
-    common_space_id: '',
+    common_space_id: 'all',
   });
 
   const handleBackToOrganization = () => {
@@ -508,7 +508,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       user_id: selectedUser.userId,
       limit_type: timeLimitFormData.limit_type,
       limit_hours: parseInt(timeLimitFormData.limit_hours),
-      common_space_id: timeLimitFormData.common_space_id || undefined,
+      common_space_id: timeLimitFormData.common_space_id === 'all' ? undefined : timeLimitFormData.common_space_id,
     };
 
     setTimeLimitMutation.mutate(limitData);
@@ -1365,7 +1365,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value=''>
+                        <SelectItem value='all'>
                           {language === 'fr' ? 'Tous les espaces' : 'All spaces'}
                         </SelectItem>
                         <SelectItem value={selectedSpaceId}>
