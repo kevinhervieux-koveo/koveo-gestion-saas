@@ -1211,8 +1211,12 @@ export default function UserManagement() {
     setSearch('');
     setRoleFilter('');
     setStatusFilter('');
-    // Don't clear organization filter for demo_manager since they can't change it
-    if (currentUser?.role !== 'demo_manager') {
+    // Don't clear organization filter for managers with only 1 organization or demo_manager
+    const shouldKeepOrgFilter = 
+      currentUser?.role === 'demo_manager' || 
+      ((currentUser?.role === 'manager') && currentUserOrganizations && currentUserOrganizations.length === 1);
+    
+    if (!shouldKeepOrgFilter) {
       setOrganizationFilter('');
     }
     setOrphanFilter('');
@@ -1224,6 +1228,28 @@ export default function UserManagement() {
       setOrphanFilter('');
     }
   }, [organizationFilter]);
+
+  // Pre-filter for managers: automatically set organization filter based on their organizations
+  useEffect(() => {
+    if (!currentUser || !currentUserOrganizations || currentUserOrganizations.length === 0) {
+      return;
+    }
+
+    // Only apply pre-filtering for manager and demo_manager roles
+    const isManagerRole = currentUser.role === 'manager' || currentUser.role === 'demo_manager';
+    if (!isManagerRole) {
+      return;
+    }
+
+    // If manager has exactly 1 organization, pre-filter to that organization
+    if (currentUserOrganizations.length === 1) {
+      const orgId = currentUserOrganizations[0].id;
+      if (organizationFilter !== orgId) {
+        console.log(`🔍 [USER_MANAGEMENT] Pre-filtering manager to their organization: ${orgId}`);
+        setOrganizationFilter(orgId);
+      }
+    }
+  }, [currentUser, currentUserOrganizations]);
 
   // Delete orphan users mutation (admin only)
   const deleteOrphanUsersMutation = useMutation({
@@ -1443,11 +1469,12 @@ export default function UserManagement() {
                         data-testid="filter-status"
                       />
 
-                      {/* Organization Filter - Hidden when user has only 1 organization or is demo_manager */}
+                      {/* Organization Filter - Hidden for demo_manager and managers with only 1 organization */}
                       {filterOptions?.organizations && 
                        Array.isArray(filterOptions.organizations) && 
                        filterOptions.organizations.length > 0 && 
-                       currentUser?.role !== 'demo_manager' &&
+                       !(currentUser?.role === 'demo_manager') &&
+                       !(currentUser?.role === 'manager' && currentUserOrganizations && currentUserOrganizations.length === 1) &&
                        (currentUserOrganizations && currentUserOrganizations.length > 1) && (
                         <SearchableSelect
                           value={organizationFilter}
@@ -1494,8 +1521,14 @@ export default function UserManagement() {
                         </div>
                       )}
 
-                      {/* Clear Filters - adjust visibility for demo_manager */}
-                      {(searchInput || roleFilter || statusFilter || (currentUser?.role !== 'demo_manager' && organizationFilter) || orphanFilter) && (
+                      {/* Clear Filters - adjust visibility for demo_manager and managers with only 1 organization */}
+                      {(() => {
+                        const canClearOrgFilter = !(
+                          currentUser?.role === 'demo_manager' || 
+                          (currentUser?.role === 'manager' && currentUserOrganizations && currentUserOrganizations.length === 1)
+                        );
+                        return (searchInput || roleFilter || statusFilter || (canClearOrgFilter && organizationFilter) || orphanFilter);
+                      })() && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           {t('clearFilters')}
                         </Button>
