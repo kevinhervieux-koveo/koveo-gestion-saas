@@ -103,6 +103,8 @@ interface UserStats {
   userEmail: string;
   totalHours: number;
   totalBookings: number;
+  isBlocked: boolean;
+  hasCustomLimit: boolean;
 }
 
 /**
@@ -1262,6 +1264,12 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                               {language === 'fr' ? 'Réservations' : 'Bookings'}
                             </TableHead>
                             <TableHead className='text-center'>
+                              {language === 'fr' ? 'Bloqué' : 'Is Blocked'}
+                            </TableHead>
+                            <TableHead className='text-center'>
+                              {language === 'fr' ? 'Limite personnalisée' : 'Has Custom Limit'}
+                            </TableHead>
+                            <TableHead className='text-center'>
                               {language === 'fr' ? 'Actions' : 'Actions'}
                             </TableHead>
                           </TableRow>
@@ -1282,6 +1290,28 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                               </TableCell>
                               <TableCell className='text-right font-mono'>
                                 {userStat.totalBookings}
+                              </TableCell>
+                              <TableCell className='text-center'>
+                                {userStat.isBlocked ? (
+                                  <Badge variant='destructive' data-testid={`badge-blocked-${userStat.userId}`}>
+                                    {language === 'fr' ? 'Oui' : 'Yes'}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant='secondary' data-testid={`badge-not-blocked-${userStat.userId}`}>
+                                    {language === 'fr' ? 'Non' : 'No'}
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className='text-center'>
+                                {userStat.hasCustomLimit ? (
+                                  <Badge variant='default' data-testid={`badge-has-limit-${userStat.userId}`}>
+                                    {language === 'fr' ? 'Oui' : 'Yes'}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant='outline' data-testid={`badge-no-limit-${userStat.userId}`}>
+                                    {language === 'fr' ? 'Non' : 'No'}
+                                  </Badge>
+                                )}
                               </TableCell>
                               <TableCell className='text-center'>
                                 <div className='flex gap-2 justify-center'>

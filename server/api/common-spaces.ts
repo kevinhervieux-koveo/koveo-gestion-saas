@@ -1039,6 +1039,34 @@ export function registerCommonSpacesRoutes(app: Express): void {
             )
           );
 
+        // Get user restrictions for this space
+        const restrictions = await db
+          .select({
+            userId: userBookingRestrictions.userId,
+            isBlocked: userBookingRestrictions.isBlocked,
+          })
+          .from(userBookingRestrictions)
+          .where(eq(userBookingRestrictions.commonSpaceId, spaceId));
+
+        // Get user time limits for this space
+        const timeLimits = await db
+          .select({
+            userId: userTimeLimits.userId,
+          })
+          .from(userTimeLimits)
+          .where(eq(userTimeLimits.commonSpaceId, spaceId));
+
+        // Create maps for quick lookup
+        const restrictionMap = new Map(restrictions.map(r => [r.userId, r.isBlocked]));
+        const timeLimitMap = new Map(timeLimits.map(t => [t.userId, true]));
+
+        // Merge data
+        const enrichedStats = stats.map(stat => ({
+          ...stat,
+          isBlocked: restrictionMap.get(stat.userId) || false,
+          hasCustomLimit: timeLimitMap.has(stat.userId),
+        }));
+
         const totalStats = await db
           .select({
             totalBookings: sql<number>`COUNT(${bookings.id})`,
@@ -1058,7 +1086,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           spaceName: space[0].name,
           period: 'Last 12 months',
           summary: totalStats[0],
-          userStats: stats,
+          userStats: enrichedStats,
         });
       } catch (error: any) {
         console.error('❌ Error fetching space statistics:', error);
