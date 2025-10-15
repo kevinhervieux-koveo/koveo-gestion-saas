@@ -69,6 +69,8 @@ const createCommonSpaceSchema = z.object({
       z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
     )
     .optional(),
+  default_time_limit_type: z.enum(['monthly', 'yearly']).optional(),
+  default_time_limit_hours: z.number().int().positive().optional(),
 });
 
 const setTimeLimitSchema = z.object({
@@ -1254,7 +1256,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days } =
+        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days, default_time_limit_type, default_time_limit_hours } =
           validationResult.data;
 
         // Check if user has access to this building
@@ -1310,6 +1312,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
                            close: hours.end 
                          })) : null,
             availableDays: available_days || null,
+            defaultTimeLimitType: default_time_limit_type || null,
+            defaultTimeLimitHours: default_time_limit_hours || null,
           })
           .returning();
 
@@ -1378,7 +1382,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         }
 
         const { spaceId } = paramValidation.data;
-        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days } =
+        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days, default_time_limit_type, default_time_limit_hours } =
           validationResult.data;
 
         // Check if space exists and user has access
@@ -1423,6 +1427,8 @@ export function registerCommonSpacesRoutes(app: Express): void {
                            close: hours.end 
                          })) : null,
             availableDays: available_days || null,
+            defaultTimeLimitType: default_time_limit_type || null,
+            defaultTimeLimitHours: default_time_limit_hours || null,
             updatedAt: new Date(),
           })
           .where(eq(commonSpaces.id, spaceId))
