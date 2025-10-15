@@ -1201,9 +1201,9 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className='h-80' data-testid='usage-chart'>
+                      <div className='h-96' data-testid='usage-chart'>
                         <ResponsiveContainer width='100%' height='100%'>
-                          <BarChart data={chartData}>
+                          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray='3 3' />
                             <XAxis dataKey='name' angle={-45} textAnchor='end' height={100} />
                             <YAxis />
@@ -1218,8 +1218,12 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                                     ? 'Réservations'
                                     : 'Bookings',
                               ]}
+                              contentStyle={{ zIndex: 1000 }}
+                              wrapperStyle={{ zIndex: 1000 }}
                             />
                             <Legend
+                              verticalAlign='top'
+                              height={36}
                               formatter={(value) =>
                                 value === 'hours'
                                   ? language === 'fr'
