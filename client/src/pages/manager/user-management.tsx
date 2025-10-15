@@ -269,9 +269,15 @@ export default function UserManagement() {
   const { data: buildingsData } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
     queryFn: async () => {
-      const result = await apiRequest('GET', '/api/buildings') as unknown as Promise<Building[]>;
-      console.log('🏢 [USER_MANAGEMENT] /api/buildings returned:', result);
-      return result;
+      const response = await fetch('/api/buildings', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch buildings: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('🏢 [USER_MANAGEMENT] /api/buildings returned:', data);
+      return Array.isArray(data) ? data : [];
     },
     enabled: true,
   });
@@ -281,7 +287,16 @@ export default function UserManagement() {
   // Fetch residences - ensure always an array
   const { data: residencesData } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
-    queryFn: () => apiRequest('GET', '/api/residences') as unknown as Promise<Residence[]>,
+    queryFn: async () => {
+      const response = await fetch('/api/residences', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch residences: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: true,
   });
   const residences = Array.isArray(residencesData) ? residencesData : [];
