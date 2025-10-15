@@ -34,6 +34,7 @@ import { AuthErrorBoundary } from '@/components/common/AuthErrorBoundary';
 import { HelpProvider } from '@/contexts/HelpContext';
 import { HelpButton } from '@/components/help/HelpButton';
 import { HelpOverlay } from '@/components/help/HelpOverlay';
+import { HelpHighlighter } from '@/components/help/HelpHighlighter';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -439,6 +440,7 @@ function Router() {
       {/* Help system - floating button and overlay */}
       <HelpButton />
       <HelpOverlay />
+      <HelpHighlighter />
     </div>
   );
 }
