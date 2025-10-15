@@ -227,6 +227,8 @@ export const commonSpaces = pgTable('common_spaces', {
   availableDays: jsonb('available_days'), // Array of available days: ['monday', 'tuesday', etc.]
   unavailablePeriods: jsonb('unavailable_periods'), // Specific periods when space is unavailable
   bookingRules: text('booking_rules'),
+  defaultTimeLimitType: varchar('default_time_limit_type', { length: 20 }), // 'monthly' or 'yearly' - default limit for all users
+  defaultTimeLimitHours: integer('default_time_limit_hours'), // Default hours allowed per period
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
@@ -416,6 +418,8 @@ export const insertCommonSpaceSchema = z.object({
     })
   ).optional(), // Specific periods when space is unavailable
   bookingRules: z.string().optional(),
+  defaultTimeLimitType: z.enum(['monthly', 'yearly']).optional(),
+  defaultTimeLimitHours: z.number().int().positive().optional(),
 });
 
 export const insertBookingSchema = z.object({
