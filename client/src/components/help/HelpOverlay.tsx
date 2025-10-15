@@ -108,9 +108,9 @@ export function HelpOverlay() {
             </p>
             <div className="flex gap-2 pt-2">
               <Badge variant="outline">Tip</Badge>
-              <p className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 Press <kbd className="px-1.5 py-0.5 text-xs font-mono bg-muted rounded">Esc</kbd> to close this help dialog
-              </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -253,9 +253,9 @@ export function HelpOverlay() {
 
         {/* Footer */}
         <div className="px-6 py-4 border-t bg-muted/20">
-          <p className="text-xs text-muted-foreground text-center">
+          <div className="text-xs text-muted-foreground text-center">
             Click the <Badge variant="outline" className="mx-1">?</Badge> button anytime to get help with the current page
-          </p>
+          </div>
         </div>
       </Card>
     </div>

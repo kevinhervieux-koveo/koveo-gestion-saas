@@ -1042,6 +1042,77 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
           </CardContent>
         </Card>
 
+        {/* Summary Statistics - Moved outside tabs to display at top */}
+        {spaceStats && (
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+            <Card>
+              <CardContent className='pt-6'>
+                <div className='flex items-center'>
+                  <Calendar className='h-4 w-4 text-blue-600' />
+                  <div className='ml-4'>
+                    <p
+                      className='text-sm font-medium text-gray-600'
+                      data-testid='total-bookings-label'
+                    >
+                      {language === 'fr' ? 'Réservations totales' : 'Total Bookings'}
+                    </p>
+                    <p
+                      className='text-2xl font-bold text-gray-900'
+                      data-testid='total-bookings-value'
+                    >
+                      {spaceStats.summary.totalBookings}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className='pt-6'>
+                <div className='flex items-center'>
+                  <Clock className='h-4 w-4 text-green-600' />
+                  <div className='ml-4'>
+                    <p
+                      className='text-sm font-medium text-gray-600'
+                      data-testid='total-hours-label'
+                    >
+                      {language === 'fr' ? 'Heures totales' : 'Total Hours'}
+                    </p>
+                    <p
+                      className='text-2xl font-bold text-gray-900'
+                      data-testid='total-hours-value'
+                    >
+                      {Math.round(spaceStats.summary.totalHours * 10) / 10}h
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className='pt-6'>
+                <div className='flex items-center'>
+                  <Users className='h-4 w-4 text-purple-600' />
+                  <div className='ml-4'>
+                    <p
+                      className='text-sm font-medium text-gray-600'
+                      data-testid='unique-users-label'
+                    >
+                      {language === 'fr' ? 'Utilisateurs uniques' : 'Unique Users'}
+                    </p>
+                    <p
+                      className='text-2xl font-bold text-gray-900'
+                      data-testid='unique-users-value'
+                    >
+                      {spaceStats.summary.uniqueUsers}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <Tabs defaultValue='stats' className='space-y-6'>
           <div className='flex items-center justify-between'>
             <TabsList className='grid grid-cols-2 max-w-md'>
@@ -1120,75 +1191,6 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
           <TabsContent value='stats' className='space-y-6'>
             {spaceStats && (
               <>
-                {/* Summary Statistics */}
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-                  <Card>
-                    <CardContent className='pt-6'>
-                      <div className='flex items-center'>
-                        <Calendar className='h-4 w-4 text-blue-600' />
-                        <div className='ml-4'>
-                          <p
-                            className='text-sm font-medium text-gray-600'
-                            data-testid='total-bookings-label'
-                          >
-                            {language === 'fr' ? 'Réservations totales' : 'Total Bookings'}
-                          </p>
-                          <p
-                            className='text-2xl font-bold text-gray-900'
-                            data-testid='total-bookings-value'
-                          >
-                            {spaceStats.summary.totalBookings}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className='pt-6'>
-                      <div className='flex items-center'>
-                        <Clock className='h-4 w-4 text-green-600' />
-                        <div className='ml-4'>
-                          <p
-                            className='text-sm font-medium text-gray-600'
-                            data-testid='total-hours-label'
-                          >
-                            {language === 'fr' ? 'Heures totales' : 'Total Hours'}
-                          </p>
-                          <p
-                            className='text-2xl font-bold text-gray-900'
-                            data-testid='total-hours-value'
-                          >
-                            {Math.round(spaceStats.summary.totalHours * 10) / 10}h
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className='pt-6'>
-                      <div className='flex items-center'>
-                        <Users className='h-4 w-4 text-purple-600' />
-                        <div className='ml-4'>
-                          <p
-                            className='text-sm font-medium text-gray-600'
-                            data-testid='unique-users-label'
-                          >
-                            {language === 'fr' ? 'Utilisateurs uniques' : 'Unique Users'}
-                          </p>
-                          <p
-                            className='text-2xl font-bold text-gray-900'
-                            data-testid='unique-users-value'
-                          >
-                            {spaceStats.summary.uniqueUsers}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
                 {/* Usage Chart */}
                 {chartData.length > 0 && (
                   <Card className='mb-8'>
