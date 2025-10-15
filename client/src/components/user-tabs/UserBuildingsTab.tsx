@@ -88,12 +88,7 @@ export function UserBuildingsTab({
       // Admin can access all buildings
       if (currentUser?.role === 'admin') return true;
       
-      // Managers can assign any building from their organization(s)
-      if (currentUser?.role === 'manager' || currentUser?.role === 'demo_manager') {
-        return currentUserOrganizationIds.includes(building.organizationId);
-      }
-      
-      // Other users can only assign buildings they have access to
+      // Managers and other users can only assign buildings they have access to
       return currentUserBuildingIds.includes(building.id);
     });
 
