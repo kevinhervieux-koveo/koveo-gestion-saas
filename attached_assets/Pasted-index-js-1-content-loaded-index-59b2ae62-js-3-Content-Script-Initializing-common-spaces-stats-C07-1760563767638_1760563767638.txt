@@ -1,0 +1,90 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+common-spaces-stats-C07H8Jmn.js:11 🔍 [COMMON_SPACES_STATS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f'}
+common-spaces-stats-C07H8Jmn.js:11 🔍 [COMMON_SPACES_STATS] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f'}
+common-spaces-stats-C07H8Jmn.js:11 🔍 [COMMON_SPACES_STATS] Selected space changed: {selectedSpaceId: ''}
+common-spaces-stats-C07H8Jmn.js:11 🔍 [COMMON_SPACES_STATS] Fetching buildings with params: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+common-spaces-stats-C07H8Jmn.js:11 🔍 [COMMON_SPACES_STATS] Fetching common spaces for building: {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f'}
+common-spaces-stats-C07H8Jmn.js:11 🔍 [COMMON_SPACES_STATS] Received common spaces: {count: 8}
+common-spaces-stats-C07H8Jmn.js:11 🔍 [COMMON_SPACES_STATS] Received buildings: {count: 2}
+common-spaces-stats-C07H8Jmn.js:11 🔍 [COMMON_SPACES_STATS] Selected space changed: {selectedSpaceId: 'f5831b99-4f52-4577-b255-035bc68a4ee9'}
+common-spaces-stats-C07H8Jmn.js:11 🔍 [COMMON_SPACES_STATS] Selected space changed: {selectedSpaceId: '35a876f4-3d65-4b6d-9405-9222c7fc69df'}
+index-DUOcq86w.js:185 [Violation] 'setTimeout' handler took 81ms
+index-DUOcq86w.js:136 Error: A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+    at SelectItem (vendor-ui-_Ku30r10.js:58:12812)
+    at Object.react_stack_bottom_frame (index-DUOcq86w.js:229:12448)
+    at hc (index-DUOcq86w.js:120:804)
+    at wh (index-DUOcq86w.js:141:3310)
+    at Wc (index-DUOcq86w.js:150:12689)
+    at H (index-DUOcq86w.js:45:108)
+    at bg (index-DUOcq86w.js:163:29810)
+    at vg (index-DUOcq86w.js:163:28479)
+    at cd (index-DUOcq86w.js:163:28312)
+    at mg (index-DUOcq86w.js:163:24807)
+
+The above error occurred in the <SelectItem> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, sR.
+
+overrideMethod @ hook.js:608
+Ch @ index-DUOcq86w.js:136
+xh @ index-DUOcq86w.js:141
+H @ index-DUOcq86w.js:45
+Yc.l.componentDidCatch.e.callback @ index-DUOcq86w.js:141
+Yp @ index-DUOcq86w.js:107
+Gp @ index-DUOcq86w.js:107
+H @ index-DUOcq86w.js:45
+Yh @ index-DUOcq86w.js:163
+Zh @ index-DUOcq86w.js:163
+Xn @ index-DUOcq86w.js:163
+Zh @ index-DUOcq86w.js:163
+Xn @ index-DUOcq86w.js:163
+Zh @ index-DUOcq86w.js:163
+Xn @ index-DUOcq86w.js:163
+Zh @ index-DUOcq86w.js:163
+Xn @ index-DUOcq86w.js:163
+Zh @ index-DUOcq86w.js:163
+Xn @ index-DUOcq86w.js:163
+Zh @ index-DUOcq86w.js:163
+Xn @ index-DUOcq86w.js:163
+Zh @ index-DUOcq86w.js:163
+Ag @ index-DUOcq86w.js:163
+dd @ index-DUOcq86w.js:163
+pg @ index-DUOcq86w.js:163
+mg @ index-DUOcq86w.js:163
+kg @ index-DUOcq86w.js:185
+vl @ index-DUOcq86w.js:185
+pd @ index-DUOcq86w.js:185
+(anonymous) @ index-DUOcq86w.js:185
+<SelectItem>
+vu.jsxDEV @ index-DUOcq86w.js:15
+SelectItem @ select-BXgqVr1U.js:6
+react_stack_bottom_frame @ index-DUOcq86w.js:229
+hc @ index-DUOcq86w.js:120
+wh @ index-DUOcq86w.js:141
+Wc @ index-DUOcq86w.js:150
+H @ index-DUOcq86w.js:45
+bg @ index-DUOcq86w.js:163
+vg @ index-DUOcq86w.js:163
+cd @ index-DUOcq86w.js:163
+mg @ index-DUOcq86w.js:163
+kg @ index-DUOcq86w.js:185
+vl @ index-DUOcq86w.js:185
+pd @ index-DUOcq86w.js:185
+(anonymous) @ index-DUOcq86w.js:185
+<SelectItem>
+vu.jsxDEV @ index-DUOcq86w.js:15
+cs @ common-spaces-stats-C07H8Jmn.js:11
+react_stack_bottom_frame @ index-DUOcq86w.js:229
+hc @ index-DUOcq86w.js:120
+Gc @ index-DUOcq86w.js:141
+Wc @ index-DUOcq86w.js:150
+H @ index-DUOcq86w.js:45
+bg @ index-DUOcq86w.js:163
+vg @ index-DUOcq86w.js:163
+cd @ index-DUOcq86w.js:163
+mg @ index-DUOcq86w.js:163
+kg @ index-DUOcq86w.js:185
+vl @ index-DUOcq86w.js:185
+pd @ index-DUOcq86w.js:185
+(anonymous) @ index-DUOcq86w.js:185

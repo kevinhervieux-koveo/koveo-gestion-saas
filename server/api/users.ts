@@ -1743,20 +1743,45 @@ export function registerUserRoutes(app: Express): void {
         whereConditions.push(eq(schema.buildings.organizationId, organization_id));
       }
 
-      const buildingDetails = await db
-        .select({
-          id: schema.buildings.id,
-          name: schema.buildings.name,
-          address: schema.buildings.address,
-          city: schema.buildings.city,
-          province: schema.buildings.province,
-          postalCode: schema.buildings.postalCode,
-          organizationId: schema.buildings.organizationId,
-          isActive: schema.buildings.isActive,
-        })
-        .from(schema.buildings)
-        .where(and(...whereConditions))
-        .orderBy(schema.buildings.name);
+      // Build the query with optional common spaces filtering
+      let buildingQuery;
+      
+      if (has_common_spaces === 'true') {
+        // Only buildings with common spaces
+        buildingQuery = db
+          .selectDistinct({
+            id: schema.buildings.id,
+            name: schema.buildings.name,
+            address: schema.buildings.address,
+            city: schema.buildings.city,
+            province: schema.buildings.province,
+            postalCode: schema.buildings.postalCode,
+            organizationId: schema.buildings.organizationId,
+            isActive: schema.buildings.isActive,
+          })
+          .from(schema.buildings)
+          .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
+          .where(and(...whereConditions))
+          .orderBy(schema.buildings.name);
+      } else {
+        // All buildings
+        buildingQuery = db
+          .select({
+            id: schema.buildings.id,
+            name: schema.buildings.name,
+            address: schema.buildings.address,
+            city: schema.buildings.city,
+            province: schema.buildings.province,
+            postalCode: schema.buildings.postalCode,
+            organizationId: schema.buildings.organizationId,
+            isActive: schema.buildings.isActive,
+          })
+          .from(schema.buildings)
+          .where(and(...whereConditions))
+          .orderBy(schema.buildings.name);
+      }
+
+      const buildingDetails = await buildingQuery;
 
       console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for manager ${userId} (from userBuildings table)`);
       res.json(buildingDetails);
