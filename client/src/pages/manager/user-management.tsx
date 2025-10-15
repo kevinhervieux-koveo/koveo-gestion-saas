@@ -268,10 +268,15 @@ export default function UserManagement() {
   // Fetch buildings - ensure always an array
   const { data: buildingsData } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
-    queryFn: () => apiRequest('GET', '/api/buildings') as unknown as Promise<Building[]>,
+    queryFn: async () => {
+      const result = await apiRequest('GET', '/api/buildings') as unknown as Promise<Building[]>;
+      console.log('🏢 [USER_MANAGEMENT] /api/buildings returned:', result);
+      return result;
+    },
     enabled: true,
   });
   const buildings = Array.isArray(buildingsData) ? buildingsData : [];
+  console.log('🏢 [USER_MANAGEMENT] Buildings array:', buildings.length, 'buildings');
 
   // Fetch residences - ensure always an array
   const { data: residencesData } = useQuery<Residence[]>({
