@@ -1740,6 +1740,7 @@ export default function UserManagement() {
                 organizations={organizations}
                 currentUser={currentUser}
                 currentUserBuildingIds={currentUserAccess.buildingIds}
+                currentUserOrganizationIds={currentUserAccess.organizationIds}
                 selectedOrganizationIds={selectedOrganizationIds}
                 selectedBuildingIds={selectedBuildingIds}
                 onSave={() => {}} // No individual save - only unified save button
@@ -1756,6 +1757,7 @@ export default function UserManagement() {
                   organizations={organizations}
                   currentUser={currentUser}
                   currentUserResidenceIds={currentUserAccess.residenceIds}
+                  currentUserOrganizationIds={currentUserAccess.organizationIds}
                   selectedBuildingIds={selectedBuildingIds}
                   selectedResidenceAssignments={selectedResidenceAssignments}
                   onSave={() => {}} // No individual save - only unified save button

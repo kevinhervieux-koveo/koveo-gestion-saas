@@ -14,6 +14,7 @@ interface UserResidencesTabProps {
   organizations: Organization[];
   currentUser: User | null;
   currentUserResidenceIds: string[];
+  currentUserOrganizationIds: string[];
   selectedBuildingIds: string[];
   selectedResidenceAssignments: any[]; // Pass selected assignments directly from parent
   onSave: (residenceAssignments: any[]) => void;
@@ -28,6 +29,7 @@ export function UserResidencesTab({
   organizations,
   currentUser,
   currentUserResidenceIds,
+  currentUserOrganizationIds,
   selectedBuildingIds,
   selectedResidenceAssignments, // Accept selected assignments from parent
   onSave, 
@@ -137,6 +139,12 @@ export function UserResidencesTab({
       
       // Admin can access all residences
       if (currentUser?.role === 'admin') return true;
+      
+      // Managers can assign any residence from their organization(s)
+      if (currentUser?.role === 'manager' || currentUser?.role === 'demo_manager') {
+        const building = buildingLookup.get(residence.buildingId);
+        return building && currentUserOrganizationIds.includes(building.organizationId);
+      }
       
       // Other users can only assign residences they have access to
       return currentUserResidenceIds.includes(residence.id);
