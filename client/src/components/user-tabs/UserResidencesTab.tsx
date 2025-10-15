@@ -159,9 +159,10 @@ export function UserResidencesTab({
       const buildingId = building.id;
       
       if (!acc[orgId]) {
-        const org = organizations.find(o => o.id === orgId);
+        // Use organizationName from building object (included in API response)
         acc[orgId] = {
-          organization: org,
+          organizationId: orgId,
+          organizationName: (building as any).organizationName || 'Unknown Organization',
           buildings: {}
         };
       }
@@ -176,13 +177,14 @@ export function UserResidencesTab({
       acc[orgId].buildings[buildingId].residences.push(residence);
       return acc;
     }, {} as Record<string, { 
-      organization?: Organization; 
+      organizationId: string;
+      organizationName: string;
       buildings: Record<string, { building: Building; residences: Residence[] }> 
     }>);
 
     // Sort organizations, buildings, and residences alphabetically
     return Object.values(grouped)
-      .sort((a, b) => (a.organization?.name || '').localeCompare(b.organization?.name || ''))
+      .sort((a, b) => a.organizationName.localeCompare(b.organizationName))
       .map(orgGroup => ({
         ...orgGroup,
         buildings: Object.values(orgGroup.buildings)
@@ -236,10 +238,10 @@ export function UserResidencesTab({
             <p className="text-sm text-muted-foreground">No residences available for the selected buildings.</p>
           ) : (
             residencesByBuildingAndOrg.map((orgGroup, orgIndex) => (
-              <Collapsible key={orgGroup.organization?.id || orgIndex} defaultOpen>
+              <Collapsible key={orgGroup.organizationId || orgIndex} defaultOpen>
                 <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left hover:bg-muted rounded">
                   <h3 className="text-sm font-semibold">
-                    {orgGroup.organization?.name || 'Unknown Organization'}
+                    {orgGroup.organizationName}
                   </h3>
                   <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:rotate-[-90deg]" />
                 </CollapsibleTrigger>

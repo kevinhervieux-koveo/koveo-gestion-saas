@@ -115,19 +115,20 @@ export function UserBuildingsTab({
     const grouped = availableBuildings.reduce((acc, building) => {
       const orgId = building.organizationId;
       if (!acc[orgId]) {
-        const org = organizations.find(o => o.id === orgId);
+        // Use organizationName from building object (included in API response)
         acc[orgId] = {
-          organization: org,
+          organizationId: orgId,
+          organizationName: (building as any).organizationName || 'Unknown Organization',
           buildings: []
         };
       }
       acc[orgId].buildings.push(building);
       return acc;
-    }, {} as Record<string, { organization?: Organization; buildings: Building[] }>);
+    }, {} as Record<string, { organizationId: string; organizationName: string; buildings: Building[] }>);
 
     // Sort organizations and buildings alphabetically
     return Object.values(grouped)
-      .sort((a, b) => (a.organization?.name || '').localeCompare(b.organization?.name || ''))
+      .sort((a, b) => a.organizationName.localeCompare(b.organizationName))
       .map(group => ({
         ...group,
         buildings: group.buildings.sort((a, b) => a.name.localeCompare(b.name))
@@ -168,10 +169,10 @@ export function UserBuildingsTab({
             <p className="text-sm text-muted-foreground">No buildings available for the selected organizations.</p>
           ) : (
             buildingsByOrganization.map((group, groupIndex) => (
-              <Collapsible key={group.organization?.id || groupIndex} defaultOpen>
+              <Collapsible key={group.organizationId || groupIndex} defaultOpen>
                 <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left hover:bg-muted rounded">
                   <h4 className="text-sm font-medium">
-                    {group.organization?.name || 'Unknown Organization'}
+                    {group.organizationName}
                   </h4>
                   <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:rotate-[-90deg]" />
                 </CollapsibleTrigger>

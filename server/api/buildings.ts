@@ -210,9 +210,9 @@ export function registerBuildingRoutes(app: Express): void {
             parkingSpaces: buildings.parkingSpaces,
             storageSpaces: buildings.storageSpaces,
             organizationId: buildings.organizationId,
+            organizationName: organizations.name,
             isActive: buildings.isActive,
             createdAt: buildings.createdAt,
-            organizationName: organizations.name,
           })
           .from(buildings)
           .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
