@@ -12,6 +12,7 @@ interface UserBuildingsTabProps {
   organizations: Organization[];
   currentUser: User | null;
   currentUserBuildingIds: string[];
+  currentUserOrganizationIds: string[];
   selectedOrganizationIds: string[];
   selectedBuildingIds: string[]; // Pass selected IDs directly from parent
   onSave: (buildingIds: string[]) => void;
