@@ -31,6 +31,9 @@ if (typeof window !== 'undefined') {
 
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
 import { AuthErrorBoundary } from '@/components/common/AuthErrorBoundary';
+import { HelpProvider } from '@/contexts/HelpContext';
+import { HelpButton } from '@/components/help/HelpButton';
+import { HelpOverlay } from '@/components/help/HelpOverlay';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -432,6 +435,10 @@ function Router() {
           </Switch>
         </Suspense>
       </div>
+
+      {/* Help system - floating button and overlay */}
+      <HelpButton />
+      <HelpOverlay />
     </div>
   );
 }
@@ -483,10 +490,12 @@ function App() {
         <AuthErrorBoundary>
           <AuthProvider>
           <MobileMenuProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
+            <HelpProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </HelpProvider>
           </MobileMenuProvider>
           </AuthProvider>
         </AuthErrorBoundary>
