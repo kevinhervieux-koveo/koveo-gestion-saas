@@ -73,8 +73,17 @@ export function UserBuildingsTab({
 
   // Group buildings by organization and apply filters
   const buildingsByOrganization = useMemo(() => {
+    console.log('🏢 [UserBuildingsTab] Filtering buildings:', {
+      selectedOrganizationIds,
+      totalBuildings: buildings.length,
+      currentUserRole: currentUser?.role,
+      currentUserOrganizationIds,
+      currentUserBuildingIds
+    });
+
     // Only show buildings from selected organizations (strict cascading)
     if (selectedOrganizationIds.length === 0) {
+      console.log('⚠️ [UserBuildingsTab] No organizations selected');
       return []; // No organizations selected, no buildings to show
     }
 
@@ -82,6 +91,7 @@ export function UserBuildingsTab({
     const availableBuildings = buildings.filter(building => {
       // Must be in a selected organization (strict cascading filter)
       if (!selectedOrganizationIds.includes(building.organizationId)) {
+        console.log(`❌ [UserBuildingsTab] Building ${building.name} not in selected orgs (${building.organizationId})`);
         return false;
       }
       
@@ -90,12 +100,16 @@ export function UserBuildingsTab({
       
       // Managers can assign any building from their organization(s)
       if (currentUser?.role === 'manager' || currentUser?.role === 'demo_manager') {
-        return currentUserOrganizationIds.includes(building.organizationId);
+        const hasAccess = currentUserOrganizationIds.includes(building.organizationId);
+        console.log(`${hasAccess ? '✅' : '❌'} [UserBuildingsTab] Manager access to ${building.name}: ${hasAccess}`);
+        return hasAccess;
       }
       
       // Other users can only assign buildings they have access to
       return currentUserBuildingIds.includes(building.id);
     });
+
+    console.log('✅ [UserBuildingsTab] Available buildings after filter:', availableBuildings.length);
 
     // Group by organization
     const grouped = availableBuildings.reduce((acc, building) => {
