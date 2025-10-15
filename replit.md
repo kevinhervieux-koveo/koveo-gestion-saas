@@ -12,6 +12,12 @@ Working Methodology: **CRITICAL** - Always restart the "Start application" workf
 ### UI/UX Decisions
 The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsive design. Forms feature single scroll behavior. Lucide React components are used for icons. A Hierarchical Navigation HOC (`withHierarchicalSelection`) provides intelligent auto-forwarding based on user access and implements role-based filtering for residents/tenants (server-side) and managers/admins (client-side).
 
+**Contextual Help System**: A comprehensive help system provides on-demand guidance throughout the application:
+- **Floating Help Button**: A "?" icon button positioned at the bottom right of all authenticated pages
+- **Contextual Overlays**: Clicking the help button displays page-specific guidance including page goals, usage instructions, button/action explanations, form field descriptions, and relationships to other pages
+- **Accessibility Features**: Full keyboard navigation support with focus trapping, Escape key to close, auto-focus on open, and ARIA attributes for screen readers
+- **Comprehensive Coverage**: Help content covers all major routes including admin, manager, and resident pages with explanations of bills/budget relationships, recurring vs. unique bills, and inter-page workflows
+
 **Cascading Filters (Application-Wide Rule)**: All filter dropdowns display only values that exist in the currently filtered dataset. This creates an intelligent filtering experience where each filter shows only options that would return results based on other active filters. Implementation details:
 - Each filter dropdown is populated from the currently filtered data, not the complete dataset
 - Dependent filters automatically reset to 'all' when their selected value is no longer available after parent filter changes
