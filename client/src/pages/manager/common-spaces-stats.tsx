@@ -240,6 +240,8 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       saturday: true,
       sunday: true,
     },
+    default_time_limit_type: '' as '' | 'monthly' | 'yearly',
+    default_time_limit_hours: '',
   });
   const [timeLimitDialogOpen, setTimeLimitDialogOpen] = useState(false);
   const [timeLimitFormData, setTimeLimitFormData] = useState({
@@ -400,6 +402,8 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
           saturday: true,
           sunday: true,
         },
+        default_time_limit_type: '',
+        default_time_limit_hours: '',
       });
     } catch (error) {
       // Error creating/updating space
@@ -455,6 +459,8 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       available_days: Object.entries(createFormData.available_days)
         .filter(([_, isAvailable]) => isAvailable)
         .map(([day, _]) => day),
+      default_time_limit_type: createFormData.default_time_limit_type || undefined,
+      default_time_limit_hours: createFormData.default_time_limit_hours ? parseInt(createFormData.default_time_limit_hours) : undefined,
     };
 
     createSpaceMutation.mutate(spaceData);
@@ -880,6 +886,68 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                           )}
                         </div>
                       </div>
+
+                      <div className='space-y-4 border-t pt-4'>
+                        <Label>{language === 'fr' ? 'Limite de temps par défaut' : 'Default Time Limit'}</Label>
+                        <p className='text-sm text-muted-foreground'>
+                          {language === 'fr' 
+                            ? 'Définissez une limite de temps que tous les utilisateurs doivent respecter (sauf si une limite personnalisée est définie)'
+                            : 'Set a time limit that all users should respect (unless a custom limit is set)'}
+                        </p>
+                        
+                        <div className='grid grid-cols-2 gap-4'>
+                          <div className='space-y-2'>
+                            <Label htmlFor='default-time-limit-type'>
+                              {language === 'fr' ? 'Type de limite' : 'Limit Type'}
+                            </Label>
+                            <Select
+                              value={createFormData.default_time_limit_type}
+                              onValueChange={(value) =>
+                                setCreateFormData({ 
+                                  ...createFormData, 
+                                  default_time_limit_type: value as '' | 'monthly' | 'yearly'
+                                })
+                              }
+                            >
+                              <SelectTrigger data-testid='select-default-time-limit-type'>
+                                <SelectValue placeholder={language === 'fr' ? 'Aucune limite' : 'No limit'} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value=''>
+                                  {language === 'fr' ? 'Aucune limite' : 'No limit'}
+                                </SelectItem>
+                                <SelectItem value='monthly'>
+                                  {language === 'fr' ? 'Mensuelle' : 'Monthly'}
+                                </SelectItem>
+                                <SelectItem value='yearly'>
+                                  {language === 'fr' ? 'Annuelle' : 'Yearly'}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className='space-y-2'>
+                            <Label htmlFor='default-time-limit-hours'>
+                              {language === 'fr' ? 'Heures maximum' : 'Maximum Hours'}
+                            </Label>
+                            <Input
+                              id='default-time-limit-hours'
+                              type='number'
+                              min='1'
+                              placeholder='10'
+                              value={createFormData.default_time_limit_hours}
+                              onChange={(e) =>
+                                setCreateFormData({ 
+                                  ...createFormData, 
+                                  default_time_limit_hours: e.target.value 
+                                })
+                              }
+                              disabled={!createFormData.default_time_limit_type}
+                              data-testid='input-default-time-limit-hours'
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -1032,6 +1100,8 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                         saturday: true,
                         sunday: true,
                       },
+                      default_time_limit_type: (selectedSpace as any).defaultTimeLimitType || '',
+                      default_time_limit_hours: (selectedSpace as any).defaultTimeLimitHours?.toString() || '',
                     });
                     setIsEditMode(true);
                     setCreateDialogOpen(true);
