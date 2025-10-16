@@ -35,12 +35,13 @@ export function HelpOverlay() {
           return; // Allow collapse button clicks
         }
 
-        // Allow clicks on the help card for scrolling, selecting text, etc.
-        if (target.closest('[role="dialog"]')) {
-          return; // Allow interaction with help card
+        // Allow clicks ONLY on the help card (not other dialogs/popovers)
+        // Check if the click is within the specific help overlay ref
+        if (overlayRef.current && overlayRef.current.contains(target)) {
+          return; // Allow interaction with help card only
         }
 
-        // Prevent all other clicks from doing anything
+        // Prevent all other clicks from doing anything (including Select dropdowns, popovers, etc.)
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();

@@ -210,21 +210,49 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
         
         const rect = hoveredElement.getBoundingClientRect();
         
+        // Calculate position to keep tooltip on screen
+        const tooltipOffset = 50; // Distance above element
+        let top = rect.top - tooltipOffset;
+        let left = rect.left + rect.width / 2;
+        
+        // Ensure tooltip stays on screen
+        if (top < 10) {
+          top = rect.bottom + 10; // Show below if no room above
+        }
+        
         return (
           <div
             style={{
               position: 'fixed',
-              top: rect.top - 40,
-              left: rect.left + rect.width / 2,
+              top: `${top}px`,
+              left: `${left}px`,
               transform: 'translateX(-50%)',
               zIndex: 10000,
               pointerEvents: 'none',
+              maxWidth: '400px',
             }}
-            className="px-3 py-2 bg-popover text-popover-foreground rounded-md shadow-md border"
+            className="px-4 py-3 bg-blue-600 text-white rounded-lg shadow-2xl border-2 border-blue-400"
           >
-            <p className="text-sm whitespace-nowrap">
+            <p className="text-sm font-medium">
               {highlightedInfo.description}
             </p>
+            {/* Small arrow pointing to element */}
+            <div 
+              style={{
+                position: 'absolute',
+                bottom: top < rect.top ? 'auto' : '-6px',
+                top: top < rect.top ? '-6px' : 'auto',
+                left: '50%',
+                transform: 'translateX(-50%) rotate(45deg)',
+                width: '12px',
+                height: '12px',
+                backgroundColor: 'rgb(37, 99, 235)',
+                borderRight: top < rect.top ? 'none' : '2px solid rgb(96, 165, 250)',
+                borderBottom: top < rect.top ? 'none' : '2px solid rgb(96, 165, 250)',
+                borderTop: top < rect.top ? '2px solid rgb(96, 165, 250)' : 'none',
+                borderLeft: top < rect.top ? '2px solid rgb(96, 165, 250)' : 'none',
+              }}
+            />
           </div>
         );
       })()}

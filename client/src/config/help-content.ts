@@ -265,6 +265,14 @@ export const helpContentMap: Record<string, HelpContent> = {
     description: 'View usage statistics and bookings for shared amenities.',
     goal: 'Monitor how common spaces are used and optimize their availability.',
     howToUse: 'View booking history, popular times, and usage trends for facilities like gyms, pools, and party rooms.',
+    buttons: [
+      { label: 'Building', description: 'Return to building selection to choose a different building' },
+      { label: 'Create Space', description: 'Add a new common space or amenity to the building' },
+      { label: 'Select a space', description: 'Choose which common space to view statistics for' },
+      { label: 'Statistics', description: 'View detailed usage statistics and booking data' },
+      { label: 'Calendar', description: 'See booking calendar and availability schedule' },
+      { label: 'Edit', description: 'Modify the common space details and settings' },
+    ],
   },
   '/manager/maintenance/inventory': {
     title: 'Maintenance Inventory',
