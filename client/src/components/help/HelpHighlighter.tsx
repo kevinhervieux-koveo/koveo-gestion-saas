@@ -107,6 +107,12 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
   // Add/remove highlight classes to elements
   useEffect(() => {
+    // Store event handlers for cleanup
+    const elementHandlers = new Map<HTMLElement, {
+      mouseenter: () => void;
+      mouseleave: () => void;
+    }>();
+
     highlightedElements.forEach(({ element, type }) => {
       // Add highlight class based on type
       const highlightClass = type === 'generic' 
@@ -117,23 +123,39 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
       element.classList.add(highlightClass);
       
-      // Add hover event listeners
+      // Create and store event handlers
       const handleMouseEnter = () => debouncedSetHovered(element);
       const handleMouseLeave = () => debouncedSetHovered(null);
 
       element.addEventListener('mouseenter', handleMouseEnter);
       element.addEventListener('mouseleave', handleMouseLeave);
 
-      // Store cleanup functions
+      // Store handlers for cleanup
+      elementHandlers.set(element, {
+        mouseenter: handleMouseEnter,
+        mouseleave: handleMouseLeave,
+      });
+
       element.setAttribute('data-help-highlighted', 'true');
     });
 
-    // Cleanup function
+    // Cleanup function - properly remove event listeners
     return () => {
       highlightedElements.forEach(({ element }) => {
+        // Remove event listeners using stored handlers
+        const handlers = elementHandlers.get(element);
+        if (handlers) {
+          element.removeEventListener('mouseenter', handlers.mouseenter);
+          element.removeEventListener('mouseleave', handlers.mouseleave);
+        }
+
+        // Remove CSS classes and attributes
         element.classList.remove('help-highlight-generic', 'help-highlight-button', 'help-highlight-field');
         element.removeAttribute('data-help-highlighted');
       });
+      
+      // Clear the handlers map
+      elementHandlers.clear();
       setHoveredElement(null);
     };
   }, [highlightedElements, debouncedSetHovered]);
