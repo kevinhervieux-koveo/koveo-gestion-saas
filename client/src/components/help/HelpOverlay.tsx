@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useHelp } from '@/contexts/HelpContext';
-import { getHelpContent, getText } from '@/config/help-content';
+import { getHelpContent, getText, helpUIText } from '@/config/help-content';
 import { useLanguage } from '@/hooks/use-language';
 
 /**
@@ -110,29 +110,20 @@ export function HelpOverlay() {
           <CardHeader>
             <CardTitle id="help-title" className="flex items-center gap-2">
               <Info className="h-5 w-5" />
-              {language === 'fr' ? 'Aide' : 'Help'}
+              {getText(helpUIText.help, language)}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-muted-foreground">
-              {language === 'fr' 
-                ? "Le contenu d'aide n'est pas encore disponible pour cette page."
-                : 'Help content is not yet available for this page.'
-              }
+              {getText(helpUIText.helpNotAvailable, language)}
             </p>
             <p className="text-sm text-muted-foreground">
-              {language === 'fr'
-                ? "Vous pouvez naviguer vers d'autres pages en utilisant le menu de la barre latérale, ou si vous avez besoin d'aide spécifique pour cette page, veuillez contacter le support."
-                : 'You can navigate to other pages using the sidebar menu, or if you need assistance with this page specifically, please contact support.'
-              }
+              {getText(helpUIText.helpNotAvailableDetails, language)}
             </p>
             <div className="flex gap-2 pt-2">
-              <Badge variant="outline">{language === 'fr' ? 'Conseil' : 'Tip'}</Badge>
+              <Badge variant="outline">{getText(helpUIText.tip, language)}</Badge>
               <div className="text-sm text-muted-foreground">
-                {language === 'fr'
-                  ? <>Cliquez sur le bouton <Badge variant="outline" className="mx-1">?</Badge> pour fermer cette boîte de dialogue d'aide</>
-                  : <>Click the <Badge variant="outline" className="mx-1">?</Badge> button to close this help dialog</>
-                }
+                {getText(helpUIText.closeHelpTip, language).replace('?', '')} <Badge variant="outline" className="mx-1">?</Badge>
               </div>
             </div>
           </CardContent>
@@ -186,14 +177,14 @@ export function HelpOverlay() {
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground mb-1 flex items-center gap-2">
                   <Info className="h-4 w-4" />
-                  {language === 'fr' ? 'OBJECTIFS' : 'GOALS'}
+                  {getText(helpUIText.goals, language)}
                 </h3>
                 <p className="text-sm">{getText(helpContent.goal, language)}</p>
               </div>
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground mb-1 flex items-center gap-2">
                   <Info className="h-4 w-4" />
-                  {language === 'fr' ? 'COMMENT UTILISER' : 'HOW TO USE'}
+                  {getText(helpUIText.howToUse, language)}
                 </h3>
                 <p className="text-sm">{getText(helpContent.howToUse, language)}</p>
               </div>
@@ -206,7 +197,7 @@ export function HelpOverlay() {
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <MousePointer className="h-4 w-4" />
-                    {language === 'fr' ? 'Boutons & Actions' : 'Buttons & Actions'}
+                    {getText(helpUIText.buttonsAndActions, language)}
                   </h3>
                   <div className="space-y-2">
                     {helpContent.buttons.map((button, index) => (
@@ -231,7 +222,7 @@ export function HelpOverlay() {
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    {language === 'fr' ? 'Champs de Formulaire' : 'Form Fields'}
+                    {getText(helpUIText.formFields, language)}
                   </h3>
                   <div className="space-y-2">
                     {helpContent.formFields.map((field, index) => (
@@ -240,7 +231,7 @@ export function HelpOverlay() {
                           <Badge variant="outline">{getText(field.label, language)}</Badge>
                           {field.required && (
                             <Badge variant="destructive" className="text-xs">
-                              {language === 'fr' ? 'Requis' : 'Required'}
+                              {getText(helpUIText.required, language)}
                             </Badge>
                           )}
                         </div>
@@ -261,7 +252,7 @@ export function HelpOverlay() {
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <LinkIcon className="h-4 w-4" />
-                    {language === 'fr' ? 'Pages Connexes' : 'Related Pages'}
+                    {getText(helpUIText.relatedPages, language)}
                   </h3>
                   <div className="space-y-2">
                     {helpContent.relationships.map((relationship, index) => (
@@ -285,10 +276,7 @@ export function HelpOverlay() {
         {!isCollapsed && (
           <div className="px-6 py-4 border-t bg-muted/20 shrink-0">
             <div className="text-xs text-muted-foreground text-center">
-              {language === 'fr' 
-                ? <>Cliquez sur le bouton <Badge variant="outline" className="mx-1">?</Badge> à tout moment pour obtenir de l'aide sur la page actuelle</>
-                : <>Click the <Badge variant="outline" className="mx-1">?</Badge> button anytime to get help with the current page</>
-              }
+              {getText(helpUIText.getHelpTip, language).replace('?', '')} <Badge variant="outline" className="mx-1">?</Badge>
             </div>
           </div>
         )}

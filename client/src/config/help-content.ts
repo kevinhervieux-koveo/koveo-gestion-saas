@@ -537,11 +537,60 @@ export const helpContentMap: Record<string, HelpContent> = {
  * Get help content for a specific route
  */
 /**
- * Helper function to extract language-specific text from BilingualText
+ * Helper function to extract language-specific text from BilingualText with Law 25 compliance
+ * Always defaults to French if translation is missing to ensure Quebec compliance
+ * 
+ * Law 25 Guarantee: This function ALWAYS returns French text, even in error cases
  */
 export function getText(text: BilingualText, language: 'en' | 'fr'): string {
-  return text[language];
+  // Quebec Law 25 compliance: Always ensure French is available
+  const requestedText = text[language];
+  const frenchText = text.fr;
+  
+  // If requested language text is missing or empty, fall back to French (Law 25 requirement)
+  if (!requestedText || requestedText.trim() === '') {
+    if (language === 'en' && frenchText && frenchText.trim() !== '') {
+      console.warn('[Loi 25 - Conformité] Traduction anglaise manquante, utilisation du français par défaut');
+      return frenchText;
+    }
+    // If French is also missing, log critical error and return French error message (Law 25 compliance)
+    console.error('[Loi 25 - Conformité] CRITIQUE : Traduction française manquante - ceci viole la Loi 25');
+    // ALWAYS return French, even for error messages (Law 25 compliance)
+    return requestedText || frenchText || '[Erreur de traduction]';
+  }
+  
+  return requestedText;
 }
+
+/**
+ * Bilingual UI text for HelpOverlay component (Law 25 compliant - French first)
+ */
+export const helpUIText = {
+  help: { fr: 'Aide', en: 'Help' },
+  goals: { fr: 'OBJECTIFS', en: 'GOALS' },
+  howToUse: { fr: 'COMMENT UTILISER', en: 'HOW TO USE' },
+  buttonsAndActions: { fr: 'Boutons & Actions', en: 'Buttons & Actions' },
+  formFields: { fr: 'Champs de Formulaire', en: 'Form Fields' },
+  relatedPages: { fr: 'Pages Connexes', en: 'Related Pages' },
+  required: { fr: 'Requis', en: 'Required' },
+  tip: { fr: 'Conseil', en: 'Tip' },
+  helpNotAvailable: {
+    fr: "Le contenu d'aide n'est pas encore disponible pour cette page.",
+    en: 'Help content is not yet available for this page.'
+  },
+  helpNotAvailableDetails: {
+    fr: "Vous pouvez naviguer vers d'autres pages en utilisant le menu de la barre latérale, ou si vous avez besoin d'aide spécifique pour cette page, veuillez contacter le support.",
+    en: 'You can navigate to other pages using the sidebar menu, or if you need assistance with this page specifically, please contact support.'
+  },
+  closeHelpTip: {
+    fr: "Cliquez sur le bouton ? pour fermer cette boîte de dialogue d'aide",
+    en: 'Click the ? button to close this help dialog'
+  },
+  getHelpTip: {
+    fr: "Cliquez sur le bouton ? à tout moment pour obtenir de l'aide sur la page actuelle",
+    en: 'Click the ? button anytime to get help with the current page'
+  }
+};
 
 export function getHelpContent(route: string): HelpContent | null {
   // Exact match
