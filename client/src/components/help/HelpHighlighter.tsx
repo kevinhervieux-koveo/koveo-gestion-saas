@@ -52,6 +52,9 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
     elements.forEach((element) => {
       // Skip if element is within the help overlay
       if (element.closest('[role="dialog"]')) return;
+      
+      // Skip sidebar navigation elements
+      if (element.closest('aside') || element.closest('[class*="sidebar"]') || element.closest('nav[class*="Sidebar"]')) return;
 
       // Try to find help content for this element
       const helpInfo = findHelpForElement(element, helpContent, language);
@@ -241,16 +244,31 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
           isBelow = false;
         }
         
+        // Ensure tooltip stays within viewport horizontally
+        const tooltipMaxWidth = 400;
+        const viewportWidth = window.innerWidth;
+        const minLeftMargin = 10;
+        const maxRightMargin = viewportWidth - 10;
+        
+        // Adjust left position if tooltip would go off screen
+        let adjustedLeft = left;
+        if (left - tooltipMaxWidth / 2 < minLeftMargin) {
+          adjustedLeft = tooltipMaxWidth / 2 + minLeftMargin;
+        } else if (left + tooltipMaxWidth / 2 > maxRightMargin) {
+          adjustedLeft = maxRightMargin - tooltipMaxWidth / 2;
+        }
+        
         return (
           <div
             style={{
               position: 'fixed',
               top: `${top}px`,
-              left: `${left}px`,
+              left: `${adjustedLeft}px`,
               transform: 'translateX(-50%)',
-              zIndex: 10000,
+              zIndex: 99999,
               pointerEvents: 'none',
-              maxWidth: '400px',
+              maxWidth: `${tooltipMaxWidth}px`,
+              width: 'max-content',
             }}
             className="px-4 py-3 bg-blue-600 text-white rounded-lg shadow-2xl border-2 border-blue-400"
           >
