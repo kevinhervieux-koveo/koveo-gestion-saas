@@ -15,7 +15,6 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
   const { isHelpOpen, getCurrentHelpContent } = useHelp();
   const [highlightedElements, setHighlightedElements] = useState<HighlightedElement[]>([]);
   const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null);
-  const tooltipHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Scan for interactive elements
   const scanInteractiveElements = useCallback(() => {
@@ -110,20 +109,13 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
       element.classList.add(highlightClass);
       
-      // Create and store event handlers for tooltips with persistence
+      // Create and store event handlers for tooltips
       const handleMouseEnter = () => {
-        // Clear any pending hide timeout
-        if (tooltipHideTimeoutRef.current) {
-          clearTimeout(tooltipHideTimeoutRef.current);
-          tooltipHideTimeoutRef.current = null;
-        }
         setHoveredElement(element);
       };
       const handleMouseLeave = () => {
-        // Delay hiding tooltip slightly for better UX
-        tooltipHideTimeoutRef.current = setTimeout(() => {
-          setHoveredElement(null);
-        }, 150); // 150ms delay before hiding
+        // Hide tooltip when leaving element (no delay)
+        setHoveredElement(null);
       };
 
       element.addEventListener('mouseenter', handleMouseEnter);
@@ -140,12 +132,6 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
     // Cleanup function - properly remove event listeners
     return () => {
-      // Clear any pending tooltip timeout
-      if (tooltipHideTimeoutRef.current) {
-        clearTimeout(tooltipHideTimeoutRef.current);
-        tooltipHideTimeoutRef.current = null;
-      }
-      
       highlightedElements.forEach(({ element }) => {
         // Remove event listeners using stored handlers
         const handlers = elementHandlers.get(element);
@@ -161,7 +147,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
       
       // Clear the handlers map
       elementHandlers.clear();
-      setHoveredElement(null);
+      // Don't clear hoveredElement during cleanup - preserve tooltip state
     };
   }, [highlightedElements]);
 
