@@ -271,8 +271,11 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: 'Select a space', description: 'Choose which common space to view statistics for' },
       { label: 'Statistics', description: 'View detailed usage statistics and booking data' },
       { label: 'Calendar', description: 'See booking calendar and availability schedule' },
-      { label: 'Edit', description: 'Modify the common space details and settings' },
-      { label: 'Edit Space', description: 'Modify the selected common space details and settings' },
+      { label: 'edit space', description: 'Modify the selected common space details and settings' },
+      { label: 'EN', description: 'Switch interface language to English' },
+      { label: 'FR', description: 'Switch interface language to French (Français)' },
+      { label: 'language en', description: 'Switch interface language to English' },
+      { label: 'language fr', description: 'Switch interface language to French (Français)' },
     ],
   },
   '/manager/maintenance/inventory': {

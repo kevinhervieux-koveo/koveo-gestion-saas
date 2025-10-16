@@ -212,16 +212,27 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
         const rect = hoveredElement.getBoundingClientRect();
         
         // Calculate position to keep tooltip on screen
-        const tooltipOffset = 50; // Distance above element
+        const tooltipOffset = 80; // Distance from element (increased for better spacing)
+        const minTopMargin = 20; // Minimum space from top of viewport
+        const estimatedTooltipHeight = 60; // Estimated tooltip height
+        
         let top = rect.top - tooltipOffset;
         let left = rect.left + rect.width / 2;
+        let isBelow = false;
         
-        // Ensure tooltip stays on screen
-        if (top < 10) {
-          top = rect.bottom + 10; // Show below if no room above
+        // Check if tooltip would go off top of screen
+        if (top < minTopMargin) {
+          // Position below element instead
+          top = rect.bottom + 30;
+          isBelow = true;
         }
         
-        const isBelow = top >= rect.bottom;
+        // Check if tooltip would go off bottom of screen when positioned below
+        if (isBelow && (top + estimatedTooltipHeight) > window.innerHeight - 20) {
+          // Force it above even if tight
+          top = rect.top - tooltipOffset;
+          isBelow = false;
+        }
         
         return (
           <div
