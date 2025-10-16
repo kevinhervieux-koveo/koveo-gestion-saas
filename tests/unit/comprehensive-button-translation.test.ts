@@ -355,8 +355,8 @@ describe('Button Translation Usage Patterns', () => {
     );
 
     buttonLikeKeys.forEach(key => {
-      // Button keys should follow camelCase convention
-      expect(key).toMatch(/^[a-z][a-zA-Z0-9]*$/);
+      // Button keys should follow camelCase convention or namespaced format (e.g., bills.aiExtraction)
+      expect(key).toMatch(/^[a-z][a-zA-Z0-9]*(\.[a-z][a-zA-Z0-9]*)*$/);
     });
   });
 
