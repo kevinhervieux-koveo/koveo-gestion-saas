@@ -52,9 +52,6 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
     elements.forEach((element) => {
       // Skip if element is within the help overlay
       if (element.closest('[role="dialog"]')) return;
-      
-      // Skip sidebar navigation elements
-      if (element.closest('aside') || element.closest('[class*="sidebar"]') || element.closest('nav[class*="Sidebar"]')) return;
 
       // Try to find help content for this element
       const helpInfo = findHelpForElement(element, helpContent, language);
@@ -174,6 +171,15 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
           border-radius: 0.375rem;
           transition: box-shadow 0.2s ease-in-out;
           cursor: not-allowed !important;
+        }
+
+        /* Remove highlight effects from sidebar elements but keep tooltips */
+        aside .help-highlight-button,
+        aside .help-highlight-field,
+        aside .help-highlight-generic {
+          animation: none !important;
+          box-shadow: none !important;
+          cursor: default !important;
         }
 
         .help-highlight-field {
