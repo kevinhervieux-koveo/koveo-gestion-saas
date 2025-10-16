@@ -310,6 +310,8 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Statistics', fr: 'Statistiques' }, description: { en: 'View detailed usage statistics and booking data', fr: 'Voir les statistiques d\'utilisation détaillées et les données de réservation' } },
       { label: { en: 'Calendar', fr: 'Calendrier' }, description: { en: 'See booking calendar and availability schedule', fr: 'Voir le calendrier de réservations et l\'horaire de disponibilité' } },
       { label: { en: 'Edit', fr: 'Modifier' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
+      { label: { en: 'edit', fr: 'modifier' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
+      { label: { en: 'EDIT', fr: 'MODIFIER' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
       { label: { en: 'Edit Space', fr: 'Modifier Espace' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
       { label: { en: 'edit space', fr: 'modifier espace' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
       { label: { en: 'Save', fr: 'Enregistrer' }, description: { en: 'Save your changes and close the form', fr: 'Enregistrer vos modifications et fermer le formulaire' } },
