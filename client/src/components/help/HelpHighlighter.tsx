@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, memo, useRef } from 'react';
 import { useHelp, findHelpForElement } from '@/contexts/HelpContext';
+import { useLanguage } from '@/hooks/use-language';
 
 interface HighlightedElement {
   element: HTMLElement;
@@ -13,6 +14,7 @@ interface HighlightedElement {
  */
 export const HelpHighlighter = memo(function HelpHighlighter() {
   const { isHelpOpen, getCurrentHelpContent } = useHelp();
+  const { language } = useLanguage();
   const [highlightedElements, setHighlightedElements] = useState<HighlightedElement[]>([]);
   const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null);
 
@@ -42,12 +44,17 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
     const elements = document.querySelectorAll<HTMLElement>(interactiveSelectors.join(','));
     const highlighted: HighlightedElement[] = [];
 
+    // Bilingual generic message
+    const genericMessage = language === 'fr' 
+      ? 'Élément interactif - cliquez pour effectuer une action'
+      : 'Interactive element - click for action';
+
     elements.forEach((element) => {
       // Skip if element is within the help overlay
       if (element.closest('[role="dialog"]')) return;
 
       // Try to find help content for this element
-      const helpInfo = findHelpForElement(element, helpContent);
+      const helpInfo = findHelpForElement(element, helpContent, language);
 
       if (helpInfo) {
         highlighted.push({
@@ -59,14 +66,14 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
         // Still highlight but with generic message
         highlighted.push({
           element,
-          description: 'Interactive element - click for action',
+          description: genericMessage,
           type: 'generic',
         });
       }
     });
 
     setHighlightedElements(highlighted);
-  }, [isHelpOpen, getCurrentHelpContent]);
+  }, [isHelpOpen, getCurrentHelpContent, language]);
 
   // Set up MutationObserver to detect dynamically added elements
   useEffect(() => {

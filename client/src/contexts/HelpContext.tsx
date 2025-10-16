@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import { useLocation } from 'wouter';
-import { getHelpContent, type HelpButton, type HelpFormField, type HelpContent } from '@/config/help-content';
+import { getHelpContent, getText, type HelpButton, type HelpFormField, type HelpContent } from '@/config/help-content';
+import { useLanguage } from '@/hooks/use-language';
 
 interface HelpContextType {
   isHelpOpen: boolean;
@@ -16,6 +17,7 @@ const HelpContext = createContext<HelpContextType | undefined>(undefined);
 export function HelpProvider({ children }: { children: React.ReactNode }) {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [location] = useLocation();
+  const { language } = useLanguage();
 
   const openHelp = useCallback(() => {
     setIsHelpOpen(true);
@@ -40,21 +42,21 @@ export function HelpProvider({ children }: { children: React.ReactNode }) {
     const normalizedIdentifier = identifier.toLowerCase().trim();
 
     if (type === 'button' && helpContent.buttons) {
-      return helpContent.buttons.find(button => 
-        button.label.toLowerCase().includes(normalizedIdentifier) ||
-        normalizedIdentifier.includes(button.label.toLowerCase())
-      ) || null;
+      return helpContent.buttons.find(button => {
+        const labelText = getText(button.label, language).toLowerCase();
+        return labelText.includes(normalizedIdentifier) || normalizedIdentifier.includes(labelText);
+      }) || null;
     }
 
     if (type === 'formField' && helpContent.formFields) {
-      return helpContent.formFields.find(field => 
-        field.label.toLowerCase().includes(normalizedIdentifier) ||
-        normalizedIdentifier.includes(field.label.toLowerCase())
-      ) || null;
+      return helpContent.formFields.find(field => {
+        const labelText = getText(field.label, language).toLowerCase();
+        return labelText.includes(normalizedIdentifier) || normalizedIdentifier.includes(labelText);
+      }) || null;
     }
 
     return null;
-  }, [location]);
+  }, [location, language]);
 
   return (
     <HelpContext.Provider value={{ isHelpOpen, openHelp, closeHelp, toggleHelp, getHelpItemByIdentifier, getCurrentHelpContent }}>
@@ -73,10 +75,14 @@ export function useHelp() {
 
 /**
  * Helper function to find matching help content for an element
+ * @param element The HTML element to find help for
+ * @param helpContent The help content for the current page
+ * @param language The current language ('en' or 'fr')
  */
 export function findHelpForElement(
   element: HTMLElement,
-  helpContent: HelpContent | null
+  helpContent: HelpContent | null,
+  language: 'en' | 'fr' = 'fr'
 ): { description: string; type: 'button' | 'formField' | 'generic' } | null {
   if (!helpContent) return null;
 
@@ -89,20 +95,20 @@ export function findHelpForElement(
 
     // Try to match with buttons
     if (helpContent.buttons) {
-      const button = helpContent.buttons.find(btn =>
-        btn.label.toLowerCase().includes(identifier.toLowerCase()) ||
-        identifier.toLowerCase().includes(btn.label.toLowerCase())
-      );
-      if (button) return { description: button.description, type: 'button' };
+      const button = helpContent.buttons.find(btn => {
+        const labelText = getText(btn.label, language).toLowerCase();
+        return labelText.includes(identifier.toLowerCase()) || identifier.toLowerCase().includes(labelText);
+      });
+      if (button) return { description: getText(button.description, language), type: 'button' };
     }
 
     // Try to match with form fields
     if (helpContent.formFields) {
-      const field = helpContent.formFields.find(f =>
-        f.label.toLowerCase().includes(identifier.toLowerCase()) ||
-        identifier.toLowerCase().includes(f.label.toLowerCase())
-      );
-      if (field) return { description: field.description, type: 'formField' };
+      const field = helpContent.formFields.find(f => {
+        const labelText = getText(f.label, language).toLowerCase();
+        return labelText.includes(identifier.toLowerCase()) || identifier.toLowerCase().includes(labelText);
+      });
+      if (field) return { description: getText(field.description, language), type: 'formField' };
     }
   }
 
@@ -110,19 +116,19 @@ export function findHelpForElement(
   const textContent = element.textContent?.trim().toLowerCase() || '';
   if (textContent) {
     if (helpContent.buttons) {
-      const button = helpContent.buttons.find(btn =>
-        textContent.includes(btn.label.toLowerCase()) ||
-        btn.label.toLowerCase().includes(textContent)
-      );
-      if (button) return { description: button.description, type: 'button' };
+      const button = helpContent.buttons.find(btn => {
+        const labelText = getText(btn.label, language).toLowerCase();
+        return textContent.includes(labelText) || labelText.includes(textContent);
+      });
+      if (button) return { description: getText(button.description, language), type: 'button' };
     }
 
     if (helpContent.formFields) {
-      const field = helpContent.formFields.find(f =>
-        textContent.includes(f.label.toLowerCase()) ||
-        f.label.toLowerCase().includes(textContent)
-      );
-      if (field) return { description: field.description, type: 'formField' };
+      const field = helpContent.formFields.find(f => {
+        const labelText = getText(f.label, language).toLowerCase();
+        return textContent.includes(labelText) || labelText.includes(textContent);
+      });
+      if (field) return { description: getText(field.description, language), type: 'formField' };
     }
   }
 
@@ -130,19 +136,19 @@ export function findHelpForElement(
   const ariaLabel = element.getAttribute('aria-label')?.toLowerCase();
   if (ariaLabel) {
     if (helpContent.buttons) {
-      const button = helpContent.buttons.find(btn =>
-        ariaLabel.includes(btn.label.toLowerCase()) ||
-        btn.label.toLowerCase().includes(ariaLabel)
-      );
-      if (button) return { description: button.description, type: 'button' };
+      const button = helpContent.buttons.find(btn => {
+        const labelText = getText(btn.label, language).toLowerCase();
+        return ariaLabel.includes(labelText) || labelText.includes(ariaLabel);
+      });
+      if (button) return { description: getText(button.description, language), type: 'button' };
     }
 
     if (helpContent.formFields) {
-      const field = helpContent.formFields.find(f =>
-        ariaLabel.includes(f.label.toLowerCase()) ||
-        f.label.toLowerCase().includes(ariaLabel)
-      );
-      if (field) return { description: field.description, type: 'formField' };
+      const field = helpContent.formFields.find(f => {
+        const labelText = getText(f.label, language).toLowerCase();
+        return ariaLabel.includes(labelText) || labelText.includes(ariaLabel);
+      });
+      if (field) return { description: getText(field.description, language), type: 'formField' };
     }
   }
 
