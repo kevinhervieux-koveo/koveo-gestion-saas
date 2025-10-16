@@ -23,47 +23,25 @@ export function HelpOverlay() {
     closeHelp();
   }, [location, closeHelp]);
 
-  // Prevent body scroll and manage focus when help is open
+  // Manage focus when help is open
   useEffect(() => {
     if (isHelpOpen) {
-      document.body.style.overflow = 'hidden';
-      
       // Focus the close button when overlay opens for keyboard accessibility
       setTimeout(() => {
         closeButtonRef.current?.focus();
       }, 100);
 
-      // Trap focus within the overlay
+      // Handle keyboard events
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
           closeHelp();
-        }
-        
-        // Basic focus trap: keep focus within overlay
-        if (e.key === 'Tab' && overlayRef.current) {
-          const focusableElements = overlayRef.current.querySelectorAll(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-          );
-          const firstElement = focusableElements[0] as HTMLElement;
-          const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-
-          if (e.shiftKey && document.activeElement === firstElement) {
-            e.preventDefault();
-            lastElement?.focus();
-          } else if (!e.shiftKey && document.activeElement === lastElement) {
-            e.preventDefault();
-            firstElement?.focus();
-          }
         }
       };
 
       document.addEventListener('keydown', handleKeyDown);
       return () => {
         document.removeEventListener('keydown', handleKeyDown);
-        document.body.style.overflow = 'unset';
       };
-    } else {
-      document.body.style.overflow = 'unset';
     }
   }, [isHelpOpen, closeHelp]);
 
@@ -75,12 +53,12 @@ export function HelpOverlay() {
     return (
       <div 
         ref={overlayRef}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 pointer-events-none z-50 flex items-start justify-end p-4 pt-20"
         role="dialog"
-        aria-modal="true"
+        aria-modal="false"
         aria-labelledby="help-title"
       >
-        <Card className="w-full max-w-2xl">
+        <Card className="w-full max-w-md pointer-events-auto shadow-2xl">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle id="help-title" className="flex items-center gap-2">
@@ -121,12 +99,12 @@ export function HelpOverlay() {
   return (
     <div 
       ref={overlayRef}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 pointer-events-none z-50 flex items-start justify-end p-4 pt-20"
       role="dialog"
-      aria-modal="true"
+      aria-modal="false"
       aria-labelledby="help-title"
     >
-      <Card className="w-full max-w-4xl max-h-[90vh] flex flex-col">
+      <Card className="w-full max-w-2xl max-h-[85vh] flex flex-col pointer-events-auto shadow-2xl">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
