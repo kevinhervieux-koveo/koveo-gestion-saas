@@ -272,9 +272,10 @@ export const helpContentMap: Record<string, HelpContent> = {
     goal: { en: 'Monitor how common spaces are used and optimize their availability.', fr: 'Surveillez comment les espaces communs sont utilisés et optimisez leur disponibilité.' },
     howToUse: { en: 'View booking history, popular times, and usage trends for facilities like gyms, pools, and party rooms.', fr: 'Consultez l\'historique des réservations, les heures populaires et les tendances d\'utilisation pour les installations comme les gymnases, piscines et salles de fête.' },
     buttons: [
+      { label: { en: 'Building', fr: 'Bâtiment' }, description: { en: 'Navigate back to select a different building for viewing common spaces', fr: 'Revenir en arrière pour sélectionner un immeuble différent pour voir les espaces communs' } },
       { label: { en: 'Building', fr: 'Immeuble' }, description: { en: 'Navigate back to select a different building for viewing common spaces', fr: 'Revenir en arrière pour sélectionner un immeuble différent pour voir les espaces communs' } },
-      { label: { en: 'Create Space', fr: 'Créer Espace' }, description: { en: 'Add a new common space or amenity to the building', fr: 'Ajouter un nouvel espace commun ou installation à l\'immeuble' } },
-      { label: { en: 'Select a space', fr: 'Sélectionner un espace' }, description: { en: 'Choose which common space to view statistics for', fr: 'Choisir quel espace commun pour voir les statistiques' } },
+      { label: { en: 'Create Space', fr: 'Créer un espace' }, description: { en: 'Add a new common space or amenity to the building', fr: 'Ajouter un nouvel espace commun ou installation à l\'immeuble' } },
+      { label: { en: 'Select a space', fr: 'Sélectionnez un espace' }, description: { en: 'Choose which common space to view statistics for', fr: 'Choisir quel espace commun pour voir les statistiques' } },
       { label: { en: 'Statistics', fr: 'Statistiques' }, description: { en: 'View detailed usage statistics and booking data', fr: 'Voir les statistiques d\'utilisation détaillées et les données de réservation' } },
       { label: { en: 'Calendar', fr: 'Calendrier' }, description: { en: 'See booking calendar and availability schedule', fr: 'Voir le calendrier de réservations et l\'horaire de disponibilité' } },
       { label: { en: 'Edit', fr: 'Modifier' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
