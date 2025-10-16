@@ -221,6 +221,8 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
           top = rect.bottom + 10; // Show below if no room above
         }
         
+        const isBelow = top >= rect.bottom;
+        
         return (
           <div
             style={{
@@ -237,21 +239,34 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
             <p className="text-sm font-medium">
               {highlightedInfo.description}
             </p>
-            {/* Small arrow pointing to element */}
+            {/* Prominent arrow pointing to element */}
             <div 
               style={{
                 position: 'absolute',
-                bottom: top < rect.top ? 'auto' : '-6px',
-                top: top < rect.top ? '-6px' : 'auto',
+                bottom: isBelow ? 'auto' : '-10px',
+                top: isBelow ? '-10px' : 'auto',
                 left: '50%',
                 transform: 'translateX(-50%) rotate(45deg)',
-                width: '12px',
-                height: '12px',
+                width: '20px',
+                height: '20px',
                 backgroundColor: 'rgb(37, 99, 235)',
-                borderRight: top < rect.top ? 'none' : '2px solid rgb(96, 165, 250)',
-                borderBottom: top < rect.top ? 'none' : '2px solid rgb(96, 165, 250)',
-                borderTop: top < rect.top ? '2px solid rgb(96, 165, 250)' : 'none',
-                borderLeft: top < rect.top ? '2px solid rgb(96, 165, 250)' : 'none',
+                borderRight: isBelow ? 'none' : '2px solid rgb(96, 165, 250)',
+                borderBottom: isBelow ? 'none' : '2px solid rgb(96, 165, 250)',
+                borderTop: isBelow ? '2px solid rgb(96, 165, 250)' : 'none',
+                borderLeft: isBelow ? '2px solid rgb(96, 165, 250)' : 'none',
+              }}
+            />
+            {/* Line connecting arrow to element */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: isBelow ? 'auto' : '-25px',
+                top: isBelow ? '-25px' : 'auto',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '2px',
+                height: '15px',
+                backgroundColor: 'rgb(96, 165, 250)',
               }}
             />
           </div>

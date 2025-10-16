@@ -272,6 +272,7 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: 'Statistics', description: 'View detailed usage statistics and booking data' },
       { label: 'Calendar', description: 'See booking calendar and availability schedule' },
       { label: 'Edit', description: 'Modify the common space details and settings' },
+      { label: 'Edit Space', description: 'Modify the selected common space details and settings' },
     ],
   },
   '/manager/maintenance/inventory': {
