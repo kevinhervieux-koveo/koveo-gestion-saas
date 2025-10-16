@@ -340,7 +340,7 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: 'Location', description: 'Where in your unit the issue is located' },
     ],
   },
-  '/resident/common-spaces': {
+  '/residents/common-spaces': {
     title: 'Common Spaces',
     description: 'Book and manage shared amenity reservations.',
     goal: 'Reserve common areas like gyms, pools, and party rooms.',
@@ -351,7 +351,7 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: 'Cancel', description: 'Cancel an existing booking' },
     ],
   },
-  '/resident/my-calendar': {
+  '/residents/my-calendar': {
     title: 'My Calendar',
     description: 'View your personal calendar of bookings and events.',
     goal: 'Track your reservations and building events.',
@@ -466,14 +466,64 @@ export const helpContentMap: Record<string, HelpContent> = {
   '/security': {
     title: 'Security',
     description: 'Learn about our security measures and data protection.',
-    goal: 'Understand how we keep your data safe.',
-    howToUse: 'Read about our security practices, compliance, and data protection policies.',
+    goal: 'Understand how we protect your data and maintain security.',
+    howToUse: 'Read about our security practices, compliance standards, and data protection measures.',
   },
   '/story': {
     title: 'Our Story',
-    description: 'Learn about the platform\'s mission and history.',
-    goal: 'Understand our vision and values.',
-    howToUse: 'Read about why we built this platform and what drives us.',
+    description: 'Learn about the history and mission behind the platform.',
+    goal: 'Understand our vision and why we built this property management solution.',
+    howToUse: 'Read about our journey, values, and commitment to improving property management.',
+  },
+  '/privacy-policy': {
+    title: 'Privacy Policy',
+    description: 'Our privacy policy and data handling practices.',
+    goal: 'Understand how we collect, use, and protect your personal information.',
+    howToUse: 'Review our privacy commitments, data handling procedures, and your rights under Quebec Law 25.',
+  },
+  '/terms-of-service': {
+    title: 'Terms of Service',
+    description: 'Terms and conditions for using the platform.',
+    goal: 'Understand the legal terms governing your use of this service.',
+    howToUse: 'Read the complete terms of service, user responsibilities, and service agreements.',
+  },
+  '/login': {
+    title: 'Login',
+    description: 'Sign in to access your account.',
+    goal: 'Securely access the property management platform.',
+    howToUse: 'Enter your username and password to login. Use "Forgot Password" link if you need to reset your password.',
+    buttons: [
+      { label: 'Login', description: 'Sign in with your credentials' },
+      { label: 'Forgot Password', description: 'Reset your password if you\'ve forgotten it' },
+    ],
+  },
+  '/forgot-password': {
+    title: 'Forgot Password',
+    description: 'Reset your account password.',
+    goal: 'Recover access to your account by resetting your password.',
+    howToUse: 'Enter your email address to receive a password reset link.',
+    buttons: [
+      { label: 'Send Reset Link', description: 'Receive an email with password reset instructions' },
+    ],
+  },
+  '/reset-password': {
+    title: 'Reset Password',
+    description: 'Create a new password for your account.',
+    goal: 'Set a new secure password to regain access to your account.',
+    howToUse: 'Enter and confirm your new password. Ensure it meets security requirements (minimum 8 characters, includes uppercase, lowercase, and numbers).',
+    buttons: [
+      { label: 'Reset Password', description: 'Save your new password and login' },
+    ],
+  },
+  '/admin/performance': {
+    title: 'Performance Dashboard',
+    description: 'Monitor system performance metrics and optimization statistics.',
+    goal: 'Track application performance, query efficiency, and system health.',
+    howToUse: 'View real-time performance metrics, identify bottlenecks, and monitor optimization improvements.',
+    buttons: [
+      { label: 'Refresh Metrics', description: 'Update performance data to see current statistics' },
+      { label: 'Export Report', description: 'Download performance data for analysis' },
+    ],
   },
 };
 
