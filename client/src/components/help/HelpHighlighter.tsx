@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, memo } from 'react';
+import { useEffect, useState, useCallback, memo, useRef } from 'react';
 import { useHelp, findHelpForElement } from '@/contexts/HelpContext';
 
 interface HighlightedElement {
@@ -15,6 +15,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
   const { isHelpOpen, getCurrentHelpContent } = useHelp();
   const [highlightedElements, setHighlightedElements] = useState<HighlightedElement[]>([]);
   const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null);
+  const tooltipHideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Scan for interactive elements
   const scanInteractiveElements = useCallback(() => {
@@ -109,12 +110,20 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
       element.classList.add(highlightClass);
       
-      // Create and store event handlers for tooltips
+      // Create and store event handlers for tooltips with persistence
       const handleMouseEnter = () => {
+        // Clear any pending hide timeout
+        if (tooltipHideTimeoutRef.current) {
+          clearTimeout(tooltipHideTimeoutRef.current);
+          tooltipHideTimeoutRef.current = null;
+        }
         setHoveredElement(element);
       };
       const handleMouseLeave = () => {
-        setHoveredElement(null);
+        // Delay hiding tooltip slightly for better UX
+        tooltipHideTimeoutRef.current = setTimeout(() => {
+          setHoveredElement(null);
+        }, 150); // 150ms delay before hiding
       };
 
       element.addEventListener('mouseenter', handleMouseEnter);
@@ -131,6 +140,12 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
     // Cleanup function - properly remove event listeners
     return () => {
+      // Clear any pending tooltip timeout
+      if (tooltipHideTimeoutRef.current) {
+        clearTimeout(tooltipHideTimeoutRef.current);
+        tooltipHideTimeoutRef.current = null;
+      }
+      
       highlightedElements.forEach(({ element }) => {
         // Remove event listeners using stored handlers
         const handlers = elementHandlers.get(element);

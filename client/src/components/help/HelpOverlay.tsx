@@ -46,15 +46,40 @@ export function HelpOverlay() {
         e.stopPropagation();
         e.stopImmediatePropagation();
       };
+      
+      // Also prevent pointer events on the page to block hover states that can trigger dropdowns
+      const preventPointerEvents = (e: PointerEvent) => {
+        const target = e.target as HTMLElement;
+        
+        // Allow pointer events on help UI
+        if (target.closest('[data-testid="button-help-toggle"]') || 
+            target.closest('[data-testid="button-collapse-help"]') ||
+            (overlayRef.current && overlayRef.current.contains(target))) {
+          return;
+        }
+
+        // Check if it's a Radix Select trigger or content (these are interactive elements we want to block)
+        if (target.closest('[role="combobox"]') || 
+            target.closest('[data-radix-popper-content-wrapper]') ||
+            target.closest('[data-radix-select-viewport]')) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }
+      };
 
       document.addEventListener('click', preventClicks, true); // Use capture phase
       document.addEventListener('mousedown', preventClicks, true);
       document.addEventListener('mouseup', preventClicks, true);
+      document.addEventListener('pointerdown', preventPointerEvents, true);
+      document.addEventListener('pointerup', preventPointerEvents, true);
       
       return () => {
         document.removeEventListener('click', preventClicks, true);
         document.removeEventListener('mousedown', preventClicks, true);
         document.removeEventListener('mouseup', preventClicks, true);
+        document.removeEventListener('pointerdown', preventPointerEvents, true);
+        document.removeEventListener('pointerup', preventPointerEvents, true);
       };
     }
   }, [isHelpOpen]);
@@ -119,7 +144,7 @@ export function HelpOverlay() {
         aria-labelledby="help-title"
       >
         <Card className="w-full max-w-2xl max-h-[85vh] flex flex-col pointer-events-auto shadow-2xl">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 shrink-0">
             <div className="flex items-start justify-between gap-4 w-full">
               <div className="flex-1">
                 <CardTitle id="help-title" className="text-2xl mb-2">{helpContent.title}</CardTitle>
@@ -143,8 +168,8 @@ export function HelpOverlay() {
           </CardHeader>
 
         {!isCollapsed && (
-          <ScrollArea className="flex-1 px-6">
-            <CardContent className="space-y-6 pb-6">
+          <ScrollArea className="flex-1 overflow-auto">
+            <CardContent className="space-y-6 pb-6 px-6">
             {/* Goals and How to Use */}
             <div className="space-y-3">
               <div>
@@ -247,7 +272,7 @@ export function HelpOverlay() {
         )}
 
         {!isCollapsed && (
-          <div className="px-6 py-4 border-t bg-muted/20">
+          <div className="px-6 py-4 border-t bg-muted/20 shrink-0">
             <div className="text-xs text-muted-foreground text-center">
               Click the <Badge variant="outline" className="mx-1">?</Badge> button anytime to get help with the current page
             </div>
