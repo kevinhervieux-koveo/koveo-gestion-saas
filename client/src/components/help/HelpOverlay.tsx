@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'wouter';
-import { X, Info, MousePointer, FileText, Link as LinkIcon } from 'lucide-react';
+import { X, Info, MousePointer, FileText, Link as LinkIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,21 +16,16 @@ export function HelpOverlay() {
   const { isHelpOpen, closeHelp } = useHelp();
   const [location] = useLocation();
   const overlayRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Close help when navigating to a new page
   useEffect(() => {
     closeHelp();
   }, [location, closeHelp]);
 
-  // Manage focus when help is open
+  // Manage focus and keyboard events when help is open
   useEffect(() => {
     if (isHelpOpen) {
-      // Focus the close button when overlay opens for keyboard accessibility
-      setTimeout(() => {
-        closeButtonRef.current?.focus();
-      }, 100);
-
       // Handle keyboard events
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -103,16 +98,31 @@ export function HelpOverlay() {
       >
         <Card className="w-full max-w-2xl max-h-[85vh] flex flex-col pointer-events-auto shadow-2xl">
           <CardHeader className="pb-3">
-            <div className="flex-1">
-              <CardTitle id="help-title" className="text-2xl mb-2">{helpContent.title}</CardTitle>
-              <CardDescription className="text-base">
-                {helpContent.description}
-              </CardDescription>
+            <div className="flex items-start justify-between gap-4 w-full">
+              <div className="flex-1">
+                <CardTitle id="help-title" className="text-2xl mb-2">{helpContent.title}</CardTitle>
+                {!isCollapsed && (
+                  <CardDescription className="text-base">
+                    {helpContent.description}
+                  </CardDescription>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                data-testid="button-collapse-help"
+                className="shrink-0"
+                aria-label={isCollapsed ? 'Expand help' : 'Collapse help'}
+              >
+                {isCollapsed ? <ChevronDown className="h-5 w-5" /> : <ChevronUp className="h-5 w-5" />}
+              </Button>
             </div>
           </CardHeader>
 
-        <ScrollArea className="flex-1 px-6">
-          <CardContent className="space-y-6 pb-6">
+        {!isCollapsed && (
+          <ScrollArea className="flex-1 px-6">
+            <CardContent className="space-y-6 pb-6">
             {/* Goals and How to Use */}
             <div className="space-y-3">
               <div>
@@ -212,13 +222,15 @@ export function HelpOverlay() {
             )}
           </CardContent>
         </ScrollArea>
+        )}
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t bg-muted/20">
-          <div className="text-xs text-muted-foreground text-center">
-            Click the <Badge variant="outline" className="mx-1">?</Badge> button anytime to get help with the current page
+        {!isCollapsed && (
+          <div className="px-6 py-4 border-t bg-muted/20">
+            <div className="text-xs text-muted-foreground text-center">
+              Click the <Badge variant="outline" className="mx-1">?</Badge> button anytime to get help with the current page
+            </div>
           </div>
-        </div>
+        )}
       </Card>
     </div>
     </>

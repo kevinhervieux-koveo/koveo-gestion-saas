@@ -112,6 +112,8 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
       mouseenter: () => void;
       mouseleave: () => void;
       click: (e: Event) => void;
+      mousedown: (e: Event) => void;
+      mouseup: (e: Event) => void;
     }>();
 
     highlightedElements.forEach(({ element, type }) => {
@@ -130,18 +132,33 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
       const handleClick = (e: Event) => {
         e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
+      };
+      const handleMouseDown = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      };
+      const handleMouseUp = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
       };
 
       element.addEventListener('mouseenter', handleMouseEnter);
       element.addEventListener('mouseleave', handleMouseLeave);
-      // Use capture phase to prevent clicks before other handlers
+      // Use capture phase to prevent all interactions before other handlers
       element.addEventListener('click', handleClick, true);
+      element.addEventListener('mousedown', handleMouseDown, true);
+      element.addEventListener('mouseup', handleMouseUp, true);
 
       // Store handlers for cleanup
       elementHandlers.set(element, {
         mouseenter: handleMouseEnter,
         mouseleave: handleMouseLeave,
         click: handleClick,
+        mousedown: handleMouseDown,
+        mouseup: handleMouseUp,
       });
 
       element.setAttribute('data-help-highlighted', 'true');
@@ -156,6 +173,8 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
           element.removeEventListener('mouseenter', handlers.mouseenter);
           element.removeEventListener('mouseleave', handlers.mouseleave);
           element.removeEventListener('click', handlers.click, true);
+          element.removeEventListener('mousedown', handlers.mousedown, true);
+          element.removeEventListener('mouseup', handlers.mouseup, true);
         }
 
         // Remove CSS classes and attributes
@@ -181,6 +200,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.3);
           border-radius: 0.375rem;
           transition: box-shadow 0.2s ease-in-out;
+          cursor: not-allowed !important;
         }
 
         .help-highlight-field {
@@ -190,6 +210,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
           box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.5), 0 0 0 4px rgba(34, 197, 94, 0.3);
           border-radius: 0.375rem;
           transition: box-shadow 0.2s ease-in-out;
+          cursor: not-allowed !important;
         }
 
         .help-highlight-generic {
@@ -199,6 +220,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
           box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.5), 0 0 0 4px rgba(148, 163, 184, 0.3);
           border-radius: 0.375rem;
           transition: box-shadow 0.2s ease-in-out;
+          cursor: not-allowed !important;
         }
 
         .help-highlight-button:hover,
