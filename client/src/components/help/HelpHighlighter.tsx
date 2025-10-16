@@ -1,11 +1,5 @@
 import { useEffect, useState, useCallback, memo } from 'react';
 import { useHelp, findHelpForElement } from '@/contexts/HelpContext';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
 interface HighlightedElement {
   element: HTMLElement;
@@ -210,34 +204,30 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
       `}</style>
 
       {/* Render tooltips for hovered elements */}
-      {hoveredElement && highlightedElements.find(h => h.element === hoveredElement) && (
-        <TooltipProvider>
-          <Tooltip open={true}>
-            <TooltipTrigger asChild>
-              <div 
-                style={{
-                  position: 'fixed',
-                  top: hoveredElement.getBoundingClientRect().top,
-                  left: hoveredElement.getBoundingClientRect().left,
-                  width: hoveredElement.getBoundingClientRect().width,
-                  height: hoveredElement.getBoundingClientRect().height,
-                  pointerEvents: 'none',
-                  zIndex: 9999,
-                }}
-              />
-            </TooltipTrigger>
-            <TooltipContent 
-              side="top" 
-              className="max-w-xs z-[10000]"
-              sideOffset={5}
-            >
-              <p className="text-sm">
-                {highlightedElements.find(h => h.element === hoveredElement)?.description}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
+      {hoveredElement && (() => {
+        const highlightedInfo = highlightedElements.find(h => h.element === hoveredElement);
+        if (!highlightedInfo) return null;
+        
+        const rect = hoveredElement.getBoundingClientRect();
+        
+        return (
+          <div
+            style={{
+              position: 'fixed',
+              top: rect.top - 40,
+              left: rect.left + rect.width / 2,
+              transform: 'translateX(-50%)',
+              zIndex: 10000,
+              pointerEvents: 'none',
+            }}
+            className="px-3 py-2 bg-popover text-popover-foreground rounded-md shadow-md border"
+          >
+            <p className="text-sm whitespace-nowrap">
+              {highlightedInfo.description}
+            </p>
+          </div>
+        );
+      })()}
     </>
   );
 });

@@ -13,71 +13,50 @@ import { getHelpContent } from '@/config/help-content';
  * Help overlay that displays contextual help information for the current page
  */
 export function HelpOverlay() {
-  const { isHelpOpen, closeHelp } = useHelp();
+  const { isHelpOpen } = useHelp();
   const [location] = useLocation();
   const overlayRef = useRef<HTMLDivElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Close help when navigating to a new page
-  useEffect(() => {
-    closeHelp();
-  }, [location, closeHelp]);
-
-  // Manage focus and keyboard events when help is open
+  // Prevent clicks when help is open
   useEffect(() => {
     if (isHelpOpen) {
-      // Handle keyboard events
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          closeHelp();
-        }
-      };
-
       // Prevent all clicks when help is open (except help UI buttons)
       const preventClicks = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
         
         // Allow clicks on help button (toggles help on/off)
         if (target.closest('[data-testid="button-help-toggle"]')) {
-          return; // Allow help button clicks
+          return; // Allow help button clicks to toggle
         }
 
-        // Allow clicks on collapse button and close button
-        if (
-          target.closest('[data-testid="button-collapse-help"]') ||
-          target.closest('[data-testid="button-close-help"]')
-        ) {
-          return; // Allow these clicks
+        // Allow clicks on collapse button
+        if (target.closest('[data-testid="button-collapse-help"]')) {
+          return; // Allow collapse button clicks
         }
 
-        // Check if click is on the help card
-        const helpCard = target.closest('[role="dialog"]');
-        if (helpCard) {
+        // Allow clicks on the help card for scrolling, selecting text, etc.
+        if (target.closest('[role="dialog"]')) {
           return; // Allow interaction with help card
         }
 
-        // Click is outside help card and not on help buttons - close help
-        closeHelp();
-        
-        // Prevent the click from doing anything else
+        // Prevent all other clicks from doing anything
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
       };
 
-      document.addEventListener('keydown', handleKeyDown);
       document.addEventListener('click', preventClicks, true); // Use capture phase
       document.addEventListener('mousedown', preventClicks, true);
       document.addEventListener('mouseup', preventClicks, true);
       
       return () => {
-        document.removeEventListener('keydown', handleKeyDown);
         document.removeEventListener('click', preventClicks, true);
         document.removeEventListener('mousedown', preventClicks, true);
         document.removeEventListener('mouseup', preventClicks, true);
       };
     }
-  }, [isHelpOpen, closeHelp]);
+  }, [isHelpOpen]);
 
   if (!isHelpOpen) return null;
 
@@ -116,7 +95,7 @@ export function HelpOverlay() {
             <div className="flex gap-2 pt-2">
               <Badge variant="outline">Tip</Badge>
               <div className="text-sm text-muted-foreground">
-                Press <kbd className="px-1.5 py-0.5 text-xs font-mono bg-muted rounded">Esc</kbd> to close this help dialog
+                Click the <Badge variant="outline" className="mx-1">?</Badge> button to close this help dialog
               </div>
             </div>
           </CardContent>
