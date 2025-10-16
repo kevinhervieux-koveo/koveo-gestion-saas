@@ -103,9 +103,6 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
     const elementHandlers = new Map<HTMLElement, {
       mouseenter: () => void;
       mouseleave: () => void;
-      click: (e: Event) => void;
-      mousedown: (e: Event) => void;
-      mouseup: (e: Event) => void;
     }>();
 
     highlightedElements.forEach(({ element, type }) => {
@@ -118,43 +115,21 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
       element.classList.add(highlightClass);
       
-      // Create and store event handlers
+      // Create and store event handlers for tooltips
       const handleMouseEnter = () => {
         setHoveredElement(element);
       };
       const handleMouseLeave = () => {
         setHoveredElement(null);
       };
-      const handleClick = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-      };
-      const handleMouseDown = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-      };
-      const handleMouseUp = (e: Event) => {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-      };
 
       element.addEventListener('mouseenter', handleMouseEnter);
       element.addEventListener('mouseleave', handleMouseLeave);
-      // Use capture phase to prevent all interactions before other handlers
-      element.addEventListener('click', handleClick, true);
-      element.addEventListener('mousedown', handleMouseDown, true);
-      element.addEventListener('mouseup', handleMouseUp, true);
 
       // Store handlers for cleanup
       elementHandlers.set(element, {
         mouseenter: handleMouseEnter,
         mouseleave: handleMouseLeave,
-        click: handleClick,
-        mousedown: handleMouseDown,
-        mouseup: handleMouseUp,
       });
 
       element.setAttribute('data-help-highlighted', 'true');
@@ -168,9 +143,6 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
         if (handlers) {
           element.removeEventListener('mouseenter', handlers.mouseenter);
           element.removeEventListener('mouseleave', handlers.mouseleave);
-          element.removeEventListener('click', handlers.click, true);
-          element.removeEventListener('mousedown', handlers.mousedown, true);
-          element.removeEventListener('mouseup', handlers.mouseup, true);
         }
 
         // Remove CSS classes and attributes

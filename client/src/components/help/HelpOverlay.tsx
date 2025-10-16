@@ -33,9 +33,48 @@ export function HelpOverlay() {
         }
       };
 
+      // Prevent all clicks when help is open (except help UI buttons)
+      const preventClicks = (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        
+        // Allow clicks on help button (toggles help on/off)
+        if (target.closest('[data-testid="button-help-toggle"]')) {
+          return; // Allow help button clicks
+        }
+
+        // Allow clicks on collapse button and close button
+        if (
+          target.closest('[data-testid="button-collapse-help"]') ||
+          target.closest('[data-testid="button-close-help"]')
+        ) {
+          return; // Allow these clicks
+        }
+
+        // Check if click is on the help card
+        const helpCard = target.closest('[role="dialog"]');
+        if (helpCard) {
+          return; // Allow interaction with help card
+        }
+
+        // Click is outside help card and not on help buttons - close help
+        closeHelp();
+        
+        // Prevent the click from doing anything else
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      };
+
       document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('click', preventClicks, true); // Use capture phase
+      document.addEventListener('mousedown', preventClicks, true);
+      document.addEventListener('mouseup', preventClicks, true);
+      
       return () => {
         document.removeEventListener('keydown', handleKeyDown);
+        document.removeEventListener('click', preventClicks, true);
+        document.removeEventListener('mousedown', preventClicks, true);
+        document.removeEventListener('mouseup', preventClicks, true);
       };
     }
   }, [isHelpOpen, closeHelp]);
@@ -47,11 +86,10 @@ export function HelpOverlay() {
   if (!helpContent) {
     return (
       <>
-        {/* Backdrop to block clicks */}
+        {/* Backdrop - visual only, doesn't block pointer events */}
         <div 
           className="fixed inset-0 bg-black/20 z-[60]" 
-          style={{ pointerEvents: 'auto' }}
-          onClick={closeHelp} 
+          style={{ pointerEvents: 'none' }}
         />
         
         <div 
@@ -90,8 +128,8 @@ export function HelpOverlay() {
 
   return (
     <>
-      {/* Backdrop to block clicks */}
-      <div className="fixed inset-0 bg-black/20 z-[60] pointer-events-auto" onClick={closeHelp} />
+      {/* Backdrop - visual only, doesn't block pointer events */}
+      <div className="fixed inset-0 bg-black/20 z-[60] pointer-events-none" />
       
       <div 
         ref={overlayRef}
