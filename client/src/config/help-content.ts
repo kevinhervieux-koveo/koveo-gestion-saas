@@ -536,6 +536,13 @@ export const helpContentMap: Record<string, HelpContent> = {
 /**
  * Get help content for a specific route
  */
+/**
+ * Helper function to extract language-specific text from BilingualText
+ */
+export function getText(text: BilingualText, language: 'en' | 'fr'): string {
+  return text[language];
+}
+
 export function getHelpContent(route: string): HelpContent | null {
   // Exact match
   if (helpContentMap[route]) {

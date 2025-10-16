@@ -7,7 +7,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useHelp } from '@/contexts/HelpContext';
-import { getHelpContent } from '@/config/help-content';
+import { getHelpContent, getText } from '@/config/help-content';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Help overlay that displays contextual help information for the current page
@@ -15,6 +16,7 @@ import { getHelpContent } from '@/config/help-content';
 export function HelpOverlay() {
   const { isHelpOpen } = useHelp();
   const [location] = useLocation();
+  const { language } = useLanguage();
   const overlayRef = useRef<HTMLDivElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -108,20 +110,29 @@ export function HelpOverlay() {
           <CardHeader>
             <CardTitle id="help-title" className="flex items-center gap-2">
               <Info className="h-5 w-5" />
-              Help
+              {language === 'fr' ? 'Aide' : 'Help'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-muted-foreground">
-              Help content is not yet available for this page.
+              {language === 'fr' 
+                ? "Le contenu d'aide n'est pas encore disponible pour cette page."
+                : 'Help content is not yet available for this page.'
+              }
             </p>
             <p className="text-sm text-muted-foreground">
-              You can navigate to other pages using the sidebar menu, or if you need assistance with this page specifically, please contact support.
+              {language === 'fr'
+                ? "Vous pouvez naviguer vers d'autres pages en utilisant le menu de la barre latérale, ou si vous avez besoin d'aide spécifique pour cette page, veuillez contacter le support."
+                : 'You can navigate to other pages using the sidebar menu, or if you need assistance with this page specifically, please contact support.'
+              }
             </p>
             <div className="flex gap-2 pt-2">
-              <Badge variant="outline">Tip</Badge>
+              <Badge variant="outline">{language === 'fr' ? 'Conseil' : 'Tip'}</Badge>
               <div className="text-sm text-muted-foreground">
-                Click the <Badge variant="outline" className="mx-1">?</Badge> button to close this help dialog
+                {language === 'fr'
+                  ? <>Cliquez sur le bouton <Badge variant="outline" className="mx-1">?</Badge> pour fermer cette boîte de dialogue d'aide</>
+                  : <>Click the <Badge variant="outline" className="mx-1">?</Badge> button to close this help dialog</>
+                }
               </div>
             </div>
           </CardContent>
@@ -147,10 +158,10 @@ export function HelpOverlay() {
           <CardHeader className="pb-3 shrink-0">
             <div className="flex items-start justify-between gap-4 w-full">
               <div className="flex-1">
-                <CardTitle id="help-title" className="text-2xl mb-2">{helpContent.title}</CardTitle>
+                <CardTitle id="help-title" className="text-2xl mb-2">{getText(helpContent.title, language)}</CardTitle>
                 {!isCollapsed && (
                   <CardDescription className="text-base">
-                    {helpContent.description}
+                    {getText(helpContent.description, language)}
                   </CardDescription>
                 )}
               </div>
@@ -175,16 +186,16 @@ export function HelpOverlay() {
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground mb-1 flex items-center gap-2">
                   <Info className="h-4 w-4" />
-                  GOALS
+                  {language === 'fr' ? 'OBJECTIFS' : 'GOALS'}
                 </h3>
-                <p className="text-sm">{helpContent.goal}</p>
+                <p className="text-sm">{getText(helpContent.goal, language)}</p>
               </div>
               <div>
                 <h3 className="font-semibold text-sm text-muted-foreground mb-1 flex items-center gap-2">
                   <Info className="h-4 w-4" />
-                  HOW TO USE
+                  {language === 'fr' ? 'COMMENT UTILISER' : 'HOW TO USE'}
                 </h3>
-                <p className="text-sm">{helpContent.howToUse}</p>
+                <p className="text-sm">{getText(helpContent.howToUse, language)}</p>
               </div>
             </div>
 
@@ -195,16 +206,16 @@ export function HelpOverlay() {
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <MousePointer className="h-4 w-4" />
-                    Buttons & Actions
+                    {language === 'fr' ? 'Boutons & Actions' : 'Buttons & Actions'}
                   </h3>
                   <div className="space-y-2">
                     {helpContent.buttons.map((button, index) => (
                       <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                         <Badge variant="outline" className="shrink-0 mt-0.5">
-                          {button.label}
+                          {getText(button.label, language)}
                         </Badge>
                         <p className="text-sm text-muted-foreground flex-1">
-                          {button.description}
+                          {getText(button.description, language)}
                         </p>
                       </div>
                     ))}
@@ -220,21 +231,21 @@ export function HelpOverlay() {
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Form Fields
+                    {language === 'fr' ? 'Champs de Formulaire' : 'Form Fields'}
                   </h3>
                   <div className="space-y-2">
                     {helpContent.formFields.map((field, index) => (
                       <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                         <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant="outline">{field.label}</Badge>
+                          <Badge variant="outline">{getText(field.label, language)}</Badge>
                           {field.required && (
                             <Badge variant="destructive" className="text-xs">
-                              Required
+                              {language === 'fr' ? 'Requis' : 'Required'}
                             </Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground flex-1">
-                          {field.description}
+                          {getText(field.description, language)}
                         </p>
                       </div>
                     ))}
@@ -250,16 +261,16 @@ export function HelpOverlay() {
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <LinkIcon className="h-4 w-4" />
-                    Related Pages
+                    {language === 'fr' ? 'Pages Connexes' : 'Related Pages'}
                   </h3>
                   <div className="space-y-2">
                     {helpContent.relationships.map((relationship, index) => (
                       <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                         <Badge variant="secondary" className="shrink-0 mt-0.5">
-                          {relationship.page}
+                          {getText(relationship.page, language)}
                         </Badge>
                         <p className="text-sm text-muted-foreground flex-1">
-                          {relationship.description}
+                          {getText(relationship.description, language)}
                         </p>
                       </div>
                     ))}
@@ -274,7 +285,10 @@ export function HelpOverlay() {
         {!isCollapsed && (
           <div className="px-6 py-4 border-t bg-muted/20 shrink-0">
             <div className="text-xs text-muted-foreground text-center">
-              Click the <Badge variant="outline" className="mx-1">?</Badge> button anytime to get help with the current page
+              {language === 'fr' 
+                ? <>Cliquez sur le bouton <Badge variant="outline" className="mx-1">?</Badge> à tout moment pour obtenir de l'aide sur la page actuelle</>
+                : <>Click the <Badge variant="outline" className="mx-1">?</Badge> button anytime to get help with the current page</>
+              }
             </div>
           </div>
         )}
