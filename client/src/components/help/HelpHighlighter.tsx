@@ -111,6 +111,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
     const elementHandlers = new Map<HTMLElement, {
       mouseenter: () => void;
       mouseleave: () => void;
+      click: (e: Event) => void;
     }>();
 
     highlightedElements.forEach(({ element, type }) => {
@@ -126,14 +127,21 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
       // Create and store event handlers
       const handleMouseEnter = () => debouncedSetHovered(element);
       const handleMouseLeave = () => debouncedSetHovered(null);
+      const handleClick = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+      };
 
       element.addEventListener('mouseenter', handleMouseEnter);
       element.addEventListener('mouseleave', handleMouseLeave);
+      // Use capture phase to prevent clicks before other handlers
+      element.addEventListener('click', handleClick, true);
 
       // Store handlers for cleanup
       elementHandlers.set(element, {
         mouseenter: handleMouseEnter,
         mouseleave: handleMouseLeave,
+        click: handleClick,
       });
 
       element.setAttribute('data-help-highlighted', 'true');
@@ -147,6 +155,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
         if (handlers) {
           element.removeEventListener('mouseenter', handlers.mouseenter);
           element.removeEventListener('mouseleave', handlers.mouseleave);
+          element.removeEventListener('click', handlers.click, true);
         }
 
         // Remove CSS classes and attributes
