@@ -51,31 +51,23 @@ export function HelpOverlay() {
 
   if (!helpContent) {
     return (
-      <div 
-        ref={overlayRef}
-        className="fixed inset-0 pointer-events-none z-50 flex items-start justify-end p-4 pt-20"
-        role="dialog"
-        aria-modal="false"
-        aria-labelledby="help-title"
-      >
-        <Card className="w-full max-w-md pointer-events-auto shadow-2xl">
+      <>
+        {/* Backdrop to block clicks */}
+        <div className="fixed inset-0 bg-black/20 z-[60] pointer-events-auto" onClick={closeHelp} />
+        
+        <div 
+          ref={overlayRef}
+          className="fixed inset-0 pointer-events-none z-[70] flex items-start justify-end p-4 pt-20"
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="help-title"
+        >
+          <Card className="w-full max-w-md pointer-events-auto shadow-2xl">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle id="help-title" className="flex items-center gap-2">
-                <Info className="h-5 w-5" />
-                Help
-              </CardTitle>
-              <Button
-                ref={closeButtonRef}
-                variant="ghost"
-                size="icon"
-                onClick={closeHelp}
-                data-testid="button-close-help"
-                aria-label="Close help"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <CardTitle id="help-title" className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              Help
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-muted-foreground">
@@ -93,39 +85,31 @@ export function HelpOverlay() {
           </CardContent>
         </Card>
       </div>
+      </>
     );
   }
 
   return (
-    <div 
-      ref={overlayRef}
-      className="fixed inset-0 pointer-events-none z-50 flex items-start justify-end p-4 pt-20"
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="help-title"
-    >
-      <Card className="w-full max-w-2xl max-h-[85vh] flex flex-col pointer-events-auto shadow-2xl">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-4">
+    <>
+      {/* Backdrop to block clicks */}
+      <div className="fixed inset-0 bg-black/20 z-[60] pointer-events-auto" onClick={closeHelp} />
+      
+      <div 
+        ref={overlayRef}
+        className="fixed inset-0 pointer-events-none z-[70] flex items-start justify-end p-4 pt-20"
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="help-title"
+      >
+        <Card className="w-full max-w-2xl max-h-[85vh] flex flex-col pointer-events-auto shadow-2xl">
+          <CardHeader className="pb-3">
             <div className="flex-1">
               <CardTitle id="help-title" className="text-2xl mb-2">{helpContent.title}</CardTitle>
               <CardDescription className="text-base">
                 {helpContent.description}
               </CardDescription>
             </div>
-            <Button
-              ref={closeButtonRef}
-              variant="ghost"
-              size="icon"
-              onClick={closeHelp}
-              data-testid="button-close-help"
-              className="shrink-0"
-              aria-label="Close help"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
         <ScrollArea className="flex-1 px-6">
           <CardContent className="space-y-6 pb-6">
@@ -237,5 +221,6 @@ export function HelpOverlay() {
         </div>
       </Card>
     </div>
+    </>
   );
 }

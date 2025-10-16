@@ -167,6 +167,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
       <style>{`
         .help-highlight-button {
           position: relative;
+          z-index: 65;
           animation: help-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.3);
           border-radius: 0.375rem;
@@ -175,6 +176,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
         .help-highlight-field {
           position: relative;
+          z-index: 65;
           animation: help-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
           box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.5), 0 0 0 4px rgba(34, 197, 94, 0.3);
           border-radius: 0.375rem;
@@ -183,6 +185,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
         .help-highlight-generic {
           position: relative;
+          z-index: 65;
           animation: help-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
           box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.5), 0 0 0 4px rgba(148, 163, 184, 0.3);
           border-radius: 0.375rem;
@@ -194,6 +197,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
         .help-highlight-generic:hover {
           animation: none;
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.7), 0 0 0 6px rgba(59, 130, 246, 0.4);
+          z-index: 65;
         }
 
         @keyframes help-pulse {
