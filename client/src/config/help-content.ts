@@ -279,6 +279,7 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Statistics', fr: 'Statistiques' }, description: { en: 'View detailed usage statistics and booking data', fr: 'Voir les statistiques d\'utilisation détaillées et les données de réservation' } },
       { label: { en: 'Calendar', fr: 'Calendrier' }, description: { en: 'See booking calendar and availability schedule', fr: 'Voir le calendrier de réservations et l\'horaire de disponibilité' } },
       { label: { en: 'Edit', fr: 'Modifier' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
+      { label: { en: 'Edit Space', fr: 'Modifier Espace' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
       { label: { en: 'edit space', fr: 'modifier espace' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
       { label: { en: 'Dashboard', fr: 'Tableau de Bord' }, description: { en: 'Go to the main dashboard overview page', fr: 'Aller à la page d\'aperçu du tableau de bord principal' } },
       { label: { en: 'Residents', fr: 'Résidents' }, description: { en: 'Access resident information and management', fr: 'Accéder aux informations et gestion des résidents' } },

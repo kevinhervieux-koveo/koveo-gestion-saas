@@ -173,15 +173,6 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
           cursor: not-allowed !important;
         }
 
-        /* Remove highlight effects from sidebar elements but keep tooltips */
-        aside .help-highlight-button,
-        aside .help-highlight-field,
-        aside .help-highlight-generic {
-          animation: none !important;
-          box-shadow: none !important;
-          cursor: default !important;
-        }
-
         .help-highlight-field {
           position: relative;
           z-index: 65;
