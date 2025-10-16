@@ -48,7 +48,11 @@ export function HelpOverlay() {
     return (
       <>
         {/* Backdrop to block clicks */}
-        <div className="fixed inset-0 bg-black/20 z-[60] pointer-events-auto" onClick={closeHelp} />
+        <div 
+          className="fixed inset-0 bg-black/20 z-[60]" 
+          style={{ pointerEvents: 'auto' }}
+          onClick={closeHelp} 
+        />
         
         <div 
           ref={overlayRef}

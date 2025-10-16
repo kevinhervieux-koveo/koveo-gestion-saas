@@ -22,14 +22,6 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
   const [highlightedElements, setHighlightedElements] = useState<HighlightedElement[]>([]);
   const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null);
 
-  // Debounce hover events
-  const debouncedSetHovered = useCallback((element: HTMLElement | null) => {
-    const timeoutId = setTimeout(() => {
-      setHoveredElement(element);
-    }, 50);
-    return () => clearTimeout(timeoutId);
-  }, []);
-
   // Scan for interactive elements
   const scanInteractiveElements = useCallback(() => {
     if (!isHelpOpen) {
@@ -39,7 +31,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
 
     const helpContent = getCurrentHelpContent();
     const interactiveSelectors = [
-      'button:not([data-testid="button-help-toggle"]):not([data-testid="button-close-help"])',
+      'button:not([data-testid="button-help-toggle"]):not([data-testid="button-close-help"]):not([data-testid="button-collapse-help"])',
       'a[href]',
       'input',
       'textarea',
@@ -48,7 +40,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
       '[role="link"]',
       '[role="tab"]',
       '[role="menuitem"]',
-      '[data-testid^="button-"]',
+      '[data-testid^="button-"]:not([data-testid="button-help-toggle"]):not([data-testid="button-close-help"]):not([data-testid="button-collapse-help"])',
       '[data-testid^="input-"]',
       '[data-testid^="link-"]',
     ];
@@ -127,8 +119,12 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
       element.classList.add(highlightClass);
       
       // Create and store event handlers
-      const handleMouseEnter = () => debouncedSetHovered(element);
-      const handleMouseLeave = () => debouncedSetHovered(null);
+      const handleMouseEnter = () => {
+        setHoveredElement(element);
+      };
+      const handleMouseLeave = () => {
+        setHoveredElement(null);
+      };
       const handleClick = (e: Event) => {
         e.preventDefault();
         e.stopPropagation();
@@ -186,7 +182,7 @@ export const HelpHighlighter = memo(function HelpHighlighter() {
       elementHandlers.clear();
       setHoveredElement(null);
     };
-  }, [highlightedElements, debouncedSetHovered]);
+  }, [highlightedElements]);
 
   if (!isHelpOpen) return null;
 
