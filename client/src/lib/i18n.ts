@@ -135,6 +135,7 @@ export interface Translations {
   addEmailAddress: string;
   invitationSent: string;
   invitationSentSuccessfully: string;
+  invitationAlreadyPending: string;
   bulkInvitationsSent: string;
   bulkInvitationsResult: string;
   bulkInvitationsSuccess: string;
@@ -2299,6 +2300,8 @@ export const translations: Record<Language, Translations> = {
     addEmailAddress: 'Add Email Address',
     invitationSent: 'Invitation Sent',
     invitationSentSuccessfully: 'Invitation sent successfully',
+    invitationAlreadyPending:
+      'A pending invitation already exists for this organization and email. Use Resend Invitation to extend its expiry, or Cancel Invitation to start over.',
     bulkInvitationsSent: 'Bulk Invitations Sent',
     bulkInvitationsResult: 'Bulk invitations processed successfully',
     bulkInvitationsSuccess: 'invitations sent successfully',
@@ -4460,6 +4463,8 @@ export const translations: Record<Language, Translations> = {
     addEmailAddress: 'Ajouter une adresse courriel',
     invitationSent: 'Invitation envoyée',
     invitationSentSuccessfully: 'Invitation envoyée avec succès',
+    invitationAlreadyPending:
+      'Une invitation en attente existe déjà pour cette organisation et ce courriel. Utilisez Renvoyer invitation pour prolonger son expiration, ou Annuler invitation pour recommencer.',
     bulkInvitationsSent: 'Invitations groupées envoyées',
     bulkInvitationsResult: 'Invitations groupées traitées avec succès',
     bulkInvitationsSuccess: 'invitations envoyées avec succès',

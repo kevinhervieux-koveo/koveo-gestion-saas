@@ -392,6 +392,16 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         : t('invitationSentSuccessfully');
     },
     errorTitle: 'Error',
+    errorMessage: (error: any) => {
+      // Task #261 — translate the duplicate-invite conflict from Task #250.
+      // The server returns a stable `code: 'INVITATION_ALREADY_PENDING'` on
+      // 409, surfaced by apiRequest as `error.code`. Fall back to the raw
+      // server message for any other error.
+      if (error?.code === 'INVITATION_ALREADY_PENDING') {
+        return t('invitationAlreadyPending');
+      }
+      return error instanceof Error ? error.message : '';
+    },
     onSuccessCallback: () => {
       form.reset();
       onSuccess();
