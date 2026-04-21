@@ -3,8 +3,7 @@ import { useLocation } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, ArrowLeft, Home } from 'lucide-react';
-import { SiLinkedin } from 'react-icons/si';
+import { CheckCircle, ArrowLeft, Home, Linkedin } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { RegistrationWizard, type WizardStep } from '@/components/auth/registration-wizard';
 import { TokenValidationStep } from '@/components/auth/steps/token-validation-step';
@@ -298,7 +297,7 @@ export default function InvitationAcceptancePage() {
             rel='noopener noreferrer'
             className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
           >
-            <SiLinkedin className='h-4 w-4' />
+            <Linkedin className='h-4 w-4' />
             <span>LinkedIn</span>
           </a>
         </div>

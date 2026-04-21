@@ -1,5 +1,4 @@
-import { LogOut, ChevronDown, ChevronRight, X } from 'lucide-react';
-import { SiLinkedin } from 'react-icons/si';
+import { LogOut, ChevronDown, ChevronRight, X, Linkedin } from 'lucide-react';
 import { Link, useLocation, useSearch } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { translations } from '@/lib/i18n';
@@ -346,7 +345,7 @@ export function Sidebar() {
             rel='noopener noreferrer'
             className='flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-3 py-2 rounded-lg transition-colors text-sm w-full'
           >
-            <SiLinkedin className='h-4 w-4' />
+            <Linkedin className='h-4 w-4' />
             <span>LinkedIn</span>
           </a>
         </div>

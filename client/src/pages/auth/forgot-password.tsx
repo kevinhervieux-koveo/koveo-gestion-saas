@@ -9,8 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { applyDangerousInputFieldError } from '@/lib/form-errors';
-import { ArrowLeft, Mail } from 'lucide-react';
-import { SiLinkedin } from 'react-icons/si';
+import { ArrowLeft, Mail, Linkedin } from 'lucide-react';
 import { StandardForm, useStandardForm } from '@/components/forms/StandardForm';
 import { StandardFormField } from '@/components/forms/StandardFormField';
 import { ValidationTemplates } from '@/utils/form-validation-helpers';
@@ -110,7 +109,7 @@ export default function ForgotPasswordPage() {
             rel='noopener noreferrer'
             className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
           >
-            <SiLinkedin className='h-4 w-4' />
+            <Linkedin className='h-4 w-4' />
             <span>LinkedIn</span>
           </a>
         </div>
@@ -170,7 +169,7 @@ export default function ForgotPasswordPage() {
           rel='noopener noreferrer'
           className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
         >
-          <SiLinkedin className='h-4 w-4' />
+          <Linkedin className='h-4 w-4' />
           <span>LinkedIn</span>
         </a>
       </div>

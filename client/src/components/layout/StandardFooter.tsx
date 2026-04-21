@@ -1,5 +1,4 @@
-import { Shield } from 'lucide-react';
-import { SiLinkedin } from 'react-icons/si';
+import { Shield, Linkedin } from 'lucide-react';
 import { Link } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
@@ -135,7 +134,7 @@ export function StandardFooter() {
             rel='noopener noreferrer'
             className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors'
           >
-            <SiLinkedin className='h-5 w-5' />
+            <Linkedin className='h-5 w-5' />
             <span>LinkedIn</span>
           </a>
         </div>

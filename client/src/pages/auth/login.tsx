@@ -9,8 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Shield, Building, Users, Eye, EyeOff, Loader2, Home } from 'lucide-react';
-import { SiLinkedin } from 'react-icons/si';
+import { AlertCircle, Shield, Building, Users, Eye, EyeOff, Loader2, Home, Linkedin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/use-language';
@@ -615,7 +614,7 @@ export default function LoginPage() {
             rel='noopener noreferrer'
             className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
           >
-            <SiLinkedin className='h-4 w-4' />
+            <Linkedin className='h-4 w-4' />
             <span>LinkedIn</span>
           </a>
         </div>
