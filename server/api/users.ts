@@ -21,7 +21,7 @@ import { queryCache, CacheInvalidator } from '../query-cache';
 import { emailService } from '../services/email-service';
 import {
   createInvitationWithSoftReplace,
-  InvitationSoftReplaceRaceLostError,
+  InvitationAlreadyPendingError,
   type InvitationRole,
 } from '../services/invitation-soft-replace';
 import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
@@ -2911,7 +2911,7 @@ export function registerUserRoutes(app: Express): void {
         req.ip ||
         null;
       const userAgent = (req.headers['user-agent'] as string | undefined) || null;
-      const { invitation: newInvitation, replacedInvitationIds } =
+      const { invitation: newInvitation } =
         await createInvitationWithSoftReplace({
           organizationId,
           residenceId: residenceId || null,
@@ -2930,11 +2930,6 @@ export function registerUserRoutes(app: Express): void {
           },
           logError: (msg, err) => logError(msg, err),
         });
-      if (replacedInvitationIds.length > 0) {
-        logDebug('Soft-replacing existing invitation(s) for email', {
-          metadata: { count: replacedInvitationIds.length },
-        });
-      }
 
       // Get organization details for email
       const [organization] = await db
@@ -2998,19 +2993,21 @@ export function registerUserRoutes(app: Express): void {
         emailSent: true,
       });
     } catch (error: any) {
-      // Task #204 — when the soft-replace helper exhausts its retry against
-      // a concurrent invite winning the unique-constraint race, surface a
-      // 409 with a friendly translated message instead of a generic 500.
-      // The full error is still logged server-side for operators.
-      if (error instanceof InvitationSoftReplaceRaceLostError) {
-        logWarn('Invitation soft-replace race lost after retry', {
+      // Task #250 — duplicate invites are now an explicit 409 conflict.
+      // The helper throws `InvitationAlreadyPendingError` whenever a pending
+      // invite already exists for the same (organization, email, residence)
+      // tuple (or a concurrent invite wins the unique-constraint race).
+      // Callers should use `resend_invitation` (extend expiry) or
+      // `cancel_invitation` (start fresh) before re-inviting. The full error
+      // is still logged server-side for operators.
+      if (error instanceof InvitationAlreadyPendingError) {
+        logWarn('Invitation create rejected — pending duplicate', {
           metadata: { route: 'POST /api/invitations' },
         });
         return res.status(409).json({
           error: 'Conflict',
           code: 'INVITATION_ALREADY_PENDING',
-          message:
-            'A pending invitation already exists for this email. Please wait a moment and try again.',
+          message: error.message,
         });
       }
       logError('Error creating invitation', error);

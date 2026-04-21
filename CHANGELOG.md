@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
+- **Duplicate invites now reject with 409 instead of soft-replacing the prior pending invitation** (Task #250):
+  Previously, calling `POST /api/invitations` (REST) or `invite_user` (MCP) a second time
+  for the same `(organizationId, email, residenceId)` tuple silently marked the prior
+  pending invite as `status='replaced'`, wrote a `replaced` entry to
+  `invitation_audit_log`, and returned a brand-new invitation. That behavior is
+  removed. Duplicate invites now return:
+    - REST: HTTP `409 Conflict` with body
+      `{ error: 'Conflict', code: 'INVITATION_ALREADY_PENDING', message: '...' }`.
+    - MCP: a structured tool response with
+      `{ status: 'already_invited', code: 'INVITATION_ALREADY_PENDING', message: '...' }`.
+  The prior pending invite is left completely untouched — no status change, no
+  `replaced` audit row, no new invitation row, and no email send.
+  Migration: callers must explicitly choose between `resend_invitation` (extend
+  the existing invite's expiry) or `cancel_invitation` followed by a fresh
+  `invite_user` / `POST /api/invitations` (start over with a new token). The
+  helper function and helper error class have been renamed/aliased: prefer
+  `InvitationAlreadyPendingError` from
+  `server/services/invitation-soft-replace`. The previous
+  `InvitationSoftReplaceRaceLostError` export remains as a deprecated alias.
+  Note: the `replaced` value of the `invitation_status` enum is intentionally
+  retained — other historical audit rows still reference it.
+
 - **MCP `list_buildings` requires `organizationId`**: The `organizationId` parameter
   on the MCP `list_buildings` tool is now **required** (previously optional).
   Calls that omitted `organizationId` to retrieve a "global" list of buildings

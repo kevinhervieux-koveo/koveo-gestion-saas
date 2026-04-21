@@ -1,6 +1,6 @@
 import { db } from "../db";
 import * as schema from "@shared/schema";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { logDebug, logInfo, logWarn } from "../utils/logger";
 
 export type InvitationRole = typeof schema.invitations.$inferInsert["role"];
@@ -29,6 +29,12 @@ export interface CreateInvitationWithSoftReplaceInput {
 
 export interface CreateInvitationWithSoftReplaceResult {
   invitation: typeof schema.invitations.$inferSelect;
+  /**
+   * Retained for backwards compatibility with the previous soft-replace
+   * contract. Always an empty array now that duplicate invites are rejected
+   * with `InvitationAlreadyPendingError` instead of silently replacing the
+   * prior pending row. Callers should not rely on this field.
+   */
   replacedInvitationIds: string[];
 }
 
@@ -56,26 +62,26 @@ function isUniqueViolation(err: unknown): boolean {
 }
 
 /**
- * Shared "soft-replace + create" routine used by both the MCP `invite_user`
- * tool and the REST `POST /api/invitations` endpoint.
+ * Shared invite-create routine used by both the MCP `invite_user` tool and
+ * the REST `POST /api/invitations` endpoint.
  *
- * Behavior:
+ * Behavior (Task #250 — explicit reject on duplicate):
  *   1. Looks up any existing pending invitation rows for the same
  *      (organizationId, email, residenceId) tuple. NULL residenceId on both
  *      sides matches via `IS NOT DISTINCT FROM` so org-level invites do not
  *      collide with unit-scoped ones.
- *   2. If prior pending rows exist, marks them status='replaced' BEFORE
- *      inserting the new pending row. This ordering is required because
- *      the partial unique index `invitations_pending_org_email_residence_unique`
- *      (Task #200) forbids two pending rows for the same dedup tuple.
- *   3. Inserts the new invitation row. If the insert hits a unique-violation
- *      (23505) — typically due to a concurrent invite winning the race —
- *      retries the entire dedup+insert flow once so concurrent invites do
- *      not 500.
- *   4. Writes one `invitation_audit_log` row per replaced id with
- *      action='replaced' and details.replacedByInvitationId pointing at
- *      the new invitation.
- *   5. Writes a single 'created' `invitation_audit_log` row for the new
+ *   2. If a prior pending row exists, throws
+ *      `InvitationAlreadyPendingError`. The pending row is left untouched —
+ *      callers must explicitly use `resend_invitation` (extend expiry) or
+ *      `cancel_invitation` (start fresh) before re-inviting. Previously this
+ *      code path silently soft-replaced the prior row and returned a new
+ *      one; that behavior is removed.
+ *   3. Otherwise inserts the new invitation row. If the insert hits a
+ *      unique-violation (23505) — typically a concurrent invite winning the
+ *      race against the SELECT above — it is mapped to the same
+ *      `InvitationAlreadyPendingError` so callers get one consistent
+ *      conflict signal.
+ *   4. Writes a single 'created' `invitation_audit_log` row for the new
  *      invitation. Audit-log failures are logged but never mask a successful
  *      invite create.
  */
@@ -94,13 +100,9 @@ export async function createInvitationWithSoftReplace(
   } = input;
   // Normalize the dedup tuple inputs so the MCP and REST paths cannot
   // diverge on subtle shape differences:
-  //   * residenceId: trim and treat "" / whitespace as null. The helper
-  //     previously only `?? null`-coalesced undefined, so MCP callers
-  //     passing an empty string would land on a different tuple than the
-  //     REST path (which already does `residenceId || null`).
+  //   * residenceId: trim and treat "" / whitespace as null.
   //   * email: trim + lowercase so "Foo@X.com " and "foo@x.com" dedup
-  //     against each other. The same normalized email is stored on the
-  //     new invitation row so the next call's SELECT matches.
+  //     against each other.
   const normalizedResidenceId: string | null = (() => {
     const raw = input.residenceId;
     if (raw === null || raw === undefined) return null;
@@ -116,181 +118,132 @@ export async function createInvitationWithSoftReplace(
   const ipAddress = audit.ipAddress ?? null;
   const userAgent = audit.userAgent ?? null;
 
-  async function attempt(
-    attemptNumber: number,
-  ): Promise<CreateInvitationWithSoftReplaceResult | null> {
-    // Wrap dedup-select + replace + insert in a single DB transaction so a
-    // non-unique-violation insert failure cannot leave the prior pending row(s)
-    // marked 'replaced' without a successor row in place.
-    type AttemptOk = {
-      ok: true;
-      invitation: typeof schema.invitations.$inferSelect;
-      replacedInvitationIds: string[];
-    };
-    type AttemptConflict = { ok: false; conflict: true };
-    let txResult: AttemptOk | AttemptConflict;
-    try {
-      txResult = await db.transaction(async (tx): Promise<AttemptOk | AttemptConflict> => {
-        const existingPending = await tx
-      .select({ id: schema.invitations.id })
-      .from(schema.invitations)
-      .where(
-        and(
-          eq(schema.invitations.email, normalizedEmail),
-          eq(schema.invitations.organizationId, organizationId),
-          eq(schema.invitations.status, "pending"),
-          sql`${schema.invitations.residenceId} IS NOT DISTINCT FROM ${normalizedResidenceId}`,
-        ),
-      );
+  const existingPending = await db
+    .select({ id: schema.invitations.id })
+    .from(schema.invitations)
+    .where(
+      and(
+        eq(schema.invitations.email, normalizedEmail),
+        eq(schema.invitations.organizationId, organizationId),
+        eq(schema.invitations.status, "pending"),
+        sql`${schema.invitations.residenceId} IS NOT DISTINCT FROM ${normalizedResidenceId}`,
+      ),
+    );
 
-    // Single info-level line per call so production logs make it obvious
-    // whether the dedup SELECT actually matched prior pending rows. A silent
-    // zero match (e.g. from a column-name slip or a `=` instead of
-    // `IS NOT DISTINCT FROM` for NULL residenceId) would otherwise look
-    // identical to a legitimate first-time invite.
-    logInfo("invitation soft-replace dedup lookup", {
+  // Single info-level line per call so production logs make it obvious
+  // whether the dedup SELECT actually matched prior pending rows.
+  logInfo("invitation create dedup lookup", {
+    metadata: {
+      source: audit.source,
+      matchedCount: existingPending.length,
+      organizationId,
+      email,
+      residenceId: normalizedResidenceId,
+    },
+  });
+  logDebug("invitation create dedup lookup (full email)", {
+    metadata: {
+      source: audit.source,
+      matchedCount: existingPending.length,
+      organizationId,
+      email,
+      residenceId: normalizedResidenceId,
+    },
+  });
+
+  if (existingPending.length > 0) {
+    logWarn("invitation create rejected — pending duplicate exists", {
       metadata: {
         source: audit.source,
-        attempt: attemptNumber,
-        matchedCount: existingPending.length,
         organizationId,
         email,
         residenceId: normalizedResidenceId,
       },
     });
-    logDebug("invitation soft-replace dedup lookup (full email)", {
-      metadata: {
-        source: audit.source,
-        attempt: attemptNumber,
-        matchedCount: existingPending.length,
+    throw new InvitationAlreadyPendingError();
+  }
+
+  let invitation: typeof schema.invitations.$inferSelect;
+  try {
+    const inserted = await db
+      .insert(schema.invitations)
+      .values({
         organizationId,
-        email,
         residenceId: normalizedResidenceId,
-      },
+        email,
+        token,
+        tokenHash,
+        role,
+        invitedByUserId,
+        expiresAt,
+        personalMessage: personalMessage ?? null,
+      })
+      .returning();
+    invitation = inserted[0];
+  } catch (insertErr) {
+    if (isUniqueViolation(insertErr)) {
+      // Concurrent invite won the race between the SELECT above and this
+      // INSERT. Surface the same explicit-conflict signal as the SELECT
+      // dedup branch so callers only have to handle one error class.
+      logWarn("invitation create lost unique-constraint race", {
+        metadata: {
+          source: audit.source,
+          organizationId,
+          email,
+          residenceId: normalizedResidenceId,
+        },
+      });
+      throw new InvitationAlreadyPendingError();
+    }
+    logError("failed to insert invitation", insertErr);
+    throw insertErr;
+  }
+
+  // Audit-log writes are best-effort: a logging failure must never mask a
+  // successful invite create.
+  try {
+    await db.insert(schema.invitationAuditLog).values({
+      invitationId: invitation.id,
+      action: "created",
+      performedBy: invitedByUserId,
+      ipAddress,
+      userAgent,
+      previousStatus: null,
+      newStatus: "pending",
+      details: { ...auditTag, invitedRole: invitation.role },
     });
-
-    const replacedInvitationIds = existingPending.map((row) => row.id);
-
-        // Soft-replace prior pending rows BEFORE inserting the new one so the
-        // partial unique index does not see two pending rows for the same
-        // dedup tuple at the same instant. Both statements run in the same
-        // transaction so a non-unique-violation insert failure rolls the
-        // 'replaced' update back automatically — preventing partial state
-        // where prior pending rows are gone but no successor exists.
-        if (replacedInvitationIds.length > 0) {
-          await tx
-            .update(schema.invitations)
-            .set({ status: "replaced", updatedAt: new Date() })
-            .where(inArray(schema.invitations.id, replacedInvitationIds));
-        }
-
-        const inserted = await tx
-          .insert(schema.invitations)
-          .values({
-            organizationId,
-            residenceId: normalizedResidenceId,
-            email,
-            token,
-            tokenHash,
-            role,
-            invitedByUserId,
-            expiresAt,
-            personalMessage: personalMessage ?? null,
-          })
-          .returning();
-        const invitation = inserted[0];
-
-        return { ok: true, invitation, replacedInvitationIds };
-      });
-    } catch (txErr) {
-      if (isUniqueViolation(txErr)) {
-        logWarn("invitation soft-replace hit unique violation on insert", {
-          metadata: {
-            source: audit.source,
-            attempt: attemptNumber,
-            organizationId,
-            email,
-            residenceId: normalizedResidenceId,
-          },
-        });
-        return null;
-      }
-      logError("failed to soft-replace + insert invitation in transaction", txErr);
-      throw txErr;
-    }
-
-    if (txResult.ok !== true) {
-      return null;
-    }
-    const { invitation, replacedInvitationIds } = txResult;
-
-    // Audit-log writes happen OUTSIDE the transaction so a logging failure
-    // never rolls back a successful invite. Each catch only logs.
-    if (replacedInvitationIds.length > 0) {
-      try {
-        await db.insert(schema.invitationAuditLog).values(
-          replacedInvitationIds.map((oldId) => ({
-            invitationId: oldId,
-            action: "replaced" as const,
-            performedBy: invitedByUserId,
-            ipAddress,
-            userAgent,
-            previousStatus: "pending" as const,
-            newStatus: "replaced" as const,
-            details: {
-              ...auditTag,
-              replacedByInvitationId: invitation.id,
-              organizationId,
-              residenceId: normalizedResidenceId,
-              email,
-            },
-          })),
-        );
-      } catch (auditReplaceErr) {
-        logError("failed to write invitation_audit_log entries on REPLACE", auditReplaceErr);
-      }
-    }
-
-    try {
-      await db.insert(schema.invitationAuditLog).values({
-        invitationId: invitation.id,
-        action: "created",
-        performedBy: invitedByUserId,
-        ipAddress,
-        userAgent,
-        previousStatus: null,
-        newStatus: "pending",
-        details: { ...auditTag, invitedRole: invitation.role },
-      });
-    } catch (auditErr) {
-      logError("failed to write invitation_audit_log entry on CREATE", auditErr);
-    }
-
-    return { invitation, replacedInvitationIds };
+  } catch (auditErr) {
+    logError("failed to write invitation_audit_log entry on CREATE", auditErr);
   }
 
-  let result = await attempt(1);
-  if (result === null) {
-    result = await attempt(2);
-  }
-  if (result === null) {
-    throw new InvitationSoftReplaceRaceLostError();
-  }
-  return result;
+  return { invitation, replacedInvitationIds: [] };
 }
 
 /**
- * Thrown by createInvitationWithSoftReplace when both attempts to insert the
- * fresh invitation lose the unique-constraint race against a concurrent caller
- * inserting a row for the same (organization, email, residence) tuple. Callers
- * (REST + MCP) can branch on `err instanceof InvitationSoftReplaceRaceLostError`
- * to surface a stable, friendly retry message without leaking driver details.
+ * Thrown by `createInvitationWithSoftReplace` when a pending invitation
+ * already exists for the same (organization, email, residence) tuple — either
+ * found by the dedup SELECT or surfaced as a unique-violation by a concurrent
+ * invite. Callers (REST + MCP) branch on `err instanceof
+ * InvitationAlreadyPendingError` to surface a stable 409/conflict response
+ * directing the user to `resend_invitation` or `cancel_invitation`.
  */
-export class InvitationSoftReplaceRaceLostError extends Error {
-  readonly name = "InvitationSoftReplaceRaceLostError";
+export class InvitationAlreadyPendingError extends Error {
+  readonly name = "InvitationAlreadyPendingError";
   constructor() {
     super(
-      "Failed to create invitation: another pending invitation for the same (organization, email, residence) tuple keeps winning the race. Retry after the conflict resolves.",
+      "A pending invitation exists for this organization and email. Use resend_invitation to extend its expiry or cancel_invitation to start over.",
     );
   }
 }
+
+/**
+ * Backwards-compatible alias for the pre-Task #250 race-loss error class.
+ * The old soft-replace flow distinguished a "race lost after retry" outcome
+ * from the dedup hit; the new flow collapses both into
+ * `InvitationAlreadyPendingError`. This alias keeps any older `instanceof`
+ * checks compiling without forcing a coordinated rename.
+ *
+ * @deprecated Use `InvitationAlreadyPendingError` instead.
+ */
+export const InvitationSoftReplaceRaceLostError = InvitationAlreadyPendingError;
+export type InvitationSoftReplaceRaceLostError = InvitationAlreadyPendingError;

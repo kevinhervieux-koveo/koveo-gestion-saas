@@ -1,16 +1,14 @@
 /**
- * Task #189 — REST POST /api/invitations soft-replace regression.
+ * Task #250 — REST POST /api/invitations duplicate-invite conflict.
  *
- * Two consecutive REST invites for the same
- * (organizationId, email, residenceId) tuple must:
- *   1. Insert a brand-new invitation row.
- *   2. Mark the prior pending invitation as status='replaced' (NOT
- *      hard-delete it) via `db.update(invitations).set({status:'replaced'})`.
- *   3. Write an `invitation_audit_log` row with action='replaced'
- *      whose `details.replacedByInvitationId` points at the new
- *      invitation.
- *   4. Also write the standard `created` audit row for the new
- *      invitation.
+ * The previous "soft-replace" behavior is removed. A second REST invite
+ * for the same (organizationId, email, residenceId) tuple must:
+ *   1. Return HTTP 409 with a friendly INVITATION_ALREADY_PENDING payload
+ *      directing the caller to `resend_invitation` or `cancel_invitation`.
+ *   2. NOT insert a new invitation row.
+ *   3. NOT mutate the prior pending row (no `db.update(invitations)
+ *      .set({status:'replaced'})`, no hard delete).
+ *   4. NOT write any `replaced` audit log entry.
  *
  * Mirrors the MCP `invite_user` regression test so a future divergence
  * between the two paths surfaces immediately.
@@ -44,13 +42,12 @@ function tableName(table: unknown): string {
 
 interface State {
   // Whether the next "existing pending invitations" SELECT should
-  // return a prior row. We toggle this per scenario.
+  // return a prior row.
   returnPriorInvitation: boolean;
-  // Task #204 — when true, every `db.insert(invitations).values(...)` call
-  // rejects with a pg-style unique-violation (code '23505'). This forces
-  // both attempts inside `createInvitationWithSoftReplace` to lose the
-  // race and the helper to throw `InvitationSoftReplaceRaceLostError`,
-  // which the REST handler must translate to a 409.
+  // When true, every `db.insert(invitations).values(...)` call rejects
+  // with a pg-style unique-violation. Used to exercise the
+  // concurrent-race branch in `createInvitationWithSoftReplace`, which
+  // must also surface as a 409 with INVITATION_ALREADY_PENDING.
   forceUniqueViolationOnInsert: boolean;
   insertCalls: Array<{ tableName: string; values: unknown }>;
   updateCalls: Array<{ tableName: string; values: Record<string, unknown> }>;
@@ -68,15 +65,9 @@ const state: State = {
 };
 
 /**
- * The route issues these SELECTs in order (admin path, no manager
- * org-type lookup):
- *   1. `select({id}).from(invitations).where(...)` — existing pending
- *      invitation lookup for soft-replace dedup.
- *   2. `select().from(organizations).where(...).limit(1)` — org name
- *      for the email body.
- *
- * `storage.getUserByEmail` is mocked separately so it does NOT consume
- * a SELECT here.
+ * The route issues these SELECTs in order (admin path):
+ *   1. existing pending invitation lookup for dedup.
+ *   2. organization name for the email body (only reached on success).
  */
 function selectChain() {
   state.selectCount += 1;
@@ -104,24 +95,16 @@ function selectChain() {
 
 jest.mock('../../server/db', () => ({
   db: {
-    // The soft-replace helper now wraps the dedup-select + replace + insert
-    // in `db.transaction(cb)` so the mock just runs the callback inline,
-    // passing the same mock db as the tx handle.
     transaction: jest.fn(async (cb: (tx: unknown) => Promise<unknown>) => {
       const { db } = jest.requireMock('../../server/db') as { db: unknown };
       return cb(db);
     }),
     select: jest.fn(() => selectChain()),
     insert: jest.fn((table: unknown) => ({
-      // Support both `await .values(...)` (audit log inserts) and
-      // `.values(...).returning()` (the new invitation insert).
       values: (vals: unknown) => {
         const name = tableName(table);
         state.insertCalls.push({ tableName: name, values: vals });
         if (state.forceUniqueViolationOnInsert && name === 'invitations') {
-          // Simulate the partial-unique-index violation that a concurrent
-          // invite would raise. The helper's `isUniqueViolation` walks
-          // the cause chain looking for `code === '23505'`.
           const err = new Error(
             'duplicate key value violates unique constraint "invitations_pending_org_email_residence_unique"',
           ) as Error & { code?: string };
@@ -129,9 +112,6 @@ jest.mock('../../server/db', () => ({
           const rejected = Promise.reject(err) as Promise<unknown> & {
             returning?: () => Promise<unknown[]>;
           };
-          // Swallow the unhandled-rejection warning if `.returning()` is
-          // never chained — the helper always chains it on the invitation
-          // insert, but be defensive for audit-log paths just in case.
           rejected.catch(() => undefined);
           rejected.returning = () => Promise.reject(err);
           return rejected;
@@ -196,7 +176,7 @@ jest.mock('../../server/query-cache', () => ({
 }));
 
 import { registerUserRoutes } from '../../server/api/users';
-import { InvitationSoftReplaceRaceLostError } from '../../server/services/invitation-soft-replace';
+import { InvitationAlreadyPendingError } from '../../server/services/invitation-soft-replace';
 
 function buildApp() {
   const app = express();
@@ -214,8 +194,8 @@ beforeEach(() => {
   state.selectCount = 0;
 });
 
-describe('POST /api/invitations — soft-replace regression (task #189)', () => {
-  it('soft-replaces a prior pending invitation and writes a replaced audit row pointing at the new one', async () => {
+describe('POST /api/invitations — duplicate invite returns 409 (task #250)', () => {
+  it('returns HTTP 409 with INVITATION_ALREADY_PENDING and does NOT mutate the prior pending invite', async () => {
     state.returnPriorInvitation = true;
 
     const res = await request(buildApp())
@@ -228,50 +208,46 @@ describe('POST /api/invitations — soft-replace regression (task #189)', () => 
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       });
 
-    expect(res.status).toBe(201);
+    // (1) 409 with structured error code.
+    expect(res.status).toBe(409);
+    expect(res.body).toMatchObject({
+      error: 'Conflict',
+      code: 'INVITATION_ALREADY_PENDING',
+    });
+    expect(typeof res.body.message).toBe('string');
+    expect(res.body.message).toMatch(/resend_invitation/);
+    expect(res.body.message).toMatch(/cancel_invitation/);
+    // Driver / SQL details must NOT leak through the friendly message.
+    expect(res.body.message).not.toContain('duplicate key');
+    expect(res.body.message).not.toContain('invitations_pending');
+    expect(res.body.message).not.toContain('23505');
 
-    // (1) New invitation row inserted.
-    const invitationInsert = state.insertCalls.find((c) => c.tableName === 'invitations');
-    expect(invitationInsert).toBeDefined();
-    const invVals = invitationInsert!.values as Record<string, unknown>;
-    expect(invVals.email).toBe('duplicate@example.com');
-    expect(invVals.residenceId).toBe(RESIDENCE_ID);
+    // (2) NO new invitation row inserted.
+    expect(state.insertCalls.find((c) => c.tableName === 'invitations')).toBeUndefined();
 
-    // (2) Soft-replace: db.update(invitations).set({status:'replaced'}) was
-    // called, and the prior row was NOT hard-deleted.
-    const replaceUpdate = state.updateCalls.find(
-      (c) => c.tableName === 'invitations' && c.values.status === 'replaced',
-    );
-    expect(replaceUpdate).toBeDefined();
+    // (3) Prior pending row is untouched: no soft-replace UPDATE, no delete.
+    expect(
+      state.updateCalls.find(
+        (c) => c.tableName === 'invitations' && c.values.status === 'replaced',
+      ),
+    ).toBeUndefined();
     expect(state.deleteCalls.find((c) => c.tableName === 'invitations')).toBeUndefined();
 
-    // (3) `invitation_audit_log` row with action='replaced' whose
-    // details.replacedByInvitationId points at the new invitation.
-    const auditInserts = state.insertCalls.filter(
-      (c) => c.tableName === 'invitation_audit_log',
-    );
-    const auditRows = auditInserts.flatMap((c) =>
-      Array.isArray(c.values)
-        ? (c.values as Record<string, unknown>[])
-        : [c.values as Record<string, unknown>],
-    );
-    const replacedAudit = auditRows.find((r) => r.action === 'replaced');
-    expect(replacedAudit).toBeDefined();
-    expect(replacedAudit!.invitationId).toBe(PRIOR_INVITATION_ID);
-    expect(replacedAudit!.previousStatus).toBe('pending');
-    expect(replacedAudit!.newStatus).toBe('replaced');
-    const details = replacedAudit!.details as Record<string, unknown>;
-    expect(details.source).toBe('rest');
-    expect(details.route).toBe('POST /api/invitations');
-    expect(details.replacedByInvitationId).toBe('new-invitation-id');
+    // (4) NO `replaced` audit log row written.
+    const auditRows = state.insertCalls
+      .filter((c) => c.tableName === 'invitation_audit_log')
+      .flatMap((c) =>
+        Array.isArray(c.values)
+          ? (c.values as Record<string, unknown>[])
+          : [c.values as Record<string, unknown>],
+      );
+    expect(auditRows.find((r) => r.action === 'replaced')).toBeUndefined();
 
-    // (4) Standard 'created' audit row for the new invitation.
-    const createdAudit = auditRows.find((r) => r.action === 'created');
-    expect(createdAudit).toBeDefined();
-    expect(createdAudit!.invitationId).toBe('new-invitation-id');
+    // The contractual error class is exported and instanceof Error.
+    expect(new InvitationAlreadyPendingError()).toBeInstanceOf(Error);
   });
 
-  it('does not call db.update on invitations when there is no prior pending row', async () => {
+  it('happy path: when no prior pending invite exists, creates a new invitation and writes a created audit row', async () => {
     state.returnPriorInvitation = false;
 
     const res = await request(buildApp())
@@ -285,12 +261,19 @@ describe('POST /api/invitations — soft-replace regression (task #189)', () => 
       });
 
     expect(res.status).toBe(201);
+
+    const invitationInsert = state.insertCalls.find((c) => c.tableName === 'invitations');
+    expect(invitationInsert).toBeDefined();
+    const invVals = invitationInsert!.values as Record<string, unknown>;
+    expect(invVals.email).toBe('fresh@example.com');
+    expect(invVals.residenceId).toBe(RESIDENCE_ID);
+
     expect(
       state.updateCalls.find(
         (c) => c.tableName === 'invitations' && c.values.status === 'replaced',
       ),
     ).toBeUndefined();
-    // Only the 'created' audit row should have been written.
+
     const auditRows = state.insertCalls
       .filter((c) => c.tableName === 'invitation_audit_log')
       .flatMap((c) =>
@@ -303,13 +286,12 @@ describe('POST /api/invitations — soft-replace regression (task #189)', () => 
   });
 });
 
-describe('POST /api/invitations — duplicate-pending conflict mapping (task #204)', () => {
-  it('returns 409 with a friendly INVITATION_ALREADY_PENDING payload when the helper exhausts its retry', async () => {
-    // Force every invitation insert to raise a pg-style 23505 unique
-    // violation so both attempts inside `createInvitationWithSoftReplace`
-    // lose the race and the helper throws
-    // `InvitationSoftReplaceRaceLostError`. The REST handler must map
-    // that to a 4xx (409), NOT a generic 500.
+describe('POST /api/invitations — concurrent unique-violation also maps to 409 (task #250)', () => {
+  it('returns 409 with INVITATION_ALREADY_PENDING when a concurrent invite wins the unique-constraint race', async () => {
+    // Dedup SELECT returns no prior row, but the INSERT itself raises a
+    // 23505 unique violation (a concurrent invite slipped in between
+    // SELECT and INSERT). The helper must translate this to
+    // `InvitationAlreadyPendingError`, which the REST handler maps to 409.
     state.forceUniqueViolationOnInsert = true;
 
     const res = await request(buildApp())
@@ -328,11 +310,6 @@ describe('POST /api/invitations — duplicate-pending conflict mapping (task #20
       code: 'INVITATION_ALREADY_PENDING',
     });
     expect(typeof res.body.message).toBe('string');
-    // The post-retry helper error class is the contractual signal we map
-    // on; surface it explicitly so a future refactor that swallows the
-    // class fails this test loudly.
-    expect(new InvitationSoftReplaceRaceLostError()).toBeInstanceOf(Error);
-    // Driver / SQL details must NOT leak through the friendly message.
     expect(res.body.message).not.toContain('duplicate key');
     expect(res.body.message).not.toContain('invitations_pending');
     expect(res.body.message).not.toContain('23505');

@@ -47,7 +47,7 @@ import { aiService } from "../services/consolidated-ai-service";
 import { emailService } from "../services/email-service";
 import {
   createInvitationWithSoftReplace,
-  InvitationSoftReplaceRaceLostError,
+  InvitationAlreadyPendingError,
 } from "../services/invitation-soft-replace";
 
 const MCP_ORG_NAMES = ["MCP-1", "MCP-2"];
@@ -2502,19 +2502,21 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // invitee email, etc.) which would leak schema details to the
         // calling client. See task #214.
         console.error("[mcp:invite_user] failed to create invitation", err);
-        if (err instanceof InvitationSoftReplaceRaceLostError) {
-          // Task #204 — return a structured "already-invited" outcome so
-          // the calling assistant can branch on `status` instead of
-          // string-matching the error text. Still a non-throw, non-leaky
-          // response so the MCP SDK does not surface driver details.
+        if (err instanceof InvitationAlreadyPendingError) {
+          // Task #250 — duplicate invites are now an explicit conflict.
+          // Return a structured "already-invited" outcome so the calling
+          // assistant can branch on `status` instead of string-matching the
+          // error text, and direct the user to the correct follow-up tool
+          // (`resend_invitation` to extend expiry, or `cancel_invitation`
+          // to start over). Still a non-throw, non-leaky response so the
+          // MCP SDK does not surface driver details.
           return {
             content: [{
               type: "text" as const,
               text: JSON.stringify({
                 status: "already_invited",
                 code: "INVITATION_ALREADY_PENDING",
-                message:
-                  "A pending invitation already exists for this email. Please wait a moment and try again.",
+                message: err.message,
               }, null, 2),
             }],
           };
