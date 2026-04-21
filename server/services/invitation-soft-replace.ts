@@ -260,7 +260,7 @@ export async function createInvitationWithSoftReplace(
         userAgent,
         previousStatus: null,
         newStatus: "pending",
-        details: { ...auditTag, role: invitation.role },
+        details: { ...auditTag, invitedRole: invitation.role },
       });
     } catch (auditErr) {
       logError("failed to write invitation_audit_log entry on CREATE", auditErr);

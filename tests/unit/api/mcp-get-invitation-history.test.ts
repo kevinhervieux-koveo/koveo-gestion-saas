@@ -119,7 +119,7 @@ function auditRow(overrides: Record<string, unknown> = {}) {
     newStatus: 'cancelled',
     performedBy: SEED_ADMIN_ID,
     ipAddress: null,
-    details: { source: 'mcp', tool: 'cancel_invitation', role: 'admin' },
+    details: { source: 'mcp', tool: 'cancel_invitation', callerRole: 'admin' },
     createdAt: new Date('2026-04-19T12:00:00Z'),
     invitationEmail: 'invitee@example.com',
     organizationId: ORG_ID,

@@ -2883,7 +2883,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           performedBy: caller.id,
           previousStatus,
           newStatus: "cancelled",
-          details: { source: "mcp", tool: "cancel_invitation", role },
+          details: { source: "mcp", tool: "cancel_invitation", callerRole: role },
         });
       } catch (auditErr) {
         console.error(

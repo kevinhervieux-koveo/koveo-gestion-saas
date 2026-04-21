@@ -142,7 +142,7 @@ describe('MCP cancel_invitation tool', () => {
     expect(insertCalls[0].values.details).toMatchObject({
       source: 'mcp',
       tool: 'cancel_invitation',
-      role: 'admin',
+      callerRole: 'admin',
     });
   });
 
