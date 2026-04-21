@@ -7,10 +7,27 @@ import { execSync } from "child_process";
  * Build/version stamp surfaced through the `get_mcp_info` tool so support
  * can verify, from outside the long-lived MCP process, which commit the
  * deployed handler was built from. A stale bundle (e.g. after a soft-replace
- * rewire) would otherwise be invisible. Resolved once at module load — try
- * git, then fall back to platform-provided env vars, then "unknown".
+ * rewire) would otherwise be invisible. Resolved once at module load.
+ *
+ * Resolution order (deploy-marker first, dev-friendly fallback last):
+ *   1. Platform-provided deploy env vars (REPLIT_DEPLOYMENT_ID,
+ *      REPL_DEPLOYMENT_ID, SOURCE_VERSION) — these change every deploy, which
+ *      is exactly what makes them useful as a staleness marker. In Replit's
+ *      deployed containers `git rev-parse` succeeds but returns the same
+ *      commit hash across redeploys of the same SHA, so it cannot detect a
+ *      stale bundle on its own.
+ *   2. `git rev-parse --short HEAD` — useful in local dev where the deploy
+ *      env vars are unset.
+ *   3. The literal string "unknown" — last-resort fallback.
  */
 const BUILD_SHA: string = (() => {
+  const deployMarker =
+    process.env.REPLIT_DEPLOYMENT_ID ||
+    process.env.REPL_DEPLOYMENT_ID ||
+    process.env.SOURCE_VERSION;
+  if (deployMarker) {
+    return deployMarker;
+  }
   try {
     return execSync("git rev-parse --short HEAD", {
       stdio: ["ignore", "pipe", "ignore"],
@@ -18,12 +35,7 @@ const BUILD_SHA: string = (() => {
       .toString()
       .trim();
   } catch {
-    return (
-      process.env.REPLIT_DEPLOYMENT_ID ||
-      process.env.REPL_DEPLOYMENT_ID ||
-      process.env.SOURCE_VERSION ||
-      "unknown"
-    );
+    return "unknown";
   }
 })();
 import { db } from "../db";

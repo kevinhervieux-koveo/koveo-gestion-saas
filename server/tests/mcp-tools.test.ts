@@ -646,6 +646,72 @@ describe('MCP Server', () => {
     });
   });
 
+  describe('get_mcp_info buildSha resolution order', () => {
+    function parseInfo(result: unknown) {
+      return JSON.parse(parseToolResponse(result as { content?: Array<{ text?: string }> }));
+    }
+
+    const ENV_KEYS = ['REPLIT_DEPLOYMENT_ID', 'REPL_DEPLOYMENT_ID', 'SOURCE_VERSION'] as const;
+    let savedEnv: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>>;
+
+    beforeEach(() => {
+      savedEnv = {};
+      for (const k of ENV_KEYS) {
+        savedEnv[k] = process.env[k];
+        delete process.env[k];
+      }
+    });
+
+    afterEach(() => {
+      for (const k of ENV_KEYS) {
+        if (savedEnv[k] === undefined) {
+          delete process.env[k];
+        } else {
+          process.env[k] = savedEnv[k];
+        }
+      }
+      jest.resetModules();
+    });
+
+    async function loadAndCallInfo() {
+      let info: Record<string, unknown> = {};
+      await jest.isolateModulesAsync(async () => {
+        const mod = await import('../mcp/server');
+        const freshServer = mod.createMcpServer();
+        const handler = getToolHandler(freshServer, 'get_mcp_info');
+        info = parseInfo(await handler({ role: 'admin' }, {}));
+      });
+      return info;
+    }
+
+    it('prefers REPLIT_DEPLOYMENT_ID over git when set', async () => {
+      process.env.REPLIT_DEPLOYMENT_ID = 'deploy-abc-123';
+      const info = await loadAndCallInfo();
+      expect(info.buildSha).toBe('deploy-abc-123');
+    });
+
+    it('prefers REPL_DEPLOYMENT_ID when REPLIT_DEPLOYMENT_ID is unset', async () => {
+      process.env.REPL_DEPLOYMENT_ID = 'repl-deploy-xyz';
+      const info = await loadAndCallInfo();
+      expect(info.buildSha).toBe('repl-deploy-xyz');
+    });
+
+    it('prefers SOURCE_VERSION when other deploy env vars are unset', async () => {
+      process.env.SOURCE_VERSION = 'src-ver-789';
+      const info = await loadAndCallInfo();
+      expect(info.buildSha).toBe('src-ver-789');
+    });
+
+    it('falls back to git short HEAD (or "unknown") when no deploy env vars are set', async () => {
+      const info = await loadAndCallInfo();
+      expect(typeof info.buildSha).toBe('string');
+      // Either a 7-ish char git short SHA, or "unknown" when git is unavailable.
+      expect(info.buildSha as string).toMatch(/^[0-9a-f]{4,40}$|^unknown$/);
+      // Critically, it must not equal one of the deploy markers we cleared.
+      expect(info.buildSha).not.toBe('deploy-abc-123');
+    });
+  });
+
   describe('Get Analysis Status', () => {
     it('should return completed status for synchronous analysis', async () => {
       const handler = getToolHandler(server, 'get_analysis_status');
