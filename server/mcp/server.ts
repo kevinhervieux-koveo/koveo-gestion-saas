@@ -2238,7 +2238,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "delete_residence",
-    "Delete a single residence (admin/manager only). Only residences attached to buildings inside MCP-scoped organizations can be deleted via MCP. Cascades to user-residence links. Fails with a readable message if other references (demands, documents, maintenance requests, invoices) prevent deletion.",
+    "Delete a single residence (admin/manager only). Only residences attached to buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: invoices, documents, building elements, maintenance requests, demands (rows where this residence is the primary residenceId are deleted; rows where it is only the assignationResidenceId are null-ed out), and user-residence links. Returns a structured summary of how many rows were removed from each child table.",
     { role: roleParam, residenceId: z.string().describe("Residence ID to delete") },
     async ({ role, residenceId }) => {
       const orgIds = await getMcpOrgIds();
@@ -2263,14 +2263,60 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       });
       if (!auth.ok) return auth.response;
       try {
-        const deleted = await db
-          .delete(schema.residences)
-          .where(eq(schema.residences.id, residenceId))
-          .returning({ id: schema.residences.id, unitNumber: schema.residences.unitNumber });
+        const result = await db.transaction(async (tx) => {
+          const invoicesDeleted = await tx
+            .delete(schema.invoices)
+            .where(eq(schema.invoices.residenceId, residenceId))
+            .returning({ id: schema.invoices.id });
+          const documentsDeleted = await tx
+            .delete(schema.documents)
+            .where(eq(schema.documents.residenceId, residenceId))
+            .returning({ id: schema.documents.id });
+          const buildingElementsDeleted = await tx
+            .delete(schema.buildingElements)
+            .where(eq(schema.buildingElements.residenceId, residenceId))
+            .returning({ id: schema.buildingElements.id });
+          const maintenanceRequestsDeleted = await tx
+            .delete(schema.maintenanceRequests)
+            .where(eq(schema.maintenanceRequests.residenceId, residenceId))
+            .returning({ id: schema.maintenanceRequests.id });
+          const demandsDeleted = await tx
+            .delete(schema.demands)
+            .where(eq(schema.demands.residenceId, residenceId))
+            .returning({ id: schema.demands.id });
+          // Demands that only point at this residence as the assignation
+          // target (but live in a different primary residence) get the
+          // assignation cleared so they are not orphaned by the FK.
+          const demandsCleared = await tx
+            .update(schema.demands)
+            .set({ assignationResidenceId: null })
+            .where(eq(schema.demands.assignationResidenceId, residenceId))
+            .returning({ id: schema.demands.id });
+          const userResidencesDeleted = await tx
+            .delete(schema.userResidences)
+            .where(eq(schema.userResidences.residenceId, residenceId))
+            .returning({ id: schema.userResidences.id });
+          const deleted = await tx
+            .delete(schema.residences)
+            .where(eq(schema.residences.id, residenceId))
+            .returning({ residenceId: schema.residences.id, unitNumber: schema.residences.unitNumber });
+          return {
+            deleted: deleted[0] ?? null,
+            cascaded: {
+              invoices: invoicesDeleted.length,
+              documents: documentsDeleted.length,
+              demands: demandsDeleted.length,
+              maintenanceRequests: maintenanceRequestsDeleted.length,
+              buildingElements: buildingElementsDeleted.length,
+              userResidences: userResidencesDeleted.length,
+            },
+            demandsAssignationCleared: demandsCleared.length,
+          };
+        });
         return {
           content: [{
             type: "text" as const,
-            text: JSON.stringify({ deleted: deleted[0] ?? null, message: "Residence deleted (cascade applied to user links)" }, null, 2),
+            text: JSON.stringify({ ...result, message: "Residence deleted (cascade applied to invoices, documents, building elements, maintenance requests, demands, user links)" }, null, 2),
           }],
         };
       } catch (e) {

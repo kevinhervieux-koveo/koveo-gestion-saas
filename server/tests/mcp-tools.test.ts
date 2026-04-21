@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
+import { getTableName } from 'drizzle-orm';
 
 const mockLimitFn = jest.fn().mockResolvedValue([]);
 const mockAndResult = Promise.resolve([]);
@@ -524,15 +525,85 @@ describe('MCP Server', () => {
   });
 
   describe('delete_residence', () => {
-    const mockDeleteChain = {
-      where: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockResolvedValue([]),
-    };
+    type DeleteCall = { table: 'invoices' | 'documents' | 'buildingElements' | 'maintenanceRequests' | 'demands' | 'userResidences' | 'residences' | 'unknown' };
+    type UpdateCall = { table: 'demands' | 'unknown' };
+    let deleteCalls: DeleteCall[];
+    let updateCalls: UpdateCall[];
+    let deleteReturnings: Array<unknown[]>;
+    let residenceDeleteReturning: unknown[];
+    let demandsClearedReturning: unknown[];
+    let throwOnTable: DeleteCall['table'] | null;
+    let txError: Error | null;
+
+    function tableNameFor(t: unknown): DeleteCall['table'] {
+      let name: string | undefined;
+      try {
+        name = getTableName(t as Parameters<typeof getTableName>[0]);
+      } catch {
+        name = undefined;
+      }
+      switch (name) {
+        case 'invoices': return 'invoices';
+        case 'documents': return 'documents';
+        case 'building_elements': return 'buildingElements';
+        case 'maintenance_requests': return 'maintenanceRequests';
+        case 'demands': return 'demands';
+        case 'user_residences': return 'userResidences';
+        case 'residences': return 'residences';
+        default: return 'unknown';
+      }
+    }
+
+    function makeChain(rows: unknown[]) {
+      const chain: { where: jest.Mock; returning: jest.Mock } = {
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue(rows),
+      };
+      return chain;
+    }
 
     beforeEach(() => {
-      mockDeleteChain.where.mockReturnThis();
-      mockDeleteChain.returning.mockResolvedValue([]);
-      (mockDb as unknown as { delete: jest.Mock }).delete = jest.fn().mockReturnValue(mockDeleteChain);
+      deleteCalls = [];
+      updateCalls = [];
+      deleteReturnings = [];
+      residenceDeleteReturning = [{ residenceId: 'res-1', unitNumber: '101' }];
+      demandsClearedReturning = [];
+      throwOnTable = null;
+      txError = null;
+
+      const tx = {
+        delete: jest.fn((table: unknown) => {
+          const name = tableNameFor(table);
+          deleteCalls.push({ table: name });
+          if (throwOnTable === name) {
+            return {
+              where: jest.fn().mockReturnThis(),
+              returning: jest.fn().mockRejectedValue(
+                new Error('update or delete on table "residences" violates foreign key constraint "demands_residence_id_residences_id_fk"'),
+              ),
+            };
+          }
+          if (name === 'residences') return makeChain(residenceDeleteReturning);
+          const idx = deleteCalls.filter(c => c.table !== 'residences').length - 1;
+          const rows = deleteReturnings[idx] ?? [];
+          return makeChain(rows);
+        }),
+        update: jest.fn((table: unknown) => {
+          const name = tableNameFor(table) as UpdateCall['table'];
+          updateCalls.push({ table: name });
+          return {
+            set: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            returning: jest.fn().mockResolvedValue(demandsClearedReturning),
+          };
+        }),
+      };
+
+      (mockDb as unknown as { transaction: jest.Mock }).transaction = jest.fn(async (fn: (t: typeof tx) => Promise<unknown>) => {
+        if (txError) throw txError;
+        return fn(tx);
+      });
+      (mockDb as unknown as { delete: jest.Mock }).delete = jest.fn(() => makeChain([]));
     });
 
     it('denies tenants', async () => {
@@ -562,27 +633,76 @@ describe('MCP Server', () => {
       );
     });
 
-    it('deletes a residence inside MCP scope as admin', async () => {
+    it('deletes a residence inside MCP scope as admin (no dependents)', async () => {
       mockSelectChain.where
         .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
         .mockImplementationOnce(() => createWhereResult([{ id: 'res-1', buildingId: 'b-1' }]))
         .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
-      mockDeleteChain.returning.mockResolvedValueOnce([{ id: 'res-1', unitNumber: '101' }]);
       const handler = getToolHandler(server, 'delete_residence');
       const result = await handler({ role: 'admin', residenceId: 'res-1' }, {});
       const text = parseToolResponse(result);
-      expect(text).toContain('"id": "res-1"');
-      expect(text).toContain('Residence deleted (cascade applied to user links)');
+      const parsed = JSON.parse(text);
+      expect(parsed.deleted).toEqual({ residenceId: 'res-1', unitNumber: '101' });
+      expect(parsed.cascaded).toEqual({
+        invoices: 0,
+        documents: 0,
+        demands: 0,
+        maintenanceRequests: 0,
+        buildingElements: 0,
+        userResidences: 0,
+      });
+      expect(parsed.demandsAssignationCleared).toBe(0);
+      expect(parsed.message).toMatch(/cascade applied/i);
     });
 
-    it('returns a readable failure message when a non-cascading FK blocks deletion', async () => {
+    it('cascades to invoices, documents, demands, maintenance requests, building elements and user-residence links', async () => {
       mockSelectChain.where
         .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
         .mockImplementationOnce(() => createWhereResult([{ id: 'res-1', buildingId: 'b-1' }]))
         .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
-      mockDeleteChain.returning.mockRejectedValueOnce(
-        new Error('update or delete on table "residences" violates foreign key constraint "demands_residence_id_residences_id_fk"'),
-      );
+      // Order matches tool: invoices, documents, buildingElements, maintenanceRequests, demands, userResidences
+      deleteReturnings = [
+        [{ id: 'inv-1' }, { id: 'inv-2' }],
+        [{ id: 'doc-1' }],
+        [{ id: 'be-1' }, { id: 'be-2' }, { id: 'be-3' }],
+        [{ id: 'mr-1' }],
+        [{ id: 'd-1' }, { id: 'd-2' }],
+        [{ id: 'ur-1' }],
+      ];
+      demandsClearedReturning = [{ id: 'd-3' }];
+      const handler = getToolHandler(server, 'delete_residence');
+      const result = await handler({ role: 'admin', residenceId: 'res-1' }, {});
+      const text = parseToolResponse(result);
+      const parsed = JSON.parse(text);
+      expect(parsed.deleted).toEqual({ residenceId: 'res-1', unitNumber: '101' });
+      expect(parsed.cascaded).toEqual({
+        invoices: 2,
+        documents: 1,
+        demands: 2,
+        maintenanceRequests: 1,
+        buildingElements: 3,
+        userResidences: 1,
+      });
+      expect(parsed.demandsAssignationCleared).toBe(1);
+      // Verify dependency order
+      expect(deleteCalls.map(c => c.table)).toEqual([
+        'invoices',
+        'documents',
+        'buildingElements',
+        'maintenanceRequests',
+        'demands',
+        'userResidences',
+        'residences',
+      ]);
+      expect(updateCalls.map(c => c.table)).toEqual(['demands']);
+    });
+
+    it('returns a readable failure message when the cascade transaction fails', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'res-1', buildingId: 'b-1' }]))
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
+      txError = new Error('update or delete on table "residences" violates foreign key constraint "demands_residence_id_residences_id_fk"');
       const handler = getToolHandler(server, 'delete_residence');
       const result = await handler({ role: 'admin', residenceId: 'res-1' }, {});
       const text = parseToolResponse(result);
